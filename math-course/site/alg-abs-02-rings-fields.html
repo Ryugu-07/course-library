@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 05:30</div>
+    <div class="build-time">构建于 2026-09-10 02:35</div>
   </div>
 </nav>
 <main id="content">
@@ -59,11 +59,21 @@ try {
 <li><a href="#3">3. 定理级结论与失败边界</a></li>
 </ul>
 </li>
-<li><a href="#1">1. 环与理想</a></li>
-<li><a href="#2_1">2. 域：能除的世界</a></li>
-<li><a href="#3_1">3. 域扩张与两大古典问题（山顶眺望）</a></li>
-<li><a href="#4">4. 典型例题</a></li>
-<li><a href="#_2">基础衔接与计算验收</a></li>
+<li><a href="#1">1. 两种运算为什么需要理想</a><ul>
+<li><a href="#mathbb-z_n">在 \(\mathbb Z_n\) 里逐步证明实验判据</a></li>
+</ul>
+</li>
+<li><a href="#2_1">2. 域、不可约多项式与“同样多的元素”</a></li>
+<li><a href="#3_1">3. 扩张次数：先证明为什么是四维</a></li>
+<li><a href="#4-galois">4. Galois 对应：允许的对称越少，固定的域越大</a></li>
+<li><a href="#5">5. 次数与对称如何限制作图和求根</a></li>
+<li><a href="#6">6. 迁移练习：从运算证书走到结构</a><ul>
+<li><a href="#1_1">题 1：同阶的两个环为何不同？</a></li>
+<li><a href="#2_2">题 2：可约为什么不等于“有非零元平方为零”？</a></li>
+<li><a href="#3_2">题 3：一个“混合根”能生成整个四维域吗？</a></li>
+</ul>
+</li>
+<li><a href="#_2">基础衔接与进一步证明</a></li>
 </ul>
 </div>
 </details>
@@ -77,16 +87,17 @@ try {
 <h2 id="_1">学习层：先在有限算术里找出“能不能除”<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <h3 id="alg-abs-rings-learning-title">1. 具身情境：模运算收银台与扩张工坊<a class="headerlink" href="#alg-abs-rings-learning-title" title="Permanent link"></a></h3>
 <p>把账本的余数限制在 <span class="arithmatex">\(\mathbb Z_n\)</span>：每次加、乘后都折回 <span class="arithmatex">\(0,1,\ldots,n-1\)</span>。收银台要判断两件事：一个余数能不能当除数，以及哪些余数相乘会把账本清成零。旁边的扩张工坊把 <span class="arithmatex">\(\mathbb F_p[x]\)</span> 中的多项式设为零，观察商环里是否仍有“坏掉的除法”。</p>
-<p>下面的实验可改变 <span class="arithmatex">\(n\)</span>，并切换三个二次商环。先预测，不要把有限列表当成一般证明：</p>
+<p>下面的实验可改变 <span class="arithmatex">\(n\ge2\)</span>，并切换四个二次商环。两栏是独立模型，不表示把左侧模环作为右侧的基域。先预测，不要把有限列表当成一般证明：</p>
 <ol>
 <li>在 <span class="arithmatex">\(\mathbb Z_n\)</span> 中，余数 <span class="arithmatex">\(2\)</span> 什么时候是单位？</li>
-<li>非零零因子与 <span class="arithmatex">\(\gcd(a,n)\)</span> 的关系是哪一种？</li>
+<li><span class="arithmatex">\(\mathbb Z_n\)</span> 成为域需要 <span class="arithmatex">\(n\)</span> 满足什么条件？</li>
 <li>把多项式模掉以后，当前商环还是域吗？</li>
+<li>在四维域中，只翻转 √2 的对称会固定哪一个二次中间域？</li>
 </ol>
 <h3 id="2">2. 正式理论桥：四张有限证书各自守住一条边界<a class="headerlink" href="#2" title="Permanent link"></a></h3>
 <p>在 <span class="arithmatex">\(\mathbb Z_n\)</span> 中，<span class="arithmatex">\(a\)</span> 是单位当且仅当 <span class="arithmatex">\(\gcd(a,n)=1\)</span>。若 <span class="arithmatex">\(a\ne0\)</span> 且 <span class="arithmatex">\(\gcd(a,n)&gt;1\)</span>，则它是零因子；有限枚举可以给出一个见证元 <span class="arithmatex">\(b\)</span>，使 <span class="arithmatex">\(ab=0\)</span>（模 <span class="arithmatex">\(n\)</span>）。因此 <span class="arithmatex">\(\mathbb Z_n\)</span> 是域当且仅当 <span class="arithmatex">\(n\)</span> 为素数。</p>
-<p>若 <span class="arithmatex">\(d\mid n\)</span>，则 <span class="arithmatex">\((d)\)</span> 是 <span class="arithmatex">\(\mathbb Z_n\)</span> 的理想，并且 <span class="arithmatex">\(\mathbb Z_n/(d)\cong\mathbb Z_d\)</span>。这是一个由具体生成元得到的商环证书，不意味着每个环的理想都长成这种形式。</p>
-<p>对 <span class="arithmatex">\(f(x)\in\mathbb F_p[x]\)</span>，商环 <span class="arithmatex">\(\mathbb F_p[x]/(f)\)</span> 在 <span class="arithmatex">\(f\)</span> 不可约时才是域；二次不可约例子给出扩张 <span class="arithmatex">\(\mathbb F_{p^2}\)</span>，阶为 <span class="arithmatex">\(p^2\)</span>。可约多项式会留下非零零因子。实验把每个元素逐项乘一遍，是有限模型的审计，不是“枚举证明所有环都如此”。</p>
+<p>取正整数 <span class="arithmatex">\(d\mid n\)</span>，则 <span class="arithmatex">\((d)\)</span> 是 <span class="arithmatex">\(\mathbb Z_n\)</span> 的理想，并且 <span class="arithmatex">\(\mathbb Z_n/(d)\cong\mathbb Z_d\)</span>。当 <span class="arithmatex">\(d=1\)</span> 时商为零环。这是一个由具体生成元得到的商环证书，不意味着每个环的理想都长成这种形式。</p>
+<p>对非恒定 <span class="arithmatex">\(f(x)\in\mathbb F_p[x]\)</span>，商环 <span class="arithmatex">\(\mathbb F_p[x]/(f)\)</span> 在 <span class="arithmatex">\(f\)</span> 不可约时才是域；二次不可约例子给出扩张 <span class="arithmatex">\(\mathbb F_{p^2}\)</span>，阶为 <span class="arithmatex">\(p^2\)</span>。可约多项式会留下非零零因子。实验把每个元素逐项乘一遍，是有限模型的审计，不是“枚举证明所有环都如此”。</p>
 <div class="learning-lab" data-learning-lab="rings-fields">
 <p><strong>JavaScript 失效时的静态读法：</strong>取 <span class="arithmatex">\(\mathbb Z_{12}\)</span>，单位为 <span class="arithmatex">\(\{1,5,7,11\}\)</span>，非零零因子为 <span class="arithmatex">\(\{2,3,4,6,8,9,10\}\)</span>；其理想 <span class="arithmatex">\((3)\)</span> 是 <span class="arithmatex">\(\{0,3,6,9\}\)</span>，商环同构于 <span class="arithmatex">\(\mathbb Z_3\)</span>。在扩张工坊中，<span class="arithmatex">\(\mathbb F_2[x]/(x^2+x+1)\)</span> 是四元域，而 <span class="arithmatex">\(\mathbb F_2[x]/(x^2+1)\)</span> 有非零零因子 <span class="arithmatex">\(x+1\)</span>。</p>
 <table>
@@ -129,32 +140,192 @@ try {
 <li><strong>除法的边界：</strong>单位是有乘法逆元的元素；零因子不是“数值很小”，而是乘上另一个非零元素后得到零。</li>
 </ul>
 </section>
-<figure class="diagram">
-<p><img alt="域扩张塔 与 子群格 的 Galois 对应（倒挂的两个格 + 对应箭头）。" src="assets/img/alg-abs-02-galois-lattice.svg" /></p>
-<figcaption><span class="fig-id">图 alg-abs.1</span>域扩张塔 与 子群格 的 Galois 对应（倒挂的两个格 + 对应箭头）。</figcaption>
+<h2 id="1">1. 两种运算为什么需要理想<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>本页的<strong>环</strong>有乘法单位元 <span class="arithmatex">\(1\)</span>，加法构成 Abel 群，乘法结合，且左右分配律都成立；允许零环 <span class="arithmatex">\(1=0\)</span>，但<strong>整环和域都要求 <span class="arithmatex">\(1\ne0\)</span></strong>。环同态在本页保幺。除明确写出矩阵环的地方，后文都讨论交换环。</p>
+<p>从整数到模 <span class="arithmatex">\(n\)</span> 算术，没有删掉加法或乘法，只是把相差 <span class="arithmatex">\(n\)</span> 的倍数看成相同。困难在于：如果换一个代表元，运算结果还会落在同一类吗？</p>
+<p><strong>理想 <span class="arithmatex">\(I\subseteq R\)</span></strong> 是加法子群，而且 <span class="arithmatex">\(rI\subseteq I\)</span>、<span class="arithmatex">\(Ir\subseteq I\)</span> 对所有 <span class="arithmatex">\(r\in R\)</span> 都成立；非交换环要同时要求两侧吸收，交换时两条相同。加法子群只保证加法能下降到商上，吸收性才保证乘法也能下降：若 <span class="arithmatex">\(a'=a+i,b'=b+j\)</span>，则</p>
+<div class="arithmatex">\[
+a'b'-ab=aj+ib+ij\in I.
+\]</div>
+<p>所以 <span class="arithmatex">\((a+I)(b+I)=ab+I\)</span> 不依赖代表元。反过来，如果商乘法沿用这个规则，<span class="arithmatex">\(i+I=0+I\)</span> 强迫 <span class="arithmatex">\(ri,ir\in I\)</span>。这是理想与商环的联系，不只是“理想像正规子群”的比喻。矩阵环 <span class="arithmatex">\(M_2(\mathbb R)\)</span> 中“第二列为零”的矩阵组成左理想，但右乘某些矩阵会离开它，因此不能用它按上述规则构造商环。</p>
+<p>例如 <span class="arithmatex">\(A=\begin{pmatrix}1&amp;0\\0&amp;0\end{pmatrix}\)</span> 在该左理想中，而右乘 <span class="arithmatex">\(B=\begin{pmatrix}0&amp;1\\0&amp;0\end{pmatrix}\)</span> 后 <span class="arithmatex">\(AB=B\)</span>，第二列不再为零。</p>
+<p><strong>单位</strong> <span class="arithmatex">\(u\)</span> 是有双侧乘法逆元的元素；交换环的<strong>非零零因子</strong>是某个 <span class="arithmatex">\(a\ne0\)</span>，存在 <span class="arithmatex">\(b\ne0\)</span> 使 <span class="arithmatex">\(ab=0\)</span>。整环是没有非零零因子的非零交换环。由 <span class="arithmatex">\(ab=ac\)</span> 得 <span class="arithmatex">\(a(b-c)=0\)</span>，可见整环中 <span class="arithmatex">\(a\ne0\)</span> 可以消去；这不保证 <span class="arithmatex">\(a\)</span> 有逆，例如整数 <span class="arithmatex">\(2\)</span> 能消去却不是 <span class="arithmatex">\(\mathbb Z\)</span> 的单位。</p>
+<p>同态 <span class="arithmatex">\(\varphi:R\to S\)</span> 的核是理想，且</p>
+<div class="arithmatex">\[
+R/\ker\varphi\longrightarrow\operatorname{im}\varphi,
+\quad a+\ker\varphi\longmapsto\varphi(a)
+\]</div>
+<p>良定义、保持两种运算且双射：两个像相同当且仅当两代表之差落在核中。这是<strong>环的第一同构定理</strong>。</p>
+<h3 id="mathbb-z_n">在 <span class="arithmatex">\(\mathbb Z_n\)</span> 里逐步证明实验判据<a class="headerlink" href="#mathbb-z_n" title="Permanent link"></a></h3>
+<p>这里 <span class="arithmatex">\(n\ge2\)</span>，把余数 <span class="arithmatex">\(a\)</span> 写作其代表 <span class="arithmatex">\(0\le a&lt;n\)</span>。若 <span class="arithmatex">\(ab\equiv1\pmod n\)</span>，任何 <span class="arithmatex">\(a,n\)</span> 的公因子都整除 <span class="arithmatex">\(1\)</span>；反之 <span class="arithmatex">\(\gcd(a,n)=1\)</span> 时 Bézout 等式 <span class="arithmatex">\(au+nv=1\)</span> 给出逆元 <span class="arithmatex">\(u\bmod n\)</span>。因此</p>
+<div class="arithmatex">\[
+a\text{ 可逆}\iff\gcd(a,n)=1.
+\]</div>
+<p>若 <span class="arithmatex">\(a\ne0\)</span> 且 <span class="arithmatex">\(d=\gcd(a,n)&gt;1\)</span>，取 <span class="arithmatex">\(b=n/d\)</span>，便有 <span class="arithmatex">\(0&lt;b&lt;n\)</span> 且 <span class="arithmatex">\(ab\equiv0\)</span>。可逆元不可能是非零零因子。因此在这个有限环里，每个非零元恰属两类之一。<strong>这是有限性的特殊好处</strong>：一般整环中的非单位不必是零因子，整数 <span class="arithmatex">\(2\)</span> 就是反例。</p>
+<p>每个 <span class="arithmatex">\(\mathbb Z_n\)</span> 的理想都形如 <span class="arithmatex">\((d)\)</span>，其中 <span class="arithmatex">\(d\mid n\)</span>：在 <span class="arithmatex">\(\mathbb Z\to\mathbb Z_n\)</span> 下取原像，它是包含 <span class="arithmatex">\(n\mathbb Z\)</span> 的整数理想 <span class="arithmatex">\(d\mathbb Z\)</span>。整数理想单生成的证明是选最小正元，用带余除法排除非零余数；零理想另列。</p>
+<p>映射 <span class="arithmatex">\(\mathbb Z_n\to\mathbb Z_d, a\mapsto a\bmod d\)</span> 因 <span class="arithmatex">\(d\mid n\)</span> 而良定义，核为 <span class="arithmatex">\((d)\)</span>，所以</p>
+<div class="arithmatex">\[
+\mathbb Z_n/(d)\cong\mathbb Z_d,\qquad
+\lvert(d)\rvert=n/d,\quad \lvert\mathbb Z_n/(d)\rvert=d.
+\]</div>
+<p>端点也要读：<span class="arithmatex">\(d=1\)</span> 时商为一个元素的零环；<span class="arithmatex">\(d=n\)</span> 时理想为零，商保留原环。实验中的商加法、乘法表是映射 <span class="arithmatex">\(a\mapsto a\bmod d\)</span> 的具体运算，不只是比较元素数量。</p>
+<h2 id="2_1">2. 域、不可约多项式与“同样多的元素”<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p><strong>域</strong>是非零元全部可逆的非零交换环。有限整环必为域：固定 <span class="arithmatex">\(a\ne0\)</span>，映射 <span class="arithmatex">\(x\mapsto ax\)</span> 由消去律单射，有限集合的单射也是满射，故某个 <span class="arithmatex">\(x\)</span> 满足 <span class="arithmatex">\(ax=1\)</span>。结合上一节，<span class="arithmatex">\(\mathbb Z_n\)</span> 是域当且仅当 <span class="arithmatex">\(n\)</span> 是素数。</p>
+<p><strong>特征</strong>是使 <span class="arithmatex">\(m1=0\)</span> 的最小正整数 <span class="arithmatex">\(m\)</span>，若不存在则为 <span class="arithmatex">\(0\)</span>。一般含幺环可以有合数特征，例如 <span class="arithmatex">\(\mathbb Z_6\)</span> 的特征为 <span class="arithmatex">\(6\)</span>。在整环（因而在域）中，若特征 <span class="arithmatex">\(m=ab\)</span> 且 <span class="arithmatex">\(1&lt;a,b&lt;m\)</span>，就有非零的 <span class="arithmatex">\((a1)(b1)=0\)</span>，矛盾；所以整环的正特征只能是素数。</p>
+<p>域 <span class="arithmatex">\(F\)</span> 上的多项式环 <span class="arithmatex">\(F[x]\)</span> 可以按次数作带余除法。像整数的最小正元论证一样，选非零理想中次数最小的首一多项式，便证明每个理想单生成。<strong>欧几里得整环 <span class="arithmatex">\(\Rightarrow\)</span> 主理想整环 <span class="arithmatex">\(\Rightarrow\)</span> 唯一分解整环</strong>；这里并不声称每个主理想整环都具有某种给定的欧几里得除法。</p>
+<p>对<strong>非恒定</strong> <span class="arithmatex">\(f\in F[x]\)</span>，有</p>
+<div class="arithmatex">\[
+F[x]/(f)\text{ 是域}\iff f\text{ 不可约}.
+\]</div>
+<p>证明的机制仍是“找逆元”。不可约时，任一不被 <span class="arithmatex">\(f\)</span> 整除的 <span class="arithmatex">\(g\)</span> 与 <span class="arithmatex">\(f\)</span> 互素，扩展欧几里得算法给 <span class="arithmatex">\(ug+vf=1\)</span>，于是 <span class="arithmatex">\([u][g]=[1]\)</span>。若 <span class="arithmatex">\(f=gh\)</span> 为两个次数都较小的非常数因子，则 <span class="arithmatex">\([g],[h]\ne0\)</span>，而 <span class="arithmatex">\([g][h]=0\)</span>。二次式可以用“在 <span class="arithmatex">\(F\)</span> 中无根”判不可约；四次及以上仅无根不够，例如 <span class="arithmatex">\((x^2+1)^2\in\mathbb R[x]\)</span>。</p>
+<p>写 <span class="arithmatex">\(\alpha=[x]\)</span>，避免把商中的元素与多项式变量混为一谈。下表的元素都能唯一写成 <span class="arithmatex">\(a+b\alpha\)</span>，但乘法关系不同。</p>
+<table>
+<thead>
+<tr>
+<th>商环</th>
+<th>关系</th>
+<th>可以核验的差别</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\mathbb F_2[x]/(x^2+x+1)\)</span></td>
+<td><span class="arithmatex">\(\alpha^2=\alpha+1\)</span></td>
+<td>四元域；<span class="arithmatex">\(\alpha(\alpha+1)=1\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\mathbb F_2[x]/(x^2+1)\)</span></td>
+<td><span class="arithmatex">\(\alpha^2=1\)</span></td>
+<td><span class="arithmatex">\(\varepsilon=\alpha+1\ne0\)</span>，但 <span class="arithmatex">\(\varepsilon^2=0\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\mathbb F_3[x]/(x^2+1)\)</span></td>
+<td><span class="arithmatex">\(\alpha^2=2\)</span></td>
+<td>九元域；<span class="arithmatex">\(\alpha(2\alpha)=1\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\mathbb F_3[x]/(x^2-1)\)</span></td>
+<td><span class="arithmatex">\(\alpha^2=1\)</span></td>
+<td><span class="arithmatex">\((\alpha-1)(\alpha+1)=0\)</span>，却没有非零幂零元</td>
+</tr>
+</tbody>
+</table>
+<p>最后一个环经 <span class="arithmatex">\([g]\mapsto(g(1),g(-1))\)</span> 同构于 <span class="arithmatex">\(\mathbb F_3\times\mathbb F_3\)</span>：核为 <span class="arithmatex">\((x^2-1)\)</span>，线性插值给出满射。乘积环里的非零幂零元不存在，因为两个域中的幂都不会把非零元变成零。<strong>可约</strong>会产生零因子，<strong>重因子</strong>才是这里幂零现象的来源。</p>
+<p>有限域的特征为某素数 <span class="arithmatex">\(p\)</span>，它含有由 <span class="arithmatex">\(1\)</span> 生成的 <span class="arithmatex">\(\mathbb F_p\)</span>，作为该域的有限维向量空间，元素数必为 <span class="arithmatex">\(p^k\)</span>。反过来，每个素数幂阶都存在有限域，且同构意义下唯一；这是存在唯一性定理，不由本页四个模型推出。尤其 <span class="arithmatex">\(\mathbb F_4\not\cong\mathbb Z_4\)</span>：前者特征 <span class="arithmatex">\(2\)</span>，后者特征 <span class="arithmatex">\(4\)</span> 且 <span class="arithmatex">\(2^2=0\)</span>。</p>
+<p>特征 <span class="arithmatex">\(p\)</span> 的交换环上，Frobenius 映射 <span class="arithmatex">\(z\mapsto z^p\)</span> 保加法和乘法，因为中间二项式系数都被 <span class="arithmatex">\(p\)</span> 整除。它在有限域上是自同构；在二重根例子里把非零 <span class="arithmatex">\(\varepsilon\)</span> 送到零，不能是单射。实验显示每个元素的像，让这一差别可以逐项核验。有限域的乘法用于编码与密码算法，但离散对数的困难取决于所选群及参数，不能由“是域”本身推出安全性。</p>
+<h2 id="3_1">3. 扩张次数：先证明为什么是四维<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>若域 <span class="arithmatex">\(F\subseteq E\)</span>，那么 <span class="arithmatex">\(E\)</span> 是 <span class="arithmatex">\(F\)</span>-向量空间，维数记作 <span class="arithmatex">\([E:F]\)</span>。对有限扩张塔 <span class="arithmatex">\(F\subseteq K\subseteq E\)</span>，若 <span class="arithmatex">\(u_i\)</span> 是 <span class="arithmatex">\(K/F\)</span> 的基，<span class="arithmatex">\(v_j\)</span> 是 <span class="arithmatex">\(E/K\)</span> 的基，则 <span class="arithmatex">\(u_iv_j\)</span> 张成 <span class="arithmatex">\(E/F\)</span>；把线性关系先按 <span class="arithmatex">\(v_j\)</span> 分组，再用 <span class="arithmatex">\(u_i\)</span> 的独立性，即证它们线性独立。因此</p>
+<div class="arithmatex">\[
+[E:F]=[E:K][K:F].
+\]</div>
+<p>若 <span class="arithmatex">\(\alpha\)</span> 在 <span class="arithmatex">\(F\)</span> 上代数，其首一极小多项式 <span class="arithmatex">\(m_\alpha\)</span> 是使 <span class="arithmatex">\(m_\alpha(\alpha)=0\)</span> 的最小次数首一多项式。代入同态 <span class="arithmatex">\(F[x]\to E\)</span> 的核是 <span class="arithmatex">\((m_\alpha)\)</span>，且 <span class="arithmatex">\(m_\alpha\)</span> 不可约：可约将使较低次数因子在 <span class="arithmatex">\(\alpha\)</span> 处为零。因此</p>
+<div class="arithmatex">\[
+F[\alpha]=F(\alpha)\cong F[x]/(m_\alpha),\qquad
+[F(\alpha):F]=\deg m_\alpha.
+\]</div>
+<p>超越元不满足这条有限次数公式；例如 <span class="arithmatex">\(F[t]\ne F(t)\)</span>。</p>
+<p>取 <span class="arithmatex">\(E=\mathbb Q(\sqrt2,\sqrt3)\)</span>。先有 <span class="arithmatex">\([\mathbb Q(\sqrt2):\mathbb Q]=2\)</span>。若 <span class="arithmatex">\(\sqrt3=a+b\sqrt2\)</span>，<span class="arithmatex">\(a,b\in\mathbb Q\)</span>，平方并比较有理与无理部分得 <span class="arithmatex">\(ab=0\)</span>。<span class="arithmatex">\(b=0\)</span> 要求有理数平方为 <span class="arithmatex">\(3\)</span>，<span class="arithmatex">\(a=0\)</span> 要求有理数平方为 <span class="arithmatex">\(3/2\)</span>，都不可能（素因子指数奇偶性即可证）。所以再加入 <span class="arithmatex">\(\sqrt3\)</span> 确实增加一倍维数：</p>
+<div class="arithmatex">\[
+[E:\mathbb Q]=4,\qquad \{1,\sqrt2,\sqrt3,\sqrt6\}\text{ 是一组基}.
+\]</div>
+<h2 id="4-galois">4. Galois 对应：允许的对称越少，固定的域越大<a class="headerlink" href="#4-galois" title="Permanent link"></a></h2>
+<p>一个 <span class="arithmatex">\(F\)</span>-自同构是保持两种运算、固定 <span class="arithmatex">\(F\)</span> 每个元素的 <span class="arithmatex">\(E\to E\)</span> 双射。它必须把多项式的根送到同一个多项式的根。在上述四维扩张中，只能独立选择 <span class="arithmatex">\(\sqrt2,\sqrt3\)</span> 的正负，且这四种选择都保持乘法。因此</p>
+<div class="arithmatex">\[
+G=\operatorname{Gal}(E/\mathbb Q)=\{e,\sigma,\tau,\sigma\tau\}\cong C_2\times C_2,
+\]</div>
+<p>其中 <span class="arithmatex">\(\sigma\)</span> 只翻转 <span class="arithmatex">\(\sqrt2\)</span>，<span class="arithmatex">\(\tau\)</span> 只翻转 <span class="arithmatex">\(\sqrt3\)</span>。例如</p>
+<div class="arithmatex">\[
+\sigma(a+b\sqrt2+c\sqrt3+d\sqrt6)
+=a-b\sqrt2+c\sqrt3-d\sqrt6.
+\]</div>
+<p>固定 <span class="arithmatex">\(\sigma\)</span> 要求 <span class="arithmatex">\(b=d=0\)</span>，所以它的固定域是 <span class="arithmatex">\(\mathbb Q(\sqrt3)\)</span>，不是 <span class="arithmatex">\(\mathbb Q(\sqrt2)\)</span>。这里“固定”指<strong>每个元素保持原值</strong>，并非只把整个集合映回自身。</p>
+<div role="region" aria-label="可横向滚动的双二次扩张 Galois 对应图" tabindex="0" style="max-width:100%;overflow-x:auto">
+<figure class="diagram" style="min-width:1100px">
+<p><img alt="Q(√2,√3) 的五个中间域与 V4 的五个子群反序对应；下方列出四个自同构对四个基向量的符号。" src="assets/img/alg-abs-02-galois-lattice.svg" /></p>
+<figcaption><span class="fig-id">图 alg-abs.1</span>两侧都把较大的对象画在上方；同色节点相对应，上下位置反转。所有边都是包含关系，没有声称三条二次中间域彼此包含。</figcaption>
 </figure>
-<h2 id="1">1. 环与理想<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>定义</strong> 环 <span class="arithmatex">\((R, +, \times)\)</span>：加法成 Abel 群、乘法结合、分配律（本页默认含幺）。例子库：<span class="arithmatex">\(\mathbb{Z}\)</span>、<span class="arithmatex">\(\mathbb{Z}_n\)</span>、多项式环 <span class="arithmatex">\(F[x]\)</span>（高代 I 的主角正式入籍）、矩阵环 <span class="arithmatex">\(M_n(\mathbb{R})\)</span>（非交换）。</p>
-<p><strong>零因子</strong>：<span class="arithmatex">\(ab = 0\)</span> 而 <span class="arithmatex">\(a, b \neq 0\)</span>（<span class="arithmatex">\(\mathbb{Z}_6\)</span> 中 <span class="arithmatex">\(2\times3 = 0\)</span>；矩阵环遍地都是——高代 III"<span class="arithmatex">\(AB=O\)</span> 推不出 <span class="arithmatex">\(A\)</span> 或 <span class="arithmatex">\(B\)</span> 为零"的病根在此定性）。无零因子的交换环 = <strong>整环</strong>（消去律成立的地界：<span class="arithmatex">\(\mathbb{Z}\)</span>、<span class="arithmatex">\(F[x]\)</span>）。</p>
-<p><strong>理想</strong>（环论的"正规子群"）：<span class="arithmatex">\(I \subseteq R\)</span> 对加法成群且<strong>吸收</strong>乘法（<span class="arithmatex">\(r \in R, a \in I \Rightarrow ra \in I\)</span>）。商环 <span class="arithmatex">\(R/I\)</span>、环同态基本定理 <span class="arithmatex">\(R/\ker\varphi \cong \mathrm{im}\,\varphi\)</span>——上一页的语法逐字重演（例：<span class="arithmatex">\(\mathbb{Z}/n\mathbb{Z} \cong \mathbb{Z}_n\)</span>）。</p>
-<p><strong>主理想整环的双星</strong>：<span class="arithmatex">\(\mathbb{Z}\)</span> 与 <span class="arithmatex">\(F[x]\)</span> 的一切理想都是单生成的 <span class="arithmatex">\((a)\)</span>——<strong>因为都有带余除法</strong>（辗转相除、唯一分解全线成立：高代 I 的多项式理论与初等数论原来是同一个抽象定理的两个实例——抽象代数"一次证明、处处收租"的招牌案例）。</p>
-<h2 id="2_1">2. 域：能除的世界<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p><strong>定义</strong> 域 = 非零元全体对乘法成 Abel 群的交换环（<span class="arithmatex">\(\mathbb{Q}, \mathbb{R}, \mathbb{C}\)</span>、以及——）</p>
-<p><strong>定理</strong> <span class="arithmatex">\(\mathbb{Z}_p\)</span> 是域 <span class="arithmatex">\(\iff p\)</span> 素。（<em>证</em>：<span class="arithmatex">\(p\)</span> 素时 <span class="arithmatex">\(\gcd(a, p) = 1\)</span>，Bézout 给逆元；合数时有零因子。）<strong>有限域 <span class="arithmatex">\(\mathbb{F}_p\)</span></strong> 由此诞生；一般有限域阶必为素数幂 <span class="arithmatex">\(p^k\)</span>，且在同构意义下每阶恰一个（<span class="arithmatex">\(\mathbb{F}_{p^k}\)</span>，用 <span class="arithmatex">\(\mathbb{F}_p[x]\)</span> 模不可约多项式构造——多项式环再立一功）。</p>
-<p><strong>特征</strong>：<span class="arithmatex">\(1\)</span> 自加多少次归零（素数或 0）。</p>
-<p>🔗 <strong>密码学出口（有限域的用武之地）</strong>：RSA 的舞台是 <span class="arithmatex">\(\mathbb{Z}_n^*\)</span>（Euler 定理 = Lagrange 定理的应用，上一页 Fermat 小定理的推广）；Diffie–Hellman/ElGamal 靠 <span class="arithmatex">\(\mathbb{F}_p^*\)</span> 中离散对数难解；椭圆曲线密码在"曲线点群"上重演同一剧本（更短密钥同等强度——你钱包里的比特币签名就是它）；AES 的字节运算在 <span class="arithmatex">\(\mathbb{F}_{2^8}\)</span> 中进行。<strong>"抽象代数无用"是二十世纪最快过期的判断。</strong></p>
-<h2 id="3_1">3. 域扩张与两大古典问题（山顶眺望）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>扩张与次数</strong>：<span class="arithmatex">\(F \subseteq E\)</span>，<span class="arithmatex">\(E\)</span> 是 <span class="arithmatex">\(F\)</span>-线性空间（高代 IV 上岗），维数记 <span class="arithmatex">\([E : F]\)</span>；<strong>望远镜公式</strong> <span class="arithmatex">\([E:F] = [E:K][K:F]\)</span>。单代数扩张 <span class="arithmatex">\(F(\alpha) \cong F[x]/(m_\alpha(x))\)</span>（模极小多项式——商环构造的实战），<span class="arithmatex">\([F(\alpha):F] = \deg m_\alpha\)</span>。</p>
-<p><strong>尺规作图三大难题的判决</strong>（次数论证，一段讲完）：尺规可作的数生活在一串二次扩张的塔中 ⇒ 其扩张次数必为 <span class="arithmatex">\(2^k\)</span>。而三等分 <span class="arithmatex">\(60^\circ\)</span> 角需要 <span class="arithmatex">\(\cos 20^\circ\)</span>，其极小多项式 <span class="arithmatex">\(8x^3 - 6x - 1\)</span> 三次 ⇒ <span class="arithmatex">\([\,\cdot\,] = 3 \neq 2^k\)</span>——<strong>不可作</strong>。倍立方（<span class="arithmatex">\(\sqrt[3]{2}\)</span>，三次）同判。两千年悬案，一个"数维数"的论证终审——线性代数当判官。</p>
-<p><strong>Galois 理论（一段话的山顶导览）</strong>：给每个多项式配一个群（根的对称群=Galois 群）；<strong>方程可用根式求解 <span class="arithmatex">\(\iff\)</span> 其 Galois 群"可解"</strong>（可逐层拆成 Abel 商的群）。<span class="arithmatex">\(n \leq 4\)</span> 时 <span class="arithmatex">\(S_n\)</span> 可解——二三四次有通用求根公式；对每个 <span class="arithmatex">\(n\geq5\)</span>，<span class="arithmatex">\(S_n\)</span> 都含有不可解的 <span class="arithmatex">\(A_n\)</span>，所以一般 <span class="arithmatex">\(n\)</span> 次方程没有根式公式。特别地，<span class="arithmatex">\(S_5\)</span> 含不可解的 <span class="arithmatex">\(A_5\)</span> 已足以判定<strong>一般五次方程无根式解</strong>（Abel–Galois，高代 I 的欠条在此销账）。注意量词：“一般”不等于“每个”；某些五次或更高次方程仍可用根式解。深层寓意：<strong>"解方程"的可能性被"对称性结构"判定</strong>——把问题翻译成结构、由结构宣判命运，这正是抽象代数（乃至现代数学）的方法论本体。</p>
-<h2 id="4">4. 典型例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>例 1（找零因子与逆元）</strong> <span class="arithmatex">\(\mathbb{Z}_{12}\)</span>：零因子 <span class="arithmatex">\(= \{2,3,4,6,8,9,10\}\)</span>（与 12 不互素者）；可逆元 <span class="arithmatex">\(= \{1,5,7,11\}\)</span>（成群，即 <span class="arithmatex">\(\mathbb{Z}_{12}^*\)</span>，阶 4）。<strong>模 <span class="arithmatex">\(n\)</span> 世界里"能不能除"看 <span class="arithmatex">\(\gcd\)</span>。</strong></p>
-<p><strong>例 2（商环构造复数）</strong> <span class="arithmatex">\(\mathbb{R}[x]/(x^2 + 1) \cong \mathbb{C}\)</span>：模掉 <span class="arithmatex">\(x^2 + 1\)</span> 即强行宣布 <span class="arithmatex">\(x^2 = -1\)</span>，剩余类 <span class="arithmatex">\(a + bx\)</span> 的乘法恰是复数乘法——<strong>复数不是"发明虚数"，是多项式商环的必然产物</strong>（高代 I 不可约多项式的终极用法）。</p>
-<p><strong>例 3（域扩张次数）</strong> <span class="arithmatex">\([\mathbb{Q}(\sqrt2, \sqrt3) : \mathbb{Q}]\)</span>：望远镜 <span class="arithmatex">\([\mathbb{Q}(\sqrt2,\sqrt3):\mathbb{Q}(\sqrt2)]\cdot[\mathbb{Q}(\sqrt2):\mathbb{Q}] = 2 \times 2 = 4\)</span>（需验 <span class="arithmatex">\(\sqrt3 \notin \mathbb{Q}(\sqrt2)\)</span>：设 <span class="arithmatex">\(\sqrt3 = a + b\sqrt2\)</span> 平方导矛盾）。基 <span class="arithmatex">\(\{1, \sqrt2, \sqrt3, \sqrt6\}\)</span>——线性代数视角下的数域，一目了然。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>抽代两页完工。下一门点集拓扑：把"连续""收敛""紧致"从度量中解放出来——分析的公理化地基。</em></p>
-<h2 id="_2">基础衔接与计算验收<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
-<p>进一步学习：<a href="../../grad-math/site/bridge-01-modules.html">从向量空间到模</a>会检验整数上为何不能任意除以主元，再用<a href="../../grad-math/site/bridge-02-localization.html">局部化</a>解释指定分母怎样改变一个环。</p>
+</div>
+<p><strong>有限 Galois 对应定理。</strong>若 <span class="arithmatex">\(E/F\)</span> <strong>有限、正规且可分</strong>，则 <span class="arithmatex">\(H\mapsto E^H=\{z:h(z)=z\ \forall h\in H\}\)</span> 与 <span class="arithmatex">\(K\mapsto\operatorname{Gal}(E/K)\)</span> 在 <span class="arithmatex">\(G=\operatorname{Gal}(E/F)\)</span> 的子群与中间域之间互逆，且反转包含关系：</p>
+<div class="arithmatex">\[
+[E:E^H]=\lvert H\rvert,\qquad [E^H:F]=[G:H].
+\]</div>
+<p>此外 <span class="arithmatex">\(K/F\)</span> Galois 当且仅当对应 <span class="arithmatex">\(H\)</span> 正规，此时 <span class="arithmatex">\(\operatorname{Gal}(K/F)\cong G/H\)</span>。<strong>可分</strong>指极小多项式无重根；<strong>正规</strong>指在 <span class="arithmatex">\(E\)</span> 有根的 <span class="arithmatex">\(F\)</span>-不可约多项式都在 <span class="arithmatex">\(E\)</span> 完全分裂。特征 <span class="arithmatex">\(0\)</span> 的有限扩张自动可分，但不自动正规。上述 <span class="arithmatex">\(E\)</span> 是 <span class="arithmatex">\((x^2-2)(x^2-3)\)</span> 的分裂域，所以满足前提。一般定理的证明需要自同构独立性等内容，见页末完整课程；这里四维坐标直接核对了图中每个固定域与次数关系。</p>
+<table>
+<thead>
+<tr>
+<th>子群 <span class="arithmatex">\(H\)</span></th>
+<th>要同时不变的翻转</th>
+<th>固定域 <span class="arithmatex">\(E^H\)</span></th>
+<th><span class="arithmatex">\([E:E^H]\)</span></th>
+<th><span class="arithmatex">\([E^H:\mathbb Q]\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\{e\}\)</span></td>
+<td>无额外限制</td>
+<td><span class="arithmatex">\(E\)</span></td>
+<td><span class="arithmatex">\(1\)</span></td>
+<td><span class="arithmatex">\(4\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\{e,\sigma\}\)</span></td>
+<td>翻 <span class="arithmatex">\(\sqrt2\)</span></td>
+<td><span class="arithmatex">\(\mathbb Q(\sqrt3)\)</span></td>
+<td><span class="arithmatex">\(2\)</span></td>
+<td><span class="arithmatex">\(2\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\{e,\tau\}\)</span></td>
+<td>翻 <span class="arithmatex">\(\sqrt3\)</span></td>
+<td><span class="arithmatex">\(\mathbb Q(\sqrt2)\)</span></td>
+<td><span class="arithmatex">\(2\)</span></td>
+<td><span class="arithmatex">\(2\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\{e,\sigma\tau\}\)</span></td>
+<td>同时翻两根</td>
+<td><span class="arithmatex">\(\mathbb Q(\sqrt6)\)</span></td>
+<td><span class="arithmatex">\(2\)</span></td>
+<td><span class="arithmatex">\(2\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(G\)</span></td>
+<td>所有翻转</td>
+<td><span class="arithmatex">\(\mathbb Q\)</span></td>
+<td><span class="arithmatex">\(4\)</span></td>
+<td><span class="arithmatex">\(1\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>没有正规前提会怎样？<span class="arithmatex">\(\mathbb Q(\sqrt[3]2)/\mathbb Q\)</span> 为三次扩张，但它是实域，只含 <span class="arithmatex">\(x^3-2\)</span> 的一个根，唯一自同构是恒等。于是自同构群大小 <span class="arithmatex">\(1\ne3\)</span>，不能套用上面的次数等式。这是前提失效的直接反例。</p>
+<h2 id="5">5. 次数与对称如何限制作图和求根<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>从有理坐标出发的尺规作图，每一步求直线/圆交点只引入四则运算与平方根，所以可作数属于一串次数为 <span class="arithmatex">\(1\)</span> 或 <span class="arithmatex">\(2\)</span> 的扩张塔。塔公式说明可作的代数数对 <span class="arithmatex">\(\mathbb Q\)</span> 的次数必须是 <span class="arithmatex">\(2\)</span> 的幂；<strong>只看次数为二次幂并不充分</strong>，还要存在这种二次塔。</p>
+<p>倍立方需要 <span class="arithmatex">\(\sqrt[3]2\)</span>，<span class="arithmatex">\(x^3-2\)</span> 用 Eisenstein 判据在 <span class="arithmatex">\(2\)</span> 处不可约，次数为 <span class="arithmatex">\(3\)</span>，不可作。三等分 <span class="arithmatex">\(60^\circ\)</span> 需要 <span class="arithmatex">\(u=2\cos20^\circ\)</span>，三倍角公式给 <span class="arithmatex">\(u^3-3u-1=0\)</span>。有理根只能为 <span class="arithmatex">\(\pm1\)</span>，都不是根；三次无有理根即不可约，也得到次数 <span class="arithmatex">\(3\)</span>。这是否定“任意角都可三等分”，并非每个角都不能三等分。化圆为方需要长度 <span class="arithmatex">\(\sqrt\pi\)</span>；<span class="arithmatex">\(\pi\)</span> 超越（这里引用 Lindemann 定理），而可作数必代数，所以也不可能。</p>
+<p>对<strong>特征 <span class="arithmatex">\(0\)</span> 的域 <span class="arithmatex">\(F\)</span></strong> 上的多项式，取其分裂域 <span class="arithmatex">\(E\)</span>。全部根可由 <span class="arithmatex">\(F\)</span> 中元素经有限次四则运算和开方得到，当且仅当 <span class="arithmatex">\(G=\operatorname{Gal}(E/F)\)</span> 是可解群：存在 <span class="arithmatex">\(G=G_0\supseteq G_1\supseteq\cdots\supseteq G_m=\{e\}\)</span>，每个 <span class="arithmatex">\(G_{i+1}\)</span> 在 <span class="arithmatex">\(G_i\)</span> 中正规，商群 <span class="arithmatex">\(G_i/G_{i+1}\)</span> 都是 Abel 群。这个“根式可解判据”的完整证明涉及单位根与 Kummer 理论，本页只说明定理如何应用，完整证明见页末课程。</p>
+<p>次数不超过 <span class="arithmatex">\(4\)</span> 时，根的置换群是可解群 <span class="arithmatex">\(S_n\)</span> 的子群，仍可解；一般五次方程对应 <span class="arithmatex">\(S_5\)</span>，其中非交换单群 <span class="arithmatex">\(A_5\)</span> 使它不可解。一般 <span class="arithmatex">\(n\ge5\)</span> 亦如此，故无通用根式公式。<strong>具体五次式仍可能可解</strong>，例如 <span class="arithmatex">\(x^5-2\)</span> 的根是 <span class="arithmatex">\(\sqrt[5]2\,\zeta_5^j\)</span>，其中 <span class="arithmatex">\(\zeta_5\)</span> 本身可用根式表达。数值近似求根则是另一个问题，没有被根式不可能性禁止。</p>
+<h2 id="6">6. 迁移练习：从运算证书走到结构<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<h3 id="1_1">题 1：同阶的两个环为何不同？<a class="headerlink" href="#1_1" title="Permanent link"></a></h3>
+<p>比较 <span class="arithmatex">\(\mathbb Z_9\)</span> 与 <span class="arithmatex">\(\mathbb F_3[x]/(x^2+1)\)</span>：列出特征、单位数和一个能区分它们的方程。它们的加法群是否同构？</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p><span class="arithmatex">\(\mathbb Z_9\)</span> 特征 <span class="arithmatex">\(9\)</span>，单位为 <span class="arithmatex">\(1,2,4,5,7,8\)</span> 共 <span class="arithmatex">\(6\)</span> 个，且非零的 <span class="arithmatex">\(3\)</span> 满足 <span class="arithmatex">\(3^2=0\)</span>。第二个环是九元域，特征 <span class="arithmatex">\(3\)</span>，非零 <span class="arithmatex">\(8\)</span> 元都是单位，没有非零平方为零的元素。加法群分别为 <span class="arithmatex">\(C_9\)</span> 与 <span class="arithmatex">\(C_3\times C_3\)</span>：前者有加法阶 <span class="arithmatex">\(9\)</span> 的元素，后者每个非零元加法阶都是 <span class="arithmatex">\(3\)</span>，因此也不同构。相同的元素数量既不能确定环，也不能确定加法群。</p>
+</details>
+<h3 id="2_2">题 2：可约为什么不等于“有非零元平方为零”？<a class="headerlink" href="#2_2" title="Permanent link"></a></h3>
+<p>在 <span class="arithmatex">\(\mathbb F_3[x]/(x^2-1)\)</span> 中，算出 <span class="arithmatex">\(\alpha-1\)</span> 与 <span class="arithmatex">\(\alpha+1\)</span> 的积，并找到一个非平凡幂等元 <span class="arithmatex">\(e^2=e\)</span>。用到 <span class="arithmatex">\(\mathbb F_3\times\mathbb F_3\)</span> 的映射解释没有非零幂零元。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>两因子非零而积为零。取 <span class="arithmatex">\(e=2+2\alpha=(1+\alpha)/2\)</span>（在 <span class="arithmatex">\(\mathbb F_3\)</span> 中 <span class="arithmatex">\(2^{-1}=2\)</span>），则 <span class="arithmatex">\(e^2=4+8\alpha+4\alpha^2=2+2\alpha=e\)</span>，且 <span class="arithmatex">\(e\ne0,1\)</span>。在求值映射下 <span class="arithmatex">\(e\mapsto(1,0)\)</span>。若某元素的正整数次幂为零，其两个域坐标的幂都为零，两个坐标只能都为零。因此存在零因子不代表存在非零幂零元。</p>
+</details>
+<h3 id="3_2">题 3：一个“混合根”能生成整个四维域吗？<a class="headerlink" href="#3_2" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(z=\sqrt2+\sqrt3\in E\)</span>。哪个子群逐点固定 <span class="arithmatex">\(z\)</span>？证明 <span class="arithmatex">\(\mathbb Q(z)=E\)</span>，写出 <span class="arithmatex">\(z\)</span> 的极小多项式。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>三个非恒等翻转都改变它，稳定子为 <span class="arithmatex">\(\{e\}\)</span>。也可不先用 Galois 定理：<span class="arithmatex">\(z^2=5+2\sqrt6\)</span>，且 <span class="arithmatex">\(z^{-1}=\sqrt3-\sqrt2\)</span>，所以 <span class="arithmatex">\(\sqrt3=(z+z^{-1})/2\)</span>、<span class="arithmatex">\(\sqrt2=(z-z^{-1})/2\)</span>，证明 <span class="arithmatex">\(\mathbb Q(z)=E\)</span>。因此次数为 <span class="arithmatex">\(4\)</span>；把 <span class="arithmatex">\(z^2-5=2\sqrt6\)</span> 平方得 <span class="arithmatex">\(z^4-10z^2+1=0\)</span>，这个首一四次式就是极小多项式。仅写出一个四次式的根还不足以证明它极小，必须先排除更低次数。</p>
+</details>
+<h2 id="_2">基础衔接与进一步证明<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>继续到<a href="../../grad-math/site/bridge-01-modules.html">从向量空间到模</a>：整数上不能任意除主元，线性代数的结论会怎样改变？再用<a href="../../grad-math/site/bridge-02-localization.html">局部化</a>明确指定允许哪些分母。下一门<a href="top-01-spaces.html">点集拓扑</a>则从代数结构转向连续结构。</p>
+<p>完整的理想、商环与域课程见 <a href="https://ocw.mit.edu/courses/18-703-modern-algebra-spring-2013/">MIT 18.703 Modern Algebra</a>；有限 Galois 对应、有限域、尺规作图及根式可解判据的完整证明见 <a href="https://www.jmilne.org/math/CourseNotes/FT.pdf">J. S. Milne, Fields and Galois Theory</a>，第 1、3—5 章。本页实验只穷尽所列有限模型，不能代替这些一般定理的证明。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="alg-abs-01-groups.html"><span class="pager-label">上一页</span>抽代 I · 群论</a>
