@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 17:49</div>
   </div>
 </nav>
 <main id="content">
@@ -59,6 +59,7 @@ try {
 <li><a href="#3">3. 最小模型：三本账不能混写</a></li>
 <li><a href="#4">4. 静态后备：先看映射账本，再看数值图</a></li>
 <li><a href="#5">5. 定理假设与失效边界：何时能直接套公式？</a></li>
+<li><a href="#6">6. 三道迁移题</a></li>
 </ul>
 </li>
 <li><a href="#1_1">1. 重积分</a></li>
@@ -66,7 +67,8 @@ try {
 <li><a href="#3_1">3. 曲面积分</a></li>
 <li><a href="#4_1">4. 三大公式（本页顶点）</a></li>
 <li><a href="#5_1">5. 保守场与路径无关</a></li>
-<li><a href="#6">6. 典型例题</a></li>
+<li><a href="#6_1">6. 典型例题</a></li>
+<li><a href="#7">7. 继续阅读</a></li>
 </ul>
 </div>
 </details>
@@ -77,6 +79,7 @@ try {
 <div data-learning-page></div>
 
 <section aria-labelledby="change-of-variables-learning-title" class="learning-layer">
+<p><strong>先修</strong>：<a href="analysis-03-integral.html">一元积分</a>、<a href="analysis-05-multivar-diff.html">多元微分与 Jacobian</a>、<a href="algebra-02-determinant.html">行列式与面积缩放</a>。先分清标量面积、定向与覆盖，再看边界定理；相关物理例见<a href="../../physics-course/site/em-02-maxwell.html">Maxwell 方程</a>。</p>
 <h2 id="_1">学习层：换坐标时，面积到底被数了几次？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
 <h3 id="1">1. 具体情境：把一个圆盘摊成参数矩形<a class="headerlink" href="#1" title="Permanent link"></a></h3>
 <p>设 <span class="arithmatex">\(T(u,v)=(x(u,v),y(u,v))\)</span>。换变量不是把 <span class="arithmatex">\(dx\,dy\)</span> 换成一串“看起来像长度”的符号，而是要回答三件事：一个小参数矩形的方向是否被翻转，面积被放大了多少，以及像中的一点有几个原像。极坐标</p>
@@ -84,7 +87,7 @@ try {
 T(r,\theta)=(r\cos\theta,r\sin\theta),\qquad
 \det DT=r
 \]</div>
-<p>把 <span class="arithmatex">\([0,R]\times[0,2\pi)\)</span> 映到圆盘；<span class="arithmatex">\(r=0\)</span> 的整条边被压成原点，<span class="arithmatex">\(\theta=0\)</span> 与 <span class="arithmatex">\(2\pi\)</span> 的边界也被粘合。它不是处处一一对应的矩形到圆盘微分同胚，但这些例外是零面积边界，且圆盘内部几乎处处只有一个原像。</p>
+<p>把 <span class="arithmatex">\([0,R]\times[0,2\pi)\)</span> 映到圆盘；<span class="arithmatex">\(r=0\)</span> 的整条边被压成原点，若把角区间暂时闭合，<span class="arithmatex">\(\theta=0\)</span> 与 <span class="arithmatex">\(2\pi\)</span> 两条边映到同一射线；半开约定只保留其中一条。它不是处处一一对应的矩形到圆盘微分同胚，但这些例外是零面积边界，且圆盘内部几乎处处只有一个原像。</p>
 <h3 id="2">2. 先预测：打开实验前交出三个判断<a class="headerlink" href="#2" title="Permanent link"></a></h3>
 <ol>
 <li>若 <span class="arithmatex">\(T(u,v)=(-u,v)\)</span> 把单位正方形反射过去，积分 <span class="arithmatex">\(\iint 1\,dx\,dy\)</span> 应该使用 <span class="arithmatex">\(\det DT=-1\)</span>，还是 <span class="arithmatex">\(|\det DT|=1\)</span>？</li>
@@ -92,94 +95,150 @@ T(r,\theta)=(r\cos\theta,r\sin\theta),\qquad
 <li>让 <span class="arithmatex">\(\theta\)</span> 跑满 <span class="arithmatex">\(4\pi\)</span> 时，参数域里的 <span class="arithmatex">\(\iint |J|\,dr\,d\theta\)</span> 与圆盘面积之间应相差一个什么因子？</li>
 </ol>
 <h3 id="3">3. 最小模型：三本账不能混写<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>对标量面积积分，若 <span class="arithmatex">\(T\)</span> 在所用参数片上几乎处处一一、正则性与可积性条件满足，则</p>
+<p>先用一个条件完整的版本：设 <span class="arithmatex">\(U,V\subset\mathbb R^2\)</span> 为开集，<span class="arithmatex">\(T:U\to V\)</span> 为 <span class="arithmatex">\(C^1\)</span> 微分同胚（双射且逆也为 <span class="arithmatex">\(C^1\)</span>），<span class="arithmatex">\(f\)</span> 是 <span class="arithmatex">\(V\)</span> 上的非负可测函数，或 <span class="arithmatex">\(f\in L^1(V)\)</span>。则</p>
 <div class="arithmatex">\[
 \iint_{T(U)}f(x,y)\,dx\,dy
 =\iint_U f(T(u,v))\,|\det DT(u,v)|\,du\,dv.
 \]</div>
-<p>绝对值来自<strong>无向面积</strong>；若计算的是带定向的二次微分形式或有向面积，则保留带符号的 Jacobian，反射会贡献负号。第二本账是覆盖重数：一般面积公式把参数域积分写成像域上对原像求和；若每个正则像点有 <span class="arithmatex">\(m\)</span> 个原像，参数域积分会把该点计数 <span class="arithmatex">\(m\)</span> 次。要得到像域的一次积分，必须按重数校正，或把参数域拆成几乎处处单射的片。</p>
+<p>非负版本允许两边同为 <span class="arithmatex">\(+\infty\)</span>；有正负号时要求绝对可积。极坐标可先取 <span class="arithmatex">\(0&lt;r&lt;R,0&lt;\theta&lt;2\pi\)</span>，它微分同胚到删去原点和一条射线的开圆盘，再用零测集不改变积分补回；不能凭一句“几乎处处一一”省略全部正则性条件。</p>
+<p>绝对值来自<strong>无向面积</strong>；若计算的是带定向的二次微分形式或有向面积，则保留带符号的 Jacobian，反射会贡献负号。第二本账是覆盖重数：一般面积公式把参数域积分写成像域上对原像求和；若每个正则像点有 <span class="arithmatex">\(m\)</span> 个原像，参数域积分会把该点计数 <span class="arithmatex">\(m\)</span> 次。例如参数域由有限个单射的 <span class="arithmatex">\(C^1\)</span> 正则片组成（接缝及其像为零测集），逐片换元后相加给出</p>
+<div class="arithmatex">\[\int_U f(T(u))\lvert\det DT(u)\rvert\,du=\int f(y)N(y)\,dy,\]</div>
+<p>其中 <span class="arithmatex">\(N(y)\)</span> 是覆盖次数。若 <span class="arithmatex">\(N(y)\)</span> 随位置变化，就不能用一个常数去除整个积分；要逐点按重数处理，或选择不重叠的像片。</p>
 <p>第三本账是定义域。极坐标圆盘应取 <span class="arithmatex">\(0\le r\le R\)</span>、长度为 <span class="arithmatex">\(2\pi\)</span> 的半开角区间；原点和接缝只影响边界/零测集。若把 <span class="arithmatex">\(r\)</span> 允许为负，<span class="arithmatex">\((r,\theta)\)</span> 与 <span class="arithmatex">\((-r,\theta+\pi)\)</span> 会重复覆盖；若角度跑两圈，则圆盘内部几乎处处被覆盖两次。</p>
 <h3 id="4">4. 静态后备：先看映射账本，再看数值图<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<div class="learning-lab" data-learning-lab="change-of-variables">
+<div class="learning-lab" data-learning-lab="change-of-variables" markdown="1">
 <p><strong>无 JavaScript 时的静态读法：</strong>对 <span class="arithmatex">\(f\equiv1\)</span>，单位正方形恒等映射的带符号面积与几何面积都是 <span class="arithmatex">\(1\)</span>；反射映射的带符号面积为 <span class="arithmatex">\(-1\)</span>，但几何面积仍为 <span class="arithmatex">\(1\)</span>，所以普通二重积分必须取绝对值。半径为 <span class="arithmatex">\(R\)</span> 的圆盘面积是 <span class="arithmatex">\(\pi R^2\)</span>。极坐标一圈的 Jacobian 积分为</p>
 <div class="arithmatex">\[
 \int_0^{2\pi}\int_0^R r\,dr\,d\theta=\pi R^2,
 \]</div>
 <p>而两圈为 <span class="arithmatex">\(2\pi R^2\)</span>，因为圆盘内部几乎处处被覆盖两次；除以覆盖重数 <span class="arithmatex">\(2\)</span> 才回到一次面积。</p>
-<p>| 映射/参数域 | <span class="arithmatex">\(\int J\)</span>（有向） | <span class="arithmatex">\(\int |J|\)</span>（参数账） | 像域一次面积 | 覆盖判断 |
-|---|---:|---:|---:|---|
-| 恒等映射，单位正方形 | <span class="arithmatex">\(1\)</span> | <span class="arithmatex">\(1\)</span> | <span class="arithmatex">\(1\)</span> | 一一对应 |
-| 反射 <span class="arithmatex">\((u,v)\mapsto(-u,v)\)</span> | <span class="arithmatex">\(-1\)</span> | <span class="arithmatex">\(1\)</span> | <span class="arithmatex">\(1\)</span> | 一一对应但反向 |
-| 极坐标一圈，<span class="arithmatex">\(0\le r\le R\)</span> | <span class="arithmatex">\(\pi R^2\)</span> | <span class="arithmatex">\(\pi R^2\)</span> | <span class="arithmatex">\(\pi R^2\)</span> | 除原点/接缝外一一 |
-| 极坐标两圈，<span class="arithmatex">\(0\le r\le R\)</span> | <span class="arithmatex">\(2\pi R^2\)</span> | <span class="arithmatex">\(2\pi R^2\)</span> | <span class="arithmatex">\(\pi R^2\)</span> | 几乎处处二重覆盖 |</p>
-<p>实验揭示后可以调 <span class="arithmatex">\(R\)</span>、选择反射或极坐标，并把一圈改成两圈；SVG 画的是参数域到像域的示意，表格同时保留带符号、绝对值、像面积和覆盖重数，避免把有限算术曲线误读成换元定理本身。</p>
+<table>
+<thead>
+<tr>
+<th>映射/参数域</th>
+<th style="text-align: right;"><span class="arithmatex">\(\int J\)</span>（有向）</th>
+<th style="text-align: right;"><span class="arithmatex">\(\int \lvert J\rvert\)</span>（参数账）</th>
+<th style="text-align: right;">像域一次面积</th>
+<th>覆盖判断</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>恒等映射，单位正方形</td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td>一一对应</td>
+</tr>
+<tr>
+<td>反射 <span class="arithmatex">\((u,v)\mapsto(-u,v)\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(-1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td>一一对应但反向</td>
+</tr>
+<tr>
+<td>极坐标一圈，<span class="arithmatex">\(0\le r\le R\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\pi R^2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\pi R^2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\pi R^2\)</span></td>
+<td>除原点/接缝外一一</td>
+</tr>
+<tr>
+<td>极坐标两圈，<span class="arithmatex">\(0\le r\le R\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2\pi R^2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2\pi R^2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(\pi R^2\)</span></td>
+<td>几乎处处二重覆盖</td>
+</tr>
+</tbody>
+</table>
+<p>实验揭示后可以调 <span class="arithmatex">\(R\in[0.25,2.5]\)</span>、选择反射或极坐标，并把一圈改成两圈。图中参数片 <span class="arithmatex">\(R/2\le r\le R,\ \pi/6\le\theta\le\pi/3\)</span> 的像是扇环，其一次面积为 <span class="arithmatex">\(\pi R^2/16\)</span>；两圈时再加 <span class="arithmatex">\(2\pi\)</span> 的参数片落在同一扇环。标记点的两个参数记录是 <span class="arithmatex">\((3R/4,\pi/4)\)</span> 与 <span class="arithmatex">\((3R/4,9\pi/4)\)</span>，像点相同。两块参数片是<strong>覆盖证据</strong>，不是两个不同的像区域。</p>
+</div>
 <h3 id="5">5. 定理假设与失效边界：何时能直接套公式？<a class="headerlink" href="#5" title="Permanent link"></a></h3>
 <ul>
 <li><strong>局部条件</strong>：经典公式通常在 <span class="arithmatex">\(C^1\)</span> 映射、非退化 Jacobian 的局部区域上建立；全局使用时还要处理边界、可测性、可积性以及单射/有限覆盖分解。<span class="arithmatex">\(J=0\)</span> 的点不是自动“非法”，但不能把它当作局部可逆的普通点。</li>
 <li><strong>绝对值不是装饰</strong>：普通 Lebesgue/Riemann 面积积分不随参数方向改变；只有有向积分、微分形式或定向流形上的积分才保留符号。</li>
-<li><strong>重数不是误差项</strong>：非单射映射可按原像求和，或在覆盖重数恒定的区域除以重数；一条有限实验轨迹只能显示当前 toy 的计数，不能替代一般的面积公式。</li>
+<li><strong>重数不是误差项</strong>：非单射映射可按原像求和，或在覆盖重数恒定的区域除以重数；有限个实验点只能显示当前映射的计数，不能替代一般的面积公式。</li>
 <li><strong>极坐标边界</strong>：原点的退化和角接缝是本例的结构性例外；对含原点的奇异被积函数，还必须另行检查可积性，不能只看 <span class="arithmatex">\(r\,dr\,d\theta\)</span>。</li>
 </ul>
-<p>因此，实验给出的是对恒等被积函数和有限个参数域的<strong>数值证据</strong>；换元定理则是在明确正则性、可测性和覆盖/单射条件下的<strong>定理级断言</strong>。</p>
-</div>
+<p>这些固定模型的面积和覆盖关系有上面的解析推导，实验把计算和点对画出来；它没有证明任意映射都满足换元条件。</p>
+<h3 id="6">6. 三道迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h3>
+<ol>
+<li>单位圆盘上积分 <span class="arithmatex">\(f(x,y)=x^2+y^2\)</span>，若使用两圈极坐标，参数积分与像域一次积分分别是多少？为什么仍须除以 2？</li>
+<li><span class="arithmatex">\(f(x,y)=(x^2+y^2)^{-p/2}\)</span> 在单位圆盘原点附近何时可积？“原点是零测集”为什么不能自动保证答案有限？</li>
+<li>在环域 <span class="arithmatex">\(1\le x^2+y^2\le4\)</span> 上，<span class="arithmatex">\(F=(-y,x)/(x^2+y^2)\)</span> 的旋度为零。求外圈逆时针、内圈顺时针及整个边界的环积分。能否据此说 <span class="arithmatex">\(F\)</span> 在环域有单值势函数？</li>
+</ol>
+<details class="answer">
+<summary>展开三道迁移题答案</summary>
+<ol>
+<li>参数积分 <span class="arithmatex">\(\int_0^{4\pi}\int_0^1 r^3\,dr\,d\theta=\pi\)</span>；像域一次积分为 <span class="arithmatex">\(\pi/2\)</span>。每个非零像点被计数两次，乘上的 <span class="arithmatex">\(f=r^2\)</span> 不会消掉覆盖重数。</li>
+<li>极坐标给出 <span class="arithmatex">\(2\pi\int_0^1 r^{1-p}\,dr\)</span>，恰在 <span class="arithmatex">\(p&lt;2\)</span> 时有限，值为 <span class="arithmatex">\(2\pi/(2-p)\)</span>。<span class="arithmatex">\(p=2\)</span> 为对数发散；<span class="arithmatex">\(p&gt;2\)</span> 也发散。问题来自原点附近每一个小环带的累积，不是原点处单独取什么值。</li>
+<li>沿任意半径的逆时针圆周，<span class="arithmatex">\(F\cdot dr=d\theta\)</span>，所以外圈 <span class="arithmatex">\(2\pi\)</span>，内圈顺时针 <span class="arithmatex">\(-2\pi\)</span>，总边界为零，与 Green 一致。外圈本身仍有非零环积分，因此没有全局单值势；Green 的带洞版本与无旋场势函数问题不能混为一谈。</li>
+</ol>
+</details>
 </section>
 <h2 id="1_1">1. 重积分<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
 <figure class="plot">
-<p><img alt="二重积分是曲面下的体积" src="assets/img/analysis-06-double-integral.svg" /></p>
-<figcaption><span class="fig-id">图 6.1</span>二重积分 \(\iint_D f\,dA\) 是曲面下方、区域 \(D\) 上方的体积——一元"曲线下面积"升维成"曲面下体积"。</figcaption>
+<div aria-label="换序切片与补边定向图，可横向滚动" role="region" style="overflow-x:auto" tabindex="0">
+<img src="assets/img/analysis-06-double-integral.svg" alt="三角区域换积分次序，以及上半圆补边后的正向边界" style="min-width:720px;width:100%;display:block">
+</div>
+<figcaption><span class="fig-id">图 6.1</span>左：同一个三角区域，竖切读成 \(x\le y\le1\)，横切读成 \(0\le x\le y\)。右：上半圆从右向左走，补上从左向右的直径，区域始终在左侧；闭合积分还须减去补边贡献。对应例 1、例 2。</figcaption>
 </figure>
-<p><strong>定义</strong>：与一元同构（分割 → 乘测度 → 求和 → 取极限）。有界闭区域上连续函数可积。</p>
+<p><strong>定义</strong>：把区域分割成小块，以函数值乘小块面积后求和，再取网格趋细的极限。Riemann 版本可在有界 Jordan 可测区域（边界零面积）上使用；其闭包上连续的函数可积。Lebesgue 版本在可测区域上讨论，并单独检查可积性。只有 <span class="arithmatex">\(f\ge0\)</span> 时 <span class="arithmatex">\(\iint_D f\,dA\)</span> 才是区域与曲面间的普通体积；有正负时是带符号的累计量，例如单位正方形上 <span class="arithmatex">\(f=x-y\)</span> 的积分为零，却并非处处没有高度。</p>
 <p><strong>计算三板斧</strong>：</p>
-<p><strong>1. 化累次（Fubini）</strong>：<span class="arithmatex">\(X\)</span>-型区域 <span class="arithmatex">\(\iint_D f\,d\sigma = \int_a^b dx \int_{y_1(x)}^{y_2(x)} f\,dy\)</span>。<strong>交换积分次序</strong>是高频操作：画出区域→按另一变量重新描述边界（有些积分只有换序后才积得动，如 <span class="arithmatex">\(\int_0^1 dx\int_x^1 e^{-y^2}dy\)</span>）。</p>
+<p><strong>1. 化累次（Fubini/Tonelli）</strong>：把函数乘区域示性函数放到矩形上。非负可测时 Tonelli 允许换序（可为无穷）；绝对可积时 Fubini 保证两种累次积分一致，内积分只需几乎处处存在。带正负但不绝对可积时不能无条件换序。<span class="arithmatex">\(X\)</span>-型区域 <span class="arithmatex">\(\iint_D f\,d\sigma = \int_a^b dx \int_{y_1(x)}^{y_2(x)} f\,dy\)</span>。<strong>交换积分次序</strong>是高频操作：画出区域→按另一变量重新描述边界（有些积分只有换序后才积得动，如 <span class="arithmatex">\(\int_0^1 dx\int_x^1 e^{-y^2}dy\)</span>）。</p>
+<p><strong>不能换序的反例</strong>：在 <span class="arithmatex">\((0,1]^2\)</span> 取 <span class="arithmatex">\(f=(x^2-y^2)/(x^2+y^2)^2\)</span>。固定 <span class="arithmatex">\(x&gt;0\)</span>，因为 <span class="arithmatex">\(f=\partial_y[y/(x^2+y^2)]\)</span>，先积 <span class="arithmatex">\(y\)</span> 得 <span class="arithmatex">\(1/(1+x^2)\)</span>，再积 <span class="arithmatex">\(x\)</span> 得 <span class="arithmatex">\(\pi/4\)</span>；固定 <span class="arithmatex">\(y&gt;0\)</span>，先积 <span class="arithmatex">\(x\)</span> 得 <span class="arithmatex">\(-1/(1+y^2)\)</span>，再积 <span class="arithmatex">\(y\)</span> 得 <span class="arithmatex">\(-\pi/4\)</span>。两次累次积分都存在却不同：原点附近 <span class="arithmatex">\(|f|\,dA=|\cos2\theta|\,dr\,d\theta/r\)</span> 不可积，Fubini 的绝对可积条件恰在此失效。</p>
 <p><strong>2. 变量替换</strong>：</p>
 <div class="arithmatex">\[
 \iint_D f(x,y)\,dx\,dy = \iint_{D'} f\big(x(u,v), y(u,v)\big)\,\Big|\det\frac{\partial(x,y)}{\partial(u,v)}\Big|\,du\,dv
 \]</div>
-<p>Jacobi 行列式 = 局部面积缩放率（🔗 与数分 V 隐函数定理、概率页"随机变量变换的密度公式"、归一化流同源）。<strong>极坐标</strong> <span class="arithmatex">\(dx\,dy = r\,dr\,d\theta\)</span>；<strong>柱坐标</strong> <span class="arithmatex">\(dV = r\,dr\,d\theta\,dz\)</span>；<strong>球坐标</strong> <span class="arithmatex">\(dV = \rho^2\sin\varphi\,d\rho\,d\varphi\,d\theta\)</span>。</p>
+<p>Jacobi 行列式 = 局部面积缩放率（🔗 与数分 V 隐函数定理、概率页"随机变量变换的密度公式"、归一化流同源）。<strong>极坐标</strong> <span class="arithmatex">\(dx\,dy = r\,dr\,d\theta\)</span>；<strong>柱坐标</strong> <span class="arithmatex">\(dV = r\,dr\,d\theta\,dz\)</span>；<strong>球坐标</strong>取 <span class="arithmatex">\(x=\rho\sin\varphi\cos\theta,y=\rho\sin\varphi\sin\theta,z=\rho\cos\varphi\)</span>，其中 <span class="arithmatex">\(\rho\ge0,0\le\varphi\le\pi,0\le\theta&lt;2\pi\)</span>，则 <span class="arithmatex">\(dV=\rho^2\sin\varphi\,d\rho\,d\varphi\,d\theta\)</span>。<span class="arithmatex">\(\varphi\)</span> 是从正 <span class="arithmatex">\(z\)</span> 轴量起的极角；若换成纬度，Jacobian 就不能照抄。</p>
 <p><strong>3. 对称性</strong>：区域对称 + 被积函数奇偶性，先砍再算；轮换对称性（<span class="arithmatex">\(x,y,z\)</span> 地位对等时 <span class="arithmatex">\(\iiint x^2 = \frac13\iiint(x^2+y^2+z^2)\)</span>）。</p>
-<p><strong>名例（高斯积分）</strong>：<span class="arithmatex">\(I = \int_{-\infty}^\infty e^{-x^2}dx\)</span>，则 <span class="arithmatex">\(I^2 = \iint e^{-(x^2+y^2)}dx\,dy \xrightarrow{\text{极坐标}} \int_0^{2\pi}\!\!\int_0^\infty e^{-r^2} r\,dr\,d\theta = \pi\)</span>，故 <span class="arithmatex">\(I = \sqrt\pi\)</span>。🔗 概率论正态分布的入场券。</p>
+<p><strong>名例（高斯积分）</strong>：非负性允许先用 Tonelli，再取不断扩大的圆盘极限。<span class="arithmatex">\(I = \int_{-\infty}^\infty e^{-x^2}dx\)</span>，则 <span class="arithmatex">\(I^2 = \iint e^{-(x^2+y^2)}dx\,dy \xrightarrow{\text{极坐标}} \int_0^{2\pi}\!\!\int_0^\infty e^{-r^2} r\,dr\,d\theta = \pi\)</span>，故 <span class="arithmatex">\(I = \sqrt\pi\)</span>。🔗 概率论正态分布的入场券。</p>
 <h2 id="2_1">2. 曲线积分<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>下面曲线取分段 <span class="arithmatex">\(C^1\)</span> 正则参数化，被积场连续。参数若重复走同一条曲线，会重复累计；“与方向无关”不等于“与走过次数无关”。</p>
 <p><strong>第一类（对弧长，标量场）</strong>：<span class="arithmatex">\(\int_L f\,ds\)</span>，物理原型是曲线质量。计算：参数化后 <span class="arithmatex">\(ds = \sqrt{x'^2 + y'^2}\,dt\)</span>。与方向无关。</p>
 <p><strong>第二类（对坐标，向量场）</strong>：<span class="arithmatex">\(\int_L P\,dx + Q\,dy = \int_L \mathbf{F}\cdot d\mathbf{r}\)</span>，物理原型是<strong>做功</strong>。与方向有关（反向变号）。计算：参数化直接代入。</p>
 <p>两类关系：<span class="arithmatex">\(\int_L \mathbf F \cdot d\mathbf r = \int_L (\mathbf F \cdot \boldsymbol\tau)\,ds\)</span>（<span class="arithmatex">\(\boldsymbol\tau\)</span> 为单位切向量）。</p>
 <h2 id="3_1">3. 曲面积分<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>正则参数片 <span class="arithmatex">\(r(u,v)\)</span> 满足 <span class="arithmatex">\(r_u\times r_v\ne0\)</span>；面积元为 <span class="arithmatex">\(dS=\|r_u\times r_v\|\,du\,dv\)</span>，有向面积元为 <span class="arithmatex">\(d\mathbf S=(r_u\times r_v)\,du\,dv\)</span>。前者取长度，后者保定向；交换参数次序会改变后者符号。多片覆盖要避免重复计数。</p>
 <p><strong>第一类（对面积）</strong>：<span class="arithmatex">\(\iint_S f\,dS\)</span>，<span class="arithmatex">\(z = z(x,y)\)</span> 时 <span class="arithmatex">\(dS = \sqrt{1 + z_x^2 + z_y^2}\,dx\,dy\)</span>。</p>
 <p><strong>第二类（对坐标，通量）</strong>：<span class="arithmatex">\(\iint_S \mathbf F \cdot d\mathbf S = \iint_S \mathbf F\cdot\mathbf n\,dS\)</span>，物理原型是<strong>流量穿过曲面</strong>。依赖侧的选取（法向定向）。计算：投影法逐分量，或统一化为第一类。</p>
 <h2 id="4_1">4. 三大公式（本页顶点）<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>定理（Green 公式）</strong> <span class="arithmatex">\(D\)</span> 为平面单连通区域，边界 <span class="arithmatex">\(\partial D\)</span> 取正向（逆时针）：</p>
+<p><strong>定理（Green 公式）</strong> 设 <span class="arithmatex">\(D\)</span> 为有界平面区域，边界由有限条分段 <span class="arithmatex">\(C^1\)</span> 简单闭曲线组成，<span class="arithmatex">\(P,Q\)</span> 在包含 <span class="arithmatex">\(\overline D\)</span> 的开邻域上为 <span class="arithmatex">\(C^1\)</span>。边界按“区域始终在行进方向左侧”定向：外边界逆时针，孔的内边界顺时针。<strong>允许有孔</strong>：</p>
 <div class="arithmatex">\[
 \oint_{\partial D} P\,dx + Q\,dy = \iint_D \Big(\frac{\partial Q}{\partial x} - \frac{\partial P}{\partial y}\Big)\,d\sigma
 \]</div>
-<p><strong>定理（Gauss 公式 / 散度定理）</strong> <span class="arithmatex">\(\Omega\)</span> 为空间闭区域，<span class="arithmatex">\(\partial\Omega\)</span> 取外侧：</p>
+<p><strong>定理（Gauss 公式 / 散度定理）</strong> 设 <span class="arithmatex">\(\Omega\)</span> 为有界体域，边界分片光滑，<span class="arithmatex">\(F\in C^1\)</span> 于包含 <span class="arithmatex">\(\overline\Omega\)</span> 的开邻域；<span class="arithmatex">\(\partial\Omega\)</span> 取相对于体域的外法向（孔洞处指向洞内）：</p>
 <div class="arithmatex">\[
 \oiint_{\partial\Omega} \mathbf F\cdot d\mathbf S = \iiint_\Omega \nabla\cdot\mathbf F\,dV, \qquad \nabla\cdot\mathbf F = P_x + Q_y + R_z\ \text{（散度）}
 \]</div>
-<p><strong>定理（Stokes 公式）</strong> 曲面 <span class="arithmatex">\(S\)</span> 以 <span class="arithmatex">\(\partial S\)</span> 为边界（定向右手一致）：</p>
+<p><strong>定理（Stokes 公式）</strong> 设 <span class="arithmatex">\(S\)</span> 为紧致、可定向、分片光滑曲面，边界分段光滑；<span class="arithmatex">\(F\in C^1\)</span> 于曲面的开邻域，法向与边界行进方向按右手规则一致：</p>
 <div class="arithmatex">\[
 \oint_{\partial S} \mathbf F\cdot d\mathbf r = \iint_S (\nabla\times\mathbf F)\cdot d\mathbf S \qquad (\nabla\times\mathbf F\ \text{为旋度})
 \]</div>
+<p><strong>为什么内部项会变成边界项？</strong> 对小矩形 <span class="arithmatex">\([a,b]\times[c,d]\)</span>，先对 <span class="arithmatex">\(Q_x\)</span> 积分得到右边减左边，再对 <span class="arithmatex">\(-P_y\)</span> 积分得到下边减上边，正好是逆时针的四边积分。拼接相邻矩形或光滑小片时，共用边的两个方向相反，内部边彼此抵消，只剩真正边界；孔边因此方向相反。Gauss 把通量面的这种抵消推广到小体块，Stokes 则在曲面参数片上做同样的拼接。严格推广还须极限与正则性条件。</p>
 <p><strong>统一读法</strong>：三条都是</p>
 <div class="arithmatex">\[
 \int_{\text{区域}} (\text{导数型量}) = \int_{\text{边界}} (\text{原量})
 \]</div>
 <p>——Newton–Leibniz（<span class="arithmatex">\(\int_a^b F' = F(b) - F(a)\)</span>：区域 = 区间，边界 = 两个端点）的高维推广；在微分形式语言下三者是同一条<strong>广义 Stokes 公式</strong> <span class="arithmatex">\(\int_M d\omega = \int_{\partial M} \omega\)</span>（微分几何页的预告）。</p>
-<p><strong>使用心法</strong>：封闭曲线/曲面上的第二类积分，几乎总是转体积分/二重积分更好算；不封闭就<strong>补面封闭再减掉补的部分</strong>（考试母题）；被积函数在内部有奇点（如 <span class="arithmatex">\(\frac{-y\,dx + x\,dy}{x^2+y^2}\)</span> 围原点）时不能直接用，挖洞处理。</p>
+<p><strong>选方法</strong>：先比较边界上的场与区域内的导数哪个更简单，再决定是否用边界定理。曲线可补线段形成闭路，曲面可补面形成闭面，但都须保持正确方向，最后减去补上的积分；被积函数在内部有奇点（如 <span class="arithmatex">\(\frac{-y\,dx + x\,dy}{x^2+y^2}\)</span> 围原点）时不能直接用，挖洞处理。</p>
 <h2 id="5_1">5. 保守场与路径无关<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<p>平面单连通区域上，下列等价：</p>
-<div class="arithmatex">\[
-\int_L \mathbf F\cdot d\mathbf r\ \text{与路径无关} \iff \oint = 0 \iff \frac{\partial Q}{\partial x} = \frac{\partial P}{\partial y} \iff \exists\, u:\ du = P\,dx + Q\,dy
-\]</div>
-<p><span class="arithmatex">\(u\)</span> 称势函数（求法：偏积分或折线路径积分）。空间版本条件为 <span class="arithmatex">\(\nabla\times\mathbf F = 0\)</span>。<strong>单连通不可省</strong>（上面挖洞的反例正是 <span class="arithmatex">\(Q_x = P_y\)</span> 但环积分 <span class="arithmatex">\(= 2\pi \neq 0\)</span>——拓扑第一次实质性介入分析，拓扑页的伏笔）。</p>
-<p><strong>场论速查</strong>：梯度 <span class="arithmatex">\(\nabla f\)</span>（标量→向量）、散度 <span class="arithmatex">\(\nabla\cdot\mathbf F\)</span>（向量→标量，源强度）、旋度 <span class="arithmatex">\(\nabla\times\mathbf F\)</span>（向量→向量，涡强度）；恒等式 <span class="arithmatex">\(\nabla\times(\nabla f) = 0\)</span>、<span class="arithmatex">\(\nabla\cdot(\nabla\times\mathbf F) = 0\)</span>；<span class="arithmatex">\(\nabla\cdot\nabla f = \Delta f\)</span>（Laplace 算子，PDE 页的主角）。</p>
-<h2 id="6">6. 典型例题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>先设 <span class="arithmatex">\(D\)</span> 是开、连通区域，<span class="arithmatex">\(F=(P,Q)\in C^1(D)\)</span>。存在单值势函数、所有分段光滑路径的积分只由端点决定、任意闭路积分为零，这三者等价，<strong>不要求单连通</strong>。由路径无关定义 <span class="arithmatex">\(u(x)=\int_{x_0}^xF\cdot dr\)</span>，沿很短坐标线段求导就得到 <span class="arithmatex">\(\nabla u=F\)</span>；反向由一元微积分基本定理直接成立。</p>
+<p>无旋条件 <span class="arithmatex">\(Q_x=P_y\)</span> 是必要的；若 <span class="arithmatex">\(D\)</span> 再单连通，它也是充分的。因此在单连通开域上四种说法等价。单连通是对任意无旋场作此保证的充分条件，不是某个场有势函数的必要条件：环域上的常向量场 <span class="arithmatex">\((1,0)=\nabla x\)</span> 就有势，而 <span class="arithmatex">\((-y,x)/(x^2+y^2)\)</span> 没有。三维在单连通开域上相应使用 <span class="arithmatex">\(\nabla\times F=0\)</span>。求势可沿域内允许的路径积分，不能让所谓折线路径穿出定义域。</p>
+<p><strong>场论速查</strong>：梯度 <span class="arithmatex">\(\nabla f\)</span>（标量→向量）、散度 <span class="arithmatex">\(\nabla\cdot\mathbf F\)</span>（向量→标量，源强度）、旋度 <span class="arithmatex">\(\nabla\times\mathbf F\)</span>（向量→向量，涡强度）；在所涉及函数为 <span class="arithmatex">\(C^2\)</span> 时，混合偏导可交换，给出恒等式 <span class="arithmatex">\(\nabla\times(\nabla f)=0\)</span>、<span class="arithmatex">\(\nabla\cdot(\nabla\times\mathbf F) = 0\)</span>；<span class="arithmatex">\(\nabla\cdot\nabla f = \Delta f\)</span>（Laplace 算子，PDE 页的主角）。</p>
+<h2 id="6_1">6. 典型例题<a class="headerlink" href="#6_1" title="Permanent link"></a></h2>
 <p><strong>例 1（换序救场）</strong> 计算 <span class="arithmatex">\(\int_0^1 dx\int_x^1 e^{-y^2}dy\)</span>。
 <em>解</em>：<span class="arithmatex">\(e^{-y^2}\)</span> 无初等原函数，换序：区域为 <span class="arithmatex">\(0\leq x\leq y\leq 1\)</span>，<span class="arithmatex">\(= \int_0^1 e^{-y^2}\Big(\int_0^y dx\Big)dy = \int_0^1 y e^{-y^2}dy = \frac{1 - e^{-1}}{2}\)</span>。</p>
 <p><strong>例 2（Green 公式 + 补线）</strong> 计算 <span class="arithmatex">\(\int_L (x^2 - y)\,dx + (x + \sin y)\,dy\)</span>，<span class="arithmatex">\(L\)</span> 为上半圆 <span class="arithmatex">\(y = \sqrt{1 - x^2}\)</span> 从 <span class="arithmatex">\((1,0)\)</span> 到 <span class="arithmatex">\((-1,0)\)</span>。
 <em>解</em>：补线段 <span class="arithmatex">\(\overline{(-1,0)(1,0)}\)</span> 成闭合（注意方向凑成正向），Green：<span class="arithmatex">\(Q_x - P_y = 1 - (-1) = 2\)</span>，<span class="arithmatex">\(\oint = 2 \cdot \frac{\pi}{2} = \pi\)</span>。再减补线贡献：线段上 <span class="arithmatex">\(y = 0, dy = 0\)</span>，<span class="arithmatex">\(\int_{-1}^{1} x^2 dx = \frac23\)</span>。故原积分 <span class="arithmatex">\(= \pi - \frac23\)</span>。</p>
 <p><strong>例 3（Gauss 公式）</strong> 求 <span class="arithmatex">\(\oiint_S (x\,dy\,dz + y\,dz\,dx + z\,dx\,dy)\)</span>，<span class="arithmatex">\(S\)</span> 为球面 <span class="arithmatex">\(x^2+y^2+z^2 = R^2\)</span> 外侧。
 <em>解</em>：散度 <span class="arithmatex">\(= 3\)</span>，Gauss 给 <span class="arithmatex">\(3 \cdot \frac43\pi R^3 = 4\pi R^3\)</span>。（顺带记住：这个积分 <span class="arithmatex">\(= 3V\)</span>，是"用边界积分算体积"的通用公式。）<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>数学分析六页至此闭环。代数与几何线从多项式开始——高等代数 I。</em></p>
+<p><strong>例 4（Stokes 的定向检验）</strong> 取 <span class="arithmatex">\(F=(-y/2,x/2,0)\)</span>，<span class="arithmatex">\(S\)</span> 为 <span class="arithmatex">\(z=1-x^2-y^2\ge0\)</span> 的抛物面帽，法向向上。旋度为 <span class="arithmatex">\((0,0,1)\)</span>，投影到单位圆盘给出 <span class="arithmatex">\(\iint_S(\nabla\times F)\cdot n\,dS=\pi\)</span>。边界从上方看逆时针，参数 <span class="arithmatex">\((\cos t,\sin t,0)\)</span>，<span class="arithmatex">\(F\cdot dr=\tfrac12dt\)</span>，同样得到 <span class="arithmatex">\(\pi\)</span>。若法向改向下，边界也须改顺时针，两边一起变成 <span class="arithmatex">\(-\pi\)</span>；只改一边会破坏等式。</p>
+<h2 id="7">7. 继续阅读<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p><a href="https://www.math.utoronto.ca/courses/mat237y1/20199/notes/Chapter4/S4.4.html">Toronto MAT237 换变量讲义</a>说明开集、可逆 <span class="arithmatex">\(C^1\)</span> 映射与 Jacobian 的作用；<a href="https://math.mit.edu/~djk/18_022/chapter10/section01.html">MIT 18.022 Green 公式</a>明确内外边界定向与内部边抵消。进入电磁学与流体力学前，应能同时说清积分对象、积分区域、方向和场的奇点。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="analysis-05-multivar-diff.html"><span class="pager-label">上一页</span>数分 V · 多元微分学</a>
