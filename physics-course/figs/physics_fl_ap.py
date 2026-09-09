@@ -32,28 +32,8 @@ def fl03_spectrum():
 
 
 def fl04_bifurcation():
-    """Rayleigh-Bénard 超临界分岔"""
-    Rac = 1708.0
-    Ra = np.linspace(0, 4000, 600)
-    A = np.where(Ra > Rac, np.sqrt(np.maximum(Ra-Rac, 0)/Rac), 0)
-    fig, ax = plt.subplots(figsize=(6.6, 4.3))
-    ax.plot(Ra[Ra <= Rac], np.zeros((Ra <= Rac).sum()), color=ACC, lw=2.6,
-            label="conduction (stable)")
-    ax.plot(Ra[Ra > Rac], np.zeros((Ra > Rac).sum()), "--", color="#aaa", lw=1.8,
-            label="conduction (unstable)")
-    ax.plot(Ra[Ra > Rac], A[Ra > Rac], color=RED, lw=2.6, label="convection")
-    ax.plot(Ra[Ra > Rac], -A[Ra > Rac], color=RED, lw=2.6)
-    ax.axvline(Rac, color=GREEN, ls=":", lw=1.5)
-    ax.text(Rac+60, -1.15, r"$\mathrm{Ra}_c\approx1708$", fontsize=11, color=GREEN)
-    ax.annotate(r"$A\propto\sqrt{\mathrm{Ra}-\mathrm{Ra}_c}$", xy=(3000, 0.87),
-                xytext=(1900, 1.15), fontsize=11, color=RED,
-                arrowprops=dict(arrowstyle="->", color=RED))
-    ax.set_xlabel(r"Rayleigh number  $\mathrm{Ra}$")
-    ax.set_ylabel("convection amplitude  $A$")
-    ax.set_title("Supercritical (pitchfork) bifurcation", color=INK, fontsize=12.5)
-    ax.legend(frameon=False, fontsize=9.5, loc="upper left")
-    ax.set_ylim(-1.35, 1.35)
-    save(fig, "fl-04-instability-bifurcation")
+    """Preserve reviewed free-slip neutral and signed branch diagram."""
+    _preserve_reviewed_svg("fl-04-instability-bifurcation")
 
 
 def fl05_lorenz():

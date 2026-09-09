@@ -1,13 +1,10 @@
-(function () {
+(function(root,factory){
   "use strict";
-
-  if (
-    !window.CourseLearning ||
-    typeof window.CourseLearning.register !== "function"
-  ) {
-    return;
-  }
-
+  var api=factory();
+  if(typeof module==="object"&&module.exports)module.exports=api;
+  if(root&&root.CourseLearning)root.CourseLearning.register("rayleigh-benard",api.mount);
+})(typeof window!=="undefined"?window:null,function(){
+  "use strict";
   var SVG_NS = "http://www.w3.org/2000/svg";
   var INSTANCE = 0;
   var PI = Math.PI;
@@ -66,7 +63,6 @@
       if (value === undefined || value === null || value === false) return;
       if (key === "className") node.setAttribute("class", String(value));
       else if (key === "htmlFor") node.setAttribute("for", String(value));
-      else if (key === "htmlFor") node.setAttribute("for", String(value));
       else node.setAttribute(key, value === true ? "" : String(value));
     });
     return node;
@@ -121,48 +117,52 @@
   }
 
   function signed(api, value, digits) {
-    if (Math.abs(value) < 0.5 * Math.pow(10, -(digits || 3))) return "0";
+    if(value===0)return "0";
+    if (Math.abs(value) < 0.5 * Math.pow(10, -(digits || 3))) return value.toExponential(3);
     return value > 0 ? "+" + format(api, value, digits) : format(api, value, digits);
   }
 
+  function bounded(v,lo,hi,name){if(!finite(v)||v<lo||v>hi)throw new RangeError(name+" outside supported domain");return v;}
   function neutralRayleigh(a) {
-    var a2 = a * a;
-    return Math.pow(a2 + PI * PI, 3) / a2;
+    bounded(a,A_MIN,A_MAX,"a");
+    if(a===A_CRITICAL)return RA_CRITICAL; // Symbolically specified critical preset.
+    var a2=a*a;return Math.pow(a2+PI*PI,3)/a2;
   }
-
-  function controlMu(ra, a) {
-    return ra / neutralRayleigh(a) - 1;
+  function controlMu(ra,a){bounded(ra,RA_MIN,RA_MAX,"Ra");var rn=neutralRayleigh(a);return (ra-rn)/rn;}
+  function linearGrowth(ra,a,pr){
+    bounded(pr,.01,100,"Pr");var mu=controlMu(ra,a),q=a*a+PI*PI;
+    var disc=Math.sqrt((pr-1)*(pr-1)*q*q+4*pr*ra*a*a/q);
+    var minus=-((pr+1)*q+disc)/2;
+    // Product relation avoids subtracting close roots near neutrality.
+    var plus=(-pr*q*q*mu)/minus;
+    return {plus:plus,minus:minus,q:q,Pr:pr,matrix:[[-pr*q,pr*ra*a*a/q],[1,-q]],timeUnit:"d²/κ"};
   }
-
-  /*
-   * The normal form is integrated analytically.  Writing q=A^2 gives
-   * q' = 2 mu q - 2 g q^2, so the expression below is the stable logistic
-   * solution for any sign of mu.  tau is a dimensionless model time, not a
-   * dimensional growth-rate clock.
-   */
-  function amplitudeAt(mu, g, initial, time) {
-    var q0 = Math.max(0, initial * initial);
-    if (q0 === 0 || time <= 0) return Math.sqrt(q0);
-    if (Math.abs(mu) < 1e-8) {
-      return Math.sqrt(q0 / (1 + 2 * g * q0 * time));
-    }
-    var exponential = Math.exp(2 * mu * time);
-    var denominator = 1 + (g * q0 / mu) * (exponential - 1);
-    if (!finite(denominator) || denominator <= 0) {
-      return mu > 0 ? Math.sqrt(Math.max(mu / g, 0)) : 0;
-    }
-    return Math.sqrt(Math.max(0, q0 * exponential / denominator));
+  function amplitudeAt(mu,g,initial,time){
+    bounded(mu,-10,10,"mu");bounded(g,.001,10,"g");bounded(initial,-1,1,"A0");bounded(time,0,1e4,"time");
+    if(initial===0||time===0)return initial;
+    var q0=initial*initial;
+    if(q0===0)throw new RangeError("squared initial amplitude underflows");
+    var q;
+    if(mu===0)q=q0/(1+2*g*q0*time);
+    else if(mu>0)q=q0/(Math.exp(-2*mu*time)+g*q0*(-Math.expm1(-2*mu*time))/mu);
+    else q=q0*Math.exp(2*mu*time)/(1+g*q0*Math.expm1(2*mu*time)/mu);
+    return Math.sign(initial)*Math.sqrt(q);
   }
-
-  function saturation(mu, g) {
-    return Math.sqrt(Math.max(mu / g, 0));
+  function saturation(mu,g,initial){
+    bounded(mu,-10,10,"mu");bounded(g,.001,10,"g");
+    if(initial===undefined)return Math.sqrt(Math.max(mu/g,0));
+    bounded(initial,-1,1,"A0");return initial===0?0:Math.sign(initial)*Math.sqrt(Math.max(mu/g,0));
   }
-
-  function regime(mu) {
-    if (mu > 1e-4) return "按该近临界正规形，该模式超临界且会向有限振幅靠近";
-    if (mu < -1e-4) return "按该近临界正规形，该模式亚临界并衰减回静止态";
-    return "该模式处在中性边界；正规形的一次项消失";
+  function compute(input){
+    var v=input===undefined?{}:input;
+    if(!v||typeof v!=="object"||Array.isArray(v))throw new TypeError("config must be an object");
+    Object.keys(v).forEach(function(k){if(!["ra","a","a0","time","pr"].includes(k))throw new TypeError("unknown parameter");});
+    var out={ra:v.ra===undefined?900:v.ra,a:v.a===undefined?A_CRITICAL:v.a,a0:v.a0===undefined?.12:v.a0,time:v.time===undefined?5:v.time,pr:v.pr===undefined?7:v.pr};
+    bounded(out.a0,-.9,.9,"A0");bounded(out.time,0,TIME_MAX,"time");
+    out.mu=controlMu(out.ra,out.a);out.neutral=neutralRayleigh(out.a);out.lambda=2*PI/out.a;
+    out.amplitude=amplitudeAt(out.mu,G,out.a0,out.time);out.saturation=saturation(out.mu,G,out.a0);out.growth=linearGrowth(out.ra,out.a,out.pr);return out;
   }
+  function regime(mu){return mu>0?"所选模式线性不稳定；A₀=0 时该确定性正规形仍保持零":mu<0?"所选模式线性稳定；小振幅渐近衰减":"当前模式中性：线性增长率为零，非零振幅由三次项衰减";}
 
   function setRangeValue(control, value) {
     control.input.value = String(value);
@@ -210,9 +210,9 @@
       style: "max-width:100%; overflow:hidden;"
     });
     var scroll = element(doc, "div", {
-      style: "max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;"
+      tabindex:"0",className:"rb-scroll","aria-label":"可横向滚动的对流实验图",style: "max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;"
     });
-    svg.setAttribute("style", "display:block; width:100%; min-width:620px; height:auto;");
+    svg.setAttribute("style", "display:block; width:100%; min-width:700px; height:auto;");
     scroll.appendChild(svg);
     frame.appendChild(scroll);
     section.appendChild(titleNode);
@@ -287,12 +287,12 @@
     var right = 724;
     var top = 28;
     var bottom = 303;
-    var yMax = 2600;
+    var yMax = 3000;
     var xScale = function (a) {
       return left + (a - A_MIN) / (A_MAX - A_MIN) * (right - left);
     };
     var yScale = function (ra) {
-      return bottom - clamp(ra, 0, yMax) / yMax * (bottom - top);
+      return bottom - ra / yMax * (bottom - top);
     };
     clear(svg);
     svg.setAttribute("viewBox", "0 0 " + width + " " + height);
@@ -312,7 +312,7 @@
       right,
       bottom,
       [1, 2, 3, 4, 5],
-      [0, 500, 1000, 1500, 2000, 2500],
+      [0, 500, 1000, 1500, 2000, 2500, 3000],
       xScale,
       yScale,
       "水平无量纲波数 a",
@@ -325,7 +325,7 @@
       curve.push([xScale(a), yScale(neutralRayleigh(a))]);
     }
     append(svg, svgElement(doc, "path", {
-      d: pathFor(curve),
+      d: pathFor(curve),"data-curve":"neutral",
       fill: "none",
       stroke: "var(--rb-current)",
       "stroke-width": 3
@@ -362,15 +362,15 @@
       "stroke-width": 2, "stroke-dasharray": "5 4", opacity: 0.84
     }));
     append(svg, svgElement(doc, "circle", {
-      cx: currentX, cy: neutralY, r: 5,
+      cx: currentX, cy: neutralY, r: 5,"data-point":"neutral",
       fill: "var(--bg)", stroke: "var(--rb-current)", "stroke-width": 2
     }));
     append(svg, svgElement(doc, "circle", {
-      cx: currentX, cy: currentY, r: 7,
-      fill: state.mu > 1e-4 ? "var(--rb-warn)" : "var(--rb-stable)",
+      cx: currentX, cy: currentY, r: 7,"data-point":"current",
+      fill: state.mu > 0 ? "var(--rb-warn)" : "var(--rb-stable)",
       stroke: "var(--bg)", "stroke-width": 2
     }));
-    var labelY = clamp(currentY - 13, top + 15, bottom - 28);
+    var labelY = clamp(currentY - 40, top + 35, bottom - 28);
     append(svg, svgElement(doc, "text", {
       x: clamp(currentX + 10, left + 8, right - 110), y: labelY,
       "font-size": 12.5, fill: "var(--fg)"
@@ -380,69 +380,37 @@
       "font-size": 12, fill: "var(--fg-soft)"
     }, "曲线之上：μ>0；曲线之下：μ<0"));
     append(svg, svgElement(doc, "rect", {
-      x: 84, y: 347, width: 16, height: 4, rx: 2,
+      x: 84, y: 374, width: 16, height: 4, rx: 2,
       fill: "var(--rb-current)"
     }));
     append(svg, svgElement(doc, "text", {
-      x: 106, y: 352, "font-size": 12, fill: "var(--fg-soft)"
+      x: 106, y: 379, "font-size": 12, fill: "var(--fg-soft)"
     }, "Ra_N(a)"));
     append(svg, svgElement(doc, "circle", {
-      cx: 204, cy: 349, r: 4, fill: "var(--rb-warn)"
+      cx: 204, cy: 376, r: 4, fill: state.mu>0?"var(--rb-warn)":"var(--rb-stable)"
     }));
     append(svg, svgElement(doc, "text", {
-      x: 215, y: 352, "font-size": 12, fill: "var(--fg-soft)"
+      x: 215, y: 379, "font-size": 12, fill: "var(--fg-soft)"
     }, "当前 Ra,a"));
     append(svg, svgElement(doc, "circle", {
-      cx: 323, cy: 349, r: 4, fill: "var(--rb-stable)"
+      cx: 323, cy: 376, r: 4, fill: "var(--rb-stable)"
     }));
     append(svg, svgElement(doc, "text", {
-      x: 334, y: 352, "font-size": 12, fill: "var(--fg-soft)"
+      x: 334, y: 379, "font-size": 12, fill: "var(--fg-soft)"
     }, "自由滑移临界最小点"));
   }
 
-  function drawContourFamily(doc, svg, sign, fraction, a, xMap, yMap, visibility) {
-    var branches = [[], []];
-    var steps = 440;
-    for (var i = 0; i <= steps; i += 1) {
-      var x = DISPLAY_LENGTH * i / steps;
-      var sine = Math.sin(a * x);
-      if (sign * sine <= 1e-5) {
-        branches.forEach(function (points) {
-          if (points.length > 1) {
-            append(svg, svgElement(doc, "path", {
-              d: pathFor(points), fill: "none", stroke: "var(--rb-current)",
-              "stroke-width": 1.15, opacity: (0.55 + fraction * 0.25) * visibility
-            }));
-          }
-          points.length = 0;
-        });
-        continue;
-      }
-      var ratio = fraction / Math.abs(sine);
-      if (ratio > 1) {
-        branches.forEach(function (points) {
-          if (points.length > 1) {
-            append(svg, svgElement(doc, "path", {
-              d: pathFor(points), fill: "none", stroke: "var(--rb-current)",
-              "stroke-width": 1.15, opacity: (0.55 + fraction * 0.25) * visibility
-            }));
-          }
-          points.length = 0;
-        });
-        continue;
-      }
-      var lowZ = Math.asin(ratio) / PI;
-      branches[0].push([xMap(x), yMap(lowZ)]);
-      branches[1].push([xMap(x), yMap(1 - lowZ)]);
+  function drawContourFamily(doc,svg,sign,fraction,a,xMap,yMap,visibility){
+    var angle=Math.asin(fraction),cells=Math.ceil(a*DISPLAY_LENGTH/PI);
+    for(var cell=0;cell<cells;cell++){
+      if((cell%2===0?1:-1)!==sign)continue;
+      var lo=(cell*PI+angle)/a,fullHi=((cell+1)*PI-angle)/a,hi=Math.min(DISPLAY_LENGTH,fullHi);
+      if(lo>=hi)continue;
+      var lower=[],upper=[];
+      for(var j=0;j<=64;j++){var x=lo+(hi-lo)*j/64,ratio=clamp(fraction/Math.abs(Math.sin(a*x)),0,1),z=Math.asin(ratio)/PI;lower.push([xMap(x),yMap(z)]);upper.push([xMap(x),yMap(1-z)]);}
+      var pts=hi===fullHi?lower.concat(upper.reverse()):lower.reverse().concat(upper);
+      append(svg,svgElement(doc,"path",{d:pathFor(pts)+(hi===fullHi?" Z":""),fill:"none",stroke:"var(--rb-current)","stroke-width":1.15,opacity:(.55+fraction*.25)*visibility,"data-contour":fraction}));
     }
-    branches.forEach(function (points) {
-      if (points.length > 1) {
-        append(svg, svgElement(doc, "path", {
-          d: pathFor(points), fill: "none", stroke: "var(--rb-current)",
-          "stroke-width": 1.15, opacity: (0.55 + fraction * 0.25) * visibility
-        }));
-      }
-    });
   }
 
   function drawCells(svg, state, amplitude, ids) {
@@ -459,7 +427,7 @@
     var yMap = function (z) {
       return bottom - z * (bottom - top);
     };
-    var amplitudeVisibility = clamp(amplitude / 0.35, 0, 1);
+    var amplitudeVisibility = clamp(Math.abs(amplitude) / 0.35, 0, 1);
     clear(svg);
     svg.setAttribute("viewBox", "0 0 " + width + " " + height);
     addSvgTitle(
@@ -493,16 +461,18 @@
     var bandCount = 180;
     for (var band = 0; band < bandCount; band += 1) {
       var x = DISPLAY_LENGTH * (band + 0.5) / bandCount;
-      var thermal = -Math.cos(state.a * x);
+      var thermal = -Math.sign(amplitude)*Math.cos(state.a * x);
       append(svg, svgElement(doc, "rect", {
         x: xMap(DISPLAY_LENGTH * band / bandCount), y: top,
-        width: (right - left) / bandCount + 0.8, height: bottom - top,
+        width: (right - left) / bandCount, height: bottom - top,"shape-rendering":"crispEdges",
         fill: thermal >= 0 ? "var(--rb-hot)" : "var(--rb-cold)",
         opacity: amplitudeVisibility * (0.11 + 0.25 * Math.abs(thermal)),
         "clip-path": "url(#" + clipId + ")"
       }));
     }
+    [0,2,4,6,8,10].forEach(function(x){append(svg,svgElement(doc,"text",{x:xMap(x),y:bottom+20,"font-size":11,"text-anchor":"middle",fill:"var(--fg-soft)"},String(x)));});
     [0.25, 0.5, 0.75].forEach(function (z) {
+      append(svg,svgElement(doc,"text",{x:left-8,y:yMap(z)+4,"text-anchor":"end","font-size":11,fill:"var(--fg-soft)"},String(z)));
       append(svg, svgElement(doc, "line", {
         x1: left, y1: yMap(z), x2: right, y2: yMap(z),
         stroke: "var(--border)", "stroke-width": 1, "stroke-dasharray": "2 5",
@@ -520,7 +490,7 @@
       }));
     }
 
-    if (amplitude > 1e-7) {
+    if (Math.abs(amplitude) > 1e-7) {
       [0.22, 0.46, 0.7].forEach(function (fraction) {
         drawContourFamily(doc, svg, 1, fraction, state.a, xMap, yMap, amplitudeVisibility);
         drawContourFamily(doc, svg, -1, fraction, state.a, xMap, yMap, amplitudeVisibility);
@@ -532,13 +502,13 @@
     for (var column = 0; column < arrowColumns; column += 1) {
       var xPosition = DISPLAY_LENGTH * (column + 0.5) / arrowColumns;
       [0.18, 0.36, 0.54, 0.72, 0.86].forEach(function (zPosition) {
-        var u = PI * Math.cos(PI * zPosition) * Math.sin(state.a * xPosition);
-        var w = -state.a * Math.sin(PI * zPosition) * Math.cos(state.a * xPosition);
+        var u = Math.sign(amplitude) * PI * Math.cos(PI * zPosition) * Math.sin(state.a * xPosition) * (right-left)/DISPLAY_LENGTH;
+        var w = -Math.sign(amplitude) * state.a * Math.sin(PI * zPosition) * Math.cos(state.a * xPosition) * (bottom-top);
         var magnitude = Math.sqrt(u * u + w * w);
         if (magnitude < 1e-6) return;
         var length = arrowScale;
         append(svg, svgElement(doc, "line", {
-          x1: xMap(xPosition), y1: yMap(zPosition),
+          "data-arrow":"velocity","data-x":xPosition,"data-z":zPosition,x1: xMap(xPosition), y1: yMap(zPosition),
           x2: xMap(xPosition) + u / magnitude * length,
           y2: yMap(zPosition) - w / magnitude * length,
           stroke: "var(--rb-ink)", "stroke-width": 1.25, opacity: 0.84 * amplitudeVisibility,
@@ -559,12 +529,12 @@
       x: left, y: top - 14, "font-size": 12.5, fill: "var(--rb-cold)"
     }, "冷端 z=1"));
     append(svg, svgElement(doc, "text", {
-      x: left, y: bottom + 19, "font-size": 12.5, fill: "var(--rb-hot)"
+      x: left+10, y: bottom-8, "font-size": 12.5, fill: "var(--rb-hot)"
     }, "热端 z=0"));
     append(svg, svgElement(doc, "text", {
       x: (left + right) / 2, y: bottom + 43, "text-anchor": "middle",
       "font-size": 13, fill: "var(--fg)"
-    }, "x/d（固定 L/d=10；a 增大 ⇒ 胞宽变窄、胞数增多）"));
+    }, "x/d（0 到 10；竖直方向已放大，箭头随坐标变换）"));
     append(svg, svgElement(doc, "rect", {
       x: 79, y: 350, width: 16, height: 9, rx: 2,
       fill: "var(--rb-hot)", opacity: 0.7
@@ -597,13 +567,13 @@
     var right = 724;
     var top = 28;
     var bottom = 224;
-    var sat = saturation(state.mu, G);
-    var yMax = Math.max(0.8, state.a0 * 1.18, sat * 1.18);
+    var sat = saturation(state.mu, G,state.a0);
+    var yMax = Math.max(0.8, Math.abs(state.a0) * 1.18, Math.abs(sat) * 1.18);
     var xScale = function (time) {
       return left + time / TIME_MAX * (right - left);
     };
     var yScale = function (amplitude) {
-      return bottom - clamp(amplitude, 0, yMax) / yMax * (bottom - top);
+      return bottom - (amplitude + yMax) / (2*yMax) * (bottom - top);
     };
     clear(svg);
     svg.setAttribute("viewBox", "0 0 " + width + " " + height);
@@ -615,7 +585,7 @@
       "近临界正规形的振幅演化",
       "曲线是 dA 除以 d tau 等于 mu A 减去 g A 的三次方的解析解，横轴是无量纲模型时间；竖线标出当前演化进度。"
     );
-    var yTicks = [0, yMax / 2, yMax];
+    var yTicks = [-yMax,-yMax/2,0,yMax/2,yMax];
     [0, 3, 6, 9, 12].forEach(function (tick) {
       var x = xScale(tick);
       append(svg, svgElement(doc, "line", {
@@ -654,9 +624,9 @@
       points.push([xScale(time), yScale(amplitudeAt(state.mu, G, state.a0, time))]);
     }
     append(svg, svgElement(doc, "path", {
-      d: pathFor(points), fill: "none", stroke: "var(--rb-current)", "stroke-width": 3
+      d: pathFor(points),"data-curve":"amplitude", fill: "none", stroke: "var(--rb-current)", "stroke-width": 3
     }));
-    if (sat > 1e-7) {
+    if (Math.abs(sat) > 1e-7) {
       append(svg, svgElement(doc, "line", {
         x1: left, y1: yScale(sat), x2: right, y2: yScale(sat),
         stroke: "var(--rb-stable)", "stroke-width": 1.4, "stroke-dasharray": "6 5",
@@ -674,7 +644,7 @@
       stroke: "var(--rb-warn)", "stroke-width": 1.2, "stroke-dasharray": "4 4"
     }));
     append(svg, svgElement(doc, "circle", {
-      cx: currentX, cy: yScale(currentA), r: 6,
+      cx: currentX, cy: yScale(currentA), r: 6,"data-point":"amplitude",
       fill: "var(--rb-warn)", stroke: "var(--bg)", "stroke-width": 2
     }));
     append(svg, svgElement(doc, "circle", {
@@ -691,19 +661,19 @@
       transform: "rotate(-90 17 " + ((top + bottom) / 2) + ")"
     }, "归一化振幅 A"));
     append(svg, svgElement(doc, "text", {
-      x: right - 4, y: top + 14, "text-anchor": "end",
+      x: left, y: height - 10, "text-anchor": "start",
       "font-size": 12, fill: "var(--fg-soft)"
-    }, "A(t) 只展示选定正规形，不是全局 RBC 动力学"));
+    }, "正规形时间 τ；Pr 改变线性 σ，不改变此图的 μ 模型"));
   }
 
   function mount(root, api) {
     var doc = root.ownerDocument;
     var instanceId = "cl-rb-" + (++INSTANCE);
     var refs = {};
-    var state = { preset: "selected", ra: 900, a: A_CRITICAL, a0: 0.12, time: 5 };
+    var state = { preset: "selected", ra: 900, a: A_CRITICAL, a0: 0.12, time: 5,pr:7 };
     var shell = element(doc, "div", {
       className: "cl-rb-shell",
-      style: "display:grid; gap:16px; max-width:100%; overflow:hidden; --rb-current:var(--accent,#315f9d); --rb-warn:var(--cl-red,#b64335); --rb-stable:var(--cl-green,#39734d); --rb-hot:var(--cl-red,#b64335); --rb-cold:var(--cl-blue,#315f9d); --rb-ink:var(--fg,#222);"
+      style: "display:grid; gap:16px; max-width:100%; overflow:hidden; --rb-current:#315f9d; --rb-warn:#b64335; --rb-stable:#39734d; --rb-hot:#b64335; --rb-cold:#315f9d; --rb-ink:var(--fg,#222);"
     });
     var heading = element(doc, "h3", {}, "确定性实验：中性曲线与实际对流胞联动");
     var intro = element(
@@ -712,6 +682,7 @@
       { className: "cl-note" },
       "模型只采用自由滑移、等温边界的解析中性曲线。改变 a 不只是移动曲线上的点：右图在固定 L/d=10 的水平窗口内重画同一个 streamfunction，因此胞宽与胞数都会随波数改变。"
     );
+    var style=element(doc,"style",{},"html[data-theme=dark] .cl-rb-shell{--rb-current:#90baff!important;--rb-warn:#ffab9e!important;--rb-stable:#90d6ab!important;--rb-hot:#ffab9e!important;--rb-cold:#90baff!important}.rb-scroll:focus-visible{outline:3px solid var(--rb-current);outline-offset:2px}.rb-results[hidden]{display:none!important}.rb-question{padding:10px;border:1px solid var(--border);margin-bottom:8px}.rb-predictions button{min-height:44px;padding:8px;margin:4px;border:1px solid var(--border);background:var(--bg);color:var(--fg);border-radius:6px}.rb-predictions button[aria-pressed=true]{border-color:var(--rb-current);outline:2px solid var(--rb-current)}");shell.appendChild(style);
     shell.appendChild(heading);
     shell.appendChild(intro);
 
@@ -734,10 +705,12 @@
       }, preset.label);
       button.addEventListener("click", function () {
         state.preset = preset.id;
+        Object.assign(state,{ra:preset.ra,a:preset.a,a0:preset.a0,time:preset.time,pr:7});
         setRangeValue(refs[instanceId + "-ra"], preset.ra);
         setRangeValue(refs[instanceId + "-a"], preset.a);
         setRangeValue(refs[instanceId + "-a0"], preset.a0);
         setRangeValue(refs[instanceId + "-time"], preset.time);
+        setRangeValue(refs[instanceId + "-pr"],7);
         render(true);
       });
       presetButtons.push(button);
@@ -751,14 +724,15 @@
       className: "cl-controls",
       style: "grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px;"
     });
-    var raControl = makeRange(doc, instanceId + "-ra", "Rayleigh 数 Ra", RA_MIN, RA_MAX, 0.01, state.ra, refs);
-    var aControl = makeRange(doc, instanceId + "-a", "水平无量纲波数 a", A_MIN, A_MAX, 0.001, state.a, refs);
-    var a0Control = makeRange(doc, instanceId + "-a0", "初始振幅 A₀", 0.05, 0.9, 0.01, state.a0, refs);
+    var raControl = makeRange(doc, instanceId + "-ra", "Rayleigh 数 Ra", RA_MIN, RA_MAX, "any", state.ra, refs);
+    var aControl = makeRange(doc, instanceId + "-a", "水平无量纲波数 a", A_MIN, A_MAX, "any", state.a, refs);
+    var a0Control = makeRange(doc, instanceId + "-a0", "初始振幅 A₀", -0.9, 0.9, 0.01, state.a0, refs);
     var timeControl = makeRange(doc, instanceId + "-time", "演化进度 τ", 0, TIME_MAX, 0.05, state.time, refs);
     controls.appendChild(raControl);
     controls.appendChild(aControl);
     controls.appendChild(a0Control);
     controls.appendChild(timeControl);
+    controls.appendChild(makeRange(doc,instanceId+"-pr","Prandtl 数 Pr",.01,100,"any",state.pr,refs));
     shell.appendChild(controls);
 
     var formula = element(
@@ -803,10 +777,10 @@
       style: "max-width:100%; overflow:hidden;"
     });
     var amplitudeScroll = element(doc, "div", {
-      style: "max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;"
+      tabindex:"0",className:"rb-scroll","aria-label":"可横向滚动的对流实验图",style: "max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch;"
     });
     var amplitudeSvg = svgElement(doc, "svg", { viewBox: "0 0 760 300" });
-    amplitudeSvg.setAttribute("style", "display:block; width:100%; min-width:620px; height:auto;");
+    amplitudeSvg.setAttribute("style", "display:block; width:100%; min-width:700px; height:auto;");
     amplitudeScroll.appendChild(amplitudeSvg);
     amplitudeFrame.appendChild(amplitudeScroll);
     amplitudeSection.appendChild(amplitudeFrame);
@@ -824,7 +798,8 @@
     metric(doc, metrics, "波长 λ/d=2π/a", refs, "lambda");
     metric(doc, metrics, "当前 A(τ)", refs, "amplitude");
     metric(doc, metrics, "正规形饱和值 A∞", refs, "saturation");
-    metric(doc, metrics, "L/d=10 内约胞数", refs, "rolls");
+    metric(doc, metrics, "L/d=10 的胞宽单位数", refs, "rolls");
+    metric(doc, metrics, "线性 σ₊（时间单位 d²/κ）", refs, "growth");
     shell.appendChild(metrics);
 
     var status = element(doc, "p", {
@@ -837,20 +812,13 @@
     root.replaceChildren(shell);
 
     function readState() {
-      state.ra = clamp(number(refs[instanceId + "-ra"].input.value, 900), RA_MIN, RA_MAX);
-      state.a = clamp(number(refs[instanceId + "-a"].input.value, A_CRITICAL), A_MIN, A_MAX);
-      state.a0 = clamp(number(refs[instanceId + "-a0"].input.value, 0.12), 0.05, 0.9);
-      state.time = clamp(number(refs[instanceId + "-time"].input.value, 5), 0, TIME_MAX);
-      state.mu = controlMu(state.ra, state.a);
-      state.neutral = neutralRayleigh(state.a);
-      state.lambda = 2 * PI / state.a;
-      state.amplitude = amplitudeAt(state.mu, G, state.a0, state.time);
-      state.saturation = saturation(state.mu, G);
+      var values={ra:state.ra,a:state.a,a0:state.a0,time:state.time,pr:state.pr};
+      Object.assign(state,compute(values));
     }
 
     function updateOutputs() {
-      refs[instanceId + "-ra"].output.textContent = format(api, state.ra, 2);
-      refs[instanceId + "-a"].output.textContent = format(api, state.a, 3);
+      refs[instanceId + "-ra"].output.textContent = (state.ra===RA_CRITICAL?"27π⁴/4 ≈ ":"")+format(api, state.ra, 2);
+      refs[instanceId + "-a"].output.textContent = (state.a===A_CRITICAL?"π/√2 ≈ ":"")+format(api, state.a, 3);
       refs[instanceId + "-a0"].output.textContent = format(api, state.a0, 2);
       refs[instanceId + "-time"].output.textContent = format(api, state.time, 2);
       refs[instanceId + "-ra"].input.setAttribute("aria-valuetext", "Ra=" + format(api, state.ra, 2));
@@ -859,10 +827,12 @@
       refs[instanceId + "-time"].input.setAttribute("aria-valuetext", "模型时间 tau=" + format(api, state.time, 2));
       refs.neutral.textContent = format(api, state.neutral, 2);
       refs.mu.textContent = signed(api, state.mu, 4);
-      refs.lambda.textContent = format(api, state.lambda, 3) + " d";
+      refs.lambda.textContent = format(api, state.lambda, 3);
       refs.amplitude.textContent = format(api, state.amplitude, 4);
-      refs.saturation.textContent = state.mu > 0 ? format(api, state.saturation, 4) : "0（μ≤0）";
-      refs.rolls.textContent = format(null, Math.max(1, Math.round(state.a * DISPLAY_LENGTH / PI)), 0);
+      refs.saturation.textContent = format(null,state.saturation,4)+(state.a0===0?"（零初值）":"");
+      refs.growth.textContent=state.growth.plus===0?"0（临界）":state.growth.plus.toExponential(4);
+      refs[instanceId+"-pr"].output.textContent=format(null,state.pr,3);
+      refs.rolls.textContent = format(null,state.a * DISPLAY_LENGTH / PI,3)+"（末端可不完整）";
       presetButtons.forEach(function (button) {
         button.setAttribute(
           "aria-pressed",
@@ -872,7 +842,7 @@
       status.textContent =
         "Ra=" + format(api, state.ra, 2) + "，a=" + format(api, state.a, 3) +
         "；" + regime(state.mu) + "。" +
-        " 当前点在中性曲线" + (state.mu > 1e-4 ? "之上" : state.mu < -1e-4 ? "之下" : "上") +
+        " 当前点在中性曲线" + (state.mu > 0 ? "之上" : state.mu < 0 ? "之下" : "上") +
         "，这只是在选定模型中的稳定性判读。";
     }
 
@@ -887,16 +857,28 @@
       }
     }
 
-    [refs[instanceId + "-ra"], refs[instanceId + "-a"], refs[instanceId + "-a0"], refs[instanceId + "-time"]].forEach(function (control) {
+    [refs[instanceId + "-ra"], refs[instanceId + "-a"], refs[instanceId + "-a0"], refs[instanceId + "-time"],refs[instanceId+"-pr"]].forEach(function (control,index) {
       control.input.addEventListener("input", function () {
         state.preset = "custom";
+        state[["ra","a","a0","time","pr"][index]]=Number(control.input.value);
         render(false);
       });
     });
     render(false);
+    var content=element(doc,"div",{className:"rb-results",hidden:true,style:"display:grid;gap:16px"});
+    Array.from(shell.children).slice(3).forEach(function(n){content.appendChild(n);});
+    var gate=element(doc,"div",{className:"rb-predictions"}),answers=[null,null,null],buttons=[];
+    var questions=[
+      ["1. Ra 超过最低临界值，所有波数都会增长吗？",["只会有部分波数增长","所有波数都增长"]],
+      ["2. 超临界时，确定性正规形的 A₀=0 会怎样？",["一直为零","自行长成对流"]],
+      ["3. 改变 Pr，哪一项会直接改变？",["线性本征增长率 σ₊","自由滑移中性值 Ra_N"]]
+    ];
+    questions.forEach(function(q,i){var row=element(doc,"div",{className:"rb-question","data-question":i}),title=element(doc,"p",{},q[0]);row.appendChild(title);q[1].forEach(function(label,j){var button=element(doc,"button",{type:"button","aria-pressed":"false","data-answer":j},label);button.addEventListener("click",function(){answers[i]=j;content.hidden=true;buttons[i].forEach(function(b,k){b.setAttribute("aria-pressed",j===k?"true":"false");});feedback.textContent="已更新预测，请重新核对。";});if(!buttons[i])buttons[i]=[];buttons[i].push(button);row.appendChild(button);});gate.appendChild(row);});
+    var feedback=element(doc,"p",{role:"status","aria-live":"polite"},"先选择三项预测，再揭示实验。"),show=element(doc,"button",{type:"button"},"核对预测并揭示"),reset=element(doc,"button",{type:"button"},"重置并重新预测");
+    show.addEventListener("click",function(){if(answers.some(function(a){return a===null;})){feedback.textContent="请先完成三项预测。";return;}content.hidden=false;feedback.textContent="预测得分 "+answers.filter(function(a){return a===0;}).length+"/3；下方可探索正负初值、临界模式和 Pr。";presetButtons[0].focus();});
+    reset.addEventListener("click",function(){answers=[null,null,null];buttons.flat().forEach(function(b){b.setAttribute("aria-pressed","false");});state.preset="selected";var preset=PRESETS[2];Object.assign(state,{ra:preset.ra,a:preset.a,a0:preset.a0,time:preset.time,pr:7});[["ra",preset.ra],["a",preset.a],["a0",preset.a0],["time",preset.time],["pr",7]].forEach(function(v){setRangeValue(refs[instanceId+"-"+v[0]],v[1]);});render(false);content.hidden=true;feedback.textContent="结果已收起，请重新预测。";buttons[0][0].focus();});
+    gate.appendChild(show);gate.appendChild(reset);gate.appendChild(feedback);shell.appendChild(gate);shell.appendChild(content);
   }
 
-  window.CourseLearning.register("rayleigh-benard", function (root, api) {
-    mount(root, api);
-  });
-}());
+  return {neutralRayleigh:neutralRayleigh,controlMu:controlMu,linearGrowth:linearGrowth,amplitudeAt:amplitudeAt,saturation:saturation,compute:compute,drawNeutral:drawNeutral,drawCells:drawCells,drawAmplitude:drawAmplitude,PRESETS:PRESETS,A_CRITICAL:A_CRITICAL,RA_CRITICAL:RA_CRITICAL,mount:mount};
+});
