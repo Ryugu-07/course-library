@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 04:59</div>
+    <div class="build-time">构建于 2026-09-09 09:30</div>
   </div>
 </nav>
 <main id="content">
@@ -76,7 +76,7 @@ try {
 </details>
 <h1 id="iii">流形几何 III · 黎曼度量、联络与测地线<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Lee <em>Riemannian Manifolds</em> §2–5 ｜ <strong>前置</strong>：mfld-01/02、微分几何 II（第一基本形式）
+<p><strong>对标</strong>：Lee <em>Introduction to Riemannian Manifolds</em>（第2版）的度量、联络、测地线章节。<strong>先修回链</strong>：<a href="mfld-01-manifolds.html">流形与切空间</a>、<a href="mfld-02-forms-stokes.html">微分形式</a>。本页采用光滑、Hausdorff、第二可数、无边界的流形。
 光滑结构只能谈"可微"，谈不了长度与角度——<strong>黎曼度量</strong>补上这块：每点切空间配一个内积、随点光滑变化。随之而来的核心难题：弯曲空间里<strong>不同点的切向量怎么比较</strong>（求导需要比较！）——答案是<strong>联络</strong>；由它定义"不转弯的曲线"——<strong>测地线</strong>。</p>
 </blockquote>
 <div data-learning-page></div>
@@ -96,10 +96,10 @@ g=dr^2+r^2d\theta^2,
 <p>则 <span class="arithmatex">\(\gamma(1)\)</span> 的 <span class="arithmatex">\(r=0\)</span>，<span class="arithmatex">\(\theta\)</span> 没有唯一值，<span class="arithmatex">\(g_{\theta\theta}=0\)</span>，<span class="arithmatex">\(1/r\)</span> 型 Christoffel 也失效。先预测：这是否意味着平面流形在原点破裂？答案应是<strong>否</strong>；这是坐标图的边界，换回 Cartesian 图，点、长度和测地线都继续存在。</p>
 <p>再把视线移到单位球：同一条大圆可以走一小段、走过半圈，或恰好走到对跖点。三种路径都满足仿射测地线方程，但全局距离结论不同。实验先收下四项预测，再揭示 <span class="arithmatex">\(g\)</span>、<span class="arithmatex">\(\Gamma\)</span>、能量、残差和最短性账本。</p>
 <h3 id="2-christoffel-ode">2. 形式桥：从度量到 Christoffel，再到 ODE<a class="headerlink" href="#2-christoffel-ode" title="Permanent link"></a></h3>
-<p>在坐标 <span class="arithmatex">\(x^i\)</span> 中，黎曼度量是正定矩阵场 <span class="arithmatex">\(g_{ij}\)</span>，长度和能量为</p>
+<p>在坐标 <span class="arithmatex">\(x^i\)</span> 中，黎曼度量是正定矩阵场 <span class="arithmatex">\(g_{ij}\)</span>，长度、动能密度与固定时间区间上的能量泛函分别为</p>
 <div class="arithmatex">\[
 L(\gamma)=\int\sqrt{g_{ij}(\gamma)\dot\gamma^i\dot\gamma^j}\,dt,\qquad
-E(\gamma)=\frac12g_{ij}(\gamma)\dot\gamma^i\dot\gamma^j.
+E(t)=\frac12g_{ij}(\gamma)\dot\gamma^i\dot\gamma^j,\qquad\mathcal E(\gamma)=\int_a^b E(t)\,dt.
 \]</div>
 <p>Levi-Civita 联络的坐标系数为</p>
 <div class="arithmatex">\[
@@ -131,10 +131,10 @@ g=d\theta^2+\sin^2\theta\,d\varphi^2,\qquad
 \]</div>
 <p>立体投影坐标 <span class="arithmatex">\((u,v)\)</span>（排除北极）由</p>
 <div class="arithmatex">\[
-(X,Y,Z)=\frac{(2u,2v,1-u^2-v^2)}{1+u^2+v^2},\qquad
+(X,Y,Z)=\frac{(2u,2v,u^2+v^2-1)}{1+u^2+v^2},\qquad
 g=\frac{4(du^2+dv^2)}{(1+u^2+v^2)^2}
 \]</div>
-<p>覆盖南极附近的另一张正则图。转换改变坐标分量和 Christoffel 表达式，却不改变嵌入点、内积或几何能量；北极没有有限的这张图坐标，不是球面出现了洞。</p>
+<p>给出逆映射；正映射是 <span class="arithmatex">\((u,v)=(X/(1-Z),Y/(1-Z))\)</span>。因此 <span class="arithmatex">\((u,v)=(0,0)\)</span> 对应南极，<span class="arithmatex">\((u,v)=(2,0)\)</span> 对应 <span class="arithmatex">\((4/5,0,3/5)\)</span>，再正投影得到 <span class="arithmatex">\(2\)</span>，可直接核对正逆一致。转换改变坐标分量和 Christoffel 表达式，却不改变嵌入点、内积或几何能量；北极没有有限的这张图坐标，不是球面出现了洞。</p>
 <h3 id="3">3. 误区与模型边界<a class="headerlink" href="#3" title="Permanent link"></a></h3>
 <table>
 <thead>
@@ -158,7 +158,7 @@ g=\frac{4(du^2+dv^2)}{(1+u^2+v^2)^2}
 </tr>
 <tr>
 <td>“只看 <span class="arithmatex">\(L\)</span> 就能得到数值方程。”</td>
-<td>仿射参数下能量 <span class="arithmatex">\(E\)</span> 让方程保持二阶形式；任意参数会引入沿切向的非零加速度项。</td>
+<td>长度不依赖保向重参数；能量泛函的驻点选出常速参数，非线性重参数通常引入沿切向加速度。</td>
 </tr>
 <tr>
 <td>“对跖点的最短测地线唯一。”</td>
@@ -174,7 +174,7 @@ g=\frac{4(du^2+dv^2)}{(1+u^2+v^2)^2}
 <li><span class="arithmatex">\(E\)</span>、测地线长度和端点的全局距离；</li>
 <li>当前坐标图与另一张图之间的转换状态。</li>
 </ol>
-<p>实验的“仿射通过”不是预设标签：只有当前坐标图正则、坐标方程残差和嵌入中的解析测地线残差都在容差内才报告通过；坐标奇异处报告 <strong>unavailable</strong>，因为该坐标不能提供方程判定，而不是把流形误判为不满足测地线方程。</p>
+<p>实验使用大圆/直线的解析路径；坐标速度与加速度由坐标映射的链式法则求得，再代入方程。不是先用待验证方程定义加速度再相消。数值账本的残差是坐标分量的欧氏范数，不是换图不变量，也不是严格误差界；过近极点会遇到浮点精度限制。实验的“仿射通过”不是预设标签：只有当前坐标图正则、坐标方程残差和嵌入中的解析测地线残差都在容差内才报告通过；坐标奇异处报告 <strong>unavailable</strong>，因为该坐标不能提供方程判定，而不是把流形误判为不满足测地线方程。</p>
 <div class="learning-lab" data-learning-lab="geodesic-metric">
 <p><strong>JavaScript 失效时的静态后备账本：</strong>默认取单位球短大圆弧，球坐标 <span class="arithmatex">\(\theta=\pi/3,\varphi=-0.4\)</span>，初速度 <span class="arithmatex">\((\dot\theta,\dot\varphi)=(0.55,0.9)\)</span>，仿射时长 <span class="arithmatex">\(T=2\)</span>。令 <span class="arithmatex">\(v^2=\dot\theta^2+\sin^2\theta\,\dot\varphi^2\)</span>。</p>
 <table>
@@ -226,40 +226,65 @@ g=\frac{4(du^2+dv^2)}{(1+u^2+v^2)^2}
 <p>边界对照：把时长改为 <span class="arithmatex">\(4\)</span> 得到同一大圆的长段，仍是仿射测地线但不再全局最短；把时长改为 <span class="arithmatex">\(\pi\)</span> 且初速沿赤道取 1，到达对跖点，最短路长度为 <span class="arithmatex">\(\pi\)</span> 但不唯一。切换到平面极坐标预设，<span class="arithmatex">\(t=1\)</span> 的 <span class="arithmatex">\(r=0\)</span> 行应显示“仿射判定 unavailable；坐标奇异；流形正则”，而不是 NaN 伪装成曲率。</p>
 </div>
 <h3 id="5">5. 迁移问题<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<p>在机器人、地图或优化中，若算法只保存一张坐标表，遇到极点就会把表示失败误报成几何失败。更稳的接口是同时保留嵌入点/内积可计算的状态、坐标图标签、图转换和定义域标志。对端点问题还要单独报告“满足仿射方程”和“是否全局最短”，不能由一条漂亮的测地线图替代距离证明。</p>
+<p>给出下列三份日志，分别判断失败发生在坐标、参数还是全局最短性上，并写出计算。</p>
+<ol>
+<li>北极立体投影坐标 <span class="arithmatex">\((u,v)=(2,0)\)</span>，速度分量 <span class="arithmatex">\((1,0)\)</span>：嵌入点与动能密度各是多少？</li>
+<li>平面路径 <span class="arithmatex">\(\eta(\tau)=(\tau^2,0)\)</span>，<span class="arithmatex">\(1\le\tau\le2\)</span>：轨迹是直线段，为什么仿射方程仍不成立？</li>
+<li>单位球沿赤道走长度 <span class="arithmatex">\(3\pi/2\)</span>：路径长度与端点距离各是多少？</li>
+</ol>
+<details class="answer">
+<summary>展开计算与接口判断</summary>
+<ol>
+<li>点为 <span class="arithmatex">\((4/5,0,3/5)\)</span>，<span class="arithmatex">\(g=4I/25\)</span>，所以 <span class="arithmatex">\(E=2/25\)</span>。若另一图返回 <span class="arithmatex">\(Z=-3/5\)</span>，是换图实现错误，不能解释成另一种能量。</li>
+<li><span class="arithmatex">\(\eta''=(2,0)\ne0\)</span>，<span class="arithmatex">\(E(\tau)=2\tau^2\)</span> 不恒定。它仍描出两端间最短线段，但 <span class="arithmatex">\(\tau\)</span> 非仿射参数；改用 <span class="arithmatex">\(t=\tau^2\)</span> 后方程成立。</li>
+<li><span class="arithmatex">\(L=3\pi/2\)</span>，<span class="arithmatex">\(d=\arccos(\cos(3\pi/2))=\pi/2\)</span>。这是仿射测地线，却不是全局最短。算法应分开报告坐标可用性、方程残差与距离，不能合为一个“成功”标签。</li>
+</ol>
+</details>
 </section>
 <h2 id="1_1">1. 黎曼度量<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p><strong>定义</strong> 黎曼度量 <span class="arithmatex">\(g\)</span>：每点 <span class="arithmatex">\(p\)</span> 一个内积 <span class="arithmatex">\(g_p: T_pM\times T_pM \to \mathbb{R}\)</span>，坐标下对称正定矩阵场 <span class="arithmatex">\(g_{ij}(x)\)</span>（高代 VI 的正定性逐点站岗）。曲线长度 <span class="arithmatex">\(L(\gamma) = \int\sqrt{g(\dot\gamma,\dot\gamma)}\,dt\)</span>；由长度诱导距离——黎曼流形是度量空间（泛函 I 的语言回流）。</p>
-<p><strong>例</strong>：<span class="arithmatex">\(\mathbb{R}^n\)</span> 平直度量 <span class="arithmatex">\(g_{ij} = \delta_{ij}\)</span>；曲面的第一基本形式（微分几何 II 的 <span class="arithmatex">\(E, F, G\)</span> 正是 <span class="arithmatex">\(2\times2\)</span> 的 <span class="arithmatex">\(g_{ij}\)</span>——那门课原来一直在做二维黎曼几何）；<strong>双曲平面</strong> <span class="arithmatex">\(g = \frac{dx^2 + dy^2}{y^2}\)</span>（上半平面——常负曲率世界，非欧几何的正式住所）；<strong>Fisher 信息度量</strong> <span class="arithmatex">\(g_{ij} = E[\partial_i\ln p\,\partial_j\ln p]\)</span>（统计模型族上的天然黎曼结构——统计 II 的信息阵原来是个度量张量：<strong>信息几何</strong>的出生证明，自然梯度 = 此度量下的梯度）。</p>
+<p><strong>定义</strong> 黎曼度量 <span class="arithmatex">\(g\)</span>：每点 <span class="arithmatex">\(p\)</span> 一个内积 <span class="arithmatex">\(g_p: T_pM\times T_pM \to \mathbb{R}\)</span>，坐标下对称正定矩阵场 <span class="arithmatex">\(g_{ij}(x)\)</span>（高代 VI 的正定性逐点站岗）。曲线长度 <span class="arithmatex">\(L(\gamma) = \int\sqrt{g(\dot\gamma,\dot\gamma)}\,dt\)</span>；在每个连通分支内，由长度诱导有限距离；不同分支之间若定义路径长度下确界，则距离为无穷大，不能无条件称整个不连通空间为通常的有限值度量空间。</p>
+<p><strong>例</strong>：<span class="arithmatex">\(\mathbb{R}^n\)</span> 平直度量 <span class="arithmatex">\(g_{ij} = \delta_{ij}\)</span>；曲面的第一基本形式（微分几何 II 的 <span class="arithmatex">\(E, F, G\)</span> 正是 <span class="arithmatex">\(2\times2\)</span> 的 <span class="arithmatex">\(g_{ij}\)</span>——那门课原来一直在做二维黎曼几何）；<strong>双曲平面</strong> <span class="arithmatex">\(g = \frac{dx^2 + dy^2}{y^2}\)</span>（上半平面——常负曲率世界，非欧几何的正式住所）；<strong>Fisher 信息</strong> <span class="arithmatex">\(g_{ij}=\mathbb E[\partial_i\log p\,\partial_j\log p]\)</span> 在满足微分/积分交换等正则性且矩阵有限、正定的可辨识参数化中给出黎曼度量。冗余参数或奇异模型中它可能仅半正定。例如 <span class="arithmatex">\(p=N(a+b,1)\)</span> 的信息阵是全 <span class="arithmatex">\(1\)</span> 的 <span class="arithmatex">\(2\times2\)</span> 矩阵，秩为 <span class="arithmatex">\(1\)</span>；不能直接取逆叫作度量。</p>
 <p><strong>存在性</strong>：任何流形都有黎曼度量（单位分解拼局部内积【一行】）——度量不稀缺，<strong>特定度量的性质</strong>才是学问。</p>
 <h2 id="2">2. 联络：比较不同点的切向量<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <p><strong>困难</strong>：<span class="arithmatex">\(T_pM\)</span> 与 <span class="arithmatex">\(T_qM\)</span> 是不同的线性空间——"<span class="arithmatex">\(X(q) - X(p)\)</span>"没有意义 ⇒ 向量场无法直接求导。<strong>仿射联络</strong> <span class="arithmatex">\(\nabla\)</span>：公理化"方向导数"（对方向线性、对被导向量场 Leibniz）；坐标下由 <strong>Christoffel 符号</strong> <span class="arithmatex">\(\Gamma^k_{ij}\)</span> 编码（<span class="arithmatex">\(\nabla_{\partial_i}\partial_j = \Gamma^k_{ij}\partial_k\)</span>——"基向量自己怎么漂移"的记录）。</p>
-<p><strong>定理（黎曼几何基本定理）</strong> 每个黎曼流形上存在<strong>唯一</strong>的联络（Levi-Civita 联络）同时满足：① 与度量相容（<span class="arithmatex">\(\nabla g = 0\)</span>：平移保内积）；② 无挠（<span class="arithmatex">\(\Gamma^k_{ij}\)</span> 对称）。且</p>
+<p><strong>定理（黎曼几何基本定理）</strong> 每个黎曼流形上存在<strong>唯一</strong>的联络（Levi-Civita 联络）同时满足：① 与度量相容（<span class="arithmatex">\(\nabla g = 0\)</span>：平移保内积）；② 无挠（坐标基中 <span class="arithmatex">\(\Gamma^k_{ij}=\Gamma^k_{ji}\)</span>）。且</p>
 <div class="arithmatex">\[
 \Gamma^k_{ij} = \frac12 g^{kl}\big(\partial_i g_{jl} + \partial_j g_{il} - \partial_l g_{ij}\big)
 \]</div>
-<p><strong>【证明】</strong> Koszul 公式：把相容性写三遍（轮换指标）、加加减减解出 <span class="arithmatex">\(g(\nabla_XY, Z)\)</span> 的显式表达——唯一性与存在性同一行代数。<span class="arithmatex">\(\blacksquare\)</span>
-<strong>读法</strong>：<strong>度量白送一个求导法则</strong>——几何（长度）决定运动学（平移）；<span class="arithmatex">\(\Gamma\)</span> 不是张量（换坐标带二阶项）——它是"坐标系的假力"（离心力/科氏力的数学身份）。</p>
-<p><strong>平行移动</strong>：沿曲线解 <span class="arithmatex">\(\nabla_{\dot\gamma}X = 0\)</span>（线性 ODE——存在唯一由 ode 理论白送）——"向量不转动地搬运"；<strong>和乐（holonomy）</strong>：绕闭路平移回来向量可以转了角度——<strong>曲率的第一征兆</strong>（下一页主角）。</p>
+<p><strong>【证明】</strong> Koszul 公式：把相容性写三遍（轮换指标）、加加减减解出 <span class="arithmatex">\(g(\nabla_XY, Z)\)</span> 的显式表达——坐标基的 Lie 括号为零，于是</p>
+<div class="arithmatex">\[
+\partial_i g_{j\ell}=g(\nabla_i\partial_j,\partial_\ell)+g(\partial_j,\nabla_i\partial_\ell).
+\]</div>
+<p>把 <span class="arithmatex">\((i,j,\ell)\)</span>、<span class="arithmatex">\((j,i,\ell)\)</span> 两式相加，再减去 <span class="arithmatex">\((\ell,i,j)\)</span> 式，无挠使交叉项抵消，得 <span class="arithmatex">\(2g_{k\ell}\Gamma^k_{ij}=\partial_i g_{j\ell}+\partial_j g_{i\ell}-\partial_\ell g_{ij}\)</span>。乘逆度量得到上述系数；定义出的联络满足两条件，且换图一致。<span class="arithmatex">\(\blacksquare\)</span>
+<strong>读法</strong>：<strong>度量白送一个求导法则</strong>——几何（长度）决定运动学（平移）；<span class="arithmatex">\(\Gamma\)</span> 不是张量（换坐标带二阶项）——平面曲线坐标的非零项可表现为惯性项；一般曲率空间的联络不能整体消去，不能一概称为假力。</p>
+<p><strong>平行移动</strong>：沿曲线解 <span class="arithmatex">\(\nabla_{\dot\gamma}X = 0\)</span>（线性 ODE——存在唯一由 ode 理论白送）——"向量不转动地搬运"；<strong>和乐（holonomy）</strong>：绕闭路平移回来向量可以转了角度——足够小的可缩闭路上的偏差由曲率控制；一般非可缩闭路还可能探测全局拓扑，即使联络平坦也不必处处平凡。</p>
 <h2 id="3_1">3. 测地线<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<figure class="plot">
-<p><img alt="球面测地线是大圆弧" src="assets/img/mfld-03-geodesic.svg" /></p>
-<figcaption><span class="fig-id">图 3.1</span>球面上的测地线是大圆弧（红）——局部最短、"直"的推广；虚线的非测地线连接更长。</figcaption>
+<div style="overflow-x:auto;position:relative" tabindex="0" role="region" aria-label="大圆长短弧机制图，可横向滚动">
+<figure class="plot" markdown="1" style="min-width:950px">
+![球面测地线是大圆弧](assets/img/mfld-03-geodesic.svg)
+<figcaption><span class="fig-id">图 3.1</span>同一单位大圆上，蓝色短弧长 π/2；红色长弧长 3π/2。两者均可用仿射参数走过，但仅短弧实现这对端点的距离。</figcaption>
 </figure>
+</div>
+
 <p><strong>定义</strong> <span class="arithmatex">\(\nabla_{\dot\gamma}\dot\gamma = 0\)</span>——"速度向量沿自身平行移动"：不转弯的曲线。坐标方程：</p>
 <div class="arithmatex">\[
 \ddot\gamma^k + \Gamma^k_{ij}\,\dot\gamma^i\dot\gamma^j = 0
 \]</div>
 <p>（二阶非线性 ODE——存在唯一性（ode-01/sc 线的 Picard）给：对每个初值 <span class="arithmatex">\((p,v)\)</span>，存在唯一测地线定义在包含 <span class="arithmatex">\(0\)</span> 的<strong>最大开区间</strong>上；它未必能延伸到所有时间。）</p>
-<p><strong>两重身份的等价【骨架】</strong>：变分身份——测地线是长度（等价地能量 <span class="arithmatex">\(\int g(\dot\gamma,\dot\gamma)dt\)</span>）泛函的临界点：Euler–Lagrange 方程恰是测地线方程（变分法一算——"仿射测地线 = 不转弯"）。⚠️ 临界 ≠ 最短：球面大圆的劣弧最短、优弧只是驻点——<strong>局部最短、全局未必</strong>（共轭点理论管辖【引用】）。</p>
+<p><strong>变分身份与参数。</strong> 固定端点及时间区间，对 <span class="arithmatex">\(\mathcal E=\frac12\int g_{ij}\dot x^i\dot x^jdt\)</span> 写 Euler–Lagrange 方程：</p>
+<div class="arithmatex">\[
+\frac{d}{dt}(g_{kj}\dot x^j)-\frac12\partial_k g_{ij}\dot x^i\dot x^j=0.
+\]</div>
+<p>展开首项，再乘 <span class="arithmatex">\(g^{\ell k}\)</span>，恰得到仿射测地线方程。度量相容给出 <span class="arithmatex">\(dE/dt=g(\nabla_{\dot\gamma}\dot\gamma,\dot\gamma)=0\)</span>。长度泛函则对保向重参数不变；对非零速度的驻点，选常速参数才得到同一仿射方程。若 <span class="arithmatex">\(\eta(\tau)=\gamma(f(\tau))\)</span>，则 <span class="arithmatex">\(\nabla_{\eta'}\eta'=f''\dot\gamma\)</span>，一般不为零。每条测地线的足够短子段局部最短，但长段未必全局最短。</p>
 <p><strong>指数映射</strong> <span class="arithmatex">\(\exp_p(v)=\gamma_{p,v}(1)\)</span> 只在那些能把测地线至少延伸到时间 <span class="arithmatex">\(1\)</span> 的向量上定义；其定义域是 <span class="arithmatex">\(T_pM\)</span> 中含 <span class="arithmatex">\(0\)</span> 的开集，并在 <span class="arithmatex">\(0\)</span> 附近给出局部微分同胚（法坐标：<span class="arithmatex">\(g_{ij}(p)=\delta_{ij}\)</span>、<span class="arithmatex">\(\Gamma(p)=0\)</span>——<strong>每点附近都可以“假装平直”到一阶</strong>）。</p>
 <p><strong>Hopf–Rinow 定理【引用】</strong>：对<strong>连通</strong>黎曼流形，度量空间 <span class="arithmatex">\((M,d_g)\)</span> 完备，当且仅当所有测地线可延伸到整个 <span class="arithmatex">\(\mathbb R\)</span>，也等价于每个 <span class="arithmatex">\(p\)</span> 的 <span class="arithmatex">\(\exp_p\)</span> 定义在整个 <span class="arithmatex">\(T_pM\)</span>；这些条件还推出任意两点间存在最短测地线。最后一条单独拿出来并不反推完备：开单位球 <span class="arithmatex">\(B(0,1)\subset\mathbb R^n\)</span> 配欧氏度量时，任意两点仍由球内线段最短连接，但从原点沿单位速度射线只活到 <span class="arithmatex">\(t=1\)</span>，<span class="arithmatex">\(\exp_0(v)\)</span> 在 <span class="arithmatex">\(\|v\|\ge1\)</span> 的单位时间处无定义。这个反例把“局部 ODE 存在”“两点可连接”和“全局测地完备”分开。</p>
 <h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
 <p><strong>例 1（球面测地线亲算）</strong> <span class="arithmatex">\(S^2\)</span> 球坐标度量 <span class="arithmatex">\(ds^2 = d\theta^2 + \sin^2\theta\,d\varphi^2\)</span>：算 <span class="arithmatex">\(\Gamma\)</span>（非零者 <span class="arithmatex">\(\Gamma^\theta_{\varphi\varphi} = -\sin\theta\cos\theta\)</span>、<span class="arithmatex">\(\Gamma^\varphi_{\theta\varphi} = \cot\theta\)</span>），验证赤道 <span class="arithmatex">\(\theta = \frac\pi2\)</span> 满足测地线方程——<strong>大圆 = 球面的直线</strong>（航线为何走大圆的定理版）。</p>
-<p><strong>例 2（双曲平面的测地线）</strong> 上半平面度量下验证竖直线是测地线（对称性论证：反射等距固定它）——非欧几何的"直线"是竖线与半圆：<strong>平行公理在此失效的实物模型</strong>（过线外一点无穷多条"平行线"）。</p>
-<p><strong>例 3（🔗 自然梯度）</strong> 统计模型族上最速下降的正确方向是 <span class="arithmatex">\(-I(\theta)^{-1}\nabla\ell\)</span>（Fisher 度量下的梯度）而非 <span class="arithmatex">\(-\nabla\ell\)</span>：<strong>参数化不变的优化</strong>——普通梯度依赖坐标（换参数化方向就变），黎曼梯度只依赖几何（优化 II 预条件的几何真身；K-FAC/natural policy gradient 的出处）。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 2（双曲平面的测地线）</strong> 上半平面度量下取 <span class="arithmatex">\(x=x_0,y=e^t\)</span>，此时 <span class="arithmatex">\(\Gamma^y_{yy}=-1/y\)</span>，故 <span class="arithmatex">\(\ddot y-\dot y^2/y=0\)</span>，且速度为 <span class="arithmatex">\(1\)</span>；直接用 <span class="arithmatex">\(y=t\)</span> 描述同一竖线则不是仿射参数——非欧几何的"直线"是竖线与半圆：<strong>平行公理在此失效的实物模型</strong>（过线外一点无穷多条"平行线"）。</p>
+<p><strong>例 3（🔗 自然梯度）</strong> 统计模型族上最速下降的正确方向是 <span class="arithmatex">\(-I(\theta)^{-1}\nabla\ell\)</span>（Fisher 度量下的梯度）而非 <span class="arithmatex">\(-\nabla\ell\)</span>：<strong>坐标不变的梯度向量场</strong>——普通梯度依赖坐标（换参数化方向就变），黎曼梯度只依赖几何。有限步坐标 Euler 更新一般不在非线性换坐标下精确不变；使用指数映射或合适的 retraction 还需另外定义离散算法。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>收官页：曲率——黎曼张量的定义与含义、截面曲率、以及 Gauss–Bonnet 的高维眺望。</em></p>
+<p><strong>原始资料</strong>：<a href="https://sites.math.washington.edu/~lee/Books/RM/">Lee 第2版作者页面及勘误</a>，对应度量、Levi-Civita 联络、测地线与完备性章节；本页的投影、变分和三份日志均可由给出的式子复算。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="mfld-02-forms-stokes.html"><span class="pager-label">上一页</span>流形几何 II · 微分形式与 Stokes</a>

@@ -88,12 +88,12 @@
     ".gm-lab *,.gm-lab *::before,.gm-lab *::after{box-sizing:border-box}.gm-lab [hidden]{display:none!important}",
     ".gm-lab h3,.gm-lab h4{margin:0;color:var(--fg,#20252b);letter-spacing:0}.gm-lab h3{font-size:1.14rem}.gm-lab h4{font-size:1rem}.gm-lab p{margin:8px 0}",
     ".gm-lab .gm-note,.gm-lab .gm-feedback,.gm-lab .gm-status{color:var(--fg-soft,var(--muted,#5d6873));font-size:13px;line-height:1.65}",
-    ".gm-lab button,.gm-lab input,.gm-lab select{font:inherit}.gm-lab button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border,#c8cdd3);border-radius:6px;background:var(--bg,#fff);color:var(--fg,#20252b);line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.gm-lab button:hover{border-color:var(--accent,#1769aa)}.gm-lab button:focus-visible,.gm-lab input:focus-visible,.gm-lab select:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.gm-lab button[aria-pressed=true],.gm-lab button.gm-primary{border-color:var(--accent,#1769aa);background:var(--accent,#1769aa);color:var(--bg,#fff);font-weight:750}.gm-lab button:disabled{opacity:.55;cursor:not-allowed}",
+    ".gm-lab button,.gm-lab input,.gm-lab select{font:inherit}.gm-lab button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border,#c8cdd3);border-radius:6px;background:var(--bg,#fff);color:var(--fg,#20252b);line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.gm-lab button:hover{border-color:var(--accent,#1769aa)}.gm-lab [tabindex]:focus-visible,.gm-lab button:focus-visible,.gm-lab input:focus-visible,.gm-lab select:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.gm-lab button[aria-pressed=true],.gm-lab button.gm-primary{border-color:var(--accent,#1769aa);background:var(--accent,#1769aa);color:var(--bg,#fff);font-weight:750}.gm-lab button:disabled{opacity:.55;cursor:not-allowed}",
     ".gm-lab .gm-presets{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin:10px 0}.gm-lab .gm-presets button{font-size:12px}.gm-lab .gm-controls{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(170px,.8fr) minmax(0,1fr);gap:12px;margin:12px 0;align-items:end}.gm-lab .gm-control{display:grid;gap:4px;min-width:0}.gm-lab .gm-control label,.gm-lab .gm-control>span{color:var(--fg-soft,var(--muted,#5d6873));font-size:12.5px;font-weight:700}.gm-lab .gm-control output{color:var(--accent,#1769aa);font-variant-numeric:tabular-nums}.gm-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent,#1769aa)}.gm-lab select{width:100%;min-height:44px;padding:8px 10px;border:1px solid var(--border,#c8cdd3);border-radius:6px;background:var(--bg,#fff);color:var(--fg,#20252b)}",
     ".gm-lab fieldset{min-width:0;margin:10px 0;padding:9px 10px;border:1px solid var(--border,#c8cdd3)}.gm-lab legend{max-width:100%;padding:0 4px;color:var(--fg,#20252b);font-size:13px;font-weight:750;line-height:1.5}.gm-lab .gm-choice-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.gm-lab .gm-choice-grid button{font-size:12px}",
     ".gm-lab .gm-prediction{margin:14px 0;padding:12px 14px;border-left:3px solid var(--cl-gold,#9a6b12);background:var(--block-bg,var(--bg,#fff))}.gm-lab .gm-prediction-title{display:block;margin-bottom:8px;font-size:13px}.gm-lab .gm-question{margin:10px 0}.gm-lab .gm-question legend{margin-bottom:6px}.gm-lab .gm-feedback{min-height:2em;margin:8px 0 0;font-weight:700}.gm-lab .gm-pass{color:var(--cl-green,#2f7547)}.gm-lab .gm-warn{color:var(--cl-red,#b43d32)}.gm-lab .gm-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.gm-lab .gm-actions>*{flex:1 1 170px}",
     ".gm-lab .gm-results{margin-top:18px;padding-top:16px;border-top:1px solid var(--border,#c8cdd3)}.gm-lab .gm-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}.gm-lab .gm-metric{min-width:0;padding:8px;border-top:2px solid var(--border,#c8cdd3);background:var(--block-bg,var(--bg,#fff))}.gm-lab .gm-metric:nth-child(4n+1){border-color:var(--cl-blue,#2c6aa0)}.gm-lab .gm-metric:nth-child(4n+2){border-color:var(--cl-green,#2f7547)}.gm-lab .gm-metric:nth-child(4n+3){border-color:var(--cl-gold,#9a6b12)}.gm-lab .gm-metric:nth-child(4n){border-color:var(--cl-red,#b43d32)}.gm-lab .gm-metric span{display:block;color:var(--fg-soft,var(--muted,#5d6873));font-size:11px;line-height:1.4}.gm-lab .gm-metric strong{display:block;margin-top:3px;font-size:13px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-    ".gm-lab .gm-stage{min-width:0;padding:8px;border:1px solid var(--border,#c8cdd3);border-radius:6px;background:var(--block-bg,var(--bg,#fff))}.gm-lab .gm-svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg,#20252b)}.gm-lab .gm-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.gm-lab .gm-svg .gm-grid{stroke:currentColor;stroke-opacity:.14;stroke-width:1}.gm-lab .gm-svg .gm-axis{stroke:currentColor;stroke-opacity:.5;stroke-width:1.1}.gm-lab .gm-svg .gm-curve{fill:none;stroke:var(--cl-blue,#2c6aa0);stroke-width:2.6}.gm-lab .gm-svg .gm-end{fill:var(--cl-green,#2f7547);stroke:var(--bg,#fff);stroke-width:2}.gm-lab .gm-svg .gm-point{fill:var(--cl-red,#b43d32);stroke:var(--bg,#fff);stroke-width:2}.gm-lab .gm-svg .gm-singular{stroke:var(--cl-red,#b43d32);stroke-width:2;stroke-dasharray:5 4}.gm-lab .gm-svg .gm-label{font-size:12px;font-weight:750}.gm-lab .gm-svg .gm-small{font-size:10px;fill:var(--fg-soft,var(--muted,#5d6873))}",
+    ".gm-lab .gm-stage{min-width:0;overflow-x:auto;padding:8px;border:1px solid var(--border,#c8cdd3);border-radius:6px;background:var(--block-bg,var(--bg,#fff))}.gm-lab .gm-svg{display:block;width:100%;min-width:760px;height:auto;color:var(--fg,#20252b)}.gm-lab .gm-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.gm-lab .gm-svg .gm-grid{stroke:currentColor;stroke-opacity:.14;stroke-width:1}.gm-lab .gm-svg .gm-axis{stroke:currentColor;stroke-opacity:.5;stroke-width:1.1}.gm-lab .gm-svg .gm-curve{fill:none;stroke:var(--cl-blue,#2c6aa0);stroke-width:2.6}.gm-lab .gm-svg .gm-end{fill:var(--cl-green,#2f7547);stroke:var(--bg,#fff);stroke-width:2}.gm-lab .gm-svg .gm-point{fill:var(--cl-red,#b43d32);stroke:var(--bg,#fff);stroke-width:2}.gm-lab .gm-svg .gm-singular{stroke:var(--cl-red,#b43d32);stroke-width:2;stroke-dasharray:5 4}.gm-lab .gm-svg .gm-label{font-size:12px;font-weight:750}.gm-lab .gm-svg .gm-small{font-size:10px;fill:var(--fg-soft,var(--muted,#5d6873))}",
     ".gm-lab .gm-ledger-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:12px}.gm-lab table{width:100%;min-width:760px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.gm-lab table caption{padding:0 0 7px;text-align:left;color:var(--fg-soft,var(--muted,#5d6873));font-size:12px}.gm-lab th,.gm-lab td{padding:7px 8px;border-bottom:1px solid var(--border,#c8cdd3);text-align:left;vertical-align:top}.gm-lab th{color:var(--fg-soft,var(--muted,#5d6873));font-size:11.5px}.gm-lab .gm-interpretation{margin-top:10px;padding:10px 12px;border-left:3px solid var(--cl-green,#2f7547);background:var(--block-bg,var(--bg,#fff));font-size:13px;line-height:1.65}",
     "@media(max-width:920px){.gm-lab .gm-presets{grid-template-columns:repeat(3,minmax(0,1fr))}.gm-lab .gm-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.gm-lab .gm-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}",
     "@media(max-width:620px){.gm-lab .gm-presets{grid-template-columns:repeat(2,minmax(0,1fr))}.gm-lab .gm-controls{grid-template-columns:minmax(0,1fr)}.gm-lab .gm-choice-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.gm-lab .gm-prediction{padding:10px}.gm-lab .gm-stage{padding:4px}}",
@@ -154,18 +154,18 @@
       return { matrix: [[1, 0], [0, 1]], determinant: 1, regular: true, manifoldRegular: true, note: "Cartesian 平面坐标处处正则。" };
     }
     if (manifold === "plane" && chart === "polar") {
-      var r = Math.abs(first);
-      return { matrix: [[1, 0], [0, r * r]], determinant: r * r, regular: r > EPS, manifoldRegular: true, note: "r=0 是极坐标的坐标奇异，不是平面的流形奇异。" };
+      var r = first;
+      return { matrix: [[1, 0], [0, r * r]], determinant: r * r, regular: finite(r) && r > 0, manifoldRegular: true, note: "r=0 是极坐标的坐标奇异，不是平面的流形奇异。" };
     }
     if (manifold === "sphere" && chart === "spherical") {
       var sinTheta = Math.sin(first);
       var determinant = sinTheta * sinTheta;
-      return { matrix: [[1, 0], [0, determinant]], determinant: determinant, regular: Math.abs(sinTheta) > EPS, manifoldRegular: true, note: "θ=0,π 是经纬坐标的极点奇异；球面仍是光滑流形。" };
+      return { matrix: [[1, 0], [0, determinant]], determinant: determinant, regular: finite(first) && first > 0 && first < PI, manifoldRegular: true, note: "θ=0,π 是经纬坐标的极点奇异；球面仍是光滑流形。" };
     }
     if (manifold === "sphere" && chart === "stereographic") {
       var rhoSquared = first * first + second * second;
       var factor = 4 / Math.pow(1 + rhoSquared, 2);
-      return { matrix: [[factor, 0], [0, factor]], determinant: factor * factor, regular: finite(factor) && factor > EPS, manifoldRegular: true, note: "北极被此 stereographic 图排除；有限坐标处度量正定。" };
+      return { matrix: [[factor, 0], [0, factor]], determinant: factor * factor, regular: finite(factor) && factor > 0, manifoldRegular: true, note: "北极被此 stereographic 图排除；有限坐标处度量正定。" };
     }
     throw new Error("unknown metric chart: " + manifold + "/" + chart);
   }
@@ -187,15 +187,15 @@
     }
     if (manifold === "plane" && chart === "polar") {
       put(0, 1, 1, -first, "Γ^r_θθ");
-      put(1, 0, 1, Math.abs(first) > EPS ? 1 / first : null, "Γ^θ_rθ");
-      put(1, 1, 0, Math.abs(first) > EPS ? 1 / first : null, "Γ^θ_θr");
+      put(1, 0, 1, first > 0 ? 1 / first : null, "Γ^θ_rθ");
+      put(1, 1, 0, first > 0 ? 1 / first : null, "Γ^θ_θr");
       return { symbols: symbols, nonzero: nonzero, regular: regular, note: regular ? "Γ^r_θθ=-r，Γ^θ_rθ=Γ^θ_θr=1/r。" : "r=0 时坐标 Christoffel 失效；这不是流形数据。" };
     }
     if (manifold === "sphere" && chart === "spherical") {
       var sinTheta = Math.sin(first);
       var cosTheta = Math.cos(first);
       put(0, 1, 1, -sinTheta * cosTheta, "Γ^θ_φφ");
-      var cotangent = Math.abs(sinTheta) > EPS ? cosTheta / sinTheta : null;
+      var cotangent = first > 0 && first < PI ? cosTheta / sinTheta : null;
       put(1, 0, 1, cotangent, "Γ^φ_θφ");
       put(1, 1, 0, cotangent, "Γ^φ_φθ");
       return { symbols: symbols, nonzero: nonzero, regular: regular, note: regular ? "Γ^θ_φφ=-sinθ cosθ，Γ^φ_θφ=Γ^φ_φθ=cotθ。" : "极点处经纬 Christoffel 坐标式失效。" };
@@ -227,36 +227,42 @@
     var x = Number(point[0]);
     var y = Number(point[1]);
     var r = Math.hypot(x, y);
-    return [r, r > EPS ? Math.atan2(y, x) : null];
+    return [r, r > 0 ? Math.atan2(y, x) : null];
   }
 
   function sphereSphericalToEmbedding(coordinates) {
     var theta = Number(coordinates[0]);
     var phi = Number(coordinates[1]);
-    var sinTheta = Math.sin(theta);
+    var sinTheta = theta === 0 || theta === PI ? 0 : Math.sin(theta);
     return [sinTheta * Math.cos(phi), sinTheta * Math.sin(phi), Math.cos(theta)];
   }
 
   function sphereEmbeddingToSpherical(point) {
     var p = unit(point);
     if (!p) throw new Error("sphere embedding point cannot be zero");
-    var theta = Math.acos(clamp(p[2], -1, 1));
     var sinTheta = Math.hypot(p[0], p[1]);
-    return [theta, sinTheta > EPS ? Math.atan2(p[1], p[0]) : null];
+    var theta = Math.atan2(sinTheta, p[2]);
+    return [theta, sinTheta > 0 ? Math.atan2(p[1], p[0]) : null];
+  }
+
+  function northProjection(point) {
+    var rho2 = point[0] * point[0] + point[1] * point[1];
+    if (rho2 === 0 && point[2] > 0) return null;
+    // Rationalize 1-z near the north pole on the unit sphere.
+    var factor = point[2] > 0 ? (1 + point[2]) / rho2 : 1 / (1 - point[2]);
+    return [point[0] * factor, point[1] * factor];
   }
 
   function sphereSphericalToStereographic(coordinates) {
     var point = sphereSphericalToEmbedding(coordinates);
-    var denominator = 1 - point[2];
-    if (denominator <= EPS) return null;
-    return [point[0] / denominator, point[1] / denominator];
+    return northProjection(point);
   }
 
   function sphereStereographicToEmbedding(coordinates) {
     var u = Number(coordinates[0]);
     var v = Number(coordinates[1]);
     var rhoSquared = u * u + v * v;
-    return [2 * u / (1 + rhoSquared), 2 * v / (1 + rhoSquared), (1 - rhoSquared) / (1 + rhoSquared)];
+    return [2 * u / (1 + rhoSquared), 2 * v / (1 + rhoSquared), (rhoSquared - 1) / (1 + rhoSquared)];
   }
 
   function chartCoordinatesFromEmbedding(manifold, chart, point) {
@@ -264,9 +270,7 @@
     if (manifold === "plane" && chart === "polar") return planeCartesianToPolar(point);
     if (manifold === "sphere" && chart === "spherical") return sphereEmbeddingToSpherical(point);
     if (manifold === "sphere" && chart === "stereographic") {
-      var denominator = 1 - point[2];
-      if (denominator <= EPS) return null;
-      return [point[0] / denominator, point[1] / denominator];
+      return northProjection(point);
     }
     throw new Error("unknown chart: " + manifold + "/" + chart);
   }
@@ -310,12 +314,12 @@
     }
     if (manifold === "plane" && chart === "polar") {
       var r = Math.hypot(point[0], point[1]);
-      if (r <= EPS) return { velocity: null, acceleration: null };
+      if (r === 0) return { velocity: null, acceleration: null };
       var rDot = (point[0] * velocity[0] + point[1] * velocity[1]) / r;
       var thetaDot = (point[0] * velocity[1] - point[1] * velocity[0]) / (r * r);
       var speedSquared = velocity[0] * velocity[0] + velocity[1] * velocity[1];
-      var rSecond = (speedSquared - rDot * rDot) / r;
-      var thetaSecond = -2 * rDot * thetaDot / r;
+      var rSecond = (speedSquared + point[0] * acceleration[0] + point[1] * acceleration[1] - rDot * rDot) / r;
+      var thetaSecond = (point[0] * acceleration[1] - point[1] * acceleration[0]) / (r * r) - 2 * rDot * thetaDot / r;
       return { velocity: [rDot, thetaDot], acceleration: [rSecond, thetaSecond] };
     }
     if (manifold === "sphere" && chart === "spherical") {
@@ -323,18 +327,22 @@
       var theta = spherical[0];
       var phi = spherical[1];
       var sinTheta = Math.sin(theta);
-      if (Math.abs(sinTheta) <= EPS || phi === null) return { velocity: null, acceleration: null };
+      if (theta === 0 || theta === PI || phi === null) return { velocity: null, acceleration: null };
       var eTheta = [Math.cos(theta) * Math.cos(phi), Math.cos(theta) * Math.sin(phi), -Math.sin(theta)];
       var ePhi = [-Math.sin(phi), Math.cos(phi), 0];
       var thetaVelocity = dot(velocity, eTheta);
       var phiVelocity = dot(velocity, ePhi) / sinTheta;
-      var thetaAcceleration = sinTheta * Math.cos(theta) * phiVelocity * phiVelocity;
-      var phiAcceleration = -2 * Math.cos(theta) / sinTheta * thetaVelocity * phiVelocity;
+      // Differentiate the coordinate map, independently of the geodesic ODE.
+      var thetaAcceleration = (-acceleration[2] - Math.cos(theta) * thetaVelocity * thetaVelocity) / sinTheta;
+      var rho2 = point[0] * point[0] + point[1] * point[1];
+      var phiAcceleration = (point[0] * acceleration[1] - point[1] * acceleration[0]) / rho2
+        - 2 * (point[0] * velocity[0] + point[1] * velocity[1]) * phiVelocity / rho2;
       return { velocity: [thetaVelocity, phiVelocity], acceleration: [thetaAcceleration, phiAcceleration] };
     }
     if (manifold === "sphere" && chart === "stereographic") {
-      var denominator = 1 - point[2];
-      if (denominator <= EPS) return { velocity: null, acceleration: null };
+      var rho2 = point[0] * point[0] + point[1] * point[1];
+      var denominator = point[2] > 0 ? rho2 / (1 + point[2]) : 1 - point[2];
+      if (denominator === 0) return { velocity: null, acceleration: null };
       var x = point[0];
       var y = point[1];
       var vx = velocity[0];
@@ -421,7 +429,7 @@
     var chartMetric = coordinates ? metricTensor(preset.manifold, chart, coordinates) : null;
     var chartChristoffel = coordinates ? christoffelSymbols(preset.manifold, chart, coordinates) : null;
     var coordinate = coordinates ? coordinateVelocityAndAcceleration(preset.manifold, chart, point, velocity, acceleration) : { velocity: null, acceleration: null };
-    var energy = 0.5 * speed * speed;
+    var energy = 0.5 * dot(velocity, velocity);
     var coordinateEnergy = chartMetric && coordinate.velocity && chartMetric.regular
       ? 0.5 * (chartMetric.matrix[0][0] * coordinate.velocity[0] * coordinate.velocity[0] + 2 * chartMetric.matrix[0][1] * coordinate.velocity[0] * coordinate.velocity[1] + chartMetric.matrix[1][1] * coordinate.velocity[1] * coordinate.velocity[1])
       : null;
@@ -531,7 +539,8 @@
   function formatNumber(value, digits) {
     if (value === null || value === undefined || !finite(value)) return "未定义";
     var places = digits === undefined ? 4 : digits;
-    if (Math.abs(value) < 1e-8) return "0";
+    if (value === 0) return "0";
+    if (Math.abs(value) < 1e-3) return value.toExponential(2);
     return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "").replace(/^-0$/, "0");
   }
 
@@ -581,7 +590,8 @@
     (doc.head || doc.documentElement).appendChild(element(doc, "style", { id: STYLE_ID }, STYLE_TEXT));
   }
 
-  function makeMap(points) {
+  function makeMap(points, manifold) {
+    if (manifold === "sphere") return function (p) { return [380 + 125 * p[0], 183 - 125 * (0.6 * p[1] + 0.8 * p[2])]; };
     var xy = points.map(function (point) { return [point[0] - 0.3 * point[2], point[1] - 0.18 * point[2]]; });
     var xs = xy.map(function (point) { return point[0]; });
     var ys = xy.map(function (point) { return point[1]; });
@@ -610,14 +620,14 @@
     for (index = 0; index <= 100; index += 1) {
       samples.push(geodesicPoint(ledger.id, preset.duration * index / 100, ledger.chart).point);
     }
-    var map = makeMap(samples);
+    var map = makeMap(samples, ledger.manifold);
     var svg = svgElement(doc, "svg", { class: "gm-svg", viewBox: "0 0 760 350", role: "img", "aria-labelledby": id + "-title " + id + "-desc" });
     svg.appendChild(svgElement(doc, "title", { id: id + "-title" }, preset.label + "的测地线图"));
-    svg.appendChild(svgElement(doc, "desc", { id: id + "-desc" }, "蓝色为仿射测地线，红点为当前时刻，绿色为终点；红色叉号表示所选坐标图在此点失效，而不是流形破裂。"));
+    svg.appendChild(svgElement(doc, "desc", { id: id + "-desc" }, "实线为仿射测地线，红点为当前时刻，绿色为终点；红色叉号表示所选坐标图在此点失效，而不是流形破裂。"));
     [80, 150, 220, 290].forEach(function (y) { svg.appendChild(svgElement(doc, "line", { x1: "50", y1: String(y), x2: "710", y2: String(y), class: "gm-grid" })); });
     [160, 300, 440, 580].forEach(function (x) { svg.appendChild(svgElement(doc, "line", { x1: String(x), y1: "36", x2: String(x), y2: "315", class: "gm-grid" })); });
     svg.appendChild(svgElement(doc, "line", { x1: "50", y1: "315", x2: "710", y2: "315", class: "gm-axis" }));
-    if (ledger.manifold === "sphere") svg.appendChild(svgElement(doc, "ellipse", { cx: "380", cy: "185", rx: "205", ry: "118", fill: "none", stroke: "currentColor", "stroke-opacity": ".18" }));
+    if (ledger.manifold === "sphere") svg.appendChild(svgElement(doc, "ellipse", { cx: "380", cy: "183", rx: "125", ry: "125", fill: "none", stroke: "currentColor", "stroke-opacity": ".18" }));
     svg.appendChild(svgElement(doc, "path", { d: svgPath(samples, map), class: "gm-curve" }));
     var currentRow = geodesicPoint(ledger.id, currentTime, ledger.chart);
     var current = map(currentRow.point);
@@ -629,7 +639,7 @@
       svg.appendChild(svgElement(doc, "line", { x1: current[0] - 18, y1: current[1] + 18, x2: current[0] + 18, y2: current[1] - 18, class: "gm-singular" }));
       svg.appendChild(svgElement(doc, "text", { x: Math.min(650, current[0] + 22), y: Math.max(25, current[1] - 22), class: "gm-label" }, "坐标图奇异，流形仍在"));
     }
-    svg.appendChild(svgElement(doc, "text", { x: "54", y: "25", class: "gm-small" }, ledger.manifold === "sphere" ? "单位球嵌入投影：大圆保持在球面上" : "平面嵌入投影：坐标图只改变分量写法"));
+    svg.appendChild(svgElement(doc, "text", { x: "54", y: "25", class: "gm-small" }, ledger.manifold === "sphere" ? "单位球正交投影：(x, 0.6y+0.8z)，两轴同尺度" : "平面嵌入投影：坐标图只改变分量写法"));
     return svg;
   }
 
@@ -645,6 +655,7 @@
       var button = element(doc, "button", { type: "button", "data-answer-value": option.value, "aria-pressed": state.answers[key] === option.value ? "true" : "false" }, option.label);
       button.addEventListener("click", function () {
         state.answers[key] = option.value;
+        state.revealed = false;
         Array.prototype.forEach.call(grid.children, function (child) { child.setAttribute("aria-pressed", child === button ? "true" : "false"); });
         onChange();
       });
@@ -721,7 +732,7 @@
     var prediction = element(doc, "section", { className: "gm-prediction" });
     prediction.appendChild(element(doc, "strong", { className: "gm-prediction-title" }, "预测门：先区分仿射方程、能量和全局距离"));
     var questionNodes = [];
-    questionNodes.push(question(doc, "affine", "1. 这条显式路径是否满足仿射测地线方程？", [{ value: "yes", label: "是" }, { value: "no", label: "否" }, { value: "unavailable", label: "坐标奇异：不可判定" }], state, renderPrediction));
+    questionNodes.push(question(doc, "affine", "1. 当前所选坐标式能否验证仿射测地线方程？", [{ value: "yes", label: "是" }, { value: "no", label: "否" }, { value: "unavailable", label: "坐标奇异：不可判定" }], state, renderPrediction));
     questionNodes.push(question(doc, "energy", "2. 沿仿射参数，E=½gᵢⱼvⁱvʲ 如何变化？", [{ value: "constant", label: "保持常数" }, { value: "not-constant", label: "会漂移" }], state, renderPrediction));
     questionNodes.push(question(doc, "global", "3. 当前端点之间的全局最短性？", [{ value: "minimizing", label: "全局最短" }, { value: "not-minimizing", label: "只是临界点" }, { value: "multiple", label: "最短但不唯一" }], state, renderPrediction));
     questionNodes.push(question(doc, "chart", "4. 坐标图在点上失效意味着？", [{ value: "regular", label: "图正则" }, { value: "chart-only", label: "仅坐标奇异" }], state, renderPrediction));
@@ -765,6 +776,7 @@
     root.replaceChildren(shell);
 
     function renderPrediction() {
+      if (!state.revealed) results.hidden = true;
       reveal.disabled = Object.keys(state.answers).some(function (key) { return state.answers[key] === null; });
       questionNodes.forEach(function (fieldset) {
         var key = fieldset.getAttribute("data-answer-key");
@@ -793,9 +805,9 @@
     function render() {
       var preset = presetById(state.id);
       timeInput.min = "0";
-      timeInput.max = String(preset.duration);
-      timeInput.step = "0.05";
-      timeInput.value = String(state.time);
+      timeInput.max = "200";
+      timeInput.step = "1";
+      timeInput.value = String(Math.round(200 * state.time / preset.duration));
       timeOutput.textContent = formatNumber(state.time, 3) + " / " + formatNumber(preset.duration, 3);
       renderChartOptions(preset);
       noteControl.querySelector("output").textContent = preset.note;
@@ -819,21 +831,21 @@
       results.appendChild(element(doc, "h4", {}, preset.label + "：坐标与几何分层"));
       var metrics = element(doc, "div", { className: "gm-metrics" });
       metrics.appendChild(metricBlock(doc, "速度 |γ̇|", formatNumber(point.speed, 5)));
-      metrics.appendChild(metricBlock(doc, "能量 E", formatNumber(point.energy, 5)));
+      metrics.appendChild(metricBlock(doc, "动能密度 E", formatNumber(point.energy, 5)));
       metrics.appendChild(metricBlock(doc, "测地线长度", formatNumber(ledger.geodesicLength, 5)));
       metrics.appendChild(metricBlock(doc, "全局距离", formatNumber(ledger.globalDistance, 5)));
-      metrics.appendChild(metricBlock(doc, "最大方程残差", formatNumber(ledger.maxResidual, 5)));
+      metrics.appendChild(metricBlock(doc, "最大坐标残差", formatNumber(ledger.maxResidual, 5)));
       metrics.appendChild(metricBlock(doc, "仿射判定", point.affineStatus === "yes" ? "通过" : point.affineStatus === "unavailable" ? "不可用（坐标奇异）" : "失败"));
       metrics.appendChild(metricBlock(doc, "坐标图状态", point.chartRegular ? "正则" : "坐标奇异"));
       metrics.appendChild(metricBlock(doc, "最短性", ledger.distanceStatus === "minimizing" ? "全局最短" : ledger.distanceStatus === "antipodal" ? "最短但不唯一" : "非全局最短"));
       metrics.appendChild(metricBlock(doc, "流形状态", "正则"));
       results.appendChild(metrics);
-      var stage = element(doc, "div", { className: "gm-stage" });
+      var stage = element(doc, "div", { className: "gm-stage", tabindex: "0", role: "region", "aria-label": "测地线图，可横向滚动" });
       stage.appendChild(geodesicSvg(doc, ledger, preset, "gm-stage-" + serial, state.time));
       results.appendChild(stage);
-      var ledgerWrap = element(doc, "div", { className: "gm-ledger-wrap" });
+      var ledgerWrap = element(doc, "div", { className: "gm-ledger-wrap", tabindex: "0", role: "region", "aria-label": "几何账本，可横向滚动" });
       var table = element(doc, "table", { "aria-label": "测地线数值账本" });
-      table.appendChild(element(doc, "caption", {}, "同一行同时记录坐标分量、能量与仿射方程残差。"));
+      table.appendChild(element(doc, "caption", {}, "残差使用坐标分量的欧氏范数，数值随图改变；另核对嵌入方程，不能把小残差当严格误差界。"));
       var header = element(doc, "tr");
       ["t", labels.join(", "), "|γ̇|", "E", "‖γ̈+Γ(γ̇,γ̇)‖", "仿射判定", "图状态"].forEach(function (value) {
         header.appendChild(element(doc, "th", { scope: "col" }, value));
@@ -854,7 +866,7 @@
       table.appendChild(body);
       ledgerWrap.appendChild(table);
       results.appendChild(ledgerWrap);
-      var details = element(doc, "div", { className: "gm-ledger-wrap" });
+      var details = element(doc, "div", { className: "gm-ledger-wrap", tabindex: "0", role: "region", "aria-label": "几何账本，可横向滚动" });
       var detailTable = element(doc, "table", { "aria-label": "度量和 Christoffel 账本" });
       detailTable.appendChild(element(doc, "caption", {}, "当前 t=" + formatNumber(state.time, 3) + " 的度量张量、Christoffel 与坐标转换"));
       var detailBody = element(doc, "tbody");
@@ -874,7 +886,7 @@
     }
 
     timeInput.addEventListener("input", function () {
-      state.time = Number(timeInput.value);
+      state.time = Number(timeInput.value) * presetById(state.id).duration / 200;
       resetGate("时间改变；请重新预测最短性与坐标状态。");
       render();
     });
@@ -953,6 +965,8 @@
     sphereEmbeddingToSpherical: sphereEmbeddingToSpherical,
     sphereSphericalToStereographic: sphereSphericalToStereographic,
     sphereStereographicToEmbedding: sphereStereographicToEmbedding,
+    coordinateVelocityAndAcceleration: coordinateVelocityAndAcceleration,
+    geodesicResidual: geodesicResidual,
     geodesicPoint: geodesicPoint,
     geodesicLedger: geodesicLedger,
     distanceClassification: distanceClassification,
