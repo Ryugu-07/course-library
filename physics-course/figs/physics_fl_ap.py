@@ -53,32 +53,8 @@ def ap01_transfer():
 
 
 def ap02_hr():
-    fig, ax = plt.subplots(figsize=(6.9, 4.8))
-    # 主序
-    T = np.logspace(np.log10(2800), np.log10(42000), 300)
-    L = (T/5772)**5.0
-    ax.plot(np.log10(T), np.log10(L), color=ACC, lw=3.0, label="main sequence")
-    # 巨星支
-    Tg = np.logspace(np.log10(3200), np.log10(5600), 120)
-    ax.plot(np.log10(Tg), np.log10((Tg/5772)**0.0*140), color=RED, lw=2.6,
-            label="giant branch")
-    # 白矮星
-    Tw = np.logspace(np.log10(6000), np.log10(30000), 120)
-    ax.plot(np.log10(Tw), np.log10((Tw/5772)**4*3e-4), color=GREEN, lw=2.4,
-            label="white dwarfs")
-    ax.plot([np.log10(5772)], [0], "o", color="#d4a017", ms=11, zorder=6)
-    ax.text(np.log10(5772)-0.02, 0.22, "Sun", fontsize=10, color=INK)
-    # 演化路径
-    ax.annotate("", xy=(np.log10(4200), 2.15), xytext=(np.log10(5772), 0.05),
-                arrowprops=dict(arrowstyle="->", color="#888", lw=1.6, ls="--"))
-    ax.annotate("", xy=(np.log10(11000), -2.6), xytext=(np.log10(3900), 2.1),
-                arrowprops=dict(arrowstyle="->", color="#888", lw=1.6, ls="--"))
-    ax.set_xlim(4.68, 3.42)
-    ax.set_xlabel(r"$\log_{10}T_{\rm eff}$  (K)   —— hotter to the left")
-    ax.set_ylabel(r"$\log_{10}(L/L_\odot)$")
-    ax.set_title("Hertzsprung–Russell diagram", color=INK, fontsize=12.5)
-    ax.legend(frameon=False, fontsize=9.5, loc="lower left")
-    save(fig, "ap-02-stellar-hr")
+    # Preserve reviewed scaling and constant-radius HR lines.
+    _preserve_reviewed_svg("ap-02-stellar-hr")
 
 
 def ap03_gamow():

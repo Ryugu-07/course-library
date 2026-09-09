@@ -34,20 +34,21 @@
   };
 
   var PRESETS = [
-    { id: "n15-gas", label: "n=1.5 · 气体型", n: 1.5, rhoC: 1, K: 1, G: 1, step: 0.01, maxXi: 10, expected: "closes" },
-    { id: "n3-radiative", label: "n=3 · 结构型", n: 3, rhoC: 1, K: 1, G: 1, step: 0.01, maxXi: 10, expected: "closes" },
-    { id: "n15-dense", label: "n=1.5 · ρc=4", n: 1.5, rhoC: 4, K: 1, G: 1, step: 0.01, maxXi: 10, expected: "closes" }
+    { id: "n15-gas", label: "n=1.5 · 气体型", n: 1.5, rhoC: 1, K: 1, G: 1, step: 0.005, maxXi: 10, expected: "closes" },
+    { id: "n3-radiative", label: "n=3 · 结构型", n: 3, rhoC: 1, K: 1, G: 1, step: 0.005, maxXi: 10, expected: "closes" },
+    { id: "n15-dense", label: "n=1.5 · ρc=4", n: 1.5, rhoC: 4, K: 1, G: 1, step: 0.005, maxXi: 10, expected: "closes" }
   ];
 
   var STYLE_TEXT = [
-    ".ss-lab{--ss-blue:var(--cl-blue,#315f9d);--ss-green:var(--cl-green,#39734d);--ss-gold:var(--cl-gold,#9b6a12);--ss-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg,#292722);line-height:1.55;overflow-wrap:anywhere}",
+    ".ss-lab{--ss-blue:#315f9d;--ss-green:var(--cl-green,#39734d);--ss-gold:var(--cl-gold,#9b6a12);--ss-red:#b64335;max-width:100%;min-width:0;color:var(--fg,#292722);line-height:1.55;overflow-wrap:anywhere}",
     ".ss-lab *,.ss-lab *::before,.ss-lab *::after{box-sizing:border-box}.ss-lab [hidden]{display:none!important}.ss-lab h3,.ss-lab h4{margin:0;letter-spacing:0;color:var(--fg,#292722)}.ss-lab h3{font-size:1.12rem}.ss-lab h4{font-size:1rem}.ss-lab p{margin:8px 0}.ss-lab .ss-note,.ss-lab .ss-feedback{color:var(--fg-soft,var(--muted,#6b6557));font-size:13px;line-height:1.65}",
-    ".ss-lab button{font:inherit;min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--border,#d7d0c2);border-radius:6px;background:var(--bg,#fff);color:inherit;line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.ss-lab button:hover{border-color:var(--ss-blue)}.ss-lab button:focus-visible,.ss-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.ss-lab button[aria-pressed=true],.ss-lab .ss-primary{border-color:var(--ss-blue);background:var(--ss-blue);color:var(--bg,#fff);font-weight:750}.ss-lab .ss-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:10px 0 14px}.ss-lab .ss-presets button{font-size:12px}.ss-lab .ss-control{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;margin:10px 0;padding:9px 11px;border:1px solid var(--border,#d7d0c2);background:var(--block-bg,var(--bg,#fff))}.ss-lab .ss-control label{font-size:12.5px;font-weight:700}.ss-lab .ss-control output{color:var(--ss-blue);font-variant-numeric:tabular-nums}.ss-lab input[type=range]{grid-column:1/-1;width:100%;height:44px;margin:0;accent-color:var(--ss-blue)}",
+    ".ss-lab button{font:inherit;min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--border,#d7d0c2);border-radius:6px;background:var(--bg,#fff);color:inherit;line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.ss-lab button:hover{border-color:var(--ss-blue)}.ss-lab [tabindex]:focus-visible,.ss-lab button:focus-visible,.ss-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.ss-lab button[aria-pressed=true],.ss-lab .ss-primary{border-color:var(--ss-blue);background:var(--ss-blue);color:var(--bg,#fff);font-weight:750}.ss-lab .ss-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:10px 0 14px}.ss-lab .ss-presets button{font-size:12px}.ss-lab .ss-control{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;margin:10px 0;padding:9px 11px;border:1px solid var(--border,#d7d0c2);background:var(--block-bg,var(--bg,#fff))}.ss-lab .ss-control label{font-size:12.5px;font-weight:700}.ss-lab .ss-control output{color:var(--ss-blue);font-variant-numeric:tabular-nums}.ss-lab input[type=range]{grid-column:1/-1;width:100%;height:44px;margin:0;accent-color:var(--ss-blue)}",
     ".ss-lab .ss-predict{margin-top:12px;padding:12px;border:1px solid var(--border,#d7d0c2);background:var(--block-bg,var(--bg,#fff))}.ss-lab .ss-predict legend{max-width:100%;padding:0 4px;font-size:13px;font-weight:750;line-height:1.5}.ss-lab .ss-choice-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.ss-lab .ss-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}.ss-lab .ss-actions>*{flex:1 1 160px}.ss-lab .ss-feedback{min-height:2em;margin:8px 0 0;font-weight:700}.ss-lab .ss-pass{color:var(--ss-green)}.ss-lab .ss-warn{color:var(--ss-red)}",
     ".ss-lab .ss-results{margin-top:18px;padding-top:16px;border-top:1px solid var(--border,#d7d0c2)}.ss-lab .ss-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:11px 0}.ss-lab .ss-metric{min-width:0;padding:8px;border-top:2px solid var(--border,#d7d0c2);background:var(--block-bg,var(--bg,#fff))}.ss-lab .ss-metric:nth-child(4n+1){border-color:var(--ss-blue)}.ss-lab .ss-metric:nth-child(4n+2){border-color:var(--ss-green)}.ss-lab .ss-metric:nth-child(4n+3){border-color:var(--ss-gold)}.ss-lab .ss-metric:nth-child(4n){border-color:var(--ss-red)}.ss-lab .ss-metric span{display:block;color:var(--fg-soft,var(--muted,#6b6557));font-size:11px;line-height:1.4}.ss-lab .ss-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-    ".ss-lab .ss-visual{min-width:0;padding:7px;border:1px solid var(--border,#d7d0c2);border-radius:6px;background:var(--bg,#fff);overflow:hidden}.ss-lab svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg,#292722)}.ss-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.ss-lab .ss-grid{stroke:currentColor;stroke-opacity:.14;stroke-width:1}.ss-lab .ss-axis{stroke:currentColor;stroke-opacity:.55;stroke-width:1.2}.ss-lab .ss-pressure{fill:none;stroke:var(--ss-blue);stroke-width:2.6}.ss-lab .ss-density{fill:none;stroke:var(--ss-gold);stroke-width:2.4;stroke-dasharray:6 4}.ss-lab .ss-mass{fill:none;stroke:var(--ss-green);stroke-width:2.6}.ss-lab .ss-zero{stroke:var(--ss-red);stroke-width:1.5;stroke-dasharray:5 4}.ss-lab .ss-panel-title{font-size:13px;font-weight:750}.ss-lab .ss-small{font-size:11px;fill:var(--fg-soft,var(--muted,#6b6557))}",
+    ".ss-lab .ss-visual{min-width:0;padding:7px;border:1px solid var(--border,#d7d0c2);border-radius:6px;background:var(--bg,#fff);overflow-x:auto}.ss-lab svg{display:block;width:100%;min-width:700px;max-width:none;height:auto;color:var(--fg,#292722)}.ss-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.ss-lab .ss-grid{stroke:currentColor;stroke-opacity:.14;stroke-width:1}.ss-lab .ss-axis{stroke:currentColor;stroke-opacity:.55;stroke-width:1.2}.ss-lab .ss-pressure{fill:none;stroke:var(--ss-blue);stroke-width:2.6}.ss-lab .ss-density{fill:none;stroke:var(--ss-gold);stroke-width:2.4;stroke-dasharray:6 4}.ss-lab .ss-mass{fill:none;stroke:var(--ss-green);stroke-width:2.6}.ss-lab .ss-zero{stroke:var(--ss-red);stroke-width:1.5;stroke-dasharray:5 4}.ss-lab .ss-panel-title{font-size:13px;font-weight:750}.ss-lab .ss-small{font-size:11px;fill:var(--fg-soft,var(--muted,#6b6557))}",
     ".ss-lab .ss-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:13px}.ss-lab table{width:100%;min-width:760px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.ss-lab caption{padding:0 0 7px;text-align:left;color:var(--fg-soft,var(--muted,#6b6557));font-size:12px}.ss-lab th,.ss-lab td{padding:7px 8px;border-bottom:1px solid var(--border,#d7d0c2);text-align:left;vertical-align:top}.ss-lab th{color:var(--fg-soft,var(--muted,#6b6557));font-size:11.5px}.ss-lab .ss-check{margin-top:11px;padding:8px 10px;border-left:3px solid var(--ss-green);background:var(--block-bg,var(--bg,#fff));font-size:12.5px}.ss-lab .ss-check.ss-fail{border-color:var(--ss-red)}",
     "@media(max-width:760px){.ss-lab .ss-presets{grid-template-columns:minmax(0,1fr)}.ss-lab .ss-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:480px){.ss-lab .ss-summary,.ss-lab .ss-choice-row{grid-template-columns:minmax(0,1fr)}.ss-lab .ss-visual{padding:4px}.ss-lab th,.ss-lab td{padding-left:5px;padding-right:5px}}@media(prefers-reduced-motion:reduce){.ss-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
+    ,"html[data-theme=dark] .ss-lab{--ss-blue:#90baff;--ss-red:#ffab95;--ss-green:#8edda0;--ss-gold:#e2b458}html[data-theme=dark] .ss-lab button[aria-pressed=true],html[data-theme=dark] .ss-lab .ss-primary{color:#171b20}"
   ].join("\n");
 
   function fail(message) {
@@ -59,7 +60,7 @@
   }
 
   function positive(value, label) {
-    var number = Number(value);
+    var number = value;
     if (!finite(number) || number <= 0) fail(label + " must be positive and finite");
     return number;
   }
@@ -69,23 +70,17 @@
   }
 
   function rhs(xi, state, n) {
-    return [state[1], -2 * state[1] / xi - sourceTerm(state[0], n)];
+    var theta=Math.max(0,state[0]),density=Math.pow(theta,n),mass=-xi*xi*state[1];
+    return [state[1],-2*state[1]/xi-density,xi*xi*Math.pow(theta,n+1),mass*xi*density];
   }
-
-  function rk4Step(xi, state, step, n) {
-    var k1 = rhs(xi, state, n);
-    var mid1 = [state[0] + step * k1[0] / 2, state[1] + step * k1[1] / 2];
-    var k2 = rhs(xi + step / 2, mid1, n);
-    var mid2 = [state[0] + step * k2[0] / 2, state[1] + step * k2[1] / 2];
-    var k3 = rhs(xi + step / 2, mid2, n);
-    var end = [state[0] + step * k3[0], state[1] + step * k3[1]];
-    var k4 = rhs(xi + step, end, n);
-    return [
-      state[0] + step * (k1[0] + 2 * k2[0] + 2 * k3[0] + k4[0]) / 6,
-      state[1] + step * (k1[1] + 2 * k2[1] + 2 * k3[1] + k4[1]) / 6
-    ];
+  function rk4Step(xi,state,h,n){
+    var k1=rhs(xi,state,n),k2=rhs(xi+h/2,state.map((v,i)=>v+h*k1[i]/2),n),k3=rhs(xi+h/2,state.map((v,i)=>v+h*k2[i]/2),n),k4=rhs(xi+h,state.map((v,i)=>v+h*k3[i]),n);
+    return state.map((v,i)=>v+h*(k1[i]+2*k2[i]+2*k3[i]+k4[i])/6);
   }
-
+  function checkKeys(config,allowed){
+    if(!config||typeof config!=="object"||Array.isArray(config))fail("options must be an object");
+    Object.keys(config).forEach(k=>{if(allowed.indexOf(k)<0)fail("unknown option "+k);});
+  }
   function dimensionlessRow(xi, theta, phi, pressureIntegral, n) {
     var positiveTheta = Math.max(0, theta);
     return {
@@ -100,44 +95,30 @@
   }
 
   function solveLaneEmden(nInput, options) {
-    var config = options || {};
-    var n = Number(nInput);
-    if (!finite(n) || n <= 0 || n >= 5) fail("Lane-Emden toy requires 0 < n < 5");
-    var step = config.step === undefined ? 0.01 : positive(config.step, "step");
-    var maxXi = config.maxXi === undefined ? 12 : positive(config.maxXi, "maxXi");
-    var rhoC = config.rhoC === undefined ? 1 : positive(config.rhoC, "rhoC");
-    var K = config.K === undefined ? 1 : positive(config.K, "K");
-    var G = config.G === undefined ? 1 : positive(config.G, "G");
-    var epsilon = Math.min(step / 10, 1e-4);
-    var theta = 1 - epsilon * epsilon / 6 + n * Math.pow(epsilon, 4) / 120;
-    var phi = -epsilon / 3 + n * Math.pow(epsilon, 3) / 30;
-    var xi = epsilon;
-    var integral = 0;
-    var rows = [dimensionlessRow(0, 1, 0, 0, n)];
-    var previous = dimensionlessRow(xi, theta, phi, integral, n);
-    rows.push(previous);
-    var surface = null;
-    while (xi < maxXi && !surface) {
-      var nextXi = xi + step;
-      var nextState = rk4Step(xi, [theta, phi], step, n);
-      var nextTheta = nextState[0];
-      var previousIntegrand = xi * xi * Math.pow(Math.max(0, theta), n + 1);
-      var nextIntegrand = nextXi * nextXi * Math.pow(Math.max(0, nextTheta), n + 1);
-      if (nextTheta <= 0) {
-        var fraction = theta / (theta - nextTheta);
-        var surfaceXi = xi + fraction * step;
-        var surfacePhi = phi + fraction * (nextState[1] - phi);
-        integral += 0.5 * (previousIntegrand + 0) * (surfaceXi - xi);
-        surface = dimensionlessRow(surfaceXi, 0, surfacePhi, integral, n);
-        rows.push(surface);
-        break;
+    var config = options===undefined?{}:options;
+    checkKeys(config,["step","maxXi","rhoC","K","G"]);
+    var n=nInput;
+    if(!finite(n)||n<1||n>4.5)fail("numerical model supports 1≤n≤4.5");
+    var step=config.step===undefined?.005:positive(config.step,"step"),maxXi=config.maxXi===undefined?40:positive(config.maxXi,"maxXi");
+    if(step<.0001||step>.02||maxXi<1||maxXi>50||maxXi/step>500000)fail("step/maxXi outside supported work bounds");
+    var rhoC=config.rhoC===undefined?1:positive(config.rhoC,"rhoC"),K=config.K===undefined?1:positive(config.K,"K"),G=config.G===undefined?1:positive(config.G,"G");
+    [rhoC,K,G].forEach(v=>{if(v<1e-6||v>1e6)fail("scale inputs must lie in [1e-6,1e6]");});
+    var xi=step,x2=xi*xi;
+    var theta=1-x2/6+n*x2*x2/120-n*(8*n-5)*x2*x2*x2/15120;
+    var phi=-xi/3+n*xi*x2/30-n*(8*n-5)*xi*x2*x2/2520;
+    var integral=xi**3/3-(n+1)*xi**5/30+n*(n+1)*xi**7/315;
+    var gravityIntegral=xi**5/15-4*n*xi**7/315;
+    var rows=[dimensionlessRow(0,1,0,0,n),dimensionlessRow(xi,theta,phi,integral,n)],surface=null;
+    while(xi<maxXi&&!surface){
+      var h=Math.min(step,maxXi-xi),state=[theta,phi,integral,gravityIntegral],next=rk4Step(xi,state,h,n);
+      if(next[0]<=0){
+        var lo=0,hi=h;
+        for(var j=0;j<48;j++){var mid=(lo+hi)/2;if(rk4Step(xi,state,mid,n)[0]>0)lo=mid;else hi=mid;}
+        h=(lo+hi)/2;next=rk4Step(xi,state,h,n);xi+=h;theta=0;phi=next[1];integral=next[2];gravityIntegral=next[3];surface=dimensionlessRow(xi,0,phi,integral,n);rows.push(surface);break;
       }
-      integral += 0.5 * (previousIntegrand + nextIntegrand) * step;
-      xi = nextXi;
-      theta = nextTheta;
-      phi = nextState[1];
-      previous = dimensionlessRow(xi, theta, phi, integral, n);
-      rows.push(previous);
+      xi+=h;theta=next[0];phi=next[1];integral=next[2];gravityIntegral=next[3];
+      if(!next.every(finite))fail("integration became nonfinite");
+      rows.push(dimensionlessRow(xi,theta,phi,integral,n));
     }
     if (!surface) fail("maxXi ended before the first Lane-Emden zero");
     var xi1 = surface.xi;
@@ -147,7 +128,8 @@
     var radius = scale * xi1;
     var mass = 4 * Math.PI * Math.pow(scale, 3) * rhoC * mu1;
     var pressureIntegral = 4 * Math.PI * Math.pow(scale, 3) * centralPressure * surface.pressureIntegralDimensionless;
-    var gravitationalEnergy = -3 * G * mass * mass / ((5 - n) * radius);
+    var gravitationalEnergy = -16*Math.PI*Math.PI*G*Math.pow(scale,5)*rhoC*rhoC*gravityIntegral;
+    var gravitationalAnalytic = -3 * G * mass * mass / ((5 - n) * radius);
     var virialPressureTerm = 3 * pressureIntegral;
     var virialResidual = virialPressureTerm + gravitationalEnergy;
     var internalProxy = n * pressureIntegral;
@@ -183,9 +165,12 @@
       pressureIntegral: pressureIntegral,
       virialPressureTerm: virialPressureTerm,
       gravitationalEnergy: gravitationalEnergy,
+      gravitationalAnalytic: gravitationalAnalytic,
+      gravityIntegralDimensionless:gravityIntegral,
       virialResidual: virialResidual,
       virialRelativeResidual: Math.abs(virialResidual) / Math.max(Math.abs(gravitationalEnergy), EPSILON),
       internalProxy: internalProxy,
+      internalProxyAssumption:"Only an internal energy if the extra caloric EOS u=nP/rho is imposed",
       totalEnergyProxy: totalEnergyProxy,
       assumptions: ASSUMPTIONS
     };
@@ -198,7 +183,8 @@
 
   function analyze(id, overrides) {
     var preset = presetById(id);
-    var config = overrides || {};
+    var config = overrides===undefined?{}:overrides;
+    checkKeys(config,["rhoC"]);
     var model = solveLaneEmden(preset.n, {
       rhoC: config.rhoC === undefined ? preset.rhoC : config.rhoC,
       K: preset.K,
@@ -213,7 +199,7 @@
 
   function fixed(value, digits) {
     if (!finite(value)) return "—";
-    if (Math.abs(value) < 5e-10) return "0";
+    if (value!==0 && Math.abs(value)<Math.pow(10,-(digits===undefined?4:digits))) return value.toExponential(3);
     return Number(value).toFixed(digits === undefined ? 4 : digits);
   }
 
@@ -287,15 +273,15 @@
   }
 
   function profileSvg(doc, model, serial) {
-    var svg = svgElement(doc, "svg", { viewBox: "0 0 720 300", role: "img", "aria-label": "Lane-Emden 压力密度与包络质量剖面" });
-    svg.appendChild(svgElement(doc, "title", {}, "无量纲压力、密度与包络质量随半径的剖面"));
+    var svg = svgElement(doc, "svg", { viewBox: "0 0 720 300", role: "img", "aria-label": "Lane-Emden 压力密度与包围质量剖面" });
+    svg.appendChild(svgElement(doc, "title", {}, "无量纲压力、密度与包围质量随半径的剖面"));
     svg.appendChild(svgElement(doc, "line", { x1: 360, y1: 18, x2: 360, y2: 282, className: "ss-axis" }));
     svg.appendChild(svgElement(doc, "text", { x: 180, y: 25, "text-anchor": "middle", className: "ss-panel-title" }, "结构剖面：中心到 P(R)=0"));
     svg.appendChild(svgElement(doc, "text", { x: 540, y: 25, "text-anchor": "middle", className: "ss-panel-title" }, "质量账：m(r)/M"));
     var rows = model.rows;
     var maxXi = model.surface.xi;
     var xLeft = function (row) { return 45 + row.xi / maxXi * 270; };
-    var yRatio = function (value) { return 238 - Math.max(0, Math.min(1, value)) * 185; };
+    var yRatio = function (value) { return 238 - value * 185; };
     [0, 0.5, 1].forEach(function (level) {
       var y = yRatio(level);
       svg.appendChild(svgElement(doc, "line", { x1: 45, y1: y, x2: 315, y2: y, className: "ss-grid" }));
@@ -308,7 +294,7 @@
     svg.appendChild(svgElement(doc, "text", { x: 180, y: 270, "text-anchor": "middle", className: "ss-small" }, "r/R"));
     svg.appendChild(svgElement(doc, "text", { x: 52, y: 47, className: "ss-small" }, "蓝 P/Pc · 金 ρ/ρc"));
     var xRight = function (row) { return 405 + row.xi / maxXi * 270; };
-    var yMass = function (value) { return 238 - Math.max(0, Math.min(1, value)) * 185; };
+    var yMass = function (value) { return 238 - value * 185; };
     [0, 0.5, 1].forEach(function (level) {
       var y2 = yMass(level);
       svg.appendChild(svgElement(doc, "line", { x1: 405, y1: y2, x2: 675, y2: y2, className: "ss-grid" }));
@@ -318,12 +304,13 @@
     svg.appendChild(svgElement(doc, "path", { d: path(rows, xRight, function (row) { return yMass(row.massFraction); }), className: "ss-mass" }));
     svg.appendChild(svgElement(doc, "text", { x: 540, y: 270, "text-anchor": "middle", className: "ss-small" }, "r/R"));
     svg.appendChild(svgElement(doc, "text", { x: 412, y: 47, className: "ss-small" }, "绿 m(r)/M"));
+    [0,.5,1].forEach(function(f){[45,405].forEach(function(left){svg.appendChild(svgElement(doc,"text",{x:left+270*f,y:254,"text-anchor":"middle",className:"ss-small"},String(f)));});});
     return svg;
   }
 
   function ledgerTable(doc, model) {
     var rows = [
-      ["多方指数 n", fixed(model.n, 2), "EOS 指定的 toy 参数"],
+      ["多方指数 n", fixed(model.n, 2), "状态方程指定的结构参数"],
       ["第一零点 ξ₁", fixed(model.surface.xi, 5), "θ(ξ₁)=0 的表面边界"],
       ["尺度 a", fixed(model.scale, 5), "r=aξ；由 K,ρc,G 决定"],
       ["半径 R=aξ₁", fixed(model.radius, 5), "模型表面半径"],
@@ -332,9 +319,10 @@
       ["总质量 M", fixed(model.mass, 5), "m(R)"],
       ["表面压力 P(R)", fixed(0, 4), "零外压边界"],
       ["3∫P dV", fixed(model.virialPressureTerm, 5), "维里定理左侧的压力项"],
-      ["−Ω", fixed(-model.gravitationalEnergy, 5), "Ω=−3GM²/((5−n)R)"],
+      ["−Ω", fixed(-model.gravitationalEnergy, 5), "独立壳积分 Ω=−∫(Gm/r)dm"],
       ["3∫P dV+Ω", fixed(model.virialResidual, 7), "数值维里残差"],
-      ["内部能量 proxy U", fixed(model.internalProxy, 5), "n∫P dV；仅随 EOS 的记账量"]
+      ["解析引力能 Ωpoly",fixed(model.gravitationalAnalytic,7),"−3GM²/((5−n)R)，供交叉核对"],
+      ["Ω积分−Ωpoly",fixed(model.gravitationalEnergy-model.gravitationalAnalytic,7),"离散误差；不是新增物理项"]
     ];
     var table = element(doc, "table");
     table.appendChild(element(doc, "caption", { text: "质量—半径—压力—维里账本（K=G=1 的示范尺度）" }));
@@ -362,11 +350,11 @@
       var model = analyze(state.presetId, { rhoC: state.rhoC });
       var preset = model.preset;
       var shell = element(doc, "div", { className: "ss-shell" });
-      shell.appendChild(element(doc, "h3", { text: "Lane–Emden toy：质量、半径与维里账本" }));
-      shell.appendChild(element(doc, "p", { className: "ss-note", text: "这是透明的 Newtonian 球对称静力模型：先积分 θ，再把无量纲剖面换算成 M、R、P 与 virial ledger。它没有 opacity、transport 或 luminosity 方程。" }));
+      shell.appendChild(element(doc, "h3", { text: "Lane–Emden 模型：质量、半径与维里账本" }));
+      shell.appendChild(element(doc, "p", { className: "ss-note", text: "这是透明的 牛顿引力下的球对称静力模型：积分 θ 后换算 M、R、P，并独立积分引力能。这里没有不透明度、能量输运或光度方程。" }));
       var presets = element(doc, "div", { className: "ss-presets", role: "group", "aria-label": "选择多方模型" });
       PRESETS.forEach(function (item) {
-        var button = element(doc, "button", { type: "button", "aria-pressed": item.id === state.presetId ? "true" : "false", "aria-label": "载入" + item.label }, item.label);
+        var button = element(doc, "button", { id:"ss-preset-"+serial+"-"+item.id, type: "button", "aria-pressed": item.id === state.presetId ? "true" : "false", "aria-label": "载入" + item.label }, item.label);
         button.addEventListener("click", function () {
           state.presetId = item.id;
           state.rhoC = item.rhoC;
@@ -394,23 +382,25 @@
       predict.appendChild(element(doc, "legend", { text: "边界条件 P(R)=0 且静力平衡时，哪本账应闭合？" }));
       var choices = element(doc, "div", { className: "ss-choice-row", role: "group", "aria-label": "维里预测选项" });
       [["closes", "3∫P dV + Ω ≈ 0"], ["does-not-close", "中心压力 + Ω ≈ 0"]].forEach(function (option) {
-        var button = element(doc, "button", { type: "button", "aria-pressed": state.prediction === option[0] ? "true" : "false" }, option[1]);
-        button.addEventListener("click", function () { state.prediction = option[0]; render(); });
+        var button = element(doc, "button", { id:"ss-choice-"+serial+"-"+option[0], type: "button", "aria-pressed": state.prediction === option[0] ? "true" : "false" }, option[1]);
+        button.addEventListener("click", function () { state.prediction = option[0]; state.revealed=false; render(); });
         choices.appendChild(button);
       });
       predict.appendChild(choices);
       var actions = element(doc, "div", { className: "ss-actions" });
-      var reveal = element(doc, "button", { type: "button", className: "ss-primary", text: "核对预测" });
+      var reveal = element(doc, "button", { id:"ss-reveal-"+serial, type: "button", className: "ss-primary", text: "核对预测" });
       reveal.addEventListener("click", function () {
         if (!state.prediction) { announce("请先选择一个预测。"); return; }
         state.revealed = true;
         render();
+        rootNode.querySelector(".ss-visual").focus();
         announce("预测已核对；现在可以阅读结构与维里账本。");
       });
-      var reset = element(doc, "button", { type: "button", text: "重置实验" });
+      var reset = element(doc, "button", { id:"ss-reset-"+serial, type: "button", text: "重置实验" });
       reset.addEventListener("click", function () {
         state = { presetId: PRESETS[0].id, rhoC: PRESETS[0].rhoC, prediction: null, revealed: false };
         render();
+        doc.getElementById("ss-choice-"+serial+"-closes").focus();
         announce("恒星结构实验已重置。");
       });
       actions.appendChild(reveal);
@@ -421,16 +411,16 @@
       if (state.revealed) {
         var results = element(doc, "section", { className: "ss-results", "aria-live": "polite" });
         results.appendChild(element(doc, "h4", { text: "剖面可视化与结构账本" }));
-        results.appendChild(element(doc, "div", { className: "ss-visual" }, profileSvg(doc, model, serial)));
+        results.appendChild(element(doc, "div", { className: "ss-visual",tabindex:"0",role:"region","aria-label":"可横向滚动的结构剖面" }, profileSvg(doc, model, serial)));
         var summary = element(doc, "div", { className: "ss-summary" });
         summary.appendChild(metric(doc, "n", fixed(model.n, 2)));
         summary.appendChild(metric(doc, "ξ₁", fixed(model.surface.xi, 4)));
         summary.appendChild(metric(doc, "R", fixed(model.radius, 4)));
         summary.appendChild(metric(doc, "M", fixed(model.mass, 4)));
         results.appendChild(summary);
-        results.appendChild(element(doc, "div", { className: "ss-table-wrap" }, ledgerTable(doc, model)));
-        results.appendChild(element(doc, "p", { className: "ss-check", text: "边界条件：中心 m(0)=0 且 θ′(0)=0；表面取第一零点 θ(ξ₁)=0，因此 P(R)=0。维里闭合只是在这个 toy 的静力与边界假设下成立。" }));
-        results.appendChild(element(doc, "p", { className: "ss-check ss-fail", text: "范围声明：这里没有 opacity、能量输运、核反应或 luminosity；图上的 M–R 曲线不是普遍恒星演化关系，也不能生成主序质光律。" }));
+        results.appendChild(element(doc, "div", { className: "ss-table-wrap",tabindex:"0",role:"region","aria-label":"可横向滚动的结构账本" }, ledgerTable(doc, model)));
+        results.appendChild(element(doc, "p", { className: "ss-check", text: "边界条件：中心 m(0)=0 且 θ′(0)=0；表面取第一零点 θ(ξ₁)=0，因此 P(R)=0。维里闭合只是在这个模型的静力与边界假设下成立。" }));
+        results.appendChild(element(doc, "p", { className: "ss-check ss-fail", text: "范围声明：这里没有不透明度、能量输运、核反应或光度；改变中心密度得到的结构族不能生成真实主序质光律。" }));
         shell.appendChild(results);
       }
       rootNode.replaceChildren(shell);
@@ -448,6 +438,7 @@
     solveLaneEmden: solveLaneEmden,
     analyze: analyze,
     selfTest: selfTest,
+    profileSvg:profileSvg,
     mount: mount
   };
 });
