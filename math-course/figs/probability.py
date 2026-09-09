@@ -26,15 +26,8 @@ def f_bivariate_normal():
     pass
 
 def f_clt():
-    fig,ax=plt.subplots(figsize=(6.8,3.8))
-    for n,c,al in [(1,ACC2,.9),(2,"#6f8bc4",.9),(5,ACC,.9),(30,INK,.9)]:
-        s=rng.uniform(0,1,(20000,n)).mean(axis=1)
-        s=(s-0.5)/(np.sqrt(1/12/n))
-        ax.hist(s,bins=60,density=True,histtype="step",color=c,lw=1.8,label=f"$n={n}$")
-    xx=np.linspace(-4,4,200); ax.plot(xx,np.exp(-xx**2/2)/np.sqrt(2*pi),color=RED,lw=2,ls="--",label=r"$\mathcal{N}(0,1)$")
-    ax.set_xlim(-4,4); ax.set_xlabel(r"standardized mean"); ax.set_ylabel("density")
-    ax.legend(frameon=False,fontsize=10); ax.set_title("CLT: mean of $n$ uniforms $\\to$ normal",fontsize=12)
-    save(fig,"prob-05-clt")
+    # Maintained by tools/build_clt_figure.py.
+    pass
 
 def f_sampling_dists():
     from math import gamma

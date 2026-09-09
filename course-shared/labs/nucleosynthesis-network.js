@@ -209,10 +209,11 @@
 
     // Uniformization of the simultaneous column-conservative generator.
     // The omitted Poisson tail is bounded before stopping; no normalization is applied.
+    var ABUNDANCE_TOLERANCE = 1e-12;
     function validateStep(abundance, theta, dt) {
       if (!finite(theta) || theta < .12 || theta > 1.35 || !finite(dt) || dt <= 0 || dt > .5) throw new RangeError("超出步进定义域");
-      if (!abundance || typeof abundance !== "object" || Array.isArray(abundance) || Object.keys(abundance).length !== 6 || !SPECIES.every(function(sp){return Object.hasOwn(abundance,sp.id) && finite(abundance[sp.id]) && abundance[sp.id]>=0 && abundance[sp.id]<=1;})) throw new RangeError("非法有效池权重");
-      if (Math.abs(abundanceTotal(abundance)-1)>1e-12) throw new RangeError("有效池权重总和必须为1（允许1e-12舍入误差）");
+      if (!abundance || typeof abundance !== "object" || Array.isArray(abundance) || Object.keys(abundance).length !== 6 || !SPECIES.every(function(sp){return Object.hasOwn(abundance,sp.id) && finite(abundance[sp.id]) && abundance[sp.id]>=0 && abundance[sp.id]<=1+ABUNDANCE_TOLERANCE;})) throw new RangeError("非法有效池权重");
+      if (Math.abs(abundanceTotal(abundance)-1)>ABUNDANCE_TOLERANCE) throw new RangeError("有效池权重总和必须为1（允许1e-12舍入误差）");
     }
     function referenceStep(abundance, theta, dt) {
       validateStep(abundance,theta,dt);

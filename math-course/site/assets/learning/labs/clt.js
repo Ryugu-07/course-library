@@ -1,19 +1,17 @@
-(function () {
+(function(root,factory){
   "use strict";
-
-  if (
-    typeof window === "undefined" ||
-    !window.CourseLearning ||
-    typeof window.CourseLearning.register !== "function"
-  ) {
-    return;
-  }
-
+  var m=factory();
+  if(typeof module==='object'&&module.exports)module.exports=m;
+  if(root&&root.CourseLearning)root.CourseLearning.register('clt',m.mount);
+  if(typeof module==='object'&&require.main===module)console.log('clt self-test: PASS',m.selfTest());
+})(typeof window!=='undefined'?window:null,function(){
+  "use strict";
   var SVG_NS = "http://www.w3.org/2000/svg";
   var TRIALS = 2000;
   var BINS = 32;
   var X_MIN = -4;
   var X_MAX = 4;
+  var INSTANCE=0;
   var BASE_SEED = 0xc17a5eed;
 
   function setAttributes(node, attrs) {
@@ -153,6 +151,7 @@
       shortLabel: "均匀",
       mean: 0.5,
       variance: 1 / 12,
+      beta3: 3*Math.sqrt(3)/4,
       sample: function (rng) {
         return rng();
       },
@@ -163,8 +162,9 @@
       shortLabel: "偏斜",
       mean: 1,
       variance: 1,
+      beta3: 12/Math.E-2,
       sample: function (rng) {
-        return -Math.log(Math.max(1e-12, 1 - rng()));
+        return -Math.log1p(-rng());
       },
       note: "右偏且有长尾；有限 n 的近似通常比均匀分布更慢。"
     },
@@ -173,6 +173,7 @@
       shortLabel: "双峰",
       mean: 0,
       variance: 76 / 75,
+      beta3: 1.04/Math.pow(76/75,1.5),
       sample: function (rng) {
         var center = rng() < 0.5 ? -1 : 1;
         return center + (rng() - 0.5) * 0.4;
@@ -181,7 +182,11 @@
     }
   };
 
-  function runExperiment(distributionKey, n) {
+  function runExperiment(distributionKey, n, trials) {
+    if (!Object.hasOwn(DISTRIBUTIONS,distributionKey)) throw new RangeError("未知母分布");
+    if (!Number.isInteger(n)||n<1||n>128) throw new RangeError("n 必须为1到128的整数");
+    if (trials===undefined) trials=TRIALS;
+    if (!Number.isInteger(trials)||trials<100||trials>8000) throw new RangeError("R 必须为100到8000的整数");
     var distribution = DISTRIBUTIONS[distributionKey];
     var seed = hashSeed(
       "clt-fixed-v1:" + BASE_SEED + ":" + distributionKey + ":" + n
@@ -192,7 +197,7 @@
     var totalSquare = 0;
     var inCentralBand = 0;
 
-    for (var trial = 0; trial < TRIALS; trial += 1) {
+    for (var trial = 0; trial < trials; trial += 1) {
       var sum = 0;
       for (var sample = 0; sample < n; sample += 1) {
         sum += distribution.sample(rng);
@@ -209,10 +214,10 @@
       }
     }
 
-    var empiricalMean = total / TRIALS;
+    var empiricalMean = total / trials;
     var empiricalVariance = Math.max(
       0,
-      totalSquare / TRIALS - empiricalMean * empiricalMean
+      totalSquare / trials - empiricalMean * empiricalMean
     );
     var counts = [];
     for (var bin = 0; bin < BINS; bin += 1) {
@@ -234,57 +239,63 @@
       counts[index] += 1;
     });
     counts.forEach(function (count) {
-      maxDensity = Math.max(maxDensity, count / (TRIALS * binWidth));
+      maxDensity = Math.max(maxDensity, count / (trials * binWidth));
     });
 
     return {
       distribution: distribution,
+      values:values, trials:trials,
+      berryEsseen:Math.min(1,.4748*distribution.beta3/Math.sqrt(n)),
       counts: counts,
       binWidth: binWidth,
       maxDensity: maxDensity,
       seed: seed,
       empiricalMean: empiricalMean,
       empiricalSd: Math.sqrt(empiricalVariance),
-      centralCoverage: inCentralBand / TRIALS,
+      centralCoverage: inCentralBand / trials,
       outside: outside,
       rawMeanSd: Math.sqrt(distribution.variance / n),
       n: n
     };
   }
 
-  function drawPlot(api, svg, experiment) {
+  function drawPlot(api, svg, experiment, raw) {
+    var uid=svg.getAttribute("data-plot-id");
+    var scale=raw?experiment.rawMeanSd:1;
+    var center=raw?experiment.distribution.mean:0;
+    var axisScale=raw?Math.sqrt(experiment.distribution.variance):1;
     var left = 58;
     var top = 28;
     var width = 600;
     var height = 230;
     var bottom = top + height;
     var right = left + width;
-    var yMax = Math.max(0.45, experiment.maxDensity * 1.2);
+    var yMax = Math.max(0.45, experiment.maxDensity * 1.2)/scale;
     var children = [
-      makeSvg(api, "title", { id: "clt-plot-title" }, [
-        "标准化样本均值的经验直方图"
+      makeSvg(api, "title", { id: uid+"-title" }, [
+        raw?"原始样本均值的经验直方图":"标准化样本均值的经验直方图"
       ]),
-      makeSvg(api, "desc", { id: "clt-plot-desc" }, [
+      makeSvg(api, "desc", { id: uid+"-desc" }, [
         experiment.distribution.shortLabel +
           "母分布，样本量 n=" +
           experiment.n +
           "；柱形表示 " +
-          TRIALS +
-          " 次重复实验的 Z_n，金色曲线表示标准正态密度。"
+          experiment.trials +
+          (raw?" 次重复实验的原始平均，金色曲线为正态近似。":" 次重复实验的 Z_n，金色曲线为标准正态。")
       ])
     ];
 
     function sx(value) {
-      return left + ((value - X_MIN) / (X_MAX - X_MIN)) * width;
+      return left + ((value*scale/axisScale - X_MIN) / (X_MAX - X_MIN)) * width;
     }
 
     function sy(value) {
-      return bottom - (clamp(value, 0, yMax) / yMax) * height;
+      return bottom - (value / yMax) * height;
     }
 
     for (var xTick = 0; xTick <= 4; xTick += 1) {
       var xValue = X_MIN + ((X_MAX - X_MIN) * xTick) / 4;
-      var x = sx(xValue);
+      var x = left+(xValue-X_MIN)/(X_MAX-X_MIN)*width;
       children.push(
         makeSvg(api, "line", {
           x1: x,
@@ -294,8 +305,8 @@
           stroke: "currentColor",
           "stroke-opacity": "0.12"
         }),
-        svgText(api, x, bottom + 23, String(xValue), {
-          "font-size": "11"
+        svgText(api, x, bottom + 23, formatNumber(api,center+axisScale*xValue,3), {
+          "font-size": "13"
         })
       );
     }
@@ -313,7 +324,7 @@
           "stroke-opacity": yTick === 0 ? "0.32" : "0.1"
         }),
         svgText(api, left - 10, y + 4, formatNumber(api, yValue, 2), {
-          "font-size": "11",
+          "font-size": "13",
           "text-anchor": "end"
         })
       );
@@ -348,16 +359,17 @@
     );
 
     for (var barIndex = 0; barIndex < BINS; barIndex += 1) {
-      var density = experiment.counts[barIndex] / (TRIALS * experiment.binWidth);
-      var barX = left + (width * barIndex) / BINS + 1;
-      var barWidth = Math.max(1, width / BINS - 2);
+      var density = experiment.counts[barIndex] / (experiment.trials * experiment.binWidth * scale);
+      var barX = sx(X_MIN+experiment.binWidth*barIndex);
+      var barWidth = width/BINS*scale/axisScale;
       var barY = sy(density);
       children.push(
         makeSvg(api, "rect", {
           x: barX,
           y: barY,
           width: barWidth,
-          height: Math.max(0, bottom - barY),
+          height: bottom-barY,
+          "data-bin":barIndex,
           fill: "currentColor",
           "fill-opacity": "0.32"
         })
@@ -367,7 +379,7 @@
     var curvePoints = [];
     for (var point = 0; point <= 160; point += 1) {
       var z = X_MIN + ((X_MAX - X_MIN) * point) / 160;
-      curvePoints.push(sx(z) + "," + sy(normalDensity(z)));
+      curvePoints.push(sx(z) + "," + sy(normalDensity(z)/scale));
     }
     children.push(
       makeSvg(api, "polyline", {
@@ -378,7 +390,7 @@
         "stroke-linejoin": "round",
         "stroke-linecap": "round"
       }),
-      svgText(api, right, bottom + 23, "z", {
+      svgText(api, right, bottom + 50, raw?"平均值":"z", {
         "font-size": "12",
         "text-anchor": "end"
       }),
@@ -395,7 +407,7 @@
         "fill-opacity": "0.32"
       }),
       svgText(api, right - 136, top + 14, "经验直方图", {
-        "font-size": "11",
+        "font-size": "13",
         "text-anchor": "start"
       }),
       makeSvg(api, "line", {
@@ -406,8 +418,8 @@
         stroke: "var(--cl-gold, #9b6a12)",
         "stroke-width": "2.5"
       }),
-      svgText(api, right - 136, top + 35, "φ(z)", {
-        "font-size": "11",
+      svgText(api, right - 136, top + 35, raw?"正态近似密度":"φ(z)", {
+        "font-size": "13",
         "text-anchor": "start"
       })
     );
@@ -418,7 +430,7 @@
       experiment.distribution.shortLabel +
         "母分布、n=" +
         experiment.n +
-        " 时标准化样本均值的经验直方图与标准正态曲线"
+        (raw?" 时原始平均的经验密度与正态近似":" 时标准化均值的经验密度与标准正态")
     );
   }
 
@@ -431,16 +443,22 @@
     return { card: card, value: value };
   }
 
-  window.CourseLearning.register("clt", function (root, api) {
+  function mount(root, api) {
     if (!root || typeof document === "undefined") {
       return;
     }
 
     var state = {
       distribution: "bimodal",
-      n: 1
+      n: 1, trials:TRIALS
     };
 
+    var uid='clt-'+(++INSTANCE);
+    root.classList.add('clt-lab');
+    if(!document.getElementById('clt84-style')){
+      var style=document.createElement('style');style.id='clt84-style';
+      style.textContent='.clt-lab .cl-grid{grid-template-columns:minmax(0,1fr)}.clt-lab .clt-scroll{overflow-x:auto;max-width:100%}.clt-lab .cl-plot{min-width:700px;max-width:none;width:100%}.clt-lab .clt-scroll:focus-visible{outline:3px solid var(--accent)}.clt-lab [hidden]{display:none!important}.clt-lab .clt-predict{display:grid;gap:12px;margin:16px 0}.clt-lab select,.clt-lab button{min-height:44px;font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:6px}.clt-lab label{display:grid;gap:6px}.clt-lab .cl-stage-frame{overflow:visible}.clt-lab .clt-predict select{max-width:100%}.clt-lab .cl-note{overflow-wrap:anywhere}';document.head.appendChild(style);
+    }
     var heading = makeElement(api, "h3", {}, [
       "中心极限定理实验：平均的形状如何改变？"
     ]);
@@ -451,7 +469,7 @@
     ]);
 
     var distributionSelect = makeElement(api, "select", {
-      id: "cl-clt-distribution",
+      id: uid+"-distribution",
       "aria-label": "选择母分布"
     });
     Object.keys(DISTRIBUTIONS).forEach(function (key) {
@@ -464,17 +482,17 @@
     distributionSelect.value = state.distribution;
 
     var distributionLabel = makeElement(api, "label", {
-      htmlFor: "cl-clt-distribution"
+      htmlFor: uid+"-distribution"
     }, ["母分布"]);
-    var nOutput = makeElement(api, "output", { htmlFor: "cl-clt-n" }, [
+    var nOutput = makeElement(api, "output", { htmlFor: uid+"-n" }, [
       String(state.n)
     ]);
-    var nLabel = makeElement(api, "label", { htmlFor: "cl-clt-n" }, [
+    var nLabel = makeElement(api, "label", { htmlFor: uid+"-n" }, [
       "每次平均的样本量 n = ",
       nOutput
     ]);
     var nInput = makeElement(api, "input", {
-      id: "cl-clt-n",
+      id: uid+"-n",
       type: "range",
       min: "1",
       max: "128",
@@ -485,9 +503,9 @@
 
     var controlSection = makeElement(api, "section", {
       className: "cl-controls",
-      "aria-labelledby": "cl-clt-controls-title"
+      "aria-labelledby": uid+"-controls-title"
     }, [
-      makeElement(api, "h4", { id: "cl-clt-controls-title" }, ["参数"]),
+      makeElement(api, "h4", { id: uid+"-controls-title" }, ["参数"]),
       makeElement(api, "div", { className: "cl-control" }, [
         distributionLabel,
         distributionSelect
@@ -498,20 +516,24 @@
       ]),
       makeElement(api, "p", { className: "cl-note" }, [
         "三种母分布均有有限且非零方差；R = ",
-        String(TRIALS),
+        "可调",
         " 只是重复次数，不是 n。"
       ])
     ]);
 
+    var rSelect=makeElement(api,'select',{'aria-label':'重复次数 R'});
+    [500,2000,8000].forEach(function(v){rSelect.appendChild(makeElement(api,'option',{value:String(v)},[String(v)]));});rSelect.value=String(state.trials);
+    controlSection.appendChild(makeElement(api,'label',{},['重复次数 R（只改变经验估计的稳定性）',rSelect]));
     var svg = makeSvg(api, "svg", {
       className: "cl-plot",
       viewBox: "0 0 700 360",
       role: "img",
-      "aria-labelledby": "clt-plot-title clt-plot-desc",
+      "data-plot-id":uid+"-z",
+      "aria-labelledby":uid+"-z-title "+uid+"-z-desc",
       "aria-label": "标准化样本均值的经验直方图"
     });
     var stageTitle = makeElement(api, "span", {
-      id: "cl-clt-stage-title"
+      id: uid+"-stage-title"
     }, ["标准化样本均值 Z_n"]);
     var plotNote = makeElement(api, "p", { className: "cl-note" }, []);
     var status = makeElement(api, "p", {
@@ -531,14 +553,14 @@
 
     var stageSection = makeElement(api, "section", {
       className: "cl-stage",
-      "aria-labelledby": "cl-clt-stage-title"
+      "aria-labelledby": uid+"-stage-title"
     }, [
       makeElement(api, "div", { className: "cl-stage-frame" }, [
         makeElement(api, "div", { className: "cl-stage-title" }, [
           stageTitle,
           makeElement(api, "span", {}, ["−4 ≤ z ≤ 4"])
         ]),
-        svg
+        makeElement(api,"div",{className:"clt-scroll",tabindex:"0",role:"region","aria-label":"可横向滚动的标准化均值图"},[svg])
       ]),
       plotNote,
       makeElement(api, "div", { className: "cl-metrics" }, [
@@ -553,12 +575,22 @@
       checklist
     ]);
 
+    var rawSvg=makeSvg(api,'svg',{className:'cl-plot',viewBox:'0 0 700 360',role:'img','data-plot-id':uid+'-raw','aria-labelledby':uid+'-raw-title '+uid+'-raw-desc'});
+    var rawFrame=makeElement(api,'div',{className:'cl-stage-frame'},[makeElement(api,'h4',{},['同一批数据：原始平均的收缩']),makeElement(api,'div',{className:'clt-scroll',tabindex:'0',role:'region','aria-label':'可横向滚动的原始平均图'},[rawSvg]),makeElement(api,'p',{className:'cl-note'},['横轴固定在 μ±4σ；n 增大后原始平均收缩。柱高按原始变量的箱宽重新归一化。两图只画 −4≤Z_n<4 的样本，区间外计数另列；正态参考曲线也仅显示中心±4个标准差。'])]);
+    stageSection.appendChild(rawFrame);
     var grid = makeElement(api, "div", { className: "cl-grid" }, [
       controlSection,
       stageSection
     ]);
 
-    replaceChildren(root, [heading, intro, grid]);
+    grid.hidden=true;grid.tabIndex=-1;
+    var predict=makeElement(api,'div',{className:'clt-predict'}),answers=[];
+    [['n=1 的双峰母分布已经正态吗？','否','是'],['n增大，原始平均的标准差怎样变？','按1/√n缩小','保持不变'],['固定n，只增加R会改变真实分布吗？','不会；只改善经验估计','会；它会使真实分布正态化']].forEach(function(q){var select=makeElement(api,'select',{'aria-label':q[0]},[makeElement(api,'option',{value:''},['请选择预测']),makeElement(api,'option',{value:'yes'},[q[1]]),makeElement(api,'option',{value:'no'},[q[2]])]);select.addEventListener('change',function(){grid.hidden=true;});answers.push(select);predict.appendChild(makeElement(api,'label',{},[q[0],select]));});
+    var reveal=makeElement(api,'button',{type:'button'},['提交预测并揭示']),reset=makeElement(api,'button',{type:'button'},['重新预测']),feedback=makeElement(api,'p',{className:'cl-note',role:'status'},['请先完成三项预测。']);
+    reveal.addEventListener('click',function(){if(answers.some(function(a){return !a.value;})){feedback.textContent='三项都选好后再提交。';return;}feedback.textContent=answers.filter(function(a){return a.value==='yes';}).length+'/3 项预测正确。参数变化可继续观察同一机制。';grid.hidden=false;render();grid.focus();});
+    reset.addEventListener('click',function(){answers.forEach(function(a){a.value='';});grid.hidden=true;state.distribution='bimodal';state.n=1;state.trials=TRIALS;distributionSelect.value=state.distribution;nInput.value='1';rSelect.value=String(TRIALS);feedback.textContent='已重置，请重新预测。';answers[0].focus();});
+    predict.appendChild(reveal);predict.appendChild(reset);predict.appendChild(feedback);
+    replaceChildren(root, [heading, intro, predict,grid]);
 
     function updateChecklist(experiment) {
       var nText = formatNumber(api, experiment.n, 0);
@@ -578,7 +610,7 @@
         makeElement(api, "li", {}, [
           makeElement(api, "span", { className: "cl-pass" }, ["✓"]),
           makeElement(api, "span", {}, [
-            "CLT 看形状：本图已经先减去 μ、再除以 σ/√n，比较的是 Z_n 与 N(0,1)。"
+            "CLT 看形状：第一张图先减去 μ、再除以 σ/√n，比较的是 Z_n 与 N(0,1)。"
           ])
         ]),
         makeElement(api, "li", {}, [
@@ -595,7 +627,7 @@
     }
 
     function render() {
-      var experiment = runExperiment(state.distribution, state.n);
+      var experiment = runExperiment(state.distribution, state.n,state.trials);
       var distribution = experiment.distribution;
       nOutput.textContent = String(state.n);
       stageTitle.textContent =
@@ -603,7 +635,7 @@
       plotNote.textContent =
         distribution.note +
         " 柱高按全部 " +
-        TRIALS +
+        state.trials +
         " 次实验归一化；金色曲线只是 N(0,1) 的参考极限。";
       status.textContent =
         "固定种子 " +
@@ -614,11 +646,11 @@
         state.n +
         " · 每次平均取 " +
         state.n +
-        " 个样本 · 区间外（±4 之外）" +
+        " 个样本 · 区间外（z<−4 或 z≥4）" +
         experiment.outside +
         " / " +
-        TRIALS +
-        " 个值未画出。";
+        state.trials +
+        " 个值未画出。CDF 的 Berry–Esseen 理论误差上界 ≤ " + formatNumber(api,experiment.berryEsseen,4) + "；此界不含有限R的抽样误差。";
       meanMetric.value.textContent = formatNumber(
         api,
         experiment.empiricalMean,
@@ -635,16 +667,18 @@
       formula.textContent =
         "Z_n = √n( X̄_n − μ ) / σ    ·    φ(z) = exp(−z²/2) / √(2π)";
       drawPlot(api, svg, experiment);
+      drawPlot(api,rawSvg,experiment,true);
       updateChecklist(experiment);
     }
 
+    rSelect.addEventListener("change",function(){state.trials=Number(rSelect.value);render();});
     distributionSelect.addEventListener("change", function () {
       state.distribution = distributionSelect.value;
       render();
       announce(api, root, "已切换到" + DISTRIBUTIONS[state.distribution].label);
     });
     nInput.addEventListener("input", function () {
-      state.n = clamp(Number(nInput.value) || 1, 1, 128);
+      state.n = Number(nInput.value);
       render();
     });
     nInput.addEventListener("change", function () {
@@ -652,5 +686,11 @@
     });
 
     render();
-  });
-})();
+  }
+  function selfTest(){
+    var n=0;function ok(v){n++;if(!v)throw new Error('CLT self-test '+n);}
+    Object.keys(DISTRIBUTIONS).forEach(function(k){var e=runExperiment(k,1,500);ok(e.values.length===500);ok(e.counts.reduce(function(a,b){return a+b;},0)+e.outside===500);ok(e.empiricalSd>0);ok(e.berryEsseen>0&&e.berryEsseen<=1);ok(JSON.stringify(e.values)===JSON.stringify(runExperiment(k,1,500).values));});
+    return {checks:n};
+  }
+  return {mount:mount,runExperiment:runExperiment,drawPlot:drawPlot,DISTRIBUTIONS:DISTRIBUTIONS,makeRng:makeRng,hashSeed:hashSeed,selfTest:selfTest};
+});

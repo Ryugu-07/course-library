@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-09 23:57</div>
   </div>
 </nav>
 <main id="content">
@@ -62,11 +62,21 @@ try {
 <li><a href="#6">6. 回到正式定理：直方图应该翻译成什么句子？</a></li>
 </ul>
 </li>
-<li><a href="#1_1">1. 两把不等式</a></li>
-<li><a href="#2_1">2. 三种收敛</a></li>
-<li><a href="#3-lln">3. 大数定律（LLN）</a></li>
-<li><a href="#4-clt">4. 中心极限定理（CLT，概率论皇冠）</a></li>
-<li><a href="#5_1">5. 典型例题</a></li>
+<li><a href="#1_1">1. 两个不等式：从“平均代价”约束坏事件</a></li>
+<li><a href="#2_1">2. 三种收敛：一次路径与一张分布图是不同对象</a></li>
+<li><a href="#3">3. 大数定律：平均误差缩小的原因</a></li>
+<li><a href="#4_1">4. 中心极限定理：保留波动，再看极限形状</a><ul>
+<li><a href="#_2">特征函数证明：哪里真正用了有限二阶矩？</a></li>
+<li><a href="#cdf">CDF 收敛不等于密度或尾部相对误差收敛</a></li>
+</ul>
+</li>
+<li><a href="#5_1">5. 有限样本应用：先明确精确目标，再谈近似</a></li>
+<li><a href="#6_1">6. 迁移练习与答案</a><ul>
+<li><a href="#1_2">题 1：四倍样本买到什么？</a></li>
+<li><a href="#2_2">题 2：先验未知分布时，样本量承诺有何不同？</a></li>
+<li><a href="#3_1">题 3：一个有限方差、却可能很慢的例子</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </details>
@@ -110,7 +120,7 @@ EX_i=\mu,\qquad 0&lt;DX_i=\sigma^2&lt;\infty,\qquad
 <div class="arithmatex">\[
 Z_n=\frac{\sqrt n(\bar X_n-\mu)}{\sigma},
 \]</div>
-<p>再叠加标准正态密度 <span class="arithmatex">\(\varphi(z)=(2\pi)^{-1/2}e^{-z^2/2}\)</span>。请选择均匀、偏斜或双峰分布，拖动 <span class="arithmatex">\(n\)</span>，观察经验直方图如何从母分布的个性走向共同的参考曲线。每个设置都用固定种子生成同样的 <span class="arithmatex">\(R=2000\)</span> 次重复实验，因此刷新页面不会把可复现性误认为“又一次随机巧合”。</p>
+<p>再叠加标准正态密度 <span class="arithmatex">\(\varphi(z)=(2\pi)^{-1/2}e^{-z^2/2}\)</span>。请选择均匀、偏斜或双峰分布，拖动 <span class="arithmatex">\(n\)</span>，观察经验直方图如何从母分布的个性走向共同的参考曲线。默认重复 <span class="arithmatex">\(R=2000\)</span> 次，也可切换为500或8000；同一母分布与 <span class="arithmatex">\(n\)</span> 使用固定种子，增加 <span class="arithmatex">\(R\)</span> 会保留较小 <span class="arithmatex">\(R\)</span> 的样本前缀。这是有限精度伪随机模拟，不是独立性的证明。双峰模型具体为 <span class="arithmatex">\(X=S+U\)</span>，独立 <span class="arithmatex">\(S=\pm1\)</span> 各半、<span class="arithmatex">\(U\sim U(-0.2,0.2)\)</span>，故均值0、方差 <span class="arithmatex">\(76/75\)</span>。第二张图使用同一批数值，直接显示原始平均在固定横轴上的收缩。</p>
 <div class="learning-lab" data-learning-lab="clt" markdown="1">
 <p><strong>无 JavaScript 时的静态读法：</strong>实验比较 <span class="arithmatex">\(U(0,1)\)</span>、均值为 <span class="arithmatex">\(1\)</span> 方差为 <span class="arithmatex">\(1\)</span> 的指数分布，以及由两个对称小区间组成的双峰分布；三者都满足 <span class="arithmatex">\(0&lt;\sigma^2&lt;\infty\)</span>。每次重复取 <span class="arithmatex">\(n\)</span> 个独立样本，绘制 <span class="arithmatex">\(Z_n=\sqrt n(\bar X_n-\mu)/\sigma\)</span> 的经验直方图，并与 <span class="arithmatex">\(N(0,1)\)</span> 的密度曲线比较。<span class="arithmatex">\(n=1\)</span> 时不会自动正态；增大 <span class="arithmatex">\(n\)</span> 只是在有限样本下逐渐改善近似，重复次数 <span class="arithmatex">\(R\)</span> 只影响直方图的平滑程度。</p>
 </div>
@@ -126,82 +136,136 @@ Z_n=\frac{\sqrt n(\bar X_n-\mu)}{\sigma},
 <div class="arithmatex">\[
 \frac{\sum_{i=1}^nX_i-n\mu}{\sigma\sqrt n}\xrightarrow{d}N(0,1).
 \]</div>
-<p>这里的箭头是<strong>依分布收敛</strong>：它保证连续区间概率等在极限处匹配，并不保证某一次有限样本的直方图、某一个样本点或每个尾部概率都已经精确等于正态。带着“独立同分布—有限正方差—正确标准化—有限样本只作近似”这四个检查项，再回看下面的正式证明与应用，CLT 的威力和边界会同时保留下来。</p>
+<p>这里的箭头是<strong>依分布收敛</strong>：它保证边界在极限分布下概率为零的区间，其概率在极限处匹配，并不保证某一次有限样本的直方图、某一个样本点或每个尾部概率都已经精确等于正态。带着“独立同分布—有限正方差—正确标准化—有限样本只作近似”这四个检查项，再回看下面的正式证明与应用，CLT 的威力和边界会同时保留下来。</p>
 </section>
-<h2 id="1_1">1. 两把不等式<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p><strong>Markov 不等式</strong> <span class="arithmatex">\(X \geq 0\)</span>：</p>
+<h2 id="1_1">1. 两个不等式：从“平均代价”约束坏事件<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>若 <span class="arithmatex">\(X\ge0\)</span>、<span class="arithmatex">\(EX&lt;\infty\)</span> 且 <span class="arithmatex">\(a&gt;0\)</span>，则 <span class="arithmatex">\(X\ge a\mathbf1_{\{X\ge a\}}\)</span>；两边取期望，得到 Markov 不等式</p>
 <div class="arithmatex">\[
-P(X \geq a) \leq \frac{EX}{a}
+P(X\ge a)\le\min\!\left(1,\frac{EX}{a}\right).
 \]</div>
-<p><em>一行证明</em>：<span class="arithmatex">\(EX \geq E[X \cdot I_{X \geq a}] \geq a\,P(X \geq a)\)</span>。</p>
-<p><strong>Chebyshev 不等式</strong>（对 <span class="arithmatex">\(|X - EX|\)</span> 用 Markov）：</p>
+<p>对<strong>平方偏差</strong> <span class="arithmatex">\((X-EX)^2\)</span> 使用它，在方差有限、<span class="arithmatex">\(\varepsilon&gt;0\)</span> 时得到 Chebyshev 不等式：</p>
 <div class="arithmatex">\[
-P\big(|X - EX| \geq \varepsilon\big) \leq \frac{DX}{\varepsilon^2}
+P(|X-EX|\ge\varepsilon)\le\min\!\left(1,\frac{\operatorname{Var}X}{\varepsilon^2}\right).
 \]</div>
-<p>——只用期望方差就能给概率上界，<strong>分布未知时的兜底武器</strong>（代价是很松；分布已知时直接算）。🔗 ai 课 01 讲的 Hoeffding 不等式是它的指数级强化版（要求有界），泛化界一族全是这类"集中不等式"的后代。</p>
-<h2 id="2_1">2. 三种收敛<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>它不要求正态，也不需要知道密度，却可能很松。例如 <span class="arithmatex">\(EX=100\)</span>、<span class="arithmatex">\(\operatorname{Var}X=10\)</span> 时，<span class="arithmatex">\(P(80&lt;X&lt;120)\ge0.975\)</span>。这里是保守下界，不是估计概率的精确值。更强的集中界通常利用有界性、矩母函数或其他尾部条件；不能无条件把多项式界换成指数界。</p>
+<h2 id="2_1">2. 三种收敛：一次路径与一张分布图是不同对象<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
 <th>收敛</th>
 <th>定义</th>
-<th>强度</th>
+<th>回答的问题</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>依概率收敛 <span class="arithmatex">\(X_n \xrightarrow{P} X\)</span></td>
-<td><span class="arithmatex">\(\forall\varepsilon:\ P(\lvert X_n - X\rvert \geq \varepsilon) \to 0\)</span></td>
-<td>中</td>
+<td>几乎必然 <span class="arithmatex">\(X_n\to X\)</span> a.s.</td>
+<td><span class="arithmatex">\(P(\lim_nX_n=X)=1\)</span></td>
+<td>固定一条随机记录，最终是否趋近？</td>
 </tr>
 <tr>
-<td>几乎处处收敛 <span class="arithmatex">\(X_n \xrightarrow{a.s.} X\)</span></td>
-<td><span class="arithmatex">\(P(\lim X_n = X) = 1\)</span></td>
-<td>强</td>
+<td>依概率 <span class="arithmatex">\(X_n\xrightarrow P X\)</span></td>
+<td>每个 <span class="arithmatex">\(\varepsilon&gt;0\)</span> 都有 <span class="arithmatex">\(P(\lvert X_n-X\rvert&gt;\varepsilon)\to0\)</span></td>
+<td>第 <span class="arithmatex">\(n\)</span> 次偏差明显的概率是否消失？</td>
 </tr>
 <tr>
-<td>依分布收敛 <span class="arithmatex">\(X_n \xrightarrow{d} X\)</span></td>
-<td><span class="arithmatex">\(F_n(x) \to F(x)\)</span>（<span class="arithmatex">\(F\)</span> 的连续点）</td>
-<td>弱</td>
+<td>依分布 <span class="arithmatex">\(X_n\xrightarrow d X\)</span></td>
+<td>在 <span class="arithmatex">\(F_X\)</span> 的每个连续点，<span class="arithmatex">\(F_{X_n}(x)\to F_X(x)\)</span></td>
+<td>分布函数是否趋近？</td>
 </tr>
 </tbody>
 </table>
-<p>关系：<span class="arithmatex">\(a.s. \Rightarrow P \Rightarrow d\)</span>，均不可逆。（大数定律说的是前两种，CLT 说的是第三种——<strong>LLN 谈"值稳定"，CLT 谈"分布形状"</strong>，层次不同。）</p>
-<h2 id="3-lln">3. 大数定律（LLN）<a class="headerlink" href="#3-lln" title="Permanent link"></a></h2>
-<p><strong>定理（Chebyshev 大数定律）</strong> <span class="arithmatex">\(X_1, X_2, \dots\)</span> 两两不相关、方差一致有界，则</p>
+<p>前两种要把随机变量放在同一个概率空间比较；依分布收敛只比较各自的分布。<span class="arithmatex">\(a.s.\Rightarrow P\Rightarrow d\)</span>，一般不能反推。</p>
+<p><strong>同分布却不靠近。</strong> 令 <span class="arithmatex">\(X=\pm1\)</span> 各半，所有 <span class="arithmatex">\(X_n=-X\)</span>。每个 <span class="arithmatex">\(X_n\)</span> 与 <span class="arithmatex">\(X\)</span> 同分布，因此依分布收敛；但 <span class="arithmatex">\(|X_n-X|=2\)</span> 恒成立，不依概率收敛到 <span class="arithmatex">\(X\)</span>。有一个有用例外：若分布极限是常数 <span class="arithmatex">\(c\)</span>，则 <span class="arithmatex">\(X_n\xrightarrow d c\)</span> 等价于 <span class="arithmatex">\(X_n\xrightarrow P c\)</span>。</p>
+<p><strong>坏事件概率趋零，却沿每条路径反复发生。</strong> 令 <span class="arithmatex">\(U\sim U[0,1)\)</span>，对每个 <span class="arithmatex">\(m=0,1,\ldots\)</span>，依次列出</p>
 <div class="arithmatex">\[
-\frac{1}{n}\sum_{i=1}^{n} X_i - \frac{1}{n}\sum_{i=1}^n EX_i \xrightarrow{P} 0
+X_{2^m+k}=\mathbf1_{\{k/2^m\le U&lt;(k+1)/2^m\}},\quad k=0,\ldots,2^m-1.
 \]</div>
-<p><em>证明（两行）</em>：<span class="arithmatex">\(D\big(\frac1n\sum X_i\big) = \frac{1}{n^2}\sum DX_i \leq \frac{C}{n} \to 0\)</span>，代入 Chebyshev。——<strong>平均的方差以 <span class="arithmatex">\(1/n\)</span> 消失</strong>，这个速率本身就是最有用的结论。</p>
-<p><strong>推论（Bernoulli 大数定律）</strong> 频率 <span class="arithmatex">\(\dfrac{n_A}{n} \xrightarrow{P} p\)</span>——"频率稳定于概率"，把概率的频率解释变成定理。</p>
-<p><strong>定理（Kolmogorov 强大数定律）</strong> i.i.d. 且 <span class="arithmatex">\(E|X_1| &lt; \infty\)</span>，则 <span class="arithmatex">\(\frac1n\sum X_i \xrightarrow{a.s.} EX_1\)</span>。（只要期望存在就成立，连方差都不要；证明超本科，记结论。）</p>
-<p>🔗 <strong>AI 衔接</strong>：经验风险 <span class="arithmatex">\(\to\)</span> 期望风险（ai 课 01 讲 ERM 的合法性）、Monte Carlo 估计的相合性、mini-batch 梯度是全梯度的无偏估计——机器学习"用样本代替总体"的一切操作都由 LLN 背书。</p>
-<h2 id="4-clt">4. 中心极限定理（CLT，概率论皇冠）<a class="headerlink" href="#4-clt" title="Permanent link"></a></h2>
-<figure class="plot">
-<p><img alt="中心极限定理均值趋于正态" src="assets/img/prob-05-clt.svg" /></p>
-<figcaption><span class="fig-id">图 5.1</span>对独立同分布且具有有限非零方差的样本，\(n\) 个观测的标准化均值收敛到标准正态——概率论的皇冠。</figcaption>
-</figure>
-<p><strong>定理（Lindeberg–Lévy）</strong> <span class="arithmatex">\(X_1, X_2, \dots\)</span> i.i.d.，<span class="arithmatex">\(EX_1 = \mu,\ 0 &lt; DX_1 = \sigma^2 &lt; \infty\)</span>，则</p>
+<p>第 <span class="arithmatex">\(m\)</span> 组每个变量取 1 的概率为 <span class="arithmatex">\(2^{-m}\)</span>，所以整列依概率趋零；但固定任何 <span class="arithmatex">\(U\)</span>，每一组中都恰有一个 1，且从 <span class="arithmatex">\(m\ge1\)</span> 起也有 0，因此不逐点趋零。依概率收敛不是“从某时刻开始再也不偏离”。</p>
+<h2 id="3">3. 大数定律：平均误差缩小的原因<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>若 <span class="arithmatex">\(X_i\)</span> 两两不相关、各有有限方差且 <span class="arithmatex">\(\operatorname{Var}X_i\le C\)</span>，令 <span class="arithmatex">\(A_n=n^{-1}\sum_{i=1}^n(X_i-EX_i)\)</span>。协方差项消失，所以</p>
 <div class="arithmatex">\[
-\frac{\sum_{i=1}^n X_i - n\mu}{\sigma\sqrt{n}} \;\xrightarrow{d}\; N(0, 1)
+EA_n=0,\qquad \operatorname{Var}A_n=\frac1{n^2}\sum_{i=1}^n\operatorname{Var}X_i\le\frac Cn,
+\qquad P(|A_n|\ge\varepsilon)\le\frac C{n\varepsilon^2}\to0.
 \]</div>
-<p><strong>读法</strong>：不管单个 <span class="arithmatex">\(X_i\)</span> 是什么分布（均匀、指数、二项……只要方差有限），大量独立同分布相加后<strong>标准化的和都长成标准正态</strong>——正态是"加法的普适吸引子"。</p>
-<p><em>证明思路（特征函数三步，值得复述）</em>：1.记 <span class="arithmatex">\(Y_i = \frac{X_i - \mu}{\sigma}\)</span>，则标准化和的特征函数为 <span class="arithmatex">\(\big[\varphi_Y(\frac{t}{\sqrt n})\big]^n\)</span>（独立和→乘积，概率 IV）；2.Taylor 展开 <span class="arithmatex">\(\varphi_Y(s) = 1 - \frac{s^2}{2} + o(s^2)\)</span>（零均值单位方差决定前两阶）；3.<span class="arithmatex">\(\big[1 - \frac{t^2}{2n} + o(\frac1n)\big]^n \to e^{-t^2/2}\)</span> ——恰是 <span class="arithmatex">\(N(0,1)\)</span> 的特征函数，由唯一性定理收尾。<span class="arithmatex">\(\blacksquare\)</span>（三步分别用了概率 IV 的三大功能——那一节是为这里铺的。）</p>
-<p><strong>推论（De Moivre–Laplace）</strong> 二项分布的正态近似：<span class="arithmatex">\(B(n, p) \approx N(np,\ npq)\)</span>（<span class="arithmatex">\(n\)</span> 大时；<span class="arithmatex">\(np, nq \geq 5\)</span> 经验可用；精细计算加连续性修正 <span class="arithmatex">\(\pm 0.5\)</span>）。</p>
-<p><strong>两个使用要点</strong>：</p>
+<p>这证明了相应的弱大数定律。对于独立同分布、均值 <span class="arithmatex">\(\mu\)</span>、方差 <span class="arithmatex">\(\sigma^2\)</span> 的样本，<span class="arithmatex">\(\operatorname{sd}(\bar X_n)=\sigma/\sqrt n\)</span> 是精确等式，不是正态近似。独立 Bernoulli 指示变量的平均就是频率，因此频率依概率趋向事件概率。</p>
+<p><strong>强大数定律（本页陈述）：</strong> i.i.d. 且 <span class="arithmatex">\(E|X_1|&lt;\infty\)</span>，则 <span class="arithmatex">\(\bar X_n\to EX_1\)</span> 几乎必然。这个结论不要求有限方差；上面的 Chebyshev 证明却不能证明这一更强版本。完整证明需要截断、独立性与几乎必然收敛工具，后续可接 <a href="real-01-measure.html">测度与收敛</a>。</p>
+<p>两个反例划清适用范围：</p>
 <ul>
-<li><strong>收敛速率</strong>：若还满足三阶绝对中心矩 <span class="arithmatex">\(E|X_1-\mu|^3&lt;\infty\)</span>，Berry–Esseen 定理给出分布函数偏差 <span class="arithmatex">\(O(1/\sqrt n)\)</span>；常数还受标准化三阶矩影响，所以“<span class="arithmatex">\(n \geq 30\)</span> 近似可用”只能是经验口诀，偏斜或重尾分布往往需要更大的 <span class="arithmatex">\(n\)</span>；</li>
-<li><strong>Monte Carlo 误差条</strong>：估计量 <span class="arithmatex">\(\bar X\)</span> 近似 <span class="arithmatex">\(N(\mu, \frac{\sigma^2}{n})\)</span> ⇒ 误差按 <span class="arithmatex">\(\frac{1}{\sqrt n}\)</span> 收缩——<strong>精度多一位小数，样本多一百倍</strong>。🔗 这就是 ai 课 08 讲 self-consistency 采样收益递减、以及一切模拟实验样本量设计的定量依据。</li>
+<li>若所有 <span class="arithmatex">\(X_i=Z\)</span> 是同一个非退化随机数，平均始终为 <span class="arithmatex">\(Z\)</span>，不会因重复写下同一数而变稳定。对一般相关样本，<span class="arithmatex">\(\operatorname{Var}(\bar X_n)=n^{-2}\sum_{i,j}\operatorname{Cov}(X_i,X_j)\)</span>，协方差项不能省。</li>
+<li>若 i.i.d. <span class="arithmatex">\(X_i\)</span> 满足 <span class="arithmatex">\(P(X_i&gt;x)=x^{-3/2}\)</span>（<span class="arithmatex">\(x\ge1\)</span>），则均值为 3、方差无穷。强大数定律仍适用，但不能套用有限方差的经典 CLT 或 <span class="arithmatex">\(\sigma/\sqrt n\)</span> 误差条。</li>
 </ul>
-<h2 id="5_1">5. 典型例题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<p><strong>例 1（Chebyshev 兜底）</strong> <span class="arithmatex">\(EX = 100, DX = 10\)</span>，估计 <span class="arithmatex">\(P(80 &lt; X &lt; 120)\)</span>。
-<em>解</em>：<span class="arithmatex">\(P(|X - 100| \geq 20) \leq \frac{10}{400} = 0.025\)</span> ⇒ <span class="arithmatex">\(P \geq 0.975\)</span>。（若已知正态则精确值远高——兜底不等式的"松"要有体感。）</p>
-<p><strong>例 2（CLT 标准应用）</strong> 某保险公司 10000 名投保人，每人年理赔概率 0.006，每次理赔 1 万元。求总理赔超 80 万元的概率。
-<em>解</em>：理赔人数 <span class="arithmatex">\(S \sim B(10^4, 0.006)\)</span>，<span class="arithmatex">\(ES = 60, DS = 59.64\)</span>。<span class="arithmatex">\(P(S &gt; 80) \approx 1 - \Phi\big(\frac{80 - 60}{\sqrt{59.64}}\big) = 1 - \Phi(2.59) \approx 0.0048\)</span>。——保险定价的原型计算：<strong>个体极不确定，总体高度可测</strong>，这就是 LLN+CLT 的商业模式。</p>
-<p><strong>例 3（用 CLT 设计样本量）</strong> 想用 Monte Carlo 把某均值估到 <span class="arithmatex">\(\pm 0.01\)</span> 内（95% 置信），单样本 <span class="arithmatex">\(\sigma \approx 1\)</span>，需多少样本？
-<em>解</em>：<span class="arithmatex">\(1.96\frac{\sigma}{\sqrt n} \leq 0.01 \Rightarrow n \geq (196)^2 \approx 3.8\times 10^4\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>Monte Carlo 对一个固定可积函数取样平均，可由 LLN 得到相合性。“每个固定模型的经验风险趋于期望风险”不能直接推出在同一数据上挑出的最优模型也泛化良好；数据自适应选择还需要一致收敛或其他论证。随机梯度的无偏性则来自抽样机制与期望运算，不能由 LLN 单独推出。</p>
+<h2 id="4_1">4. 中心极限定理：保留波动，再看极限形状<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p><strong>Lindeberg–Lévy CLT：</strong> 对 i.i.d. 样本，若 <span class="arithmatex">\(EX_i=\mu\)</span> 且 <span class="arithmatex">\(0&lt;\operatorname{Var}X_i=\sigma^2&lt;\infty\)</span>，则</p>
+<div class="arithmatex">\[
+Z_n=\frac{\sum_{i=1}^nX_i-n\mu}{\sigma\sqrt n}\xrightarrow d N(0,1).
+\]</div>
+<p>原始平均趋向常数，标准化平均却趋向非退化分布：减去 <span class="arithmatex">\(\mu\)</span> 是移走中心，乘以 <span class="arithmatex">\(\sqrt n/\sigma\)</span> 是把逐渐缩小的波动重新放大。若母分布本来正态，这个标准化结果对每个 <span class="arithmatex">\(n\)</span> 都精确正态；一般母分布只有极限结论。</p>
+<h3 id="_2">特征函数证明：哪里真正用了有限二阶矩？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(Y_i=(X_i-\mu)/\sigma\)</span>，则 <span class="arithmatex">\(EY_i=0,EY_i^2=1\)</span>。特征函数 <span class="arithmatex">\(\varphi(t)=E[e^{itY_i}]\)</span> 总存在，因为被积函数模为 1。有限二阶矩允许在期望内求两次导数：二阶导数的被积函数被 <span class="arithmatex">\(Y_i^2\)</span> 控制，故由支配收敛，<span class="arithmatex">\(\varphi''\)</span> 在零点连续。</p>
+<p>因此 <span class="arithmatex">\(\varphi(0)=1,\varphi'(0)=iEY_i=0,\varphi''(0)=-EY_i^2=-1\)</span>，并有</p>
+<div class="arithmatex">\[
+\varphi(s)=1-\frac{s^2}{2}+o(s^2).
+\]</div>
+<p>这一步不要求三阶矩。独立性把和的特征函数变成乘积；对每个固定 <span class="arithmatex">\(t\)</span>，</p>
+<div class="arithmatex">\[
+E[e^{itZ_n}]=\left[\varphi\!\left(\frac t{\sqrt n}\right)\right]^n
+=\left[1-\frac{t^2}{2n}+o(n^{-1})\right]^n\longrightarrow e^{-t^2/2}.
+\]</div>
+<p>右端是标准正态的特征函数，且在零点连续。最后使用 <strong>Lévy 连续性定理</strong>，才从特征函数的逐点极限推出依分布收敛；唯一性定理只说明“同一特征函数不能对应两种分布”，本身不是这一步收敛论证。可参看 <a href="https://www.stat.berkeley.edu/~pitman/s205f02/">Pitman 的概率讲义与连续性定理章节</a>。</p>
+<p><strong>并非所有平均都正态化。</strong> 独立标准 Cauchy 的特征函数为 <span class="arithmatex">\(e^{-|t|}\)</span>，所以平均的特征函数为 <span class="arithmatex">\([e^{-|t|/n}]^n=e^{-|t|}\)</span>。平均与原变量同分布，既不趋于某个有限均值，也不产生这里的正态极限；它没有有限绝对一阶矩或方差。这个计算比“重尾时要小心”更具体。</p>
+<h3 id="cdf">CDF 收敛不等于密度或尾部相对误差收敛<a class="headerlink" href="#cdf" title="Permanent link"></a></h3>
+<figure class="plot">
+<div aria-label="可横向滚动的二项CDF极限图" role="region" style="overflow-x:auto" tabindex="0">
+<img src="assets/img/prob-05-clt.svg" alt="成功率0.2的二项变量标准化后，三个样本量的精确阶梯CDF与标准正态CDF比较" style="min-width:900px;width:100%">
+</div>
+<figcaption><span class="fig-id">图 5.1</span>固定 p=0.2，分别对 n=10、30、100 的二项概率逐项求和，画出标准化后的精确 CDF。有限 n 始终是阶梯函数，没有普通连续密度；它仍可以依分布趋向正态。标出的 D 是阶梯跳跃前后与 Φ 的最大绝对差，不是有限抽样估计。</figcaption>
+</figure>
+<p>若标准化三阶绝对中心矩 <span class="arithmatex">\(\beta_3=E|X_i-\mu|^3/\sigma^3&lt;\infty\)</span>，可使用一个明确有效的 Berry–Esseen 界：</p>
+<div class="arithmatex">\[
+\sup_z|P(Z_n\le z)-\Phi(z)|\le\min\!\left(1,\frac{0.4748\,\beta_3}{\sqrt n}\right).
+\]</div>
+<p>这里采用 <a href="https://arxiv.org/abs/1111.6554">Shevtsova（2011）给出的通用常数上界</a>，不声称它是最新最优值。实验中的均匀、指数、双峰三种母分布分别有 <span class="arithmatex">\(\beta_3=3\sqrt3/4\)</span>、<span class="arithmatex">\(12/e-2\)</span>、<span class="arithmatex">\(1.04/(76/75)^{3/2}\)</span>；显示的是<strong>真实 CDF 的理论界</strong>，不包含用有限重复次数 <span class="arithmatex">\(R\)</span> 画直方图带来的经验误差。</p>
+<p>这个界控制绝对误差。例如上界 0.01 并不保证一个真实概率约 <span class="arithmatex">\(10^{-4}\)</span> 的罕见事件能被准确估计到相对误差 1%。CLT 也不保证有限 <span class="arithmatex">\(n\)</span> 的误差随每次增加 <span class="arithmatex">\(n\)</span> 单调变小；“至少30个”不是普遍验收标准。</p>
+<h2 id="5_1">5. 有限样本应用：先明确精确目标，再谈近似<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
+<p>独立同质的 <span class="arithmatex">\(n\)</span> 次 Bernoulli 试验，成功率 <span class="arithmatex">\(p\in(0,1)\)</span> 固定，计数 <span class="arithmatex">\(S\sim\operatorname{Bin}(n,p)\)</span>。由 CLT，<span class="arithmatex">\((S-np)/\sqrt{np(1-p)}\)</span> 依分布趋于标准正态。正态连续，而 <span class="arithmatex">\(S\)</span> 离散，因此近似 <span class="arithmatex">\(P(a\le S\le b)\)</span> 时，常用连续性修正</p>
+<div class="arithmatex">\[
+P(a\le S\le b)\approx
+\Phi\!\left(\frac{b+1/2-np}{\sqrt{np(1-p)}}\right)
+-\Phi\!\left(\frac{a-1/2-np}{\sqrt{np(1-p)}}\right),
+\]</div>
+<p>其中 <span class="arithmatex">\(a,b\)</span> 为整数。半格修正对应给每个整数柱分配一个宽度为 1 的区间，但并不消除偏斜误差。若 <span class="arithmatex">\(p\)</span> 随 <span class="arithmatex">\(n\)</span> 改变，必须重新核对适用条件；比如 <span class="arithmatex">\(np\)</span> 保持很小，不能仅凭 <span class="arithmatex">\(n\)</span> 很大就宣布正态近似良好。</p>
+<p><strong>例：罕见故障计数。</strong> 假设 10000 台器件在固定观察期内独立、同概率 0.006 发生一次故障。目标是 <span class="arithmatex">\(P(S&gt;80)=P(S\ge81)\)</span>。此时均值 60、方差 59.64，修正后的正态近似为</p>
+<div class="arithmatex">\[
+1-\Phi\!\left(\frac{80.5-60}{\sqrt{59.64}}\right)\approx0.0039711.
+\]</div>
+<p>直接求二项尾和得到约 <span class="arithmatex">\(0.00550117\)</span>；绝对差约 <span class="arithmatex">\(0.00153003\)</span>，相对误差约 27.8%。不修正的结果约 <span class="arithmatex">\(0.00480201\)</span>，在这个点反而偶然更近。因此“加修正”不是逐点误差必然改善的定理；若需要精确罕见事件概率，应计算相应的精确分布或使用有误差控制的方法。若器件共同受温度影响，独立假设也需另行检验。</p>
+<h2 id="6_1">6. 迁移练习与答案<a class="headerlink" href="#6_1" title="Permanent link"></a></h2>
+<h3 id="1_2">题 1：四倍样本买到什么？<a class="headerlink" href="#1_2" title="Permanent link"></a></h3>
+<p>总体均值 <span class="arithmatex">\(\mu=2\)</span>、标准差 <span class="arithmatex">\(\sigma=3\)</span>。把每次平均的样本量从 25 提到 100，再把重复次数从 500 提到 2000，分别改变哪个对象？</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>若样本独立同分布，原始平均的期望仍为 2，标准差由 <span class="arithmatex">\(3/\sqrt{25}=0.6\)</span> 降到 <span class="arithmatex">\(3/\sqrt{100}=0.3\)</span>。标准化变量的理论均值和方差始终为 0、1；其有限样本分布可更接近正态，但不能保证某次直方图每一柱都更接近。增加 <span class="arithmatex">\(R\)</span> 不改变 <span class="arithmatex">\(\bar X_n\)</span> 或 <span class="arithmatex">\(Z_n\)</span> 的真实分布，只改变经验图和经验概率的误差；例如一个固定区间的经验比例，若重复实验独立，其标准误约为 <span class="arithmatex">\(\sqrt{q(1-q)/R}\)</span>，其中 <span class="arithmatex">\(q\)</span> 是该区间的真实概率。</p>
+</details>
+<h3 id="2_2">题 2：先验未知分布时，样本量承诺有何不同？<a class="headerlink" href="#2_2" title="Permanent link"></a></h3>
+<p>设 i.i.d. 单样本方差为1，希望平均距总体均值不超过 0.01 的概率至少为 95%。比较 Chebyshev 的保证与正态近似给出的设计。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>Chebyshev 给出 <span class="arithmatex">\(P(|\bar X_n-\mu|\ge0.01)\le1/(n\cdot10^{-4})\)</span>，因此 <span class="arithmatex">\(n\ge200000\)</span> 是仅凭方差就有效的充分条件。正态近似使用 <span class="arithmatex">\(1.96/\sqrt n\le0.01\)</span>，得到 <span class="arithmatex">\(n\ge38416\)</span>，但它依赖该样本量下近似足够好；母分布正态时正态分布公式才对有限 <span class="arithmatex">\(n\)</span> 精确成立（1.96仍是分位数的取整）。若方差由数据估计，还应处理估计的不确定性。这两个数字回答的是不同强度的保证，不应互换。</p>
+</details>
+<h3 id="3_1">题 3：一个有限方差、却可能很慢的例子<a class="headerlink" href="#3_1" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(X\sim\operatorname{Bernoulli}(p)\)</span>。求 <span class="arithmatex">\(\beta_3\)</span>，解释为什么固定很小的 <span class="arithmatex">\(p\)</span> 会让 Berry–Esseen 上界变差。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>中心绝对三阶矩为 <span class="arithmatex">\(p(1-p)^3+(1-p)p^3=p(1-p)[p^2+(1-p)^2]\)</span>，所以</p>
+<div class="arithmatex">\[
+\beta_3=\frac{p^2+(1-p)^2}{\sqrt{p(1-p)}}.
+\]</div>
+<p>当 <span class="arithmatex">\(p\to0\)</span>，它约为 <span class="arithmatex">\(p^{-1/2}\)</span>，误差上界约为 <span class="arithmatex">\(0.4748/\sqrt{np}\)</span>。因此“小概率 × 试验次数”的尺度影响近似，而不只是试验次数本身。本式是绝对 CDF 误差上界，并不为小尾概率提供相同大小的相对误差保证。</p>
+</details>
 <hr />
-<p><em>概率论五页完工。它的两个直系后继在侧栏等着：数理统计（把本页的极限定理变成推断工具）与随机过程（让随机变量随时间演化）——占位页均已备好规划。</em></p>
+<p>继续 <a href="stat-01-sampling.html">统计抽样分布</a> 与 <a href="stoch-01-poisson.html">Poisson 过程</a>：前者把极限定理转成推断工具，后者研究随机性随时间怎样积累。</p>
 </section>
 </article>
 <footer class="pager">

@@ -29,4 +29,9 @@ for(const id of ['thermal-cost','tunnel-cost','total-cost','kernel','gaussian'])
 
 for(const level of [0,.5,1]){const bad=Object.fromEntries(m.SPECIES.map(sp=>[sp.id,level]));assert.throws(()=>m.stepNetwork(bad,1,.5));assert.throws(()=>m.referenceStep(bad,1,.5));checks+=2;}
 
+// Accepted near-normalized states must survive repeated transfers into Fe.
+for(const method of [m.stepNetwork,m.referenceStep])for(const theta of [.12,.4,1,1.35]){
+ let state={H:0,He:0,Be8:0,C:0,O:5e-13,Fe:1};
+ for(let i=0;i<80;i++){state=method(state,theta,.5).abundance;check(Object.values(state).every(v=>v>=0&&v<=1+1e-12),'component tolerance');near(m.abundanceTotal(state),1+5e-13,5e-14);}
+}
 console.log('nucleosynthesis independent: PASS',{checks,cases:fixture.rows.length,maxError,maxTerms});
