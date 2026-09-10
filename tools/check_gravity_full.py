@@ -11,7 +11,7 @@ for(const massSolar of [1e-5,1,1e6,1e10])for(const radiusRatio of [.1,.5,.999999
 for(const strain of [0,1e-30,1e-21,.001])for(const angle of [0,17.3,45,90,135,180])for(const phase of [0,90,217.4])out.waves.push(a.snapshot({mode:'polarization',strain,angle,phase}));
 for(const mcSource of [.5,10,100,1e4])for(const eta of [.01,.25])for(const redshift of [0,1,10])for(const xLimit of [.02,.1])out.chirps.push(a.snapshot({mode:'chirp',mcSource,eta,redshift,xLimit,fObserved:20}));
 for(const fObserved of [1,2000])for(const eta of [.01,.25])out.chirps.push(a.snapshot({mode:'chirp',mcSource:10,eta,fObserved}));
-for(const ratio of [1-1e-8,1-1e-13,1-1e-15,1,1+1e-15,1+1e-13,1+1e-8]){const t=a.chirpTrack(10,.25,20,0,.1);out.near.push(a.chirpTrack(10,.25,t.fCut*ratio,0,.1));}
+for(const ratio of [1-1e-8,1-1e-12,1-1e-13,1-6e-14,1-4e-14,1-2e-14,1-1.5e-14,1-1e-15,1,1+1e-15,1+1.5e-14,1+4e-14,1+1e-13,1+1e-8]){const t=a.chirpTrack(10,.25,20,0,.1);out.near.push(a.chirpTrack(10,.25,t.fCut*ratio,0,.1));}
 function bad(f){let yes=false;try{f()}catch(e){yes=true}if(!yes)throw Error('invalid accepted');out.strict++;}
 for(const v of [null,false,[],1,'x'])for(const fn of ['snapshot','polarization','chirp'])bad(()=>a[fn](v));
 for(const key of Object.keys(a.DEFAULTS).filter(k=>k!=='mode'))for(const v of [null,NaN,Infinity,'1'])bad(()=>a.snapshot({[key]:v}));
@@ -21,6 +21,14 @@ for(const args of [[null,1],['1',1],[1,0],[0,1]])bad(()=>a.bhAt(...args));
 for(const args of [[0,10],[30,null],[NaN,10]])bad(()=>a.chirpRate(...args));
 for(const v of [null,'10',0,1e5])bad(()=>a.chirpTrack(v,.25,20,0,.1));
 if(a.ledgers)out.ui=[...out.blackholes,...out.waves,...out.chirps].map(s=>({s,tables:a.ledgers(s),plots:a.plots(s)}));
+out.resolution=[];
+for(const mc of [.5,10,100])for(const eta of [.01,.25])for(const z of [0,1])for(const cut of [.02,.1]){
+ const end=a.chirpTrack(mc,eta,20,z,cut).fCut;if(end<1.01||end>1999)continue;
+ for(const gap of [1e-15,1.5e-14,2e-14,3e-14,4e-14,5e-14,6e-14,1e-13,1e-12]){
+  const t=a.chirpTrack(mc,eta,end*(1-gap),z,cut);
+  out.resolution.push({mc,eta,z,cut,gap,status:t.status,n:t.rows.length,frequency:new Set(t.rows.map(r=>r.frequency)).size,strict:t.rows.every((r,i)=>!i||r.frequency>t.rows[i-1].frequency&&r.elapsed>t.rows[i-1].elapsed&&r.cycles>t.rows[i-1].cycles&&r.xPN>t.rows[i-1].xPN)});
+ }
+}
 console.log(JSON.stringify(out));
 """
 d=json.loads(subprocess.check_output(PREFIX+['node','-e',program,str(JS.resolve())],text=True))
@@ -106,9 +114,11 @@ def chirp(s):
   if s['status']!='valid':
    ck(not s['rows']and s['duration']is None and s['cycles']is None,'no unsupported evolution')
    if s['status']=='outside':ck(f0>fcut,'outside domain')
-   else:ck(abs(f0-fcut)/fcut<D('3e-14'),'honest near-cutoff indeterminate')
+   else:ck(abs(f0-fcut)/fcut<D('1e-12'),'honest near-cutoff indeterminate')
    return
   ck(len(s['rows'])==201,'all chirp nodes');ck(f0<fcut,'valid cutoff ordering')
+  for key in ['frequency','elapsed','cycles','xPN']:
+   ck(all(s['rows'][i][key]>s['rows'][i-1][key]for i in range(1,201)),'strictly resolved '+key)
   # Use the returned cutoff as a representable endpoint when testing extremely narrow intervals.
   # Its physical value was checked above. Avoid turning its last-bit rounding into a phase error.
   endpoint=D(s['fCut'])
@@ -135,6 +145,9 @@ def chirp(s):
 for item in d['chirps']:
  for s in item['tracks']:chirp(s)
 for s in d['near']:chirp(s)
+for r in d['resolution']:
+ ck((r['n']==201 and r['frequency']==201 and r['strict'])if r['status']=='valid'else(r['status']=='unresolved'and r['n']==0),'complete resolved frequency regression')
+ if r['gap']==1e-12:ck(r['status']=='valid','sufficiently wide interval remains valid')
 for item in d.get('ui',[]):
  s=item['s'];mode=s['config']['mode'];ts=item['tables'];ps=item['plots']
  ck(len(ts)==(5 if mode=='chirp'else 3),'complete ledger set')
@@ -189,4 +202,4 @@ if len(sys.argv)==1:
    close(float(n.get('cx')),xf(x),'static x',rel=1e-10);close(float(n.get('cy')),yf(y),'static y',rel=1e-10)
    close(point[0],xf(x),'poly x',rel=1e-10);close(point[1],yf(y),'poly y',rel=1e-10)
  print('Formula parity:',len(formulas))
-print(json.dumps({'status':'PASS','checks':checks,'blackholeStates':len(d['blackholes']),'waveStates':len(d['waves']),'chirpStates':len(d['chirps']),'nearCutoffCases':len(d['near']),'strict':d['strict'],'self':d['self']},ensure_ascii=False))
+print(json.dumps({'status':'PASS','checks':checks,'blackholeStates':len(d['blackholes']),'waveStates':len(d['waves']),'chirpStates':len(d['chirps']),'nearCutoffCases':len(d['near']),'strict':d['strict'],'resolutionCases':len(d['resolution']),'self':d['self']},ensure_ascii=False))

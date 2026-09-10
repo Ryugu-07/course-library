@@ -59,6 +59,11 @@ if(status==="valid"){
   var lf=logSpan*i/200,f=i===200?fCut:fObserved*Math.exp(lf),elapsed=tau*(-Math.expm1(-8*lf/3)),n=(8/5)*fObserved*tau*(-Math.expm1(-5*lf/3)),x=i===200?xLimit:x0*Math.exp(2*lf/3),power=(32/5)*Math.pow(C,5)/G*eta*eta*Math.pow(x,5),binding=-.5*eta*totalSource*MSUN*C*C*x;
   rows.push({i:i,frequency:f,elapsed:elapsed,sourceFrequency:f*factor,sourceElapsed:elapsed/factor,rate:chirpRate(f,mcObserved),cycles:n,phase:2*Math.PI*n,xPN:x,bindingEnergySource:binding,powerSource:power});
  }
+ // A nonzero interval need not contain 201 distinct binary64 frequency nodes.
+ // Require the displayed independent and integrated coordinates to be resolved.
+ if(rows.some(function(r,i){return i>0&&!(r.frequency>rows[i-1].frequency&&r.elapsed>rows[i-1].elapsed&&r.cycles>rows[i-1].cycles&&r.xPN>rows[i-1].xPN);})){
+  status="unresolved";rows=[];duration=null;cycles=null;
+ }
 }
 var discriminant=Math.sqrt(1-4*eta);
 return{mcSource:mcSource,mcObserved:mcObserved,eta:eta,totalSource:totalSource,totalObserved:totalObserved,m1Source:totalSource*(1+discriminant)/2,m2Source:2*eta*totalSource/(1+discriminant),fObserved:fObserved,fSource:fSource,fOrbitalObserved:fObserved/2,redshift:redshift,xLimit:xLimit,xStart:x0,fCut:fCut,schwarzschildISCOFrequency:1/(Math.pow(6,1.5)*Math.PI*massSeconds),formalTime:tau,sourceFormalTime:sourceTau,rate:rate,sourceRate:sourceRate,status:status,duration:duration,cycles:cycles,rows:rows};
@@ -93,7 +98,7 @@ summary=[["模型","沿+z正入射的线偏振","正交x/y等臂、自由测试�
 add("ring","完整361角节点：实际位移与示意位置分别列出",["环上角度","初始x/L","初始y/L","真实δx/L","真实δy/L","放大图x","放大图y"],s.ring.map(function(r){return[r.angle,r.x0,r.y0,r.deltaX,r.deltaY,r.drawX,r.drawY];}));
 add("phases","完整361相位节点：各臂、差分与曲率响应",["φ(度)","h+","h×","δLx/L","δLy/L","差分/L","δLx(m)","δLy(m)","差分(m)","潮汐xx(s⁻²)","潮汐xy(s⁻²)"],s.phases.map(function(r){return[r.phase,r.hPlus,r.hCross,r.armXFraction,r.armYFraction,r.differentialFraction,r.deltaArmX,r.deltaArmY,r.differentialLength,r.tidalXX,r.tidalXY];}));
 }else{
-var v=s.sample,status={valid:"在所选截断内",outside:"起点超出所选截断",unresolved:"起点与截断在双精度内未分辨"};
+var v=s.sample,status={valid:"在所选截断内",outside:"起点超出所选截断",unresolved:"区间或完整节点在双精度内未分辨"};
 summary=[["模型","Newton圆轨道+领先四极辐射","无自旋/偏心；固定红移；不含并合/铃宕"],["当前轨迹状态",status[v.status],"不自动修改起始频率"],["Mc源 / Mc观测（太阳质量）",v.mcSource,v.mcObserved],["η / z",v.eta,v.redshift],["M源 / M观测（太阳质量）",v.totalSource,v.totalObserved],["m1源 / m2源（太阳质量）",v.m1Source,v.m2Source],["起始f观测 / f源（Hz）",v.fObserved,v.fSource],["观测轨道频率（Hz）",v.fOrbitalObserved,"主导GW频率的一半"],["观测速率 / 源速率（Hz/s）",v.rate,v.sourceRate],["起点xPN / 截断xPN",v.xStart,v.xLimit],["截断观测频率（Hz）",v.fCut,"由总质量与xcut决定；不是并合频率"],["Schwarzschild ISCO参考（Hz）",v.schwarzschildISCOFrequency,"把总质量放入测试粒子公式；非可比质量双星的精确阈值"],["到截断的观测时长（s）",v.duration,"未解析或范围外时不生成演化"],["到截断的波周期数",v.cycles,"轨道圈数为其一半"],["形式τ观测 / τ源（s）",v.formalTime,v.sourceFormalTime],["形式τ的含义","将领先阶方程外推至无限频率","不等于真实并合剩余时间"],["比较曲线","Mc分别×0.5、1、2，η固定","每条都保留自己的完整截止区间"]];
 add("comparisons","三条轨迹的独立截断与缩放",["Mc倍数","Mc源","M源","起点xPN","fcut(Hz)","状态","Δt(s)","波周期N"],s.tracks.map(function(t){return[t.massFactor,t.mcSource,t.totalSource,t.xStart,t.fCut,status[t.status],t.duration,t.cycles];}));
 s.tracks.forEach(function(t){add("track"+t.massFactor,"Mc×"+t.massFactor+"：全部"+t.rows.length+"节点",["i","t观测(s)","f观测(Hz)","t源(s)","f源(Hz)","df/dt观测","波周期N","相位(rad)","xPN","E源(J)","P源(W)"],t.rows.map(function(r){return[r.i,r.elapsed,r.frequency,r.sourceElapsed,r.sourceFrequency,r.rate,r.cycles,r.phase,r.xPN,r.bindingEnergySource,r.powerSource];}));});
