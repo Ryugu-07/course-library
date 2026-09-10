@@ -151,7 +151,14 @@ for item in allitems:
     if key=='tail'and ref is not None:ref=math.exp(float(ref))
     if ref is None or isinstance(ref,str):check(v is None,'nonfinite values never forged')
     else:near(v,ref,'graph carries verified row')
-strict=query("""(()=>{const f=[()=>h.config(null),()=>h.config([]),...['mode','model','dependence'].flatMap(k=>['constructor','',null].map(v=>()=>h.config({[k]:v}))),...Object.keys(h.DEFAULTS).filter(k=>typeof h.DEFAULTS[k]==='number').flatMap(k=>[null,'1',NaN,Infinity,-Infinity].map(v=>()=>h.config({[k]:v}))),...Object.entries({n:[0,513,1.5],events:[0,10001,1.5],threshold:[-1,513],lambda:[-21,21],singleThreshold:[-1,21],p:[-1,2,.12345,1e-15],count:[-1,33,.5],dimension:[1,3,514],deviation:[-1,21]}).flatMap(([k,vs])=>vs.map(v=>()=>h.config({[k]:v}))),()=>h.normalLogTwoTail(null),()=>h.rademacherLogTail(3.5,1),()=>h.binomialRows(0,.5),()=>h.bernoulliKL(-.1,.5),()=>h.bernoulliKL(.5,2)];return{q:f.map(fn=>{try{fn();return false}catch(e){return true}}),self:h.selfTest()}})()""")
+strict=query("""(()=>{const f=[()=>h.config(null),()=>h.config([]),...['mode','model','dependence'].flatMap(k=>['constructor','',null].map(v=>()=>h.config({[k]:v}))),...Object.keys(h.DEFAULTS).filter(k=>typeof h.DEFAULTS[k]==='number').flatMap(k=>[null,'1',NaN,Infinity,-Infinity].map(v=>()=>h.config({[k]:v}))),...Object.entries({n:[0,513,1.5],events:[0,10001,1.5],threshold:[-1,513],lambda:[-21,21],singleThreshold:[-1,21],p:[-1,2,.12345,1e-15],count:[-1,513,.5],dimension:[1,3,514],deviation:[-1,21]}).flatMap(([k,vs])=>vs.map(v=>()=>h.config({[k]:v}))),()=>h.config({mode:"binomial",n:4,count:5}),()=>h.normalLogTwoTail(null),()=>h.rademacherLogTail(3.5,1),()=>h.binomialRows(0,.5),()=>h.bernoulliKL(-.1,.5),()=>h.bernoulliKL(.5,2)];return{q:f.map(fn=>{try{fn();return false}catch(e){return true}}),self:h.selfTest()}})()""")
+# Inactive binomial thresholds must not block small independent sums or shells.
+for mode in ['models','shell']:
+ for n in [1,2,3,4]:
+  got=query('h.snapshot('+json.dumps(dict(mode=mode,n=n))+')')
+  reference=query('h.snapshot('+json.dumps(dict(mode=mode,n=n,count=0))+')')
+  got['config']['count']=0
+  check(got==reference,'inactive count does not alter '+mode+' n='+str(n))
 for x in strict['q']:check(x,'strict API boundary')
 check(strict['self']['status']=='PASS','self')
 src=(ROOT/'grad-math/lectures/hdp-01-subgaussian.md').read_text();site=(ROOT/'grad-math/site/hdp-01-subgaussian.html').read_text()
