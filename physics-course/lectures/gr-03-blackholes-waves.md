@@ -1,126 +1,526 @@
 # 广相 III · 黑洞、引力波与宇宙学度规
 
-> **对标**：Carroll §5–8 精选 ｜ **前置**：gr-01/02
-> 广相收官三连：**黑洞**（视界不是墙是单行道）、**引力波**（度规的涟漪——线性化方程的辐射解，LIGO 的物理）、**宇宙学度规**（FRW——把整个宇宙当一个解，交棒 cosmo 线）。
+> **前置**：[等效原理、曲率与偏离](gr-01-equivalence.html)、[Schwarzschild 场方程与轨道](gr-02-einstein-schwarzschild.html)、[波与干涉](opt-01-waves.html)、[热力学中的熵与温度](sm-01-thermodynamics.html)。
+> **这页要分清**：视界的因果边界、引力波的局部潮汐响应、双星辐射的能量损失，是三种不同的计算；它们可以连接，却不能共用一个没有条件的“时空涟漪”比喻。
 
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1">
 
-## 学习层：chirp 的幂律、帧变换与适用边界
+## 学习层：把三个说法变成三次核对
 
-### 1. Learning contract
+### 1. 先说明实验测什么
 
-本实验只做**牛顿圆轨道、绝热 inspiral、领先 PN 阶**的 toy 模型。定义 chirp mass
+| 模型 | 可调参数 | 要核对的结果 |
+|---|---|---|
+| Schwarzschild 黑洞 | 质量、相对视界半径 | 未来光线能否增大半径；熵、温度和局部潮汐的质量缩放 |
+| 平面引力波 | 应变、偏振方向、相位、频率、臂长 | 单臂相对长度变化中的 1/2，以及两臂相减后的差分应变 |
+| 领先阶圆轨道旋近 | 源帧啁啾质量、对称质量比、起始波频率、红移、截断尺度 | 能量平衡、源/观测帧换算，以及有限频率区间内的时间和波周期数 |
 
-$$
-\mathcal M=\frac{(m_1m_2)^{3/5}}{(m_1+m_2)^{1/5}},
-$$
+“坐标速度为零”不等于光在当地停止传播；“熵数值巨大”必须先说明单位；“频率曲线继续上升”也不等于模型已经描述了并合和铃宕。图表会把这些条件与数值放在一起。
 
-并把 $f$ 明确读作**引力波频率**，不是轨道频率。最低阶公式是
+### 2. 四个预测
 
-$$
-\frac{df}{dt}=\frac{96}{5}\pi^{8/3}\left(\frac{G\mathcal M}{c^3}\right)^{5/3}f^{11/3},
-\qquad
-\tau(f)=t_c-t=\frac5{256}\left(\frac{c^3}{G\mathcal M}\right)^{5/3}(\pi f)^{-8/3}.
-$$
+1. 在黑洞视界处换一个光滑坐标后，局部光锥是否仍有意义？有限曲率是否等于任意黑洞的潮汐都很弱？
+2. 太阳质量黑洞的熵若约为 10⁵⁴ J/K，是否也约为 10⁵⁴ kB？
+3. 正入射的加偏振波使两条正交臂一伸一缩时，每条臂的变化和两臂差分能否都直接写成 hL？
+4. 仅给啁啾质量，能否确定两颗天体各自的质量？最低阶旋近曲线能否直接延续成真实铃宕波形？
 
-先预测五件事，再打开实验：
-
-1. 固定 $f$ 把相应帧的 $\mathcal M$ 加倍时，chirp 率和剩余时间各怎样按幂律变化？
-2. 固定 $\mathcal M$ 把 $f$ 加倍时，变化是线性还是 $11/3$、$-8/3$ 次幂？
-3. 圆轨道主导 quadrupole 辐射下，$f_{\rm GW}$ 与 $f_{\rm orb}$ 的关系是什么？
-4. 源帧质量与观测到的 redshifted chirp mass 是否相同？
-5. 能不能把这条最低阶曲线一直外推过 ISCO、并合和 ringdown？
-
-### 2. 源帧、观测帧与 chirp
-
-源帧量满足 $f_{\rm src}$ 与 $\mathcal M_{\rm src}$ 的上述公式。FRW/宇宙学传播下
-
-$$
-f_{\rm obs}=\frac{f_{\rm src}}{1+z},
-\qquad
-dt_{\rm obs}=(1+z)dt_{\rm src},
-\qquad
-\mathcal M_{\rm obs}=(1+z)\mathcal M_{\rm src}.
-$$
-
-所以观测者仍可写同样的形式，但应使用 $f_{\rm obs}$ 与 $\mathcal M_{\rm obs}$；实验把 $\mathcal M_{\rm src}$ 和 $z$ 分开输入，默认 $z=0$，绝不把一个 z=0 toy 当作真实事件拟合。圆轨道时主导四极波的频率约为 $f_{\rm GW}=2f_{\rm orb}$，因此“频率爬升”读的是波形周期，不是把轨道频率错标一倍。
-
-### 3. 反例、证据链与迁移
-
-- 这条公式只描述渐近 inspiral。近 ISCO 的强场、并合和黑洞 ringdown 需要更高阶 PN、数值相对论或完整波形模型；把 $f\to\infty$ 的闭式发散当成真实铃宕频率是反例。
-- redshifted chirp mass 与源帧质量的简并意味着仅凭观测 chirp 不能自动拆出 $z$ 与 $\mathcal M_{\rm src}$；需要距离、宇宙学模型或电磁对应体等额外信息。
-- 迁移到真实数据时，质量比、自旋、偏心、探测器响应、宇宙学传播和噪声都会进模型；本实验只检查缩放和帧记号，不做事件参数估计。
-
-### 4. 动手实验：把质量/频率缩放画出来
-
-提交预测前，chirp 曲线和数字账本保持隐藏。提交后可调源帧 $\mathcal M_{\rm src}$、观测 $f_{\rm GW}$ 与红移 $z$；图中三条曲线比较 $\mathcal M_{\rm obs}/2$、当前 $\mathcal M_{\rm obs}$、$2\mathcal M_{\rm obs}$，横轴是观测时间，纵轴是观测到的 GW 频率。
+### 3. 动手实验与无脚本对照
 
 <div class="learning-lab" data-learning-lab="gravitational-chirp" markdown="1">
 
-**JavaScript 失效时的静态 fallback：** 默认取 $\mathcal M_{\rm src}=28M_\odot$、$z=0$、$f_{\rm obs}=30\,\mathrm{Hz}$，于是 $\mathcal M_{\rm obs}=28M_\odot$、$f_{\rm src}=f_{\rm obs}$，且 $f_{\rm orb}=15\,\mathrm{Hz}$。读数由
+**无需脚本也能复算：**
 
-$$
-\dot f=\frac{96}{5}\pi^{8/3}\left(\frac{G\mathcal M_{\rm obs}}{c^3}\right)^{5/3}f_{\rm obs}^{11/3},
-\qquad
-\tau=\frac5{256}\left(\frac{c^3}{G\mathcal M_{\rm obs}}\right)^{5/3}(\pi f_{\rm obs})^{-8/3}
-$$
+| 情境 | 数值或关系 | 解释 |
+|---|---|---|
+| Schwarzschild，r=rs | 出射族 dx/dT=0，入射族 dx/dT=−1 | x=r/rs，T 为下文定义的光滑时间；不是当地测量的光速 |
+| 同一黑洞，r小于rs | 两族未来径向光线都不能增大r | 未来黑洞区域；不把白洞的时间反向区域混入 |
+| 一太阳质量黑洞 | rs≈2953.34 m，TH≈6.17007×10⁻⁸ K | 非旋转、无电荷；温度是半经典理论量 |
+| 同一黑洞的熵 | S/kB≈1.04895×10⁷⁷；S≈1.44824×10⁵⁴ J/K | 两个数描述同一个熵，不能交换单位 |
+| 固定r/rs，质量加倍 | 熵×4，温度×1/2，径向潮汐特征值×1/4 | 比较的是相同相对半径 |
+| 加偏振，h=10⁻²¹，L=4000 m，波峰 | 单臂变化±2×10⁻¹⁸ m，差分4×10⁻¹⁸ m | 正入射、两臂沿加偏振主轴、长波长近似 |
+| 偏振主轴旋转45° | 当前正交两臂差分为0 | 探测器方向响应为零，不代表引力波不存在 |
+| Mc源=10太阳质量，η=1/4，f观测=20 Hz，z=0 | 总质量≈22.974太阳质量；截断xPN=0.1时f≈88.9511 Hz | 此截断是教学选择，不是并合频率 |
+| 上述有限旋近区间 | 约4.64106 s、138.761个波周期 | 只到选定截断；形式上延至无限频率的时间约4.72947 s，不是实测并合时刻 |
 
-直接给出。加倍质量时 $(\dot f,\tau)$ 乘 $(2^{5/3},2^{-5/3})$；加倍频率时乘 $(2^{11/3},2^{-8/3})$。若 $z=1$ 而源帧质量仍是 $28M_\odot$，观测 chirp mass 是 $56M_\odot$，观测时间还比源帧时间长一倍。曲线的末端只接近 toy 模型的 coalescence，不是可观测的真实 ringdown。
+三种实验独立使用各自参数。偏振图为看清方向而放大形变，放大倍数单列，实际应变读数不随之改变。旋近图只画到明确的弱场参数截断；若起点已在截断之外，或与截断近到无法分辨，就不生成一条貌似可信的演化曲线。
 
 </div>
 
 </section>
 
+<style>.gw-static{max-width:100%;overflow-x:auto}.gw-static img{display:block;width:1100px;min-width:1100px;max-width:none!important}.gw-static:focus-visible{outline:3px solid var(--accent)}</style>
+<div class="gw-static" role="region" tabindex="0" aria-label="黑洞光锥、熵的单位、偏振与有限旋近机制图，可左右滚动"><img src="assets/img/gr-03-gw-blackhole.svg" alt="正则未来光锥，熵温度潮汐的质量缩放，明确放大的加与交叉偏振，以及三条各自截断的旋近频率曲线。" loading="lazy"></div>
 
-<figure class="diagram" markdown="1">
-![黑洞时空 + 双星并合引力波波形（波形可 [plot]）。](assets/img/gr-03-gw-blackhole.svg)
-<figcaption><span class="fig-id">图 gr-03.1</span>黑洞时空 + 双星并合引力波波形（波形可 [plot]）。</figcaption>
-</figure>
+## 1. 视界：先把坐标奇性移走
 
-## 1. 黑洞：视界的正确理解
-
-Schwarzschild 坐标在 $r = r_s$ 处"发散"是**坐标病**（换 Eddington–Finkelstein/Kruskal 坐标即光滑【引用】——曲率不变量 $R_{\mu\nu\rho\sigma}R^{\mu\nu\rho\sigma} \propto r^{-6}$ 在视界处有限、只在 $r = 0$ 真发散：**奇点在中心，不在视界**）。
-
-**视界的本性**：$r < r_s$ 内 $g_{tt}, g_{rr}$ 变号——**$r$ 成为时间坐标**：向 $r = 0$ 的"前进"如同向明天前进一样不可拒绝（"落向奇点"是未来，不是方向）——**单行道而非墙**；自由落体者穿视界无局部异感（等效原理）。远方“冻结”是 Schwarzschild 坐标中远方接收者对越来越红移、越来越稀疏的信号的表述，不是视界上的局部不变量，也不是自由落体者真的停住。
-
-**真实黑洞谱系**：Kerr（自转——能层与参考系拖曳【引用】）；在平稳、渐近平坦、四维、满足适当正则性并且电真空 Einstein–Maxwell 等假设下的无毛结论，才把孤立黑洞的外部解压到 $M,J,Q$——不能把它当成任意动态、有物质包围或修改引力理论中的无条件句子。天文身份证：X 射线双星、银心 Sgr A*（恒星轨道绕"看不见的 $4\times10^6M_\odot$"——诺奖 2020）、EHT 的亮环/阴影尺度。对 Schwarzschild toy，阴影半径是 $\sqrt{27}\,GM/c^2\approx5.2\,GM/c^2$（直径约 $10.4\,GM/c^2$）；真实亮环还受光子捕获区、发光等离子体和视线积分影响，不能等同于“光子环 + ISCO 内缘”。
-
-**热力学一瞥（通往量子引力的窗）【引用】**：面积定理（视界面积不减）↔ 熵增；Hawking 温度 $T = \frac{\hbar c^3}{8\pi GMk_B}$（太阳质量 ~$10^{-7}$ K——观测无望但概念革命）；$S = \frac{k_Bc^3A}{4G\hbar}$——**熵正比面积而非体积**：全息原理的种子；信息悖论 = 量子引力的中心谜题（第三档"了望塔"的边界，如实标注）。
-
-## 2. 引力波：度规的涟漪
-
-**线性化【骨架】**：$g = \eta + h$（$|h| \ll 1$）代入场方程、选谐和规范（em-02 Lorenz 规范的引力版）：
+记 $r_s=2GM/c^2$，上一页的外部度规是
 
 $$
-\Box\,\bar h_{\mu\nu} = -\frac{16\pi G}{c^4}T_{\mu\nu}
+ds^2=-f(r)c^2dt^2+\frac{dr^2}{f(r)}+r^2d\Omega^2,
+\qquad f(r)=1-\frac{r_s}{r}.
 $$
 
-——**波动方程**：引力扰动以光速传播；真空平面波解经 TT 规范剩两个物理自由度——**两种偏振 $h_+, h_\times$**（把圆环拉成十字/斜十字交替的椭圆——LIGO 臂长差的图案）。
-
-**四极辐射公式【引用 + 机理】**：$P \propto \frac{G}{c^5}\langle\dddot Q_{ij}^2\rangle$——从**四极**起步（单极 = 质量守恒禁、偶极 = 动量守恒禁——ced-02 预告的兑现）；$\frac{G}{c^5}$ 极小 ⇒ 只有致密天体的剧烈运动可测。**证据链**：Hulse–Taylor 脉冲双星长期计时显示轨道周期衰减与四极辐射预测在 $10^{-3}$ 量级一致（需扣除系统加速度等修正；间接证据，诺奖 1993）→ **GW150914**（直接，$h\sim10^{-21}$：若用 $L=4\,\mathrm{km}$ 粗算，$\Delta L\sim hL\sim4\times10^{-18}\,\mathrm m$，约为质子直径 $1.7\times10^{-15}\,\mathrm m$ 的 $2\times10^{-3}$，即几百之一，而不是把口号当精确长度；实际测量依靠差分干涉与噪声工程，诺奖 2017）→ GW170817 双中子星 + 电磁对应体（该事件的到达时差把 $|v_g-c|/c$ 约束到 $10^{-15}$ 量级，约束依赖传播距离、源延迟和模型；千新星谱与光变支持致密并合是重元素 r-process 的重要产地，但不是“所有重元素只能由此产生”的万能定论）。
-
-**波形三段**：旋近（chirp——完整波形模型中的频率爬升约束 redshifted chirp mass）→ 并合 → 铃宕（黑洞的简正模——mech-04 的思想在时空本身上响一次）。不能把一条最低阶 inspiral toy 曲线直接当成这三段的完整拟合。
-
-## 3. 宇宙学度规（交棒 cosmo）
-
-**宇宙学原理**（大尺度均匀各向同性）唯一锁定 **FRW 度规**：
+$r=r_s$ 处的系数有问题，先不能据此断言那里有物理墙。引入龟坐标与先进时间
 
 $$
-ds^2 = -c^2dt^2 + a(t)^2\Big[\frac{dr^2}{1 - kr^2} + r^2d\Omega^2\Big]
+r_*=r+r_s\ln\left|\frac r{r_s}-1\right|,
+\qquad v=t+\frac{r_*}{c}.
 $$
 
-——全部动力学压进一个**标度因子 $a(t)$**（$k = 0, \pm1$：平/闭/开的空间几何——微分几何常曲率空间的三选一）。在 FRW 的共动坐标描述下，光的波长随标度因子拉伸，故 $1+z=\frac{a_0}{a_{\rm em}}$；把它简单说成“不是多普勒”过强，因为把红移分解成宇宙学、局部引力或运动学部分依赖坐标与观测者。代入场方程得 Friedmann 方程——cosmo-01 的开场白，本页只交钥匙。
+在原坐标有效的区域有 $dr_*=dr/f$，故 $c\,dt=c\,dv-dr/f$。代入后，两个 $dr^2/f$ 项正好相消：
 
-## 4. 练习与要点
+$$
+ds^2=-f\,c^2dv^2+2c\,dv\,dr+r^2d\Omega^2.
+$$
 
-**例 1（潮汐撕裂判据）** 视界处潮汐 $\sim \frac{GM}{r_s^3} \propto M^{-2}$：恒星级黑洞在视界外把人"面条化"、星系级黑洞（$10^9M_\odot$）穿视界无感——**越大的黑洞越"温柔"**：反直觉一算便知。
+这就是先进 Eddington–Finkelstein 形式。用 $(cv,r)$ 作为径向二维坐标，度规矩阵为
 
-**例 2（chirp 质量读谱）** 以 GW150914 一类事件为例，并合前的频率与频率导数，连同完整波形模型和探测器响应，可约束 redshifted chirp mass 到约 $30M_\odot$ 的量级（四极公式只给最低阶直觉，不能把“从一段声频直接称重”当成无模型测量）。
+$$
+g_{ab}=
+\begin{pmatrix}-f&1\\1&0\end{pmatrix},
+\qquad\det g_{ab}=-1.
+$$
 
-**例 3（视界熵的荒诞数量级）** 太阳质量黑洞 $S \sim 10^{54}k_B$ vs 太阳本身 $\sim 10^{35}k_B$——坍缩使熵暴涨 19 个数量级：**宇宙的熵预算由黑洞统治**（Penrose 的"为什么早期宇宙熵如此低"由此成为宇宙学最深问题之一，cosmo 线的暗线）。$\blacksquare$
+它在视界仍可逆，且系数光滑。原来的坐标变换本身在视界失效，并不妨碍新表达式作为一个光滑度规继续过去。它覆盖的是外部与未来黑洞区域；永恒解中的白洞、其他外部片和完整因果延拓，需要进一步的坐标与全局分析。[EF 构造与因果图：Carroll 第七章，§7](https://preposterousuniverse.com/wp-content/uploads/grnotes-seven.pdf)
 
----
+### 1.1 把“只能向内”算出来
 
-*下一门：量子信息三页——把 qm-03 的自旋 ½ 变成计算资源：叠加、纠缠、算法与纠错。*
+实验使用无量纲 $x=r/r_s$、$V=cv/r_s$，并再取 $\mathcal T=V-x$。径向线元化为
+
+$$
+\frac{ds_{\rm radial}^2}{r_s^2}
+=-\left(1-\frac1x\right)d\mathcal T^2
++\frac2x\,d\mathcal T\,dx
++\left(1+\frac1x\right)dx^2.
+$$
+
+逆度规满足 $g^{\mathcal T\mathcal T}=-(1+1/x)<0$，因此可选择 $\mathcal T$ 增大作为未来方向。令 $w=dx/d\mathcal T$，径向光线的零线元给出二次方程
+
+$$
+0=-\left(1-\frac1x\right)+\frac2xw
++\left(1+\frac1x\right)w^2,
+\qquad
+w_{\rm in}=-1,\quad
+w_{\rm out}=\frac{x-1}{x+1}.
+$$
+
+在 $x>1$，出射族可增大半径；在 $x=1$，它沿视界前进；在 $0<x<1$，两根均为负。未来类时方向位于光锥内部，也不能向更大的 $r$ 逃逸。这是静态 Schwarzschild 黑洞中“单行边界”的计算内容。这里的 $w$ 是坐标速度，当地惯性观察者仍测得光速 $c$。
+
+事件视界本质上由“能否把信号传到遥远未来”决定，是全局因果边界。不能在任意动态时空中，仅凭某一个度规分量变号就宣布找到了事件视界。
+
+### 1.2 有限曲率不等于潮汐很小
+
+Schwarzschild 的曲率标量为
+
+$$
+\mathcal K=R_{\mu\nu\rho\sigma}R^{\mu\nu\rho\sigma}
+=\frac{48G^2M^2}{c^4r^6}
+=\frac{12r_s^2}{r^6}.
+$$
+
+在视界它是有限的 $12/r_s^4$，在经典解的 $r\to0$ 极限才发散。有限并不保证数值小。
+
+在径向自由落体的局部正交标架中，线性测地线偏离可写为
+
+$$
+\frac{d^2\xi^{\hat i}}{d\tau^2}
+=\mathsf T^{\hat i}{}_{\hat j}\xi^{\hat j},
+\qquad
+\mathsf T=\frac{GM}{r^3}\operatorname{diag}(2,-1,-1).
+$$
+
+这是该标架中的局部曲率结果，形式虽与 Newton 点质量潮汐相同，却不是用静止观察者在视界上测量。径向伸长、两条横向压缩；有限长度的物体还需要其尺寸远小于曲率变化尺度，并考虑自身结构。视界处的径向特征值
+
+$$
+\lambda_r(r_s)=\frac{2GM}{r_s^3}
+=\frac{c^6}{4G^2M^2}
+$$
+
+随质量平方的倒数下降。一太阳质量时约 $1.03\times10^{10}\ {\rm s^{-2}}$，一百万太阳质量时约 $1.03\times10^{-2}\ {\rm s^{-2}}$。这是局部相对加速度每单位分离的系数，不能不说明物体尺寸就直接改叫伤害程度。
+
+另一种直接检查是取从无穷远静止落下的径向测试粒子，守恒能量 $E=1$ 给出
+
+$$
+\frac{dr}{d\tau}=-c\sqrt{\frac{r_s}{r}},\qquad
+\Delta\tau(r_0\to r_1)
+=\frac{2}{3c\sqrt{r_s}}
+\left(r_0^{3/2}-r_1^{3/2}\right).
+$$
+
+到达 $r_1=r_s$ 的固有时有限。远方信号越来越红、越来越迟，与落下者的钟实际停在视界，是不同的说法。
+
+## 2. 黑洞温度与熵：先给单位，再谈意义
+
+对于非旋转、无电荷的 Schwarzschild 黑洞，半经典曲率时空量子场论给出的 Hawking 温度是
+
+$$
+T_H=\frac{\hbar c^3}{8\pi GMk_B}.
+$$
+
+这不是单靠经典光锥或热力学类比推出来的；真实辐射谱还带有外部势垒的灰体因子。本页把温度公式作为半经典输入，再核对它与热力学第一定律的相容性。
+
+静态无荷无旋转情形的能量为 $U=Mc^2$，于是
+
+$$
+dS=\frac{dU}{T_H}
+=\frac{8\pi Gk_BM}{\hbar c}\,dM.
+$$
+
+积分得到与面积成正比的部分。采用 Bekenstein–Hawking 归一化，
+
+$$
+S_{\rm BH}=\frac{k_Bc^3A}{4G\hbar},
+\qquad A=4\pi r_s^2,
+\qquad
+\frac{S_{\rm BH}}{k_B}=\frac{4\pi GM^2}{\hbar c}.
+$$
+
+第一定律的积分本身并不能确定任意加法常数，也不能代替微观态计数；面积公式是此处采用的半经典结果。[Hawking，Phys. Rev. D 13, 191 (1976)，原论文摘要中的温度与面积关系](https://journals.aps.org/prd/abstract/10.1103/PhysRevD.13.191)
+
+取 $G=6.67430\times10^{-11}$、$c=299792458$、$M_\odot=1.98847\times10^{30}$ kg、$\hbar=1.054571817\times10^{-34}$ J·s、$k_B=1.380649\times10^{-23}$ J/K，直接代入得
+
+$$
+T_H(M_\odot)\simeq6.17007\times10^{-8}\ {\rm K},
+$$
+
+$$
+\frac{S_{\rm BH}(M_\odot)}{k_B}\simeq1.04895\times10^{77},
+\qquad
+S_{\rm BH}(M_\odot)\simeq1.44824\times10^{54}\ {\rm J/K}.
+$$
+
+后两个数是同一个物理量的两种表达。**写出 $10^{54}k_B$ 会少掉约 23 个数量级；$S$ 的 SI 数值不能直接当作 $S/k_B$。**
+
+质量加倍时，面积与熵乘 4，温度减半。还可以核对
+
+$$
+2T_HS_{\rm BH}=Mc^2,\qquad
+\frac{d(Mc^2)}{dT_H}<0.
+$$
+
+负热容意味着给黑洞增加能量会降低其 Hawking 温度；不能把它当成普通正热容物体直接套用无限热库的稳定平衡直觉。
+
+### 2.1 面积不减定理与量子蒸发不矛盾吗？
+
+经典面积定理有前提：Einstein 方程、物质满足零能量条件，以及相应的全局可预测性等条件。Raychaudhuri 方程结合视界生成线的全局性质约束面积变化。Hawking 蒸发涉及量子场，其重整化能动张量可不满足经典零能量条件，故不能把面积不减当成无条件反驳。
+
+半经典讨论中的广义熵包含黑洞面积项与外部量子场熵；它与信息如何编码、如何恢复的完整微观问题仍需区分。本页的单位计算既没有证明全息原理，也没有解决信息悖论。[Wald《黑洞热力学》，面积定理与广义第二定律](https://arxiv.org/pdf/gr-qc/9912119)；进一步的课程入口是[全息与量子信息](frontier-03-holographic-information.html)。
+
+## 3. 引力波：从场方程到两条臂的读数
+
+### 3.1 为什么剩下两种偏振？
+
+在近似平直背景上写 $g_{\mu\nu}=\eta_{\mu\nu}+h_{\mu\nu}$，取 $|h_{\mu\nu}|\ll1$、$\eta=\operatorname{diag}(-1,1,1,1)$。指标在这一阶用 $\eta$ 升降。记
+
+$$
+h=\eta^{\mu\nu}h_{\mu\nu},\qquad
+\bar h_{\mu\nu}=h_{\mu\nu}-\frac12\eta_{\mu\nu}h.
+$$
+
+从联络的一阶项求 Ricci 张量，有
+
+$$
+R^{(1)}_{\mu\nu}
+=\frac12\left(
+\partial_\alpha\partial_\mu h^\alpha{}_\nu
++\partial_\alpha\partial_\nu h^\alpha{}_\mu
+-\Box h_{\mu\nu}-\partial_\mu\partial_\nu h
+\right).
+$$
+
+选择谐和规范 $\partial^\mu\bar h_{\mu\nu}=0$ 后，Einstein 方程化为
+
+$$
+\Box\bar h_{\mu\nu}
+=-\frac{16\pi G}{c^4}T_{\mu\nu},
+\qquad
+\Box=-\frac1{c^2}\partial_t^2+\nabla^2.
+$$
+
+在远离源的真空波区，右侧为零；平面波的波矢为零范数。四个规范条件与剩余坐标自由度消去非物理分量，可以选横向无迹（TT）表示。对于沿 $+z$ 传播的波，
+
+$$
+h_{ij}^{\rm TT}=
+\begin{pmatrix}
+h_+&h_\times&0\\
+h_\times&-h_+&0\\
+0&0&0
+\end{pmatrix},
+\qquad h_A=h_A(t-z/c),\quad A\in\{+,\times\}.
+$$
+
+矩阵对称、无迹、且只作用在横向平面，剩下两个独立函数。它不是说任意区域的引力场都只有这两项，而是在上述真空辐射与线性近似下的物理自由度。[线性方程、规范与 TT：Carroll 第六章](https://preposterousuniverse.com/wp-content/uploads/grnotes-six.pdf)
+
+### 3.2 为什么单臂有 1/2，差分却没有？
+
+沿用前两页的曲率号约定，在局部自由落体标架中，
+
+$$
+R_{\hat0 i\hat0 j}
+=-\frac1{2c^2}\ddot h^{\rm TT}_{ij},
+\qquad
+\ddot\xi^i=-c^2R^i{}_{\hat0 j\hat0}\xi^j
+=\frac12\ddot h^{\rm TT}_{ij}\xi^j.
+$$
+
+选择无额外自由漂移的响应分量，并保留一阶，
+
+$$
+\delta\xi^i(t)=\frac12h^{\rm TT}_{ij}(t)\xi_0^j.
+$$
+
+在 TT 坐标中测试质量的坐标可以保持不变，变化的是适当定义的固有分离；不要把坐标静止误解为没有物理响应。对沿 $x,y$ 的等长正交臂，波正入射、且波长远大于臂长时，
+
+$$
+\frac{\delta L_x}{L}=\frac{h_+}{2},\qquad
+\frac{\delta L_y}{L}=-\frac{h_+}{2},\qquad
+\frac{\delta L_x-\delta L_y}{L}=h_+.
+$$
+
+因此 $h_+=10^{-21}$、$L=4000$ m 时，单臂为 $\pm2\times10^{-18}$ m，差分为 $4\times10^{-18}$ m。完整探测器还要考虑光往返、光学腔、天线响应、标定和噪声；本页实验只是长波长极限中的几何响应。参数要求 $2\pi fL/c\le0.1$ 是教学范围限制，并不声称它给出了某个严格精度保证。
+
+实验考虑方向为 $\psi$ 的线偏振，取相位 $\phi$，有
+
+$$
+\begin{pmatrix}h_+\\h_\times\end{pmatrix}
+=h_0\cos\phi
+\begin{pmatrix}\cos2\psi\\\sin2\psi\end{pmatrix}.
+$$
+
+$\psi=45^\circ$ 时两条现有正交臂的差分为零，但旋转探测器就可产生响应。方向上的零点不是“没有波”。圆环图使用明确标记的放大形变；完整表格保留实际微小位移，不能拿放大后的图估计真实应变。
+
+## 4. 旋近为什么加速？从能量平衡推啁啾公式
+
+### 4.1 四极矩的约定决定系数
+
+对于孤立、慢运动、弱场源，定义无迹质量四极矩
+
+$$
+Q_{ij}=\int\rho(\mathbf x)
+\left(x_ix_j-\frac13r^2\delta_{ij}\right)d^3x.
+$$
+
+在远处波区，领先辐射满足
+
+$$
+h^{\rm TT}_{ij}
+=\frac{2G}{c^4D}\ddot Q^{\rm TT}_{ij}(t-D/c),
+\qquad
+P=\frac{G}{5c^5}
+\left\langle\dddot Q_{ij}\dddot Q_{ij}\right\rangle.
+$$
+
+这里 $D$ 是忽略宇宙学膨胀时的远场距离，重复指标求和。不同书可能把四极矩定义成这里的三倍，辐射系数随之改变，不能混用。单极的质量守恒、质量偶极的质心运动与总动量守恒，使孤立源的最低阶引力辐射从四极起步。
+
+考虑分离矢量为 $a(\cos\Omega t,\sin\Omega t,0)$ 的圆双星。总质量 $M=m_1+m_2$、约化质量 $\mu=m_1m_2/M$，则
+
+$$
+Q_{xx}=\mu a^2\left(\frac16+\frac12\cos2\Omega t\right),
+\quad
+Q_{yy}=\mu a^2\left(\frac16-\frac12\cos2\Omega t\right),
+$$
+
+$$
+Q_{xy}=Q_{yx}=\frac{\mu a^2}{2}\sin2\Omega t,
+\qquad Q_{zz}=-\frac{\mu a^2}{3}.
+$$
+
+波的主导频率是 $f_{\rm GW}=\Omega/\pi=2f_{\rm orb}$。直接求三次导数并把 $xx,yy,xy,yx$ 都计入，得到
+
+$$
+\dddot Q_{ij}\dddot Q_{ij}=32\mu^2a^4\Omega^6,
+\qquad
+P=\frac{32G}{5c^5}\mu^2a^4\Omega^6.
+$$
+
+若漏掉对称的 $yx$ 分量，就会算错系数。[LIGO/Virgo《GW150914 的基本物理》，附录 A 的完整圆双星计算](https://dcc.ligo.org/public/0126/P1600161/016/BBHBasicsANDPFullAuth.pdf)
+
+### 4.2 把轨道能量损失换成频率上升
+
+Kepler 关系 $\Omega^2=GM/a^3$ 与圆轨道结合能给出
+
+$$
+E_{\rm orb}=-\frac{GM\mu}{2a}
+=-\frac12\mu(GM)^{2/3}(\pi f)^{2/3}.
+$$
+
+在每一圈能量损失足够小、轨道可近似连续经过一系列圆轨道时，令 $dE_{\rm orb}/dt=-P$。定义
+
+$$
+\eta=\frac{\mu}{M}=\frac{m_1m_2}{M^2}\le\frac14,
+\qquad
+\mathcal M=\eta^{3/5}M
+=\frac{(m_1m_2)^{3/5}}{(m_1+m_2)^{1/5}},
+$$
+
+便得到
+
+$$
+\dot f=A_f f^{11/3},\qquad
+A_f=\frac{96}{5}\pi^{8/3}
+\left(\frac{G\mathcal M}{c^3}\right)^{5/3}.
+$$
+
+结合能越来越负，分离越来越小，轨道角频率随之上升。这里的 $f$ 一直是波频率。给定 $\mathcal M$ 还不能拆出两颗质量；实验额外输入 $\eta$ 后才可算 $M=\mathcal M/\eta^{3/5}$ 及两个质量。
+
+### 4.3 只积分到明确的截止频率
+
+从 $f_0$ 到 $f_1>f_0$ 的时间和波周期数分别为
+
+$$
+\Delta t=\int_{f_0}^{f_1}\frac{df}{A_f f^{11/3}}
+=\frac{3}{8A_f}\left(f_0^{-8/3}-f_1^{-8/3}\right),
+$$
+
+$$
+N=\int f\,dt
+=\frac{3}{5A_f}\left(f_0^{-5/3}-f_1^{-5/3}\right).
+$$
+
+形式上令 $f_1\to\infty$ 得到 $\tau_{\rm formal}=3f_0/(8\dot f_0)$。它只是该领先阶方程的外推常数，不是真实双星到并合的精确剩余时间，更不是铃宕周期。
+
+实验用
+
+$$
+x_{\rm PN}=\left(\frac{\pi GMf}{c^3}\right)^{2/3}
+\simeq\frac{GM}{ac^2}
+$$
+
+标记轨道紧致程度，并由使用者选择 $0.02\le x_{\rm cut}\le0.1$。达到该值就停止。旁边另列的 $x=1/6$ 是把总质量代入 Schwarzschild 测试粒子 ISCO 所得的参考尺度，不是可比质量双星的精确并合条件。
+
+截断不等于给领先 PN 近似提供了严格误差界；质量比、自旋、偏心以及更高阶修正仍会改变波形。过高的起始频率不会被悄悄压低，而是明确显示超出模型范围。距离截止过近的输入另标为数值未分辨。
+
+为避免两个接近的大数相减，数值账本取 $L=\ln(f_1/f_0)$，通过 $\operatorname{expm1}$ 计算
+
+$$
+\Delta t=\tau_{\rm formal}\left[-\operatorname{expm1}\left(-\frac83L\right)\right],
+\qquad
+N=\frac85f_0\tau_{\rm formal}
+\left[-\operatorname{expm1}\left(-\frac53L\right)\right].
+$$
+
+三条比较曲线分别采用一半、当前、两倍啁啾质量，每条都有自己的终止频率和全部节点。画的是频率随时间的变化；有限采样的曲线不伪装成已经解析了每一个快速振荡的应变周期。
+
+## 5. 宇宙学红移怎样进入质量读数？
+
+大尺度均匀各向同性限制空间切片为常曲率几何，局部可写 Robertson–Walker 形式
+
+$$
+ds^2=-c^2dt^2+a^2(t)
+\left[\frac{d\chi^2}{1-k\chi^2}+\chi^2d\Omega^2\right].
+$$
+
+这里 $\chi$ 无量纲，$a$ 具有长度单位，$k=0,\pm1$ 为归一化空间曲率符号。对称性还没有决定 $a(t)$ 的动力学，也没有唯一决定空间的全局拓扑；不要把 $k$ 的三种符号直接等同于三种唯一的宇宙形状。
+
+若 $\rho$ 表示等效质量密度、$\rho c^2$ 是能量密度，Einstein 方程给出的一个 Friedmann 方程及连续性方程是
+
+$$
+H^2=\frac{8\pi G}{3}\rho-\frac{kc^2}{a^2}+\frac{\Lambda c^2}{3},
+\qquad H=\frac{\dot a}{a},
+$$
+
+$$
+\dot\rho+3H\left(\rho+\frac{p}{c^2}\right)=0.
+$$
+
+压力 $p$ 的单位为能量密度。这里保持单位清楚，详细动力学留给[宇宙学 I](cosmo-01-frw.html)。
+
+对固定共动位置间的径向光线，空间积分等于 $\int c\,dt/a(t)$。考虑两个相邻波峰，它们经历同一共动路径，因此
+
+$$
+\frac{\delta t_{\rm obs}}{a_{\rm obs}}
+=\frac{\delta t_{\rm src}}{a_{\rm src}},
+\qquad
+1+z=\frac{a_{\rm obs}}{a_{\rm src}},
+\qquad
+f_{\rm obs}=\frac{f_{\rm src}}{1+z}.
+$$
+
+在几何光学极限、且观测期间红移可近似不变时，引力波也服从这一传播关系。由时间和频率各自的换算，
+
+$$
+dt_{\rm obs}=(1+z)dt_{\rm src},\qquad
+\dot f_{\rm obs}=\frac{\dot f_{\rm src}}{(1+z)^2}.
+$$
+
+把源帧的啁啾公式代入，便可整理成
+
+$$
+\dot f_{\rm obs}
+=\frac{96}{5}\pi^{8/3}
+\left[\frac{G(1+z)\mathcal M_{\rm src}}{c^3}\right]^{5/3}
+f_{\rm obs}^{11/3}.
+$$
+
+因此观测相位演化约束的是 $\mathcal M_{\rm obs}=(1+z)\mathcal M_{\rm src}$。同时 $M_{\rm obs}f_{\rm obs}=M_{\rm src}f_{\rm src}$，实验的 $x_{\rm PN}$ 在这一换算下不变。[共动观察者红移与到达时间：Carroll 第八章](https://preposterousuniverse.com/wp-content/uploads/grnotes-eight.pdf)
+
+本实验的红移是固定参数，不计算长期宇宙学演化；起始观测频率限定为 1–2000 Hz，所列质量范围内的展示时段不延伸到宇宙学长时间。更低频的长期空间观测需要另设适用范围。仅凭这条领先阶频率曲线，不能自动同时解出源帧质量和红移；真实分析还需距离、宇宙学模型、可能的电磁对应体及完整探测器信号模型。
+
+### 5.1 怎样连接真实观测而不把模型冒充数据？
+
+GW150914 的发现论文报告了约 35–250 Hz 的信号扫频及约 $10^{-21}$ 的峰值应变，使用完整模型分析旋近、并合和铃宕。它是 2015 年观测、2016 年发表的历史事件，实验面板中的默认参数不代表对这个事件的拟合。观测到的波形还要经过标定、噪声估计、探测器响应和统计推断，不能把本页公式的代入值叫作“直接测得质量”。[LIGO/Virgo，GW150914 发现论文，PRL 116, 061102 (2016)](https://dcc.ligo.org/public/0122/P150914/014/LIGO-P150914_Detection_of_GW150914.pdf)
+
+## 6. 四道迁移题与完整解答
+
+<details class="exercise" markdown="1">
+<summary>练习 1：在x=1/2、1、2处分别求两族光线的坐标速度；为什么视界有限曲率仍不保证温和？</summary>
+
+入射族恒为 $w_{\rm in}=-1$；出射族依次为
+
+$$
+w_{\rm out}(1/2)=-\frac13,\qquad
+w_{\rm out}(1)=0,\qquad
+w_{\rm out}(2)=\frac13.
+$$
+
+在视界内部，两族的半径都减小；在视界上，出射族沿着零曲面前进。速度是对 $\mathcal T$ 的坐标变化率，不能把它与当地光速混同。
+
+视界的曲率标量 $12/r_s^4$ 虽然有限，却随质量的四次方倒数变化。更直接的局部潮汐读数 $\lambda_r=c^6/(4G^2M^2)$ 随 $M^{-2}$ 变化。把质量放大一百万倍，就把视界处单位分离的径向相对加速度减小一万亿倍。是否损坏一个物体还需要其长度、材料和穿越过程；“没有坐标奇性”本身回答不了这一问题。
+
+</details>
+
+<details class="exercise" markdown="1">
+<summary>练习 2：质量变为两倍时，熵、温度和2TS各怎样改变？检查10⁵⁴的单位。</summary>
+
+$S_{\rm BH}\propto M^2$，所以变为四倍；$T_H\propto1/M$，所以减半。乘积 $2T_HS_{\rm BH}$ 因而变为两倍，与总能量 $Mc^2$ 一致。
+
+一太阳质量时，$S\simeq1.44824\times10^{54}$ J/K。除以 $k_B=1.380649\times10^{-23}$ J/K 后才得到无量纲的 $S/k_B\simeq1.04895\times10^{77}$。两太阳质量对应约 $4.19582\times10^{77}k_B$，温度约 $3.08504\times10^{-8}$ K。
+
+这个计算验证了半经典公式的系数、单位和缩放；它没有计算出每一个黑洞微观态，也不能被解释为解决了信息悖论。
+
+</details>
+
+<details class="exercise" markdown="1">
+<summary>练习 3：L=4 km、h₀=10⁻²¹，在波峰处先取ψ=0，再取ψ=45°。</summary>
+
+在 $\psi=0$ 时，$h_+=h_0$、$h_\times=0$。两臂分别变化
+
+$$
+\delta L_x=+2\times10^{-18}\ {\rm m},\qquad
+\delta L_y=-2\times10^{-18}\ {\rm m}.
+$$
+
+差分为 $4\times10^{-18}$ m。若把每条臂都写为 $h_0L$，相减后就会错误地再多出一倍。
+
+在 $\psi=45^\circ$ 时，$h_+=h_0\cos90^\circ=0$，$h_\times=h_0$。当前两臂方向的领先阶差分为零；圆环却沿斜方向交替伸缩。把探测器旋转 45° 才重新对齐其主轴。实验中的放大形变只是展示方向，实际位移仍须用 $h_0$ 计算。
+
+</details>
+
+<details class="exercise" markdown="1">
+<summary>练习 4：用默认旋近参数核对时间、周期数，再解释红移和截断。</summary>
+
+默认 $\mathcal M_{\rm src}=10M_\odot$、$\eta=1/4$、$z=0$，故总质量 $M\simeq22.974M_\odot$，两颗各约 $11.487M_\odot$。从 $f_0=20$ Hz 积分到 $x_{\rm PN}=0.1$，得到 $f_1\simeq88.9511$ Hz、$\Delta t\simeq4.64106$ s、$N\simeq138.761$ 个波周期；圆轨道圈数是其一半。
+
+形式上的 $\tau_{\rm formal}\simeq4.72947$ s 比实际展示区间长，但剩下的差值不等于真实并合时长。实验到达教学截断就结束。
+
+现在比较同一源帧区间在 $z=1$ 下的观测：频率端点变为原来的一半，所用观测啁啾质量变为两倍，持续时间变为两倍，而波周期数不变。若只把 $z$ 改成 1，却坚持保留相同的观测起始 20 Hz，你选取的是另一个源帧区间，不能要求持续时间仍简单翻倍。
+
+最后，仅固定 $\mathcal M_{\rm obs}$ 的两组 $(\mathcal M_{\rm src},z)$ 在这一领先阶相位公式中简并；而改变 $\eta$ 即使保留相同啁啾质量，也会改变总质量及所选 $x_{\rm PN}$ 截断的频率。参数简并和模型适用域必须分别检查。
+
+</details>
+
+## 7. 下一步沿哪条路线走？
+
+继续研究旋转、能层与全局因果结构，可进入 [Kerr 与因果结构](gr-04-kerr-causal.html)；研究标度因子的动力学，可进入[宇宙学 I](cosmo-01-frw.html)；研究量子信息与黑洞的连接，可先补[量子比特与纠缠](qi-01-qubits.html)，再读[全息信息](frontier-03-holographic-information.html)。三个方向都需要保留本页的习惯：先定义观测者、单位和近似，再给解释。
