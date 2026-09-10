@@ -46,134 +46,263 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-10 12:10</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：先声明“数的对象”，再开始数</a><ul>
-<li><a href="#graph-counting-learning-title">1. 具身情境：为园区路线和树形网络开两本账</a></li>
-<li><a href="#2">2. 正式理论桥：四种计数各有自己的账本</a></li>
-<li><a href="#3">3. 定理级结论与失败边界</a></li>
+<li><a href="#_1">学习层：把“数了几次”逐项展开</a><ul>
+<li><a href="#graph-counting-learning-title">先预测，再读三组计数账</a></li>
 </ul>
 </li>
-<li><a href="#1">1. 基本武器</a></li>
-<li><a href="#2_1">2. 容斥原理</a></li>
-<li><a href="#3_1">3. 递推关系</a></li>
-<li><a href="#4">4. 生成函数（计数的核武器）</a></li>
-<li><a href="#5">5. 典型例题</a></li>
+<li><a href="#1">1. 加法、乘法和除法：先明确何时是同一方案</a><ul>
+<li><a href="#_2">隔板法数的是哪一种“球放盒”？</a></li>
+<li><a href="#_3">双计数的证明比背恒等式更可靠</a></li>
+</ul>
+</li>
+<li><a href="#2">2. 容斥：让每个被覆盖的元素最后恰好算一次</a><ul>
+<li><a href="#_4">错排：概率接近，不是答案相同</a></li>
+</ul>
+</li>
+<li><a href="#3">3. 递推：每个较大对象怎样唯一拆成较小对象？</a></li>
+<li><a href="#4">4. 普通生成函数：指数记规模，系数记数量</a><ul>
+<li><a href="#_5">同样三种面额，为什么有两种生成函数？</a></li>
+</ul>
+</li>
+<li><a href="#5-catalan">5. Catalan：第一对括号在哪里闭合？</a></li>
+<li><a href="#6">6. 图的计数：路线、边端点和生成树各数什么？</a><ul>
+<li><a href="#_6">为什么生成树数不是任意路径数？</a></li>
+</ul>
+</li>
+<li><a href="#7">7. 三道可展开的核对题</a></li>
 </ul>
 </div>
 </details>
 <h1 id="i">图论与组合 I · 计数：从容斥到生成函数<a class="headerlink" href="#i" title="Permanent link"></a></h1>
 <blockquote>
-<p>组合数学回答"有多少种"。本页是计数的兵器谱，按火力递增排列：基本原理 → 容斥 → 递推 → <strong>生成函数</strong>（把计数问题变成幂级数代数——组合与分析的握手，数分 IV 的幂级数在此再就业）。</p>
+<p>用 1、2、5 分硬币凑 5 分，有 4 种硬币组合，却有 9 种依次投币的序列。两个答案都对，区别在于“换个顺序算不算新方案”。本页先把对象和判重规则写清楚，再推导加乘、容斥、递推与生成函数；图上的路线和生成树是另一组对照。</p>
 </blockquote>
 <div data-learning-page></div>
 
+<p>先修：集合与函数、<a href="analysis-01-real-limits.html">数学归纳与极限语言</a>、<a href="algebra-01-polynomial.html">多项式</a>。第 4 节使用形式幂级数，不要求先证明解析收敛；涉及真实函数取值时才另查收敛域。</p>
 <section aria-labelledby="graph-counting-learning-title" class="learning-layer">
-<h2 id="_1">学习层：先声明“数的对象”，再开始数<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="graph-counting-learning-title">1. 具身情境：为园区路线和树形网络开两本账<a class="headerlink" href="#graph-counting-learning-title" title="Permanent link"></a></h3>
-<p>园区有一张小图。调度员问“从入口走 <span class="arithmatex">\(k\)</span> 步有多少条路线”，网络工程师问“这张标号网络有多少棵生成树”，数据分析师又问“递推序列的第 <span class="arithmatex">\(m\)</span> 项是多少”。三个问题都在数，但对象不同：简单路径不重复顶点，游走允许重复；握手引理数的是边端点；Cayley 公式数的是完全图的标号生成树；生成函数数的是某个序列的系数。
-实验台可改变图型、顶点数、步长和生成函数系数指标。先预测：</p>
+<h2 id="_1">学习层：把“数了几次”逐项展开<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="graph-counting-learning-title">先预测，再读三组计数账<a class="headerlink" href="#graph-counting-learning-title" title="Permanent link"></a></h3>
 <ol>
-<li>长度 <span class="arithmatex">\(k\)</span> 的简单路径能否重复顶点？</li>
-<li>所有顶点度数之和是 <span class="arithmatex">\(E\)</span>、<span class="arithmatex">\(2E\)</span> 还是 <span class="arithmatex">\(nE\)</span>？</li>
-<li><span class="arithmatex">\(n^{n-2}\)</span> 数的是完全图 <span class="arithmatex">\(K_n\)</span> 的什么对象？</li>
+<li>固定起点的一条简单路径，能否重复顶点？</li>
+<li>无向图所有顶点的度数之和等于多少？</li>
+<li>Cayley 的 <span class="arithmatex">\(n^{n-2}\)</span> 数的是完全图的标号生成树、游走，还是简单路径？</li>
 </ol>
-<h3 id="2">2. 正式理论桥：四种计数各有自己的账本<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>固定起点并把顶点序列视为有序时，长度 <span class="arithmatex">\(k\)</span> 的简单路径是 <span class="arithmatex">\(v_0,\ldots,v_k\)</span>，其中顶点互异；游走只要求相邻顶点有边，可以回到已经访问过的顶点。实验用回溯逐条列举简单路径，用动态规划累计游走数，因此重复计数规则是显式的。</p>
-<p>对有限无向图，握手引理是</p>
-<div class="arithmatex">\[
-\sum_{v\in V}\deg(v)=2\lvert E\rvert.
-\]</div>
-<p>它按边的两个端点双计数，不是在数路径。树是连通无圈图；<span class="arithmatex">\(n\)</span> 个标号顶点的树有 <span class="arithmatex">\(n-1\)</span> 条边，而 Cayley 公式 <span class="arithmatex">\(n^{n-2}\)</span> 数的是 <span class="arithmatex">\(K_n\)</span> 上的标号树，不是任意图上的路线数。一般图的生成树数是 <span class="arithmatex">\(\tau(G)\)</span>，可由 Matrix–Tree 定理的行列式得到。</p>
-<p>生成函数把一个已经声明好的序列打包。例如</p>
-<div class="arithmatex">\[
-F(x)=\frac{1}{1-x-x^2}
-\]</div>
-<p>的系数满足 <span class="arithmatex">\(a_0=1\)</span>、<span class="arithmatex">\(a_1=1\)</span>、<span class="arithmatex">\(a_m=a_{m-1}+a_{m-2}\)</span>。这个系数账本与图上的路径计数可以有联系，但不能因为两者都出现递推就把它们当成同一个对象。</p>
+<p>实验保留图的路线对照，另把生成函数系数展开为逐金额的递推账，并增加错排的容斥账。图的顶点数、路线步长、金额/系数指标和错排规模各有含义；改变一项不会改变其他计数问题的定义。</p>
 <div class="learning-lab" data-learning-lab="graph-counting">
-<p><strong>JavaScript 失效时的静态读法：</strong>在路径图 <span class="arithmatex">\(P_4\)</span> 中，从顶点 <span class="arithmatex">\(0\)</span> 走两步有一条简单路径 <span class="arithmatex">\(0\to1\to2\)</span>，但有两条游走 <span class="arithmatex">\(0\to1\to0\)</span> 与 <span class="arithmatex">\(0\to1\to2\)</span>。其度数和为 <span class="arithmatex">\(1+2+2+1=6=2\cdot3\)</span>，它本身是一棵树且生成树数为 <span class="arithmatex">\(1\)</span>；<span class="arithmatex">\(4^{4-2}=16\)</span> 则是 <span class="arithmatex">\(K_4\)</span> 的标号生成树数，不是 <span class="arithmatex">\(P_4\)</span> 的路线数。
-| 对象 | 当前有限证书 | 不能偷换成 |
-|---|---|---|
-| 简单路径 / 游走 | 顶点序列回溯与动态规划分别计数 | 把允许回访的游走当成无重复路径 |
-| 握手引理 | 度数和 <span class="arithmatex">\(=2E\)</span> | 路径数量或树的数量 |
-| 树 / 生成树 | <span class="arithmatex">\(P_4\)</span> 的树证书与 <span class="arithmatex">\(\tau(P_4)=1\)</span> | Cayley 公式对任意图直接套用 |
-| Cayley 公式 | <span class="arithmatex">\(K_4\)</span> 的标号树数 <span class="arithmatex">\(4^2=16\)</span> | <span class="arithmatex">\(P_4\)</span> 的路线数 |
-| 生成函数 | <span class="arithmatex">\([x^4]1/(1-x-x^2)=5\)</span> | 把系数 5 当成图上某条路径的证明 |</p>
-</div>
-<h3 id="3">3. 定理级结论与失败边界<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<ul>
-<li><strong>对象先于公式：</strong>必须先说明起点是否固定、路线是否有向、顶点是否允许重复；换一个约定，答案就可能改变。</li>
-<li><strong>双计数边界：</strong>握手引理是每条无向边贡献两个端点的恒等式；度和为偶只是必要信息，不能单独证明某个度序列可实现。</li>
-<li><strong>树计数边界：</strong>Cayley 的 <span class="arithmatex">\(n^{n-2}\)</span> 只针对完全图上的标号生成树。一般图要数其生成树子图，不能把完全图公式当作通用枚举器。</li>
-<li><strong>生成函数边界：</strong>系数提取是对已定义序列的代数编码；有限项实验能核对系数，却不能把数值枚举冒充双计数或递推正确性的证明。</li>
-</ul>
-</section>
-<figure class="plot">
-<p><img alt="Pascal 三角形 + 组合恒等式的图形（可 matplotlib 画数字三角 + 高亮路径）。" src="assets/img/graph-01-pascal.svg" /></p>
-<figcaption><span class="fig-id">图 graph-01.1</span>Pascal 三角形 + 组合恒等式的图形（可 matplotlib 画数字三角 + 高亮路径）。</figcaption>
-</figure>
-<h2 id="1">1. 基本武器<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>加法/乘法原理</strong>（分类相加、分步相乘）；<strong>排列</strong> <span class="arithmatex">\(A_n^k = \frac{n!}{(n-k)!}\)</span>、<strong>组合</strong> <span class="arithmatex">\(\binom{n}{k}\)</span>；可重复组合（隔板法）<span class="arithmatex">\(\binom{n+k-1}{k}\)</span>——"<span class="arithmatex">\(k\)</span> 个球放 <span class="arithmatex">\(n\)</span> 个盒"四种变体（球盒是否可辨）是一切初等计数题的分类框架。</p>
-<p><strong>二项式定理</strong>与组合恒等式两板斧：<strong>代数法</strong>（展开对比系数）与<strong>组合双计数</strong>（同一集合两种数法）。样板：<span class="arithmatex">\(\binom{n}{k} = \binom{n-1}{k} + \binom{n-1}{k-1}\)</span>（Pascal：按"含不含第 <span class="arithmatex">\(n\)</span> 个元素"分类）；<span class="arithmatex">\(\sum_k \binom{n}{k}^2 = \binom{2n}{n}\)</span>（Vandermonde：从 <span class="arithmatex">\(2n\)</span> 人选 <span class="arithmatex">\(n\)</span>，按前半选几个分类）。</p>
-<p><strong>鸽笼原理</strong>：<span class="arithmatex">\(n+1\)</span> 物入 <span class="arithmatex">\(n\)</span> 笼必有同笼——弱得不能再弱的前提，专出漂亮结论（例：任意 <span class="arithmatex">\(n+1\)</span> 个整数中必有两个差被 <span class="arithmatex">\(n\)</span> 整除——按余数入笼，概率 I 生日问题的确定性表亲）。</p>
-<h2 id="2_1">2. 容斥原理<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p><strong>未启用 JavaScript 时仍可核对：</strong>在路径图 <span class="arithmatex">\(P_4\)</span> 上，从顶点 0 走两步，简单路径只有 <span class="arithmatex">\(0\to1\to2\)</span>，游走还有 <span class="arithmatex">\(0\to1\to0\)</span>，所以分别为 1 与 2。度数和 <span class="arithmatex">\(1+2+2+1=6=2E\)</span>，生成树数为 1。<span class="arithmatex">\(4^{4-2}=16\)</span> 是 <span class="arithmatex">\(K_4\)</span> 的标号生成树数。</p>
+<p>用面额 1、2、5 凑 5，忽略顺序时四组数量为</p>
 <div class="arithmatex">\[
-\Big|\bigcup_{i=1}^n A_i\Big| = \sum|A_i| - \sum_{i&lt;j}|A_i\cap A_j| + \cdots + (-1)^{n-1}|A_1\cap\cdots\cap A_n|
+(u_1,u_2,u_5)=(5,0,0),(3,1,0),(1,2,0),(0,0,1).
 \]</div>
-<p>（概率 I 加法公式的计数版；证明：每个元素被数的净次数 <span class="arithmatex">\(= 1 - (1-1)^m = 1\)</span>，二项式定理一行。）</p>
-<p><strong>旗舰应用（错排数）</strong>：<span class="arithmatex">\(n\)</span> 封信全装错信封的方案数——容斥扣掉"至少某封装对"：</p>
-<div class="arithmatex">\[
-D_n = n!\sum_{k=0}^{n}\frac{(-1)^k}{k!} \approx \frac{n!}{e}
-\]</div>
-<p><strong>全装错的概率 <span class="arithmatex">\(\to \frac1e \approx 36.8\%\)</span></strong>——与 <span class="arithmatex">\(n\)</span> 几乎无关（10 封信与一万封信答案相同），组合数学第一名场面；<span class="arithmatex">\(e\)</span> 的级数（数分 IV）在纯计数问题里现身。</p>
-<h2 id="3_1">3. 递推关系<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p>把"规模 <span class="arithmatex">\(n\)</span> 的方案数"用小规模表达。<strong>线性递推的特征根法</strong>（与 ode-02 常系数方程完全同构——差分方程即离散 ODE）：Fibonacci <span class="arithmatex">\(F_n = F_{n-1} + F_{n-2}\)</span>，特征方程 <span class="arithmatex">\(x^2 = x + 1\)</span>，根 <span class="arithmatex">\(\varphi = \frac{1+\sqrt5}{2}, \psi = \frac{1-\sqrt5}{2}\)</span>：</p>
-<div class="arithmatex">\[
-F_n = \frac{\varphi^n - \psi^n}{\sqrt 5}
-\]</div>
-<p>（黄金比例从"爬楼梯计数"里长出来；<span class="arithmatex">\(|\psi| &lt; 1\)</span> ⇒ <span class="arithmatex">\(F_n\)</span> 是 <span class="arithmatex">\(\frac{\varphi^n}{\sqrt5}\)</span> 的四舍五入——增长率由最大特征根统治，ode-03/数值幂法/Markov 链的那句话第四次出场。）</p>
-<h2 id="4">4. 生成函数（计数的核武器）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>定义</strong>：序列 <span class="arithmatex">\(\{a_n\}\)</span> 的（普通）生成函数 <span class="arithmatex">\(G(x) = \sum a_n x^n\)</span>——<strong>把整个数列打包成一个函数</strong>，计数运算变函数代数：</p>
+<p>对应的有序序列分别有 <span class="arithmatex">\(1,4,3,1\)</span> 条，总计 9。用 1 或 2 作为每步长度走到 5，则有 8 条，它对应 <span class="arithmatex">\([x^5](1-x-x^2)^{-1}\)</span>；不要把这个 8 混入允许面额 5 的问题。</p>
+<p>3 封不同的信全装错的容斥账是 <span class="arithmatex">\(3!-3\cdot2!+3\cdot1!-1=2\)</span>。相对于全部 <span class="arithmatex">\(3!=6\)</span> 个等可能排列，错排概率是 <span class="arithmatex">\(1/3\)</span>，并非精确的 <span class="arithmatex">\(1/e\)</span>。</p>
 <table>
 <thead>
 <tr>
-<th>组合操作</th>
-<th>生成函数操作</th>
+<th>对象</th>
+<th>结果怎样产生</th>
+<th>什么不能由结果推出</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>两类选择的组合（先 A 后 B）</td>
-<td><span class="arithmatex">\(G_A(x)\cdot G_B(x)\)</span>（卷积——概率 IV 母函数同款机制）</td>
+<td>简单路径、游走</td>
+<td>固定起点、不同重复规则，分别回溯与递推</td>
+<td>一条高亮路径不代表列出了全部路径</td>
 </tr>
 <tr>
-<td>"每种物品选若干"的背包</td>
-<td>各物品因子连乘 <span class="arithmatex">\(\prod\frac{1}{1-x^{w_i}}\)</span> 类</td>
+<td>生成树</td>
+<td>拉普拉斯余子式作精确整数计算</td>
+<td>任意图都可套 <span class="arithmatex">\(n^{n-2}\)</span></td>
 </tr>
 <tr>
-<td>解线性递推</td>
-<td>递推式 × <span class="arithmatex">\(x^n\)</span> 求和 ⇒ 关于 <span class="arithmatex">\(G\)</span> 的代数方程</td>
+<td>硬币组合、投币序列</td>
+<td>一个按面额种类递推，一个按最后一步递推</td>
+<td>两个循环顺序只是实现习惯</td>
+</tr>
+<tr>
+<td>错排</td>
+<td>按固定点集合容斥；与另一递推核对</td>
+<td>“概率趋于 <span class="arithmatex">\(1/e\)</span>”意味着任意规模答案相同</td>
 </tr>
 </tbody>
 </table>
-<p><strong>样板一（找零钱）</strong>：用 1、2、5 分凑 <span class="arithmatex">\(n\)</span> 分的方案数 = <span class="arithmatex">\(\frac{1}{(1-x)(1-x^2)(1-x^5)}\)</span> 的 <span class="arithmatex">\(x^n\)</span> 系数——"枚举"变"展开"。</p>
-<p><strong>样板二（Catalan 数）</strong>：合法括号序列数 <span class="arithmatex">\(C_n\)</span> 满足 <span class="arithmatex">\(C_{n+1} = \sum_k C_k C_{n-k}\)</span>（按最外层配对位置分类——卷积形！）⇒ <span class="arithmatex">\(G = 1 + xG^2\)</span>，解二次方程 + 二项级数展开：</p>
+<p>金额 0 的空组合和空序列都算 1 种；长度 0 的路线是只含起点的一项顶点序列；0 封信的空排列也算 1 种。这些初值是递推的一部分。</p>
+</div>
+</section>
+<style>
+.counting-static{max-width:100%;overflow-x:auto;border:1px solid var(--border);border-radius:6px}.counting-static img{display:block;width:1100px;min-width:1100px;max-width:none}.counting-static:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}}
+</style>
+<figure aria-label="计数对象和Pascal分类静态图，左右键滚动" class="plot counting-static" role="region" tabindex="0">
+<p><img alt="硬币组合与有序投币的完整对照，以及Pascal分类" src="assets/img/graph-01-pascal.svg" /></p>
+<figcaption><span class="fig-id">图 1.1</span>上方完整列出金额 5 的四种组合和九条序列；每个数量组合对应的序列数不同。下方按是否含指定对象得到 Pascal 恒等式，分类规则直接解释为什么相加。</figcaption>
+</figure>
+<h2 id="1">1. 加法、乘法和除法：先明确何时是同一方案<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>加法原理要求分类<strong>互斥且穷尽</strong>。若分两类后一个对象落入两类，直接相加会重计，需要容斥。乘法原理要求每一步的可选数量在相应分支上已知；若不同第一步有不同数量的后续，先逐支相乘再相加，不能随便取一个公共乘数。</p>
+<p>例如从 <span class="arithmatex">\(n\)</span> 个不同对象中选出 <span class="arithmatex">\(k\)</span> 个并排成序列，不重复，<span class="arithmatex">\(0\le k\le n\)</span>：</p>
 <div class="arithmatex">\[
-C_n = \frac{1}{n+1}\binom{2n}{n} \qquad (1, 1, 2, 5, 14, 42, \dots)
+P(n,k)=n(n-1)\cdots(n-k+1)=\frac{n!}{(n-k)!}.
 \]</div>
-<p>Catalan 数是组合的"<span class="arithmatex">\(\pi\)</span>"：括号序列、二叉树形态、凸多边形三角剖分、不穿越对角线的格路……几十种问题同一个答案（栈的出栈序列数——CS 对账）。</p>
-<p>🔗 <strong>对账</strong>：概率母函数（概率 IV）= 生成函数在 <span class="arithmatex">\(a_n\)</span> 为概率时的特例（独立和→乘积即卷积规则）；特征函数是它的 Fourier 版；分治算法复杂度递推（主定理背后）同属递推家族。</p>
-<h2 id="5">5. 典型例题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（隔板法）</strong> 方程 <span class="arithmatex">\(x_1 + x_2 + x_3 = 10\)</span> 的非负整数解数：<span class="arithmatex">\(\binom{10 + 2}{2} = 66\)</span>（10 球 2 板）。</p>
-<p><strong>例 2（容斥）</strong> 1–1000 中不被 2、3、5 任一整除的数：<span class="arithmatex">\(1000 - (500 + 333 + 200) + (166 + 100 + 66) - 33 = 266\)</span>（Euler 函数思想的具体版——抽代 II 的 <span class="arithmatex">\(\varphi\)</span> 认亲）。</p>
-<p><strong>例 3（生成函数解递推）</strong> <span class="arithmatex">\(a_n = 2a_{n-1} + 1,\ a_0 = 0\)</span>（汉诺塔）：两边乘 <span class="arithmatex">\(x^n\)</span> 求和得 <span class="arithmatex">\(G = \frac{x}{(1-x)(1-2x)}\)</span>，部分分式展开（数分 III 的技术）得 <span class="arithmatex">\(a_n = 2^n - 1\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p>若不计顺序，每个 <span class="arithmatex">\(k\)</span> 元子集恰好对应 <span class="arithmatex">\(k!\)</span> 个序列，因此</p>
+<div class="arithmatex">\[
+\binom nk=\frac{P(n,k)}{k!}.
+\]</div>
+<p><strong>除法需要每类都有同样多的表示。</strong>带重复对象、对称图形或不同稳定子的情形，不能未经核对就除以一个阶乘；处理对称计数时可接到 <a href="alg-abs-01-groups.html">群作用</a>。</p>
+<h3 id="_2">隔板法数的是哪一种“球放盒”？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p><span class="arithmatex">\(k\)</span> 个不可区分的球放入 <span class="arithmatex">\(n\ge1\)</span> 个有标签的盒子，允许空盒；一个方案就是</p>
+<div class="arithmatex">\[
+x_1+\cdots+x_n=k,\qquad x_i\in\mathbb Z_{\ge0}.
+\]</div>
+<p>把 <span class="arithmatex">\(k\)</span> 个星号与 <span class="arithmatex">\(n-1\)</span> 块隔板排在一起，每个间隔的星号数对应一个 <span class="arithmatex">\(x_i\)</span>。这个对应可逆，所以方案数为 <span class="arithmatex">\(\binom{k+n-1}{n-1}\)</span>。若每盒至少一个球，先各放一个，<span class="arithmatex">\(k\ge n\)</span> 时得到 <span class="arithmatex">\(\binom{k-1}{n-1}\)</span>；<span class="arithmatex">\(k&lt;n\)</span> 时为 0。</p>
+<p>换成<strong>不同的球、有标签的盒</strong>，每个球有 <span class="arithmatex">\(n\)</span> 个去处，允许空盒时为 <span class="arithmatex">\(n^k\)</span>。若盒子也无标签，问题进入整数分拆或集合划分，不能继续使用同一个隔板公式。</p>
+<h3 id="_3">双计数的证明比背恒等式更可靠<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>从 <span class="arithmatex">\(n\)</span> 个不同对象中选 <span class="arithmatex">\(k\)</span> 个，按是否包含指定对象分类：</p>
+<div class="arithmatex">\[
+\binom nk=\binom{n-1}k+\binom{n-1}{k-1}.
+\]</div>
+<p>从两组各 <span class="arithmatex">\(n\)</span> 人中一共选 <span class="arithmatex">\(n\)</span> 人，按第一组选了 <span class="arithmatex">\(k\)</span> 人分类：</p>
+<div class="arithmatex">\[
+\sum_{k=0}^{n}\binom nk\binom n{n-k}=\binom{2n}n.
+\]</div>
+<p>两边数的是同一个集合，分类也不重不漏，这才是恒等式成立的原因。鸽笼原理同样是有限分类：把任意 <span class="arithmatex">\(n+1\)</span> 个整数按模 <span class="arithmatex">\(n\ge1\)</span> 的余数放入 <span class="arithmatex">\(n\)</span> 类，必有两个同类，因此差能被 <span class="arithmatex">\(n\)</span> 整除。</p>
+<h2 id="2">2. 容斥：让每个被覆盖的元素最后恰好算一次<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>对有限集合 <span class="arithmatex">\(A_1,\ldots,A_n\)</span>，</p>
+<div class="arithmatex">\[
+\left|\bigcup_{i=1}^{n}A_i\right|
+=\sum_{\varnothing\ne I\subseteq\{1,\ldots,n\}}
+(-1)^{|I|+1}\left|\bigcap_{i\in I}A_i\right|.
+\]</div>
+<p>固定一个恰好属于 <span class="arithmatex">\(r\ge1\)</span> 个集合的元素。它在右边的净计数为</p>
+<div class="arithmatex">\[
+\binom r1-\binom r2+\cdots+(-1)^{r+1}\binom rr
+=1-(1-1)^r=1.
+\]</div>
+<p>完全不在并集中的元素贡献 0。逐元素核对就证明了公式；无需猜测该加哪一项。</p>
+<h3 id="_4">错排：概率接近，不是答案相同<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p><span class="arithmatex">\(n\)</span> 封不同的信随机一一放入 <span class="arithmatex">\(n\)</span> 个有对应标签的信封。<span class="arithmatex">\(A_i\)</span> 表示第 <span class="arithmatex">\(i\)</span> 封放对。固定一组 <span class="arithmatex">\(j\)</span> 封都放对后，其余有 <span class="arithmatex">\((n-j)!\)</span> 种排列；选择这组有 <span class="arithmatex">\(\binom nj\)</span> 种。对“一个也没放对”容斥：</p>
+<div class="arithmatex">\[
+\boxed{D_n=\sum_{j=0}^{n}(-1)^j\binom nj(n-j)!
+=n!\sum_{j=0}^{n}\frac{(-1)^j}{j!}.}
+\]</div>
+<p><span class="arithmatex">\(D_0=1,D_1=0,D_2=1,D_3=2,D_4=9\)</span>。只有在全部 <span class="arithmatex">\(n!\)</span> 个排列等可能时，错排概率才是 <span class="arithmatex">\(D_n/n!\)</span>。利用交错级数余项，</p>
+<div class="arithmatex">\[
+\left|\frac{D_n}{n!}-e^{-1}\right|&lt;\frac1{(n+1)!}.
+\]</div>
+<p>因此概率趋于 <span class="arithmatex">\(1/e\)</span>，不是 10 封与一万封的<strong>计数</strong>相同，有限规模概率也不完全相同。<span class="arithmatex">\(n\ge1\)</span> 时 <span class="arithmatex">\(D_n\)</span> 是 <span class="arithmatex">\(n!/e\)</span> 最近的整数；<span class="arithmatex">\(n=0\)</span> 要单独用初值，不能套这个取整结论。</p>
+<p>另一递推是 <span class="arithmatex">\(D_n=(n-1)(D_{n-1}+D_{n-2})\)</span>，<span class="arithmatex">\(n\ge2\)</span>：先让信 1 去信封 <span class="arithmatex">\(j\ne1\)</span>。若信 <span class="arithmatex">\(j\)</span> 去信封 1，剩下是 <span class="arithmatex">\(n-2\)</span> 的错排；否则把信 1 与指向信封 1 的关系收缩，可一一对应到 <span class="arithmatex">\(n-1\)</span> 的错排。两类分别贡献 <span class="arithmatex">\(D_{n-2}\)</span> 与 <span class="arithmatex">\(D_{n-1}\)</span>，再乘 <span class="arithmatex">\(n-1\)</span> 个 <span class="arithmatex">\(j\)</span>。</p>
+<p>实验把容斥的每个带符号整数项和累计和列出，再与递推结果核对。核对有限规模不能替代上面的分类证明，但能暴露符号、初值和索引错误。</p>
+<h2 id="3">3. 递推：每个较大对象怎样唯一拆成较小对象？<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(a_m\)</span> 是用步长 1 或 2、按顺序走到总长度 <span class="arithmatex">\(m\)</span> 的方法数。空序列给 <span class="arithmatex">\(a_0=1\)</span>，<span class="arithmatex">\(a_1=1\)</span>。按最后一步分类，删掉最后的 1 或 2 得到唯一的较小序列，因此</p>
+<div class="arithmatex">\[
+a_m=a_{m-1}+a_{m-2}\quad(m\ge2).
+\]</div>
+<p>若 Fibonacci 约定是 <span class="arithmatex">\(F_0=0,F_1=1\)</span>，则 <span class="arithmatex">\(a_m=F_{m+1}\)</span>，不是 <span class="arithmatex">\(F_m\)</span>。明确初值可以避免公式全对、指标却整体错一位。</p>
+<p>对这个递推试 <span class="arithmatex">\(a_m=r^m\)</span>，得到 <span class="arithmatex">\(r^2=r+1\)</span>。两个不同根为 <span class="arithmatex">\(\varphi=(1+\sqrt5)/2\)</span> 与 <span class="arithmatex">\(\psi=(1-\sqrt5)/2\)</span>，结合初值得</p>
+<div class="arithmatex">\[
+F_m=\frac{\varphi^m-\psi^m}{\sqrt5}.
+\]</div>
+<p>常系数递推与常系数微分方程都有特征根方法，但一个使用移位算子、一个使用微分算子；离散解的 <span class="arithmatex">\(r^m\)</span> 与连续解的 <span class="arithmatex">\(e^{\lambda t}\)</span> 不能不加转换地混为同一对象。实际计算较大整数时，直接用浮点 Binet 公式取整可能舍入出错，精确整数递推更适合本实验。</p>
+<h2 id="4">4. 普通生成函数：指数记规模，系数记数量<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>定义 <span class="arithmatex">\(A(x)=\sum_{m\ge0}a_mx^m\)</span>，符号 <span class="arithmatex">\([x^m]A(x)\)</span> 表示取第 <span class="arithmatex">\(m\)</span> 项系数。先把它看作<strong>形式幂级数</strong>：一个系数序列，而不是必须在某个实数 <span class="arithmatex">\(x\)</span> 上求值的函数。</p>
+<p>两个级数相乘时</p>
+<div class="arithmatex">\[
+[x^m]A(x)B(x)=\sum_{j=0}^{m}a_jb_{m-j}.
+\]</div>
+<p>对于固定 <span class="arithmatex">\(m\)</span>，右边只有有限项。这对应“先选规模 <span class="arithmatex">\(j\)</span> 的 A 对象，再选规模 <span class="arithmatex">\(m-j\)</span> 的 B 对象”，前提是拆分方式唯一、总规模可加。若拆分不唯一，乘积会多算表示。</p>
+<p>在有理数或实数系数的形式级数中，常数项非零就有乘法逆；在整数系数环中，常数项需为可逆元 <span class="arithmatex">\(\pm1\)</span>。本页的分母常数项都是 1。形式运算不需要解析收敛；例如 <span class="arithmatex">\(\sum m!x^m\)</span> 的收敛半径为零，仍可作为形式级数。要代入数值、积分或使用解析极限时，才需另外核对相应条件。<a href="https://ocw.mit.edu/courses/6-042j-mathematics-for-computer-science-spring-2015/mit6_042js15_textbook.pdf">MIT 的《Mathematics for Computer Science》</a>第 14–15 章提供了计数与形式级数的系统背景。</p>
+<p>把上一节递推乘 <span class="arithmatex">\(x^m\)</span>，从 <span class="arithmatex">\(m=2\)</span> 起求和：</p>
+<div class="arithmatex">\[
+A(x)-1-x=x(A(x)-1)+x^2A(x),
+\qquad
+\boxed{A(x)=\frac1{1-x-x^2}.}
+\]</div>
+<p>减去的 <span class="arithmatex">\(1+x\)</span> 和 <span class="arithmatex">\(1\)</span> 都来自初值，不能省略。生成函数没有创造新的计数对象，只是把同一递推整理成代数等式。</p>
+<h3 id="_5">同样三种面额，为什么有两种生成函数？<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p><strong>忽略顺序的硬币组合。</strong>每种面额可取任意非负数量，面额 2 的因子是 <span class="arithmatex">\(1+x^2+x^4+\cdots\)</span>，于是</p>
+<div class="arithmatex">\[
+U(x)=\frac1{(1-x)(1-x^2)(1-x^5)}.
+\]</div>
+<p>每个乘积项恰好对应数量三元组 <span class="arithmatex">\((u_1,u_2,u_5)\)</span>。这是硬币无限供应、同面额不可区分的模型；有库存上限时应改成有限多项式。</p>
+<p><strong>计顺序的投币序列。</strong>每个位置可选 1、2 或 5，长度为 <span class="arithmatex">\(\ell\)</span> 的序列由 <span class="arithmatex">\((x+x^2+x^5)^\ell\)</span> 编码；再把所有长度相加：</p>
+<div class="arithmatex">\[
+O(x)=\sum_{\ell\ge0}(x+x^2+x^5)^\ell
+=\frac1{1-x-x^2-x^5}.
+\]</div>
+<p>因为每枚硬币价值为正，固定金额只涉及有限长度，这个形式几何级数合法。加入“零面额物品可无限取”后，固定规模可能有无穷多个对象，原计数就需要重新定义。</p>
+<p>金额为 5 时，<span class="arithmatex">\([x^5]U=4\)</span>、<span class="arithmatex">\([x^5]O=9\)</span>。实验中“先遍历面额再累计金额”给组合，“按金额递增、按最后一枚面额求和”给有序序列。循环次序改变的是数学问题。</p>
+<h2 id="5-catalan">5. Catalan：第一对括号在哪里闭合？<a class="headerlink" href="#5-catalan" title="Permanent link"></a></h2>
+<p>合法括号串有 <span class="arithmatex">\(m\)</span> 对括号，任意前缀中左括号不少于右括号。空串给 <span class="arithmatex">\(C_0=1\)</span>。非空串唯一写成</p>
+<div class="arithmatex">\[
+(\,A\,)\,B,
+\]</div>
+<p>其中最左括号的匹配右括号确定了拆分点。若 <span class="arithmatex">\(A\)</span> 有 <span class="arithmatex">\(j\)</span> 对，<span class="arithmatex">\(B\)</span> 就有 <span class="arithmatex">\(m-1-j\)</span> 对，因此</p>
+<div class="arithmatex">\[
+C_m=\sum_{j=0}^{m-1}C_jC_{m-1-j},
+\qquad C(x)=1+xC(x)^2.
+\]</div>
+<p>满足常数项 <span class="arithmatex">\(C(0)=1\)</span> 的形式解为 <span class="arithmatex">\((1-\sqrt{1-4x})/(2x)\)</span>，分子可被 <span class="arithmatex">\(x\)</span> 整除；不是在 <span class="arithmatex">\(x=0\)</span> 作未经说明的 <span class="arithmatex">\(0/0\)</span>。展开得</p>
+<div class="arithmatex">\[
+C_m=\frac1{m+1}\binom{2m}{m}=1,1,2,5,14,\ldots\quad(m=0,1,2,\ldots).
+\]</div>
+<p>同一数列还数：有 <span class="arithmatex">\(m\)</span> 个内部结点的有序满二叉树、凸 <span class="arithmatex">\((m+2)\)</span> 边形的三角剖分、不越过对角线的 <span class="arithmatex">\(m\)</span> 步右加 <span class="arithmatex">\(m\)</span> 步上格路。<strong>树是否有序、是否满、数内部结点还是全部结点</strong>必须说明；一般“二叉树形态”没有唯一约定，不能直接报 Catalan。</p>
+<h2 id="6">6. 图的计数：路线、边端点和生成树各数什么？<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>本实验的图是有限、无向、无自环、无重边的简单图，顶点有标签。路线起点固定为 0，终点任意，长度是边数；一个对象是按行进顺序记录的顶点序列。</p>
+<p>简单路径不重复顶点；游走允许重复。设邻接矩阵为 <span class="arithmatex">\(M\)</span>，则 <span class="arithmatex">\((M^k)_{ij}\)</span> 数从 <span class="arithmatex">\(i\)</span> 到 <span class="arithmatex">\(j\)</span> 的长度 <span class="arithmatex">\(k\)</span> 游走，固定起点的总数是 <span class="arithmatex">\(\sum_j(M^k)_{0j}\)</span>。证明按倒数一步顶点分类，恰好给出矩阵乘法。简单路径不能仅用同一状态递推，因为还需知道哪些顶点已访问。</p>
+<p>在 <span class="arithmatex">\(K_n\)</span> 上，从固定起点走 <span class="arithmatex">\(k\)</span> 步，游走有 <span class="arithmatex">\((n-1)^k\)</span> 条；当 <span class="arithmatex">\(0\le k\le n-1\)</span> 时简单路径有 <span class="arithmatex">\((n-1)!/(n-1-k)!\)</span> 条，<span class="arithmatex">\(k\ge n\)</span> 时为 0。<span class="arithmatex">\(k=0\)</span> 两者都为 1。换成不固定起点或把逆序视作同一对象，计数会变化。</p>
+<p>握手引理 <span class="arithmatex">\(\sum_v\deg(v)=2|E|\)</span> 数的是每条边的两个端点。一般无向多重图若按通常约定让自环贡献度 2，它也成立；实验采用简单图以便邻接矩阵和路线规则统一。度和为偶只是必要信息，不能单独证明任意给定度序列都能实现。</p>
+<h3 id="_6">为什么生成树数不是任意路径数？<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<p>生成树包含原图的全部顶点，边取自原图，并且连通无圈。<span class="arithmatex">\(n\)</span> 个顶点的树有 <span class="arithmatex">\(n-1\)</span> 条边；对有限无向简单图，“连通且有 <span class="arithmatex">\(n-1\)</span> 条边”等价于树。不连通图的生成树数是 0；孤立的单顶点按约定有一棵空边生成树。</p>
+<p>Cayley 公式</p>
+<div class="arithmatex">\[
+\tau(K_n)=n^{n-2}\qquad(n\ge2)
+\]</div>
+<p>数的是标号完全图上的生成树；单顶点单独为 1。证明的一个入口是 Prüfer 编码：反复删去当前最小标签叶子、记录它的邻点，得到长度 <span class="arithmatex">\(n-2\)</span> 的标签序列；反向每次选当前未在剩余编码中出现的最小标签作叶子，可唯一恢复树。因此树与 <span class="arithmatex">\(n^{n-2}\)</span> 个序列一一对应。</p>
+<p>一般图用拉普拉斯矩阵 <span class="arithmatex">\(L=\operatorname{diag}(\deg)-M\)</span>。删去同一行列得到 <span class="arithmatex">\(L^{(r)}\)</span>，Matrix–Tree 定理给</p>
+<div class="arithmatex">\[
+\tau(G)=\det L^{(r)}.
+\]</div>
+<p>它给出了计数的行列式表示；实验的精确整数计算验证当前有限图，不替代定理的证明。路径图有 1 棵生成树，<span class="arithmatex">\(n\ge3\)</span> 的简单循环图有 <span class="arithmatex">\(n\)</span> 棵（恰好删除任意一条边），断开图为 0。下一页会继续图的连通与树结构。</p>
+<h2 id="7">7. 三道可展开的核对题<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<details class="answer" markdown="1">
+<summary>题 1：三个有标签的盒子放 10 个相同球，每盒最多 4 个，有多少种？</summary>
+
+<p>先忽略上限，非负整数解有 <span class="arithmatex">\(\binom{12}2=66\)</span>。令 <span class="arithmatex">\(A_i\)</span> 表示第 <span class="arithmatex">\(i\)</span> 盒至少 5 个，先从该盒取出 5 个，剩余解有 <span class="arithmatex">\(\binom72=21\)</span>。两盒同时至少 5 个时只剩 0 个球，恰有 1 个解；三盒同时违反不可能。因此</p>
+<div class="arithmatex">\[
+66-3\cdot21+3\cdot1=6.
+\]</div>
+<p>也可设 <span class="arithmatex">\(y_i=4-x_i\)</span>，则 <span class="arithmatex">\(y_1+y_2+y_3=2\)</span>，其非负解有 <span class="arithmatex">\(\binom42=6\)</span>，自动满足 <span class="arithmatex">\(y_i\le4\)</span>。这个变换给出独立核对。</p>
+</details>
+<details class="answer">
+<summary>题 2：1 到 1000 中不被 2、3、5 任一整除的整数有多少？</summary>
+<p>按 2、3、5 的倍数容斥。它们两两互素，所以交集用 6、10、15、30 的倍数计数：</p>
+<div class="arithmatex">\[
+1000-(500+333+200)+(166+100+66)-33=266.
+\]</div>
+<p>若因子不互素，交集应使用最小公倍数，不能直接把因子相乘。例如同时被 4 和 6 整除要数 12 的倍数。</p>
+</details>
+<details class="answer">
+<summary>题 3：汉诺塔递推怎样变成生成函数？为什么只给算法还不够？</summary>
+<p>标准三柱汉诺塔一次只移一个盘，大盘不能压小盘。递归算法先移走上方 <span class="arithmatex">\(m-1\)</span> 个盘、移动大盘一次、再移回小盘，给出上界 <span class="arithmatex">\(2a_{m-1}+1\)</span>。为了证明最优性，还需下界：第一次移动最大盘之前，小盘必须已从起柱整塔移到另一柱，至少需要 <span class="arithmatex">\(a_{m-1}\)</span> 步；最后一次移动最大盘之后，它已在目标柱，小盘仍须从另一柱整塔移来，又至少需要 <span class="arithmatex">\(a_{m-1}\)</span> 步。两段不重叠，中间至少移动一次最大盘，故总步数至少 <span class="arithmatex">\(2a_{m-1}+1\)</span>。因此 <span class="arithmatex">\(a_0=0\)</span>、<span class="arithmatex">\(a_m=2a_{m-1}+1\)</span>。</p>
+<p>令 <span class="arithmatex">\(A(x)=\sum_{m\ge0}a_mx^m\)</span>，从 <span class="arithmatex">\(m=1\)</span> 求和：</p>
+<div class="arithmatex">\[
+A(x)=2xA(x)+\frac{x}{1-x},
+\qquad
+A(x)=\frac{x}{(1-x)(1-2x)}
+=\frac1{1-2x}-\frac1{1-x}.
+\]</div>
+<p>所以 <span class="arithmatex">\(a_m=2^m-1\)</span>。若只展示一种算法，会证明“至多这么多步”；必须补上不能更少的论证，才能把上界当最优值。</p>
+</details>
 <hr />
-<p><em>下一页：从"数数"到"结构"——图的语言：度、连通、树、Euler 与 Hamilton、平面图。</em></p>
+<p>下一页：<a href="graph-02-graphs.html">图的语言与结构</a>。遇到新计数问题，先写出对象、规模、是否计顺序和边界初值，再决定使用哪一种工具。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="ts-02-nonstationary-garch.html"><span class="pager-label">上一页</span>时间序列 II · GARCH 与预测纪律</a>

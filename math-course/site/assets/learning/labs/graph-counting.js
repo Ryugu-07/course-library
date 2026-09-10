@@ -22,248 +22,179 @@
   var STYLE_ID = "graph-counting-lab-styles";
   var INSTANCE = 0;
 
-  function assert(condition, message) {
-    if (!condition) throw new Error(message);
+  function assert(ok, message) { if (!ok) throw new Error(message); }
+  function integer(value, lo, hi, name) {
+    assert(typeof value === "number" && Number.isInteger(value) && value >= lo && value <= hi, name + " must be an integer in " + lo + ".." + hi);
+    return value;
   }
-
-  function cloneMatrix(matrix) {
-    return matrix.map(function (row) { return row.slice(); });
-  }
-
-  function normalizeInteger(value, minimum, maximum, fallback) {
-    var parsed = Number(value);
-    if (!Number.isFinite(parsed)) return fallback;
-    return Math.max(minimum, Math.min(maximum, Math.round(parsed)));
-  }
-
-  function makeMatrix(kind, n) {
-    var matrix = [];
-    for (var row = 0; row < n; row += 1) {
-      matrix.push([]);
-      for (var column = 0; column < n; column += 1) matrix[row].push(0);
-    }
-    function add(left, right) {
-      matrix[left][right] = 1;
-      matrix[right][left] = 1;
-    }
-    if (kind === "complete") {
-      for (var left = 0; left < n; left += 1) {
-        for (var right = left + 1; right < n; right += 1) add(left, right);
+  function validateMatrix(matrix) {
+    assert(Array.isArray(matrix) && matrix.length >= 1 && matrix.length <= 7, "graph needs 1..7 vertices");
+    for (var i = 0; i < matrix.length; i++) {
+      assert(Array.isArray(matrix[i]) && matrix[i].length === matrix.length, "square adjacency required");
+      for (var j = 0; j < matrix.length; j++) {
+        assert(matrix[i][j] === 0 || matrix[i][j] === 1, "binary adjacency required");
+        assert(i !== j || matrix[i][j] === 0, "no loops");
       }
-    } else if (kind === "cycle") {
-      for (var cycleIndex = 0; cycleIndex < n; cycleIndex += 1) add(cycleIndex, (cycleIndex + 1) % n);
-    } else {
-      for (var pathIndex = 0; pathIndex < n - 1; pathIndex += 1) add(pathIndex, pathIndex + 1);
     }
+    for (var a = 0; a < matrix.length; a++) for (var b = 0; b < a; b++) assert(matrix[a][b] === matrix[b][a], "undirected adjacency required");
     return matrix;
   }
-
+  function makeMatrix(kind, n) {
+    assert(["path", "complete", "cycle", "disconnected"].includes(kind), "unknown graph");
+    integer(n, 3, 7, "vertices"); var m = Array.from({ length: n }, function () { return Array(n).fill(0); });
+    function add(a, b) { m[a][b] = m[b][a] = 1; }
+    if (kind === "complete") { for (var a = 0; a < n; a++) for (var b = a + 1; b < n; b++) add(a, b); }
+    else if (kind === "cycle") { for (var j = 0; j < n; j++) add(j, (j + 1) % n); }
+    else if (kind === "disconnected") { add(0, n - 1); }
+    else { for (var k = 0; k < n - 1; k++) add(k, k + 1); }
+    return m;
+  }
   function edgeList(matrix) {
-    var edges = [];
-    for (var left = 0; left < matrix.length; left += 1) {
-      for (var right = left + 1; right < matrix.length; right += 1) {
-        if (matrix[left][right] === 1) edges.push([left, right]);
-      }
-    }
+    validateMatrix(matrix); var edges = [];
+    for (var i = 0; i < matrix.length; i++) for (var j = i + 1; j < matrix.length; j++) if (matrix[i][j]) edges.push([i, j]);
     return edges;
   }
-
-  function degrees(matrix) {
-    return matrix.map(function (row) {
-      return row.reduce(function (sum, value) { return sum + value; }, 0);
-    });
-  }
-
+  function degrees(matrix) { validateMatrix(matrix); return matrix.map(function (r) { return r.reduce(function (a, b) { return a + b; }, 0); }); }
   function isConnected(matrix) {
-    if (!matrix.length) return false;
-    var seen = [];
-    var queue = [0];
-    var head = 0;
-    seen[0] = true;
-    while (head < queue.length) {
-      var vertex = queue[head++];
-      for (var next = 0; next < matrix.length; next += 1) {
-        if (matrix[vertex][next] === 1 && !seen[next]) {
-          seen[next] = true;
-          queue.push(next);
-        }
-      }
+    validateMatrix(matrix); var seen = Array(matrix.length).fill(false), stack = [0]; seen[0] = true;
+    while (stack.length) {
+      var v = stack.pop();
+      for (var j = 0; j < matrix.length; j++) if (matrix[v][j] && !seen[j]) { seen[j] = true; stack.push(j); }
     }
-    return seen.length === matrix.length && seen.every(function (value) { return value; });
+    return seen.every(function (v) { return v; });
   }
-
+  function routeArgs(matrix, start, length) {
+    validateMatrix(matrix); integer(start, 0, matrix.length - 1, "start"); integer(length, 0, 12, "route length");
+  }
   function countSimplePaths(matrix, start, length) {
-    if (length < 0) return 0;
-    var used = [];
-    used[start] = true;
-    var count = 0;
-    function visit(vertex, remaining) {
-      if (remaining === 0) {
-        count += 1;
-        return;
-      }
-      for (var next = 0; next < matrix.length; next += 1) {
-        if (matrix[vertex][next] !== 1 || used[next]) continue;
-        used[next] = true;
-        visit(next, remaining - 1);
-        used[next] = false;
-      }
+    routeArgs(matrix, start, length); if (length >= matrix.length) return 0;
+    var used = Array(matrix.length).fill(false), count = 0; used[start] = true;
+    function visit(v, left) {
+      if (left === 0) { count++; return; }
+      for (var j = 0; j < matrix.length; j++) if (matrix[v][j] && !used[j]) { used[j] = true; visit(j, left - 1); used[j] = false; }
     }
-    visit(start, length);
-    return count;
+    visit(start, length); return count;
   }
-
   function countWalks(matrix, start, length) {
-    var current = matrix.map(function () { return 0; });
-    current[start] = 1;
-    for (var step = 0; step < length; step += 1) {
-      var next = matrix.map(function () { return 0; });
-      for (var vertex = 0; vertex < matrix.length; vertex += 1) {
-        for (var target = 0; target < matrix.length; target += 1) {
-          if (matrix[vertex][target] === 1) next[target] += current[vertex];
-        }
-      }
-      current = next;
+    routeArgs(matrix, start, length); var row = Array(matrix.length).fill(0n); row[start] = 1n;
+    for (var k = 0; k < length; k++) {
+      var next = Array(matrix.length).fill(0n);
+      for (var i = 0; i < matrix.length; i++) for (var j = 0; j < matrix.length; j++) if (matrix[i][j]) next[j] += row[i];
+      row = next;
     }
-    return current.reduce(function (sum, value) { return sum + value; }, 0);
+    return row.reduce(function (a, b) { return a + b; }, 0n);
   }
-
   function findSimplePath(matrix, start, length) {
-    var used = [];
-    var path = [start];
-    used[start] = true;
-    var answer = null;
-    function visit(vertex, remaining) {
+    routeArgs(matrix, start, length); if (length >= matrix.length) return [];
+    var used = Array(matrix.length).fill(false), path = [start], answer = null; used[start] = true;
+    function visit(v, left) {
       if (answer) return;
-      if (remaining === 0) {
-        answer = path.slice();
-        return;
-      }
-      for (var next = 0; next < matrix.length; next += 1) {
-        if (matrix[vertex][next] !== 1 || used[next]) continue;
-        used[next] = true;
-        path.push(next);
-        visit(next, remaining - 1);
-        path.pop();
-        used[next] = false;
-      }
+      if (left === 0) { answer = path.slice(); return; }
+      for (var j = 0; j < matrix.length; j++) if (matrix[v][j] && !used[j]) { used[j] = true; path.push(j); visit(j, left - 1); path.pop(); used[j] = false; }
     }
-    visit(start, length);
-    return answer || [];
+    visit(start, length); return answer || [];
   }
-
   function determinant(matrix) {
-    var size = matrix.length;
-    if (size === 0) return 1;
-    if (size === 1) return matrix[0][0];
-    var work = cloneMatrix(matrix);
-    var sign = 1;
-    var previous = 1;
-    for (var pivotIndex = 0; pivotIndex < size - 1; pivotIndex += 1) {
-      var pivotRow = pivotIndex;
-      while (pivotRow < size && work[pivotRow][pivotIndex] === 0) pivotRow += 1;
-      if (pivotRow === size) return 0;
-      if (pivotRow !== pivotIndex) {
-        var swap = work[pivotIndex];
-        work[pivotIndex] = work[pivotRow];
-        work[pivotRow] = swap;
-        sign = -sign;
+    assert(Array.isArray(matrix) && matrix.length <= 7, "determinant size 0..7");
+    var n = matrix.length, work = matrix.map(function (row) {
+      assert(Array.isArray(row) && row.length === n, "square integer matrix");
+      return Array.from(row, function (v) { integer(v, -7, 7, "matrix entry"); return BigInt(v); });
+    });
+    if (!n) return 1n;
+    var sign = 1n, previous = 1n;
+    for (var k = 0; k < n - 1; k++) {
+      var pivotRow = k;
+      while (pivotRow < n && work[pivotRow][k] === 0n) pivotRow++;
+      if (pivotRow === n) return 0n;
+      if (pivotRow !== k) { var tmp = work[k]; work[k] = work[pivotRow]; work[pivotRow] = tmp; sign = -sign; }
+      var pivot = work[k][k];
+      for (var i = k + 1; i < n; i++) for (var j = k + 1; j < n; j++) {
+        var numerator = work[i][j] * pivot - work[i][k] * work[k][j];
+        assert(numerator % previous === 0n, "Bareiss division must be exact"); work[i][j] = numerator / previous;
       }
-      var pivot = work[pivotIndex][pivotIndex];
-      for (var row = pivotIndex + 1; row < size; row += 1) {
-        for (var column = pivotIndex + 1; column < size; column += 1) {
-          work[row][column] = (work[row][column] * pivot - work[row][pivotIndex] * work[pivotIndex][column]) / previous;
-        }
-      }
-      for (var cleared = pivotIndex + 1; cleared < size; cleared += 1) work[cleared][pivotIndex] = 0;
+      for (var row = k + 1; row < n; row++) work[row][k] = 0n;
       previous = pivot;
     }
-    return sign * work[size - 1][size - 1];
+    return sign * work[n - 1][n - 1];
   }
-
   function spanningTreeCount(matrix) {
-    if (matrix.length <= 1) return 1;
-    var degree = degrees(matrix);
-    var minor = [];
-    for (var row = 0; row < matrix.length - 1; row += 1) {
-      var minorRow = [];
-      for (var column = 0; column < matrix.length - 1; column += 1) {
-        minorRow.push(row === column ? degree[row] - matrix[row][column] : -matrix[row][column]);
-      }
-      minor.push(minorRow);
+    validateMatrix(matrix); if (matrix.length === 1) return 1n;
+    var deg = degrees(matrix), minor = [];
+    for (var i = 0; i < matrix.length - 1; i++) {
+      var row = []; for (var j = 0; j < matrix.length - 1; j++) row.push(i === j ? deg[i] : -matrix[i][j]);
+      minor.push(row);
     }
     return determinant(minor);
   }
-
+  function factorial(n) { integer(n, 0, 100, "factorial index"); var x = 1n; for (var k = 2; k <= n; k++) x *= BigInt(k); return x; }
+  function binomial(n, k) {
+    integer(n, 0, 100, "n"); integer(k, 0, n, "k"); var x = 1n;
+    for (var j = 1; j <= Math.min(k, n - k); j++) x = x * BigInt(n - j + 1) / BigInt(j);
+    return x;
+  }
   function fibonacciGeneratingCoefficient(index) {
-    var coefficient = [1, 1];
-    for (var position = 2; position <= index; position += 1) coefficient[position] = coefficient[position - 1] + coefficient[position - 2];
-    return coefficient[index];
+    integer(index, 0, 100, "coefficient index"); var a = 1n, b = 1n;
+    for (var k = 0; k < index; k++) { var next = a + b; a = b; b = next; }
+    return a;
   }
-
-  function cayleyCount(n) {
-    return Math.pow(n, n - 2);
+  function cayleyCount(n) { integer(n, 1, 7, "vertices"); return n === 1 ? 1n : BigInt(n) ** BigInt(n - 2); }
+  function coinLedger(m) {
+    integer(m, 0, 100, "amount");
+    var coins = [1, 2, 5], stages = [], ways = Array(m + 1).fill(0n); ways[0] = 1n;
+    coins.forEach(function (coin) {
+      for (var amount = coin; amount <= m; amount++) ways[amount] += ways[amount - coin];
+      stages.push(ways.slice());
+    });
+    var ordered = Array(m + 1).fill(0n); ordered[0] = 1n;
+    for (var n = 1; n <= m; n++) coins.forEach(function (coin) { if (n >= coin) ordered[n] += ordered[n - coin]; });
+    var solutions = [];
+    for (var fives = 0; fives <= Math.floor(m / 5); fives++) for (var twos = 0; twos <= Math.floor((m - 5 * fives) / 2); twos++) {
+      var ones = m - 5 * fives - 2 * twos, total = ones + twos + fives;
+      solutions.push({ ones: ones, twos: twos, fives: fives, orders: factorial(total) / (factorial(ones) * factorial(twos) * factorial(fives)) });
+    }
+    return { amount: m, rows: Array.from({ length: m + 1 }, function (_, i) {
+      return { amount: i, one: stages[0][i], oneTwo: stages[1][i], unordered: stages[2][i], ordered: ordered[i], stairs: fibonacciGeneratingCoefficient(i) };
+    }), unordered: ways[m], ordered: ordered[m], solutions: solutions };
   }
-
+  function derangementLedger(n) {
+    integer(n, 0, 12, "derangement size");
+    var total = factorial(n), cumulative = 0n, rows = [], recurrence = [1n, 0n];
+    for (var j = 0; j <= n; j++) {
+      var choices = binomial(n, j), intersection = factorial(n - j), term = choices * intersection * (j % 2 ? -1n : 1n);
+      cumulative += term; rows.push({ j: j, choices: choices, intersection: intersection, signedTerm: term, cumulative: cumulative });
+    }
+    for (var k = 2; k <= n; k++) recurrence.push(BigInt(k - 1) * (recurrence[k - 1] + recurrence[k - 2]));
+    return { n: n, total: total, count: cumulative, recurrence: recurrence[n], probabilityNumerator: cumulative, probabilityDenominator: total,
+      errorBoundDenominator: factorial(n + 1), rows: rows };
+  }
   function graphLabel(kind, n) {
-    if (kind === "complete") return "K_" + n + "：完全图";
-    if (kind === "cycle") return "C_" + n + "：循环图";
-    return "P_" + n + "：路径图";
+    return kind === "complete" ? "K_" + n + "：完全图" : kind === "cycle" ? "C_" + n + "：循环图" : kind === "disconnected" ? n + " 顶点：仅边 0—" + (n - 1) : "P_" + n + "：路径图";
   }
-
   function normalizeGraph(kind, n, length, coefficient) {
-    var safeKind = kind === "complete" || kind === "cycle" ? kind : "path";
-    var safeN = normalizeInteger(n, 3, 7, 4);
-    var safeLength = normalizeInteger(length, 0, 6, 2);
-    var safeCoefficient = normalizeInteger(coefficient, 0, 10, 4);
-    return { kind: safeKind, n: safeN, length: safeLength, coefficient: safeCoefficient };
+    assert(["path", "complete", "cycle", "disconnected"].includes(kind), "unknown graph");
+    integer(n, 3, 7, "vertices"); integer(length, 0, 12, "route length"); integer(coefficient, 0, 100, "coefficient");
+    return { kind: kind, n: n, length: length, coefficient: coefficient };
+  }
+  function analyzeGraph(kind, n, length, coefficient) {
+    var settings = normalizeGraph(kind, n, length, coefficient), matrix = makeMatrix(kind, n), edges = edgeList(matrix), degree = degrees(matrix);
+    var degreeSum = degree.reduce(function (a, b) { return a + b; }, 0), connected = isConnected(matrix);
+    return { kind: kind, n: n, length: length, coefficient: coefficient, label: graphLabel(kind, n), matrix: matrix, edges: edges, edgeCount: edges.length,
+      degree: degree, degreeSum: degreeSum, handshake: degreeSum === 2 * edges.length, connected: connected, tree: connected && edges.length === n - 1,
+      simplePaths: countSimplePaths(matrix, 0, length), walks: countWalks(matrix, 0, length),
+      simplePathMethod: kind === "complete" && length < n ? "P(" + (n - 1) + "," + length + ")" : "固定起点的有限回溯",
+      spanningTrees: spanningTreeCount(matrix), cayley: kind === "complete" ? cayleyCount(n) : null,
+      generatingCoefficient: fibonacciGeneratingCoefficient(coefficient), generatingFormula: "[x^" + coefficient + "] 1/(1-x-x^2)" };
   }
 
-  function analyzeGraph(kind, n, length, coefficient) {
-    var settings = normalizeGraph(kind, n, length, coefficient);
-    var matrix = makeMatrix(settings.kind, settings.n);
-    var edgeCount = edgeList(matrix).length;
-    var degree = degrees(matrix);
-    var simple = countSimplePaths(matrix, 0, settings.length);
-    var walks = countWalks(matrix, 0, settings.length);
-    var tree = isConnected(matrix) && edgeCount === settings.n - 1;
-    var spanningTrees = spanningTreeCount(matrix);
-    var cayley = settings.kind === "complete" ? cayleyCount(settings.n) : null;
-    var formula = settings.kind === "complete" && settings.length > 0 && settings.length <= settings.n - 1
-      ? "P(" + (settings.n - 1) + "," + (settings.length) + ")"
-      : "固定起点的有限回溯";
-    return {
-      kind: settings.kind,
-      n: settings.n,
-      length: settings.length,
-      coefficient: settings.coefficient,
-      label: graphLabel(settings.kind, settings.n),
-      matrix: matrix,
-      edges: edgeList(matrix),
-      edgeCount: edgeCount,
-      degree: degree,
-      degreeSum: degree.reduce(function (sum, value) { return sum + value; }, 0),
-      handshake: degree.reduce(function (sum, value) { return sum + value; }, 0) === 2 * edgeCount,
-      connected: isConnected(matrix),
-      simplePaths: simple,
-      walks: walks,
-      simplePathMethod: formula,
-      tree: tree,
-      spanningTrees: spanningTrees,
-      cayley: cayley,
-      generatingCoefficient: fibonacciGeneratingCoefficient(settings.coefficient),
-      generatingFormula: "[x^" + settings.coefficient + "] 1/(1-x-x^2)"
-    };
-  }
 
   var STYLE_TEXT = [
     ".gcnt-lab{--gcnt-blue:var(--accent,#315f9d);--gcnt-gold:var(--cl-gold,#9b6a12);--gcnt-green:var(--cl-green,#39734d);--gcnt-red:var(--cl-red,#b64335);--gcnt-muted:var(--fg-soft,#6b6557);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere}",
     ".gcnt-lab *,.gcnt-lab *::before,.gcnt-lab *::after{box-sizing:border-box}.gcnt-lab [hidden]{display:none!important}",
     ".gcnt-lab h3,.gcnt-lab h4{margin:0;color:var(--fg);letter-spacing:0}.gcnt-lab h3{font-size:1.18rem}.gcnt-lab h4{font-size:1rem}.gcnt-lab p{margin:7px 0}.gcnt-lab .gcnt-note,.gcnt-lab .gcnt-feedback{color:var(--gcnt-muted);font-size:13px;line-height:1.7}",
-    ".gcnt-lab .gcnt-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}.gcnt-lab .gcnt-field{display:grid;gap:5px;min-width:0}.gcnt-lab .gcnt-field label{color:var(--gcnt-muted);font-size:12.5px;font-weight:750}.gcnt-lab select,.gcnt-lab input{width:100%;min-height:44px;padding:7px 9px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit;line-height:1.35}.gcnt-lab button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);cursor:pointer;font:inherit;line-height:1.35;overflow-wrap:anywhere}.gcnt-lab button:hover{border-color:var(--gcnt-blue)}.gcnt-lab button:focus-visible,.gcnt-lab select:focus-visible,.gcnt-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.gcnt-lab button[aria-pressed=true],.gcnt-lab .gcnt-primary{border-color:var(--gcnt-blue);background:var(--gcnt-blue);color:var(--bg);font-weight:750}",
+    ".gcnt-lab .gcnt-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}.gcnt-lab .gcnt-field{display:grid;gap:5px;min-width:0}.gcnt-lab .gcnt-field label{color:var(--gcnt-muted);font-size:12.5px;font-weight:750}.gcnt-lab select,.gcnt-lab input{width:100%;min-height:44px;margin:0;padding:7px 9px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit;line-height:1.35}.gcnt-lab button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);cursor:pointer;font:inherit;line-height:1.35;overflow-wrap:anywhere}.gcnt-lab button:disabled{opacity:.55;cursor:default}.gcnt-lab button:hover{border-color:var(--gcnt-blue)}.gcnt-lab :focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.gcnt-lab button[aria-pressed=true],.gcnt-lab .gcnt-primary{border-color:var(--gcnt-blue);background:var(--gcnt-blue);color:var(--bg);font-weight:750}",
     ".gcnt-lab .gcnt-gate{margin:14px 0;padding:12px;border-left:3px solid var(--gcnt-gold);background:var(--block-bg,var(--bg))}.gcnt-lab fieldset{min-width:0;margin:10px 0;padding:9px 10px;border:1px solid var(--border);background:var(--bg)}.gcnt-lab legend{max-width:100%;padding:0 3px;color:var(--fg);font-size:13px;font-weight:700;line-height:1.5}.gcnt-lab .gcnt-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.gcnt-lab .gcnt-options button{font-size:12px}.gcnt-lab .gcnt-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.gcnt-lab .gcnt-actions>*{flex:1 1 180px}.gcnt-lab .gcnt-feedback{min-height:1.7em;margin-top:9px;font-weight:700}.gcnt-lab .gcnt-pass{color:var(--gcnt-green)}.gcnt-lab .gcnt-warn{color:var(--gcnt-red)}",
     ".gcnt-lab .gcnt-result{display:grid;gap:12px;margin-top:15px}.gcnt-lab .gcnt-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px}.gcnt-lab .gcnt-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg)}.gcnt-lab .gcnt-metric:nth-child(3n+1){border-color:var(--gcnt-blue)}.gcnt-lab .gcnt-metric:nth-child(3n+2){border-color:var(--gcnt-gold)}.gcnt-lab .gcnt-metric:nth-child(3n){border-color:var(--gcnt-green)}.gcnt-lab .gcnt-metric span{display:block;color:var(--gcnt-muted);font-size:11px}.gcnt-lab .gcnt-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-    ".gcnt-lab .gcnt-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow-x:auto;-webkit-overflow-scrolling:touch}.gcnt-lab .gcnt-svg{display:block;width:100%;min-width:560px;height:auto;color:var(--fg)}.gcnt-lab .gcnt-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.gcnt-lab .gcnt-edge{stroke:var(--border);stroke-width:3}.gcnt-lab .gcnt-highlight{stroke:var(--gcnt-gold);stroke-width:7;stroke-linecap:round}.gcnt-lab .gcnt-node{fill:var(--gcnt-blue);stroke:var(--bg);stroke-width:3}.gcnt-lab .gcnt-node-label{fill:var(--bg)!important;font-size:12px;text-anchor:middle;dominant-baseline:middle;font-weight:750}.gcnt-lab .gcnt-small{font-size:12px;text-anchor:middle}.gcnt-lab .gcnt-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}.gcnt-lab table{width:100%;min-width:720px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.gcnt-lab caption{padding:0 0 7px;text-align:left;color:var(--gcnt-muted);font-size:12px;font-weight:700}.gcnt-lab th,.gcnt-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}.gcnt-lab th{color:var(--gcnt-muted);font-size:11px}.gcnt-lab .gcnt-certificate{padding:10px 12px;border-left:3px solid var(--gcnt-green);background:var(--block-bg,var(--bg));font-size:13px;line-height:1.7}.gcnt-lab .gcnt-certificate.gcnt-fail{border-left-color:var(--gcnt-red)}",
+    ".gcnt-lab .gcnt-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow-x:auto;-webkit-overflow-scrolling:touch}.gcnt-lab .gcnt-svg{display:block;width:620px;min-width:620px;max-width:none;height:400px;color:var(--fg)}.gcnt-lab .gcnt-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.gcnt-lab .gcnt-edge{stroke:var(--border);stroke-width:3}.gcnt-lab .gcnt-highlight{stroke:var(--gcnt-gold);stroke-width:7;stroke-linecap:round}.gcnt-lab .gcnt-node{fill:var(--gcnt-blue);stroke:var(--bg);stroke-width:3}.gcnt-lab .gcnt-node-label{fill:var(--bg)!important;font-size:12px;text-anchor:middle;dominant-baseline:middle;font-weight:750}.gcnt-lab .gcnt-small{font-size:12px;text-anchor:middle}.gcnt-lab .gcnt-table-wrap{max-width:100%;max-height:440px;overflow:auto;-webkit-overflow-scrolling:touch}.gcnt-lab table{width:100%;min-width:1100px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.gcnt-lab caption{padding:0 0 7px;text-align:left;color:var(--gcnt-muted);font-size:12px;font-weight:700}.gcnt-lab th,.gcnt-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}.gcnt-lab th{color:var(--gcnt-muted);font-size:11px}.gcnt-lab .gcnt-certificate{padding:10px 12px;border-left:3px solid var(--gcnt-green);background:var(--block-bg,var(--bg));font-size:13px;line-height:1.7}.gcnt-lab .gcnt-certificate.gcnt-fail{border-left-color:var(--gcnt-red)}",
     "@media(max-width:780px){.gcnt-lab .gcnt-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.gcnt-lab .gcnt-options{grid-template-columns:minmax(0,1fr)}.gcnt-lab .gcnt-frame{padding:5px}.gcnt-lab table{font-size:11.5px}}@media(max-width:460px){.gcnt-lab .gcnt-controls{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){.gcnt-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
   ].join("\n");
 
@@ -320,15 +251,15 @@
 
   function drawGraph(doc, svg, report, uid) {
     clear(svg);
-    svg.setAttribute("viewBox", "0 0 620 320");
+    svg.setAttribute("viewBox", "0 0 620 400");
     svg.appendChild(svgElement(doc, "title", { id: uid + "-title", text: report.label + " 的路径与计数示意" }));
-    svg.appendChild(svgElement(doc, "desc", { id: uid + "-desc", text: "边和节点展示图结构，金色线段是一条当前步长的简单路径证书。" }));
+    svg.appendChild(svgElement(doc, "desc", { id: uid + "-desc", text: "节点与边展示结构；若存在正长度简单路径，金色边显示其中一条。零长度或不存在的情形由图下文字说明。" }));
     var points = [];
     if (report.kind === "path") {
-      for (var pathIndex = 0; pathIndex < report.n; pathIndex += 1) points.push([65 + pathIndex * (490 / (report.n - 1)), 145]);
+      for (var pathIndex = 0; pathIndex < report.n; pathIndex += 1) points.push([65 + pathIndex * (490 / (report.n - 1)), 170]);
     } else {
       var centerX = 300;
-      var centerY = 145;
+      var centerY = 165;
       var radius = report.kind === "complete" ? 105 : 115;
       for (var circleIndex = 0; circleIndex < report.n; circleIndex += 1) {
         var angle = -Math.PI / 2 + (2 * Math.PI * circleIndex) / report.n;
@@ -361,7 +292,7 @@
       svg.appendChild(svgElement(doc, "text", { x: String(point[0]), y: String(point[1]), className: "gcnt-node-label", text: String(index) }));
       svg.appendChild(svgElement(doc, "text", { x: String(point[0]), y: String(point[1] + 36), className: "gcnt-small", text: "d=" + report.degree[index] }));
     });
-    svg.appendChild(svgElement(doc, "text", { x: "310", y: "286", className: "gcnt-small", text: samplePath.length ? "金色：一个简单路径 " + samplePath.join("→") : "当前步长没有简单路径证书" }));
+    svg.appendChild(svgElement(doc, "text", { x: "310", y: "370", className: "gcnt-small", text: samplePath.length === 1 ? "长度 0：只含起点 0，不含边" : samplePath.length ? "金色：一条简单路径 " + samplePath.join("→") : "当前步长不存在简单路径" }));
   }
 
   function predictionSpecs() {
@@ -459,35 +390,58 @@
       : "当前图不是完全图：Cayley 公式不能直接套用。有限计算给出当前图的证书，不把枚举外推成一般计数定理。";
   }
 
+  function evidenceTable(doc, target, caption, headers, rows) {
+    clear(target); var table = element(doc, "table");
+    table.appendChild(element(doc, "caption", { text: caption }));
+    table.appendChild(element(doc, "thead", {}, element(doc, "tr", {}, headers.map(function (v) { return element(doc, "th", { scope: "col", text: v }); }))));
+    table.appendChild(element(doc, "tbody", {}, rows.map(function (row) { return element(doc, "tr", {}, row.map(function (v) { return element(doc, "td", { text: String(v) }); })); })));
+    target.appendChild(table);
+  }
+  function renderCounting(doc, refs, amount, n) {
+    var coins = coinLedger(amount), derangements = derangementLedger(n);
+    refs.countingSummary.textContent = "凑 " + amount + "：硬币组合 " + coins.unordered + " 种；有序投币序列 " + coins.ordered + " 条；只用步长 1/2 的序列 " + fibonacciGeneratingCoefficient(amount) + " 条。下面列出每个中间金额的精确整数，不以浮点近似取整。";
+    evidenceTable(doc, refs.coins, "逐金额递推：按面额累计组合，按最后一枚累计序列", ["金额 m", "仅面额 1", "面额 1/2 组合", "面额 1/2/5 组合", "面额 1/2/5 有序序列", "步长 1/2 序列"], coins.rows.map(function (r) { return [r.amount, r.one, r.oneTwo, r.unordered, r.ordered, r.stairs]; }));
+    var shown = coins.solutions.slice(0, 12);
+    refs.solutions.textContent = "数量三元组 (1 分枚数, 2 分枚数, 5 分枚数)：共 " + coins.solutions.length + " 组，" + (coins.solutions.length > 12 ? "这里只列前 12 组" : "以下完整列出") + "。每组箭头后是它能排成的序列数：" +
+      shown.map(function (s) { return "(" + s.ones + "," + s.twos + "," + s.fives + ") → " + s.orders; }).join("；") + "。全部组合及各自排列数的和，与上方两项结果分别对应。";
+    refs.derangementSummary.textContent = n + " 个不同对象的错排：容斥 " + derangements.count + "，递推 " + derangements.recurrence + "；等可能排列下的精确概率 " + derangements.count + "/" + derangements.total + "。与 1/e 的距离严格小于 1/" + derangements.errorBoundDenominator + "；这是误差界，不是实际误差。";
+    evidenceTable(doc, refs.derangements, "错排容斥：j=0 从全部排列开始，减去至少一个固定点", ["固定点集合大小 j", "选择集合数 C(n,j)", "交集排列数 (n−j)!", "本阶带符号总项", "累计错排候选数"], derangements.rows.map(function (r) { return [r.j, r.choices, r.intersection, r.signedTerm, r.cumulative]; }));
+  }
+
   function mount(root, api) {
-    if (!root || !root.ownerDocument) return;
+    if (!root || !root.ownerDocument || root.getAttribute("data-gcnt-mounted") === "true") return;
+    root.setAttribute("data-gcnt-mounted", "true");
     var doc = root.ownerDocument;
     var uid = "gcnt-" + (++INSTANCE);
-    var state = { kind: "path", n: 4, length: 2, coefficient: 4, revealed: false, predictions: {}, feedback: "" };
+    var state = { kind: "path", n: 4, length: 2, coefficient: 5, derangementSize: 3, revealed: false, predictions: {}, feedback: "" };
     var refs = { questions: [], uid: uid };
     installStyles(doc);
 
     var shell = element(doc, "div", { className: "gcnt-lab" });
-    shell.appendChild(element(doc, "h3", { text: "图计数实验：先说清楚在数路径、树还是系数" }));
-    shell.appendChild(element(doc, "p", { className: "gcnt-note", text: "固定起点的有限模型；简单路径用回溯，游走用动态规划，生成树用行列式。结果区在预测核对前保持隐藏。" }));
+    shell.appendChild(element(doc, "h3", { text: "组合计数实验：路线、系数与容斥" }));
+    shell.appendChild(element(doc, "p", { className: "gcnt-note", text: "先回答三个对象问题，再调整图型、路线、金额和错排规模。整数计数逐项列账；图表可用键盘横向滚动。" }));
 
     var kindSelect = element(doc, "select", { "aria-label": "图型" });
     kindSelect.appendChild(element(doc, "option", { value: "path", text: "P_n：路径图" }));
     kindSelect.appendChild(element(doc, "option", { value: "complete", text: "K_n：完全图" }));
     kindSelect.appendChild(element(doc, "option", { value: "cycle", text: "C_n：循环图" }));
+    kindSelect.appendChild(element(doc, "option", { value: "disconnected", text: "断开图：仅一条边" }));
     var nInput = element(doc, "input", { type: "number", min: "3", max: "7", step: "1", value: "4", "aria-label": "顶点数 n" });
-    var lengthInput = element(doc, "input", { type: "number", min: "0", max: "6", step: "1", value: "2", "aria-label": "步长 k" });
-    var coefficientInput = element(doc, "input", { type: "number", min: "0", max: "10", step: "1", value: "4", "aria-label": "生成函数系数指标 m" });
+    var lengthInput = element(doc, "input", { type: "number", min: "0", max: "12", step: "1", value: "2", "aria-label": "步长 k" });
+    var coefficientInput = element(doc, "input", { type: "number", min: "0", max: "100", step: "1", value: "5", "aria-label": "生成函数系数指标 m" });
+    var derangementInput = element(doc, "input", { type: "number", min: "0", max: "12", step: "1", value: "3", "aria-label": "错排规模 d" });
     shell.appendChild(element(doc, "div", { className: "gcnt-controls" }, [
       element(doc, "div", { className: "gcnt-field" }, [element(doc, "label", { htmlFor: uid + "-kind", text: "图型" }), kindSelect]),
       element(doc, "div", { className: "gcnt-field" }, [element(doc, "label", { htmlFor: uid + "-n", text: "顶点数 n（3–7）" }), nInput]),
       element(doc, "div", { className: "gcnt-field" }, [element(doc, "label", { htmlFor: uid + "-length", text: "路线步长 k" }), lengthInput]),
-      element(doc, "div", { className: "gcnt-field" }, [element(doc, "label", { htmlFor: uid + "-coefficient", text: "系数指标 m" }), coefficientInput])
+      element(doc, "div", { className: "gcnt-field" }, [element(doc, "label", { htmlFor: uid + "-coefficient", text: "金额 / 系数指标 m（0–100）" }), coefficientInput]),
+      element(doc, "div", { className: "gcnt-field" }, [element(doc, "label", { htmlFor: uid + "-derangement", text: "错排规模 d（0–12）" }), derangementInput])
     ]));
     kindSelect.id = uid + "-kind";
     nInput.id = uid + "-n";
     lengthInput.id = uid + "-length";
     coefficientInput.id = uid + "-coefficient";
+    derangementInput.id = uid + "-derangement";
 
     var gate = element(doc, "div", { className: "gcnt-gate" });
     var choicesByQuestion = [
@@ -504,11 +458,12 @@
       fieldset.appendChild(options);
       gate.appendChild(fieldset);
       choicesByQuestion[questionIndex].forEach(function (choice) {
-        var button = element(doc, "button", { type: "button", "aria-pressed": "false", text: choice.label });
+        var button = element(doc, "button", { type: "button", "aria-pressed": "false", "data-question": predictionSpecs()[questionIndex].key, "data-choice": choice.value, text: choice.label });
         button.addEventListener("click", function () {
           var specs = predictionSpecs();
           state.predictions[specs[questionIndex].key] = choice.value;
           state.feedback = "";
+          state.revealed = false;
           render();
         });
         refs.questions[questionIndex].buttons.push({ value: choice.value, label: choice.label, node: button });
@@ -517,21 +472,32 @@
     }
     shell.appendChild(gate);
 
-    var reveal = element(doc, "button", { type: "button", className: "gcnt-primary", text: "核对预测并揭晓" });
+    var reveal = element(doc, "button", { type: "button", disabled: true, className: "gcnt-primary", text: "核对预测并揭晓" });
     var reset = element(doc, "button", { type: "button", text: "重置实验" });
     var feedback = element(doc, "p", { className: "gcnt-feedback", "aria-live": "polite" });
     shell.appendChild(element(doc, "div", { className: "gcnt-actions" }, [reveal, reset]));
     shell.appendChild(feedback);
 
-    var result = element(doc, "div", { className: "gcnt-result", hidden: true });
-    var svg = svgElement(doc, "svg", { className: "gcnt-svg", role: "img", viewBox: "0 0 620 320" });
+    var result = element(doc, "section", { className: "gcnt-result", hidden: true });
+    var resultTitle = element(doc, "h4", { tabindex: "-1", text: "核对计数对象与逐项结果" });
+    result.appendChild(resultTitle);
+    var svg = svgElement(doc, "svg", { className: "gcnt-svg", role: "img", viewBox: "0 0 620 400" });
     var metrics = element(doc, "div", { className: "gcnt-metrics" });
-    var table = element(doc, "div", { className: "gcnt-table-wrap" });
+    var table = element(doc, "div", { className: "gcnt-table-wrap", role: "region", tabindex: "0", "aria-label": "图计数账，左右键滚动" });
     var certificate = element(doc, "p", { className: "gcnt-certificate" });
-    result.appendChild(element(doc, "div", { className: "gcnt-frame" }, svg));
+    result.appendChild(element(doc, "div", { className: "gcnt-frame", role: "region", tabindex: "0", "aria-label": "完整图结构，左右键滚动" }, svg));
     result.appendChild(metrics);
     result.appendChild(table);
     result.appendChild(certificate);
+    result.appendChild(element(doc, "h4", { text: "生成函数：同样金额，不同方案空间" }));
+    refs.countingSummary = element(doc, "p", { className: "gcnt-note" });
+    refs.coins = element(doc, "div", { className: "gcnt-table-wrap", role: "region", tabindex: "0", "aria-label": "逐金额系数账，方向键滚动" });
+    refs.solutions = element(doc, "p", { className: "gcnt-certificate" });
+    result.appendChild(refs.countingSummary); result.appendChild(refs.coins); result.appendChild(refs.solutions);
+    result.appendChild(element(doc, "h4", { text: "容斥：先选固定点集合，再计带符号贡献" }));
+    refs.derangementSummary = element(doc, "p", { className: "gcnt-note" });
+    refs.derangements = element(doc, "div", { className: "gcnt-table-wrap", role: "region", tabindex: "0", "aria-label": "错排容斥账，方向键滚动" });
+    result.appendChild(refs.derangementSummary); result.appendChild(refs.derangements);
     shell.appendChild(result);
     refs.svg = svg;
     refs.metrics = metrics;
@@ -541,28 +507,33 @@
     root.appendChild(shell);
 
     function lock() {
-      var settings = normalizeGraph(kindSelect.value, nInput.value, lengthInput.value, coefficientInput.value);
-      state.kind = settings.kind;
-      state.n = settings.n;
-      state.length = settings.length;
-      state.coefficient = settings.coefficient;
-      state.revealed = false;
-      state.predictions = {};
-      state.feedback = "";
-      render();
+      var inputs = [nInput, lengthInput, coefficientInput, derangementInput];
+      if (inputs.some(function (input) { return input.value.trim() === "" || !input.checkValidity(); })) {
+        state.invalid = true;
+        state.feedback = "输入无效：请使用标注范围内的整数；结果已隐藏，未截断或替换你的输入。";
+        state.revealed = false; result.hidden = true; feedback.textContent = state.feedback; reveal.disabled = true;
+        return;
+      }
+      var settings = normalizeGraph(kindSelect.value, Number(nInput.value), Number(lengthInput.value), Number(coefficientInput.value));
+      state.kind = settings.kind; state.n = settings.n; state.length = settings.length; state.coefficient = settings.coefficient;
+      state.derangementSize = integer(Number(derangementInput.value), 0, 12, "derangement size");
+      state.invalid = false; state.feedback = ""; render();
     }
 
     kindSelect.addEventListener("change", lock);
     nInput.addEventListener("change", lock);
     lengthInput.addEventListener("change", lock);
     coefficientInput.addEventListener("change", lock);
+    derangementInput.addEventListener("change", lock);
     reset.addEventListener("click", function () {
-      state = { kind: "path", n: 4, length: 2, coefficient: 4, revealed: false, predictions: {}, feedback: "" };
+      state = { kind: "path", n: 4, length: 2, coefficient: 5, derangementSize: 3, revealed: false, predictions: {}, feedback: "" };
       kindSelect.value = "path";
       nInput.value = "4";
       lengthInput.value = "2";
-      coefficientInput.value = "4";
+      coefficientInput.value = "5";
+      derangementInput.value = "3";
       render();
+      refs.questions[0].buttons[0].node.focus();
       announce(api, root, "图计数实验已重置。");
     });
     reveal.addEventListener("click", function () {
@@ -576,10 +547,12 @@
       state.revealed = true;
       state.feedback = "已揭晓：" + correct + "/" + specs.length + " 命中；现在按对象分栏读计数。";
       render();
+      resultTitle.focus();
       announce(api, root, state.feedback);
     });
 
     function render() {
+      if (state.invalid) { result.hidden = true; reveal.disabled = true; feedback.textContent = "请先修正范围外或非整数输入；保留你输入的内容。"; renderPredictions(state, refs); return; }
       var settings = normalizeGraph(state.kind, state.n, state.length, state.coefficient);
       state.kind = settings.kind;
       state.n = settings.n;
@@ -589,11 +562,13 @@
       nInput.value = String(state.n);
       lengthInput.value = String(state.length);
       coefficientInput.value = String(state.coefficient);
+      derangementInput.value = String(state.derangementSize);
+      reveal.disabled = state.revealed || !predictionSpecs().every(function (spec) { return state.predictions[spec.key] !== undefined; });
       renderPredictions(state, refs);
       feedback.textContent = state.feedback;
       feedback.className = "gcnt-feedback" + (state.feedback.indexOf("请先") === 0 ? " gcnt-warn" : "");
       result.hidden = !state.revealed;
-      if (state.revealed) renderEvidence(doc, refs, analyzeGraph(state.kind, state.n, state.length, state.coefficient));
+      if (state.revealed) { renderEvidence(doc, refs, analyzeGraph(state.kind, state.n, state.length, state.coefficient)); renderCounting(doc, refs, state.coefficient, state.derangementSize); }
     }
     render();
   }
@@ -606,24 +581,24 @@
     }
     var path = analyzeGraph("path", 4, 2, 4);
     check(path.handshake && path.degreeSum === 2 * path.edgeCount, "P4 handshake");
-    check(path.simplePaths === 1 && path.walks === 2, "P4 path versus walk");
-    check(path.tree && path.spanningTrees === 1, "P4 tree certificate");
-    check(path.generatingCoefficient === 5, "Fibonacci generating coefficient");
+    check(path.simplePaths === 1 && path.walks === 2n, "P4 path versus walk");
+    check(path.tree && path.spanningTrees === 1n, "P4 tree certificate");
+    check(path.generatingCoefficient === 5n, "Fibonacci generating coefficient");
 
     var complete = analyzeGraph("complete", 4, 2, 4);
-    check(complete.simplePaths === 6 && complete.walks === 9, "K4 path versus walk");
-    check(complete.spanningTrees === 16 && complete.cayley === 16, "K4 Cayley certificate");
+    check(complete.simplePaths === 6 && complete.walks === 9n, "K4 path versus walk");
+    check(complete.spanningTrees === 16n && complete.cayley === 16n, "K4 Cayley certificate");
     check(!complete.tree, "K4 is not a tree");
 
     var cycle = analyzeGraph("cycle", 5, 2, 4);
     check(cycle.handshake && cycle.degreeSum === 10, "C5 handshake");
-    check(cycle.simplePaths === 2 && cycle.walks === 4, "C5 path versus walk");
-    check(cycle.spanningTrees === 5 && cycle.cayley === null, "C5 spanning tree boundary");
+    check(cycle.simplePaths === 2 && cycle.walks === 4n, "C5 path versus walk");
+    check(cycle.spanningTrees === 5n && cycle.cayley === null, "C5 spanning tree boundary");
 
     var models = ["path", "complete", "cycle"];
     models.forEach(function (kind) {
       var report = analyzeGraph(kind, 3, 0, 0);
-      check(report.simplePaths === 1 && report.walks === 1, kind + " zero length route");
+      check(report.simplePaths === 1 && report.walks === 1n, kind + " zero length route");
       check(report.matrix.length === 3 && report.edges.length === report.edgeCount, kind + " graph structure");
     });
     return { checks: checks, models: models.length };
@@ -634,6 +609,6 @@
     analyzeGraph: analyzeGraph,
     countSimplePaths: countSimplePaths,
     countWalks: countWalks,
-    selfTest: selfTest
+    selfTest: selfTest, makeMatrix: makeMatrix, validateMatrix: validateMatrix, edgeList: edgeList, degrees: degrees, isConnected: isConnected, findSimplePath: findSimplePath, determinant: determinant, spanningTreeCount: spanningTreeCount, factorial: factorial, binomial: binomial, fibonacciGeneratingCoefficient: fibonacciGeneratingCoefficient, cayleyCount: cayleyCount, coinLedger: coinLedger, derangementLedger: derangementLedger, drawGraph: drawGraph
   };
 });
