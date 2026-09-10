@@ -56,233 +56,385 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-11 07:00</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：先问一串样本到底有多少信息</a><ul>
-<li><a href="#lattice-mc-learning-title">1. 具体谜题：500 个读数，真的是 500 个独立样本吗？</a></li>
-<li><a href="#2">2. 先预测，再揭示</a></li>
-<li><a href="#3">3. 静态后备：一条可审计的随机链</a></li>
-<li><a href="#4">4. 读数的证据等级</a></li>
+<li><a href="#_1">学习层：先造一把能核对采样结果的尺</a><ul>
+<li><a href="#lattice-mc-learning-title">4×4很小，却已经有65536个不同构型</a></li>
 </ul>
 </li>
-<li><a href="#1-hamilton">1. 从统计系综到格点 Hamilton 量</a></li>
-<li><a href="#2-metropolis-boltzmann">2. Metropolis 规则为什么给出 Boltzmann 平稳分布</a></li>
-<li><a href="#3_1">3. 热化、自相关与真正的标准误</a></li>
-<li><a href="#4_1">4. 临界慢化与有限尺寸</a></li>
-<li><a href="#5">5. 边界、更新和物理量的选择</a></li>
-<li><a href="#6">6. 可复现工作流与失败边界</a></li>
+<li><a href="#1">1. 从边界开始定义模型</a></li>
+<li><a href="#2">2. 完整枚举：把庞大的状态表压缩成足够的信息</a></li>
+<li><a href="#3-binder">3. 比热、磁化率与Binder量各在测什么</a></li>
+<li><a href="#4">4. 一次翻转与详细平衡的证明</a></li>
+<li><a href="#5">5. 让每个计数都对应真正执行的工作</a></li>
+<li><a href="#6">6. 相关读数的有限方差</a></li>
+<li><a href="#7-acf">7. 为什么不把所有经验ACF直接相加</a></li>
+<li><a href="#8">8. 分块均值：第二种诊断为何也需要条件</a></li>
+<li><a href="#9">9. 从有限系统到前沿临界问题</a></li>
+<li><a href="#10">10. 四道迁移题：从图像走回公式</a></li>
+<li><a href="#11">11. 用可复核的证据继续做研究</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iv">计算物理 IV · 格点模型与蒙特卡洛<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Newman <em>Computational Physics</em> / Landau &amp; Binder <em>A Guide to Monte Carlo Simulations in Statistical Physics</em> ｜ <strong>前置</strong>：sm-02（系综）、asm-02（Ising 模型）、概率与随机过程线
-<strong>本页问题</strong>：一个 <span class="arithmatex">\(10\times10\)</span> 的自旋格点有 <span class="arithmatex">\(2^{100}\)</span> 个构型，怎么从中得到磁化、能量和临界行为？关键不是“随机抽一些状态”，而是构造目标 Boltzmann 分布为平稳分布的 Markov 链，并诚实计算热化、自相关和有限尺寸误差。</p>
+<p><strong>本页问题</strong>：程序画出一条平滑的磁化曲线，怎样知道它在采样正确模型，又怎样知道误差条可信？</p>
+<p>先完整算清一个小系统，再用同一模型检验随机算法。前置：<a href="sm-02-ensembles.html">统计系综</a>、<a href="comp-01-methods.html">蒙特卡洛的目标平均与有限方差</a>、概率的期望和协方差。本页把格点边界、实际更新、统计窗口和有限尺寸分别列账。</p>
 </blockquote>
 <div data-learning-page></div>
 
 <section aria-labelledby="lattice-mc-learning-title" class="learning-layer">
-<h2 id="_1">学习层：先问一串样本到底有多少信息<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="lattice-mc-learning-title">1. 具体谜题：500 个读数，真的是 500 个独立样本吗？<a class="headerlink" href="#lattice-mc-learning-title" title="Permanent link"></a></h3>
-<p>二维方格上的 Ising 自旋 <span class="arithmatex">\(s_i\in\{-1,+1\}\)</span>，Hamilton 量为</p>
-<div class="arithmatex">\[
-E(s)=-J\sum_{\langle i,j\rangle}s_is_j,
-\qquad
-\pi(s)=Z^{-1}e^{-\beta E(s)}.
-\]</div>
-<p>Metropolis 每次尝试翻转一个自旋。新构型可能被接受，也可能被拒绝；所以链上连续两个测量通常有记忆。特别在临界温度附近，大片自旋一起改变需要很久，原始样本数会严重高估统计信息量。</p>
-<h3 id="2">2. 先预测，再揭示<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>打开实验台以前，先回答四个问题：</p>
-<ol>
-<li>在固定单点翻转提议下，升高温度通常会让接受率上升、下降，还是严格不变？</li>
-<li>满足细致平衡是否自动意味着相邻构型相互独立？</li>
-<li>靠近二维 Ising 临界温度 <span class="arithmatex">\(T_c/J\approx2.269\)</span> 时，最需要警惕的是磁化严格为零，还是临界慢化与长自相关？</li>
-<li>固定随机种子最直接保证的是样本独立、消除有限尺寸误差，还是同一实现可以重放？</li>
-</ol>
-<h3 id="3">3. 静态后备：一条可审计的随机链<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<h2 id="_1">学习层：先造一把能核对采样结果的尺<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="lattice-mc-learning-title">4×4很小，却已经有65536个不同构型<a class="headerlink" href="#lattice-mc-learning-title" title="Permanent link"></a></h3>
+<p>每个自旋只能朝上或朝下，16个自旋共有 <span class="arithmatex">\(2^{16}=65536\)</span> 种组合。这个规模仍能完整枚举，因而我们可以先算出目标平均，再判断一条短链偏离它多少。到了 <span class="arithmatex">\(10\times10\)</span>，构型数变成 <span class="arithmatex">\(2^{100}\)</span>，同样的穷举办法就不适合在这个实验中使用。</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>真正计算什么</th>
+<th>不能据此宣布什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>完整枚举</td>
+<td>3×3或4×4周期格点的全部构型权重</td>
+<td>大系统和无限系统也有同样结果</td>
+</tr>
+<tr>
+<td>单点采样</td>
+<td>每次提议、接受或拒绝、每条实际记录</td>
+<td>固定种子保证独立或热化</td>
+</tr>
+<tr>
+<td>有限尺寸比较</td>
+<td>两个小格点的精确温度曲线</td>
+<td>两条小系统曲线足以拟合临界指数</td>
+</tr>
+</tbody>
+</table>
+<p>默认取 <span class="arithmatex">\(J=k_B=1\)</span>、<span class="arithmatex">\(L=4\)</span>、<span class="arithmatex">\(T=2.3\)</span>、<span class="arithmatex">\(h=0\)</span>，先运行32个sweep，再每个sweep记录一次，共128条。一个sweep是 <span class="arithmatex">\(L^2\)</span> 次<strong>有放回</strong>选点提议，不是保证每个格点恰好更新一次。</p>
 <div class="learning-lab" data-learning-lab="physics-lattice-monte-carlo">
-<p><strong>无 JavaScript 时的静态读法。</strong>默认实验取 <span class="arithmatex">\(L=10\)</span>、<span class="arithmatex">\(T/J=2.3\)</span>、热化 <span class="arithmatex">\(250\)</span> sweep、测量 <span class="arithmatex">\(1000\)</span> sweep、每隔 <span class="arithmatex">\(2\)</span> sweep 记一次，故磁化序列有 <span class="arithmatex">\(N=500\)</span> 个读数，固定种子为 <span class="arithmatex">\(20260827\)</span>。程序的单点翻转规则是</p>
-<div class="arithmatex">\[
-\Delta E=2Js_i\sum_{j\sim i}s_j,
-\qquad
-P_{\mathrm{acc}}=\min\{1,e^{-\Delta E/(k_BT)}\}.
-\]</div>
-<p>全体自旋为 <span class="arithmatex">\(+1\)</span> 时，翻转任何一个自旋有 <span class="arithmatex">\(\Delta E=8J\)</span>；在默认温度下接受概率是 <span class="arithmatex">\(e^{-8/2.3}\approx0.0309\)</span>。这只是局部转移概率，不是整条链的独立性证书。</p>
-<p>固定种子的一次默认运行给出以下可重放读数（末位是有限伪随机实现的结果）：</p>
+<p><strong>无JavaScript也能核对。</strong> 全正构型有 <span class="arithmatex">\(2L^2\)</span> 条同向键，因此零场能量为 <span class="arithmatex">\(-2L^2\)</span>。翻转一个自旋让四条键各增加2，故 <span class="arithmatex">\(\Delta E=8\)</span>。默认温度下接受概率为 <span class="arithmatex">\(e^{-8/2.3}\)</span>，约0.0309。</p>
+<p>下面把完整有限和与seed为20260911的一次短链并排列出。所有随机初值和更新均实际执行，完整枚举不使用这条短链。</p>
 <table>
 <thead>
 <tr>
 <th>量</th>
-<th style="text-align: right;">默认读数</th>
-<th>正确解释</th>
+<th style="text-align: right;">默认数值</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>能量/自旋 <span class="arithmatex">\(\langle e\rangle\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(-1.47672\)</span></td>
-<td>取样后的热力学观测量</td>
+<td>精确能量均值/自旋</td>
+<td style="text-align: right;">-1.54131149246</td>
 </tr>
 <tr>
-<td>绝对磁化 <span class="arithmatex">\(\langle\lvert m\rvert\rangle\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.76344\)</span></td>
-<td>有限 <span class="arithmatex">\(L\)</span> 下用绝对值避免对称翻转抵消</td>
+<td>精确有符号磁化均值（理论为0，表内保留浮点结果）</td>
+<td style="text-align: right;">-1.05035394182e-19</td>
 </tr>
 <tr>
-<td>接受率</td>
-<td style="text-align: right;"><span class="arithmatex">\(0.186448\)</span></td>
-<td>提议尺度与温度共同决定</td>
+<td>精确绝对磁化均值</td>
+<td style="text-align: right;">0.833798914587</td>
 </tr>
 <tr>
-<td>绝对磁化 <span class="arithmatex">\(\tau_{\mathrm{int}}(\lvert m\rvert)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(4.5924\)</span></td>
-<td>对当前记录量 <span class="arithmatex">\(\lvert m\rvert\)</span> 的相关时间</td>
+<td>精确比热/自旋</td>
+<td style="text-align: right;">0.794329749298</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(N_{\mathrm{eff}}(\lvert m\rvert)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(54.44\)</span></td>
-<td>远少于原始 <span class="arithmatex">\(N=500\)</span></td>
+<td>精确磁化率/自旋</td>
+<td style="text-align: right;">5.19986795893</td>
+</tr>
+<tr>
+<td>本次能量均值/自旋</td>
+<td style="text-align: right;">-1.486328125</td>
+</tr>
+<tr>
+<td>本次有符号磁化均值</td>
+<td style="text-align: right;">0.193359375</td>
+</tr>
+<tr>
+<td>本次绝对磁化均值</td>
+<td style="text-align: right;">0.822265625</td>
+</tr>
+<tr>
+<td>真实总提议数</td>
+<td style="text-align: right;">2560</td>
+</tr>
+<tr>
+<td>真实总接受数</td>
+<td style="text-align: right;">456</td>
+</tr>
+<tr>
+<td>绝对磁化IMS标准误诊断</td>
+<td style="text-align: right;">0.0358113864523</td>
+</tr>
+<tr>
+<td>绝对磁化IMS有效样本诊断</td>
+<td style="text-align: right;">33.2403309741</td>
+</tr>
+<tr>
+<td>绝对磁化IMS相关时间诊断</td>
+<td style="text-align: right;">1.92537192394</td>
+</tr>
+<tr>
+<td>实际均匀数调用数</td>
+<td style="text-align: right;">5136</td>
 </tr>
 </tbody>
 </table>
-<p>有效样本的透明估计使用</p>
-<div class="arithmatex">\[
-\tau_{\mathrm{int}}\approx\frac12+\sum_{k\ge1}\rho_m(k),
-\qquad
-N_{\mathrm{eff}}\approx\frac{N}{2\tau_{\mathrm{int}}}.
-\]</div>
-<p>默认链的 <span class="arithmatex">\(500\)</span> 个测量因此不能按 <span class="arithmatex">\(1/\sqrt{500}\)</span> 直接报误差。有限尺寸研究每个 <span class="arithmatex">\(L\)</span> 重新热化，在同一 <span class="arithmatex">\(T/J=2.3\)</span> 下得到一组诊断值：</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: right;"><span class="arithmatex">\(L\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(\langle\lvert m\rvert\rangle\)</span></th>
-<th style="text-align: right;">SE</th>
-<th style="text-align: right;"><span class="arithmatex">\(\tau_{\mathrm{int}}(\lvert m\rvert)\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(N_{\mathrm{eff}}(\lvert m\rvert)\)</span></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">0.823</td>
-<td style="text-align: right;">0.0191</td>
-<td style="text-align: right;">1.60</td>
-<td style="text-align: right;">156.1</td>
-</tr>
-<tr>
-<td style="text-align: right;">6</td>
-<td style="text-align: right;">0.769</td>
-<td style="text-align: right;">0.0386</td>
-<td style="text-align: right;">7.02</td>
-<td style="text-align: right;">35.6</td>
-</tr>
-<tr>
-<td style="text-align: right;">8</td>
-<td style="text-align: right;">0.790</td>
-<td style="text-align: right;">0.0182</td>
-<td style="text-align: right;">2.50</td>
-<td style="text-align: right;">100.0</td>
-</tr>
-<tr>
-<td style="text-align: right;">10</td>
-<td style="text-align: right;">0.749</td>
-<td style="text-align: right;">0.0302</td>
-<td style="text-align: right;">5.96</td>
-<td style="text-align: right;">41.9</td>
-</tr>
-<tr>
-<td style="text-align: right;">12</td>
-<td style="text-align: right;">0.653</td>
-<td style="text-align: right;">0.0593</td>
-<td style="text-align: right;">13.11</td>
-<td style="text-align: right;">19.1</td>
-</tr>
-</tbody>
-</table>
-<p>这张表同时展示了两个事实：增大 <span class="arithmatex">\(L\)</span> 可以减小有限尺寸偏差，却可能显著增加自相关；有限伪随机样本中的各行也不必随 <span class="arithmatex">\(L\)</span> 单调。这里每个尺寸都真正使用上方声明的 250/1000 sweep 预算，没有暗中截短；一次短链上的趋势仍不能直接冒充热力学极限。实验把能量/磁化轨迹、自相关函数、<span class="arithmatex">\(L\)</span> 收敛和最终周期格点一起画出，避免把“随机点很多”错当作“证据很多”。</p>
+<p>短链均值与精确目标的差是<strong>这一次误差</strong>；IMS标准误是由短链估出的诊断量，不能把两者混称为“真实误差条”。更不能从接受率推断目标平均已被充分访问。</p>
 </div>
-<h3 id="4">4. 读数的证据等级<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<ul>
-<li>接受率只告诉我们提议有多常被收下；它不检验目标分布、热化时间或混合速度。</li>
-<li>固定 seed 能重放同一条伪随机路径；它不会增加独立样本，也不会修正边界条件。</li>
-<li>自相关修正后的标准误只处理抽样相关性；模型、有限尺寸和临界拟合还有别的误差。</li>
-<li>一次链满足详细平衡的代码结构，不等于已经用有限长度充分采样了平稳分布。</li>
-</ul>
+<p><img alt="同一个格点模型的精确分布、采样诊断和有限系统曲线" src="assets/img/comp-04-lattice-ledgers.svg" /></p>
+<p>静态图与实验使用同一组模型定义。磁化概率图保留所有可取值；经验ACF保留全部滞后；温度曲线保留全部温度点。曲线之间的连线便于阅读，不会增加新的观测或精确求和点。</p>
 </section>
-<h2 id="1-hamilton">1. 从统计系综到格点 Hamilton 量<a class="headerlink" href="#1-hamilton" title="Permanent link"></a></h2>
-<p>正则系综给出观测量的期望</p>
+<h2 id="1">1. 从边界开始定义模型<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(n=L^2\)</span>，自旋 <span class="arithmatex">\(s_{x,y}\in\{-1,+1\}\)</span>，下标按模 <span class="arithmatex">\(L\)</span> 环绕。能量和总磁化定义为</p>
 <div class="arithmatex">\[
-\langle A\rangle_\beta=\frac{\sum_sA(s)e^{-\beta E(s)}}{\sum_se^{-\beta E(s)}},
-\qquad \beta=\frac1{k_BT}.
+E_0(s)=-J\sum_{x,y}s_{x,y}
+ (s_{x+1,y}+s_{x,y+1}),\qquad
+M(s)=\sum_{x,y}s_{x,y},\qquad E(s)=E_0(s)-hM(s).
 \]</div>
-<p>当格点数为 <span class="arithmatex">\(L^2\)</span> 时，构型数 <span class="arithmatex">\(2^{L^2}\)</span> 很快超过直接枚举能力。以二维 Ising 为例，局部相互作用让能量本身容易计算，但配分函数 <span class="arithmatex">\(Z\)</span> 仍然难以求和。蒙特卡洛的目标是生成构型 <span class="arithmatex">\(s^{(0)},s^{(1)},\ldots\)</span>，使长期时间平均逼近上式，而不是宣称每一个样本都“代表平均状态”。</p>
-<p>在周期边界的方格上，每个格点有四个邻居。每条键只计一次时，能量/自旋的范围是 <span class="arithmatex">\([-2J,2J]\)</span>。磁化</p>
+<p>只写向右和向上的邻居，是为了让每条无向键恰好计一次。翻转时却必须查看全部四个邻居，因为四条相关键都会改变。若把能量中的双计数与更新中的单计数混用，程序仍可能运行稳定，但采样的已是另一个模型。</p>
+<p>实验取 <span class="arithmatex">\(J=k_B=1\)</span>，所以 <span class="arithmatex">\(T\)</span> 是以 <span class="arithmatex">\(J/k_B\)</span> 为单位的温度，<span class="arithmatex">\(h\)</span> 是以 <span class="arithmatex">\(J\)</span> 为单位的场能量参数；<span class="arithmatex">\(\beta=1/T\)</span>。要恢复单位，Boltzmann因子应写 <span class="arithmatex">\(e^{-E/(k_BT)}\)</span>，不能把摄氏数值直接塞进指数。</p>
+<p>单位自旋的量为</p>
 <div class="arithmatex">\[
-m(s)=\frac1{L^2}\sum_i s_i
+e=\frac E n,\qquad m=\frac M n,\qquad |m|=\frac{|M|}{n}.
 \]</div>
-<p>在零外场下具有 <span class="arithmatex">\(m\leftrightarrow-m\)</span> 对称；有限链可能在两个相之间来回，也可能在测量时间内只停留在一个相。于是报告 <span class="arithmatex">\(\langle m\rangle\)</span>、<span class="arithmatex">\(\langle\lvert m\rvert\rangle\)</span> 还是分支条件磁化，必须先说明问题的对称性和采样时间。</p>
-<h2 id="2-metropolis-boltzmann">2. Metropolis 规则为什么给出 Boltzmann 平稳分布<a class="headerlink" href="#2-metropolis-boltzmann" title="Permanent link"></a></h2>
-<p>从当前构型 <span class="arithmatex">\(s\)</span> 选择提议 <span class="arithmatex">\(s'\)</span>。单点翻转的提议概率在周期格点上对称，即 <span class="arithmatex">\(q(s\to s')=q(s'\to s)\)</span>。接受概率取</p>
+<p>零场能量始终在 <span class="arithmatex">\([-2Jn,2Jn]\)</span> 内，但上界未必能达到。偶数 <span class="arithmatex">\(L\)</span> 的棋盘构型让每条键反向；奇数周期长度绕一圈后不能让每条键都反向。完整枚举给出 <span class="arithmatex">\(L=3\)</span> 时最高 <span class="arithmatex">\(E_0=6J\)</span>，并非 <span class="arithmatex">\(18J\)</span>。这也是不能把3×3与4×4的所有差别只归因于“大小”的原因。</p>
+<h2 id="2">2. 完整枚举：把庞大的状态表压缩成足够的信息<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>当能量只依赖 <span class="arithmatex">\((E_0,M)\)</span>，可以按这两个整数汇总构型数</p>
 <div class="arithmatex">\[
-a(s\to s')=\min\left(1,\frac{\pi(s')}{\pi(s)}\right)
-  =\min\{1,e^{-\beta[E(s')-E(s)]}\}.
+g(E_0,M)=\#\{s:E_0(s)=E_0,\ M(s)=M\}.
 \]</div>
-<p>设 <span class="arithmatex">\(\Delta E=E(s')-E(s)&gt;0\)</span>，则</p>
+<p>于是</p>
 <div class="arithmatex">\[
-\pi(s)q(s\to s')a(s\to s')
- =\pi(s)q e^{-\beta\Delta E}
- =\pi(s')q
- =\pi(s')q(s'\to s)a(s'\to s).
+Z(T,h)=\sum_{E_0,M}g(E_0,M)e^{-(E_0-hM)/T},
+\qquad
+p(E_0,M)=\frac{g(E_0,M)e^{-(E_0-hM)/T}}{Z}.
 \]</div>
-<p>若 <span class="arithmatex">\(\Delta E\le0\)</span>，正向接受率为 1，交换 <span class="arithmatex">\(s,s'\)</span> 后同样得到相等关系。这就是 detailed balance，因而 <span class="arithmatex">\(\pi\)</span> 是转移矩阵的平稳分布。有限温度下单点翻转通常还满足不可约性和非周期性，使平稳分布在适当条件下唯一并且链可收敛到它。</p>
-<p>这个证明有清楚的边界：如果提议不对称，就不能删掉 <span class="arithmatex">\(q\)</span> 的 Hastings 比例；如果只允许保持某个子区域的翻转，链可能不再不可约；如果权重含符号而非非负概率，普通 Metropolis 不能直接采样。证明“平稳”也没有给出达到平稳所需的时间。</p>
-<h2 id="3_1">3. 热化、自相关与真正的标准误<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p>从全随机、全正或某个实验构型开始，前一段轨迹含有初值记忆。热化长度 <span class="arithmatex">\(N_{\mathrm{burn}}\)</span> 应通过多初值链、可观测量轨迹和分块稳定性估计，而不是凭一个漂亮的起点数字决定。</p>
-<p>热化后，对观测量 <span class="arithmatex">\(A_t\)</span> 先估计均值和方差，再定义中心化自相关</p>
+<p>本实验逐一访问全部 <span class="arithmatex">\(2^n\)</span> 个构型；表格列出所有非零的联合态密度桶。对每个桶求和时，已乘上桶内全部构型数，因此没有把一个高简并度能级错当成一个构型。核对的第一步是</p>
 <div class="arithmatex">\[
-\rho_A(k)=\frac{\langle(A_t-\bar A)(A_{t+k}-\bar A)\rangle}{\langle(A_t-\bar A)^2\rangle}.
+\sum_{E_0,M}g(E_0,M)=2^n,\qquad
+\sum_{E_0,M}p(E_0,M)=1.
 \]</div>
-<p>若样本独立，<span class="arithmatex">\(\rho(k&gt;0)=0\)</span>，均值方差约为 <span class="arithmatex">\(\sigma_A^2/N\)</span>。相关链中</p>
+<p>低温下直接计算指数可能溢出。这里减去已知最低能量 <span class="arithmatex">\(E_{\min}=-2n-|h|n\)</span>，计算</p>
 <div class="arithmatex">\[
-\operatorname{Var}(\bar A)\approx\frac{\sigma_A^2}{N}
-\left(1+2\sum_{k\ge1}\rho_A(k)\right)
- =\frac{2\tau_{\mathrm{int}}\sigma_A^2}{N}.
+w=g\,e^{-(E-E_{\min})/T},\quad
+Z_{\rm scaled}=\sum w,\quad
+p=\frac{w}{Z_{\rm scaled}},\quad
+\log Z=\log Z_{\rm scaled}-\frac{E_{\min}}T.
 \]</div>
-<p>实验的 <span class="arithmatex">\(N_{\mathrm{eff}}=N/(2\tau_{\mathrm{int}})\)</span> 是一阶透明估计：它让读者看见为什么 <span class="arithmatex">\(500\)</span> 个 raw readings 可能只相当于几十个独立读数。长滞后处的样本自相关本身也有噪声，不能无限制地把正负小波动相加；实际工作会用自洽窗口、batch means、多个独立链或 cluster algorithm 做稳健比较。</p>
-<h2 id="4_1">4. 临界慢化与有限尺寸<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p>二维零场 Ising 的无限系统在 <span class="arithmatex">\(T_c/J\approx2.269\)</span> 处发生相变。临界附近关联长度 <span class="arithmatex">\(\xi\)</span> 变大，局部翻转一次只能改变一小块边界；链的混合时间通常按</p>
+<p>这是同一概率的稳定重写；没有改变温度或偷偷削平权重。“精确枚举”指完整有限和，指数和求和仍有浮点舍入误差。</p>
+<p>零场下，全局翻转 <span class="arithmatex">\(s\mapsto-s\)</span> 保持 <span class="arithmatex">\(E_0\)</span> 不变，使 <span class="arithmatex">\(M\mapsto-M\)</span>，所以有限系统的精确 <span class="arithmatex">\(\langle m\rangle=0\)</span>。与此同时 <span class="arithmatex">\(\langle|m|\rangle\)</span> 可以接近1：低温概率集中在接近全正和全负的两端。<strong>均值抵消与每个状态都接近零，是完全不同的图像。</strong></p>
+<h2 id="3-binder">3. 比热、磁化率与Binder量各在测什么<a class="headerlink" href="#3-binder" title="Permanent link"></a></h2>
+<p>固定外场时，对有限配分和直接求导：</p>
 <div class="arithmatex">\[
-\tau\sim\xi^z
+\frac{\partial\langle E\rangle}{\partial\beta}
+=-\bigl(\langle E^2\rangle-\langle E\rangle^2\bigr).
 \]</div>
-<p>增长，这就是 critical slowing down。Metropolis 的单点更新在临界处可能很慢；Wolff 或 Swendsen--Wang 的集团更新以一簇自旋为单位改变状态，能降低动态临界指数，但每一种算法仍需检查平稳分布、接受/构造规则和统计误差。</p>
-<p>有限 <span class="arithmatex">\(L\)</span> 没有严格的热力学相变：自由能对有限构型和有限分区仍是解析的。不同 <span class="arithmatex">\(L\)</span> 的磁化、比热峰和 Binder cumulant 交点只能构成有限尺寸标度证据。要估计临界指数，应记录 <span class="arithmatex">\(L\)</span>、热化长度、测量间隔、<span class="arithmatex">\(\tau\)</span>、误差条和拟合区间；不能从一条 <span class="arithmatex">\(L=10\)</span> 的 S 形曲线宣布无限系统的指数。</p>
-<p>本实验的 <span class="arithmatex">\(L=4,6,8,10,12\)</span> 表格并不追求高精度临界指数，它演示验证顺序：先看每个 <span class="arithmatex">\(L\)</span> 的有效样本是否足够，再谈趋势；如果 <span class="arithmatex">\(L=12\)</span> 的 <span class="arithmatex">\(\tau_{\mathrm{int}}\)</span> 已经让 <span class="arithmatex">\(N_{\mathrm{eff}}\)</span> 很小，就应增加计算或换算法，而不是把标准误写成 raw count 的结果。</p>
-<h2 id="5">5. 边界、更新和物理量的选择<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p>周期边界减少边缘效应，但它不是唯一物理选择。开放边界、固定边界、自旋玻璃耦合和外场都改变 Hamilton 量以及临界行为。单点翻转的 <span class="arithmatex">\(\Delta E\)</span> 必须使用与能量定义完全相同的邻居集合；漏掉一个周期邻居，程序仍可能稳定、可重复，却在采样错误模型。</p>
-<p>接受率也有两种常见误读。接受率接近 1 可能意味着温度很高或提议很小，链每一步都动但探索慢；接受率很低可能意味着提议过大或系统被冻结。它应和自相关、观测量方差及跨初值一致性一起看。对于绝对磁化，<span class="arithmatex">\(m\)</span> 与 <span class="arithmatex">\(-m\)</span> 的对称翻转被折叠，结果和 <span class="arithmatex">\(m\)</span> 的自相关并不是同一个统计对象；报告时要保留观测量定义。</p>
-<h2 id="6">6. 可复现工作流与失败边界<a class="headerlink" href="#6" title="Permanent link"></a></h2>
-<p>一次可审计的格点模拟至少记录：<span class="arithmatex">\(L\)</span>、边界、<span class="arithmatex">\(J\)</span>、<span class="arithmatex">\(T\)</span>、外场、初始化、更新规则、热化 sweep、测量间隔、总测量数、随机数算法与 seed。固定 seed 允许回放、定位回归错误和比较代码版本；真正的统计可信度还需要多个 seed、热化敏感性和自相关诊断。</p>
-<p><strong>失败边界：</strong></p>
-<ul>
-<li>把满足 detailed balance 写成“每一步已经来自 Boltzmann”，忽略 burn-in 和 mixing。</li>
-<li>看到磁化曲线平滑，就把相关读数当成独立样本。</li>
-<li>只调大 <span class="arithmatex">\(L\)</span> 而不增加有效测量，误差条可能变差而不是变好。</li>
-<li>只看单个温度的结果，无法区分错误的邻居、错误的 <span class="arithmatex">\(\beta\)</span> 和真实的相变趋势。</li>
-<li>用确定性伪随机重放替代独立链；重放是软件测试工具，不是额外数据。</li>
-</ul>
-<p><strong>迁移任务：</strong>加入外场 <span class="arithmatex">\(h\)</span>，Hamilton 量改为</p>
+<p>利用 <span class="arithmatex">\(d\beta/dT=-1/T^2\)</span>，每自旋比热为</p>
 <div class="arithmatex">\[
-E=-J\sum_{\langle i,j\rangle}s_is_j-h\sum_i s_i.
+c_V=\frac1n\frac{\partial\langle E\rangle}{\partial T}
+=\frac{\operatorname{Var}(E)}{nT^2}.
 \]</div>
-<p>先推导单点翻转新的 <span class="arithmatex">\(\Delta E\)</span>，再预测 <span class="arithmatex">\(h&gt;0\)</span> 如何改变 <span class="arithmatex">\(m\)</span> 的对称性和自相关。运行多组 <span class="arithmatex">\(L\)</span> 与 <span class="arithmatex">\(T\)</span>，比较 Metropolis 和集团更新的 <span class="arithmatex">\(\tau_{\mathrm{int}}\)</span>，最后说明：要把磁化曲线用作临界证据，还缺哪一项有限尺寸或误差分析？</p>
-<hr />
-<p><em>下一页：如果测到的是被噪声和扩散模糊过的场，问题会反过来——从观测推回源项，并量化哪些部分其实不可辨识。</em></p>
+<p>同理，固定温度下</p>
+<div class="arithmatex">\[
+\chi=\frac{\partial\langle m\rangle}{\partial h}
+=\frac{\operatorname{Var}(M)}{nT}
+=\frac nT\bigl(\langle m^2\rangle-\langle m\rangle^2\bigr).
+\]</div>
+<p>磁化率的响应对象是<strong>有符号磁化</strong>；擅自把上式的 <span class="arithmatex">\(m\)</span> 换成 <span class="arithmatex">\(|m|\)</span>，不会得到同一个导数。实验分别列出所有桶对 <span class="arithmatex">\(c_V\)</span> 和 <span class="arithmatex">\(\chi\)</span> 的非负贡献，便于检查差一个 <span class="arithmatex">\(n\)</span> 或 <span class="arithmatex">\(T\)</span> 的错误。</p>
+<p>本页采用</p>
+<div class="arithmatex">\[
+U_4=1-\frac{\langle m^4\rangle}{3\langle m^2\rangle^2}
+\]</div>
+<p>作为Binder量的定义。零均值Gaussian分布的该量为0，集中在等概率 <span class="arithmatex">\(\pm m_0\)</span> 的双点分布则为 <span class="arithmatex">\(2/3\)</span>。这是描述分布形状的例子，并不是说所有有限温度、非零场的结果都在这两个值之间。非零场时这里仍使用未中心化矩，不能换一个定义后继续比较同一列。</p>
+<h2 id="4">4. 一次翻转与详细平衡的证明<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>翻转第 <span class="arithmatex">\(i\)</span> 个自旋，只有四条邻接键和一个外场项改变，因此</p>
+<div class="arithmatex">\[
+\Delta E=2s_i\left(J\sum_{j\sim i}s_j+h\right).
+\]</div>
+<p>每次均匀选择一个格点，正反提议概率同为 <span class="arithmatex">\(q=1/n\)</span>。接受规则是</p>
+<div class="arithmatex">\[
+a(s,s')=\min\{1,e^{-\Delta E/T}\}.
+\]</div>
+<p>因为</p>
+<div class="arithmatex">\[
+\pi(s)q\,a(s,s')
+=q\min\{\pi(s),\pi(s')\}
+=\pi(s')q\,a(s',s),
+\]</div>
+<p>正反概率流相等。将所有起点求和即得 <span class="arithmatex">\(\pi P=\pi\)</span>，所以Boltzmann分布是平稳分布。拒绝更新时留在原构型，这个自环也属于转移矩阵，不能从路径中删掉。</p>
+<p>在本实验的有限正温度范围内，任何有限能量的单点翻转都有正接受概率；任意两个构型可以通过有限次翻转连通，因此链不可约。全正构型至少有正概率拒绝一次翻转：此时 <span class="arithmatex">\(\Delta E=8+2h&gt;0\)</span>。有限不可约链中一个状态有自环就足以推出非周期性，因而平稳分布唯一、理想链从任何初态都能收敛到它。</p>
+<p>这个证明没有给出多长时间才“足够”。若提议不对称，必须加上Hastings的提议比；若限制可达状态或引入带符号权重，也不能原样沿用此证明。这里的Metropolis步是采样算法的时间，不自动等于材料中的真实自旋动力学时间。</p>
+<h2 id="5">5. 让每个计数都对应真正执行的工作<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>热化为 <span class="arithmatex">\(b\)</span> 个sweep，每隔 <span class="arithmatex">\(d\)</span> 个sweep记录一次，共 <span class="arithmatex">\(N\)</span> 条，则第 <span class="arithmatex">\(j\)</span> 条记录在</p>
+<div class="arithmatex">\[
+t_j=b+jd,\qquad j=1,\ldots,N.
+\]</div>
+<p>实际执行总提议数为</p>
+<div class="arithmatex">\[
+K=(b+Nd)L^2.
+\]</div>
+<p>实验限定 <span class="arithmatex">\(K\le16384\)</span>，超出就明确报错。全部热化步、拒绝步和记录间隔步都有账本；图的横轴使用实际sweep。每次记录时，程序还从全格重新计算 <span class="arithmatex">\(E_0\)</span> 和 <span class="arithmatex">\(M\)</span>，核对局部增量更新。</p>
+<p>本页使用可重放的32位LCG：</p>
+<div class="arithmatex">\[
+z_{k+1}=(1664525z_k+1013904223)\bmod 2^{32},
+\qquad u_k=\frac{z_k+1/2}{2^{32}}.
+\]</div>
+<p>初值消耗 <span class="arithmatex">\(L^2\)</span> 个均匀数，即使选择确定初态也照样消耗；每次提议再消耗两个，一个选格点，一个决定是否接受。总调用数因此是 <span class="arithmatex">\(L^2+2K\)</span>。seed为0是有效且独立于seed为1的重放入口。</p>
+<p>这只是透明的教学随机数实现。理论证明中的随机选择是理想概率模型；确定性LCG重放验证的是代码和计数，不能证明均匀数独立、消除生成器相关性，或把同一seed的重复运行算作新数据。</p>
+<h2 id="6">6. 相关读数的有限方差<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>先假设记录过程已经平稳，观测量为 <span class="arithmatex">\(A_j\)</span>，定义真实协方差</p>
+<div class="arithmatex">\[
+\gamma_k=\operatorname{Cov}(A_j,A_{j+k}),\qquad
+\rho_k=\frac{\gamma_k}{\gamma_0}.
+\]</div>
+<p>展开 <span class="arithmatex">\(\bar A=N^{-1}\sum_j A_j\)</span> 的方差，并按滞后配对，得到精确有限式</p>
+<div class="arithmatex">\[
+\operatorname{Var}(\bar A)
+=\frac1N\left[\gamma_0+
+2\sum_{k=1}^{N-1}\left(1-\frac kN\right)\gamma_k\right].
+\]</div>
+<p>权重 <span class="arithmatex">\(N-k\)</span> 来自相隔 <span class="arithmatex">\(k\)</span> 的记录对数，并非人为窗口。若相关和可求和、<span class="arithmatex">\(N\)</span> 足够长，才近似为</p>
+<div class="arithmatex">\[
+\operatorname{Var}(\bar A)\approx\frac{\sigma_{\rm as}^2}{N},
+\qquad \sigma_{\rm as}^2=\gamma_0+2\sum_{k\ge1}\gamma_k,
+\qquad 2\tau_{\rm int}=\frac{\sigma_{\rm as}^2}{\gamma_0}.
+\]</div>
+<p>常用 <span class="arithmatex">\(N_{\rm eff}=N\gamma_0/\sigma_{\rm as}^2\)</span>。正相关常使误差增大，但负相关也可能降低均值方差，故不能普遍把有效样本数夹到 <span class="arithmatex">\(N\)</span> 以下。<a href="https://mc-stan.org/docs/reference-manual/analysis.html#effective-sample-size">Stan的ESS说明</a>也明确区分了这种情况。</p>
+<p>如果还没忘记初值，方差公式中的平稳前提不成立；误差均方还包括偏差：</p>
+<div class="arithmatex">\[
+\mathbb E[(\bar A-\langle A\rangle_\pi)^2]
+=\operatorname{Var}(\bar A)+
+(\mathbb E\bar A-\langle A\rangle_\pi)^2.
+\]</div>
+<p>热化敏感性需要多初值和更长记录来判断，不能让一条误差条同时冒充偏差、有限尺寸与模型误差的总账。</p>
+<h2 id="7-acf">7. 为什么不把所有经验ACF直接相加<a class="headerlink" href="#7-acf" title="Permanent link"></a></h2>
+<p>对本次有限序列，实验用统一分母 <span class="arithmatex">\(N\)</span>：</p>
+<div class="arithmatex">\[
+\widehat\gamma_k=\frac1N
+\sum_{j=1}^{N-k}(A_j-\bar A)(A_{j+k}-\bar A),
+\quad k=0,\ldots,N-1.
+\]</div>
+<p>所有中心化残差之和为0，因此必有</p>
+<div class="arithmatex">\[
+N\widehat\gamma_0+
+2N\sum_{k=1}^{N-1}\widehat\gamma_k
+=\left[\sum_j(A_j-\bar A)\right]^2=0.
+\]</div>
+<p>所以“把全部经验相关都算得很完整，再无脑相加”反而会给出零！完整展示是为了核查，实际估计必须处理长滞后噪声。</p>
+<p>本页展示Geyer的初始正序列与初始单调序列。对于平稳可逆链，中心化观测量的谱表示可以写为</p>
+<div class="arithmatex">\[
+\gamma_k=\int_{-1}^{1}\lambda^k\,d\mu_A(\lambda).
+\]</div>
+<p>把相邻两项配成</p>
+<div class="arithmatex">\[
+\Gamma_k=\gamma_{2k}+\gamma_{2k+1}
+=\int_{-1}^{1}\lambda^{2k}(1+\lambda)\,d\mu_A(\lambda).
+\]</div>
+<p>因被积函数非负，<span class="arithmatex">\(\Gamma_k\ge0\)</span>；相邻差与二阶差分别多出因子 <span class="arithmatex">\(1-\lambda^2\)</span> 与 <span class="arithmatex">\((1-\lambda^2)^2\)</span>，也非负。因此理论成对序列非负、非增且凸，退化情形允许等号。这给估计窗口提供了结构依据，而不是看到单个负 <span class="arithmatex">\(\rho_k\)</span> 就立即抹去后面的信息。</p>
+<p>实验先形成全部 <span class="arithmatex">\(\widehat\Gamma_k\)</span>，保留首个非正值之前的初始正段；再以到当前位置的累计最小值作单调修正。设保留的修正值为 <span class="arithmatex">\(\widetilde\Gamma_k\)</span>，计算</p>
+<div class="arithmatex">\[
+\widehat\sigma_{\rm IMS}^2
+=-\widehat\gamma_0+2\sum_{\text{保留窗口}}\widetilde\Gamma_k,
+\qquad
+\widehat{\mathrm{SE}}_{\rm IMS}
+=\sqrt{\widehat\sigma_{\rm IMS}^2/N}.
+\]</div>
+<p>原始成对值、IPS保留值、IMS保留值和停止位置全部入表；不作凸性再修正。若 <span class="arithmatex">\(\widehat\gamma_0=0\)</span>，经验相关未定义；若渐近方差估计非正，SE与ESS显示未定义；窗口内未找到截断时也会明确标记。一个正的输出仍只是短序列估计，不能认证收敛。成对估计的条件与构造可参看 <a href="https://www.stat.umn.edu/geyer/8054/notes/initseq.html">Geyer的说明</a>。</p>
+<h2 id="8">8. 分块均值：第二种诊断为何也需要条件<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>将 <span class="arithmatex">\(N=KB\)</span> 条记录划为 <span class="arithmatex">\(K\)</span> 个连续、互不重叠的块，每块 <span class="arithmatex">\(B\)</span> 条：</p>
+<div class="arithmatex">\[
+\bar A_r^{(B)}=\frac1B\sum_{j=(r-1)B+1}^{rB}A_j,
+\qquad
+\widehat{\mathrm{SE}}_B^2=
+\frac1{K(K-1)}\sum_{r=1}^K
+(\bar A_r^{(B)}-\bar A)^2.
+\]</div>
+<p>如果块足够长、不同块的均值相关很弱，这个估计才更接近均值方差。增大 <span class="arithmatex">\(B\)</span> 同时减少 <span class="arithmatex">\(K\)</span>：图的最后一点只有两个块，不能因为它大或平稳就认定“最可靠”。相关方差与分块方法的完整背景见 <a href="https://www.physik.uni-leipzig.de/~janke/Paper/lviv-ising-lecture-janke_corrected.pdf">Janke讲义 §3.1–3.2</a>。</p>
+<p>本实验选择 <span class="arithmatex">\(N=32,64,128,256\)</span>，遍历 <span class="arithmatex">\(B=1,2,4,\ldots,N/2\)</span>，因此所有块长都整除 <span class="arithmatex">\(N\)</span>，没有悄悄扔掉尾部。每种块长的每一个块均值都可查看。</p>
+<p>当全部读数相同时，naive SE和分块SE都是0，但目标系统仍可能有大量未访问构型。更一般地，相关平稳样本的通常样本方差</p>
+<div class="arithmatex">\[
+s^2=\frac1{N-1}\sum_j(A_j-\bar A)^2
+\]</div>
+<p>满足</p>
+<div class="arithmatex">\[
+\mathbb E[s^2]
+=\frac N{N-1}\bigl(\gamma_0-\operatorname{Var}(\bar A)\bigr).
+\]</div>
+<p>它不普遍是单次目标方差 <span class="arithmatex">\(\gamma_0\)</span> 的无偏估计。式子提醒我们：把独立样本公式搬到相关链上之前，要重新检查推导。</p>
+<h2 id="9">9. 从有限系统到前沿临界问题<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>有限正温度下，<span class="arithmatex">\(Z\)</span> 是有限个正指数项的和，故自由能在实参数范围内光滑。比热峰可以很尖，仍不是无限系统的非解析奇点。</p>
+<p>对零外场、铁磁、无限二维方格Ising模型，</p>
+<div class="arithmatex">\[
+T_c=\frac{2J}{k_B\log(1+\sqrt2)}.
+\]</div>
+<p>本实验只在 <span class="arithmatex">\(h=0\)</span> 时标出这个已知极限值；它不是3×3和4×4的拟合结果。<a href="https://www.damtp.cam.ac.uk/user/tong/statphys/statmechhtml/S5.html">Tong §5.3.3</a>给出二维方格对偶关系与临界温度的背景。有限周期边界的精确分区函数仍由本页实际枚举求得，不用无限格点结论替代。</p>
+<p>真正推进临界研究，需要多个更大的尺寸、可控的统计误差和修正标度项。诸如</p>
+<div class="arithmatex">\[
+c_V(L,T),\quad \chi(L,T),\quad U_4(L,T),\quad
+|m|(L,T)
+\]</div>
+<p>的尺度变化要与边界、温度分辨率、拟合区间及跨初值一致性一起报告。局部更新在长程关联附近可能慢化；改变算法后还要比较单位计算成本下的误差，不能仅比较“多少步”。</p>
+<p>另一条推进方向是集团更新。例如零场铁磁Wolff方法以同向邻居间的连接概率 <span class="arithmatex">\(p_{\rm bond}=1-e^{-2J/(k_BT)}\)</span> 构造包含一个随机种子格点的簇，再翻转整簇，见 <a href="https://www.physik.uni-leipzig.de/~janke/Paper/lviv-ising-lecture-janke_corrected.pdf">Janke §2.5.2</a>。它利用模型结构改变采样动力学；本页实验<strong>实现的是单点Metropolis</strong>，并未把集团算法的性能当成已经测过的结果。外场、受挫耦合或量子带符号权重还需要另外的算法论证。</p>
+<h2 id="10">10. 四道迁移题：从图像走回公式<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 在 <span class="arithmatex">\(L=4\)</span>、<span class="arithmatex">\(J=1\)</span>、<span class="arithmatex">\(h=0.2\)</span> 的全正构型中，算能量、翻转一次的能量变化，以及 <span class="arithmatex">\(T=2\)</span> 的接受概率。为何更新公式需要四个邻居，而能量表达式只写两个？</p>
+<details class="answer">
+<summary>答案：键只数一次，改变的键全部计入</summary>
+<p>有 <span class="arithmatex">\(n=16\)</span> 个自旋和32条无向键，故</p>
+<div class="arithmatex">\[
+E=-32-0.2(16)=-35.2,\qquad
+\Delta E=2(4+0.2)=8.4,\qquad
+a=e^{-8.4/2}=e^{-4.2}.
+\]</div>
+<p>四条键各增加2，总计8；磁化由16变14，外场能增加0.4。翻转后能量为 <span class="arithmatex">\(-26.8\)</span>。能量表达式只写右、上邻居是避免双计数；翻转影响左、右、上、下四条键，更新不能漏掉其中两条。</p>
+</details>
+<p><strong>题二。</strong> 零场低温的有限系统几乎等概率在 <span class="arithmatex">\(m=+1\)</span> 和 <span class="arithmatex">\(m=-1\)</span>。分别估计 <span class="arithmatex">\(\langle m\rangle\)</span>、<span class="arithmatex">\(\langle|m|\rangle\)</span>、<span class="arithmatex">\(\chi\)</span> 和 <span class="arithmatex">\(U_4\)</span>。若用 <span class="arithmatex">\(\operatorname{Var}(|M|)/(nT)\)</span> 代替磁化率会怎样？</p>
+<details class="answer">
+<summary>答案：对称性抵消均值，却不消除响应</summary>
+<p>在这个双点近似下</p>
+<div class="arithmatex">\[
+\langle m\rangle=0,\quad \langle|m|\rangle=1,\quad
+\langle m^2\rangle=\langle m^4\rangle=1,
+\quad \chi=\frac nT,\quad U_4=\frac23.
+\]</div>
+<p>而 <span class="arithmatex">\(|M|=n\)</span> 几乎不变，替代公式会给出接近0，遗漏微小外场重新分配正负两端权重产生的响应。真实有限正温度还存在其他构型，因而上述是低温双点近似；完整枚举的结果不会强行等于近似值。</p>
+</details>
+<p><strong>题三。</strong> 为什么“经验ACF算到全部滞后”不意味着可以全部相加？一条32次都等于1的记录应怎样报告？</p>
+<details class="answer">
+<summary>答案：完整展示与有效估计是两件事</summary>
+<p>令 <span class="arithmatex">\(x_j=A_j-\bar A\)</span>。因为 <span class="arithmatex">\(\sum_jx_j=0\)</span>，</p>
+<div class="arithmatex">\[
+\sum_jx_j^2+2\sum_{j\lt\ell}x_jx_\ell=0.
+\]</div>
+<p>按滞后重排即得 <span class="arithmatex">\(\widehat\gamma_0+2\sum_{k=1}^{N-1}\widehat\gamma_k=0\)</span>，所以全加结果是中心化的代数约束，不是有效的误差估计。</p>
+<p>恒定记录中 <span class="arithmatex">\(\widehat\gamma_0=0\)</span>，比值 <span class="arithmatex">\(\widehat\rho_k\)</span> 未定义；均值为1，样本方差及分块SE诊断为0，但不能报告“有32个独立样本”。若零场有限目标均值为0，本次有符号磁化均值误差就是1。应检查相反初值、延长采样和跨势垒访问，并把经验诊断失效明确写出。</p>
+</details>
+<p><strong>题四。</strong> 两个小格点在某个温度附近都有比热峰，能否由此给出无限系统的临界指数？有限零场 <span class="arithmatex">\(\langle m\rangle=0\)</span> 又为何不否定自发磁化？</p>
+<details class="answer">
+<summary>答案：有限和、极限以及取极限的顺序</summary>
+<p>有限配分和始终正且光滑，峰的位置和高度会随尺寸与边界改变；两个小格点不能分辨渐近标度与有限尺寸修正，更不能用无误差条的短链峰拟合精确指数。还需要更多尺寸、温度分辨率、可靠统计误差以及拟合稳定性检验。</p>
+<p>零场下先对任何有限系统求完整平均，正负构型严格抵消。自发磁化考察的却可以是</p>
+<div class="arithmatex">\[
+m_{\rm sp}=\lim_{h\downarrow0}\lim_{L\to\infty}
+\langle m\rangle_{L,T,h},
+\]</div>
+<p>与先令 <span class="arithmatex">\(h=0\)</span> 再求有限系统均值的操作不同。小正场先在大系统中选择一支，随后撤场；是否保留非零极限是热力学问题，不由某条有限短链停留在正磁化一侧来证明。</p>
+</details>
+<h2 id="11">11. 用可复核的证据继续做研究<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p>可先选完整枚举，查看零场磁化分布的两端；再选默认短链，比较同模型目标与本次运行均值；随后切换观测量，观察 <span class="arithmatex">\(e\)</span>、<span class="arithmatex">\(m\)</span>、<span class="arithmatex">\(|m|\)</span> 为什么有不同诊断。最后降低温度、比较全正与全负初态，检查零样本波动为何不能担保准确。</p>
+<p>向更大格点推进时，至少保留边界、<span class="arithmatex">\(J,T,h,L\)</span>、更新规则、初始化、随机数实现、实际提议预算、记录时刻、观测量定义、窗口与块长。每次扩展优先保留一个能求参考答案的极限或小系统。这样，课程中的图不仅展示“发生了什么”，还给出“怎样发现自己算错了”的路径。</p>
+<p>继续阅读：<a href="comp-01-methods.html">采样方法与系综</a>、<a href="comp-02-dynamics-symplectic.html">分子动力学与辛积分</a>、<a href="comp-03-pde-fem.html">PDE离散与边界条件</a>。</p>
+<style>
+article:has(#lattice-mc-learning-title) .katex { position: relative; }
+</style>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="comp-03-pde-fem.html"><span class="pager-label">上一页</span>计算 III · 偏微分方程与有限元</a>
