@@ -56,108 +56,458 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-11 06:20</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_2">学习层：算法给的是一条带条件的证据链，不是一段漂亮动画</a><ul>
-<li><a href="#computational-physics-learning-title">1. 先预测：平稳、独立与守恒是三件事</a></li>
-<li><a href="#2">2. 静态后备：两条链各自缺哪一环</a></li>
-<li><a href="#3">3. 可复现不等于已验证</a></li>
+<li><a href="#_2">学习层：读数多，并不自动意味着知道得多</a><ul>
+<li><a href="#computational-physics-learning-title">一条不动的曲线，可能比一条波动的曲线更不可靠</a></li>
 </ul>
 </li>
-<li><a href="#1-metropolis">1. Metropolis 蒙特卡洛（统计物理的采样机）</a></li>
-<li><a href="#2_1">2. 分子动力学（力学的路）</a></li>
-<li><a href="#3_1">3. 超越基础一瞥</a></li>
-<li><a href="#4">4. 练习与要点（全页可动手）</a></li>
+<li><a href="#1">1. 算法之前，先写出目标平均</a></li>
+<li><a href="#2">2. 随机积分：从一次取点推到误差条</a></li>
+<li><a href="#3">3. 分层为什么在这个例子中更有效</a></li>
+<li><a href="#4-metropolis">4. 两态Metropolis：把详细平衡完整算一遍</a></li>
+<li><a href="#5">5. 自相关怎样进入均值方差</a></li>
+<li><a href="#6">6. 初始化偏差不能藏进标准误</a></li>
+<li><a href="#7">7. 周期、冻结与隔步记录的反例</a></li>
+<li><a href="#8">8. 分子动力学：方程正确以后，还要问平均是什么</a></li>
+<li><a href="#9">9. 一个谐振子，两个不同的概率分布</a></li>
+<li><a href="#10">10. 正则相点怎样真正抽出来</a></li>
+<li><a href="#11">11. 精确的运动，也会被不当观测时刻误读</a></li>
+<li><a href="#12">12. 迁移练习与完整答案</a></li>
+<li><a href="#13">13. 实验范围、伪随机规则与下一步</a></li>
 </ul>
 </div>
 </details>
 <h1 id="_1">计算物理 · 蒙特卡洛与分子动力学<a class="headerlink" href="#_1" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Newman <em>Computational Physics</em> / Frenkel–Smit 入门 ｜ <strong>前置</strong>：sm-02、asm-02、数学站数值线 + 概率线（本页大量复用）
-一页把物理模拟的两大范式立起来：<strong>蒙特卡洛</strong>（采样构型空间——统计的路）与<strong>分子动力学</strong>（积分运动方程——力学的路），以及共同的行规（误差条、平衡判定、有限尺寸）。数学侧的引擎（Markov 链、辛积分、方差缩减）你的数学站已建，本页只接物理插头。</p>
+<p><strong>本页问题</strong>：程序给出一千个读数，这一千个数究竟在估计什么？随机数、运动轨迹和误差条之间，各需要哪一步论证？</p>
+<p>从三个能算出参考答案的小模型出发：积分、两态磁矩、谐振子。先把目标测度、初始化、相关性和观测时刻分清，再走向<a href="comp-04-monte-carlo-lattice.html">格点蒙特卡洛</a>与<a href="comp-02-dynamics-symplectic.html">实际辛积分</a>。前置：<a href="sm-02-ensembles.html">统计系综</a>、概率期望与方差、Hamilton方程。</p>
 </blockquote>
 <div data-learning-page></div>
 
 <section aria-labelledby="computational-physics-learning-title" class="learning-layer">
-<h2 id="_2">学习层：算法给的是一条带条件的证据链，不是一段漂亮动画<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
-<h3 id="computational-physics-learning-title">1. 先预测：平稳、独立与守恒是三件事<a class="headerlink" href="#computational-physics-learning-title" title="Permanent link"></a></h3>
-<p>实验把 <span class="arithmatex">\(8\times8\)</span> Ising Metropolis 回放与谐振子积分放在同一台审计台上。先判断：</p>
-<ol>
-<li>Metropolis 满足细致平衡，是否意味着相邻构型彼此独立？</li>
-<li>记录了 <span class="arithmatex">\(N\)</span> 次测量，标准误是否可以不看自相关就一律按 <span class="arithmatex">\(1/\sqrt N\)</span> 缩放？</li>
-<li>Velocity Verlet 是辛、时间可逆的二阶方法，是否意味着原始哈密顿量在每一步精确不变？</li>
-</ol>
-<p>提交后才显示接受率、lag-1 相关、诊断性有效样本数，以及 Verlet/RK4 的能量误差轨迹。两个模式共用“目标、算法、观测、证书边界”四列表，不让“能跑”替代“采到了对的分布”或“长期结构可信”。</p>
-<h3 id="2">2. 静态后备：两条链各自缺哪一环<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<div class="learning-lab" data-learning-lab="monte-carlo-md">
+<h2 id="_2">学习层：读数多，并不自动意味着知道得多<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h3 id="computational-physics-learning-title">一条不动的曲线，可能比一条波动的曲线更不可靠<a class="headerlink" href="#computational-physics-learning-title" title="Permanent link"></a></h3>
+<p>若一段磁化记录始终为1，样本方差确实为0。但如果目标平均是0，程序只是一直停在错误的一边。另一个程序不断在正负之间交替，某些平均反而比独立抽样更准确。不能只凭曲线是否平滑判断模拟质量。</p>
 <table>
 <thead>
 <tr>
-<th>方法</th>
-<th>数学目标</th>
-<th>当前可验量</th>
-<th>仍需另验</th>
+<th>实验</th>
+<th>能亲手改变的量</th>
+<th>要区分的两件事</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Metropolis</td>
-<td><span class="arithmatex">\(\pi(s)\propto e^{-\beta E(s)}\)</span> 为平稳分布</td>
-<td><span class="arithmatex">\(\Delta E\)</span>、接受率、能量/磁化序列</td>
-<td>不可约性、热化、混合、自相关、有限尺寸</td>
+<td>随机积分</td>
+<td>样本数与种子</td>
+<td>一次误差与估计量的方差</td>
 </tr>
 <tr>
-<td>Velocity Verlet</td>
-<td>近似 Hamilton 流且保持辛结构</td>
-<td>时间反演、稳定区、能量误差有界振荡</td>
-<td>步长收敛、力场截断、热浴与系综误差</td>
+<td>两态Metropolis</td>
+<td>场、提议概率、初值、热化和记录间隔</td>
+<td>平稳分布与路径独立性</td>
 </tr>
 <tr>
-<td>RK4 对照</td>
-<td>高阶局部截断精度</td>
-<td>同初值同 <span class="arithmatex">\(\Delta t\)</span> 的能量轨迹</td>
-<td>非辛长时间偏差不由阶数单独决定</td>
+<td>谐振子系综</td>
+<td>能量、温度参数和观测时刻</td>
+<td>精确运动与正确的平均测度</td>
 </tr>
 </tbody>
 </table>
-<p>对周期边界二维 Ising，单点翻转的</p>
-<div class="arithmatex">\[
-\Delta E=2s_i\sum_{j\sim i}s_j,
-\qquad
-a(s\to s')=\min\{1,e^{-\beta\Delta E}\}.
-\]</div>
-<p>细致平衡保证正确的不变分布，却不提供混合速度。实验的 <span class="arithmatex">\(N_{\mathrm{eff}}\approx N(1-\rho_1)/(1+\rho_1)\)</span> 只是一阶 AR 形状的透明诊断，不是完整积分自相关时间估计；临界附近长记忆尤其会让它过度乐观。</p>
-<p>对 <span class="arithmatex">\(\ddot x=-\omega^2x\)</span>，Velocity Verlet 的线性稳定条件是 <span class="arithmatex">\(\lvert\omega\Delta t\rvert&lt;2\)</span>。稳定区内真能量通常围绕初值振荡；后向误差分析解释的是近似守恒一个影子哈密顿量，而非逐步精确守恒原来的 <span class="arithmatex">\(H\)</span>。</p>
-<h3 id="3">3. 可复现不等于已验证<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<ul>
-<li>固定 seed 让同一条随机链可重放，但不会增加独立样本，也不会替代多链、热化和自相关诊断。</li>
-<li>接受率既不是越高越好，也不是平稳性证书；提议尺度、目标分布与可达性共同决定效率。</li>
-<li>“Verlet 能量不漂”只在适当稳定步长和足够光滑的保守系统中成立。约束、碰撞、非保守力与热浴要重新分析。</li>
-<li>MC 的系综平均与 MD 的时间平均相等需要遍历与极限条件；两条有限轨迹一致是很好的交叉检查，但不是统计力学公理的证明。</li>
-</ul>
+<p>先回答四个预测，再揭示完整计算。所有实验使用无量纲变量；谐振子的质量尺度取1，不能把有单位动量随意当成速度。</p>
+<div class="learning-lab" data-learning-lab="monte-carlo-md">
+<p><strong>无JavaScript也能核对。</strong> 默认两态模型取零场、提出翻转概率0.1、从目标分布抽初值，记录128次，不热化、不跳步。其单步相关系数是0.8。下面同时列出理想模型的精确有限方差与固定seed的一次实现；它们回答不同问题。</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th style="text-align: right;">默认模型的数值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>单步相关系数λ</td>
+<td style="text-align: right;">0.8</td>
+</tr>
+<tr>
+<td>有限均值期望</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>有限均值方差</td>
+<td style="text-align: right;">0.06787109375</td>
+</tr>
+<tr>
+<td>有限均值标准误</td>
+<td style="text-align: right;">0.260520812508</td>
+</tr>
+<tr>
+<td>IID参考标准误</td>
+<td style="text-align: right;">0.0883883476483</td>
+</tr>
+<tr>
+<td>渐近相关时间τ</td>
+<td style="text-align: right;">4.5</td>
+</tr>
+<tr>
+<td>渐近有效样本数</td>
+<td style="text-align: right;">14.2222222222</td>
+</tr>
+<tr>
+<td>本次记录均值</td>
+<td style="text-align: right;">0.171875</td>
+</tr>
+<tr>
+<td>本次样本方差</td>
+<td style="text-align: right;">0.978100393701</td>
+</tr>
+<tr>
+<td>忽略相关性的样本SE诊断</td>
+<td style="text-align: right;">0.0874151550121</td>
+</tr>
+<tr>
+<td>实际提出翻转次数</td>
+<td style="text-align: right;">13</td>
+</tr>
+<tr>
+<td>实际接受翻转次数</td>
+<td style="text-align: right;">13</td>
+</tr>
+</tbody>
+</table>
+<p>接受率为1仍可有明显正相关：这里只有十分之一的步提出翻转。给已提出的翻转高接受率，并没有让整条轨迹变成独立样本。</p>
 </div>
+<p><img alt="随机积分、相关链与不同系综的四个对照" src="assets/img/comp-01-sampling-ledgers.svg" /></p>
+<p>图中的标准误来自明确的理想概率模型；种子只决定可重放的一次伪随机路径。固定能量的圆与正则相点云使用相同坐标比例。完整数值、转移和区间概率都能在实验账本中核对。</p>
 </section>
-<h2 id="1-metropolis">1. Metropolis 蒙特卡洛（统计物理的采样机）<a class="headerlink" href="#1-metropolis" title="Permanent link"></a></h2>
-<p><strong>问题</strong>：算 <span class="arithmatex">\(\langle A\rangle = \frac{1}{Z}\sum_s A(s)e^{-\beta E(s)}\)</span>——构型空间天文大、<span class="arithmatex">\(Z\)</span> 算不了。<strong>方案</strong>：造一条 Markov 链，其平稳分布恰是 Boltzmann（数学站随机过程线的平稳分布理论 + MCMC 正身）：</p>
-<p><strong>Metropolis 规则【推导】</strong> 提议翻转 → 接受概率 <span class="arithmatex">\(\min(1, e^{-\beta\Delta E})\)</span>。验证<strong>细致平衡</strong>：<span class="arithmatex">\(\pi(s)P(s\to s') = \pi(s')P(s'\to s)\)</span>（两侧代入各一行）⇒ 平稳分布 = Boltzmann ✓。<span class="arithmatex">\(\blacksquare\)</span>（"能降必收、能升按 Boltzmann 汇率赌"——sm-02 的 <span class="arithmatex">\(e^{-\beta\Delta E}\)</span> 从公式变成算法。）</p>
-<p><strong>行规四条</strong>：① <strong>先热化后测量</strong>（烧掉初值记忆——Markov 链混合时间）；② <strong>误差条要除以自相关时间</strong> <span class="arithmatex">\(\tau\)</span>（样本非独立：有效样本 <span class="arithmatex">\(= N/2\tau\)</span>——不除是最常见的假精度，时序线自相关的实战）；③ <strong>临界慢化</strong>：<span class="arithmatex">\(T_c\)</span> 附近 <span class="arithmatex">\(\tau \propto \xi^z\)</span> 爆炸（asm-01 关联长度发散的算法代价）——集团算法（Wolff/SW【引用】）整簇翻转破解之；④ <strong>有限尺寸标度</strong>：<span class="arithmatex">\(L\)</span> 有限无真相变——用 asm-03 的标度形式反提取临界指数（模拟测指数的标准流程）。</p>
-<h2 id="2_1">2. 分子动力学（力学的路）<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p><strong>方案</strong>：直接积分 <span class="arithmatex">\(N\)</span> 体牛顿方程（力场 <span class="arithmatex">\(V\)</span>：Lennard–Jones 等）。<strong>积分器的物理级选择</strong>：</p>
-<p><strong>Velocity Verlet【推导一行】</strong> <span class="arithmatex">\(x_{n+1} = x_n + v_n\Delta t + \frac{a_n}{2}\Delta t^2\)</span>；<span class="arithmatex">\(v_{n+1} = v_n + \frac{a_n + a_{n+1}}{2}\Delta t\)</span>——二阶、时间可逆、<strong>辛</strong>（数学站数值 IV 辛积分器一节的物理主顾：长时间能量不漂移——mech-03 相体积守恒的离散保真；RK4 精度更高却会系统性漏能：<strong>"保结构 &gt; 高阶数"是 MD 的第一选型原则</strong>）。</p>
-<p><strong>测什么</strong>：时间平均 ⇒ 热力学量（遍历假设——与 MC 的系综平均殊途同归：两条路算同一个 <span class="arithmatex">\(\langle A\rangle\)</span> 是"统计力学成立"的数值体检）；速度自相关 ⇒ 输运系数（扩散、粘度——Green–Kubo【引用】，neq-01 线性响应的应用）；径向分布函数 ⇒ 结构。恒温恒压的实现（Nosé–Hoover 等热浴【引用】）把微正则改造成正则——sm-02 系综字典的算法版。</p>
-<h2 id="3_1">3. 超越基础一瞥<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p>量子蒙卡（路径积分 MC——aqm-03 Wick 桥的直接变现：量子统计 = 多一维经典模拟）；符号问题（费米子权重变负——量子多体模拟的国家级难题，mb-01/qi-03 量子模拟动机的出处）；机器学习力场（神经网络学 <span class="arithmatex">\(V(\mathbf r)\)</span>——DFT 精度 + MD 速度，材料模拟当前的主战场【引用】——你的两条线在此汇流）。</p>
-<h2 id="4">4. 练习与要点（全页可动手）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>例 1（Ising 模拟全流程）</strong> 二维 <span class="arithmatex">\(50\times50\)</span> Metropolis：扫温度看磁化 S 形、<span class="arithmatex">\(T_c \approx 2.27J\)</span> 附近比热峰（asm-02 Onsager 对表）、临界点附近观察 <span class="arithmatex">\(\tau\)</span> 飙升——<strong>一百行代码摸到相变</strong>（你显卡跑秒级）；这是全站最推荐亲手做的物理实验。</p>
-<p><strong>例 2（Verlet vs RK4 对照）</strong> 单谐振子积分 <span class="arithmatex">\(10^6\)</span> 步：RK4 能量单调漂移、Verlet 能量围绕真值振荡不漂——辛性的眼见为实（数值 IV 的图在物理语境重画）。</p>
-<p><strong>例 3（误差条自查）</strong> 对例 1 的磁化序列算自相关时间：<span class="arithmatex">\(T\)</span> 远离 <span class="arithmatex">\(T_c\)</span> 时 <span class="arithmatex">\(\tau \sim\)</span> 几步、临界附近 <span class="arithmatex">\(\tau \sim 10^3\)</span>——同样 <span class="arithmatex">\(10^5\)</span> 样本，有效样本差三个量级：<strong>"误差条会说谎"的亲身教育</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>研究生板块 17 页完卷。前沿基础板块开幕：量子场论——把 qm-02 的谐振子升格为"万物的语法"。</em></p>
+<h2 id="1">1. 算法之前，先写出目标平均<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>蒙特卡洛是用随机样本估计期望或积分的一类方法。分子动力学则从初始条件出发积分运动方程。前者未必产生物理时间，后者未必自动采样我们想要的统计系综。</p>
+<p>例如，正则平均写作</p>
+<div class="arithmatex">\[
+\langle A\rangle_\beta
+=\frac{\int A(q,p)e^{-\beta H(q,p)}\,dq\,dp}
+       {\int e^{-\beta H(q,p)}\,dq\,dp},
+\qquad \beta=\frac1{k_BT}.
+\]</div>
+<p>一条确定初值的孤立Hamilton轨迹，则给出</p>
+<div class="arithmatex">\[
+\overline A_T=\frac1T\int_0^T A(q(t),p(t))\,dt.
+\]</div>
+<p>只有在目标测度与动力学的不变测度相匹配、并有适当遍历条件时，才有理由把长期时间平均当作相应系综平均。小系统不同系综通常不同；“都在算平均”不能省掉这个条件。经典配分函数的起点可参看 <a href="https://www.damtp.cam.ac.uk/user/tong/statphys/statmechhtml/S2.html">Tong §2.1</a>。</p>
+<p>一次计算至少分四层误差：物理模型误差、有限系统/区域误差、数值离散误差、统计抽样误差。缩小步长不能消除错误的势能模型；增加样本也不能修复错误的边界条件。</p>
+<h2 id="2">2. 随机积分：从一次取点推到误差条<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>先算最简单的例子</p>
+<div class="arithmatex">\[
+I=\int_0^1x^2\,dx=\frac13.
+\]</div>
+<p>理想模型中独立抽取 <span class="arithmatex">\(U_i\sim\mathrm{Unif}(0,1)\)</span>，取</p>
+<div class="arithmatex">\[
+\widehat I_N=\frac1N\sum_{i=1}^N U_i^2.
+\]</div>
+<p>由于 <span class="arithmatex">\(E[U^2]=1/3\)</span>、<span class="arithmatex">\(E[U^4]=1/5\)</span>，</p>
+<div class="arithmatex">\[
+E[\widehat I_N]=\frac13,\qquad
+\operatorname{Var}(U^2)=\frac15-\frac19=\frac4{45},
+\qquad
+\operatorname{Var}(\widehat I_N)=\frac4{45N}.
+\]</div>
+<p>最后一步真正用了独立性，使不同项的协方差为0。标准误是估计量标准差
+<span class="arithmatex">\(\mathrm{SE}=\sqrt{4/(45N)}\)</span>，而本次有符号误差是
+<span class="arithmatex">\(\widehat I_N-1/3\)</span>。一个是重复理想试验的散布尺度，一个是这次跑出来的偏离，不必相等。</p>
+<p>常说的 <span class="arithmatex">\(N^{-1/2}\)</span> 是有限方差独立抽样下的标准误阶数；它不保证每次加倍样本误差都下降，也不保证任何高维积分都容易。维数仍会通过被积函数的方差、取样成本和稀有事件影响计算量。</p>
+<p>已知真实方差时，Chebyshev不等式给任意 <span class="arithmatex">\(0\lt\alpha\lt1\)</span>：</p>
+<div class="arithmatex">\[
+P\!\left(\lvert\widehat I_N-I\rvert
+ \ge\frac{\mathrm{SE}}{\sqrt\alpha}\right)\le\alpha.
+\]</div>
+<p>常见的约 <span class="arithmatex">\(1.96\,\mathrm{SE}\)</span> 区间则依赖正态近似；不要把它对任意小样本都称为精确95%区间。</p>
+<h2 id="3">3. 分层为什么在这个例子中更有效<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>把 <span class="arithmatex">\([0,1]\)</span> 等分为 <span class="arithmatex">\(N\)</span> 层，每层抽一个点：</p>
+<div class="arithmatex">\[
+X_j=\frac{j+U_j}{N},\quad j=0,\ldots,N-1,
+\qquad
+\widehat I_{\mathrm{strat}}=\frac1N\sum_{j=0}^{N-1}X_j^2.
+\]</div>
+<p>每层权重为 <span class="arithmatex">\(1/N\)</span>。展开多项式就能逐层算出</p>
+<div class="arithmatex">\[
+\mu_j=E[X_j^2]=\frac{j^2+j+1/3}{N^2},
+\qquad
+v_j=\operatorname{Var}(X_j^2)
+=\frac{j^2/3+j/3+4/45}{N^4}.
+\]</div>
+<p>独立层之间没有协方差，因此</p>
+<div class="arithmatex">\[
+E[\widehat I_{\mathrm{strat}}]=\frac13,\qquad
+\operatorname{Var}(\widehat I_{\mathrm{strat}})
+=\frac1{N^2}\sum_{j=0}^{N-1}v_j
+=\frac1{9N^3}-\frac1{45N^5}.
+\]</div>
+<p>本例标准误是 <span class="arithmatex">\(O(N^{-3/2})\)</span>。改善来自光滑一维函数在每个小区间内变化很小，不是所有“随机方法”都有这个阶数。一般分层的条件、权重和方差分解见 <a href="https://artowen.su.domains/mc/Ch-var-basic.pdf">Owen §8.4</a>。</p>
+<p>实验对两种方法复用同一组 <span class="arithmatex">\(U_j\)</span>，便于配对比较；两种估计之间因而相关。各自方差公式仍成立，但若要计算“两估计之差”的方差，必须另计它们的协方差。</p>
+<p>还有两个容易漏掉的细节：</p>
+<ul>
+<li>完成前 <span class="arithmatex">\(k\)</span> 层时，部分和估计的是 <span class="arithmatex">\(\int_0^{k/N}x^2dx=(k/N)^3/3\)</span>，不是全积分。实验按这个目标画图。</li>
+<li>每层只有一个读数，不能仅靠该层样本估出层内方差。这里能报精确方差，是因为多项式模型可解析求矩；未知函数要另设计重复取样或误差评估。</li>
+</ul>
+<h2 id="4-metropolis">4. 两态Metropolis：把详细平衡完整算一遍<a class="headerlink" href="#4-metropolis" title="Permanent link"></a></h2>
+<p>令单个磁矩 <span class="arithmatex">\(s\in\{+1,-1\}\)</span>，能量为 <span class="arithmatex">\(E(s)=-bs\)</span>。以无量纲场 <span class="arithmatex">\(\eta=\beta b\)</span> 表示，</p>
+<div class="arithmatex">\[
+\pi_\pm=\frac{e^{\pm\eta}}{2\cosh\eta},\qquad
+m=E_\pi[s]=\tanh\eta,\qquad
+v=\operatorname{Var}_\pi(s)=\operatorname{sech}^2\eta.
+\]</div>
+<p>每一步以概率 <span class="arithmatex">\(r\)</span> 提出翻转，提议前后对称。翻转的无量纲能量差是
+<span class="arithmatex">\(\beta\Delta E=2\eta s\)</span>，接受率取</p>
+<div class="arithmatex">\[
+a_{\mathrm{acc}}(s)=\min(1,e^{-2\eta s}).
+\]</div>
+<p>定义真正的两方向转移概率</p>
+<div class="arithmatex">\[
+a=r\min(1,e^{-2\eta}),\qquad
+b_-=r\min(1,e^{2\eta}).
+\]</div>
+<p>这里用 <span class="arithmatex">\(b_-\)</span> 表示负态到正态的概率，与有单位的场 <span class="arithmatex">\(b\)</span> 区分。按状态序 <span class="arithmatex">\((+1,-1)\)</span>，</p>
+<div class="arithmatex">\[
+P=\begin{pmatrix}1-a&amp;a\\b_-&amp;1-b_-\end{pmatrix}.
+\]</div>
+<p>因为 <span class="arithmatex">\(\pi_+/\pi_-=e^{2\eta}\)</span>，无论 <span class="arithmatex">\(\eta\)</span> 正负，都有
+<span class="arithmatex">\(\pi_+a=\pi_-b_-\)</span>。把这条平衡流与两个自环相加，就得到
+<span class="arithmatex">\(\pi P=\pi\)</span>。这证明目标分布平稳，没有证明相邻状态独立。</p>
+<p>对有限 <span class="arithmatex">\(\eta\)</span>，<span class="arithmatex">\(r\gt0\)</span> 时两方向都有正转移概率，链不可约；除 <span class="arithmatex">\(\eta=0,r=1\)</span> 的纯交替情形外还有自环，因而非周期。<span class="arithmatex">\(r=0\)</span> 时每个状态都不动，目标分布仍平稳，却不再是唯一平稳分布。</p>
+<p>在零场下，<span class="arithmatex">\(a=b_-=r\)</span>。取 <span class="arithmatex">\(r=0.1\)</span> 时所有已提出的翻转都接受，但只有十分之一步会提出翻转。接受率100%与独立采样完全是两件事。</p>
+<h2 id="5">5. 自相关怎样进入均值方差<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><span class="arithmatex">\(P\)</span> 除了特征值1，另一个特征值是</p>
+<div class="arithmatex">\[
+\lambda=1-a-b_-.
+\]</div>
+<p>直接用两行条件期望验证</p>
+<div class="arithmatex">\[
+E[s_{t+1}-m\mid s_t]=\lambda(s_t-m).
+\]</div>
+<p>若从 <span class="arithmatex">\(\pi\)</span> 初始化，就有
+<span class="arithmatex">\(\operatorname{Cov}(s_t,s_{t+k})=v\lambda^k\)</span>。每隔 <span class="arithmatex">\(d\)</span> 个真实转移记录一次时，记
+<span class="arithmatex">\(R=\lambda^d\)</span>，记录相关函数为 <span class="arithmatex">\(\rho(k)=R^k\)</span>。</p>
+<p>对 <span class="arithmatex">\(N\)</span> 个<strong>平稳记录</strong>逐项展开平方：</p>
+<div class="arithmatex">\[
+\operatorname{Var}(\bar s_N)
+=\frac{v}{N^2}\left[
+ N+2\sum_{k=1}^{N-1}(N-k)R^k\right].
+\]</div>
+<p>这条有限式在 <span class="arithmatex">\(R=\pm1\)</span> 也成立。若 <span class="arithmatex">\(\lvert R\rvert\lt1\)</span>、且样本足够长才可近似为</p>
+<div class="arithmatex">\[
+\operatorname{Var}(\bar s_N)
+\sim\frac vN\frac{1+R}{1-R}
+=\frac{2\tau_{\mathrm{int}}v}{N},
+\qquad
+\tau_{\mathrm{int}}=\frac12+\sum_{k=1}^{\infty}R^k
+=\frac{1+R}{2(1-R)}.
+\]</div>
+<p>所以正相关时标准误是IID值的约 <span class="arithmatex">\(\sqrt{2\tau_{\mathrm{int}}}\)</span> 倍，<strong>要变宽，不能把误差条除以相关时间</strong>。本页定义的 <span class="arithmatex">\(\tau\)</span> 含 <span class="arithmatex">\(1/2\)</span>；有的资料把整个倍率 <span class="arithmatex">\(2\tau\)</span> 称作相关时间，比较时先看公式。</p>
+<p>在这个平稳混合模型中，</p>
+<div class="arithmatex">\[
+N_{\mathrm{eff}}\approx N\,\frac{1-R}{1+R}.
+\]</div>
+<p><span class="arithmatex">\(R\lt0\)</span> 时它可以大于 <span class="arithmatex">\(N\)</span>，意思是这个观测量的均值方差小于同样数量IID读数的方差，不是凭空产生更多独立物理构型。<a href="https://mc-stan.org/docs/reference-manual/analysis.html#effective-sample-size">Stan的ESS说明</a>也明确区分正相关与反相关。实验不把ESS强行截到 <span class="arithmatex">\(N\)</span>，也不把这一渐近量当成短链的精确方差。</p>
+<h2 id="6">6. 初始化偏差不能藏进标准误<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>固定初值 <span class="arithmatex">\(s_0\)</span> 时，</p>
+<div class="arithmatex">\[
+\mu_t=E[s_t]=m+(s_0-m)\lambda^t.
+\]</div>
+<p>实验先实际执行 <span class="arithmatex">\(B\)</span> 步，再每 <span class="arithmatex">\(d\)</span> 步记录一次，故
+<span class="arithmatex">\(t_j=B+jd,\ j=1,\ldots,N\)</span>。有限均值的期望与偏差是</p>
+<div class="arithmatex">\[
+E[\bar s_N]=\frac1N\sum_{j=1}^N\mu_{t_j},
+\qquad
+\mathrm{bias}=E[\bar s_N]-m.
+\]</div>
+<p>对 <span class="arithmatex">\(u\ge t\)</span>，由同一个条件期望式得到</p>
+<div class="arithmatex">\[
+\operatorname{Cov}(s_t,s_u)
+=\lambda^{u-t}(1-\mu_t^2).
+\]</div>
+<p>这样可以按真实初始化求有限方差，而不偷用平稳公式。评价对目标 <span class="arithmatex">\(m\)</span> 的误差时，完整恒等式是</p>
+<div class="arithmatex">\[
+E[(\bar s_N-m)^2]
+=\operatorname{Var}(\bar s_N)+\mathrm{bias}^2.
+\]</div>
+<p>例如 <span class="arithmatex">\(r=0\)</span>、固定初值 <span class="arithmatex">\(+1\)</span>，所有样本都是1。均值的随机方差为0，但偏差为 <span class="arithmatex">\(1-\tanh\eta\)</span>。这时“误差条为零”只说明程序每次都同样错。若从目标分布随机抽初值后冻结，则单次路径仍不动，但不同理想试验会冻在不同状态；均值方差不随 <span class="arithmatex">\(N\)</span> 减小。</p>
+<p>为了稳定计算近交替情况下的有限方差，实验还用非负项求和。令记录为 <span class="arithmatex">\(Y_j\)</span>，<span class="arithmatex">\(V_j=\operatorname{Var}(Y_j)\)</span>，</p>
+<div class="arithmatex">\[
+\varepsilon_j=Y_j-E[Y_j\mid Y_{j-1}],\quad
+G_k=1+R+\cdots+R^{k-1}.
+\]</div>
+<p><span class="arithmatex">\(j\ge2\)</span> 的创新 <span class="arithmatex">\(\varepsilon_j\)</span> 与过去不相关，且方差
+<span class="arithmatex">\(W_j=E[\operatorname{Var}(Y_j\mid Y_{j-1})]\ge0\)</span>。反复代入条件期望，得到</p>
+<div class="arithmatex">\[
+\operatorname{Var}(\bar Y_N)
+=\frac1{N^2}\left[G_N^2V_1+
+ \sum_{j=2}^{N}G_{N-j+1}^2W_j\right].
+\]</div>
+<p>每一项都在账本中显示。它与协方差双重求和是同一个量；没有用正数截断掩盖负方差。另一个独立视角是按“末状态、已出现的正态次数”传播概率，得到全部 <span class="arithmatex">\(N+1\)</span> 种可能均值的分布。图中的分布来自这项完整递推，绝非用同一seed伪装多次试验。</p>
+<h2 id="7">7. 周期、冻结与隔步记录的反例<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>零场且 <span class="arithmatex">\(r=1\)</span> 时，<span class="arithmatex">\(s_t\)</span> 必定正负交替，<span class="arithmatex">\(\lambda=-1\)</span>。</p>
+<p>从目标分布初始化、不跳步时，偶数 <span class="arithmatex">\(N\)</span> 的样本均值恰为0；奇数 <span class="arithmatex">\(N\)</span> 的均值为 <span class="arithmatex">\(\pm1/N\)</span>。它们的有限方差分别是0与 <span class="arithmatex">\(1/N^2\)</span>。然而链的边缘分布从一个固定状态出发不会收敛，相关级数也不绝对收敛；不能给它套上前节的混合渐近公式。</p>
+<p>如果改成 <span class="arithmatex">\(d=2\)</span>，记录的却始终是同一个状态：<span class="arithmatex">\(R=(-1)^2=1\)</span>。平稳初始化下，记录均值的方差变回1。丢掉一半记录甚至会丢掉原本有利的负相关。</p>
+<p>对一般模型，讨论thinning时还要固定预算：同样记录 <span class="arithmatex">\(N\)</span> 点，间隔更大通常执行了更多真实转移；这不是免费增益。实验同时显示 <span class="arithmatex">\(B+Nd\)</span>，不会隐藏那些被跳过的计算。</p>
+<p>经验ACF也不等于理论ACF。本页采用</p>
+<div class="arithmatex">\[
+\widehat\rho(k)=
+\frac{\sum_{i=1}^{N-k}(Y_i-\bar Y)(Y_{i+k}-\bar Y)}
+     {\sum_{i=1}^{N}(Y_i-\bar Y)^2}.
+\]</div>
+<p>分母为0时未定义，显示“—”。对非恒定样本，若把这一中心化估计的全部滞后直接相加，反而有</p>
+<div class="arithmatex">\[
+1+2\sum_{k=1}^{N-1}\widehat\rho(k)
+=\frac{(\sum_i(Y_i-\bar Y))^2}
+       {\sum_i(Y_i-\bar Y)^2}=0.
+\]</div>
+<p>因此不能无脑把整条经验相关曲线塞进无限相关和。实际误差估计需要合理窗口、分块或多链等方法；<a href="https://www.stat.umn.edu/geyer/8054/notes/initseq.html">Geyer的自协方差讲义</a>讨论了长滞后估计噪声。这里展示完整经验ACF用于诊断，标准误参考则来自可解模型，不冒充通用MCMC误差估计器。</p>
+<h2 id="8">8. 分子动力学：方程正确以后，还要问平均是什么<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>给定势能 <span class="arithmatex">\(V(q_1,\ldots,q_n)\)</span>，经典动力学求解</p>
+<div class="arithmatex">\[
+\dot q_i=p_i/m_i,\qquad
+\dot p_i=-\nabla_{q_i}V.
+\]</div>
+<p>例如Lennard–Jones对势</p>
+<div class="arithmatex">\[
+V(r)=4\epsilon\left[(\sigma/r)^{12}-(\sigma/r)^6\right],
+\quad
+F_r=-V'(r)
+=\frac{24\epsilon}{r}
+ \left[2(\sigma/r)^{12}-(\sigma/r)^6\right].
+\]</div>
+<p>径向力的符号、粒子对是否重复计数、截断处是否连续，都需要按实际模型检查。一个平滑的能量图不能证明这些都正确。</p>
+<p>实际积分还要研究步长、相位、稳定性和长期结构。Verlet等辛方法对许多Hamilton长期问题很有价值，但不能无条件说“保结构总比高阶重要”。高精度短时间轨迹、刚性、约束或非Hamilton耗散问题，比较标准会不同。<a href="comp-02-dynamics-symplectic.html">下一讲</a>实际比较Verlet、Euler、RK4和中点法，并展示辛却失稳的反例。</p>
+<p>本页为了单独观察“平均测度”，对谐振子使用解析流。这样即使积分截断误差为零，仍能看见系综选择和观测混叠造成的差别。</p>
+<h2 id="9">9. 一个谐振子，两个不同的概率分布<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>取无量纲Hamilton量</p>
+<div class="arithmatex">\[
+H=\frac{p^2+\omega^2q^2}{2}.
+\]</div>
+<p>固定 <span class="arithmatex">\(E\gt0\)</span> 的连续轨道为</p>
+<div class="arithmatex">\[
+q(t)=\frac{\sqrt{2E}}{\omega}\cos(\theta_0+\omega t),
+\qquad
+p(t)=-\sqrt{2E}\sin(\theta_0+\omega t).
+\]</div>
+<p>沿完整一周期的平均等于均匀相角平均。用
+<span class="arithmatex">\(\langle\cos^2\theta\rangle=1/2\)</span>、
+<span class="arithmatex">\(\langle\cos^4\theta\rangle=3/8\)</span>，</p>
+<div class="arithmatex">\[
+\langle q^2\rangle_E=\frac E{\omega^2},
+\qquad
+\langle q^4\rangle_E=\frac{3E^2}{2\omega^4}.
+\]</div>
+<p><span class="arithmatex">\(E=0\)</span> 则是原点的点质量，不能套含 <span class="arithmatex">\(1/\sqrt E\)</span> 的位置密度。</p>
+<p>正则相空间密度却是</p>
+<div class="arithmatex">\[
+\rho_\beta(q,p)=\frac{\beta\omega}{2\pi}
+ e^{-\beta(p^2+\omega^2q^2)/2}.
+\]</div>
+<p>它是两个独立Gaussian因子的乘积，因而</p>
+<div class="arithmatex">\[
+\langle q^2\rangle_\beta=\frac1{\beta\omega^2},
+\qquad
+\langle q^4\rangle_\beta=\frac3{\beta^2\omega^4},
+\qquad
+\langle H\rangle_\beta=\frac1\beta.
+\]</div>
+<p>取 <span class="arithmatex">\(E=1/\beta\)</span>，二阶矩恰相同，微正则四阶矩却只有正则值的一半。孤立单振子的能量不波动，正则能量还满足
+<span class="arithmatex">\(\operatorname{Var}_\beta(H)=1/\beta^2\)</span>。这就是“比较同一平均对象”不能省略的可计算反例。</p>
+<h2 id="10">10. 正则相点怎样真正抽出来<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>把相空间改用能量与相角，</p>
+<div class="arithmatex">\[
+q=\frac{\sqrt{2E}}{\omega}\cos\theta,\quad
+p=-\sqrt{2E}\sin\theta,\quad
+\left|\frac{\partial(q,p)}{\partial(E,\theta)}\right|
+=\frac1\omega.
+\]</div>
+<p>所以正则概率元为</p>
+<div class="arithmatex">\[
+\rho_\beta(q,p)\,dq\,dp
+=\beta e^{-\beta E}\,dE\,
+ \frac{d\theta}{2\pi}.
+\]</div>
+<p>能量服从指数分布，相角独立均匀。因此抽两个理想均匀数 <span class="arithmatex">\(U,V\)</span>，令
+<span class="arithmatex">\(E=-\log U/\beta\)</span>、<span class="arithmatex">\(\theta=2\pi V\)</span>，再代入上式，就得到正则相点。实验逐一记录这两个数和生成的能量、坐标；蓝色云中的不同点通常位于不同能量圆。</p>
+<p>固定能量下的位置分布是转折点附近较高的反正弦分布。令
+<span class="arithmatex">\(A=\sqrt{2E}/\omega\)</span>，对 <span class="arithmatex">\(-A\le x\le A\)</span>，</p>
+<div class="arithmatex">\[
+F_E(x)=\frac12+\frac1\pi\arcsin(x/A),\qquad
+f_E(x)=\frac1{\pi\sqrt{A^2-x^2}}\quad(-A\lt x\lt A).
+\]</div>
+<p>端点密度发散但可积；这对应粒子在转折点速度变小、停留更久。实验画每一箱的精确概率
+<span class="arithmatex">\(F_E(x_{\mathrm R})-F_E(x_{\mathrm L})\)</span>，不用人为截顶密度。零能量另作为原点质量处理。</p>
+<h2 id="11">11. 精确的运动，也会被不当观测时刻误读<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p>令观测间隔为周期的 <span class="arithmatex">\(c\)</span> 倍，实验的时刻是</p>
+<div class="arithmatex">\[
+t_i=\frac{2\pi i c}{\omega},\qquad i=0,\ldots,N-1.
+\]</div>
+<p>当 <span class="arithmatex">\(c=1\)</span>，每次恰好看到同一个相点；当 <span class="arithmatex">\(c=1/2\)</span>，只看到相对的两个点。增加 <span class="arithmatex">\(N\)</span> 并不会自动恢复连续相角平均。这是观测混叠，不能归咎于这里并不存在的积分截断误差。</p>
+<p>默认 <span class="arithmatex">\(c=1/8\)</span>、<span class="arithmatex">\(N=128\)</span>，每8点走完一组等相角位置。二阶和四阶矩在这组节点上恰好积分正确，但16箱的位置频率仍可能与连续区间概率不同；少数矩相同仍不等于整个分布相同。</p>
+<p>真实MD要先选目标：孤立动力学关注能量面上的测度；要采样正则系综，常需适当热浴或另一种保持目标分布的采样机制。加入一个“恒温”按钮并不自动证明不变分布与遍历性，必须检查具体动力学。可复现的物理研究还需多初值、运行时长、步长和系统尺寸敏感性。</p>
+<h2 id="12">12. 迁移练习与完整答案<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<p><strong>练习一：</strong> 用普通MC和每层一个样本的分层MC计算本页积分。推导分层的方差，并解释为何不能要求每个seed的分层误差都更小。</p>
+<details class="answer">
+<summary>展开：先在每层求矩，再对独立项求和</summary>
+<p>对 <span class="arithmatex">\(U\sim\mathrm{Unif}(0,1)\)</span>，
+<span class="arithmatex">\(E[(j+U)^2]=j^2+j+1/3\)</span>，
+<span class="arithmatex">\(E[(j+U)^4]=j^4+2j^3+2j^2+j+1/5\)</span>。两者相减得
+<span class="arithmatex">\(\operatorname{Var}((j+U)^2)=j^2/3+j/3+4/45\)</span>。除以 <span class="arithmatex">\(N^4\)</span>，再乘估计量权重平方 <span class="arithmatex">\(1/N^2\)</span> 并对 <span class="arithmatex">\(j=0,\ldots,N-1\)</span> 求和，得到
+<span class="arithmatex">\((5N^2-1)/(45N^5)\)</span>。</p>
+<p>普通MC方差为 <span class="arithmatex">\(4/(45N)\)</span>，方差比为
+<span class="arithmatex">\(4N^4/(5N^2-1)\)</span>。<span class="arithmatex">\(N=1\)</span> 两者相同，<span class="arithmatex">\(N\gt1\)</span> 分层方差更小。但方差比较是理想重复试验的平方误差平均比较，绝不表示每一对实现都按同样次序排列。</p>
+</details>
+<p><strong>练习二：</strong> 零场取 <span class="arithmatex">\(r=0.9\)</span>。求 <span class="arithmatex">\(\lambda\)</span>、渐近ESS；再取 <span class="arithmatex">\(r=1\)</span>，分别说明 <span class="arithmatex">\(d=1\)</span> 与 <span class="arithmatex">\(d=2\)</span>，以及偶数和奇数 <span class="arithmatex">\(N\)</span> 的有限方差。</p>
+<details class="answer">
+<summary>展开：负相关可以有利，但周期边界必须另算</summary>
+<p>零场 <span class="arithmatex">\(a=b_-=r\)</span>，故 <span class="arithmatex">\(r=0.9\)</span> 时 <span class="arithmatex">\(\lambda=-0.8\)</span>。不跳步有
+<span class="arithmatex">\(2\tau=(1-0.8)/(1+0.8)=1/9\)</span>，
+<span class="arithmatex">\(N_{\mathrm{eff}}\approx9N\)</span>。这是平稳长链的渐近结果。</p>
+<p><span class="arithmatex">\(r=1,d=1\)</span> 时每两个读数和为0。平稳初始化下，偶数 <span class="arithmatex">\(N\)</span> 均值恒0，方差0；奇数 <span class="arithmatex">\(N\)</span> 均值以相等概率为 <span class="arithmatex">\(\pm1/N\)</span>，方差 <span class="arithmatex">\(1/N^2\)</span>。此时不使用相关无穷和或混合CLT。</p>
+<p><span class="arithmatex">\(d=2\)</span> 时全记录相同，平稳初始化给均值 <span class="arithmatex">\(\pm1\)</span> 各半，方差1；若固定初值，随机方差0，但对目标0有偏差 <span class="arithmatex">\(\pm1\)</span>、MSE为1。初始化必须跟着答案一起说明。</p>
+</details>
+<p><strong>练习三：</strong> 固定从 <span class="arithmatex">\(s_0=-1\)</span> 开始，保留任意 <span class="arithmatex">\(B,d,N\)</span>。写出均值偏差，并说明“SE很小”为什么仍不够。</p>
+<details class="answer">
+<summary>展开：先把每个观测时刻写出来</summary>
+<p>每个时刻为 <span class="arithmatex">\(t_j=B+jd\)</span>，所以</p>
+<div class="arithmatex">\[
+\mathrm{bias}
+=\frac{-1-m}{N}\sum_{j=1}^{N}\lambda^{B+jd}.
+\]</div>
+<p>当 <span class="arithmatex">\(R=\lambda^d\ne1\)</span>，也可写成
+<span class="arithmatex">\((-1-m)\lambda^{B+d}(1-R^N)/(N(1-R))\)</span>；<span class="arithmatex">\(R=1\)</span> 时直接用有限和，不能除以0。实验为避免近边界抵消，保留稳定有限计算。</p>
+<p>均值的MSE等于有限方差加该偏差平方。标准误只衡量围绕 <span class="arithmatex">\(E[\bar s]\)</span> 的波动。若 <span class="arithmatex">\(r=0\)</span>，均值始终为−1，SE为0而偏差为 <span class="arithmatex">\(-1-m\)</span>。反之，已知真实偏差时，可用
+<span class="arithmatex">\(|\mathrm{bias}|+\mathrm{SE}/\sqrt\alpha\)</span>
+作为Chebyshev保证下对目标误差的保守阈值；这不是仅靠短链诊断就知道偏差的通用方法。</p>
+</details>
+<p><strong>练习四：</strong> 令 <span class="arithmatex">\(E=1/\beta\)</span>，比较两种谐振子分布的二阶矩、四阶矩和能量方差。若每周期只观测一次，增加采样次数能修复什么？</p>
+<details class="answer">
+<summary>展开：同一轨道、同一矩和同一测度逐个区分</summary>
+<p>微正则和正则均有 <span class="arithmatex">\(\langle q^2\rangle=1/(\beta\omega^2)\)</span>；前者
+<span class="arithmatex">\(\langle q^4\rangle=3/(2\beta^2\omega^4)\)</span>，后者是
+<span class="arithmatex">\(3/(\beta^2\omega^4)\)</span>。前者能量方差0，后者为 <span class="arithmatex">\(1/\beta^2\)</span>。因此匹配平均能量与位置二阶矩仍不能匹配整个测度。</p>
+<p>每周期观测一次时，相角模 <span class="arithmatex">\(2\pi\)</span> 不变。增大 <span class="arithmatex">\(N\)</span> 只重复同一相点，不能恢复连续时间分布，更不能让固定能量轨道出现正则能量波动。应先改善观测方案，并明确是否需要另一种系综采样机制；积分器更高阶在这个解析流反例中无济于事。</p>
+</details>
+<h2 id="13">13. 实验范围、伪随机规则与下一步<a class="headerlink" href="#13" title="Permanent link"></a></h2>
+<p>样本/记录数为1–256，seed为0–<span class="arithmatex">\(2^{32}-1\)</span> 整数，0是独立有效种子。两态场为−4至4，提出翻转概率允许0或 <span class="arithmatex">\(10^{-6}\)</span> 至1，热化0–256步，记录间隔1–8。谐振子允许 <span class="arithmatex">\(\beta,\omega=0.25\)</span>–4、能量0–4、初相角/ <span class="arithmatex">\(2\pi\)</span> 为0–1、观测间隔/周期为0–2。</p>
+<p>伪随机实现采用32位LCG：</p>
+<div class="arithmatex">\[
+z_{n+1}=(1664525z_n+1013904223)\bmod2^{32},
+\qquad U_n=(z_n+1/2)/2^{32}.
+\]</div>
+<p>这是有限状态、确定性的教学实现，不能把它本身等同于定理假设中的真正IID连续均匀数。两态模式先消耗一个初值均匀数，即使选择固定初值也消耗；每个真实转移固定消耗“是否提出”和“是否接受”两个数，即使没有提议或接受概率为1也保留相同消耗规则。积分每点一个，正则相点每点两个。所有状态更新、随机数和末状态均入表。</p>
+<p>理论矩阵、概率递推与解析公式仍用普通浮点算术求值，末位可有舍入；不把这些结果称为含舍入的严格区间证书。输入非法时保留原文、锁回结果；未使用的字段不阻塞当前模型。全点绘图与账本没有暗中抽稀。</p>
+<p>接着去<a href="comp-02-dynamics-symplectic.html">辛积分与动力学</a>检查实际轨迹误差，去<a href="comp-04-monte-carlo-lattice.html">格点蒙特卡洛</a>研究多体相关与有限尺寸，去<a href="comp-05-inverse-uncertainty.html">逆问题与不确定性</a>区分抽样误差与模型不可辨识。前沿计算仍要经过这些基本检验，算得更快不能替代算对了对象。</p>
+<style>
+article:has(#computational-physics-learning-title) .katex { position: relative; }
+</style>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="cosmo-04-inflation-darkenergy.html"><span class="pager-label">上一页</span>宇宙学 IV · 暴胀与暗能量</a>
