@@ -46,151 +46,431 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 05:30</div>
+    <div class="build-time">构建于 2026-09-10 13:23</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#zero-sum-learning-title">学习层：阶段值、动态值与“有限回放看起来收敛”不是一回事</a><ul>
-<li><a href="#1">1. 具体实例：同一场对抗，先问一局还是多局</a></li>
-<li><a href="#2">2. 先预测：对手混合后，哪些结论还能保留？</a></li>
-<li><a href="#3-minimax-shapley">3. 正式桥：从 minimax 到 Shapley 算子</a></li>
-<li><a href="#4-fallback">4. 可操作实验与静态 fallback</a></li>
-<li><a href="#5">5. 定理与失败边界</a></li>
+<li><a href="#zero-sum-learning-title">学习层：阶段收益、未来价值、数值残差分开读</a><ul>
+<li><a href="#1">1. 一局的对抗怎样变成两个状态的对抗</a></li>
+<li><a href="#2">2. 把完整转移规则摆出来</a></li>
+<li><a href="#3">3. 先预测，再动手</a></li>
+<li><a href="#4">4. 数值证书怎样读</a></li>
 </ul>
 </li>
-<li><a href="#1_1">1. 零和博弈与极小极大定理</a></li>
-<li><a href="#2_1">2. 动态博弈：时间进场</a></li>
-<li><a href="#3">3. 拍卖与机制设计：反向博弈论</a></li>
-<li><a href="#4">4. 典型例题</a></li>
-<li><a href="#_1">博弈论收束</a></li>
+<li><a href="#1_1">1. 零和矩阵：用同一份收益给出下界与上界</a><ul>
+<li><a href="#lp">把“对偶”写成真正可以核对的两个 LP</a></li>
+<li><a href="#_1">一个非对称手算</a></li>
+</ul>
+</li>
+<li><a href="#2_1">2. 动态零和：把未来加进当前矩阵</a><ul>
+<li><a href="#_2">压缩常数来自哪里</a></li>
+<li><a href="#_3">不知道固定点，也能估计当前误差</a></li>
+<li><a href="#_4">固定点为什么也是无限时域博弈的值</a></li>
+<li><a href="#1_2">折扣为 1 时改变了什么</a></li>
+</ul>
+</li>
+<li><a href="#3_1">3. 抽样：抽的是哪一个随机变量</a></li>
+<li><a href="#4_1">4. 先后行动：策略是一份完整的条件计划</a></li>
+<li><a href="#5">5. 重复博弈：合作有条件地成为均衡</a></li>
+<li><a href="#6">6. 拍卖：支付规则如何改变激励</a><ul>
+<li><a href="#_5">二价拍卖的三种情况</a></li>
+<li><a href="#_6">一价拍卖不能照搬二价证明</a></li>
+<li><a href="#vcg-gsp">VCG 与 GSP 分清楚</a></li>
+</ul>
+</li>
+<li><a href="#7">7. 向学习动态与演化理论再走一步</a></li>
+<li><a href="#8">8. 三道展开题</a></li>
 </ul>
 </div>
 </details>
 <h1 id="ii">博弈论 II · 零和、动态博弈与机制设计<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
 <blockquote>
-<p>三个专题收官：<strong>零和博弈</strong>（对抗的极致——minimax 定理原来就是 LP 强对偶）、<strong>动态与重复博弈</strong>（时间如何改变博弈——合作在重复中成为可能）、<strong>拍卖与机制设计</strong>（反向博弈论：设计规则让自利产生善果）。每个专题都有一条通往你世界的线：GAN、策略回测、广告拍卖。</p>
+<p>上一页固定对手策略，检查单方面偏离。本页再改变三个条件：两人的利益完全相反时，怎样给出保底与上界？当前动作影响未来时，怎样把未来价值算进去？规则也可以选择时，怎样检验规则提供的激励？每一步都保留一份可以手算的证书。</p>
 </blockquote>
+<style>
+.zerosum-static{overflow:auto;max-width:100%;border:1px solid var(--border)}
+.zerosum-static img{display:block!important;width:1100px!important;min-width:1100px;max-width:none!important}
+.zerosum-static:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:3px}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}}
+</style>
 <figure class="diagram">
-<p><img alt="零和博弈的 minimax 博弈树 / 鞍点示意。" src="assets/img/game-02-minimax-tree.svg" /></p>
-<figcaption><span class="fig-id">图 game-02.1</span>零和博弈的 minimax 博弈树 / 鞍点示意。</figcaption>
+<div aria-label="极小极大证书与逆向归纳静态图，可横向滚动" class="zerosum-static" role="region" tabindex="0">
+<p><img alt="零和矩阵的保底和上界，以及两步博弈树的逆向归纳。" src="assets/img/game-02-minimax-tree.svg" /></p>
+</div>
+<figcaption><span class="fig-id">图 game-02.1</span>矩阵中的动作是同时选择，树中的动作是先后选择且历史可见；它们的求解方法相互联系，信息结构却不同。</figcaption>
 </figure>
 <div data-learning-page></div>
 
 <section aria-labelledby="zero-sum-learning-title" class="learning-layer">
-<h2 id="zero-sum-learning-title">学习层：阶段值、动态值与“有限回放看起来收敛”不是一回事<a class="headerlink" href="#zero-sum-learning-title" title="Permanent link"></a></h2>
-<h3 id="1">1. 具体实例：同一场对抗，先问一局还是多局<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>行玩家在每一阶段选择动作，列玩家同时选择反制动作；行玩家的收益矩阵是</p>
-<div class="arithmatex">\[
-A=\begin{pmatrix}1&amp;-1\\-1&amp;1\end{pmatrix}.
-\]</div>
-<p>这是猜硬币型零和对抗：没有纯策略鞍点，但双方各以二分之一混合时，阶段值为零。若游戏还带状态，当前动作会把系统送到下一个状态，今天的收益之外还要评价未来。于是“这一张矩阵的值”和“整个动态博弈的值函数”是两个层次。</p>
-<p>实验台提供阶段矩阵、状态转移、折扣因子和迭代次数。它会先隐藏精确 minimax、混合概率、Shapley 更新和采样误差；请先预测，再揭示。特别注意：一轮矩阵求值是精确的有限计算，有限轮 Bellman 回放不是一般收敛证明。</p>
-<h3 id="2">2. 先预测：对手混合后，哪些结论还能保留？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>先回答三个问题：</p>
-<ul>
-<li>对上面的矩阵，纯策略值是否存在？若没有，混合策略如何让对手无差异？</li>
-<li>当 <span class="arithmatex">\(0\le\gamma&lt;1\)</span> 时，Shapley 算子两次应用后的差异最多会被放大、保持，还是按 <span class="arithmatex">\(\gamma\)</span> 压缩？</li>
-<li>把 <span class="arithmatex">\(\gamma\)</span> 调到 1，或者只做有限次迭代、有限次随机采样，能否声称对任意动态零和博弈都收敛？</li>
-</ul>
-<p>“看见曲线变平”只能是当前参数、当前初值和当前精度下的证据；它不能替代定理所需的折扣、有限性、界与转移条件。</p>
-<h3 id="3-minimax-shapley">3. 正式桥：从 minimax 到 Shapley 算子<a class="headerlink" href="#3-minimax-shapley" title="Permanent link"></a></h3>
-<p>对有限阶段矩阵 <span class="arithmatex">\(A\)</span>，行玩家的安全值和列玩家的压制值分别为</p>
-<div class="arithmatex">\[
-\max_{x\in\Delta}\min_{y\in\Delta}x^\top Ay,
-\qquad
-\min_{y\in\Delta}\max_{x\in\Delta}x^\top Ay.
-\]</div>
-<p>von Neumann 极小极大定理说明二者相等，记为 <span class="arithmatex">\(v(A)\)</span>。混合策略 <span class="arithmatex">\(x,y\)</span> 是概率分布；在一个内点解里，每个玩家都让对手所用的纯动作无差异。这个结论依赖零和收益与有限矩阵结构，不能把阶段矩阵的最大值直接当成整个动态博弈的最优值。</p>
-<p>若状态为 <span class="arithmatex">\(s\)</span>，动作对 <span class="arithmatex">\((i,j)\)</span> 产生阶段收益 <span class="arithmatex">\(r_s(i,j)\)</span> 和下一状态分布 <span class="arithmatex">\(P(\cdot\mid s,i,j)\)</span>，Shapley 算子写成</p>
-<div class="arithmatex">\[
-(TV)(s)=\operatorname{val}_{x,y}\left[
-\sum_{i,j}x_i y_j\left(r_s(i,j)+\gamma\sum_{s'}P(s'\mid s,i,j)V(s')\right)
-\right].
-\]</div>
-<p>若收益有界、状态与动作有限且 <span class="arithmatex">\(0\le\gamma&lt;1\)</span>，则</p>
-<div class="arithmatex">\[
-\lVert TV-TW\rVert_\infty
-\le\gamma\lVert V-W\rVert_\infty.
-\]</div>
-<p>这是折扣 Shapley 算子的压缩证书：固定点唯一，价值迭代在该范数下收敛，并可用残差除以 <span class="arithmatex">\(1-\gamma\)</span> 给出误差上界。<span class="arithmatex">\(\gamma=1\)</span> 时这个证书消失；有限时域仍可从终点逆向归纳，但无限时域平均收益或一般未折扣随机博弈需要额外假设。</p>
-<h3 id="4-fallback">4. 可操作实验与静态 fallback<a class="headerlink" href="#4-fallback" title="Permanent link"></a></h3>
-<div class="learning-lab" data-learning-lab="zero-sum-dynamic">
-<p><strong>静态 fallback（脚本不可用时）：</strong>阶段矩阵 <span class="arithmatex">\(A=\left(\begin{smallmatrix}1&amp;-1\\-1&amp;1\end{smallmatrix}\right)\)</span> 的纯安全值为 <span class="arithmatex">\(-1\)</span>，纯压制值为 <span class="arithmatex">\(1\)</span>，但混合 minimax 值为 <span class="arithmatex">\(0\)</span>，双方均匀混合。动态部分取两个状态和 <span class="arithmatex">\(\gamma=0.8\)</span>，每轮对当前动作收益加上 <span class="arithmatex">\(0.8\)</span> 倍的下一状态价值；残差若为 <span class="arithmatex">\(r_k\)</span>，压缩证书给出 <span class="arithmatex">\(\lVert V_k-V^*\rVert_\infty\le r_k/(1-0.8)\)</span>。把 <span class="arithmatex">\(\gamma\)</span> 调到 1 时，表格中的“误差上界”应变成“无证书”，而不是自动变成“已经收敛”。</p>
+<h2 id="zero-sum-learning-title">学习层：阶段收益、未来价值、数值残差分开读<a class="headerlink" href="#zero-sum-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 一局的对抗怎样变成两个状态的对抗<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>先选一个 <span class="arithmatex">\(2\times2\)</span> 矩阵 <span class="arithmatex">\(A\)</span>，表示行玩家的收益，列玩家的收益恰好是它的相反数。实验有三个阶段例子：</p>
 <table>
-<caption>静态核对表</caption>
 <thead>
 <tr>
-<th>层次</th>
-<th>可计算对象</th>
-<th>证书与边界</th>
+<th>预设</th>
+<th>行收益矩阵</th>
+<th>一组最优概率 <span class="arithmatex">\(p=P(R_0),q=P(C_0)\)</span></th>
+<th>阶段值</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>阶段矩阵</td>
-<td>minimax 值与混合策略</td>
-<td>有限零和矩阵的极小极大定理</td>
+<td>猜硬币</td>
+<td><span class="arithmatex">\(\begin{pmatrix}1&amp;-1\\-1&amp;1\end{pmatrix}\)</span></td>
+<td><span class="arithmatex">\(p=q=1/2\)</span></td>
+<td>0</td>
 </tr>
 <tr>
-<td>折扣动态</td>
-<td>Shapley 更新与固定点</td>
-<td>有限模型、界收益、折扣小于一时有压缩</td>
+<td>非对称混合</td>
+<td><span class="arithmatex">\(\begin{pmatrix}3&amp;0\\1&amp;2\end{pmatrix}\)</span></td>
+<td><span class="arithmatex">\(p=1/4,q=1/2\)</span></td>
+<td><span class="arithmatex">\(3/2\)</span></td>
 </tr>
 <tr>
-<td>有限回放</td>
-<td>当前迭代值、残差和抽样均值</td>
-<td>是实验账本，不是一般收敛定理</td>
-</tr>
-<tr>
-<td>未折扣/平均收益</td>
-<td>需要另行分析的动态博弈</td>
-<td>不能照搬折扣压缩证书</td>
+<td>纯鞍点</td>
+<td><span class="arithmatex">\(\begin{pmatrix}3&amp;0\\5&amp;1\end{pmatrix}\)</span></td>
+<td><span class="arithmatex">\(p=q=0\)</span></td>
+<td>1</td>
 </tr>
 </tbody>
 </table>
+<p>动态模型另有状态 <span class="arithmatex">\(s=0,1\)</span>。处于状态 <span class="arithmatex">\(s\)</span> 时，当前奖励是 <span class="arithmatex">\(A_{ij}+s\)</span>，所以状态 1 的每格比状态 0 多 1。两人观察当前状态后同时行动，再按该格给出的概率进入下一状态。<strong>切换预设会同时改变两个状态的奖励</strong>；转移规则仍由下面的表给定。</p>
+<h3 id="2">2. 把完整转移规则摆出来<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>下面列出基础转移 <span class="arithmatex">\(P_{\rm base}\)</span> 中“下一状态为 0”的概率，下一状态为 1 的概率是它的补数：</p>
+<table>
+<thead>
+<tr>
+<th>当前状态</th>
+<th><span class="arithmatex">\(R_0C_0\)</span></th>
+<th><span class="arithmatex">\(R_0C_1\)</span></th>
+<th><span class="arithmatex">\(R_1C_0\)</span></th>
+<th><span class="arithmatex">\(R_1C_1\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td><span class="arithmatex">\(18/20\)</span></td>
+<td><span class="arithmatex">\(4/20\)</span></td>
+<td><span class="arithmatex">\(5/20\)</span></td>
+<td><span class="arithmatex">\(15/20\)</span></td>
+</tr>
+<tr>
+<td>1</td>
+<td><span class="arithmatex">\(14/20\)</span></td>
+<td><span class="arithmatex">\(3/20\)</span></td>
+<td><span class="arithmatex">\(7/20\)</span></td>
+<td><span class="arithmatex">\(16/20\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>“流动程度” <span class="arithmatex">\(\alpha\in[0,1]\)</span> 把基础转移与留在原状态混合：</p>
+<div class="arithmatex">\[
+P_\alpha(s'\mid s,i,j)
+=(1-\alpha)\mathbf1_{\{s'=s\}}
++\alpha P_{\rm base}(s'\mid s,i,j).
+\]</div>
+<p><span class="arithmatex">\(\alpha=0\)</span> 时完全不换状态，<span class="arithmatex">\(\alpha=1\)</span> 时使用基础转移。每格概率都非负且总和严格为 1。它与折扣 <span class="arithmatex">\(\gamma\)</span> 是不同参数：<span class="arithmatex">\(\alpha\)</span> 控制去哪，<span class="arithmatex">\(\gamma\)</span> 控制未来收益的权重。</p>
+<h3 id="3">3. 先预测，再动手<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>先看阶段矩阵和转移表，预测有没有纯鞍点、当前 <span class="arithmatex">\(\gamma\)</span> 能否使用折扣压缩证书、有限抽样能否证明一般收敛。揭示后依次做三次对照：</p>
+<ol>
+<li>取 <span class="arithmatex">\(\gamma=0\)</span>：未来被忽略，两个状态的值分别就是 <span class="arithmatex">\(v(A)\)</span> 和 <span class="arithmatex">\(v(A)+1\)</span>。</li>
+<li>取 <span class="arithmatex">\(\alpha=0,\gamma=0.8\)</span>：状态不变，因此固定点可以手算为 <span class="arithmatex">\(v(A)/0.2\)</span> 与 <span class="arithmatex">\((v(A)+1)/0.2\)</span>。用它检查残差上界是否罩住实际误差。</li>
+<li>取 <span class="arithmatex">\(\gamma=1\)</span>：继续做有限轮更新，但关闭折扣固定点误差证书。对猜硬币且 <span class="arithmatex">\(\alpha=0\)</span> 的模型，状态 1 每多一轮就增加 1，曲线没有有限固定点。</li>
+</ol>
+<div class="learning-lab" data-learning-lab="zero-sum-dynamic">
+<p><strong>无 JavaScript 时的实验账本。</strong>猜硬币、<span class="arithmatex">\(\alpha=0,\gamma=4/5\)</span>、初始 <span class="arithmatex">\(V_0=(0,0)\)</span> 时，状态不变，更新为</p>
+<div class="arithmatex">\[
+V_{k+1}(0)=\frac45V_k(0),\qquad
+V_{k+1}(1)=1+\frac45V_k(1).
+\]</div>
+<p>所以 <span class="arithmatex">\(V_k(0)=0\)</span>、<span class="arithmatex">\(V_k(1)=5[1-(4/5)^k]\)</span>，固定点是 <span class="arithmatex">\(V^*=(0,5)\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th><span class="arithmatex">\(k\)</span></th>
+<th><span class="arithmatex">\(V_k(1)\)</span></th>
+<th>残差 <span class="arithmatex">\(r_k=\lVert TV_k-V_k\rVert_\infty\)</span></th>
+<th>上界 <span class="arithmatex">\(r_k/(1-\gamma)\)</span></th>
+<th>实际误差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>5</td>
+<td>5</td>
+</tr>
+<tr>
+<td>1</td>
+<td>1</td>
+<td><span class="arithmatex">\(4/5\)</span></td>
+<td>4</td>
+<td>4</td>
+</tr>
+<tr>
+<td>2</td>
+<td><span class="arithmatex">\(9/5\)</span></td>
+<td><span class="arithmatex">\(16/25\)</span></td>
+<td><span class="arithmatex">\(16/5\)</span></td>
+<td><span class="arithmatex">\(16/5\)</span></td>
+</tr>
+<tr>
+<td>3</td>
+<td><span class="arithmatex">\(61/25\)</span></td>
+<td><span class="arithmatex">\(64/125\)</span></td>
+<td><span class="arithmatex">\(64/25\)</span></td>
+<td><span class="arithmatex">\(64/25\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>在这个特殊模型中上界恰好取等号，一般模型不必如此。最后一轮的有效收益矩阵是 <span class="arithmatex">\(Q_s[V_k]\)</span>，对它做一次随机抽样，只是在抽样<strong>当前奖励加给定未来价值</strong>，不是实际模拟一整条无限时域轨迹。</p>
 </div>
-<h3 id="5">5. 定理与失败边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<ul>
-<li>阶段 minimax 等式保留的是零和结构；一般和博弈不能只看一个玩家的矩阵值。</li>
-<li>Bellman/Shapley 算子的压缩性来自 <span class="arithmatex">\(\gamma&lt;1\)</span> 与有界转移回报；<span class="arithmatex">\(\gamma=1\)</span> 时有限迭代仍可画图，但不存在同一个残差上界。</li>
-<li>混合策略的抽样均值会随样本数变化；一次有限采样与一组有限迭代都不能冒充对所有状态、初值或博弈的收敛。</li>
-<li>动态转移会改变未来价值，所以“每阶段各自最优”一般不等于全局动态最优；必须把当前矩阵与下一状态的值一起送进算子。</li>
-<li>实验只覆盖有限、低维、给定参数的模型；无限动作、非零和、未折扣平均收益和对手学习动态需要额外理论。</li>
-</ul>
+<h3 id="4">4. 数值证书怎样读<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>价值曲线使用收益单位；残差与误差上界单独画图，不把归一化后的残差塞到价值轴上。迭代表保留从 <span class="arithmatex">\(k=0\)</span> 到最后一轮的<strong>每一行</strong>，并区分 <span class="arithmatex">\(V_k\)</span> 与 <span class="arithmatex">\(TV_k\)</span>。上界属于该行的 <span class="arithmatex">\(V_k\)</span>，不是下一行的 <span class="arithmatex">\(V_{k+1}\)</span>。</p>
+<p>实验把当前保存的数值 <span class="arithmatex">\(V_k\)</span> 代入给定模型，精确计算这一轮的矩阵值和残差，再给出向上舍入的数值上界。曲线中的下一轮数值仍会舍入；“数值变化看不见了”不等于残差精确为零。表中的展开项保留精确分数供核对。</p>
+<p>抽样表同时列出四格次数、理论期望、样本均值、总体方差和理论标准误。固定种子让结果可复现；标准误按理想独立抽样模型计算，表示随机误差的典型尺度，<strong>不是当前误差的确定上界</strong>。</p>
 </section>
-<h2 id="1_1">1. 零和博弈与极小极大定理<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p>二人零和：你得即我失，<span class="arithmatex">\(u_2 = -u_1\)</span>，一张矩阵 <span class="arithmatex">\(A\)</span> 说尽（行玩家收益）。<strong>安全策略思维</strong>：行玩家保底 <span class="arithmatex">\(\max_x \min_y\)</span>，列玩家压顶 <span class="arithmatex">\(\min_y \max_x\)</span>；一般 <span class="arithmatex">\(\max\min \leq \min\max\)</span>（先亮牌吃亏）。</p>
-<p><strong>定理（von Neumann 极小极大，1928）</strong> 允许混合策略后：</p>
+<h2 id="1_1">1. 零和矩阵：用同一份收益给出下界与上界<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(A\in\mathbb R^{m\times n}\)</span> 是有限实矩阵，行玩家最大化 <span class="arithmatex">\(x^\top Ay\)</span>，列玩家最小化它，<span class="arithmatex">\(x\in\Delta_m,y\in\Delta_n\)</span>。两人各自的保证为</p>
 <div class="arithmatex">\[
-\max_{x \in \Delta}\ \min_{y \in \Delta}\ x^\top A y \;=\; \min_{y}\ \max_{x}\ x^\top A y \;=\; v \quad (\text{博弈值})
+\underline v=\max_{x\in\Delta_m}\min_{y\in\Delta_n}x^\top Ay,
+\qquad
+\overline v=\min_{y\in\Delta_n}\max_{x\in\Delta_m}x^\top Ay.
 \]</div>
-<p><strong>证明即 LP 对偶</strong>（优化 IV 的完整兑现）：行玩家"最大化保底值"写成 LP（变量 = 混合概率 + 保底 <span class="arithmatex">\(v\)</span>），列玩家的问题<strong>恰是它的对偶 LP</strong>——强对偶给 <span class="arithmatex">\(\max\min = \min\max\)</span>。<span class="arithmatex">\(\blacksquare\)</span> 求解零和博弈 = 解一个 LP（单纯形法上岗）；Nash 的一般存在性定理在零和情形退化为线性规划——<strong>对抗的数学是凸的，这是它比一般博弈"好解"的原因</strong>。</p>
-<p>🔗 <strong>GAN 对账</strong>（ai 课/comfy 课 01 的方程认祖）：<span class="arithmatex">\(\min_G\max_D\)</span> 训练目标就是零和博弈，训练不稳定的一个根源正是"在非凸参数空间里找鞍点"——minimax 定理的凸性前提不再免费。</p>
-<h2 id="2_1">2. 动态博弈：时间进场<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p><strong>扩展型（博弈树）</strong>：轮流行动、看得见历史。<strong>求解 = 逆向归纳</strong>：从叶子倒推每个节点的最优选择——<strong>就是动态规划</strong>（优化 IV Bellman 的博弈版），产物叫<strong>子博弈完美均衡</strong>（每个子博弈里都理性——排除"不可信的威胁"：空头恐吓在逆向归纳下自动瓦解）。</p>
-<p><strong>先动的价值</strong>：Stackelberg 竞争中领导者先动并<strong>承诺</strong>，跟随者最佳回应——先动者利用"对方会理性回应"获得优势；<strong>承诺的可信性是战略资产</strong>（烧船、公开立军令状的博弈论内核：自断退路改变对手对你的预期）。</p>
-<p><strong>重复博弈：合作的数学出路</strong>。一次性囚徒困境必背叛；<strong>无限重复 + 未来足够重要</strong>时合作可持续：以"冷酷触发"策略（你背叛一次，我永远背叛）支撑合作的条件——</p>
+<p>对任意固定 <span class="arithmatex">\(x,y\)</span>，行玩家的最坏收益不会高于 <span class="arithmatex">\(x^\top Ay\)</span>，列玩家面对的最大收益不会低于它，从而 <span class="arithmatex">\(\underline v\le\overline v\)</span>。</p>
+<p>只允许纯动作时，这个不等式可以严格：猜硬币的每一行最小值都是 <span class="arithmatex">\(-1\)</span>，每一列最大值都是 1。允许混合以后，双方各取一半，使对手的任意纯动作都给出期望 0，两个界就接上了。</p>
+<p><strong>von Neumann 极小极大定理：</strong></p>
 <div class="arithmatex">\[
-\underbrace{\frac{C}{1 - \delta}}_{\text{永远合作}} \;\geq\; \underbrace{T + \frac{\delta\, P}{1 - \delta}}_{\text{背叛一次然后互相伤害}}
+\boxed{
+\max_{x\in\Delta_m}\min_{y\in\Delta_n}x^\top Ay
+=\min_{y\in\Delta_n}\max_{x\in\Delta_m}x^\top Ay
+=v(A).
+}
 \]</div>
-<p>（<span class="arithmatex">\(\delta\)</span> = 折现因子，<span class="arithmatex">\(C\)</span> 合作收益、<span class="arithmatex">\(T\)</span> 背叛诱惑、<span class="arithmatex">\(P\)</span> 惩罚收益——等比级数，数分 IV 干活。）<strong>读法：<span class="arithmatex">\(\delta\)</span> 够大（在乎未来/关系长久）合作自我维持</strong>——熟人社会守信、国际贸易协定、商誉的价值，全是这一行不等式；Folk 定理（陈述）说重复博弈能支撑大量结局——制度与预期决定落在哪个均衡。Axelrod 锦标赛的 tit-for-tat（以牙还牙、以德报德）是它的实验室名场面。</p>
-<h2 id="3">3. 拍卖与机制设计：反向博弈论<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>前两节<strong>给定规则求均衡</strong>；机制设计反过来——<strong>给定想要的结果，设计规则</strong>使自利玩家的均衡恰好实现它（"制度是被设计的博弈"）。</p>
-<p><strong>一价 vs 二价拍卖</strong>（密封出价）：一价（出最高价者按自己出价付）——最优策略是<strong>压价</strong>（低于真实估值，博弈复杂）；<strong>二价拍卖（Vickrey）</strong>：出最高价者按<strong>第二高价</strong>付——</p>
-<p><strong>定理</strong> 在单物品、私人价值、准线性效用、无预算/外部性约束且支付规则确实为第二价格的标准模型中，<strong>如实出价是（弱）优势策略</strong>。这个结论不需要竞标者估值相互独立；独立同分布等假设常用于求最优保留价或期望收入，不是这条优势策略证明的前提。
-<em>证明（两行）</em>：你的出价只决定"是否赢"，不决定"付多少"（付的是别人的价）——报高只会在"估值 &lt; 第二价"时多赢下亏本局，报低只会错失有利可图的局；如实出价恰好"该赢则赢"。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>读法</strong>：好机制能让说真话成为最优，但名称相近不代表激励性质相同。<strong>VCG</strong> 是把外部性支付推广到多物品/公共决策的一族机制；在标准准线性私人价值环境下，它与单物品 Vickrey 拍卖一样具有优势策略真实性。<strong>GSP</strong>（广义第二价格）按下一名出价给多个广告位定价，通常并不让如实出价成为优势策略，只能在附加假设下讨论其均衡。把 GSP 与 VCG 并写成“二价机制变体”不能继承上面的两行证明。</p>
-<p><strong>演化博弈</strong>一嘴：把"理性选择"换成"复制动态"（高收益策略在种群中增殖 <span class="arithmatex">\(\dot x_i = x_i(u_i - \bar u)\)</span>——ode-03 的动力系统），均衡概念换成 ESS（演化稳定策略）——生物学与文化演化的博弈语言；NE 不需要理性也能涌现，是对"人真的会算吗"质疑的回应。</p>
-<h2 id="4">4. 典型例题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>例 1（LP 解零和）</strong> 剪刀石头布（赢 1 输 -1 平 0）：对称性 + 无差异原则给唯一 NE 各 <span class="arithmatex">\(\frac13\)</span>，博弈值 0；用 LP 写出并验证对偶解相同——一次把优化 IV 与本页焊死的练习。</p>
-<p><strong>例 2（逆向归纳）</strong> 蜈蚣博弈两步版：A 可拿 <span class="arithmatex">\((2,0)\)</span> 结束或传给 B；B 可拿 <span class="arithmatex">\((1,3)\)</span> 或传回得 <span class="arithmatex">\((3,2)\)</span>。倒推：B 会选 <span class="arithmatex">\((1,3)\)</span>（3&gt;2）⇒ A 预见此，选 <span class="arithmatex">\((2,0)\)</span>（2&gt;1）——<strong>理性倒推吃掉了双赢的 <span class="arithmatex">\((3,2)\)</span></strong>；实验中真人常传球走得更远：理性假设的边界（行为博弈论的入口）。</p>
-<p><strong>例 3（合作条件）</strong> <span class="arithmatex">\(C = 3, T = 5, P = 1\)</span>：合作可持续 <span class="arithmatex">\(\iff \frac{3}{1-\delta} \geq 5 + \frac{\delta}{1-\delta} \iff \delta \geq \frac12\)</span>——"关系至少值一半权重"是这组参数下守信的门槛；一锤子买卖（<span class="arithmatex">\(\delta \to 0\)</span>）必然互坑，回头客生意自动讲诚信。<strong>商业模式决定道德水位</strong>，一行不等式的社会学。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<h2 id="_1">博弈论收束<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<p>两页的骨架：均衡（自我强化的僵局，不动点保证存在）→ 对抗（minimax = LP 对偶）→ 时间（逆向归纳 = DP；重复养合作）→ 设计（让说真话成为均衡）。它是本站唯一"对手会还手"的一门课，也是从数学走向经济学、演化生物学与多智能体 AI 的官方出口。</p>
+<p>一对最优概率 <span class="arithmatex">\(x^*,y^*\)</span> 满足鞍点不等式</p>
+<div class="arithmatex">\[
+x^\top Ay^*\le (x^*)^\top Ay^*=v(A)\le (x^*)^\top Ay,
+\qquad \forall x,y.
+\]</div>
+<p>它就是零和博弈的 Nash 均衡。值是唯一的，最优策略不一定唯一；例如所有格都相同时，每个策略组合都最优。</p>
+<h3 id="lp">把“对偶”写成真正可以核对的两个 LP<a class="headerlink" href="#lp" title="Permanent link"></a></h3>
+<p>固定 <span class="arithmatex">\(x\)</span> 后，列玩家的最坏回应可以取纯列，所以行玩家的问题是</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\text{最大化}\quad&amp;v\\
+\text{满足}\quad&amp;A^\top x\ge v\mathbf1_n,\\
+&amp;\mathbf1_m^\top x=1,\quad x\ge0,\quad v\in\mathbb R.
+\end{aligned}
+\]</div>
+<p>它的对偶是列玩家的问题：</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\text{最小化}\quad&amp;w\\
+\text{满足}\quad&amp;Ay\le w\mathbf1_m,\\
+&amp;\mathbf1_n^\top y=1,\quad y\ge0,\quad w\in\mathbb R.
+\end{aligned}
+\]</div>
+<p>这里 <span class="arithmatex">\(v,w\)</span> 是自由实变量，不能擅自要求非负：收益可以全为负。两问题均可行，最优值受矩阵最小格与最大格限制。LP 强对偶给出相等的最优值，正是极小极大等式。</p>
+<p>任意一组可行 <span class="arithmatex">\(x,v,y,w\)</span> 都给出</p>
+<div class="arithmatex">\[
+v\le x^\top Ay\le w.
+\]</div>
+<p>因此 <span class="arithmatex">\(w-v\)</span> 是直接可核对的差距。若差为 0，就同时证明两边最优。互补松弛进一步说明：被 <span class="arithmatex">\(x\)</span> 正概率使用的行，在 <span class="arithmatex">\(y\)</span> 下收益都等于值；被 <span class="arithmatex">\(y\)</span> 正概率使用的列，在 <span class="arithmatex">\(x\)</span> 下收益也都等于值。未使用的动作仍要满足相应不等式。</p>
+<h3 id="_1">一个非对称手算<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>对 <span class="arithmatex">\(A=\begin{pmatrix}3&amp;0\\1&amp;2\end{pmatrix}\)</span>，行玩家以 <span class="arithmatex">\(p\)</span> 选第一行。面对两列时分别得到 <span class="arithmatex">\(1+2p\)</span> 和 <span class="arithmatex">\(2-2p\)</span>，保底是两条线的较低者。令它们相交：</p>
+<div class="arithmatex">\[
+1+2p=2-2p\Longrightarrow p=1/4,\quad v=3/2.
+\]</div>
+<p>列玩家以 <span class="arithmatex">\(q\)</span> 选第一列。两行对它的收益分别为 <span class="arithmatex">\(3q\)</span> 与 <span class="arithmatex">\(2-q\)</span>，压制值是两条线的较高者。交点 <span class="arithmatex">\(q=1/2\)</span> 同样给 <span class="arithmatex">\(3/2\)</span>。这同时给出概率、值与两个方向的证书。</p>
+<h2 id="2_1">2. 动态零和：把未来加进当前矩阵<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>现在令状态集合有限。每一轮双方观察状态 <span class="arithmatex">\(s\)</span>，同时选择动作 <span class="arithmatex">\(i,j\)</span>，行玩家得到 <span class="arithmatex">\(r_s(i,j)\)</span>，下一状态服从 <span class="arithmatex">\(P(\cdot\mid s,i,j)\)</span>。折扣目标采用<strong>未乘 <span class="arithmatex">\(1-\gamma\)</span></strong> 的总和：</p>
+<div class="arithmatex">\[
+\mathbb E\!\left[\sum_{t=0}^{\infty}\gamma^t r_{s_t}(i_t,j_t)\right],
+\qquad 0\le\gamma&lt;1.
+\]</div>
+<p>收益有界使该总和绝对可积。给定未来价值候选 <span class="arithmatex">\(V\)</span>，当前状态的有效矩阵是</p>
+<div class="arithmatex">\[
+Q_s[V]_{ij}=r_s(i,j)+\gamma\sum_{s'}P(s'\mid s,i,j)V(s').
+\]</div>
+<p>每个状态单独解一次零和矩阵，得到 <strong>Shapley 算子</strong></p>
+<div class="arithmatex">\[
+(TV)(s)=v\!\left(Q_s[V]\right).
+\]</div>
+<p>这里先把当前收益与未来收益相加，再求矩阵值。一般不能先对每个奖励矩阵求一个“局部最优动作”，然后把它永远重复，因为当前动作还改变转移。</p>
+<h3 id="_2">压缩常数来自哪里<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>若两张矩阵每格至多相差 <span class="arithmatex">\(\eta\)</span>，任何固定混合策略对的期望收益也至多相差 <span class="arithmatex">\(\eta\)</span>。再分别取最大、最小，不会放大这个统一误差，因此</p>
+<div class="arithmatex">\[
+\lvert v(A)-v(B)\rvert\le\max_{i,j}\lvert A_{ij}-B_{ij}\rvert.
+\]</div>
+<p>另一方面，转移概率非负且总和为 1，所以每一格</p>
+<div class="arithmatex">\[
+\lvert Q_s[V]_{ij}-Q_s[W]_{ij}\rvert
+\le\gamma\sum_{s'}P(s'\mid s,i,j)\lVert V-W\rVert_\infty
+=\gamma\lVert V-W\rVert_\infty.
+\]</div>
+<p>两步合起来就是</p>
+<div class="arithmatex">\[
+\lVert TV-TW\rVert_\infty\le\gamma\lVert V-W\rVert_\infty.
+\]</div>
+<p>有限维空间完备，故压缩映射定理给出唯一固定点 <span class="arithmatex">\(V^*=TV^*\)</span>。精确价值迭代 <span class="arithmatex">\(V_{k+1}=TV_k\)</span> 从任意有限初始向量收敛到它。</p>
+<h3 id="_3">不知道固定点，也能估计当前误差<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>对任意候选 <span class="arithmatex">\(V\)</span>，用三角不等式：</p>
+<div class="arithmatex">\[
+\lVert V-V^*\rVert_\infty
+\le\lVert V-TV\rVert_\infty
++\lVert TV-TV^*\rVert_\infty
+\le r+\gamma\lVert V-V^*\rVert_\infty.
+\]</div>
+<p>移项得</p>
+<div class="arithmatex">\[
+\boxed{
+\lVert V-V^*\rVert_\infty\le
+\frac{\lVert TV-V\rVert_\infty}{1-\gamma}.
+}
+\]</div>
+<p>因此接近 1 的折扣会放大残差证书；同一个 <span class="arithmatex">\(10^{-4}\)</span> 残差，在 <span class="arithmatex">\(\gamma=0.5\)</span> 与 <span class="arithmatex">\(0.999\)</span> 下给出的界分别为 <span class="arithmatex">\(2\times10^{-4}\)</span> 与 <span class="arithmatex">\(0.1\)</span>。不能只看到残差“很小”就忽略折扣。</p>
+<h3 id="_4">固定点为什么也是无限时域博弈的值<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>在每个 <span class="arithmatex">\(Q_s[V^*]\)</span> 中选一组最优混合策略。行玩家按当前状态使用该策略，就能保证本轮奖励加折扣后的下一状态价值至少为当前 <span class="arithmatex">\(V^*(s)\)</span>，无论对手如何根据历史行动。</p>
+<p>把这个条件不等式逐轮取期望并相加，中间的未来价值项相消，留下有限段奖励与末端 <span class="arithmatex">\(\gamma^n V^*(s_n)\)</span>。因为 <span class="arithmatex">\(V^*\)</span> 有界，末端项趋于 0，行玩家就能保证至少 <span class="arithmatex">\(V^*(s_0)\)</span>；列玩家同理给出至多这个值。这里得到的是按状态重新随机化的平稳策略，并不是游戏开始时抽一次纯策略以后永远照做。</p>
+<h3 id="1_2">折扣为 1 时改变了什么<a class="headerlink" href="#1_2" title="Permanent link"></a></h3>
+<p><span class="arithmatex">\(\gamma=1\)</span> 时，压缩常数不再小于 1，残差除以 <span class="arithmatex">\(1-\gamma\)</span> 的公式不能使用。单状态恒定奖励 1 就给出 <span class="arithmatex">\(TV=1+V\)</span>，不存在有限固定点，未折扣无限总和也发散。</p>
+<p>有限时域仍可从终端价值向前倒推。长期<strong>平均</strong>收益则是另一个目标，例如 <span class="arithmatex">\(\liminf_n n^{-1}\mathbb E\sum_{t&lt;n}r_t\)</span>，不能把无限折扣总和公式直接改成 <span class="arithmatex">\(\gamma=1\)</span> 就得到它。有限状态动作的零和平均收益理论有更深入的值存在性结果；这不意味着原始价值迭代必然收敛到一个有限向量。扩展到无限状态或动作时还要重新检查相应条件。</p>
+<h2 id="3_1">3. 抽样：抽的是哪一个随机变量<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>给定最后一行的 <span class="arithmatex">\(V_k\)</span> 与 <span class="arithmatex">\(Q_s[V_k]\)</span>，实验按该矩阵的一组最优混合概率独立抽行动，记录随机收益</p>
+<div class="arithmatex">\[
+Y=Q_s[V_k]_{I,J},\qquad
+\mathbb P(I=i,J=j)=x_i y_j.
+\]</div>
+<p>于是理论期望为矩阵值，方差为</p>
+<div class="arithmatex">\[
+\operatorname{Var}(Y)=\sum_{i,j}x_i y_j
+\left(Q_s[V_k]_{ij}-v(Q_s[V_k])\right)^2.
+\]</div>
+<p><span class="arithmatex">\(N\)</span> 次理想独立抽样的样本均值标准误是
+<span class="arithmatex">\(\sqrt{\operatorname{Var}(Y)/N}\)</span>。它不同于固定点残差：前者来自有限抽样，后者检验当前价值候选是否满足方程。增加 <span class="arithmatex">\(N\)</span> 不会替代增加价值迭代轮数，也不会修好一个错误的转移模型。</p>
+<p>实验使用有限精度伪随机数和固定种子复现抽样；四格次数与每一步样本均值均可核对。样本均值偶然非常接近矩阵值，不证明未来所有种子或样本规模都会同样接近。</p>
+<h2 id="4_1">4. 先后行动：策略是一份完整的条件计划<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>扩展型博弈可以包含轮流行动、同时行动、随机节点与不完全信息。<strong>有限树、完全信息且每次行动都观察到此前历史</strong>时，可以用逆向归纳：在最后的决策节点，按该节点行动者自己的收益选择；把结果传回上层，一直回到根。</p>
+<p>这给出子博弈完美均衡（SPNE）：限制到每个子博弈后仍是 Nash 均衡。策略必须说明在所有相关决策节点怎样行动，包括均衡路径上不会到达的节点。遇到并列最优时应保留选择分支，不能据此宣称均衡唯一。</p>
+<p><strong>两步例子。</strong>A 可以立即拿 <span class="arithmatex">\((2,0)\)</span>，也可以传给 B。B 接到后可以拿 <span class="arithmatex">\((1,3)\)</span>，或继续得到 <span class="arithmatex">\((3,2)\)</span>。B 比较自己的第二分量，选拿，因为 <span class="arithmatex">\(3&gt;2\)</span>；A 预见这一点，比较自己的第一分量，选择立即拿，因为 <span class="arithmatex">\(2&gt;1\)</span>。</p>
+<p>得到的完整策略是“A 立即拿；如果到 B，B 也拿”，结果 <span class="arithmatex">\((2,0)\)</span>。另一个叶子 <span class="arithmatex">\((3,2)\)</span> 对两人都更好，却不能由这套完全信息一次性树中的逆向归纳支持。要解释其他行为，需要修改或扩展效用、信息、承诺或行为假设。</p>
+<p>先行动不自动意味着优势。Stackelberg 模型中，领导者选择后能否可信地承诺、跟随者怎样打破并列最佳回应、谁观察到什么，都影响结果；有些博弈有先手优势，有些有后手优势。</p>
+<h2 id="5">5. 重复博弈：合作有条件地成为均衡<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>沿用上一页囚徒困境的 <span class="arithmatex">\(T=5,C=3,P=1,S=0\)</span>，满足 <span class="arithmatex">\(T&gt;C&gt;P&gt;S\)</span>。无限重复、双方完整观察每轮行动、共同折扣 <span class="arithmatex">\(0\le\delta&lt;1\)</span>。</p>
+<p>明确规定一份<strong>公共触发策略</strong>：只要此前每一轮双方都合作，就继续合作；一旦历史中<strong>任意一方</strong>出现过背叛，从下一轮起双方永远背叛。惩罚状态是吸收状态，不能因为刚好是自己先背叛，就假定自己仍在合作状态。</p>
+<p>在合作历史后，遵守策略的收益为 <span class="arithmatex">\(C/(1-\delta)\)</span>；本轮背叛后进入惩罚，最好能得 <span class="arithmatex">\(T+\delta P/(1-\delta)\)</span>。所以合作阶段的激励条件为</p>
+<div class="arithmatex">\[
+\frac{C}{1-\delta}\ge T+\frac{\delta P}{1-\delta}
+\quad\Longleftrightarrow\quad
+\boxed{\delta\ge\frac{T-C}{T-P}}.
+\]</div>
+<p>还必须检查路径之外的惩罚历史：对手永远背叛，自己本轮背叛得 <span class="arithmatex">\(P\)</span>，合作只得 <span class="arithmatex">\(S&lt;P\)</span>，而未来仍在惩罚状态。因此惩罚也是可信的。有限动作、有界收益与严格小于 1 的折扣使单次偏离原理适用；检查这两类历史就证明了整份策略的子博弈完美性。</p>
+<p>这组数值给 <span class="arithmatex">\(\delta\ge1/2\)</span>。等号时合作与一次背叛无差异，仍可构成均衡；这既不保证合作是唯一均衡，也不保证真实参与者会选择它。双方永远背叛仍是一个 SPNE。监控错误还可能让公共触发永久惩罚一次误判，不能直接把它作为现实制度的无条件处方。</p>
+<p>若重复次数有限、终点事先共同知道，且阶段博弈的 Nash 均衡唯一，则标准完整信息模型中的 SPNE 从最后一轮往前逐轮回到阶段均衡。未来重要并不能越过已知终点，自动替最后一轮创造合作激励。</p>
+<p>Folk 定理研究更广泛的可支持收益，但其版本取决于监控、耐心程度、可行收益和个体理性等条件。一个触发策略的阈值，不能代替整个定理，也不能推出“长期生意必然诚信”。</p>
+<h2 id="6">6. 拍卖：支付规则如何改变激励<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>机制设计先给定结果、报告与支付规则，再检查参与者怎样回应。一个重要目标是优势策略激励相容：无论别人怎样报告，如实报告都至少一样好。它不要求真实性一定是唯一最优报告。</p>
+<h3 id="_5">二价拍卖的三种情况<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>单物品、非负私人估值、准线性效用、无预算或外部性约束；最高出价者获物品并付第二高价，平局按预先给定规则处理。固定别人的出价，令其最高价为 <span class="arithmatex">\(m\)</span>，自己的估值为 <span class="arithmatex">\(v\)</span>。</p>
+<table>
+<thead>
+<tr>
+<th>自己的估值</th>
+<th>想要的结果</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(v&gt;m\)</span></td>
+<td>赢</td>
+<td>赢得 <span class="arithmatex">\(v-m&gt;0\)</span>，输得 0</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(v&lt;m\)</span></td>
+<td>输</td>
+<td>赢得 <span class="arithmatex">\(v-m&lt;0\)</span>，输得 0</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(v=m\)</span></td>
+<td>赢或输都行</td>
+<td>效用都是 0</td>
+</tr>
+</tbody>
+</table>
+<p>出价 <span class="arithmatex">\(v\)</span> 正好实现这些选择，所以如实出价是<strong>弱</strong>优势策略。证明逐个固定别人的报价，不需要估值相互独立；独立同分布往往是另一类收入或均衡计算的假设。</p>
+<h3 id="_6">一价拍卖不能照搬二价证明<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<p>一价拍卖中，赢者付自己的报价，报价同时影响赢的机会与赢后的利润。一个可完整算出的例子是：<span class="arithmatex">\(n\ge2\)</span> 个风险中性竞标者，估值独立均匀分布于 <span class="arithmatex">\([0,1]\)</span>，无保留价且报价非负，对称递增均衡为</p>
+<div class="arithmatex">\[
+b(v)=\frac{n-1}{n}v.
+\]</div>
+<p>若别人采用 <span class="arithmatex">\(b(t)=\alpha t\)</span>，自己报价 <span class="arithmatex">\(\beta\in[0,\alpha]\)</span>，赢的概率是 <span class="arithmatex">\((\beta/\alpha)^{n-1}\)</span>，期望效用为</p>
+<div class="arithmatex">\[
+(v-\beta)\left(\frac{\beta}{\alpha}\right)^{n-1}.
+\]</div>
+<p>对 <span class="arithmatex">\(\beta\)</span> 求导，内部最大点为 <span class="arithmatex">\(\beta=(n-1)v/n\)</span>。令 <span class="arithmatex">\(\alpha=(n-1)/n\)</span>，这个最佳回应恰好与假设一致；端点 <span class="arithmatex">\(v=0,1\)</span> 也符合边界。报价超过 <span class="arithmatex">\(\alpha\)</span> 虽然必胜，却比报价 <span class="arithmatex">\(\alpha\)</span> 支付更多，不能进一步改善收益。这个压价公式依赖分布与模型，不是所有一价拍卖的统一比例。</p>
+<h3 id="vcg-gsp">VCG 与 GSP 分清楚<a class="headerlink" href="#vcg-gsp" title="Permanent link"></a></h3>
+<p>在标准私人价值、准线性、可转移支付的环境中，VCG 选择报告总价值最大的可行结果，并让每个人支付自己对其他人造成的外部性。固定别人报告后，自己的效用可写为“所选结果的真实自身价值加他人报告价值，减去一个不依赖自己报告的常数”。如实报告使机制最大化前一项，因此是弱优势策略。这个推理要求分配优化确实按规则完成。</p>
+<p>广告位的 GSP 按下一名报价定价，一般不具有同样的真实性。举个两广告位、三竞标者、每点击估值分别为 <span class="arithmatex">\(10,9,1\)</span>，点击率分别为 <span class="arithmatex">\(1,1/2\)</span> 的简单模型：如实报价时，第一人拿第一位，效用 <span class="arithmatex">\(1(10-9)=1\)</span>；如果把报价改为 2，他改拿第二位，付每点击 1，效用变成 <span class="arithmatex">\((1/2)(10-1)=9/2\)</span>。存在有利偏离，已经足够否定“如实出价是优势策略”。</p>
+<p>这没有否定 GSP 可能存在其他均衡；它只是说明相似的“第二价格”名称不等于同一激励结构。</p>
+<h2 id="7">7. 向学习动态与演化理论再走一步<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>有均衡，不代表交替优化会自动找到它。对双线性目标 <span class="arithmatex">\(\min_x\max_y xy\)</span>，同时梯度更新为</p>
+<div class="arithmatex">\[
+x_{k+1}=x_k-\eta y_k,\qquad
+y_{k+1}=y_k+\eta x_k.
+\]</div>
+<p>直接展开可得</p>
+<div class="arithmatex">\[
+x_{k+1}^2+y_{k+1}^2=(1+\eta^2)(x_k^2+y_k^2).
+\]</div>
+<p>只要步长 <span class="arithmatex">\(\eta&gt;0\)</span> 且初值不在原点，离均衡 <span class="arithmatex">\((0,0)\)</span> 的距离就增长。连续时间版本绕圈，离散同时更新甚至向外扩张。分析对抗训练时，必须同时给出目标函数、策略空间和更新算法；“有 minimax 形式”不是收敛证明。</p>
+<p>演化博弈则让高收益策略改变种群比例。对称单种群矩阵博弈的复制方程为</p>
+<div class="arithmatex">\[
+\dot x_i=x_i\bigl((Ax)_i-x^\top Ax\bigr).
+\]</div>
+<p>每个单一策略顶点都是方程的静止点，因为其他策略的比例为零；但如果缺席策略收益更高，这个顶点未必是 Nash 均衡，也未必能抵抗入侵。ESS 要求一个策略在任意不同入侵策略 <span class="arithmatex">\(y\)</span> 出现时，都存在一个依赖于 <span class="arithmatex">\(y\)</span> 的正阈值，使入侵比例低于该阈值时得到严格更高收益：</p>
+<div class="arithmatex">\[
+u(x,(1-\varepsilon)x+\varepsilon y)&gt;
+u(y,(1-\varepsilon)x+\varepsilon y)
+\quad\text{对充分小的 }\varepsilon&gt;0,\ y\ne x.
+\]</div>
+<p>在这里的对称有限矩阵模型中，令 <span class="arithmatex">\(\varepsilon\)</span> 趋于零可见 ESS 必须是对称 Nash 均衡，反过来不成立。例如 <span class="arithmatex">\(A=\left(\begin{smallmatrix}1&amp;0\\2&amp;0\end{smallmatrix}\right)\)</span> 的顶点 <span class="arithmatex">\(x=(1,0)\)</span> 虽是复制方程静止点，第二个策略面对它却得 2，比现有策略的 1 更高，因此该顶点不是 Nash 均衡。把静止点、Nash、ESS 和具体动态的稳定性分别检验，才是从“求均衡”走向“研究均衡怎样出现”的起点。</p>
+<h2 id="8">8. 三道展开题<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>练习 1：为剪刀石头布写出 LP 证书，并证明均匀策略唯一。</summary>
+<p>按石头、剪刀、布排序，行收益取
+<span class="arithmatex">\(A=\begin{pmatrix}0&amp;1&amp;-1\\-1&amp;0&amp;1\\1&amp;-1&amp;0\end{pmatrix}\)</span>。
+取 <span class="arithmatex">\(x=y=(1/3,1/3,1/3)\)</span>，有 <span class="arithmatex">\(A^\top x=0\)</span>、<span class="arithmatex">\(Ay=0\)</span>，所以行保底 <span class="arithmatex">\(v=0\)</span> 与列上界 <span class="arithmatex">\(w=0\)</span> 同时可行，差为零，证明最优。</p>
+<p>若另一个行策略 <span class="arithmatex">\(x\)</span> 也能保证值 0，则 <span class="arithmatex">\(A^\top x\ge0\)</span>。这三个分量的和为 0，所以每个分量必须是 0，即</p>
+<div class="arithmatex">\[
+-x_2+x_3=0,\qquad x_1-x_3=0,\qquad -x_1+x_2=0.
+\]</div>
+<p>结合概率和为 1，得到三个分量均为 <span class="arithmatex">\(1/3\)</span>。列玩家同理。因此均匀策略不仅是一个对称候选，而且是双方唯一的最优策略。</p>
+</details>
+<details class="answer">
+<summary>练习 2：公共触发策略中，δ=0.4、0.5、0.8 各是否支持合作？为什么还要查惩罚阶段？</summary>
+<p>用 <span class="arithmatex">\(C=3,T=5,P=1\)</span>，合作与偏离的收益差为</p>
+<div class="arithmatex">\[
+\frac3{1-\delta}-\left(5+\frac{\delta}{1-\delta}\right)
+=\frac{4\delta-2}{1-\delta}.
+\]</div>
+<p>当 <span class="arithmatex">\(\delta=0.4\)</span> 时差为 <span class="arithmatex">\(-2/3\)</span>，有利偏离存在；当 <span class="arithmatex">\(\delta=0.5\)</span> 时差为 0，合作仍是最佳回应；当 <span class="arithmatex">\(\delta=0.8\)</span> 时差为 6，合作严格更好。</p>
+<p>但只查这一步还没证明 SPNE。惩罚历史后，对手背叛，自己背叛得 1，合作得 0，之后仍然永远惩罚，所以没有有利的一次偏离。公共触发让所有人对“是否已经进入惩罚”使用同一段可见历史；两类历史都检查后，阈值才是这份完整策略的子博弈完美条件。</p>
+</details>
+<details class="answer">
+<summary>练习 3：估值 7、别人最高报价 5 时，二价拍卖中报价 7 与 9 有何区别？为何不能推成 GSP 的真实性？</summary>
+<p>单物品二价模型里，两种报价都赢，都付 5，效用都是 <span class="arithmatex">\(7-5=2\)</span>。因此真实报价是弱优势，未必是唯一最佳回应。若别人最高价改成 8，真实报价 7 会输而得 0，报价 9 却会赢并亏 1；固定某个对手报价时同样好，不意味着对所有对手报价都一样好。</p>
+<p>GSP 中，改报价还会改变自己占据哪个点击率的广告位。正文例子里，估值 10 的竞标者从第一位移到第二位，效用从 1 变成 <span class="arithmatex">\(9/2\)</span>，增加 <span class="arithmatex">\(7/2\)</span>。单物品“只需决定赢或输”的三分情况不再覆盖这里的多档分配选择。</p>
+</details>
+<p><strong>延伸阅读。</strong><a href="https://www2.cs.siu.edu/~hexmoor/classes/CS539-F10/Shapley.pdf">Shapley 的原始论文</a>第 1–2 节把矩阵值的稳定性与随机博弈的压缩映射联系起来。重复博弈可结合 <a href="https://ocw.mit.edu/courses/17-810-game-theory-spring-2021/mit17_810s21_lec5.pdf">MIT 的讲义</a>比较不同触发策略的路径外规定；尤其不要把“只针对对方过去行动的触发”与本页“任意背叛后公共进入吸收惩罚”的完整策略混为一谈。</p>
+<p>接下来的<a href="project-01-heat-inverse.html">热方程反问题项目</a>把建模、正向计算、噪声与可辨识性放到一个完整任务中。博弈论这两页留下的通用习惯同样适用：先说清模型、目标和信息，再给出证书与误差，最后才解释观察到的行为。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="game-01-nash.html"><span class="pager-label">上一页</span>博弈论 I · 策略型博弈与 Nash 均衡</a>
