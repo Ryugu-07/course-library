@@ -1,1277 +1,260 @@
-(function () {
+(function(root,factory){
   "use strict";
-
-  if (
-    typeof window === "undefined" ||
-    !window.CourseLearning ||
-    typeof window.CourseLearning.register !== "function"
-  ) {
-    return;
+  var api=factory();
+  if(typeof module==="object"&&module.exports)module.exports=api;
+  if(root&&root.CourseLearning)root.CourseLearning.register("sde-path-distribution",api.mount);
+  if(typeof module==="object"&&module.exports&&require.main===module)console.log(JSON.stringify(api.selfTest()));
+})(typeof window==="undefined"?null:window,function(){
+  "use strict";
+  var DEFAULTS=Object.freeze({theta:1.15,sigma:.85,horizon:2,x0:1.4,level:5,path:0,seed:98443302});
+  var SEEDS=Object.freeze([98443302,107,20260910]),LEVELS=Object.freeze([2,3,4,5,6,7,8]),M=256,N=256,INSTANCE=0;
+  var PRESETS=Object.freeze([
+    {name:"均值回复",values:{}},{name:"θ=0：布朗运动",values:{theta:0}},
+    {name:"σ=0：确定性",values:{sigma:0}},{name:"临界：θh=2",values:{theta:4,level:2}},
+    {name:"失稳：θh=2.5",values:{theta:5,level:2}},{name:"零均值仍有强误差",values:{x0:0}}
+  ]);
+  function range(v,lo,hi,label,int){if(typeof v!=="number"||!Number.isFinite(v)||v<lo||v>hi||(int&&!Number.isInteger(v)))throw new RangeError(label);return v;}
+  function config(input){
+    if(input!==undefined&&(!input||typeof input!=="object"||Array.isArray(input)))throw new TypeError("configuration");
+    var c=Object.assign({},DEFAULTS);
+    Object.keys(input||{}).forEach(function(k){if(!Object.prototype.hasOwnProperty.call(c,k))throw new RangeError("unknown "+k);c[k]=input[k];});
+    range(c.theta,0,5,"theta");range(c.sigma,0,1.5,"sigma");range(c.horizon,.5,2,"horizon");range(c.x0,-2,2,"x0");
+    range(c.level,2,8,"level",true);range(c.path,0,255,"path",true);range(c.seed,0,4294967295,"seed",true);
+    return Object.freeze(c);
   }
-
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var INSTANCE = 0;
-  var STYLE_ID = "cl-sde-path-distribution-style";
-  var CONFIG = {
-    T: 2,
-    x0: 1.4,
-    theta: 1.15,
-    sigma: 0.85,
-    paths: 256,
-    minLevel: 2,
-    maxLevel: 8,
-    defaultLevel: 5,
-    defaultPath: 0,
-    seed: 0x5de2026
-  };
-  var LEVEL_PRESETS = [2, 4, 6, 8];
-
-  var STYLE_TEXT = [
-    ".sde-path-distribution-lab { --sde-correct: var(--accent, #315f9d); --sde-wrong: var(--cl-red, #b64335); --sde-analytic: var(--cl-green, #39734d); --sde-weak: var(--cl-gold, #9b6a12); --sde-muted: var(--fg-soft, #6f6a60); --sde-grid: currentColor; line-height: 1.5; }",
-    ".sde-path-distribution-lab [hidden] { display: none !important; }",
-    "html[data-theme='dark'] .sde-path-distribution-lab { --sde-correct: #83c8ff; --sde-wrong: #f08c7d; --sde-analytic: #72bd8b; --sde-weak: #e2b458; --sde-muted: #b8b2a7; }",
-    ".sde-path-distribution-lab .sde-heading { margin: 0; }",
-    ".sde-path-distribution-lab .sde-intro, .sde-path-distribution-lab .sde-note, .sde-path-distribution-lab .sde-status { color: var(--sde-muted); font-size: 13px; line-height: 1.65; overflow-wrap: anywhere; }",
-    ".sde-path-distribution-lab .sde-intro { margin: 8px 0 16px; }",
-    ".sde-path-distribution-lab .sde-status { min-height: 1.65em; margin: 2px 0 0; color: var(--fg); font-weight: 650; }",
-    ".sde-path-distribution-lab .sde-layout { display: grid; grid-template-columns: minmax(220px, .72fr) minmax(0, 1.7fr); gap: 18px; align-items: start; }",
-    ".sde-path-distribution-lab .sde-controls, .sde-path-distribution-lab .sde-stage { min-width: 0; }",
-    ".sde-path-distribution-lab .sde-controls { display: grid; gap: 13px; }",
-    ".sde-path-distribution-lab .sde-control { display: grid; gap: 6px; min-width: 0; }",
-    ".sde-path-distribution-lab .sde-control > label, .sde-path-distribution-lab .sde-label { color: var(--fg-soft); font-size: 13px; font-weight: 650; }",
-    ".sde-path-distribution-lab .sde-control output { color: var(--accent); font-variant-numeric: tabular-nums; }",
-    ".sde-path-distribution-lab input[type='range'] { display: block; width: 100%; min-height: 44px; margin: 0; accent-color: var(--accent); }",
-    ".sde-path-distribution-lab button { min-height: 44px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--fg); font: inherit; line-height: 1.35; padding: 8px 11px; cursor: pointer; }",
-    ".sde-path-distribution-lab button:hover { border-color: var(--accent); }",
-    ".sde-path-distribution-lab button[aria-pressed='true'], .sde-path-distribution-lab .sde-primary { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 700; }",
-    ".sde-path-distribution-lab button:focus-visible, .sde-path-distribution-lab input:focus-visible { outline: 3px solid var(--cl-focus, #1769aa); outline-offset: 2px; }",
-    ".sde-path-distribution-lab .sde-predict { margin: 0 0 16px; padding: 12px 14px; border-left: 3px solid var(--sde-weak); background: var(--block-bg, var(--bg)); }",
-    ".sde-path-distribution-lab .sde-predict strong { display: block; margin-bottom: 9px; }",
-    ".sde-path-distribution-lab .sde-predict-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }",
-    ".sde-path-distribution-lab .sde-predict-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }",
-    ".sde-path-distribution-lab .sde-predict-actions button { flex: 1 1 180px; }",
-    ".sde-path-distribution-lab .sde-predict-feedback { min-height: 1.6em; margin: 8px 0 0; color: var(--sde-muted); font-size: 13px; font-weight: 650; }",
-    ".sde-path-distribution-lab .sde-preset-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }",
-    ".sde-path-distribution-lab .sde-preset-grid button { min-width: 0; padding-left: 5px; padding-right: 5px; font-size: 12.5px; }",
-    ".sde-path-distribution-lab .sde-reset { width: 100%; }",
-    ".sde-path-distribution-lab .sde-stage-frame { min-width: 0; margin: 0 0 14px; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); overflow: hidden; }",
-    ".sde-path-distribution-lab .sde-stage-title { display: flex; justify-content: space-between; gap: 10px; margin: 0 0 8px; color: var(--sde-muted); font-size: 13px; }",
-    ".sde-path-distribution-lab .sde-svg { display: block; width: 100%; height: auto; color: var(--fg); }",
-    ".sde-path-distribution-lab .sde-svg text { fill: currentColor; font-family: inherit; letter-spacing: 0; }",
-    ".sde-path-distribution-lab .sde-panel { fill: var(--bg); stroke: var(--border); stroke-width: 1.2; }",
-    ".sde-path-distribution-lab .sde-grid { stroke: var(--sde-grid); stroke-opacity: .14; stroke-width: 1; }",
-    ".sde-path-distribution-lab .sde-axis { stroke: var(--sde-grid); stroke-opacity: .58; stroke-width: 1.2; }",
-    ".sde-path-distribution-lab .sde-zero { stroke: var(--sde-grid); stroke-opacity: .4; stroke-width: 1.3; }",
-    ".sde-path-distribution-lab .sde-correct { fill: none; stroke: var(--sde-correct); stroke-width: 2.7; stroke-linecap: round; stroke-linejoin: round; }",
-    ".sde-path-distribution-lab .sde-wrong { fill: none; stroke: var(--sde-wrong); stroke-width: 2.35; stroke-linecap: round; stroke-linejoin: round; }",
-    ".sde-path-distribution-lab .sde-analytic { fill: none; stroke: var(--sde-analytic); stroke-width: 2.15; stroke-dasharray: 7 4; stroke-linecap: round; stroke-linejoin: round; }",
-    ".sde-path-distribution-lab .sde-strong { fill: none; stroke: var(--sde-correct); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }",
-    ".sde-path-distribution-lab .sde-weak { fill: none; stroke: var(--sde-weak); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }",
-    ".sde-path-distribution-lab .sde-correct-fill { fill: var(--sde-correct); fill-opacity: .48; stroke: var(--sde-correct); stroke-width: .7; }",
-    ".sde-path-distribution-lab .sde-wrong-fill { fill: var(--sde-wrong); fill-opacity: .38; stroke: var(--sde-wrong); stroke-width: .7; }",
-    ".sde-path-distribution-lab .sde-dot-correct { fill: var(--sde-correct); stroke: var(--bg); stroke-width: 1.5; }",
-    ".sde-path-distribution-lab .sde-dot-wrong { fill: var(--sde-wrong); stroke: var(--bg); stroke-width: 1.5; }",
-    ".sde-path-distribution-lab .sde-axis-label { fill: var(--sde-muted) !important; font-size: 11px; }",
-    ".sde-path-distribution-lab .sde-chart-label { fill: var(--fg) !important; font-size: 12px; font-weight: 700; }",
-    ".sde-path-distribution-lab .sde-legend { display: flex; flex-wrap: wrap; gap: 7px 15px; margin: 7px 2px 0; color: var(--sde-muted); font-size: 12px; }",
-    ".sde-path-distribution-lab .sde-legend-item { display: inline-flex; align-items: center; gap: 6px; }",
-    ".sde-path-distribution-lab .sde-swatch { display: inline-block; width: 25px; height: 0; border-top: 3px solid currentColor; }",
-    ".sde-path-distribution-lab .sde-swatch-correct { color: var(--sde-correct); }",
-    ".sde-path-distribution-lab .sde-swatch-wrong { color: var(--sde-wrong); }",
-    ".sde-path-distribution-lab .sde-swatch-analytic { color: var(--sde-analytic); border-top-style: dashed; }",
-    ".sde-path-distribution-lab .sde-swatch-weak { color: var(--sde-weak); }",
-    ".sde-path-distribution-lab .sde-ledger-title { margin: 14px 0 7px; color: var(--fg); font-size: 14px; font-weight: 700; }",
-    ".sde-path-distribution-lab .sde-table-wrap { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }",
-    ".sde-path-distribution-lab .sde-table { width: 100%; min-width: 570px; border-collapse: separate; border-spacing: 0; font-size: 13px; font-variant-numeric: tabular-nums; }",
-    ".sde-path-distribution-lab .sde-table th, .sde-path-distribution-lab .sde-table td { padding: 8px 9px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }",
-    ".sde-path-distribution-lab .sde-table th:first-child, .sde-path-distribution-lab .sde-table td:first-child { text-align: left; }",
-    ".sde-path-distribution-lab .sde-table th { color: var(--sde-muted); font-size: 12px; font-weight: 650; }",
-    ".sde-path-distribution-lab .sde-table td:nth-child(2) { color: var(--sde-correct); font-weight: 700; }",
-    ".sde-path-distribution-lab .sde-table td:nth-child(3) { color: var(--sde-wrong); font-weight: 700; }",
-    ".sde-path-distribution-lab .sde-footnote { margin: 10px 0 0; padding: 8px 10px; border-left: 3px solid var(--sde-analytic); background: var(--block-bg, var(--bg)); color: var(--sde-muted); font-size: 12.5px; line-height: 1.65; }",
-    "@media (max-width: 760px) { .sde-path-distribution-lab .sde-layout { grid-template-columns: minmax(0, 1fr); } }",
-    "@media (max-width: 500px) { .sde-path-distribution-lab .sde-stage-frame { padding: 5px; overflow-x: auto; } .sde-path-distribution-lab .sde-svg { min-width: 640px; max-width: none; } .sde-path-distribution-lab .sde-preset-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .sde-path-distribution-lab .sde-predict-options { grid-template-columns: minmax(0, 1fr); } }",
-    "@media (prefers-reduced-motion: reduce) { .sde-path-distribution-lab * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }"
+  function rng(seed){range(seed,0,4294967295,"seed",true);return function(){seed=(seed+0x6D2B79F5)>>>0;var t=seed;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return(((t^(t>>>14))>>>0)+.5)/4294967296;};}
+  function normal(random){
+    if(typeof random!=="function")throw new TypeError("rng");
+    var u=random(),v=random();if(typeof u!=="number"||typeof v!=="number"||!(u>0&&u<1&&v>0&&v<1))throw new RangeError("open uniforms");
+    return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+  }
+  function sum(values){var s=0,c=0;values.forEach(function(x){var y=x-c,t=s+y;c=(t-s)-y;s=t;});return s;}
+  function mean(values){return sum(values)/values.length;}
+  function variance(values){var m=mean(values);return sum(values.map(function(x){return(x-m)*(x-m);}))/values.length;}
+  function log1pmx(x){
+    if(Math.abs(x)>.05)return Math.log1p(x)-x;
+    var term=-x*x/2,s=term;
+    for(var k=3;k<200;k++){term*=-x*(k-1)/k;var next=s+term;if(next===s)break;s=next;}return s;
+  }
+  // c(x) = integral_0^1 exp(-x u) du; loss is evaluated without subtracting nearly equal numbers.
+  function kernel(x){
+    range(x,0,20,"kernel decay");
+    if(x===0)return{c:1,loss:0,bridge:0};
+    var c=-Math.expm1(-x)/x,loss;
+    if(x<.1){var term=x/2;loss=term;for(var k=2;k<120;k++){term*=-x/(k+1);var next=loss+term;if(next===loss)break;loss=next;}}
+    else loss=1-c;
+    // Positive series for sqrt(Var(J)/h - Cov(J,dW)^2/h^2).
+    // exp(-x) sum_{k>=1} 2k*x^(2k)/(2k+2)! avoids catastrophic cancellation.
+    var term=1/12,s=term;
+    for(var k=1;k<200;k++){term*=((k+1)/k)*x*x/((2*k+4)*(2*k+3));var next=s+term;if(next===s)break;s=next;}
+    return{c:c,loss:loss,bridge:Math.exp(-x/2)*x*Math.sqrt(s)};
+  }
+  function moments(input,steps){
+    var c=config(input);range(steps,1,256,"steps",true);
+    var h=c.horizon/steps,x=c.theta*h,A=1-x,q=kernel(x),decay=Math.exp(-c.theta*c.horizon);
+    var exactMean=c.x0*decay,discreteMean=c.x0*Math.pow(A,steps),bias;
+    if(c.theta===0||c.x0===0)bias=0;
+    else if(A>0)bias=exactMean*Math.expm1(steps*log1pmx(-x));
+    else bias=discreteMean-exactMean;
+    var power=1,geom=0,components=[bias],sqrtH=Math.sqrt(h);
+    for(var j=0;j<steps;j++){
+      geom+=power*power;
+      var E=Math.exp(-x*j),d=A>0?E*(Math.expm1(j*log1pmx(-x))+q.loss):power-E*q.c;
+      components.push(c.sigma*sqrtH*d,c.sigma*sqrtH*E*q.bridge);power*=A;
+    }
+    var exactSD=c.sigma*Math.sqrt(c.horizon)*Math.sqrt(kernel(2*c.theta*c.horizon).c);
+    var sd=c.sigma*sqrtH*Math.sqrt(geom),wrongSD=sd*sqrtH;
+    return{steps:steps,h:h,A:A,exactMean:exactMean,mean:discreteMean,bias:bias,weak:Math.abs(bias),
+      variance:sd*sd,wrongVariance:wrongSD*wrongSD,exactVariance:exactSD*exactSD,
+      exactSD:exactSD,sd:sd,wrongSD:wrongSD,strong:Math.hypot.apply(Math,components),
+      stability:c.theta===0?"无回复（θ=0）":x<2?"均方稳定":x===2?"临界：无收缩":"失稳：|1−θh|>1",
+      stationaryVariance:c.theta>0&&x<2?c.sigma*c.sigma/(2*c.theta-c.theta*c.theta*h):null};
+  }
+  function noise(seed){
+    var paths=[];for(var j=0;j<M;j++){var random=rng((seed+j*7919)>>>0),z=[],w=[];
+      for(var i=0;i<N;i++){z.push(normal(random));w.push(normal(random));}paths.push({z:z,w:w});}return paths;
+  }
+  function exactPath(c,p){
+    var dt=c.horizon/N,x=c.theta*dt,q=kernel(x),e=Math.exp(-x),root=Math.sqrt(dt),fluct=0,values=[c.x0],dw=[];
+    for(var i=0;i<N;i++){
+      var increment=root*p.z[i];dw.push(increment);
+      fluct=e*fluct+c.sigma*(q.c*increment+root*q.bridge*p.w[i]);
+      values.push(c.x0*Math.exp(-c.theta*(i+1)*dt)+fluct);
+    }return{values:values,dw:dw};
+  }
+  function simulate(input){
+    var c=config(input),raw=noise(c.seed),fine=raw.map(function(p){return exactPath(c,p);}),exact=fine.map(function(p){return p.values[N];}),rows=[];
+    LEVELS.forEach(function(level){
+      var steps=Math.pow(2,level),block=N/steps,r=moments(c,steps),numeric=[],wrong=[],chosen;
+      fine.forEach(function(p,index){
+        var x=c.x0,y=c.x0,xs=[x],ys=[y],es=[c.x0];
+        for(var j=0;j<steps;j++){
+          var dw=sum(p.dw.slice(j*block,(j+1)*block));
+          x=r.A*x+c.sigma*dw;y=r.A*y+c.sigma*Math.sqrt(r.h)*dw;
+          xs.push(x);ys.push(y);es.push(p.values[(j+1)*block]);
+        }numeric.push(x);wrong.push(y);
+        if(index===c.path)chosen={numeric:xs,wrong:ys,exact:es};
+      });
+      var differences=numeric.map(function(v,j){return v-exact[j];});
+      r.level=level;r.numeric=numeric;r.wrong=wrong;r.exact=exact;
+      r.sampleMean=mean(numeric);r.sampleVariance=variance(numeric);r.wrongSampleVariance=variance(wrong);
+      r.sampleRMS=Math.hypot.apply(Math,differences)/Math.sqrt(M);r.pairedMean=mean(differences);
+      r.pairedSE=Math.sqrt(variance(differences)/(M-1));r.samplingDeviation=r.sampleMean-r.mean;r.trace=chosen;rows.push(r);
+    });
+    return{config:c,rows:rows,selected:rows[c.level-2],exact:exact};
+  }
+  function format(v,digits){
+    if(v===null||!Number.isFinite(v))return"—";if(v===0)return"0";
+    digits=digits===undefined?6:digits;var t=v.toFixed(digits);
+    if(Math.abs(v)<1e-4||Math.abs(v)>=1e6||Number(t)===0)return v.toExponential(5);
+    return t.indexOf(".")>=0?t.replace(/0+$/,"").replace(/\.$/,""):t;
+  }
+  function histogram(data){
+    var r=data.selected,all=r.numeric.concat(r.wrong,r.exact),min=Math.min.apply(Math,all),max=Math.max.apply(Math,all);
+    if(max-min<.2){min-=.1;max+=.1;}
+    var bins=24,width=(max-min)/bins,result={min:min,max:max,width:width};
+    ["numeric","wrong","exact"].forEach(function(key){
+      var counts=Array(bins).fill(0);r[key].forEach(function(v){
+        if(!Number.isFinite(v)||v<min||v>max)throw Error("histogram escaped bounds");
+        // Even a value one ulp below max can round to bins after division.
+        // Only the bin index is capped; values outside the domain still fail.
+        var j=Math.min(bins-1,Math.floor((v-min)/width));counts[j]++;
+      });result[key]=counts;
+    });return result;
+  }
+    var STYLE_ID="cl-ou-lab-style",SVG="http://www.w3.org/2000/svg";
+  var STYLE_TEXT=[
+    ".sde-path-distribution-lab{--ou-blue:var(--cl-blue,#315f9d);--ou-red:var(--cl-red,#b64335);--ou-green:var(--cl-green,#39734d);--ou-gold:var(--cl-gold,#9b6a12);color:var(--fg);line-height:1.65;min-width:0;overflow-wrap:anywhere}",
+    ".sde-path-distribution-lab *{box-sizing:border-box}.sde-path-distribution-lab [hidden]{display:none!important}.sde-path-distribution-lab button,.sde-path-distribution-lab select,.sde-path-distribution-lab input{font:inherit;min-height:44px}.sde-path-distribution-lab button,.sde-path-distribution-lab select{background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:5px;padding:8px;cursor:pointer}.sde-path-distribution-lab button[aria-pressed=true]{background:var(--accent);color:var(--bg)}.sde-path-distribution-lab button:disabled{opacity:.5;cursor:not-allowed}.sde-path-distribution-lab :focus-visible{outline:3px solid var(--accent);outline-offset:2px}",
+    ".ou-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}.ou-control{display:grid;gap:5px;min-width:0}.ou-control input,.ou-control select{width:100%;min-width:0;margin:0}.ou-control output{color:var(--accent);font-variant-numeric:tabular-nums}.ou-control label{font-size:13px}.ou-presets,.ou-choices,.ou-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.ou-presets button,.ou-choices button,.ou-actions button{flex:1 1 180px}",
+    ".ou-gate{min-width:0;border:0;border-left:3px solid var(--ou-gold);margin:16px 0;padding:12px}.ou-gate legend{padding:0;max-width:100%;font-weight:700}.ou-note{font-size:13px;color:var(--fg-soft)}.ou-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}.ou-metric{padding:10px;border-top:2px solid var(--border);min-width:0}.ou-metric span{display:block;font-size:12px;color:var(--fg-soft)}.ou-metric strong{display:block;font-size:16px;font-variant-numeric:tabular-nums}",
+    ".ou-scroll{overflow-x:auto;max-width:100%;overscroll-behavior-x:contain;margin:12px 0}.sde-path-distribution-lab svg{display:block;width:900px;max-width:none!important;height:auto}.sde-path-distribution-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0;font-size:13px}.ou-grid{stroke:currentColor;stroke-opacity:.15;stroke-width:1}.ou-numeric{stroke:var(--ou-blue);fill:none;stroke-width:2.5}.ou-wrong{stroke:var(--ou-red);fill:none;stroke-width:2.2;stroke-dasharray:3 4}.ou-exact{stroke:var(--ou-green);fill:none;stroke-width:2.2;stroke-dasharray:9 4}.ou-mean{stroke:var(--ou-gold);fill:none;stroke-width:2;stroke-dasharray:12 3 2 3}",
+    ".sde-path-distribution-lab table{display:table!important;min-width:1200px;width:100%;max-width:none!important;overflow:visible!important;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.sde-path-distribution-lab th,.sde-path-distribution-lab td{padding:8px;border-bottom:1px solid var(--border);text-align:right}.sde-path-distribution-lab th{color:var(--fg-soft)}.sde-path-distribution-lab caption{text-align:left;font-weight:700;font-size:14px}.ou-boundary{padding:12px;border-left:3px solid var(--ou-red);font-size:13px}",
+    "@media(max-width:850px){.ou-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.ou-controls{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){html:has(.sde-path-distribution-lab){scroll-behavior:auto!important}.sde-path-distribution-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
   ].join("\n");
-
-  function installStyles() {
-    if (document.getElementById(STYLE_ID)) {
-      return;
-    }
-    var style = document.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = STYLE_TEXT;
-    document.head.appendChild(style);
+  function node(doc,tag,cl,text){var n=doc.createElement(tag);if(cl)n.className=cl;if(text!==undefined)n.textContent=text;return n;}
+  function sn(doc,tag,attrs,text){var n=doc.createElementNS(SVG,tag);Object.keys(attrs||{}).forEach(function(k){n.setAttribute(k,String(attrs[k]));});if(text!==undefined)n.textContent=text;return n;}
+  function chart(doc,title,height,attrs){
+    var svg=sn(doc,"svg",Object.assign({viewBox:"0 0 900 "+height,role:"img","aria-label":title},attrs));
+    svg.appendChild(sn(doc,"title",{},title));return svg;
   }
-
-  function appendChildren(node, children) {
-    if (children === undefined || children === null) {
-      return node;
-    }
-    var list = Array.isArray(children) ? children : [children];
-    list.forEach(function (child) {
-      if (child === undefined || child === null || child === false) {
-        return;
-      }
-      node.appendChild(
-        child && child.nodeType ? child : document.createTextNode(String(child))
-      );
-    });
-    return node;
+  function text(doc,svg,x,y,value,anchor){svg.appendChild(sn(doc,"text",{x:x,y:y,"text-anchor":anchor||"start"},value));}
+  function line(doc,svg,x1,y1,x2,y2){svg.appendChild(sn(doc,"line",{x1:x1,y1:y1,x2:x2,y2:y2,class:"ou-grid"}));}
+  function path(doc,svg,values,y,cl){
+    var d=values.map(function(v,j){return(j?"L":"M")+(80+760*j/(values.length-1)).toFixed(12)+" "+y(v).toFixed(12);}).join(" ");
+    svg.appendChild(sn(doc,"path",{d:d,class:cl}));
   }
-
-  function setAttributes(node, attrs) {
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) {
-        return;
-      }
-      if (key === "className") {
-        node.setAttribute("class", String(value));
-      } else if (key === "htmlFor") {
-        node.setAttribute("for", String(value));
-      } else if (key === "text") {
-        node.textContent = String(value);
-      } else if (key.slice(0, 2) === "on" && typeof value === "function") {
-        node.addEventListener(key.slice(2).toLowerCase(), value);
-      } else if (value === true) {
-        node.setAttribute(key, "");
-      } else {
-        node.setAttribute(key, String(value));
-      }
-    });
-    return node;
-  }
-
-  function makeElement(api, tag, attrs, children) {
-    if (api && typeof api.el === "function") {
-      return api.el(tag, attrs || {}, children);
-    }
-    return appendChildren(
-      setAttributes(document.createElement(tag), attrs || {}),
-      children
-    );
-  }
-
-  function makeSvg(api, tag, attrs, children) {
-    if (api && typeof api.svg === "function") {
-      return api.svg(tag, attrs || {}, children);
-    }
-    return appendChildren(
-      setAttributes(document.createElementNS(SVG_NS, tag), attrs || {}),
-      children
-    );
-  }
-
-  function clear(node) {
-    while (node && node.firstChild) {
-      node.removeChild(node.firstChild);
-    }
-  }
-
-  function replaceChildren(node, children) {
-    clear(node);
-    appendChildren(node, children);
-  }
-
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-  }
-
-  function formatNumber(api, value, digits) {
-    if (!Number.isFinite(value)) {
-      return "—";
-    }
-    if (api && typeof api.format === "function") {
-      return api.format(value, digits);
-    }
-    var places = digits === undefined ? 3 : digits;
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function formatStep(value) {
-    var text = value.toFixed(5);
-    return text.replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function svgText(api, x, y, value, attrs) {
-    return makeSvg(
-      api,
-      "text",
-      Object.assign(
-        {
-          x: x,
-          y: y,
-          "font-size": "12",
-          "text-anchor": "middle",
-          fill: "currentColor"
-        },
-        attrs || {}
-      ),
-      [value]
-    );
-  }
-
-  function line(api, x1, y1, x2, y2, className) {
-    return makeSvg(api, "line", {
-      x1: x1,
-      y1: y1,
-      x2: x2,
-      y2: y2,
-      className: className
-    });
-  }
-
-  function makeRng(seed) {
-    var state = seed >>> 0;
-    return function () {
-      state = (state + 0x6d2b79f5) | 0;
-      var value = state;
-      value = Math.imul(value ^ (value >>> 15), value | 1);
-      value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
-      return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-
-  function gaussian(rng) {
-    var u1 = 0;
-    while (u1 === 0) {
-      u1 = rng();
-    }
-    var u2 = rng();
-    return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-  }
-
-  function analyticMean(t) {
-    return CONFIG.x0 * Math.exp(-CONFIG.theta * t);
-  }
-
-  function analyticVariance(t) {
-    return (
-      (CONFIG.sigma * CONFIG.sigma) /
-      (2 * CONFIG.theta) *
-      (1 - Math.exp(-2 * CONFIG.theta * t))
-    );
-  }
-
-  function normalDensity(x, mean, variance) {
-    var safeVariance = Math.max(variance, 1e-12);
-    return (
-      Math.exp(-0.5 * Math.pow((x - mean) / Math.sqrt(safeVariance), 2)) /
-      Math.sqrt(2 * Math.PI * safeVariance)
-    );
-  }
-
-  function makeNoise() {
-    var rng = makeRng(CONFIG.seed);
-    var fineSteps = 1 << CONFIG.maxLevel;
-    var noise = [];
-    for (var path = 0; path < CONFIG.paths; path += 1) {
-      var row = [];
-      for (var step = 0; step < fineSteps; step += 1) {
-        row.push(gaussian(rng));
-      }
-      noise.push(row);
-    }
-    return noise;
-  }
-
-  function simulateLevel(level, noise) {
-    var steps = 1 << level;
-    var blockSize = 1 << (CONFIG.maxLevel - level);
-    var h = CONFIG.T / steps;
-    var correctPaths = [];
-    var wrongPaths = [];
-    var correctEndpoints = [];
-    var wrongEndpoints = [];
-
-    for (var pathIndex = 0; pathIndex < CONFIG.paths; pathIndex += 1) {
-      var correct = [CONFIG.x0];
-      var wrong = [CONFIG.x0];
-      var correctValue = CONFIG.x0;
-      var wrongValue = CONFIG.x0;
-      var fineRow = noise[pathIndex];
-
-      for (var step = 0; step < steps; step += 1) {
-        var sum = 0;
-        var start = step * blockSize;
-        for (var offset = 0; offset < blockSize; offset += 1) {
-          sum += fineRow[start + offset];
-        }
-        var z = sum / Math.sqrt(blockSize);
-        correctValue +=
-          -CONFIG.theta * correctValue * h +
-          CONFIG.sigma * Math.sqrt(h) * z;
-        wrongValue +=
-          -CONFIG.theta * wrongValue * h +
-          CONFIG.sigma * h * z;
-        correct.push(correctValue);
-        wrong.push(wrongValue);
-      }
-      correctPaths.push(correct);
-      wrongPaths.push(wrong);
-      correctEndpoints.push(correctValue);
-      wrongEndpoints.push(wrongValue);
-    }
-
-    return {
-      level: level,
-      steps: steps,
-      h: h,
-      correctPaths: correctPaths,
-      wrongPaths: wrongPaths,
-      correctEndpoints: correctEndpoints,
-      wrongEndpoints: wrongEndpoints,
-      correctStats: statistics(correctEndpoints),
-      wrongStats: statistics(wrongEndpoints)
-    };
-  }
-
-  function statistics(values) {
-    var sum = 0;
-    var sumSquares = 0;
-    values.forEach(function (value) {
-      sum += value;
-      sumSquares += value * value;
-    });
-    var mean = sum / values.length;
-    return {
-      mean: mean,
-      variance: Math.max(0, sumSquares / values.length - mean * mean)
-    };
-  }
-
-  function makeDataset() {
-    var noise = makeNoise();
-    var levels = {};
-    for (
-      var level = CONFIG.minLevel;
-      level <= CONFIG.maxLevel;
-      level += 1
-    ) {
-      levels[level] = simulateLevel(level, noise);
-    }
-    return {
-      noise: noise,
-      levels: levels,
-      analyticMean: analyticMean(CONFIG.T),
-      analyticVariance: analyticVariance(CONFIG.T)
-    };
-  }
-
-  function pointPath(values, xMap, yMap) {
-    return values
-      .map(function (value, index) {
-        return (index === 0 ? "M" : "L") +
-          xMap(index, values.length).toFixed(2) +
-          "," +
-          yMap(value).toFixed(2);
-      })
-      .join(" ");
-  }
-
-  function chartFrame(api, width, height, titleText, descriptionText, uid) {
-    var svg = makeSvg(api, "svg", {
-      className: "sde-svg",
-      viewBox: "0 0 " + width + " " + height,
-      role: "img",
-      "aria-labelledby": uid + "-title " + uid + "-desc"
-    });
-    svg.appendChild(makeSvg(api, "title", { id: uid + "-title" }, [titleText]));
-    svg.appendChild(
-      makeSvg(api, "desc", { id: uid + "-desc" }, [descriptionText])
-    );
+  function drawPath(doc,data){
+    var r=data.selected,tr=r.trace,c=data.config,means=tr.numeric.map(function(v,j){return c.x0*Math.exp(-c.theta*j*r.h);});
+    var all=tr.numeric.concat(tr.wrong,tr.exact,means),lo=Math.min.apply(Math,all),hi=Math.max.apply(Math,all);
+    var pad=Math.max(.1,(hi-lo)*.08);lo-=pad;hi+=pad;
+    var svg=chart(doc,"同一布朗噪声上的 EM、错误缩放、精确 OU 与总体均值",365,{"data-min":lo,"data-max":hi});
+    var y=function(v){return 280-(v-lo)*240/(hi-lo);};
+    for(var j=0;j<=4;j++){var v=lo+(hi-lo)*j/4;line(doc,svg,80,y(v),840,y(v));text(doc,svg,72,y(v)+4,format(v,3),"end");text(doc,svg,80+190*j,307,format(c.horizon*j/4,3),"middle");}
+    path(doc,svg,tr.numeric,y,"ou-numeric");path(doc,svg,tr.wrong,y,"ou-wrong");path(doc,svg,tr.exact,y,"ou-exact");path(doc,svg,means,y,"ou-mean");
+    text(doc,svg,80,24,"X(t)；横轴 t");text(doc,svg,80,337,"蓝实线 EM · 红短虚线 错误缩放 · 绿长虚线 精确 OU · 金点划线 总体均值");
+    text(doc,svg,80,358,"全部采样顶点均保留；连接线不表示两个时刻之间的真实轨迹。");
     return svg;
   }
-
-  function rangeOf(values) {
-    var min = Infinity;
-    var max = -Infinity;
-    values.forEach(function (value) {
-      min = Math.min(min, value);
-      max = Math.max(max, value);
-    });
-    if (!Number.isFinite(min) || !Number.isFinite(max)) {
-      return { min: -1, max: 1 };
-    }
-    if (Math.abs(max - min) < 1e-9) {
-      min -= 1;
-      max += 1;
-    }
-    var padding = Math.max(0.12, (max - min) * 0.12);
-    return { min: min - padding, max: max + padding };
-  }
-
-  function drawPathChart(api, result, pathIndex, uid) {
-    var width = 760;
-    var height = 315;
-    var left = 54;
-    var right = 18;
-    var top = 29;
-    var bottom = 38;
-    var plotWidth = width - left - right;
-    var plotHeight = height - top - bottom;
-    var correct = result.correctPaths[pathIndex];
-    var wrong = result.wrongPaths[pathIndex];
-    var means = [];
-    var values = correct.concat(wrong);
-
-    for (var i = 0; i < correct.length; i += 1) {
-      means.push(analyticMean((i / (correct.length - 1)) * CONFIG.T));
-    }
-    values = values.concat(means);
-    var bounds = rangeOf(values);
-    var xMap = function (index, count) {
-      return left + (index / (count - 1)) * plotWidth;
-    };
-    var yMap = function (value) {
-      return top + ((bounds.max - value) / (bounds.max - bounds.min)) * plotHeight;
-    };
-    var svg = chartFrame(
-      api,
-      width,
-      height,
-      "同一噪声下的 OU 单路径账本",
-      "蓝线使用正确的平方根步长，红线使用故意错误的线性步长，绿色虚线是解析均值；两条路径共享同一组聚合高斯增量。",
-      uid
-    );
-
-    svg.appendChild(
-      makeSvg(api, "rect", {
-        x: left,
-        y: top,
-        width: plotWidth,
-        height: plotHeight,
-        className: "sde-panel"
-      })
-    );
-    for (var yTick = 0; yTick <= 4; yTick += 1) {
-      var yValue = bounds.min + (yTick / 4) * (bounds.max - bounds.min);
-      var y = yMap(yValue);
-      svg.appendChild(line(api, left, y, width - right, y, "sde-grid"));
-      svg.appendChild(
-        svgText(api, left - 8, y + 4, formatNumber(api, yValue, 2), {
-          className: "sde-axis-label",
-          "text-anchor": "end"
-        })
-      );
-    }
-    var zeroY = yMap(0);
-    if (zeroY >= top && zeroY <= top + plotHeight) {
-      svg.appendChild(line(api, left, zeroY, width - right, zeroY, "sde-zero"));
-    }
-    for (var xTick = 0; xTick <= 4; xTick += 1) {
-      var time = (xTick / 4) * CONFIG.T;
-      var x = left + (xTick / 4) * plotWidth;
-      svg.appendChild(line(api, x, top, x, top + plotHeight, "sde-grid"));
-      svg.appendChild(
-        svgText(api, x, height - 12, formatNumber(api, time, 2), {
-          className: "sde-axis-label"
-        })
-      );
-    }
-    svg.appendChild(line(api, left, top + plotHeight, width - right, top + plotHeight, "sde-axis"));
-    svg.appendChild(line(api, left, top, left, top + plotHeight, "sde-axis"));
-    svg.appendChild(
-      svgText(api, left, 16, "Xₜ", {
-        className: "sde-chart-label",
-        "text-anchor": "start"
-      })
-    );
-    svg.appendChild(
-      svgText(api, width - right, height - 12, "t", {
-        className: "sde-axis-label",
-        "text-anchor": "end"
-      })
-    );
-    svg.appendChild(
-      makeSvg(api, "path", {
-        d: pointPath(correct, xMap, yMap),
-        className: "sde-correct"
-      })
-    );
-    svg.appendChild(
-      makeSvg(api, "path", {
-        d: pointPath(wrong, xMap, yMap),
-        className: "sde-wrong"
-      })
-    );
-    svg.appendChild(
-      makeSvg(api, "path", {
-        d: pointPath(means, xMap, yMap),
-        className: "sde-analytic"
-      })
-    );
-    svg.appendChild(
-      makeSvg(api, "circle", {
-        cx: left + plotWidth,
-        cy: yMap(correct[correct.length - 1]),
-        r: 4.5,
-        className: "sde-dot-correct"
-      })
-    );
-    svg.appendChild(
-      makeSvg(api, "circle", {
-        cx: left + plotWidth,
-        cy: yMap(wrong[wrong.length - 1]),
-        r: 4.2,
-        className: "sde-dot-wrong"
-      })
-    );
-    svg.appendChild(
-      svgText(
-        api,
-        width - right - 2,
-        top + 16,
-        "L=" + result.level + " · h=" + formatStep(result.h),
-        {
-          className: "sde-axis-label",
-          "text-anchor": "end"
-        }
-      )
-    );
+  function drawHistogram(doc,data){
+    var h=histogram(data),max=Math.max.apply(Math,h.numeric.concat(h.wrong,h.exact)),top=Math.max(4,Math.ceil(max/4)*4);
+    var svg=chart(doc,"全部 256 条路径的终点频数，不是密度",370,{"data-min":h.min,"data-max":h.max,"data-count-max":top});
+    for(var j=0;j<=4;j++){var y=275-230*j/4;line(doc,svg,80,y,848,y);text(doc,svg,72,y+4,String(top*j/4),"end");text(doc,svg,80+192*j,302,format(h.min+(h.max-h.min)*j/4,3),"middle");}
+    ["numeric","wrong","exact"].forEach(function(key,k){h[key].forEach(function(count,j){var height=230*count/top;svg.appendChild(sn(doc,"rect",{x:80+32*j+1+10*k,y:275-height,width:9,height:height,class:"ou-"+key,"data-bin":j,"data-count":count}));});});
+    text(doc,svg,80,26,"频数（条）；横轴为终点值 X(T)");
+    text(doc,svg,80,333,"每箱三列：蓝 EM / 红错误缩放 / 绿精确 OU；每组共 256 条，末箱包含右端点。");
+    text(doc,svg,80,358,data.config.sigma===0?"σ=0：总体分布是单点质量，不绘制虚假的高斯密度。":"柱高表示个数；柱宽与概率密度无关。解析均值和方差见账本。");
     return svg;
   }
-
-  function histogram(values, min, max, bins) {
-    var counts = [];
-    for (var i = 0; i < bins; i += 1) {
-      counts.push(0);
-    }
-    values.forEach(function (value) {
-      if (value < min || value > max) {
-        return;
-      }
-      var index = Math.floor(((value - min) / (max - min)) * bins);
-      index = clamp(index, 0, bins - 1);
-      counts[index] += 1;
+  function drawErrors(doc,data){
+    var keys=["sampleRMS","strong","weak"],classes=["ou-numeric","ou-exact","ou-mean"],values=[];
+    data.rows.forEach(function(r){keys.forEach(function(k){if(r[k]>0)values.push(Math.log10(r[k]));});});
+    var lo=values.length?Math.floor(Math.min.apply(Math,values)):-1,hi=values.length?Math.ceil(Math.max.apply(Math,values)):0;
+    if(hi===lo)hi=lo+1;var svg=chart(doc,"终点强误差与弱均值误差",380,{"data-log-min":lo,"data-log-max":hi});
+    for(var j=0;j<=4;j++){var y=275-230*j/4;line(doc,svg,80,y,840,y);text(doc,svg,72,y+4,"10^"+format(lo+(hi-lo)*j/4,2),"end");}
+    data.rows.forEach(function(r,j){text(doc,svg,80+760*j/6,301,format(r.h,5),"middle");});
+    keys.forEach(function(key,k){
+      var d="";
+      data.rows.forEach(function(r,j){
+        if(r[key]===0){if(d){svg.appendChild(sn(doc,"path",{d:d,class:classes[k]}));d="";}return;}
+        var x=80+760*j/6,y=275-(Math.log10(r[key])-lo)*230/(hi-lo);d+=(d?"L":"M")+x.toFixed(12)+" "+y.toFixed(12)+" ";
+        svg.appendChild(sn(doc,"circle",{cx:x,cy:y,r:3,class:classes[k],"data-series":key,"data-level":r.level}));
+      });if(d)svg.appendChild(sn(doc,"path",{d:d,class:classes[k]}));
     });
-    return counts;
-  }
-
-  function drawDistributionChart(api, dataset, result, uid) {
-    var width = 760;
-    var height = 335;
-    var left = 54;
-    var right = 18;
-    var top = 29;
-    var bottom = 42;
-    var plotWidth = width - left - right;
-    var plotHeight = height - top - bottom;
-    var standardDeviation = Math.sqrt(dataset.analyticVariance);
-    var allValues = result.correctEndpoints.concat(result.wrongEndpoints);
-    allValues.push(
-      dataset.analyticMean - 4 * standardDeviation,
-      dataset.analyticMean + 4 * standardDeviation
-    );
-    var bounds = rangeOf(allValues);
-    var bins = 24;
-    var binWidth = (bounds.max - bounds.min) / bins;
-    var correctCounts = histogram(
-      result.correctEndpoints,
-      bounds.min,
-      bounds.max,
-      bins
-    );
-    var wrongCounts = histogram(
-      result.wrongEndpoints,
-      bounds.min,
-      bounds.max,
-      bins
-    );
-    var maxDensity = 0;
-    correctCounts.concat(wrongCounts).forEach(function (count) {
-      maxDensity = Math.max(maxDensity, count / CONFIG.paths / binWidth);
-    });
-    maxDensity = Math.max(
-      maxDensity,
-      normalDensity(dataset.analyticMean, dataset.analyticMean, dataset.analyticVariance)
-    );
-    var yMax = Math.max(0.3, maxDensity * 1.22);
-    var xMap = function (value) {
-      return left + ((value - bounds.min) / (bounds.max - bounds.min)) * plotWidth;
-    };
-    var yMap = function (value) {
-      return top + ((yMax - value) / yMax) * plotHeight;
-    };
-    var svg = chartFrame(
-      api,
-      width,
-      height,
-      "OU 终点的分布账本",
-      "蓝色和红色柱形分别是正确与错误步长标度的 256 个终点样本；绿色虚线是解析高斯密度 N(m_T,v_T)，柱高按每单位 x 归一化。",
-      uid
-    );
-    svg.appendChild(
-      makeSvg(api, "rect", {
-        x: left,
-        y: top,
-        width: plotWidth,
-        height: plotHeight,
-        className: "sde-panel"
-      })
-    );
-    for (var yTick = 0; yTick <= 4; yTick += 1) {
-      var density = (yTick / 4) * yMax;
-      var y = yMap(density);
-      svg.appendChild(line(api, left, y, width - right, y, "sde-grid"));
-      svg.appendChild(
-        svgText(api, left - 8, y + 4, formatNumber(api, density, 2), {
-          className: "sde-axis-label",
-          "text-anchor": "end"
-        })
-      );
-    }
-    for (var xTick = 0; xTick <= 4; xTick += 1) {
-      var value = bounds.min + (xTick / 4) * (bounds.max - bounds.min);
-      var x = xMap(value);
-      svg.appendChild(line(api, x, top, x, top + plotHeight, "sde-grid"));
-      svg.appendChild(
-        svgText(api, x, height - 15, formatNumber(api, value, 2), {
-          className: "sde-axis-label"
-        })
-      );
-    }
-    svg.appendChild(line(api, left, top + plotHeight, width - right, top + plotHeight, "sde-axis"));
-    svg.appendChild(line(api, left, top, left, top + plotHeight, "sde-axis"));
-    var barWidth = (plotWidth / bins) * 0.38;
-    for (var bin = 0; bin < bins; bin += 1) {
-      var binStart = bounds.min + bin * binWidth;
-      var center = xMap(binStart + binWidth / 2);
-      var correctDensity = correctCounts[bin] / CONFIG.paths / binWidth;
-      var wrongDensity = wrongCounts[bin] / CONFIG.paths / binWidth;
-      var correctHeight = top + plotHeight - yMap(correctDensity);
-      var wrongHeight = top + plotHeight - yMap(wrongDensity);
-      svg.appendChild(
-        makeSvg(api, "rect", {
-          x: center - barWidth - 1,
-          y: yMap(correctDensity),
-          width: barWidth,
-          height: Math.max(0, correctHeight),
-          className: "sde-correct-fill"
-        })
-      );
-      svg.appendChild(
-        makeSvg(api, "rect", {
-          x: center + 1,
-          y: yMap(wrongDensity),
-          width: barWidth,
-          height: Math.max(0, wrongHeight),
-          className: "sde-wrong-fill"
-        })
-      );
-    }
-    var densityValues = [];
-    for (var sample = 0; sample <= 160; sample += 1) {
-      var xValue =
-        bounds.min + (sample / 160) * (bounds.max - bounds.min);
-      densityValues.push(
-        normalDensity(xValue, dataset.analyticMean, dataset.analyticVariance)
-      );
-    }
-    var densityXMap = function (index, count) {
-      return left + (index / (count - 1)) * plotWidth;
-    };
-    svg.appendChild(
-      makeSvg(api, "path", {
-        d: pointPath(densityValues, densityXMap, yMap),
-        className: "sde-analytic"
-      })
-    );
-    var meanX = xMap(dataset.analyticMean);
-    svg.appendChild(line(api, meanX, top, meanX, top + plotHeight, "sde-analytic"));
-    svg.appendChild(
-      svgText(api, meanX + 5, top + 15, "m_T", {
-        className: "sde-axis-label",
-        "text-anchor": "start"
-      })
-    );
-    svg.appendChild(
-      svgText(api, left, 16, "密度（每单位 x）", {
-        className: "sde-chart-label",
-        "text-anchor": "start"
-      })
-    );
-    svg.appendChild(
-      svgText(api, width - right, height - 15, "x_T", {
-        className: "sde-axis-label",
-        "text-anchor": "end"
-      })
-    );
+    text(doc,svg,80,25,"纵轴对数；横轴步长 h（从左到右逐次减半）");
+    text(doc,svg,80,334,"蓝实线 256 条配对 RMS · 绿长虚线 解析强 L² 误差 · 金点划线 解析弱均值误差");
+    text(doc,svg,80,361,"零误差仅列账本，不放进对数图；接近机器精度的样本残差可能来自浮点舍入。");
     return svg;
   }
-
-  function drawConvergencePanel(
-    api,
-    svg,
-    data,
-    top,
-    panelHeight,
-    yMax,
-    title,
-    seriesKey,
-    className,
-    uid
-  ) {
-    var width = 760;
-    var left = 54;
-    var right = 18;
-    var bottom = 27;
-    var plotWidth = width - left - right;
-    var plotHeight = panelHeight - bottom - 22;
-    var xMap = function (index) {
-      return left + (index / (data.length - 1)) * plotWidth;
-    };
-    var yMap = function (value) {
-      return top + 22 + ((yMax - value) / yMax) * plotHeight;
-    };
-    svg.appendChild(
-      makeSvg(api, "rect", {
-        x: left,
-        y: top + 22,
-        width: plotWidth,
-        height: plotHeight,
-        className: "sde-panel"
-      })
-    );
-    for (var yTick = 0; yTick <= 2; yTick += 1) {
-      var yValue = (yTick / 2) * yMax;
-      var y = yMap(yValue);
-      svg.appendChild(line(api, left, y, width - right, y, "sde-grid"));
-      svg.appendChild(
-        svgText(api, left - 8, y + 4, formatNumber(api, yValue, 3), {
-          className: "sde-axis-label",
-          "text-anchor": "end"
-        })
-      );
+  function mount(root,api){
+    var doc=root.ownerDocument;if(!doc.getElementById(STYLE_ID)){var style=node(doc,"style");style.id=STYLE_ID;style.textContent=STYLE_TEXT;doc.head.appendChild(style);}
+    var uid="ou-"+(++INSTANCE),state=Object.assign({},DEFAULTS),prediction="",revealed=false,refs={};
+    var shell=node(doc,"div","sde-path-distribution-lab");root.replaceChildren(shell);
+    shell.appendChild(node(doc,"h3","","从一条路径，到总体分布，再到数值误差"));
+    shell.appendChild(node(doc,"p","ou-note","256 条伪随机路径，256 个细时间段；用两组独立高斯数精确耦合 OU 随机积分与布朗增量。七层网格共享同一驱动，最细层也和真解比较。参数使用一致的任意时间单位。"));
+    var presets=node(doc,"div","ou-presets");shell.appendChild(presets);
+    PRESETS.forEach(function(p,i){var b=node(doc,"button","",p.name);b.type="button";b.setAttribute("data-preset",i);b.addEventListener("click",function(){state=Object.assign({},DEFAULTS,p.values);sync();if(revealed)render();});presets.appendChild(b);});
+    var controls=node(doc,"div","ou-controls");shell.appendChild(controls);
+    function control(key,label,min,max,step,options){
+      var box=node(doc,"div","ou-control"),l=node(doc,"label","",label+"："),out=node(doc,"output"),input=node(doc,options?"select":"input");
+      input.id=uid+"-"+key;l.htmlFor=input.id;out.setAttribute("for",input.id);l.appendChild(out);input.setAttribute("aria-label",label);input.setAttribute("data-key",key);
+      if(options)options.forEach(function(v){var o=node(doc,"option","",String(v));o.value=v;input.appendChild(o);});
+      else{input.type="range";input.min=min;input.max=max;input.step=step;}
+      box.appendChild(l);box.appendChild(input);controls.appendChild(box);refs[key]={input:input,out:out};
+      input.addEventListener("input",function(){state[key]=Number(input.value);state=Object.assign({},config(state));sync();if(revealed)render();});
     }
-    data.forEach(function (item, index) {
-      var x = xMap(index);
-      svg.appendChild(
-        line(api, x, top + 22, x, top + 22 + plotHeight, "sde-grid")
-      );
-      svg.appendChild(
-        svgText(api, x, top + panelHeight - 8, "L=" + item.level, {
-          className: "sde-axis-label"
-        })
-      );
+    control("theta","回复率 θ",0,5,.05);control("sigma","噪声 σ",0,1.5,.05);control("x0","初值 X₀",-2,2,.1);control("horizon","终止时间 T",.5,2,.5);
+    control("level","网格层级",2,8,1);control("path","显示路径",0,255,1);control("seed","噪声种子",null,null,null,SEEDS);
+    var gate=node(doc,"fieldset","ou-gate");gate.appendChild(node(doc,"legend","","先判断：两个方法的终点均值相同，是否足以证明路径同样准确？"));shell.appendChild(gate);
+    var choices=node(doc,"div","ou-choices"),buttons=[];gate.appendChild(choices);
+    [["no","不足：还须比较分布与同噪声误差"],["yes","足够：均值能代表所有路径"],["sample","只要一条样本看起来接近就足够"]].forEach(function(v){
+      var b=node(doc,"button","",v[1]);b.type="button";b.setAttribute("data-choice",v[0]);b.setAttribute("aria-pressed","false");b.addEventListener("click",function(){prediction=v[0];revealed=false;results.hidden=true;feedback.textContent="预测已记录，揭示后核对三本账。";sync();});buttons.push(b);choices.appendChild(b);
     });
-    svg.appendChild(
-      line(api, left, top + 22 + plotHeight, width - right, top + 22 + plotHeight, "sde-axis")
-    );
-    svg.appendChild(
-      svgText(api, left, top + 13, title, {
-        className: "sde-chart-label",
-        "text-anchor": "start"
-      })
-    );
-    var values = data.map(function (item) {
-      return item[seriesKey];
-    });
-    svg.appendChild(
-      makeSvg(api, "path", {
-        d: pointPath(values, function (index) {
-          return xMap(index);
-        }, yMap),
-        className: className
-      })
-    );
-    values.forEach(function (value, index) {
-      svg.appendChild(
-        makeSvg(api, "circle", {
-          cx: xMap(index),
-          cy: yMap(value),
-          r: 3.8,
-          className: className === "sde-strong"
-            ? "sde-dot-correct"
-            : "sde-dot-wrong"
-        })
-      );
-    });
-  }
-
-  function drawConvergenceChart(api, data, uid) {
-    var width = 760;
-    var height = 430;
-    var svg = chartFrame(
-      api,
-      width,
-      height,
-      "EM 步长收敛：强 RMS 与解析弱偏差",
-      "上图是同一噪声耦合下相对最高层 EM 的终点强 RMS；下图是测试函数 phi(x)=x 的精确 EM 期望与解析 OU 均值之差，E_EM[X_T]=x0(1-theta*h)^steps。分布账本的经验统计另用有限 ensemble 估计。它们是有限诊断，不是收敛证明。",
-      uid
-    );
-    var strongMax = Math.max.apply(
-      Math,
-      data.map(function (item) {
-        return item.strong;
-      })
-    );
-    var weakMax = Math.max.apply(
-      Math,
-      data.map(function (item) {
-        return item.weak;
-      })
-    );
-    drawConvergencePanel(
-      api,
-      svg,
-      data,
-      0,
-      190,
-      Math.max(0.02, strongMax * 1.18),
-      "强诊断：RMS(X_T^(h) − X_T^(L=8))",
-      "strong",
-      "sde-strong",
-      uid + "-strong"
-    );
-    drawConvergencePanel(
-      api,
-      svg,
-      data,
-      215,
-      190,
-      Math.max(0.02, weakMax * 1.18),
-      "弱诊断：| E_EM[X_T] − m_T |，φ(x)=x",
-      "weak",
-      "sde-weak",
-      uid + "-weak"
-    );
-    return svg;
-  }
-
-  function makeLegend(api, items) {
-    return makeElement(
-      api,
-      "div",
-      { className: "sde-legend", "aria-label": "图例" },
-      items.map(function (item) {
-        return makeElement(api, "span", { className: "sde-legend-item" }, [
-          makeElement(api, "span", {
-            className: "sde-swatch " + item.swatch,
-            "aria-hidden": "true"
-          }),
-          item.label
-        ]);
-      })
-    );
-  }
-
-  function metricTable(api, headers, rows, className) {
-    var headCells = headers.map(function (header, index) {
-      return makeElement(api, "th", {
-        scope: "col",
-        className: index === 0 ? "" : undefined
-      }, [header]);
-    });
-    var bodyRows = rows.map(function (row) {
-      return makeElement(
-        api,
-        "tr",
-        {},
-        row.map(function (value, index) {
-          return makeElement(api, index === 0 ? "th" : "td", {
-            scope: index === 0 ? "row" : undefined
-          }, [value]);
-        })
-      );
-    });
-    return makeElement(api, "div", { className: "sde-table-wrap" }, [
-      makeElement(api, "table", { className: "sde-table " + (className || "") }, [
-        makeElement(api, "thead", {}, [
-          makeElement(api, "tr", {}, headCells)
-        ]),
-        makeElement(api, "tbody", {}, bodyRows)
-      ])
-    ]);
-  }
-
-  function stageTitle(api, title, note) {
-    return makeElement(api, "div", { className: "sde-stage-title" }, [
-      makeElement(api, "span", {}, [title]),
-      makeElement(api, "span", {}, [note])
-    ]);
-  }
-
-  function makeRangeControl(api, uid, labelText, min, max, step, value) {
-    var inputId = uid + "-input";
-    var output = makeElement(api, "output", { for: inputId }, ["—"]);
-    var label = makeElement(api, "label", { htmlFor: inputId }, [
-      labelText,
-      " ",
-      output
-    ]);
-    var input = makeElement(api, "input", {
-      id: inputId,
-      type: "range",
-      min: min,
-      max: max,
-      step: step,
-      value: value
-    });
-    var node = makeElement(api, "div", { className: "sde-control" }, [
-      label,
-      input
-    ]);
-    return { node: node, input: input, output: output };
-  }
-
-  function convergenceData(dataset) {
-    var reference = dataset.levels[CONFIG.maxLevel].correctEndpoints;
-    var result = [];
-    for (
-      var level = CONFIG.minLevel;
-      level <= CONFIG.maxLevel;
-      level += 1
-    ) {
-      var levelResult = dataset.levels[level];
-      var sumSquares = 0;
-      levelResult.correctEndpoints.forEach(function (value, index) {
-        var difference = value - reference[index];
-        sumSquares += difference * difference;
-      });
-      var strong = Math.sqrt(sumSquares / CONFIG.paths);
-      var weak = Math.abs(
-        CONFIG.x0 *
-          Math.pow(1 - CONFIG.theta * levelResult.h, levelResult.steps) -
-          dataset.analyticMean
-      );
-      result.push({
-        level: level,
-        h: levelResult.h,
-        strong: strong,
-        weak: weak
-      });
+    var actions=node(doc,"div","ou-actions"),reveal=node(doc,"button","","揭示结果"),reset=node(doc,"button","","重置");reveal.type=reset.type="button";actions.appendChild(reveal);actions.appendChild(reset);gate.appendChild(actions);
+    var feedback=node(doc,"p","ou-note","请选择一个预测。");feedback.setAttribute("aria-live","polite");gate.appendChild(feedback);
+    var results=node(doc,"div","ou-results");results.hidden=true;results.tabIndex=-1;results.setAttribute("role","region");results.setAttribute("aria-label","OU 实验结果");shell.appendChild(results);
+    function sync(){
+      Object.keys(refs).forEach(function(k){refs[k].input.value=state[k];refs[k].out.textContent=k==="level"?Math.pow(2,state.level)+" 步":k==="path"?(state.path+1)+" / 256":format(state[k],3);});
+      buttons.forEach(function(b){b.setAttribute("aria-pressed",String(b.getAttribute("data-choice")===prediction));});reveal.disabled=!prediction||revealed;
     }
-    return result;
+    function scroll(n,label){var w=node(doc,"div","ou-scroll");w.tabIndex=0;w.setAttribute("role","region");w.setAttribute("aria-label",label+"，可横向滚动");w.appendChild(n);return w;}
+    function table(title,headers,rows){
+      var t=node(doc,"table");t.setAttribute("aria-label",title);t.appendChild(node(doc,"caption","",title));var head=node(doc,"thead"),tr=node(doc,"tr");
+      headers.forEach(function(v){var th=node(doc,"th","",v);th.scope="col";tr.appendChild(th);});head.appendChild(tr);t.appendChild(head);var body=node(doc,"tbody");
+      rows.forEach(function(row){var tr=node(doc,"tr");row.forEach(function(v){tr.appendChild(node(doc,"td","",typeof v==="number"?format(v,7):v));});body.appendChild(tr);});t.appendChild(body);results.appendChild(scroll(t,title));
+    }
+    function render(){
+      var data=simulate(state),r=data.selected;results.replaceChildren();results.hidden=false;
+      feedback.textContent=(prediction==="no"?"判断正确。":"请结合账本修正判断。")+" 均值相同可能掩盖方差错误；强误差须在同一驱动下比较。";
+      var metrics=node(doc,"div","ou-metrics");results.appendChild(metrics);
+      [["步长 h",r.h],["EM 乘子 1−θh",r.A],["256 条样本 RMS",r.sampleRMS],["解析强 L² 误差",r.strong],["解析弱均值误差",r.weak],["配对均差 SE 估计",r.pairedSE]].forEach(function(v){var box=node(doc,"div","ou-metric");box.appendChild(node(doc,"span","",v[0]));box.appendChild(node(doc,"strong","",format(v[1],7)));metrics.appendChild(box);});
+      results.appendChild(node(doc,"p","ou-boundary","当前离散稳定性："+r.stability+"。连续 OU 在 θ>0 时均值回复，显式 EM 却还要求 0<θh<2。临界与失稳数据完整保留，不截断数值。"));
+      [[drawPath(doc,data),"单路径对照"],[drawHistogram(doc,data),"终点频数"],[drawErrors(doc,data),"误差随步长"]].forEach(function(v){results.appendChild(scroll(v[0],v[1]));});
+      table("七层误差账本",["步数","h","样本 RMS","解析强 L²","解析弱均值误差","配对均差","配对 SE","样本均值−离散均值"],data.rows.map(function(r){return[r.steps,r.h,r.sampleRMS,r.strong,r.weak,r.pairedMean,r.pairedSE,r.samplingDeviation];}));
+      table("七层总体与样本矩",["步数","精确均值","两种离散法均值","精确方差","EM 方差","错误法方差","EM 样本方差","错误法样本方差"],data.rows.map(function(r){return[r.steps,r.exactMean,r.mean,r.exactVariance,r.variance,r.wrongVariance,r.sampleVariance,r.wrongSampleVariance];}));
+      var h=histogram(data);table("完整终点分箱",["箱","左端（含）","右端（仅末箱含）","EM 个数","错误缩放个数","精确 OU 个数"],h.numeric.map(function(v,j){return[j+1,h.min+j*h.width,h.min+(j+1)*h.width,v,h.wrong[j],h.exact[j]];}));
+      results.appendChild(node(doc,"p","ou-note","样本方差分母为 256，用于描述这批样本；SE 则按独立配对差、分母 255 估计。固定伪随机样本不是精确置信保证。零均值并不消除强误差；θ=0 时 EM 在网格上精确，σ=0 时退化为确定性 Euler。极小样本残差可能来自浮点舍入。"));
+    }
+    reveal.addEventListener("click",function(){if(!prediction||revealed)return;revealed=true;render();sync();results.focus();if(api&&api.announce)api.announce(root,"OU 实验结果已揭示。");});
+    reset.addEventListener("click",function(){state=Object.assign({},DEFAULTS);prediction="";revealed=false;results.hidden=true;feedback.textContent="已重置，请重新判断。";sync();buttons[0].focus();});
+    sync();
   }
 
-  window.CourseLearning.register("sde-path-distribution", function (root, api) {
-    installStyles();
-    INSTANCE += 1;
-    var uid = "sde-lab-" + INSTANCE;
-    var state = {
-      level: CONFIG.defaultLevel,
-      path: CONFIG.defaultPath,
-      prediction: "",
-      revealed: false
-    };
-    var dataset = makeDataset();
-    var convergence = convergenceData(dataset);
-    var refs = {};
-    var levelControl = makeRangeControl(
-      api,
-      uid + "-level",
-      "步长层级 L",
-      CONFIG.minLevel,
-      CONFIG.maxLevel,
-      1,
-      state.level
-    );
-    var pathControl = makeRangeControl(
-      api,
-      uid + "-path",
-      "显示路径",
-      0,
-      CONFIG.paths - 1,
-      1,
-      state.path
-    );
-    refs.levelInput = levelControl.input;
-    refs.levelOutput = levelControl.output;
-    refs.pathInput = pathControl.input;
-    refs.pathOutput = pathControl.output;
-
-    var presetButtons = LEVEL_PRESETS.map(function (level) {
-      var button = makeElement(api, "button", {
-        type: "button",
-        "data-level": level,
-        "aria-pressed": "false"
-      }, ["L=" + level]);
-      button.addEventListener("click", function () {
-        state.level = level;
-        lockResults("层级已改变；请重新预测后再揭示账本。");
-        render();
-      });
-      return button;
-    });
-    var presetGrid = makeElement(api, "div", { className: "sde-preset-grid" }, presetButtons);
-    var resetButton = makeElement(api, "button", {
-      type: "button",
-      className: "sde-primary sde-reset"
-    }, ["重置：回到固定噪声"]);
-    var status = makeElement(api, "p", {
-      className: "sde-status",
-      "aria-live": "polite"
-    }, [""]);
-    refs.status = status;
-
-    var controls = makeElement(api, "div", { className: "sde-controls" }, [
-      makeElement(api, "h4", { className: "sde-heading" }, ["控制台"]),
-      levelControl.node,
-      presetGrid,
-      pathControl.node,
-      resetButton,
-      makeElement(api, "p", { className: "sde-note" }, [
-        "固定参数：T=2，x₀=1.4，θ=1.15，σ=0.85；",
-        CONFIG.paths,
-        " 条轨迹由同一最高层高斯噪声聚合而来。"
-      ]),
-      status
-    ]);
-
-    var pathHost = makeElement(api, "div", { className: "sde-stage-frame" });
-    var distributionHost = makeElement(api, "div", {
-      className: "sde-stage-frame"
-    });
-    var convergenceHost = makeElement(api, "div", {
-      className: "sde-stage-frame"
-    });
-    var stage = makeElement(api, "div", { className: "sde-stage" }, [
-      pathHost,
-      distributionHost,
-      convergenceHost
-    ]);
-    var heading = makeElement(api, "h3", {
-      className: "sde-heading",
-      id: uid + "-heading"
-    }, ["SDE 路径—分布双账本"]);
-    var intro = makeElement(api, "p", { className: "sde-intro" }, [
-      "先预测步长缩小时两种噪声标度会怎样，再揭示同一噪声账本下的一条 OU 路径与 256 个终点。解析均值/方差只作可核对的定理靶点。"
-    ]);
-    var predictionFeedback = makeElement(api, "p", {
-      className: "sde-predict-feedback",
-      "aria-live": "polite"
-    }, ["请选择一个判断。"]);
-    var predictionChoices = [
-      { value: "sqrt", label: "√h·Z 保持非退化扩散" },
-      { value: "linear", label: "h·Z 保持非退化扩散" },
-      { value: "same", label: "两种标度极限相同" }
-    ];
-    var predictionButtons = predictionChoices.map(function (choice) {
-      var button = makeElement(api, "button", {
-        type: "button",
-        "data-prediction": choice.value,
-        "aria-pressed": "false"
-      }, [choice.label]);
-      button.addEventListener("click", function () {
-        state.prediction = choice.value;
-        state.revealed = false;
-        stage.hidden = true;
-        status.hidden = true;
-        predictionButtons.forEach(function (candidate) {
-          candidate.setAttribute(
-            "aria-pressed",
-            candidate.getAttribute("data-prediction") === choice.value ? "true" : "false"
-          );
-        });
-        predictionFeedback.textContent = "预测已记录；现在可以揭示账本。";
-      });
-      return button;
-    });
-    var revealButton = makeElement(api, "button", {
-      type: "button",
-      className: "sde-primary"
-    }, ["揭示路径与分布"]);
-    var predictionBox = makeElement(api, "div", { className: "sde-predict" }, [
-      makeElement(api, "strong", {}, ["先预测：当 h 逐步减小时，哪种离散噪声仍保留 O(1) 的累计方差？"]),
-      makeElement(api, "div", { className: "sde-predict-options" }, predictionButtons),
-      makeElement(api, "div", { className: "sde-predict-actions" }, [revealButton]),
-      predictionFeedback
-    ]);
-
-    clear(root);
-    root.classList.add("sde-path-distribution-lab");
-    root.setAttribute("aria-labelledby", uid + "-heading");
-    root.appendChild(heading);
-    root.appendChild(intro);
-    root.appendChild(predictionBox);
-    root.appendChild(
-      makeElement(api, "div", { className: "sde-layout" }, [controls, stage])
-    );
-    stage.hidden = true;
-    status.hidden = true;
-
-    function lockResults(message) {
-      state.prediction = "";
-      state.revealed = false;
-      stage.hidden = true;
-      status.hidden = true;
-      predictionButtons.forEach(function (button) {
-        button.setAttribute("aria-pressed", "false");
-      });
-      predictionFeedback.textContent = message || "请选择一个判断。";
-    }
-
-    function render() {
-      var level = clamp(
-        Math.round(Number(state.level)),
-        CONFIG.minLevel,
-        CONFIG.maxLevel
-      );
-      var path = clamp(
-        Math.round(Number(state.path)),
-        0,
-        CONFIG.paths - 1
-      );
-      state.level = level;
-      state.path = path;
-      var result = dataset.levels[level];
-      var correctStats = result.correctStats;
-      var wrongStats = result.wrongStats;
-      var correctEndpoint = result.correctEndpoints[path];
-      var wrongEndpoint = result.wrongEndpoints[path];
-      refs.levelInput.value = String(level);
-      refs.pathInput.value = String(path);
-      refs.levelOutput.textContent =
-        "L=" + level + " · N=" + result.steps + " · h=" + formatStep(result.h);
-      refs.pathOutput.textContent = "第 " + (path + 1) + " / " + CONFIG.paths;
-      refs.levelInput.setAttribute("aria-valuetext", refs.levelOutput.textContent);
-      refs.pathInput.setAttribute("aria-valuetext", refs.pathOutput.textContent);
-      presetButtons.forEach(function (button) {
-        button.setAttribute(
-          "aria-pressed",
-          Number(button.getAttribute("data-level")) === level ? "true" : "false"
-        );
-      });
-      if (state.revealed) {
-        refs.status.textContent =
-          "当前路径终点：正确 " +
-          formatNumber(api, correctEndpoint, 3) +
-          "；错误 " +
-          formatNumber(api, wrongEndpoint, 3) +
-          "。ensemble 均值/方差：正确 (" +
-          formatNumber(api, correctStats.mean, 3) +
-          ", " +
-          formatNumber(api, correctStats.variance, 3) +
-          ")；解析 (" +
-          formatNumber(api, dataset.analyticMean, 3) +
-          ", " +
-          formatNumber(api, dataset.analyticVariance, 3) +
-          ")。";
-      }
-
-      replaceChildren(pathHost, [
-        stageTitle(api, "单路径账本", "路径 " + (path + 1) + " / " + CONFIG.paths),
-        drawPathChart(api, result, path, uid + "-path-" + level + "-" + path),
-        makeLegend(api, [
-          { swatch: "sde-swatch-correct", label: "蓝：√h·Z 的 EM" },
-          { swatch: "sde-swatch-wrong", label: "红：错误 h·Z" },
-          { swatch: "sde-swatch-analytic", label: "绿虚线：解析均值" }
-        ])
-      ]);
-      replaceChildren(distributionHost, [
-        stageTitle(api, "分布账本", "终点 t=T · 每柱为密度"),
-        drawDistributionChart(
-          api,
-          dataset,
-          result,
-          uid + "-distribution-" + level
-        ),
-        makeLegend(api, [
-          { swatch: "sde-swatch-correct", label: "蓝：正确 EM 直方图" },
-          { swatch: "sde-swatch-wrong", label: "红：错误标度直方图" },
-          { swatch: "sde-swatch-analytic", label: "绿虚线：N(m_T,v_T)" }
-        ]),
-        makeElement(api, "div", { className: "sde-ledger-title" }, [
-          "终点统计账本（",
-          CONFIG.paths,
-          " 条固定样本）"
-        ]),
-        metricTable(
-          api,
-          ["量", "正确 EM", "错误 h·Z", "解析 OU"],
-          [
-            [
-              "均值 E[X_T]",
-              formatNumber(api, correctStats.mean, 4),
-              formatNumber(api, wrongStats.mean, 4),
-              formatNumber(api, dataset.analyticMean, 4)
-            ],
-            [
-              "方差 Var(X_T)",
-              formatNumber(api, correctStats.variance, 4),
-              formatNumber(api, wrongStats.variance, 4),
-              formatNumber(api, dataset.analyticVariance, 4)
-            ]
-          ]
-        ),
-        makeElement(api, "p", { className: "sde-footnote" }, [
-          "直方图是有限 Monte Carlo 近似；绿色曲线来自 OU 的解析分布，不是由这 256 个样本拟合出来的。"
-        ])
-      ]);
-      replaceChildren(convergenceHost, [
-        stageTitle(api, "收敛账本", "同一噪声耦合 · L=" + CONFIG.minLevel + "…"+ CONFIG.maxLevel),
-        drawConvergenceChart(api, convergence, uid + "-convergence"),
-        makeLegend(api, [
-          { swatch: "sde-swatch-correct", label: "蓝：强 RMS（相对最高层 EM）" },
-          { swatch: "sde-swatch-weak", label: "金：解析弱偏差（φ(x)=x）" }
-        ]),
-        makeElement(api, "div", { className: "sde-ledger-title" }, [
-          "步长、强诊断与解析弱偏差"
-        ]),
-        metricTable(
-          api,
-          ["层级", "h", "强 RMS", "弱 |E_EM[X_T]−m_T|"],
-          convergence.map(function (item) {
-            return [
-              "L=" + item.level,
-              formatStep(item.h),
-              formatNumber(api, item.strong, 5),
-              formatNumber(api, item.weak, 5)
-            ];
-          })
-        ),
-        makeElement(api, "p", { className: "sde-footnote" }, [
-          "强 RMS 的参考是同一噪声下的最高层 EM，不是连续时间精确解；弱列是 φ(x)=x 下的解析 EM 弱偏差 |x₀(1−θh)^N−m_T|，不是有限 ensemble 均值。分布账本的经验均值/方差仍是有限 Monte Carlo 估计；这些图显示比较口径，不能单独证明 EM 的渐近阶。"
-        ])
-      ]);
-    }
-
-    levelControl.input.addEventListener("input", function () {
-      state.level = Number(levelControl.input.value);
-      lockResults("层级已改变；旧预测已失效，请重新判断。");
-      render();
-    });
-    pathControl.input.addEventListener("input", function () {
-      state.path = Number(pathControl.input.value);
-      render();
-    });
-    resetButton.addEventListener("click", function () {
-      state.level = CONFIG.defaultLevel;
-      state.path = CONFIG.defaultPath;
-      lockResults("已重置到固定噪声；请重新预测后再揭示。");
-      render();
-      if (api && typeof api.announce === "function") {
-        api.announce(
-          root,
-          "实验已重置：固定种子、" +
-            CONFIG.paths +
-            " 条轨迹、L=" +
-            CONFIG.defaultLevel +
-            "、路径 1。"
-        );
-      }
-    });
-
-    revealButton.addEventListener("click", function () {
-      if (!state.prediction) {
-        predictionFeedback.textContent = "请先选择一个判断。";
-        predictionButtons[0].focus();
-        return;
-      }
-      state.revealed = true;
-      stage.hidden = false;
-      status.hidden = false;
-      predictionFeedback.textContent = state.prediction === "sqrt"
-        ? "预测命中：N=T/h 个独立增量各有方差 h，总方差保持 T；h·Z 的总方差 Nh²=Th 会塌到 0。"
-        : "需要修正：√h·Z 的累计方差是 Nh=T；h·Z 的累计方差是 Nh²=Th→0。";
-      render();
-      if (api && typeof api.announce === "function") {
-        api.announce(root, predictionFeedback.textContent);
-      }
-    });
-
-    render();
-  });
-}());
+  function selfTest(){
+    var checks=0;function check(v,label){checks++;if(!v)throw Error(label);}
+    check(kernel(0).bridge===0&&kernel(0).c===1,"theta zero");
+    check(Math.abs(kernel(1e-20).bridge/(1e-20/Math.sqrt(12))-1)<1e-14,"tiny conditional variance");
+    check(moments({theta:0},4).strong===0,"Brownian EM exact on grid");
+    check(moments({x0:0},4).weak===0&&moments({x0:0},4).strong>0,"weak mean is not strong");
+    check(moments({theta:4},4).A===-1,"stability boundary");
+    check(moments({theta:5},4).A===-1.5,"unstable values retained");
+    check(moments({sigma:0},32).strong===moments({sigma:0},32).weak,"deterministic error");
+    check(rng(0)()!==rng(1)(),"seed zero");
+    check(format(10,0)==="10"&&format(.0001,3)!=="0","number formatting");
+    PRESETS.forEach(function(p){var d=simulate(p.values),h=histogram(d);check(d.rows.length===7&&d.exact.length===256,p.name);["numeric","wrong","exact"].forEach(function(k){check(sum(h[k])===256,"all histogram observations");});});
+    var edge=histogram(simulate({theta:0,sigma:1.5,horizon:.5,x0:-2,level:8,path:255,seed:20260910}));
+    check(sum(edge.numeric)===256&&sum(edge.wrong)===256&&sum(edge.exact)===256,"right endpoint rounding retains all observations");
+    return{checks:checks,presets:PRESETS.length};
+  }
+  return{DEFAULTS:DEFAULTS,SEEDS:SEEDS,LEVELS:LEVELS,PRESETS:PRESETS,config:config,rng:rng,normal:normal,kernel:kernel,moments:moments,noise:noise,exactPath:exactPath,simulate:simulate,format:format,histogram:histogram,selfTest:selfTest,mount:mount,drawPath:drawPath,drawHistogram:drawHistogram,drawErrors:drawErrors};
+});

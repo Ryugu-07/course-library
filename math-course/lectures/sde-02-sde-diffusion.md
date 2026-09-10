@@ -1,247 +1,371 @@
-# 随机微积分 II · SDE、Fokker–Planck 与扩散模型
+# 随机微积分 II · SDE、OU 过程与扩散方程
 
-> 常微分方程加上噪声项就是**随机微分方程（SDE）**——单条路径的演化规则。换到"上帝视角"看全体路径的**分布**如何演化，得到 Fokker–Planck 方程——SDE 与 PDE 的官方桥梁。本页最后与 comfy 课的扩散模型正面对账：**你在 KSampler 里跑的一切，都是本页的方程。**
+> 一条路径回答“这次发生了什么”，概率分布回答“许多次实验如何分散”。随机微分方程把两者连接起来；数值算法还要回答第三个问题：看到的现象来自模型，还是来自步长？
 
 <div data-learning-page></div>
 
-<section class="learning-layer" markdown="1">
+<section class="learning-layer" markdown="1" aria-labelledby="ou-learning-title">
 
-## 学习层：同一份噪声，两个账本
+<h2 id="ou-learning-title">学习层：均值正确，为什么还会模拟错？</h2>
 
-### 1. 具体谜题：一条轨道很乱，概率云却有公式
-
-想象一个被弹簧拉回原点、又不断受到微小踢动的粒子。只看一条轨道，它会在每个时刻抖来抖去；同时复制 $256$ 个粒子，终点却会形成一团可以用高斯密度描述的概率云。这里有三个容易混在一起的问题：
-
-1. 把时间步长减半后，每一步的噪声变小了，为什么总噪声没有消失？
-2. 一条样本路径如何与 Fokker–Planck 方程中的密度 $p(x,t)$ 对上？
-3. 如果要比较粗步长和细步长，怎样保证“差异来自离散误差”，而不是来自两次完全不同的抽样？
-
-本学习层始终使用同一份确定性高斯噪声：一笔是**单路径账本**，记录一个粒子的逐步余额；另一笔是**分布账本**，记录许多粒子的终点直方图、均值和方差。两笔账可以互相校验，但谁也不能冒充另一笔。
-
-### 2. 先做预测：在操作前写下你的判断
-
-先不看实验的结果，预测下面四件事：
-
-- 对 $dX=\mu\,dt+\sigma\,dB$，若 $\Delta t$ 变成 $\Delta t/4$，正确离散式中每一步随机项的标准差变为原来的多少？一年内的步数变成多少？如果误写成 $\sigma\Delta t Z_n$，终点方差会向哪里走？
-- 对 OU 过程 $dX_t=-\theta X_t\,dt+\sigma\,dB_t$，若 $X_0>0$，样本路径、全体样本的均值和方差分别会怎样变化？“均值回到零”是否意味着每条路径都停在零？
-- 用同一份细网格噪声聚合到粗网格，与每个步长重新抽样相比，哪一种更适合测量强误差？为什么？
-- 直方图若越来越像一条高斯曲线，是否已经证明了 Fokker–Planck PDE，或者证明了 $h\to0$ 的收敛？
-
-把最后一个问题的答案先写成“不能，因为……”，它会成为读图时的边界检查。
-
-### 3. 最小模型：先对齐增量，再分开两种读法
-
-标准布朗增量满足
+把偏离平衡位置的量记作 $X_t$。最简单的回复与扰动模型是
 
 $$
-\Delta B_n=B_{t_{n+1}}-B_{t_n}\sim N(0,\Delta t),
-\qquad \Delta B_n=\sqrt{\Delta t}\,Z_n,
-\qquad Z_n\sim N(0,1).
+dX_t=-\theta X_t\,dt+\sigma\,dB_t,\qquad X_0=x_0.
 $$
 
-于是 Euler–Maruyama（EM）是
+这里 $x_0$ 是确定数，$\theta\ge0,\sigma\ge0$。当 $\theta>0$ 时，漂移把状态拉向 0；这并不要求每条路径单调靠近 0。若 $X$ 的单位为长度，$\theta$ 的单位为时间倒数，$\sigma$ 的单位为长度除以时间平方根。
 
-$$
-X_{n+1}=X_n+\mu(X_n,t_n)\,\Delta t
-       +\sigma(X_n,t_n)\sqrt{\Delta t}\,Z_n.
-$$
-
-把最后的 $\sqrt{\Delta t}$ 换成 $\Delta t$ 不是“更平滑的近似”，而是换了模型：在 $T$ 固定时，错误噪声的总方差量级是
-
-$$
-\sum_{n=0}^{T/\Delta t-1}\sigma^2\Delta t^2
-\;=\;\sigma^2T\,\Delta t\longrightarrow0,
-$$
-
-而正确噪声的总方差量级为 $\sigma^2T$。这正是实验中必须并排保留两种写法的原因。
-
-本页把 OU 作为可解的最小模型。对确定性初值 $X_0=x_0$，
-
-$$
-X_t=x_0e^{-\theta t}+\sigma\int_0^t e^{-\theta(t-s)}\,dB_s,
-$$
-
-所以
-
-$$
-m_t=E[X_t]=x_0e^{-\theta t},
-\qquad
-v_t=\operatorname{Var}(X_t)=\frac{\sigma^2}{2\theta}
-       \bigl(1-e^{-2\theta t}\bigr),
-\qquad
-X_t\sim N(m_t,v_t).
-$$
-
-若 $X_0$ 本身是与 $B$ 独立的随机变量，则还要把 $e^{-2\theta t}\operatorname{Var}(X_0)$ 加入方差；实验固定 $x_0$，因此使用上面这一版。均值趋向零不等于路径没有波动：方差趋向 $\sigma^2/(2\theta)$，这正是平稳 OU 分布的宽度。
-
-为了让不同步长的比较有意义，实验先在最高层生成固定的 $Z_{i,r}$。粗层一个步长包含 $q$ 个细步时，使用
-
-$$
-Z^{(\mathrm{coarse})}_{i,j}
- =\frac{1}{\sqrt q}\sum_{r=jq}^{(j+1)q-1}Z_{i,r},
-\qquad
-\sqrt{\Delta t_{\mathrm{coarse}}}\,Z^{(\mathrm{coarse})}_{i,j}
- =\sum_{r=jq}^{(j+1)q-1}\sqrt{\Delta t_{\mathrm{fine}}}\,Z_{i,r}.
-$$
-
-这叫 Brownian coupling：粗、细路径共享同一份布朗增量。于是可以分别记
-
-$$
-\text{强误差：}\quad
-E_{\mathrm{s}}(h)=\left(E\lvert X_T^{(h)}-X_T\rvert^2\right)^{1/2},
-\qquad
-\text{弱误差：}\quad
-E_{\mathrm{w}}(h;\varphi)=
-\left\lvert E\varphi(X_T^{(h)})-E\varphi(X_T)\right\rvert.
-$$
-
-前者比较同一噪声下的路径，后者只比较分布对测试函数的期望；它们不是同一个误差。标准结论也必须带前提：在全局 Lipschitz、线性增长等常见条件下，连续时间 EM 的 $L^p$ 路径/终点强误差通常是 $O(h^{1/2})$；在系数、初值和测试函数足够光滑并满足相应增长条件时，弱误差通常是 $O(h)$。这些阶数不是无条件口号。OU 的扩散系数是常数，固定终点的强误差还可能出现更高的特殊阶；这不能外推为一般乘性噪声 SDE 的结论。
-
-### 4. 动手验证：路径账本、分布账本与收敛账本
-
-下方实验的默认参数是 $T=2,\ x_0=1.4,\ \theta=1.15,\ \sigma=0.85$，固定 $256$ 条轨迹和固定种子。先预测哪种噪声标度能保留非退化扩散，再揭示三本账；改变步长层级会隐藏旧结果并要求重新预测，选择不同路径则只是在同一已揭示账本中浏览：
-
-1. **单路径账本**：蓝线使用 $\sqrt{h}Z$，红线故意使用 $hZ$，两者共享同一组聚合噪声；绿色虚线是解析均值 $m_t$，不是某条“真实路径”。
-2. **分布账本**：蓝/红直方图分别是正确与错误标度的终点样本；绿色曲线是 $N(m_T,v_T)$ 的解析密度。表格同时列出经验均值、经验方差与解析值，密度按“每单位 $x$”归一化。
-3. **收敛账本**：强误差用同一噪声下的终点 RMS（相对最高层 EM 参考），弱误差在 $\varphi(x)=x$ 下用 OU 离散方案的精确期望与解析均值的偏差。它们让“路径逐条接近”和“分布统计量接近”分开出现。
-
-先把层级从粗调到细，回答：正确标度的分布宽度是否保持在解析方差附近？错误标度是否塌向均值？再换一条路径，检查“单条路径长得像均值”是不是一个可靠判断。最后看收敛图，并说明为什么最高层参考和固定噪声耦合仍然只是有限实验设计。
+**预测：两个方法给出相同的终点均值，是否就说明它们同样准确？** 实验同时比较正确 EM 更新、把 $\sqrt h$ 错换成 $h$ 的更新，以及同一布朗驱动上的精确 OU 解。
 
 <div class="learning-lab" data-learning-lab="sde-path-distribution" markdown="1">
 
-**无 JavaScript 时的静态读法：**实验固定 $T=2,\ x_0=1.4,\ \theta=1.15,\ \sigma=0.85$，由确定性 PRNG 生成 $256$ 条最高层高斯噪声，再聚合为粗步长；重置会回到相同噪声账本。预测题的答案来自方差账：$N=T/h$ 个 $\sqrt hZ$ 增量累计方差为 $Nh=T$，而 $hZ$ 的累计方差为 $Nh^2=Th\to0$。正确 EM 每步加入 $\sigma\sqrt h Z$，错误对照加入 $\sigma hZ$。单路径图应显示错误版本随 $h\to0$ 失去随机宽度；终点直方图应与 OU 的 $N(m_T,v_T)$ 对账，其中 $m_T=x_0e^{-\theta T}$、$v_T=\frac{\sigma^2}{2\theta}(1-e^{-2\theta T})$。收敛图把共享噪声下的强 RMS 与 $\varphi(x)=x$ 的精确 EM 弱偏差分开；直方图中的 ensemble 均值和方差仍只是有限 Monte Carlo 估计。有限的 $256$ 个样本、有限最高层和一条 PRNG 序列只能说明这个可复现实验的账本，不能证明 Fokker–Planck PDE、EM 收敛定理或“几乎处处”结论。
+**无 JavaScript 时也能核算：**设 $A=1-\theta h$，$T=nh$，两种更新分别是
+
+$$
+X_{k+1}^{h}=AX_k^h+\sigma\sqrt h\,Z_k,\qquad
+\widetilde X_{k+1}^{h}=A\widetilde X_k^h+\sigma h\,Z_k,
+$$
+
+其中 $Z_k$ 独立服从 $N(0,1)$。两者的总体均值都为 $x_0A^n$，但
+
+$$
+\operatorname{Var}(X_n^h)=\sigma^2h\sum_{j=0}^{n-1}A^{2j},
+\qquad
+\operatorname{Var}(\widetilde X_n^h)=\sigma^2h^2\sum_{j=0}^{n-1}A^{2j}.
+$$
+
+在固定数值单位下，错误法方差是正确法的 $h$ 倍。$h=1$ 时这两次更新数值上恰好相同，仍不能证明错误缩放可用于其他步长；它本身也不符合原方程的量纲。
 
 </div>
 
-### 5. 误区与边界：哪些读法会越界？
-
-- **把 $dB$ 当成 $dt$。** $dB$ 的典型大小是 $\sqrt{dt}$；错误的 $dtZ$ 会让固定时间的总噪声方差消失。它不是 EM 的另一种稳定实现，而是另一条退化极限。
-- **把一条路径当成密度。** 一条轨道可以很久偏离 $m_t$；$p(x,t)$ 是全体路径在时刻 $t$ 的分布。直方图是对 $p$ 的有限 Monte Carlo 近似，不是 PDE 解的证明；有限样本也不能证明步长极限。
-- **把强阶和弱阶混为一谈。** 强误差需要同一噪声耦合并比较路径；弱误差允许路径误差在取期望后抵消。EM 的 $1/2$ 与 $1$ 都依赖假设、误差范数和测试函数；OU 加性噪声的特殊改善不能写成普遍定理。
-- **忘记 OU 的初值和参数条件。** 这里 $\theta>0$ 且 $x_0$ 固定；$\theta=0$ 变成布朗运动型方差增长，$\theta<0$ 是不稳定漂移，解析分布仍可写但不再是均值回复和平稳情形。
-- **混淆 VP-SDE 反向时间的 $dt$。** 若正向时间为 $t\nearrow T$，VP 的前向漂移是 $f(x,t)=-\frac12\beta(t)x$，反向 SDE 常写为
-
-$$
-dx=\bigl[f(x,t)-\beta(t)\nabla_x\log p_t(x)\bigr]dt
-   +\sqrt{\beta(t)}\,d\bar B_t,
-\qquad dt<0\quad(t:T\to0).
-$$
-
-  这里的 $dt$ 是负的时间增量。若改用递增的反向时钟 $s=T-t$、$Y_s=X_{T-s}$，同一件事应写成
-
-$$
-dY_s=\left[\frac12\beta(T-s)Y_s
-  +\beta(T-s)\nabla\log p_{T-s}(Y_s)\right]ds
-  +\sqrt{\beta(T-s)}\,d\widetilde B_s.
-$$
-
-  把第一种公式的漂移照抄，却把 $dt$ 当正数，是符号错误；两种写法不能混用。有限终点的 VP 分布只是向噪声先验靠近，只有在 schedule 和终点假设足够强时才可近似写成 $N(0,I)$。
-
-### 6. 回到定理：实验的每个读数在说什么？
-
-对足够光滑的测试函数 $\varphi$，Itô 公式和取期望把 SDE 推到生成元
-
-$$
-L_t\varphi(x)=\mu(x,t)\varphi'(x)
- +\frac12\sigma^2(x,t)\varphi''(x),
-$$
-
-再对密度做伴随运算，得到
-
-$$
-\frac{\partial p}{\partial t}
- =-\frac{\partial}{\partial x}(\mu p)
- +\frac12\frac{\partial^2}{\partial x^2}(\sigma^2p).
-$$
-
-实验的“分布账本”只是这条前向 Kolmogorov/Fokker–Planck 关系在一个时间点的抽样影像：OU 的高斯公式给出可核对的靶心，直方图给出有限样本的近似；“路径账本”则对应同一个生成元背后的随机积分过程。把两者放在同一噪声耦合下，能检查离散实现是否尊重布朗尺度，却仍然不能替代定理的假设与证明。
-
-### 7. 迁移问题：把账本带到新模型
-
-1. 对 $dX_t=-\theta(X_t-a)dt+\sigma dB_t$，不要重新背公式：令 $Y_t=X_t-a$，写出 $E[X_t]$、$\operatorname{Var}(X_t)$ 和平稳分布。若 $X_0$ 有随机方差，哪一项会额外出现？
-2. 把噪声改成 $\sigma(X_t,t)dB_t$，你还会直接宣称 EM 强阶 $1/2$、弱阶 $1$ 吗？请列出至少两项需要检查的系数/测试函数假设，并说明为什么同一噪声耦合仍是强误差比较的必要条件。
-3. 在 VP-SDE 中用 $s=T-t$ 做反向采样时，写出 $dY_s$ 的漂移；再解释为什么“反向公式里的 $dt$ 为负”和“换成 $ds>0$ 后漂移符号翻转”是同一个过程，而不是两个相互矛盾的答案。
-
-<details markdown="1">
-<summary>迁移题参考答案</summary>
-
-1. 令 $Y_t=X_t-a$，则 $dY_t=-\theta Y_tdt+\sigma dB_t$。若 $X_0$ 为常数，$E[X_t]=a+(X_0-a)e^{-\theta t}$ 且 $\operatorname{Var}(X_t)=\frac{\sigma^2}{2\theta}(1-e^{-2\theta t})$。当 $\theta>0$ 时平稳分布为 $N(a,\sigma^2/(2\theta))$。在标准适应 Itô 设定中，随机 $X_0$ 是 $\mathcal F_0$ 可测且平方可积，$B$ 相对该信息流是布朗运动，因此未来布朗增量已经独立于 $X_0$。此时均值中的 $X_0$ 改为 $E[X_0]$，方差再加 $e^{-2\theta t}\operatorname{Var}(X_0)$。若让初值偷看未来噪声，就已离开这里的标准设定，不能直接沿用普通 Itô 理论。
-2. 不能直接宣称阶数。常用强收敛结论要检查漂移和扩散系数的全局 Lipschitz、线性增长以及所取矩存在；弱一阶通常还要求系数和测试函数有足够阶的光滑导数与多项式增长控制。局部 Lipschitz、超线性增长、非光滑测试函数或退化边界都可能改写结论。同一噪声耦合让粗细离散共享同一条布朗路径，因而路径差才是强误差；各自独立抽噪声只是在比较两个样本。
-3. 正向 VP 漂移为 $f(x,t)=-\tfrac12\beta(t)x$。用递增反向时钟 $s=T-t$，同一过程满足 $dY_s=[\frac12\beta(T-s)Y_s+\beta(T-s)\nabla\log p_{T-s}(Y_s)]ds+\sqrt{\beta(T-s)}\,d\widetilde B_s$。原公式沿 $t:T\to0$ 积分时 $dt=-ds$；换元把时间增量改成正的 $ds$，漂移整体随之翻号，布朗增量则由反向时钟下的新布朗运动表示。两式只是坐标约定不同。
-
-</details>
+实验使用 3 组固定种子，每组 256 条伪随机路径、256 个细时间段，聚合为 4 至 256 步的七层网格。参数、种子和层级可以更改；“临界”与“失稳”预设专门检验连续模型与数值方法的区别。图形保留全部采样值，不为好看而截断发散路径。
 
 </section>
 
-## 1. SDE：带噪声的动力系统
+## 1. 方程先是一条积分关系
+
+一般标量 Itô SDE 写作
 
 $$
-dX_t = \underbrace{\mu(X_t, t)\,dt}_{\text{漂移: 确定的力}} + \underbrace{\sigma(X_t, t)\,dB_t}_{\text{扩散: 随机的抖}}
+dX_t=b(t,X_t)\,dt+a(t,X_t)\,dB_t,
 $$
 
-含义 = 积分方程 $X_t = X_0 + \int\mu\,ds + \int\sigma\,dB$（后者是上一页的 Itô 积分）。**存在唯一性**：$\mu, \sigma$ Lipschitz + 线性增长 ⇒ 强解存在唯一（与 ode-01 Picard 定理平行——压缩映像在 $L^2$ 路径空间上重跑一遍）。
-
-**数值解（Euler–Maruyama）**：$X_{n+1} = X_n + \mu\,\Delta t + \sigma\sqrt{\Delta t}\,Z_n$（$Z_n \sim N(0,1)$）——数值线 Euler 法 + 一个 $\sqrt{\Delta t}$ 的随机项（**根号**：布朗增量的标度，写成 $\Delta t$ 是新手第一错）。模拟金融路径、Langevin 采样、扩散模型生成全用它或其变体。
-
-## 2. OU 过程：均值回复的原型
+实际含义是
 
 $$
-dX_t = -\theta X_t\,dt + \sigma\,dB_t \qquad (\theta > 0:\ \text{弹簧拉回原点, 噪声不断踢开})
+X_t=X_0+\int_0^t b(s,X_s)\,ds+\int_0^t a(s,X_s)\,dB_s.
 $$
 
-**求解**（常数变易，ode 手法照搬——乘积分因子 $e^{\theta t}$ 再 Itô 分部）：
+“漂移”指条件下的局部平均变化率，并不是说 $b(t,X_t)$ 的数值不随机；它取决于随机状态。扩散系数 $a$ 控制条件增量方差的主项 $a^2\,dt$，而不是增量的绝对大小。
+
+一个常用的充分条件是：系数对时间可测，对状态满足每个有限时段上一致的全局 Lipschitz 与线性增长界；初值为 $\mathcal F_0$ 可测且平方可积，$B$ 相对于该滤子是 Brownian 运动。于是存在唯一的连续适应强解，并有相应有限时段矩估计。这里“强”表示使用给定的概率空间与驱动；不是“噪声很强”。
+
+这些是方便使用的充分条件，不是存在唯一性的必要条件。局部 Lipschitz 通常先给出爆炸前的解，还需要额外控制排除有限时爆炸；不要把“公式看起来光滑”当作全局定理。
+
+## 2. OU 过程：路径、转移分布与平稳性
+
+### 2.1 乘一个积分因子
+
+对 $e^{\theta t}X_t$ 使用[Itô 乘积公式](sde-01-ito.html)，确定性因子没有 Brownian 二次变差项：
 
 $$
-X_t = X_0 e^{-\theta t} + \sigma\int_0^t e^{-\theta(t-s)}\,dB_s \;\sim\; N\Big(X_0 e^{-\theta t},\ \frac{\sigma^2}{2\theta}\big(1 - e^{-2\theta t}\big)\Big)
+d(e^{\theta t}X_t)=\sigma e^{\theta t}\,dB_t.
 $$
 
-$t \to \infty$：**平稳分布 $N(0, \frac{\sigma^2}{2\theta})$**——初值被遗忘、方差收敛（对比布朗运动方差 $t$ 发散：拉回力驯服了扩散）。三重身份：金融的利率/波动率模型（Vasicek——均值回复是"利率不会跑去无穷"的建模语言）；**AR(1) 的连续时间真身**（时间序列页对账：OU 按 $\Delta t$ 采样恰是 AR(1)）；扩散模型前向加噪的骨架（见 §4）。
-
-## 3. Fokker–Planck：从单路径到分布演化
-
-同一个 SDE 的第二种读法：不问"这条路径去哪"，问"概率云怎么流"。$X_t$ 的密度 $p(x, t)$ 满足 **Fokker–Planck 方程**（前向 Kolmogorov）：
+积分后得到
 
 $$
-\frac{\partial p}{\partial t} = -\frac{\partial}{\partial x}\big[\mu(x,t)\,p\big] + \frac{1}{2}\frac{\partial^2}{\partial x^2}\big[\sigma^2(x,t)\,p\big]
+\boxed{X_t=x_0e^{-\theta t}
++\sigma\int_0^t e^{-\theta(t-s)}\,dB_s.}
 $$
 
-（漂移项 = 概率的输运，扩散项 = 概率的抹平；推导via Itô 引理取期望 + 分部积分。）
-
-**对账时刻**：纯布朗运动（$\mu = 0, \sigma = 1$）给 $p_t = \frac12 p_{xx}$——**热方程**（pde-02 的"布朗运动是热方程的微观真身"至此闭环：那页的热核 = 本页方程的基本解）。平稳分布 = 令 $\partial_t p = 0$：OU 代入解得高斯 ✓；一般梯度系统 $\mu = -\nabla V$ 给 **$p_\infty \propto e^{-2V/\sigma^2}$**（Boltzmann–Gibbs 分布——统计力学、模拟退火、MCMC 的共同心脏）。
-
-## 4. 扩散模型：本页数学的旗舰应用（comfy 课正式对账）
-
-<figure class="plot" markdown="1">
-![扩散前向过程把数据加噪成高斯](assets/img/sde-02-diffusion.svg)
-<figcaption><span class="fig-id">图 2.1</span>扩散前向过程把数据分布逐步加噪成高斯——双峰数据被抹平成钟形，正是 comfy 课扩散模型加噪的连续极限。</figcaption>
-</figure>
-
-**前向加噪 SDE**（VP-SDE，comfy 课 02 的离散加噪的连续极限）：
+确定性函数的 Itô 积分是中心高斯变量。由等距，若 $\theta>0$，
 
 $$
-dx = -\frac{1}{2}\beta(t)\,x\,dt + \sqrt{\beta(t)}\,dB_t
+m_t=x_0e^{-\theta t},\qquad
+v_t=\sigma^2\int_0^t e^{-2\theta(t-s)}ds
+=\frac{\sigma^2}{2\theta}(1-e^{-2\theta t}).
 $$
 
-——**时变系数的 OU 过程**：均值以 $e^{-\frac12\int\beta}$ 衰减、分布在累计噪声足够大且终点先验按此选择时才近似流向 $N(0, I)$（§2 的平稳分布机制；那页的 $\sqrt{\bar\alpha_t}$ 与 $1-\bar\alpha_t$ 就是本页 OU 解的均值方差）。
+因此 $X_t\sim N(m_t,v_t)$，前提是本节的**确定性初值**。若初值随机且独立于未来 Brownian 增量，解是衰减初值与独立高斯项之和；非高斯初值一般给出高斯混合，而非单个高斯分布。
 
-**反向去噪 SDE**（Anderson 1982，comfy 课 03 引用的那条定理）：
+两个边界值得单独写出：
+
+- $\theta=0$ 时，$X_t=x_0+\sigma B_t$，方差为 $\sigma^2t$；上式取连续极限，不能直接除以 0。
+- $\sigma=0$ 时，过程完全确定，分布是点质量 $\delta_{x_0e^{-\theta t}}$。不能给方差加一个小正数，然后称它为真实密度。
+
+### 2.2 精确离散采样不是 Euler
+
+任意 $h>0$，独立未来增量给出
 
 $$
-dx = \Big[-\frac{1}{2}\beta x - \beta\,\underbrace{\nabla_x \log p_t(x)}_{\text{score}}\Big]dt + \sqrt{\beta}\,d\bar B_t
+X_{t+h}=e^{-\theta h}X_t+\varepsilon_t,\qquad
+\varepsilon_t\sim N\!\left(0,\frac{\sigma^2}{2\theta}(1-e^{-2\theta h})\right),
 $$
 
-这里采用的是从 $t=T$ 走回 $t=0$ 的约定，所以 $dt<0$；若以 $s=T-t$ 作为递增时钟，令 $Y_s=x_{T-s}$，漂移改写为 $\frac12\beta(T-s)Y_s+\beta(T-s)\nabla\log p_{T-s}(Y_s)$。同一条反向过程的两种记号不可把 $dt$ 的方向和漂移符号拆开使用。
+创新独立于 $\mathcal F_t$。$\theta=0$ 时创新方差为 $\sigma^2h$。
 
-时间倒流的 SDE 存在，且只需多知道一项——**score**（沿途每个时刻分布的对数梯度）；神经网络 $\epsilon_\theta$ 学的正是它（comfy 课 02 §3.5 的等价性）。**概率流 ODE**：存在与反向 SDE 边际分布完全相同的确定性 ODE（把噪声项换成再加一份 score 漂移）——**采样器下拉框里 ODE 系与 SDE/ancestral 系的分野**（comfy 课 03 的表格），在本页是同一个 Fokker–Planck 方程的两种路径实现。**Langevin 动力学**（$dx = \nabla\log p(x)\,dt + \sqrt2\,dB_t$：以 $p$ 为平稳分布的 SDE——§3 Boltzmann 公式反用）是 score-based 采样的原型，也是 MCMC 家族的一员。
+当 $\theta>0$，这是系数在 $(0,1)$ 内的特定 AR(1) 采样模型；一般 AR(1) 还允许负系数等情形，不能全部解释成这个标量 OU。条件均值的回复半衰期是 $\ln2/\theta$，不表示随机样本每过这段时间都减半。
 
-## 5. 典型例题
+### 2.3 接近平稳不等于已经平稳
 
-**例 1（E–M 模拟设计）** 模拟 GBM（$\mu = 0.05, \sigma = 0.2$）一年 252 步：$S_{n+1} = S_n(1 + 0.05\Delta t + 0.2\sqrt{\Delta t}Z_n)$，$\Delta t = \frac{1}{252}$——注意也可用上一页的显式解精确模拟（对数正态逐步采样），**有闭式解时别用数值离散**（数值线的教诲）。
+$\theta>0$ 时，从确定初值出发，$m_t\to0$，$v_t\to\sigma^2/(2\theta)$，故单时刻分布趋于不变高斯分布。若一开始就取独立的
+$X_0\sim N(0,\sigma^2/(2\theta))$，才得到平稳 OU 过程，其协方差为
 
-**例 2（OU 半衰期）** Vasicek 利率 $\theta = 0.5$/年：偏离的半衰期 $= \frac{\ln 2}{\theta} \approx 1.4$ 年——"利率冲击约一年半消化一半"，均值回复速度的可读化（把 $\theta$ 翻译成半衰期是汇报模型的好习惯）。
+$$
+\operatorname{Cov}(X_s,X_t)=\frac{\sigma^2}{2\theta}e^{-\theta|t-s|}.
+$$
 
-**例 3（平稳分布验证）** 双井势 $V(x) = \frac{(x^2-1)^2}{4}$ 的 Langevin：$p_\infty \propto e^{-2V/\sigma^2}$ 双峰——粒子在两口井间偶尔跳跃（隐喻：非凸损失面上 SGD 的噪声帮助逃离局部井，优化 II 的那句话在此有了严格模型）。$\blacksquare$
+从固定 $x_0$ 出发的早期过程不平稳。$\theta=0,\sigma>0$ 的布朗运动也没有这种有限方差平稳分布。
 
----
+## 3. Euler–Maruyama：连续系统稳定，算法仍可能失稳
 
-*下一页：把这套演算对准市场——Delta 对冲推出 Black–Scholes 方程，风险中性定价，以及期权公式里每个符号的含义。*
+EM 在每段左端冻结系数：
+
+$$
+X_{k+1}^{h}=X_k^h+b(t_k,X_k^h)h
++a(t_k,X_k^h)\sqrt h\,Z_k.
+$$
+
+对 OU，它成为 $X_{k+1}^{h}=AX_k^h+\sigma\sqrt hZ_k$，$A=1-\theta h$。均值递推为 $m_{k+1}=Am_k$，方差递推为
+
+$$
+v_{k+1}=A^2v_k+\sigma^2h,\qquad v_0=0.
+$$
+
+这一步就能推导学习层的两个矩公式。噪声均值为零，所以错误地缩放噪声不会改变这两个离散法的总体均值，却会改变方差。
+
+对 $\theta>0$，均方稳定要求 $|A|<1$，即
+
+$$
+0<\theta h<2.
+$$
+
+在稳定范围内，EM 的长期方差为
+
+$$
+v_\infty^{h}=\frac{\sigma^2h}{1-(1-\theta h)^2}
+=\frac{\sigma^2}{2\theta-\theta^2h}.
+$$
+
+它仍不等于精确 OU 的 $\sigma^2/(2\theta)$；固定步长留下平稳分布偏差。当 $\theta h=2$，$A=-1$，没有收缩，且 $\sigma>0$ 时方差逐步累积；$\theta h>2$ 时模大于 1。$\sigma=0,X_0=0$ 的特殊零解当然不会发散，这不改变方法的稳定性判据。
+
+一般 EM 强半阶定理需要正则性与矩条件。OU 是加性噪声线性特例，其终点强误差可达一阶；不能把此例的斜率当成所有 SDE 的收敛阶。某些超线性漂移即使连续解良好，显式 Euler 的矩也可能失控。
+
+## 4. 怎样在同一噪声上构造精确参照？
+
+<style>
+.ou-static{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+.ou-static img{display:block;width:1100px;max-width:none!important}
+.ou-static:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="figure ou-static" role="region" aria-label="OU 稳定性、方差与概率流静态图，可横向滚动" tabindex="0" markdown="1">
+
+![连续回复与 Euler 乘子、两种噪声缩放的方差，以及相同边缘分布的不同路径机制](assets/img/sde-02-diffusion.svg)
+
+上两幅图直接使用解析乘子和方差，未筛选随机样本。下方的平稳概率流例子将在第 6 节推导。
+
+</div>
+
+“最细网格已经很细”不是精确性证明。本实验不把最细 EM 当成真解，而在每个细区间构造联合高斯变量。
+
+设区间长度为 $\delta$，$x=\theta\delta$，
+
+$$
+\Delta B=\int_0^\delta dB_s,\qquad
+J=\int_0^\delta e^{-\theta(\delta-s)}\,dB_s.
+$$
+
+定义
+
+$$
+c(x)=\int_0^1e^{-xu}du
+=\frac{1-e^{-x}}x,\quad c(0)=1,
+\qquad q(x)=c(2x)-c(x)^2.
+$$
+
+Itô 等距和协方差公式给出 $\operatorname{Var}(\Delta B)=\delta$、
+$\operatorname{Cov}(J,\Delta B)=\delta c(x)$、$\operatorname{Var}(J)=\delta c(2x)$。因此可以用独立标准正态 $Z,W$ 表示
+
+$$
+\Delta B=\sqrt\delta\,Z,\qquad
+J=c(x)\Delta B+\sqrt{\delta q(x)}\,W.
+$$
+
+额外的 $W$ 表示区间内 Brownian 波动未被端点增量完全确定的部分。只把 $J$ 写成某个倍数的 $\Delta B$，通常会丢掉这部分条件方差。
+
+精确更新为 $X_{t+\delta}=e^{-\theta\delta}X_t+\sigma J$。各细区间独立，再把 $\Delta B$ 相加供粗网格 EM 使用，得到七层共同的 Brownian 驱动与一致的精确终点。这里的“精确”指采样时刻的联合分布构造没有时间离散偏差；有限精度、伪随机数与有限样本的限制仍在。
+
+当 $x$ 很小，直接计算 $c(2x)-c(x)^2$ 会发生严重消减。实验利用正项恒等式
+
+$$
+q(x)=e^{-x}\sum_{k=1}^{\infty}
+\frac{2k\,x^{2k}}{(2k+2)!}
+=\frac{x^2}{12}+O(x^3),
+$$
+
+计算条件标准差；$\theta=0$ 时它严格为零。这个数值细节对应一个真实问题：不能因为机器舍入把小方差算成负数，就随意截成零。
+
+### 4.1 解析强误差也能核算
+
+令 $h=T/n$、$A=1-\theta h$。记终点均值偏差
+$\beta_n=x_0(A^n-e^{-\theta T})$。按从终点向后第 $j$ 个区间展开，两种解使用同一噪声；独立区间的误差方差可相加，得到
+
+$$
+\begin{aligned}
+\mathbb E|X_n^h-X_T|^2
+={}&\beta_n^2+\sigma^2h\sum_{j=0}^{n-1}
+\left[(A^j-e^{-\theta jh}c(\theta h))^2
++e^{-2\theta jh}q(\theta h)\right].
+\end{aligned}
+$$
+
+每一项都非负。这比用“两个方差减两倍协方差”计算极小误差更稳定。图中分别给出该式平方根、256 条配对路径的样本 RMS，以及测试函数 $\varphi(x)=x$ 的弱误差 $|\beta_n|$。
+
+弱误差不是一个脱离测试函数的单一数字。例如 $x_0=0$ 时两种总体均值均为 0，弱均值误差严格为零，但噪声驱动下的强误差通常不为零。
+
+样本均值减去真均值还包含抽样波动：
+
+$$
+\bar X_h-\mathbb EX_T
+=(\mathbb EX_h-\mathbb EX_T)+(\bar X_h-\mathbb EX_h).
+$$
+
+若 $D_i=X_{T,i}^h-X_{T,i}$，配对均差的标准误估计是
+$\sqrt{\sum_i(D_i-\bar D)^2/[M(M-1)]}$。它依赖独立抽样的解释，不是固定伪随机样本的精确置信保证。对数图只画正误差；零值列在账本，不设人为地板。
+
+## 5. 从路径到概率：Fokker–Planck 方程
+
+### 5.1 先看测试函数的平均变化
+
+对适当光滑测试函数 $\varphi$，Itô 公式产生生成元
+
+$$
+L_t\varphi=b(t,x)\varphi'(x)+\tfrac12a(t,x)^2\varphi''(x).
+$$
+
+在系数局部受控、测试函数紧支撑等足以令随机积分为真鞅的条件下，积分形式为
+
+$$
+\mathbb E\varphi(X_t)-\mathbb E\varphi(X_0)
+=\int_0^t\mathbb E[L_s\varphi(X_s)]\,ds.
+$$
+
+这条弱关系不需要先假设分布有密度。若各时刻存在足够正则的密度 $p(t,x)$，再对空间分部积分，可得到
+
+$$
+\boxed{\partial_t p=-\partial_x(bp)+\tfrac12\partial_{xx}(a^2p).}
+$$
+
+当 $a$ 随 $x$ 变化，不能把第二项改成 $\tfrac12a^2\partial_{xx}p$。而 $\sigma=0$、确定初值的 OU 只有移动点质量；从确定初值且 $\sigma>0$ 出发，$t=0$ 初始条件也是 $\delta_{x_0}$，高斯密度公式适用于 $t>0$。
+
+### 5.2 通量告诉我们概率如何进出
+
+定义概率通量
+
+$$
+J=bp-\tfrac12\partial_x(a^2p),\qquad
+\partial_t p=-\partial_xJ.
+$$
+
+因此区间 $[\ell,r]$ 内概率的变化率为 $J(t,\ell)-J(t,r)$。全空间的总质量守恒需要适当无穷远通量条件；有限区间要指定反射、吸收或其他边界。仅写一个 PDE，并没有自动指定完整概率模型。
+
+对常噪声 $\sigma>0$、漂移 $b=-V'$，若求**零通量**平稳密度，
+
+$$
+-V'p_\infty-\tfrac{\sigma^2}{2}p_\infty'=0
+\quad\Longrightarrow\quad
+p_\infty(x)=Z^{-1}e^{-2V(x)/\sigma^2}.
+$$
+
+这要求 $Z=\int e^{-2V/\sigma^2}dx<\infty$，并匹配边界条件。得到一个不变密度不等于已经证明任意初值都收敛到它；遍历性需要另行核验。周期空间上还可能有非零平稳通量，不能把“平稳”普遍等同于“通量为零”。
+
+OU 对应 $V(x)=\theta x^2/2$，$\theta>0$ 时恢复上述高斯密度。连续 Langevin 扩散的目标不变分布与离散采样算法也要区分：固定步长的未校正 Euler Langevin 通常有偏差，不能自动称为精确 MCMC。
+
+## 6. 通往生成模型：反向 SDE 与概率流
+
+这里只建立数学接口。取状态无关的标量噪声 $g(t)$，
+$dX_t=f(t,X_t)dt+g(t)dB_t$。在正密度、光滑性及时间反演所需的条件下，设反向钟 $s=T-t$，则反向 SDE 的漂移为
+
+$$
+dY_s=\left[-f(T-s,Y_s)+g(T-s)^2
+\nabla\log p_{T-s}(Y_s)\right]ds+g(T-s)d\bar B_s.
+$$
+
+必须从正确的终端分布 $Y_0\sim p_T$ 开始。若改用逐渐减小的原时钟 $t$，常写成漂移 $f-g^2\nabla\log p_t$ 且 $dt<0$；两个符号体系不要混用。状态相关扩散矩阵还有额外散度项，不能原样套本式。
+
+### 6.1 同一组边缘分布，可以来自不同路径机制
+
+概率流 ODE 使用原时钟：
+
+$$
+\boxed{\frac{dX_t}{dt}=f(t,X_t)-\frac12g(t)^2\nabla\log p_t(X_t).}
+$$
+
+原因可从通量直接看见：$g$ 与状态无关时，$p\nabla\log p=\nabla p$，ODE 的连续性方程正好等于原 SDE 的 Fokker–Planck 方程。这里是**减去半份 score 项**，不是任意再加一份。
+
+在正则性、正确初始分布和精确 score 等条件下，它们有相同的单时刻边缘分布；这不表示路径、两时刻联合分布或转移核相同。换成学得的近似 score，再做有限步长数值求解，还会引入模型与离散误差。
+
+### 6.2 VP 加噪为什么会接近高斯？
+
+令 $\beta(t)\ge0$ 局部可积，取
+
+$$
+dX_t=-\tfrac12\beta(t)X_t\,dt+\sqrt{\beta(t)}\,dB_t,\qquad
+\alpha_t=\exp\!\left[-\tfrac12\int_0^t\beta(s)ds\right].
+$$
+
+给定 $X_0=x_0$，
+$X_t=\alpha_t x_0+\sqrt{1-\alpha_t^2}\,\varepsilon$ 于分布意义成立，$\varepsilon\sim N(0,I)$。对一般数据分布，边缘分布是这些条件高斯的混合；有限 $T$ 通常还不是精确标准高斯。
+
+当 $\alpha_t\to0$ 时信号贡献消失，边缘分布趋向标准高斯。对 $1-\alpha_t^2>0$，噪声预测的总体最优平方损失解为条件期望，满足
+
+$$
+\nabla\log p_t(x)
+=-\frac{\mathbb E[\varepsilon\mid X_t=x]}{\sqrt{1-\alpha_t^2}}.
+$$
+
+一次训练对中的具体噪声并不等于边缘 score。$t=0$ 附近若分布奇异，也不能直接把分母为零的公式代入。这里解释的是这一类 score 扩散构造，不涵盖所有生成模型或所有采样器。
+
+## 7. 三道核算题
+
+**题 1：稳定但仍有偏差。** 取 $\theta=1,\sigma=1,h=1$。连续 OU 与 EM 的长期方差分别是多少？每步 EM 是否还保留上一步状态？
+
+<details class="answer" markdown="1">
+<summary>展开：先算乘子，再算方差</summary>
+
+$A=1-\theta h=0$，因此 EM 每步直接成为新标准正态噪声，长期方差为 1。连续 OU 平稳方差为 $1/2$，精确一步采样仍有系数 $e^{-1}>0$。方法满足 $|A|<1$，但稳定不等于无偏，也不等于时间相关性正确。
+
+</details>
+
+**题 2：为什么同样的均值会掩盖错误？** 取 $\theta=0,x_0=0,\sigma=1,T=1$、$h=1/n$，比较精确解、EM 和错误缩放法的终点方差。
+
+<details class="answer" markdown="1">
+<summary>展开：把独立增量的方差相加</summary>
+
+精确解为 $B_1$，方差 1。EM 累加 $n$ 个方差为 $h$ 的增量，方差 $nh=1$，且在同一 Brownian 驱动的网格上精确。
+错误法累加 $n$ 个方差为 $h^2$ 的增量，方差 $nh^2=h\to0$。三者均值均为 0；错误法却越来越集中到原点。单看均值会错过整个扩散机制。
+
+</details>
+
+**题 3：平稳密度的概率流 ODE 为什么可以不动？** 对 $\theta>0,\sigma>0$ 的平稳 OU，代入精确 score，计算概率流 ODE 的速度，并与 OU 的路径比较。
+
+<details class="answer" markdown="1">
+<summary>展开：静止样本也能保持同一边缘分布</summary>
+
+平稳密度 $p(x)\propto e^{-\theta x^2/\sigma^2}$ 的 score 为 $-2\theta x/\sigma^2$。概率流速度
+$-\theta x-\tfrac12\sigma^2(-2\theta x/\sigma^2)=0$。
+若初始样本来自该平稳分布，ODE 让每个样本保持不动，所有时刻的边缘分布自然不变。
+真正 OU 路径仍持续波动，其协方差随时间差衰减；静止 ODE 样本的两时刻协方差则始终等于初始方差。这正说明相同边缘分布不意味着相同路径规律。
+
+</details>
+
+## 8. 参考与下一步
+
+- [Lawler，Stochastic Calculus](https://www.math.uchicago.edu/~lawler/finbook.pdf)：Itô 积分、扩散与生成元的基础。
+- [Higham，数值模拟 SDE 的算法导论](https://webhomes.maths.ed.ac.uk/~dhigham/Publications/P42.pdf)：共享噪声、强弱误差与离散实验。
+- [Song 等，Score-Based Generative Modeling through SDEs，§3.2、§4.3 与附录 D](https://arxiv.org/html/2011.13456v2)：反向时间约定、score 与概率流的数学接口。
+
+继续学习时，先保留本页的三层区分：单条路径、总体概率、数值近似。前沿模型可以更复杂，这三本账仍不能混在一起。
