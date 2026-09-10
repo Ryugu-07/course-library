@@ -56,190 +56,528 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-11 01:08</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#rate-race">学习层：冻结不是温度刻度，而是一场 rate race</a><ul>
-<li><a href="#1">1. 先过预测门：降温时谁跑得更快？</a></li>
-<li><a href="#2-fallback-crossing">2. 静态 fallback：同一个 crossing，不同的方向</a></li>
-<li><a href="#3-rate-race">3. 边界：rate race 不是丰度计算器</a></li>
+<li><a href="#thermal-learning-title">学习层：沿温度轴，追问谁还在交换能量</a><ul>
+<li><a href="#1">1. 先认清三种问题</a></li>
+<li><a href="#2">2. 实验：每次只改变一个机制</a></li>
+<li><a href="#3">3. 怎样从图走到计算</a></li>
 </ul>
 </li>
-<li><a href="#1_1">1. 热历史的通用法则</a></li>
-<li><a href="#2-bbnt-sim-3">2. 原初核合成（BBN，\(t \sim\) 3 分钟）</a></li>
-<li><a href="#3-cmbt-approx-38">3. 复合与 CMB（\(t \approx 38\) 万年）</a></li>
-<li><a href="#4">4. 暴胀一瞥（开篇问题的答案候选）</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#1_1">1. 为什么光子能一直保持黑体形状？</a><ul>
+<li><a href="#11">1.1 从占据数算到今天的光子数</a></li>
+<li><a href="#12">1.2 自由传播不要求宇宙由辐射主导</a></li>
+</ul>
+</li>
+<li><a href="#2_1">2. 从能量守恒到熵自由度</a><ul>
+<li><a href="#21">2.1 守恒的是哪个热浴？</a></li>
+<li><a href="#22">2.2 电子质量怎样进入积分？</a></li>
+<li><a href="#23">2.3 数值积分怎样知道自己漏了多少？</a></li>
+</ul>
+</li>
+<li><a href="#3_1">3. 中微子为什么比光子冷？</a></li>
+<li><a href="#4">4. 反应何时追不上膨胀？</a><ul>
+<li><a href="#41">4.1 两只钟，外加一个系数</a></li>
+<li><a href="#42">4.2 为什么速率交点不是丰度开关？</a></li>
+<li><a href="#43-bbn">4.3 用 BBN 练习粒子计数</a></li>
+</ul>
+</li>
+<li><a href="#5-saha">5. Saha 方程：先算平衡组成</a><ul>
+<li><a href="#51">5.1 化学势怎样消掉？</a></li>
+<li><a href="#52">5.2 稳定地求二次根</a></li>
+</ul>
+</li>
+<li><a href="#6">6. 从复合走到最后散射，还差什么？</a></li>
+<li><a href="#7-cmb">7. CMB 声学峰：先定义尺子，再解释峰</a><ul>
+<li><a href="#71">7.1 光子压强与重子惯性</a></li>
+<li><a href="#72">7.2 一个保留条件的振子推导</a></li>
+<li><a href="#73">7.3 两种距离约定不能混着除</a></li>
+</ul>
+</li>
+<li><a href="#8">8. 四道练习：把条件也写进答案</a><ul>
+<li><a href="#_1">练习一：热浴的熵账与费米权重</a></li>
+<li><a href="#_2">练习二：归一化与氦的四分之一</a></li>
+<li><a href="#136-ev">练习三：13.6 eV 为什么不是“变透明温度”？</a></li>
+<li><a href="#_3">练习四：把同一把尺子换成两套单位</a></li>
+</ul>
+</li>
+<li><a href="#9">9. 通往扰动与前沿研究</a></li>
 </ul>
 </div>
 </details>
-<h1 id="ii-cmb">宇宙学 II · 热历史与 CMB<a class="headerlink" href="#ii-cmb" title="Permanent link"></a></h1>
+<h1 id="ii-cmb">宇宙学 II · 热历史、复合与 CMB 的声学标尺<a class="headerlink" href="#ii-cmb" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Ryden §8–11 ｜ <strong>前置</strong>：cosmo-01、sm-03（Planck 谱/统计）、atom-01（核）
-早期宇宙 = 一锅按 <span class="arithmatex">\(T \propto a^{-1}\)</span> 降温的热汤——<strong>统计物理 + 粒子物理在膨胀背景上的应用题</strong>。本页沿温度轴走三站：原初核合成（前三分钟的元素工厂）、复合与 CMB（宇宙的婴儿照）、以及 CMB 声学峰如何变成精密宇宙学的标尺。暴胀作为开篇问题的答案一瞥收尾。</p>
+<p><strong>前置</strong>：<a href="cosmo-01-frw.html">FRW 与距离</a>、<a href="sm-03-quantum-stats.html">量子统计</a>、化学平衡与简谐振动。<strong>目标</strong>：由分布计算热浴，由反应速率判断平衡能否维持，最后把声波的长度换成天空中的角尺度。</p>
+<p>宇宙降温时，三件事不会同时发生：粒子的平衡组成改变，反应追不上膨胀，光子最后一次散射。本页把它们拆开计算，再解释为什么“氢的结合能是 13.6 eV”不意味着宇宙就在这个温度变透明。</p>
 </blockquote>
+<style>article:has(#thermal-learning-title) .katex { position: relative; }</style>
+
 <div data-learning-page></div>
 
-<section aria-labelledby="freezeout-learning-title" class="learning-layer">
-<h2 id="rate-race">学习层：冻结不是温度刻度，而是一场 rate race<a class="headerlink" href="#rate-race" title="Permanent link"></a></h2>
-<h3 id="1">1. 先过预测门：降温时谁跑得更快？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>本页实验故意只保留一个无量纲的 rate-race toy。令</p>
-<div class="arithmatex">\[
-x\equiv \frac{T}{T_f},\qquad
-\frac{\Gamma}{H}=x^{m-n},\qquad
-\left.\frac{\Gamma}{H}\right|_{x=1}=1.
-\]</div>
-<p>冷却意味着 <span class="arithmatex">\(x\)</span> 从 <span class="arithmatex">\(x&gt;1\)</span> 经过 <span class="arithmatex">\(1\)</span> 走向 <span class="arithmatex">\(x&lt;1\)</span>。在打开账本前，先回答：</p>
-<ol>
-<li>当 <span class="arithmatex">\(m&gt;n\)</span> 时，降温后 <span class="arithmatex">\(\Gamma/H\)</span> 下降、保持不变，还是上升？</li>
-<li>归一化后 <span class="arithmatex">\(x=1\)</span> 的 <span class="arithmatex">\(\Gamma/H\)</span> 是多少？</li>
-<li><span class="arithmatex">\(m=n\)</span> 时 <span class="arithmatex">\(\Gamma/H\)</span> 全程相同；这是否足以定义一个孤立的冻结时刻？</li>
-<li><span class="arithmatex">\(m&lt;n\)</span> 时，冷却对应 freeze-out，还是 recoupling？</li>
-</ol>
-<p>预测门会先隐藏曲线、当前点和数值账本；答完后再切换预设与 <span class="arithmatex">\(x\)</span>，检查自己的量词和方向判断。</p>
-<h3 id="2-fallback-crossing">2. 静态 fallback：同一个 crossing，不同的方向<a class="headerlink" href="#2-fallback-crossing" title="Permanent link"></a></h3>
-<p><strong>无 JavaScript 时仍可读：</strong>比例常数已经被归一化到 <span class="arithmatex">\(x=1\)</span>，所以所有预设在 <span class="arithmatex">\(x=1\)</span> 都有 <span class="arithmatex">\(\Gamma/H=1\)</span>。诊断约定为：<span class="arithmatex">\(\Gamma/H&gt;1\)</span> 表示反应快、仍有维持平衡的能力；<span class="arithmatex">\(\Gamma/H&lt;1\)</span> 表示反应慢、进入脱耦候选区；<span class="arithmatex">\(\Gamma/H\approx1\)</span> 只是量级边界，不是瞬时开关。</p>
+<section aria-labelledby="thermal-learning-title" class="learning-layer">
+<h2 id="thermal-learning-title">学习层：沿温度轴，追问谁还在交换能量<a class="headerlink" href="#thermal-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 先认清三种问题<a class="headerlink" href="#1" title="Permanent link"></a></h3>
 <table>
 <thead>
 <tr>
-<th>预设</th>
-<th style="text-align: right;"><span class="arithmatex">\((m,n)\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(\Gamma/H\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(x=2\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(x=1\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(x=0.5\)</span></th>
-<th>冷却方向 / crossing 读法</th>
+<th>问题</th>
+<th>本页可以计算什么</th>
+<th>还不能据此宣称什么</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>弱作用 × 辐射期</td>
-<td style="text-align: right;"><span class="arithmatex">\((5,2)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(x^3\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(8\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.125\)</span></td>
-<td>下降；<span class="arithmatex">\(x=1\)</span> 是 freeze-out 方向的量级 crossing</td>
+<td>反应比膨胀快多少？</td>
+<td>局部幂律 Γ/H = Cx^(m−n) 的方向与交点</td>
+<td>最终元素或暗物质丰度</td>
 </tr>
 <tr>
-<td>温和 freeze-out toy</td>
-<td style="text-align: right;"><span class="arithmatex">\((3,2)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(x\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.5\)</span></td>
-<td>下降；同样在 <span class="arithmatex">\(x=1\)</span> crossing</td>
+<td>电子正电子湮灭后，热量去哪了？</td>
+<td>理想热浴的能量、压强、熵及瞬时解耦温度比</td>
+<td>精确标准模型中微子谱与 Neff</td>
 </tr>
 <tr>
-<td>equal-exponent</td>
-<td style="text-align: right;"><span class="arithmatex">\((2,2)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td>全程相等；没有孤立 crossing，也没有由此定义的冻结时刻</td>
-</tr>
-<tr>
-<td>recoupling toy</td>
-<td style="text-align: right;"><span class="arithmatex">\((1,3)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(x^{-2}\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.25\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(4\)</span></td>
-<td>上升；冷却后靠近平衡，是 recoupling 方向</td>
+<td>指定温度和密度，氢在平衡时有多少电离？</td>
+<td>纯氢 Saha 平衡的自由电子与中性氢分数</td>
+<td>真实最后散射的时刻与宽度</td>
 </tr>
 </tbody>
 </table>
-<p>透明账本逐行记录 <span class="arithmatex">\(x\)</span>、<span class="arithmatex">\(\Gamma/H\)</span>、平衡/脱耦诊断和量词（<span class="arithmatex">\(x&gt;1\)</span>、<span class="arithmatex">\(x=1\)</span> 或 <span class="arithmatex">\(x&lt;1\)</span>）。双对数图的斜率就是 <span class="arithmatex">\(m-n\)</span>，所以 equal-exponent 的水平线与 recoupling 的反向斜率不会被“看到 <span class="arithmatex">\(x=1\)</span>”这一件事混为一谈。</p>
+<p>这里的温度输入以能量标注：例如“0.1 MeV”表示 <span class="arithmatex">\(k_BT=0.1\ {\rm MeV}\)</span>，不是 0.1 K。推导中用 <span class="arithmatex">\(\Theta=k_BT\)</span> 避免混淆；热浴的无量纲积分暂取 <span class="arithmatex">\(\hbar=c=k_B=1\)</span>。本页 <span class="arithmatex">\(\varepsilon\)</span> 是<strong>能量密度</strong>，与上一页用作质量等效密度的 <span class="arithmatex">\(\rho\)</span> 相差 <span class="arithmatex">\(c^2\)</span>。</p>
+<h3 id="2">2. 实验：每次只改变一个机制<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>先作四个预测，再揭示。速率模式先把 <span class="arithmatex">\(C\)</span> 从1改成8，看交点移动；热浴模式从 <span class="arithmatex">\(T_D\)</span> 向低温走，看光子与中微子分温；Saha 模式保持温度不变，仅改变氢核/光子比，观察平衡向哪边移动。</p>
 <div class="learning-lab" data-learning-lab="freezeout-race">
-<p><strong>无 JavaScript 时的静态 fallback：</strong></p>
-<p>模型只回答 rate race，不直接给出丰度。默认弱作用 × 辐射期为 <span class="arithmatex">\(m=5,n=2\)</span>，故 <span class="arithmatex">\(\Gamma/H=x^3\)</span>；冷却到 <span class="arithmatex">\(x=0.5\)</span> 时比值为 <span class="arithmatex">\(1/8\)</span>，从平衡侧走向脱耦候选侧。改变预设后，必须重新读斜率和诊断，不能把所有 <span class="arithmatex">\(x=1\)</span> crossing 都叫 freeze-out。</p>
+<p><strong>无需 JavaScript 的静态账本。</strong> 速率默认 m=5、n=2、C=1；热浴取 TD=2 MeV、当前 Tγ=0.1 MeV；纯氢取 kBT=0.3 eV、η=6×10⁻¹⁰。这些是教学输入。</p>
 <table>
 <thead>
 <tr>
-<th>ledger 行</th>
-<th style="text-align: right;"><span class="arithmatex">\(x=T/T_f\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(\Gamma/H\)</span>（<span class="arithmatex">\(m=5,n=2\)</span>）</th>
-<th>诊断</th>
-<th>量词</th>
+<th>量</th>
+<th style="text-align: right;">数值或状态</th>
+<th>含义</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>高温侧</td>
-<td style="text-align: right;"><span class="arithmatex">\(10\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1000\)</span></td>
-<td>反应快，近似平衡</td>
-<td><span class="arithmatex">\(x&gt;1\)</span></td>
+<td>默认速率：x=0.5 时 Γ/H</td>
+<td style="text-align: right;">0.125</td>
+<td>反应相对膨胀较慢</td>
 </tr>
 <tr>
-<td>高温侧</td>
-<td style="text-align: right;"><span class="arithmatex">\(2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(8\)</span></td>
-<td>反应快，近似平衡</td>
-<td><span class="arithmatex">\(x&gt;1\)</span></td>
+<td>C 改成8后的交点 x</td>
+<td style="text-align: right;">0.5</td>
+<td>交点随归一化移动</td>
 </tr>
 <tr>
-<td>量级边界</td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td>边界量级，不是开关</td>
-<td><span class="arithmatex">\(x=1\)</span></td>
+<td>m=n=2、C=2</td>
+<td style="text-align: right;">无孤立交点</td>
+<td>整条比值为2，不是整条等于1</td>
 </tr>
 <tr>
-<td>冷却后</td>
-<td style="text-align: right;"><span class="arithmatex">\(0.5\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.125\)</span></td>
-<td>反应慢，脱耦候选</td>
-<td><span class="arithmatex">\(x&lt;1\)</span></td>
+<td>热浴 gρ</td>
+<td style="text-align: right;">2.518856915</td>
+<td>能量自由度</td>
 </tr>
 <tr>
-<td>更冷</td>
-<td style="text-align: right;"><span class="arithmatex">\(0.1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.001\)</span></td>
-<td>反应更慢，脱耦候选</td>
-<td><span class="arithmatex">\(x&lt;1\)</span></td>
+<td>热浴 gs</td>
+<td style="text-align: right;">2.445464572</td>
+<td>熵自由度</td>
+</tr>
+<tr>
+<td>Tν/Tγ</td>
+<td style="text-align: right;">0.7643940797</td>
+<td>有限 TD 的理想气体模型</td>
+</tr>
+<tr>
+<td>a/aD</td>
+<td style="text-align: right;">26.16451452</td>
+<td>热浴共动熵守恒</td>
+</tr>
+<tr>
+<td>Saha Xe</td>
+<td style="text-align: right;">0.1311869994</td>
+<td>平衡自由电子比例</td>
+</tr>
+<tr>
+<td>Saha 中性氢分数</td>
+<td style="text-align: right;">0.8688130006</td>
+<td>并非最后散射概率</td>
+</tr>
+<tr>
+<td>2.7255 K 黑体光子数 / cm⁻³</td>
+<td style="text-align: right;">410.7268483</td>
+<td>参考温度的分布积分</td>
+</tr>
+<tr>
+<td>150 Mpc / 14 Gpc 的 ℓA</td>
+<td style="text-align: right;">293.2153143</td>
+<td>声学尺度，不能直接称第一峰</td>
 </tr>
 </tbody>
 </table>
-<p><strong>反例与迁移：</strong><span class="arithmatex">\(m=n\)</span> 给出整条 <span class="arithmatex">\(\Gamma/H=1\)</span> 水平线，不能凭一个等号制造冻结时刻；<span class="arithmatex">\(m&lt;n\)</span> 则冷却使比值上升，说明 recoupling 方向。若恢复未归一化的比例常数 <span class="arithmatex">\(C\)</span>，模型会变成 <span class="arithmatex">\(\Gamma/H=Cx^{m-n}\)</span>，并且 <span class="arithmatex">\(m\ne n\)</span> 时 crossing 移到 <span class="arithmatex">\(x=C^{-1/(m-n)}\)</span>；这正是为什么本实验不能把 <span class="arithmatex">\(T_f\)</span> 当成无条件的实测温度。</p>
+<p>速率交点只比较两个时间尺度。热浴假设理想的光子、电子、正电子，电子化学势为零，中微子在 TD 瞬时解耦。Saha 假设纯氢、非相对论稀薄气体、基态原子和平衡辐射；没有把平衡分数变成真实散射时刻。</p>
 </div>
-<h3 id="3-rate-race">3. 边界：rate race 不是丰度计算器<a class="headerlink" href="#3-rate-race" title="Permanent link"></a></h3>
-<ul>
-<li>比例常数被归一化掉了；真实 <span class="arithmatex">\(\Gamma\)</span> 和 <span class="arithmatex">\(H\)</span> 还会随 <span class="arithmatex">\(g_*\)</span>、质量阈值、反应道、化学势和非热分布改变，单一幂律指数只是一段局部 toy。</li>
-<li><span class="arithmatex">\(\Gamma/H\approx1\)</span> 是量级判据，不是反应在某个瞬间被关掉的开关；真实 Boltzmann 方程需要连续演化和初始条件。</li>
-<li>不从这个 toy 直接计算 BBN 丰度、WIMP relic abundance 或 CMB 参数。迁移时应把真实反应网络、膨胀史和碰撞项逐项补回。</li>
-</ul>
-</div>
+<h3 id="3">3. 怎样从图走到计算<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>所有横轴都向右升温，因此冷却要向左读。速率图用双对数坐标，斜率就是 <span class="arithmatex">\(m-n\)</span>；热浴的两条自由度曲线来自不同的相空间积分；Saha 的第二幅图放大微小中性分数，避免把“数值很接近完全电离”看成“中性氢严格为零”。</p>
+<p>交互账本列出全部曲线节点；热浴还列出当前积分的每个细分面板。参数非法时保留输入并提示原因。图表采用可聚焦的横向滚动区，手机上可以横向查看完整坐标和表格。</p>
 </section>
 <figure class="diagram">
-<p><img alt="宇宙热历史时间轴：暴胀→BBN→复合→CMB→结构形成。" src="assets/img/cosmo-02-thermal-history.svg" /></p>
-<figcaption><span class="fig-id">图 cosmo-02.1</span>宇宙热历史时间轴：暴胀→BBN→复合→CMB→结构形成。</figcaption>
+<p><img alt="热历史的四个计算视角：速率交点、能量与熵自由度、光子中微子温度分离，以及 Saha 平衡组成。" src="assets/img/cosmo-02-thermal-history.svg" /></p>
+<figcaption><span class="fig-id">图 cosmo-02.1</span>这些曲线来自本页定义的模型，横轴都向右升温。图中的平衡组成不是最后散射概率；电子湮灭模式也没有输出核素丰度。</figcaption>
 </figure>
-<h2 id="1_1">1. 热历史的通用法则<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p><strong>降温律</strong>：辐射主导时 <span class="arithmatex">\(T \propto a^{-1}\)</span>（sm-03 光子气 + <span class="arithmatex">\(a^{-4}\)</span> 稀释——热汤按膨胀冷却）。<strong>冻结（freeze-out）法则</strong>：反应维持平衡的条件是反应率 &gt; 膨胀率 <span class="arithmatex">\(\Gamma \gtrsim H\)</span>——<strong>降温使 <span class="arithmatex">\(\Gamma\)</span> 骤降、某刻反应"来不及" ⇒ 丰度冻结</strong>：宇宙学的核心机制（下面每一站都是它的实例；"非平衡遗迹 = 今日可观测物"——宇宙是台天然的非平衡实验装置）。</p>
-<h2 id="2-bbnt-sim-3">2. 原初核合成（BBN，<span class="arithmatex">\(t \sim\)</span> 3 分钟）<a class="headerlink" href="#2-bbnt-sim-3" title="Permanent link"></a></h2>
-<p><strong>剧本【机理链】</strong>：<span class="arithmatex">\(T \gtrsim 1\)</span> MeV：中子质子经弱作用互变平衡，<span class="arithmatex">\(\frac{n}{p} = e^{-\Delta mc^2/k_BT}\)</span>（Boltzmann 因子——sm-02 的日常汇率）；弱作用冻结（<span class="arithmatex">\(T \approx 0.8\)</span> MeV）时 <span class="arithmatex">\(\frac np \approx \frac16\)</span>，再经中子衰变到 <span class="arithmatex">\(\approx\frac17\)</span>；<span class="arithmatex">\(T \approx 0.07\)</span> MeV 时氘瓶颈打开、几乎全部中子被焊进 <span class="arithmatex">\(^4\)</span>He：</p>
+<h2 id="1_1">1. 为什么光子能一直保持黑体形状？<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<h3 id="11">1.1 从占据数算到今天的光子数<a class="headerlink" href="#11" title="Permanent link"></a></h3>
+<p>各向同性黑体的单态占据数是 <span class="arithmatex">\(f(p)=[e^{pc/\Theta}-1]^{-1}\)</span>。光子有两个偏振态；每单位体积、每个动量体积的量子态数为 <span class="arithmatex">\(2/(2\pi\hbar)^3\)</span>。于是</p>
 <div class="arithmatex">\[
-Y_{He} = \frac{2(n/p)}{1 + n/p} \approx 25\%
+n_\gamma=\frac{2}{(2\pi\hbar)^3}4\pi
+\int_0^\infty p^2 f(p)\,dp
+=\frac{\Theta^3}{\pi^2(\hbar c)^3}
+\int_0^\infty\frac{q^2\,dq}{e^q-1}.
 \]</div>
-<p><strong>【推导一行 + 意义】</strong> 质量占比约 25% 的氦——在给定核反应率、重子密度、有效中微子种类和热历史近似后的<strong>可检验参数化预测</strong>，不是“无参数预言”；痕量氘/锂的丰度对重子密度和核反应网络敏感。与 CMB 的比较可以形成交叉检验，但必须把这些输入和误差模型一起写明。</p>
-<h2 id="3-cmbt-approx-38">3. 复合与 CMB（<span class="arithmatex">\(t \approx 38\)</span> 万年）<a class="headerlink" href="#3-cmbt-approx-38" title="Permanent link"></a></h2>
-<p><strong>复合</strong>：<span class="arithmatex">\(T \sim 0.3\)</span> eV 时电子被质子俘获成中性氢（滞后于 13.6 eV 一大截——光子数超重子约 <span class="arithmatex">\(10^9\)</span> 倍，高能尾巴持续电离：Saha 方程的账【引用】）；光子失去散射对象（Thomson 截面的电子没了——ced-02 例 2 退场）——<strong>宇宙变透明</strong>，末次散射面的光自由飞行至今。标准热历史常把最后散射的红移记作 <span class="arithmatex">\(z\sim1100\)</span>，这是模型与重组计算下的近似标尺，不是单独一条无条件常数。</p>
-<p><strong>CMB 单极与涨落</strong>：在指定的黑体拟合和温标约定下，单极温度常写作约 <span class="arithmatex">\(2.725\)</span> K；FIRAS 的结果支持极高精度的黑体形状。各向异性通常是 <span class="arithmatex">\(10^{-5}\)</span> 量级，但具体数值依赖地图、去除单极/偶极和所选多极范围；它们是结构初始条件的证据，不是“当代最完美纪录”的口号。</p>
-<p><strong>声学峰（婴儿照的指纹）【机理级】</strong>：复合前光子-重子流体在暗物质引力井中振荡（压强 vs 引力——弹簧；mech-04 的振动在宇宙尺度返场）；复合瞬间"快门按下"，不同波长的模式冻结在不同相位——功率谱（球谐分解 <span class="arithmatex">\(C_\ell\)</span>——mp-01 球谐的宇宙级岗位）出现峰列。<strong>读数规则</strong>：第一峰位置主要约束声学尺度 <span class="arithmatex">\(\theta_* = r_s/D_A\)</span>；曲率推断还需要整套峰列、声学视界、距离模型、重子/暗物质成分和参数化，第一峰不能单独直接等于曲率。峰高比提供组分信息，但“锁定六参数”也只是在指定 ΛCDM 模型与数据集下的拟合陈述。</p>
-<h2 id="4">4. 暴胀一瞥（开篇问题的答案候选）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>三大疑难</strong>：视界问题（天各一方的 CMB 为何同温——从未有过因果接触）、平坦问题（<span class="arithmatex">\(\Omega_k \approx 0\)</span> 需要初值精调）、遗迹问题。<strong>暴胀方案</strong>：极早期常用 <span class="arithmatex">\(\sim e^{60}\)</span> 量级作为典型 benchmark，而不是直接观测到的膨胀倍数（de Sitter 相，cosmo-01 例 2 的机制放在开头）——小因果区被吹成整个可观测宇宙（同温解释 ✓）、曲率被拉平 ✓；<strong>红利</strong>：量子涨落被拉出视界冻结成经典密度涨落——<strong>结构的种子是量子涨落</strong>（qm 线与宇宙学的惊人接线），预言近标度不变谱；谱指数的具体拟合值依赖数据集、参数化和扰动模型，本页不把某个当期数字写成定理。<strong>诚实标注</strong>：暴胀是"标准候选"而非定论（具体模型未锁定、原初引力波 B 模尚未探得——第三档了望塔边界）。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（冻结判据练手）</strong> 在给定反应率归一化、热分布和辐射期近似下，弱作用常写成 <span class="arithmatex">\(\Gamma \propto T^5\)</span>、<span class="arithmatex">\(H \propto T^2\)</span>：<span class="arithmatex">\(\Gamma = H\)</span> 给出一个 MeV 量级的 <span class="arithmatex">\(T_f\)</span> 估计——这只是 rate-race 的量纲练习，系数与 Boltzmann 演化仍需另算；同一机理可迁移到暗物质 relic 题，但不能从这里直接读出丰度。</p>
-<p><strong>例 2（CMB 光子今何在）</strong> 若把单极近似为 <span class="arithmatex">\(T=2.725\)</span> K 的黑体，Planck 分布积分给出约 <span class="arithmatex">\(411/\mathrm{cm}^3\)</span> 的光子数密度；这个数依赖温标和黑体假设，是条件化的参考计算，不是动态纪录口号。它说明“宇宙背景”是一个可计算的热场，而不是老电视雪花的百分比类比。</p>
-<p><strong>例 3（声学标尺算术）</strong> 在一组参考 ΛCDM 参数下，声学视界可取约 <span class="arithmatex">\(150\)</span> Mpc（共动）、末次散射面距离约 <span class="arithmatex">\(14\)</span> Gpc，于是 <span class="arithmatex">\(\theta \sim 0.6^\circ\)</span>、<span class="arithmatex">\(\ell_1 \approx \frac{\pi}{\theta} \approx 220\)</span>。这是声学尺度的量级推算，不是第一峰单独直接测出曲率；完整曲率结论要回到整套 <span class="arithmatex">\(C_\ell\)</span> 和参数拟合。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：研究生板块收官——计算物理：蒙特卡洛与分子动力学，把统计物理放进你的显卡。</em></p>
+<p>为什么最后的积分是 <span class="arithmatex">\(2\zeta(3)\)</span>？把分布展开为 <span class="arithmatex">\(\sum_{j=1}^{\infty}e^{-jq}\)</span>，每项非负，可以交换求和与积分；再用两次分部积分：</p>
+<div class="arithmatex">\[
+\int_0^\infty q^2e^{-jq}dq=\frac{2}{j^3}
+\quad\Longrightarrow\quad
+n_\gamma=\frac{2\zeta(3)}{\pi^2}
+\left(\frac{\Theta}{\hbar c}\right)^3.
+\]</div>
+<p>能量密度多乘一个 <span class="arithmatex">\(pc\)</span>，相应积分为 <span class="arithmatex">\(6\zeta(4)=\pi^4/15\)</span>，所以</p>
+<div class="arithmatex">\[
+\varepsilon_\gamma=\frac{\pi^2}{15}
+\frac{\Theta^4}{(\hbar c)^3},\qquad P_\gamma=\varepsilon_\gamma/3.
+\]</div>
+<p>把参考温度 <span class="arithmatex">\(T_0=2.7255\ {\rm K}\)</span>、<span class="arithmatex">\(k_B=8.617333262\times10^{-5}\ {\rm eV/K}\)</span>、<span class="arithmatex">\(\hbar c=1.973269804\times10^{-7}\ {\rm eV\,m}\)</span> 代入，得到 <span class="arithmatex">\(n_\gamma\simeq410.727\ {\rm cm}^{-3}\)</span>。这是一项黑体参考计算；温度测量及其不确定度见 <a href="https://pdg.lbl.gov/2025/reviews/rpp2025-rev-cosmic-microwave-background.pdf">PDG 2025 CMB 综述 §29.3.1</a>，不是本页重新拟合的数据。</p>
+<h3 id="12">1.2 自由传播不要求宇宙由辐射主导<a class="headerlink" href="#12" title="Permanent link"></a></h3>
+<p>均匀 FRW 中，自由无质量粒子的动量满足 <span class="arithmatex">\(pa=\text{常数}\)</span>。若在 <span class="arithmatex">\(a_i\)</span> 时是温度 <span class="arithmatex">\(T_i\)</span> 的黑体，沿相空间轨道占据数不变：</p>
+<div class="arithmatex">\[
+f(p,a)=\frac{1}{\exp[pc\,a/(k_BT_i a_i)]-1}.
+\]</div>
+<p>它仍是黑体，温度为 <span class="arithmatex">\(T=T_i a_i/a\)</span>。推导只用红移和无碰撞传播，没有要求辐射主导。因此在物质主导期，CMB 背景同样可以按 <span class="arithmatex">\(a^{-1}\)</span> 降温。</p>
+<p>不过，<strong>与别的粒子持续交换熵的光子热浴</strong>不能无条件套用这条降温律。下面的电子正电子湮灭就是反例。</p>
+<h2 id="2_1">2. 从能量守恒到熵自由度<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<h3 id="21">2.1 守恒的是哪个热浴？<a class="headerlink" href="#21" title="Permanent link"></a></h3>
+<p>对封闭、可逆、化学势可忽略的平衡热浴，热力学第一定律与 FRW 能量守恒给出</p>
+<div class="arithmatex">\[
+T\,d(sa^3)=d(\varepsilon a^3)+P\,d(a^3)=0.
+\]</div>
+<p>定义两种有效自由度（此处自然单位制）：</p>
+<div class="arithmatex">\[
+\varepsilon=\frac{\pi^2}{30}g_\rho(T)T^4,\qquad
+s=\frac{\varepsilon+P}{T}
+=\frac{2\pi^2}{45}g_s(T)T^3.
+\]</div>
+<p>因此 <span class="arithmatex">\(g_s T^3a^3=\text{常数}\)</span>，或</p>
+<div class="arithmatex">\[
+T a\,g_s^{1/3}=\text{常数}.
+\]</div>
+<p><span class="arithmatex">\(g_\rho\)</span> 控制能量密度，<span class="arithmatex">\(g_s\)</span> 控制熵。全部粒子都极端相对论且同温时，两者相同；跨越质量阈值时，不能混用。若使用 Friedmann 方程，需要把<strong>全部</strong>组分的能量密度加起来，而不仅是这里展示的光子电子热浴。</p>
+<h3 id="22">2.2 电子质量怎样进入积分？<a class="headerlink" href="#22" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(y=m_e/T\)</span>、<span class="arithmatex">\(q=p/T\)</span>、<span class="arithmatex">\(E_q=\sqrt{q^2+y^2}\)</span>。电子与正电子合计 <span class="arithmatex">\(g_e=4\)</span>，取化学势为零，费米分布为 <span class="arithmatex">\((e^{E_q}+1)^{-1}\)</span>。由相空间计数与各向同性动量通量可得</p>
+<div class="arithmatex">\[
+I_\rho(y)=\int_0^\infty\frac{q^2E_q}{e^{E_q}+1}\,dq,\qquad
+I_P(y)=\int_0^\infty\frac{q^4/E_q}{e^{E_q}+1}\,dq,
+\]</div>
+<div class="arithmatex">\[
+\varepsilon_e=\frac{g_e T^4}{2\pi^2}I_\rho,\qquad
+P_e=\frac{g_e T^4}{6\pi^2}I_P.
+\]</div>
+<p>压强中的 <span class="arithmatex">\(p^2/(3E)\)</span> 来自每个方向平均的动量通量；它在非相对论极限下降，所以不应一直用 <span class="arithmatex">\(P_e=\varepsilon_e/3\)</span>。与上面的定义比较：</p>
+<div class="arithmatex">\[
+g_{\rho,e}=\frac{15g_e}{\pi^4}I_\rho,\qquad
+g_{s,e}=\frac{45g_e}{4\pi^4}
+\left(I_\rho+\frac{I_P}{3}\right).
+\]</div>
+<p>加上光子的2就是实验中的总 <span class="arithmatex">\(g_\rho,g_s\)</span>。高温质量可忽略时，两者都趋近 <span class="arithmatex">\(2+(7/8)\times4=11/2\)</span>；低温时电子正电子成对贡献受抑制，热浴趋近只有光子的2。这里忽略重子电荷中和所需的微小残余电子，故低温的成对贡献不代表真实宇宙全部电子数。</p>
+<h3 id="23">2.3 数值积分怎样知道自己漏了多少？<a class="headerlink" href="#23" title="Permanent link"></a></h3>
+<p>实验积分到 <span class="arithmatex">\(Q=80\)</span>，不是把无限尾项宣称为零。因为 <span class="arithmatex">\(E_q\ge q\)</span>、<span class="arithmatex">\(E_q\le q+y\)</span>，且 <span class="arithmatex">\((e^{E_q}+1)^{-1}\le e^{-q}\)</span>，所以</p>
+<div class="arithmatex">\[
+0\le \int_Q^\infty f_\rho(q)\,dq
+\le e^{-Q}\!\left[Q^3+3Q^2+6Q+6
++y(Q^2+2Q+2)\right],
+\]</div>
+<div class="arithmatex">\[
+0\le \int_Q^\infty f_P(q)\,dq
+\le e^{-Q}(Q^3+3Q^2+6Q+6).
+\]</div>
+<p>有限区间用自适应 Simpson；账本分别保留数值误差估计与上述尾界。前者是收敛诊断，后者是解析不等式，不能把两者合称为严格数值证书。极低温电子项小于绝对容差时，只承诺整体热浴的绝对精度，不承诺该微小电子项的相对精度。</p>
+<h2 id="3_1">3. 中微子为什么比光子冷？<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>把中微子视为无质量，并假设它们在温度 <span class="arithmatex">\(T_D\)</span> 瞬时停止与电子光子热浴交换能量。解耦之后，两部分分别满足</p>
+<div class="arithmatex">\[
+T_\nu a=T_Da_D,\qquad
+g_s(T_\gamma)T_\gamma^3a^3=g_s(T_D)T_D^3a_D^3.
+\]</div>
+<p>相除便得到实验使用的两个式子：</p>
+<div class="arithmatex">\[
+\frac{T_\nu}{T_\gamma}
+=\left[\frac{g_s(T_\gamma)}{g_s(T_D)}\right]^{1/3},
+\qquad
+\frac{a}{a_D}
+=\frac{T_D}{T_\gamma}
+\left[\frac{g_s(T_D)}{g_s(T_\gamma)}\right]^{1/3}.
+\]</div>
+<p>电子湮灭把熵留给仍耦合的光子热浴，使光子相对于自由红移的中微子更热。两者的温度依然随膨胀降低；“光子被加热”是相对于没有这项熵转移的轨迹，并非温度突然无条件跳升。</p>
+<p>若解耦时电子充分相对论，而比较时电子正电子已充分湮灭，才进一步得到熟悉的极限</p>
+<div class="arithmatex">\[
+\frac{T_\nu}{T_\gamma}=\left(\frac4{11}\right)^{1/3}
+\simeq0.713766.
+\]</div>
+<p>实验的 <span class="arithmatex">\(T_D=2\ {\rm MeV}\)</span> 有有限电子质量修正，因此它的低温终值略有不同；这仍只是<strong>瞬时解耦理想气体模型</strong>。真实中微子解耦是连续过程，精密计算还涉及碰撞项、振荡、谱畸变与有限温 QED，不能给本图贴上精确标准模型 <span class="arithmatex">\(N_{\rm eff}\)</span> 的标签。</p>
+<h2 id="4">4. 反应何时追不上膨胀？<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<h3 id="41">4.1 两只钟，外加一个系数<a class="headerlink" href="#41" title="Permanent link"></a></h3>
+<p>反应时间为 <span class="arithmatex">\(t_{\rm int}=1/\Gamma\)</span>，背景变化时间约为 <span class="arithmatex">\(H^{-1}\)</span>。只有相关的能量或粒子数交换足够快，局部平衡假设才有依据；总散射次数多，并不保证每一种化学反应都达到平衡。</p>
+<p>用任意参考温度 <span class="arithmatex">\(T_{\rm ref}\)</span> 定义 <span class="arithmatex">\(x=T/T_{\rm ref}\)</span>，在一段幂律近似内写</p>
+<div class="arithmatex">\[
+\frac{\Gamma}{H}=Cx^{m-n},\qquad
+\frac{d\ln(\Gamma/H)}{d\ln T}=m-n.
+\]</div>
+<p>冷却是 <span class="arithmatex">\(x\)</span> 下降。<span class="arithmatex">\(m&gt;n\)</span> 时比值下降；<span class="arithmatex">\(m&lt;n\)</span> 时比值上升，可能朝重新耦合方向发展。<span class="arithmatex">\(m=n\)</span> 时比值固定为 <span class="arithmatex">\(C\)</span>，只有 <span class="arithmatex">\(C=1\)</span> 才整条相等。</p>
+<p>对 <span class="arithmatex">\(m\ne n\)</span>，速率相等的位置是</p>
+<div class="arithmatex">\[
+\ln x_{\rm cross}=-\frac{\ln C}{m-n}.
+\]</div>
+<p>交点在绘图窗口外仍然是交点；斜率非常小时，<span class="arithmatex">\(x_{\rm cross}\)</span> 可能超出浮点可表示范围，但不能据此说没有交点。这里的参考温度也不能预先被命名为“真实冻结温度”。</p>
+<h3 id="42">4.2 为什么速率交点不是丰度开关？<a class="headerlink" href="#42" title="Permanent link"></a></h3>
+<p>即便采用简单松弛模型</p>
+<div class="arithmatex">\[
+\dot Y=-\Gamma(t)[Y-Y_{\rm eq}(t)],
+\]</div>
+<p>积分因子也给出</p>
+<div class="arithmatex">\[
+Y(t)=Y(t_i)e^{-\int_{t_i}^t\Gamma(s)ds}
++\int_{t_i}^t\Gamma(u)Y_{\rm eq}(u)
+e^{-\int_u^t\Gamma(s)ds}\,du.
+\]</div>
+<p>结果依赖整个历史和初值，而不只依赖某一点 <span class="arithmatex">\(\Gamma=H\)</span>。真实反应网络还会包含多种丰度、逆反应、粒子衰变及非线性碰撞项。这解释了为什么本页的速率实验没有“最终丰度”按钮。</p>
+<h3 id="43-bbn">4.3 用 BBN 练习粒子计数<a class="headerlink" href="#43-bbn" title="Permanent link"></a></h3>
+<p>在忽略相关化学势和小质量前因子修正的平衡近似下，中子/质子数比为</p>
+<div class="arithmatex">\[
+r_{\rm eq}\simeq e^{-Q/\Theta},\qquad Q=1.293\ {\rm MeV}.
+\]</div>
+<p>若<strong>指定</strong> <span class="arithmatex">\(\Theta=0.8\ {\rm MeV}\)</span>，算术结果是 <span class="arithmatex">\(e^{-1.293/0.8}\simeq0.1986\)</span>，约 <span class="arithmatex">\(1/5\)</span>，不是 <span class="arithmatex">\(1/6\)</span>。这只是一个平衡点值；它不能代替持续弱反应和中子衰变的演化。</p>
+<p>氘虽有约 2.2 MeV 结合能，却要等到更低温才大量存活，因为每个重子对应大量光子，黑体的高能尾仍能拆散氘。形成稳定的氘后，后续核反应才较有效地把中子并入氦。BBN 的反应网络、输入依赖及锂问题参见 <a href="https://pdg.lbl.gov/2025/reviews/rpp2025-rev-bbang-nucleosynthesis.pdf">PDG 2025 BBN 综述</a>；不能把氘、氦的成功比较直接推广成所有核素都一致。</p>
+<p>若给定核合成开始时有 <span class="arithmatex">\(N_n\)</span> 个中子、<span class="arithmatex">\(N_p\)</span> 个质子，并假设所有中子最后进入氦-4，则 <span class="arithmatex">\(N_{\rm He}=N_n/2\)</span>。氦中的重子数占比因此为</p>
+<div class="arithmatex">\[
+Y_4=\frac{4N_{\rm He}}{N_n+N_p}
+=\frac{2r}{1+r},\qquad r=N_n/N_p.
+\]</div>
+<p>给定 <span class="arithmatex">\(r=1/7\)</span> 才得到 <span class="arithmatex">\(Y_4=1/4\)</span>。称它“质量分数”还使用了核子质量近似相等并忽略结合能的近似。公式解释约四分之一的来源，实际 <span class="arithmatex">\(r\)</span> 必须由热历史和反应网络求得。</p>
+<h2 id="5-saha">5. Saha 方程：先算平衡组成<a class="headerlink" href="#5-saha" title="Permanent link"></a></h2>
+<h3 id="51">5.1 化学势怎样消掉？<a class="headerlink" href="#51" title="Permanent link"></a></h3>
+<p>考虑 <span class="arithmatex">\(p+e\rightleftharpoons {\rm H}+\gamma\)</span>。以非相对论、稀薄 Maxwell–Boltzmann 气体近似每种有质量粒子：</p>
+<div class="arithmatex">\[
+n_i=g_i\left(\frac{m_i\Theta}{2\pi\hbar^2}\right)^{3/2}
+\exp\!\left(\frac{\mu_i-m_ic^2}{\Theta}\right).
+\]</div>
+<p>平衡黑体取 <span class="arithmatex">\(\mu_\gamma=0\)</span>，反应平衡要求 <span class="arithmatex">\(\mu_p+\mu_e=\mu_{\rm H}\)</span>。氢基态忽略超精细分裂时 <span class="arithmatex">\(g_p=g_e=2,g_{\rm H}=4\)</span>，简并度比是1。把三种数密度相除，化学势抵消；指数中的质量差给出结合能 <span class="arithmatex">\(B=(m_p+m_e-m_{\rm H})c^2\)</span>。只在前因子中近似 <span class="arithmatex">\(m_{\rm H}\simeq m_p\)</span>，得到</p>
+<div class="arithmatex">\[
+\frac{n_p n_e}{n_{\rm H}}
+=\left(\frac{m_e\Theta}{2\pi\hbar^2}\right)^{3/2}
+e^{-B/\Theta}.
+\]</div>
+<p>注意 <span class="arithmatex">\(n_{\rm H}\)</span> 表示<strong>中性原子</strong>，不是所有氢核。为避免混淆，设氢核总数密度 <span class="arithmatex">\(n_{\rm H,tot}=n_p+n_{\rm H}\)</span>，纯氢电中性给出 <span class="arithmatex">\(n_e=n_p\)</span>。定义</p>
+<div class="arithmatex">\[
+X_e=\frac{n_e}{n_{\rm H,tot}},\qquad
+\eta_H=\frac{n_{\rm H,tot}}{n_\gamma}.
+\]</div>
+<p>实验把 <span class="arithmatex">\(\eta_H\)</span> 简写为 <span class="arithmatex">\(\eta\)</span>；有氦时，它不能不加区分地当成总重子/光子比。最终</p>
+<div class="arithmatex">\[
+\frac{X_e^2}{1-X_e}=S,\qquad
+\ln S=-\ln\eta_H-\ln\frac{2\zeta(3)}{\pi^2}
++\frac32\ln\frac{m_ec^2}{2\pi\Theta}-\frac B\Theta.
+\]</div>
+<p>温度为结合能量级时，极小的 <span class="arithmatex">\(\eta_H\)</span> 使 <span class="arithmatex">\(S\)</span> 很大，平衡仍高度电离。要让指数项压过这些前因子，必须继续降温。</p>
+<h3 id="52">5.2 稳定地求二次根<a class="headerlink" href="#52" title="Permanent link"></a></h3>
+<p>二次方程是 <span class="arithmatex">\(X_e^2+SX_e-S=0\)</span>。物理根为正，另一个根为负。直接计算 <span class="arithmatex">\([\sqrt{S^2+4S}-S]/2\)</span> 会在大 <span class="arithmatex">\(S\)</span> 时相减丢精度；有理化后</p>
+<div class="arithmatex">\[
+X_e=\frac{2}{1+\sqrt{1+4/S}},\qquad
+1-X_e=\frac{4/S}{[1+\sqrt{1+4/S}]^2}.
+\]</div>
+<p>第二式独立保存微小中性分数，避免先把 <span class="arithmatex">\(X_e\)</span> 四舍五入为1再相减。计算时使用它的等价形式 <span class="arithmatex">\(1/[1+S/2+\sqrt{S}\sqrt{S+4}/2]\)</span>，也避免低温端舍入出略大于1的分数。实验使用 <span class="arithmatex">\(m_ec^2=510998.95\ {\rm eV},B=13.6\ {\rm eV}\)</span>；这些精度足够支持本页的教学近似，不代表精密原子重组模型。</p>
+<p>在 <span class="arithmatex">\(\Theta=0.3\ {\rm eV},\eta_H=6\times10^{-10}\)</span> 时，<span class="arithmatex">\(\ln S\simeq-3.92164\)</span>，<span class="arithmatex">\(X_e\simeq0.131187\)</span>。这个答案说的是“若保持平衡，组成如何”，不是“此刻必然最后散射”。</p>
+<h2 id="6">6. 从复合走到最后散射，还差什么？<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>真实宇宙中，直接复合到基态释放的光子可能再电离另一原子；有效净复合涉及激发态、双光子跃迁以及谱线光子的逃逸。因此必须求随时间变化的原子能级与辐射输运，而非处处强制满足 Saha。可沿 <a href="https://www.damtp.cam.ac.uk/user/tong/cosmo/cosmohtml/S2.html">Tong 热宇宙讲义 §2.3</a> 继续读这条机制线；本页保留了平衡近似与动力学的区别。</p>
+<p>四个常混用的词，可以用不同的量来定义：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>对应的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>复合</td>
+<td>自由电子逐渐进入原子，电离分数如何演化？</td>
+</tr>
+<tr>
+<td>光子退耦</td>
+<td>光子与带电物质交换动量的效率何时变低？</td>
+</tr>
+<tr>
+<td>最后散射</td>
+<td>今天收到的光子最后一次散射发生在何时？</td>
+</tr>
+<tr>
+<td>再电离</td>
+<td>后来的天体辐射如何重新产生自由电子，并带来额外散射？</td>
+</tr>
+</tbody>
+</table>
+<p>Thomson 散射的局部率为 <span class="arithmatex">\(\Gamma_T=n_e\sigma_Tc\)</span>。更直接描述“此后还会不会散射”的是光学深度：</p>
+<div class="arithmatex">\[
+\tau(t)=\int_t^{t_0}n_e(t')\sigma_Tc\,dt',
+\qquad P_{\rm survive}(t)=e^{-\tau(t)}.
+\]</div>
+<p>令共形时间 <span class="arithmatex">\(u\)</span> 满足 <span class="arithmatex">\(du=dt/a\)</span>。每单位 <span class="arithmatex">\(u\)</span> 的最后散射概率密度为</p>
+<div class="arithmatex">\[
+g(u)=a(u)n_e(u)\sigma_Tc\,e^{-\tau(u)}
+=\frac{d}{du}e^{-\tau(u)}.
+\]</div>
+<p>从很早时刻积分到今天得到 <span class="arithmatex">\(1-e^{-\tau_{\rm early}}\)</span>；早期足够不透明时近似为1。<span class="arithmatex">\(g\)</span> 的峰和宽度才描述主要最后散射时期。它不是把某个固定 <span class="arithmatex">\(X_e\)</span> 阈值画成竖线，也不是无厚度的瞬间快门。再电离会改写后期的光学深度，仍有部分 CMB 光子再次散射。</p>
+<h2 id="7-cmb">7. CMB 声学峰：先定义尺子，再解释峰<a class="headerlink" href="#7-cmb" title="Permanent link"></a></h2>
+<h3 id="71">7.1 光子压强与重子惯性<a class="headerlink" href="#71" title="Permanent link"></a></h3>
+<p>紧耦合时，光子、电子与重子近似共用速度。光子提供主要压强，重子增加惯性。令</p>
+<div class="arithmatex">\[
+R_b=\frac{3\varepsilon_b}{4\varepsilon_\gamma}.
+\]</div>
+<p>绝热扰动满足 <span class="arithmatex">\(\delta\varepsilon_b/\varepsilon_b=(3/4)\delta\varepsilon_\gamma/\varepsilon_\gamma\)</span>，于是 <span class="arithmatex">\(\delta P=\delta\varepsilon_\gamma/3\)</span>，总能量扰动为 <span class="arithmatex">\((1+R_b)\delta\varepsilon_\gamma\)</span>。恢复光速：</p>
+<div class="arithmatex">\[
+c_s^2=c^2\frac{\delta P}{\delta\varepsilon}
+=\frac{c^2}{3(1+R_b)}.
+\]</div>
+<p>重子越多，声速越小。最后散射前，声音能传播的<strong>共动</strong>距离是</p>
+<div class="arithmatex">\[
+r_s^{\rm com}(t_*)=\int_0^{t_*}\frac{c_s(t)}{a(t)}\,dt.
+\]</div>
+<p>积分要求给定早期热历史；下限是所用热大爆炸模型的早期端点，并非宣称本页已推导出暴胀前后全部历史。</p>
+<h3 id="72">7.2 一个保留条件的振子推导<a class="headerlink" href="#72" title="Permanent link"></a></h3>
+<p>为了隔离机制，暂取 <span class="arithmatex">\(c=1\)</span>、恒定 <span class="arithmatex">\(R_b\)</span>、静态引力势 <span class="arithmatex">\(\Psi\)</span>，忽略该时间段的背景阻尼与扩散。令 <span class="arithmatex">\(\Theta_0\)</span> 为光子温度单极扰动，<span class="arithmatex">\(v\)</span> 为按下式约定符号的共同速度模；连续性与 Euler 方程简化为</p>
+<div class="arithmatex">\[
+\Theta_0'=-\frac{k}{3}v,\qquad
+v'=k\left[\frac{\Theta_0}{1+R_b}+\Psi\right],
+\]</div>
+<p>其中撇号表示共形时间导数。联立：</p>
+<div class="arithmatex">\[
+\Theta_0''+k^2c_s^2\Theta_0=-\frac{k^2}{3}\Psi.
+\]</div>
+<p>平衡位置是 <span class="arithmatex">\(-(1+R_b)\Psi\)</span>。令 <span class="arithmatex">\(D=\Theta_0+(1+R_b)\Psi\)</span>，则 <span class="arithmatex">\(D''+k^2c_s^2D=0\)</span>。若初始速度为零，<span class="arithmatex">\(D=A\cos(kr_s)\)</span>；若初始速度非零，还要加正弦项。因此峰列的相位依赖初始条件，不能只由一把尺子决定。</p>
+<p>温度信号还含引力红移：在这个简化模型中 <span class="arithmatex">\(\Theta_0+\Psi=D-R_b\Psi\)</span>。重子改变振荡零点，从而改变压缩与稀疏时的振幅。真实引力势随时间变化会驱动振荡；扩散、速度的 Doppler 信号和有限最后散射宽度也要加入。机制可对照 <a href="https://background.uchicago.edu/~whu/Courses/Ast448/acoustic1.pdf">Hu 的声学讲义</a>；这里的简化振子不是完整的 <span class="arithmatex">\(C_\ell\)</span> 计算器。</p>
+<h3 id="73">7.3 两种距离约定不能混着除<a class="headerlink" href="#73" title="Permanent link"></a></h3>
+<p>设到最后散射面的横向共动距离为 <span class="arithmatex">\(D_M\)</span>，角直径距离为 <span class="arithmatex">\(D_A=a_*D_M\)</span>；物理声学长度为 <span class="arithmatex">\(r_s^{\rm phys}=a_*r_s^{\rm com}\)</span>。一致的角尺度是</p>
+<div class="arithmatex">\[
+\theta_*=\frac{r_s^{\rm com}}{D_M}
+=\frac{r_s^{\rm phys}}{D_A},
+\qquad \ell_A\equiv\frac{\pi}{\theta_*}.
+\]</div>
+<p>不能把以共动 Mpc 给出的 <span class="arithmatex">\(r_s\)</span> 直接除以物理角直径距离。平坦模型中 <span class="arithmatex">\(D_M=D_C\)</span>；有曲率时需按上一页的横向几何重新计算。</p>
+<p>在理想余弦驻波中，振幅极值满足 <span class="arithmatex">\(kr_s=j\pi\)</span>。薄壳、小角度的尺度估计给出 <span class="arithmatex">\(\ell\sim kD_M\)</span>，因此 <span class="arithmatex">\(\ell_A\)</span> 描述基本峰间隔的尺度。完整投影含球 Bessel 函数，第一温度峰还受相位与引力驱动影响，通常不在严格的 <span class="arithmatex">\(\ell_A\)</span> 上。<a href="https://background.uchicago.edu/~whu/araa/node15.html">Hu–Dodelson 综述的参数敏感性一节</a> 明确区分声学尺度、峰间隔与第一峰相位；其中历史数据数值不作为本课的当前观测输入。</p>
+<p>若给定共动 <span class="arithmatex">\(r_s=150\ {\rm Mpc}\)</span>、<span class="arithmatex">\(D_M=14\,000\ {\rm Mpc}\)</span>，则</p>
+<div class="arithmatex">\[
+\theta_*=0.0107142857\ {\rm rad}
+\simeq0.613883^\circ,\qquad \ell_A=293.215314.
+\]</div>
+<p><strong>这个除法得不到220。</strong> 第一 TT 峰常见的约220位置来自完整温度谱及其模型，不应通过错误算术或人为塞入一个未经推导的相位因子来制造。反过来，只测一个峰也不足以单独确定曲率；声学视界、距离、组分与初始条件共同参与。</p>
+<h2 id="8">8. 四道练习：把条件也写进答案<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<h3 id="_1">练习一：热浴的熵账与费米权重<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>假设中微子在电子充分相对论时瞬时解耦。求电子湮灭后的温度比；再求每一味中微子加反中微子的数密度与光子数密度之比。为什么数密度不能用 <span class="arithmatex">\(7/8\)</span>？</p>
+<details class="answer" markdown="1">
+<summary>展开完整推导：同一个分布，不同的动量权重</summary>
+
+<p>光子电子热浴的熵自由度从 <span class="arithmatex">\(11/2\)</span> 变成2，而中微子保持 <span class="arithmatex">\(aT_\nu\)</span> 不变。两份熵守恒相除：</p>
+<div class="arithmatex">\[
+\left(\frac{T_\nu}{T_\gamma}\right)^3=\frac{2}{11/2}=\frac4{11}.
+\]</div>
+<p>费米分布的恒等式</p>
+<div class="arithmatex">\[
+\frac1{e^q+1}=\frac1{e^q-1}-\frac2{e^{2q}-1}
+\]</div>
+<p>意味着对 <span class="arithmatex">\(q^j\)</span> 加权的积分，费米值是玻色值的 <span class="arithmatex">\(1-2^{-j}\)</span> 倍。数密度用 <span class="arithmatex">\(j=2\)</span>，所以是 <span class="arithmatex">\(3/4\)</span>；能量密度用 <span class="arithmatex">\(j=3\)</span>，才是 <span class="arithmatex">\(7/8\)</span>。</p>
+<p>一味中微子加反中微子取两个相对论螺旋度态，与光子的两个偏振态相抵：</p>
+<div class="arithmatex">\[
+\frac{n_{\nu_i+\bar\nu_i}}{n_\gamma}
+=\frac34\left(\frac{T_\nu}{T_\gamma}\right)^3
+=\frac3{11}.
+\]</div>
+<p>对 <span class="arithmatex">\(N_\nu\)</span> 个这样的无质量味，</p>
+<div class="arithmatex">\[
+\frac{\varepsilon_\nu}{\varepsilon_\gamma}
+=\frac78N_\nu\left(\frac4{11}\right)^{4/3}.
+\]</div>
+<p>若中微子后来变为非相对论，能量不再按这个 <span class="arithmatex">\(T_\nu^4\)</span> 公式计算；若解耦不瞬时，也要重新处理谱和温度约定。实验有限 TD 的温度比则应使用实际积分算出的 <span class="arithmatex">\(g_s(T_D)\)</span>。</p>
+</details>
+<h3 id="_2">练习二：归一化与氦的四分之一<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(\Gamma/H=Cx^3\)</span>。把 <span class="arithmatex">\(C\)</span> 从1改为8，交点怎样移动？另给定核合成开始时 <span class="arithmatex">\(r=1/7\)</span>，推导氦-4 的重子数分数，并说明两步计算之间还缺什么。</p>
+<details class="answer">
+<summary>展开完整推导：一条速率曲线与一张粒子账</summary>
+<p>速率相等要求 <span class="arithmatex">\(Cx^3=1\)</span>，故 <span class="arithmatex">\(x=C^{-1/3}\)</span>。当 <span class="arithmatex">\(C=1\)</span> 时交点为1；当 <span class="arithmatex">\(C=8\)</span> 时交点为 <span class="arithmatex">\(1/2\)</span>。反应整体更快，因此在同一冷却轨迹上要走到更低温才到达速率相等处。</p>
+<p>用7个质子、1个中子作为计数比例，总共8个重子。放大到14个质子、2个中子，就能组成1个氦-4，另剩12个自由质子。氦含4个重子，总数16，所以占 <span class="arithmatex">\(4/16=1/4\)</span>。一般式是</p>
+<div class="arithmatex">\[
+\frac{4(N_n/2)}{N_n+N_p}=\frac{2r}{1+r}.
+\]</div>
+<p>但第一步并没有算出第二步所需的 <span class="arithmatex">\(r\)</span>。如果只在指定的0.8 MeV 处套平衡公式，会得到 <span class="arithmatex">\(r\simeq0.1986\)</span>，不能直接写成 <span class="arithmatex">\(1/7\)</span>。其间仍要计算残余弱反应、中子衰变、膨胀史以及氘形成后的一系列核反应。</p>
+<p>连只有自由中子衰变的简化情况，也应把衰变产生的质子计入分母：若最初比值为 <span class="arithmatex">\(r_i\)</span>，经过时间 <span class="arithmatex">\(\Delta t\)</span>，</p>
+<div class="arithmatex">\[
+r(\Delta t)=
+\frac{r_i e^{-\Delta t/\tau_n}}
+{1+r_i(1-e^{-\Delta t/\tau_n})},
+\]</div>
+<p>而不只是把 <span class="arithmatex">\(r_i\)</span> 乘一个指数。这仍不是完整 BBN 演化。</p>
+</details>
+<h3 id="136-ev">练习三：13.6 eV 为什么不是“变透明温度”？<a class="headerlink" href="#136-ev" title="Permanent link"></a></h3>
+<p>在本页纯氢模型中取 <span class="arithmatex">\(\eta_H=6\times10^{-10}\)</span>，比较 <span class="arithmatex">\(\Theta=13.6\ {\rm eV}\)</span> 与 <span class="arithmatex">\(0.3\ {\rm eV}\)</span> 的平衡组成。若固定温度而增大氢核/光子比，<span class="arithmatex">\(X_e\)</span> 如何改变？</p>
+<details class="answer">
+<summary>展开完整推导：密度前因子与稳定二次根</summary>
+<p>先计算</p>
+<div class="arithmatex">\[
+\ln S=-\ln(6\times10^{-10})
+-\ln\frac{2\zeta(3)}{\pi^2}
++\frac32\ln\frac{510998.95}{2\pi\Theta}
+-\frac{13.6}{\Theta}.
+\]</div>
+<p>在13.6 eV 时，ln S ≈ 34.690634，Xe ≈ 0.9999999999999991；中性分数约为 8.59111×10⁻¹⁶，仍应保留为非零数。在0.3 eV 时，<span class="arithmatex">\(\ln S=-3.92163563\)</span>，所以 <span class="arithmatex">\(S\simeq0.0198087\)</span>，用稳定根算得</p>
+<div class="arithmatex">\[
+X_e\simeq0.131187,\qquad 1-X_e\simeq0.868813.
+\]</div>
+<p>这不只是比较温度与结合能：每个氢核对应大量光子，密度前因子也参与平衡。</p>
+<p>固定温度时 <span class="arithmatex">\(S\propto\eta_H^{-1}\)</span>。函数 <span class="arithmatex">\(F(X)=X^2/(1-X)\)</span> 在 <span class="arithmatex">\(0&lt;X&lt;1\)</span> 上满足</p>
+<div class="arithmatex">\[
+F'(X)=\frac{X(2-X)}{(1-X)^2}&gt;0.
+\]</div>
+<p>增加 <span class="arithmatex">\(\eta_H\)</span> 会降低 <span class="arithmatex">\(S\)</span>，因而降低 <span class="arithmatex">\(X_e\)</span>，平衡更偏向中性原子。没有这一步密度信息，只说“温度降到13.6 eV”是不够的；有了平衡组成仍要另算重组动力学与最后散射概率。</p>
+</details>
+<h3 id="_3">练习四：把同一把尺子换成两套单位<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>给定 <span class="arithmatex">\(r_s^{\rm com}=150\ {\rm Mpc}\)</span>、<span class="arithmatex">\(D_M=14\ {\rm Gpc}\)</span>，并人为指定 <span class="arithmatex">\(z_*=1100\)</span> 作单位换算。求物理声学长度、角直径距离、角尺度和 <span class="arithmatex">\(\ell_A\)</span>。这能否直接推出第一峰位置？</p>
+<details class="answer">
+<summary>展开完整推导：共动与物理长度一起缩放</summary>
+<p>先把14 Gpc 化成14000 Mpc；再由 <span class="arithmatex">\(a_*=1/1101\)</span> 得</p>
+<div class="arithmatex">\[
+r_s^{\rm phys}=\frac{150}{1101}\ {\rm Mpc}
+\simeq0.136240\ {\rm Mpc},\qquad
+D_A=\frac{14000}{1101}\ {\rm Mpc}
+\simeq12.715713\ {\rm Mpc}.
+\]</div>
+<p>两者同时缩小，比例不变：</p>
+<div class="arithmatex">\[
+\theta_*=\frac{150}{14000}
+=\frac{150/1101}{14000/1101}
+=0.0107142857\ {\rm rad}.
+\]</div>
+<p>弧度转角度乘 <span class="arithmatex">\(180/\pi\)</span>，得到 <span class="arithmatex">\(0.613883^\circ\)</span>；声学尺度为</p>
+<div class="arithmatex">\[
+\ell_A=\frac{\pi}{\theta_*}
+=\frac{14000\pi}{150}\simeq293.215314.
+\]</div>
+<p>这个 <span class="arithmatex">\(z_*\)</span> 只是题目给的换算输入，不是用 Saha 解出来的观测结果。题目也没有给完整初始扰动、引力驱动与投影传递函数，因此不足以计算第一 TT 峰。把 <span class="arithmatex">\(r_s^{\rm com}/D_A\)</span> 混除会多出1101倍；把 <span class="arithmatex">\(\ell_A\)</span> 直接标成第一峰，则混淆了尺子和谱的极值。</p>
+</details>
+<h2 id="9">9. 通往扰动与前沿研究<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>现在已有三层基础：背景膨胀决定红移，热物理决定组成与相互作用，声波和光传播把它们变成观测尺度。下一步要让密度、速度和引力势随空间变化，求它们如何共同演化。</p>
+<p>视界问题也必须在指定的历史中提出：把非暴胀的热大爆炸阶段向早期外推时，某些远隔天区缺少充分的共同因果过去。暴胀改变早期的因果与尺度演化，但“越过 Hubble 半径”本身并不是完成量子涨落经典化的证明；这些条件留到暴胀与扰动课程处理。</p>
+<p>可进一步研究的方向包括精密中微子解耦、非标准能量注入对重组的影响、CMB 谱畸变和不同初始扰动的声学相位。开始之前应先明确要替换本页哪一条近似，再选观测量，不能只在现有图上改一个指数就称作新物理结果。</p>
+<p><em>下一页：<a href="cosmo-03-perturbations-structure.html">宇宙学扰动与结构形成</a>。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="cosmo-01-frw.html"><span class="pager-label">上一页</span>宇宙学 I · FRW 与 Friedmann 方程</a>
