@@ -20,15 +20,12 @@ def f_semicircle():
     save(fig,"hdp-03-semicircle")
 
 def f_concentration_sphere():
-    dims=[2,5,20,100]; fig,ax=plt.subplots(figsize=(6.4,3.8))
-    x=np.linspace(-1,1,300)
-    for d,c in zip(dims,[ACC2,"#9575b5","#7a5aa0",ACC]):
-        # marginal of uniform on sphere S^{d-1} ~ (1-x^2)^{(d-3)/2}
-        pdf=(1-x**2)**((d-3)/2); pdf/=np.trapezoid(pdf,x)
-        ax.plot(x,pdf,color=c,lw=2,label=fr"$d={d}$")
-    ax.set_xlabel(r"coordinate $x_1$"); ax.set_ylabel("density"); ax.legend(frameon=False,fontsize=10)
-    ax.set_title(r"High-dim sphere: mass concentrates near the equator",fontsize=12)
-    save(fig,"hdp-02-concentration")
+    """Preserve the reviewed finite-map and covariance figure."""
+    from pathlib import Path
+    import xml.etree.ElementTree as ET
+    source = Path(__file__).resolve().parents[1] / "images" / "hdp-02-concentration.svg"
+    ET.parse(source)
+    print(f"Preserved reviewed source SVG: {source.name}")
 
 def f_value_iteration():
     gam=0.9; err0=1.0; k=np.arange(0,40); err=err0*gam**k
