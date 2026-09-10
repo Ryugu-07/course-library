@@ -52,293 +52,536 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 04:59</div>
+    <div class="build-time">构建于 2026-09-11 04:17</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#elliptic-coercivity-learning-title">学习层：从一条抛物线走到弱解与共振</a><ul>
-<li><a href="#_1">起步：为什么把微分方程改写成积分等式？</a></li>
-<li><a href="#1">1. 先预测：强制性、可逆性与共振不是同一件事</a></li>
-<li><a href="#2-galerkin">2. 精确账本：Galerkin 截断与全模态结论</a></li>
-<li><a href="#3">3. 这个模型不能替代哪些一般定理？</a></li>
+<li><a href="#elliptic-coercivity-learning-title">学习层：求解成功之后，还要核对什么？</a><ul>
+<li><a href="#_1">无脚本参考账本</a></li>
 </ul>
 </li>
-<li><a href="#1_1">1. 弱形式：把方程变成积分等式</a></li>
-<li><a href="#2-laxmilgram">2. Lax–Milgram 定理（存在唯一性的发动机）</a></li>
-<li><a href="#3_1">3. 能量估计与正则性：赎回光滑</a></li>
-<li><a href="#4-pde">4. 现代 PDE 三页资产盘点</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#1">1 · 从一条抛物线进入弱形式</a></li>
+<li><a href="#2-laxmilgram">2 · Lax–Milgram 为什么同时给出存在、唯一和稳定</a></li>
+<li><a href="#3">3 · 谱计算：强制性、可逆性与相容性各管什么</a></li>
+<li><a href="#4">4 · 截断之后，怎样诚实地报告误差</a></li>
+<li><a href="#5">5 · 有限元：从局部单元真正装配一个解</a></li>
+<li><a href="#6-cea">6 · Céa 引理说明什么，能量等号又多用了什么</a></li>
+<li><a href="#7">7 · 内部正则性为什么需要差商与局部截断</a></li>
+<li><a href="#8">8 · 把凹角反例完整写出来</a></li>
+<li><a href="#9">9 · 四道迁移练习</a><ul>
+<li><a href="#1_1">练习1：一行有限方程能遗漏怎样的障碍？</a></li>
+<li><a href="#2">练习2：一个帽函数与两个范数中的收敛速度</a></li>
+<li><a href="#3_1">练习3：证明梯度误差的高频剩余界</a></li>
+<li><a href="#4_1">练习4：凹角反例为何不违反内部正则性？</a></li>
+</ul>
+</li>
+<li><a href="#10">10 · 参数范围与后续方向</a></li>
 </ul>
 </div>
 </details>
 <h1 id="pde-iii">现代 PDE III · 椭圆方程的弱解理论<a class="headerlink" href="#pde-iii" title="Permanent link"></a></h1>
-<blockquote>
-<p><strong>对标</strong>：Evans <em>PDE</em> §6.1–6.3 ｜ <strong>前置</strong>：pde2-01/02、泛函 II
-现代 PDE 的标准作业流程在本页完整走一遍：<strong>弱形式化 → 在强制性条件下用 Lax–Milgram 给存在唯一 → 能量估计 → 正则性升级</strong>。这套"先在弱空间里赢、再逐步赎回光滑性"的战略，是二十世纪分析学最成功的方法论之一。</p>
-</blockquote>
+<p>一个折线函数不能处处求二阶经典导数，却可以作为椭圆方程的有限元近似。关键不是忽略折角，而是先说明方程如何作用于测试函数，再区分真正的弱解、有限维近似和剩余误差。本页沿着“存在唯一—可计算—误差—正则性”走完这条链。前置：<a href="pde2-01-distributions.html">分布与弱导数</a>、<a href="pde2-02-sobolev.html">Sobolev 空间</a>和 Hilbert 空间的 Riesz 表示。</p>
+<style>article:has(#elliptic-coercivity-learning-title) .katex { position: relative; }</style>
 <div data-learning-page></div>
 
 <section aria-labelledby="elliptic-coercivity-learning-title" class="learning-layer">
-<h2 id="elliptic-coercivity-learning-title">学习层：从一条抛物线走到弱解与共振<a class="headerlink" href="#elliptic-coercivity-learning-title" title="Permanent link"></a></h2>
-<h3 id="_1">起步：为什么把微分方程改写成积分等式？<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
-<p>先做一个能手算到底的问题：<span class="arithmatex">\(-u''=1\)</span>，<span class="arithmatex">\(u(0)=u(1)=0\)</span>。积分两次并代入端点，得到 <span class="arithmatex">\(u(x)=x(1-x)/2\)</span>。取光滑且端点为零的测试函数 <span class="arithmatex">\(v\)</span>，把方程乘以 <span class="arithmatex">\(v\)</span> 后积分：</p>
+<h2 id="elliptic-coercivity-learning-title">学习层：求解成功之后，还要核对什么？<a class="headerlink" href="#elliptic-coercivity-learning-title" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>可以动手改变的条件</th>
+<th>要回答的问题</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>正弦模态</td>
+<td>零阶项、强迫、截断阶数与核系数</td>
+<td>有限系统的成功是否代表全问题可解</td>
+</tr>
+<tr>
+<td>一维有限元</td>
+<td>单元数与网格分布</td>
+<td>装配怎样产生近似，误差怎样随网格改变</td>
+</tr>
+<tr>
+<td>扇形角点</td>
+<td>开口角与观察内半径</td>
+<td>一阶导数可积，二阶导数是否也可积</td>
+</tr>
+</tbody>
+</table>
+<p>先完成四个预测。即使预测有误，也可以打开结果，对照后修改。正弦实验把参数写成 <span class="arithmatex">\(c=\pi^2\mu\)</span>，因此整数负平方的 <span class="arithmatex">\(\mu\)</span> 可以精确表示共振条件；小的非零余量仍按非共振计算。</p>
+<div class="learning-lab" data-learning-lab="elliptic-coercivity">
+<h3 id="_1">无脚本参考账本<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>正弦例取 μ=0、N=5、M=128、F=0.85、τ=0.8，不归零任何模态；有限元取8个均匀单元；角点取开口3π/2，观察内半径0.001。有限和、解析尾界和精确公式分别标明。</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th style="text-align: right;">对应公式的数值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>正弦：强制常数</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>正弦：有界常数</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>正弦：梯度误差下界</td>
+<td style="text-align: right;">0.00157345306525</td>
+</tr>
+<tr>
+<td>正弦：梯度误差上界</td>
+<td style="text-align: right;">0.00157345306983</td>
+</tr>
+<tr>
+<td>正弦：完整残差下界</td>
+<td style="text-align: right;">0.0355194854369</td>
+</tr>
+<tr>
+<td>正弦：完整残差上界</td>
+<td style="text-align: right;">0.0355195184809</td>
+</tr>
+<tr>
+<td>参考曲线：一致余项界</td>
+<td style="text-align: right;">1.82202392658e-08</td>
+</tr>
+<tr>
+<td>有限元：梯度误差</td>
+<td style="text-align: right;">0.0360843918244</td>
+</tr>
+<tr>
+<td>有限元：L2误差</td>
+<td style="text-align: right;">0.00142636082684</td>
+</tr>
+<tr>
+<td>有限元：J(uh)</td>
+<td style="text-align: right;">-0.041015625</td>
+</tr>
+<tr>
+<td>有限元：能量差</td>
+<td style="text-align: right;">0.000651041666667</td>
+</tr>
+<tr>
+<td>角点：函数平方积分</td>
+<td style="text-align: right;">0.706858346987</td>
+</tr>
+<tr>
+<td>角点：梯度平方积分</td>
+<td style="text-align: right;">1.57063924716</td>
+</tr>
+<tr>
+<td>角点：Hessian平方积分</td>
+<td style="text-align: right;">69.115038379</td>
+</tr>
+</tbody>
+</table>
+<p>正弦的参考和只算到 M，尾界仍须保留；有限元的误差由整个区间积分计算；角点中的有限内半径不能代替趋近角点的极限。</p>
+</div>
+</section>
+<figure>
+<img src="assets/img/pde2-03-elliptic-ledgers.svg" alt="正弦谱比与共振、真实装配的一维有限元近似、随网格变化的误差，以及凸角和平角凹角的二阶导数积分" loading="lazy">
+<figcaption>这里把有限维计算和全空间结论放在同一页核对，每一种图都保留其不能证明的部分。</figcaption>
+</figure>
+
+<h2 id="1">1 · 从一条抛物线进入弱形式<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>先看可以算到底的问题：</p>
+<div class="arithmatex">\[
+-u''=1\quad(0&lt;x&lt;1),\qquad u(0)=u(1)=0.
+\]</div>
+<p>积分并代入端点，得到 <span class="arithmatex">\(u(x)=x(1-x)/2\)</span>。对端点为零的光滑测试函数 <span class="arithmatex">\(v\)</span>，</p>
+<div class="arithmatex">\[
+\int_0^1v\,dx
+=\int_0^1(-u'')v\,dx
+=-[u'v]_0^1+\int_0^1u'v'\,dx
+=\int_0^1u'v'\,dx.
+\]</div>
+<p>消失的是测试函数在外边界上的值。最后的表达式只需要一阶弱导数。由稠密性，它延伸到所有 <span class="arithmatex">\(v\in H_0^1(0,1)\)</span>。</p>
+<p>在有界开集 <span class="arithmatex">\(\Omega\)</span> 上，令 <span class="arithmatex">\(V=H_0^1(\Omega)\)</span>，取梯度范数 <span class="arithmatex">\(\|v\|_V=\|\nabla v\|_2\)</span>。Poincaré 说明它与完整 <span class="arithmatex">\(H^1\)</span> 范数等价，因此 <span class="arithmatex">\(V\)</span> 仍然完备。Poisson 问题的弱解是满足</p>
+<div class="arithmatex">\[
+u\in V,\qquad
+\int_\Omega\nabla u\cdot\nabla v\,dx=F(v)
+\quad\text{对每个 }v\in V
+\]</div>
+<p>的函数。<span class="arithmatex">\(F\)</span> 可以是 <span class="arithmatex">\(V\)</span> 上任意有界线性泛函，也就是这里所说的 <span class="arithmatex">\(H^{-1}(\Omega)\)</span> 元素。若 <span class="arithmatex">\(f\in L^2\)</span>，取 <span class="arithmatex">\(F(v)=\int fv\)</span>，则</p>
+<div class="arithmatex">\[
+|F(v)|\le\|f\|_2\|v\|_2
+\le C_P\|f\|_2\|\nabla v\|_2.
+\]</div>
+<p>“对每个测试函数”不能省略。只检查几个测试函数，得到的是有限维问题。</p>
+<p>例如取一个峰值1、顶点在 <span class="arithmatex">\(1/2\)</span> 的帽函数 <span class="arithmatex">\(\varphi\)</span>，它在左右两段的斜率分别为2、−2。让 <span class="arithmatex">\(u_h=a\varphi\)</span>，在一维子空间中检验：</p>
+<div class="arithmatex">\[
+a\int_0^1|\varphi'|^2\,dx=\int_0^1\varphi\,dx,
+\qquad 4a=\frac12,\qquad a=\frac18.
+\]</div>
+<p>它在中点与抛物线相等，整条曲线却不同。两者的差仍会被更丰富的测试函数发现。</p>
+<h2 id="2-laxmilgram">2 · Lax–Milgram 为什么同时给出存在、唯一和稳定<a class="headerlink" href="#2-laxmilgram" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(V\)</span> 是实 Hilbert 空间，双线性型 <span class="arithmatex">\(B\)</span> 满足</p>
+<div class="arithmatex">\[
+|B(u,v)|\le\beta\|u\|_V\|v\|_V,\qquad
+B(v,v)\ge\alpha\|v\|_V^2,\quad \alpha&gt;0.
+\]</div>
+<p>第一条是有界性，第二条是强制性。对任意 <span class="arithmatex">\(F\in V'\)</span>，Lax–Milgram 定理给出唯一的 <span class="arithmatex">\(u\in V\)</span>，使 <span class="arithmatex">\(B(u,v)=F(v)\)</span> 对所有 <span class="arithmatex">\(v\in V\)</span> 成立，且</p>
+<div class="arithmatex">\[
+\|u\|_V\le\alpha^{-1}\|F\|_{V'}.
+\]</div>
+<p><strong>证明。</strong> Riesz 表示给出有界线性算子 <span class="arithmatex">\(T:V\to V\)</span>，满足 <span class="arithmatex">\(B(u,v)=(Tu,v)_V\)</span>。强制性与 Cauchy–Schwarz 给出</p>
+<div class="arithmatex">\[
+\alpha\|u\|_V^2\le(Tu,u)_V\le\|Tu\|_V\|u\|_V,
+\qquad \|Tu\|_V\ge\alpha\|u\|_V.
+\]</div>
+<p>因此 <span class="arithmatex">\(T\)</span> 单射。若 <span class="arithmatex">\(Tu_j\)</span> 收敛，最后的估计使 <span class="arithmatex">\(u_j\)</span> Cauchy，由完备性得到极限 <span class="arithmatex">\(u\)</span>，再用 <span class="arithmatex">\(T\)</span> 连续性得 <span class="arithmatex">\(Tu_j\to Tu\)</span>；值域闭。</p>
+<p>若 <span class="arithmatex">\(w\)</span> 与值域正交，特别有 <span class="arithmatex">\((Tw,w)_V=0\)</span>。强制性迫使 <span class="arithmatex">\(w=0\)</span>，所以值域的正交补为零，值域稠密。闭且稠密意味着满射。最后将 <span class="arithmatex">\(F\)</span> 用 Riesz 表为 <span class="arithmatex">\((w_F,\cdot)_V\)</span>，解 <span class="arithmatex">\(Tu=w_F\)</span> 即可；范数界也由上面的下界得到。证明不要求 <span class="arithmatex">\(B\)</span> 对称。</p>
+<p>应用到</p>
+<div class="arithmatex">\[
+-\operatorname{div}(A(x)\nabla u)+c(x)u=f
+\]</div>
+<p>时，要把假设逐项写清：<span class="arithmatex">\(A\in L^\infty(\Omega;\mathbb R^{n\times n})\)</span>，<span class="arithmatex">\(c\in L^\infty(\Omega)\)</span>，且一致椭圆</p>
+<div class="arithmatex">\[
+\xi^\mathsf TA(x)\xi\ge\kappa|\xi|^2
+\quad\text{几乎处处，所有 }\xi,\qquad\kappa&gt;0.
+\]</div>
+<p>双线性型为 <span class="arithmatex">\(B(u,v)=\int A\nabla u\cdot\nabla v+cuv\)</span>。它在 <span class="arithmatex">\(V\)</span> 上有界；若 <span class="arithmatex">\(c\ge0\)</span>，直接有 <span class="arithmatex">\(B(v,v)\ge\kappa\|v\|_V^2\)</span>。若允许负值，记 <span class="arithmatex">\(c_-=\max(-c,0)\)</span>，则</p>
+<div class="arithmatex">\[
+B(v,v)\ge
+\left(\kappa-\|c_-\|_\infty C_P^2\right)\|\nabla v\|_2^2.
+\]</div>
+<p>括号为正是一个充分条件；不为正只说明这个证书不能使用。非对称算子也适用 Lax–Milgram，但不能直接把双线性型当成内积。标准框架可对照 <a href="https://www.math.ucdavis.edu/~hunter/pdes/pde_notes.pdf">Hunter《PDE》§4.6–4.8</a>。</p>
+<p>若 <span class="arithmatex">\(B\)</span> 还对称且强制，定义</p>
+<div class="arithmatex">\[
+J(v)=\frac12B(v,v)-F(v).
+\]</div>
+<p>将 <span class="arithmatex">\(v=u+w\)</span> 代入并用弱方程消去交叉项：</p>
+<div class="arithmatex">\[
+J(u+w)-J(u)=\frac12B(w,w)\ge\frac\alpha2\|w\|_V^2.
+\]</div>
+<p>因此弱解恰为唯一极小元。这个结论同时解释了能量误差公式；对非对称型或不定型，不能沿用这个最小化结论。</p>
+<h2 id="3">3 · 谱计算：强制性、可逆性与相容性各管什么<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>在 <span class="arithmatex">\((0,1)\)</span> 上取</p>
+<div class="arithmatex">\[
+\phi_k(x)=\sqrt2\sin(k\pi x),\qquad
+\lambda_k=\pi^2k^2,\qquad c=\pi^2\mu.
+\]</div>
+<p>它们在 <span class="arithmatex">\(L^2\)</span> 中正交归一，且 <span class="arithmatex">\(\int\phi_j'\phi_k'=\lambda_k\delta_{jk}\)</span>。展开 <span class="arithmatex">\(u=\sum u_k\phi_k\)</span>、<span class="arithmatex">\(f=\sum f_k\phi_k\)</span>，弱方程化成</p>
+<div class="arithmatex">\[
+d_ku_k=f_k,\qquad d_k=\pi^2(k^2+\mu).
+\]</div>
+<p>实验指定</p>
+<div class="arithmatex">\[
+f_1=F,\qquad
+f_k=\frac{\tau(-1)^{k+1}}{k^2}\quad(k\ge2),
+\]</div>
+<p>并可将一个指定模态改为零。这个序列平方可和，因而确实定义一个 <span class="arithmatex">\(L^2\)</span> 右端。</p>
+<p>在梯度范数下，双线性型的谱比为 <span class="arithmatex">\(r_k=d_k/\lambda_k=(k^2+\mu)/k^2\)</span>，所以</p>
+<div class="arithmatex">\[
+\inf_{v\ne0}\frac{B(v,v)}{\|v'\|_2^2}
+=\inf_{k\ge1}r_k
+=\alpha(\mu)=\min(1,1+\mu).
+\]</div>
+<p>当 <span class="arithmatex">\(\mu&gt;0\)</span>，下确界1来自高频极限，并非某个有限模态取等。有界性常数可取精确上确界 <span class="arithmatex">\(\beta=\max(1,|1+\mu|)\)</span>。因此 <span class="arithmatex">\(\mu&gt;-1\)</span> 时强制。</p>
+<p>如果 <span class="arithmatex">\(\mu\)</span> 不等于任何负整数平方，所有 <span class="arithmatex">\(d_k\)</span> 非零。而且 <span class="arithmatex">\(r_k\to1\)</span>，所以有限多个低模态检查后，就能得到</p>
+<div class="arithmatex">\[
+\gamma=\inf_{k\ge1}|r_k|&gt;0.
+\]</div>
+<p>取 <span class="arithmatex">\(u_k=f_k/d_k\)</span>，有</p>
+<div class="arithmatex">\[
+\sum_k\lambda_k|u_k|^2
+\le\gamma^{-2}\sum_k\frac{|f_k|^2}{\lambda_k}&lt;\infty.
+\]</div>
+<p>这构造了 <span class="arithmatex">\(H_0^1\)</span> 弱解；逐模态方程也给唯一性。它还给出梯度范数与其对偶范数之间的逆算子范数 <span class="arithmatex">\(1/\gamma\)</span>。即使 <span class="arithmatex">\(\mu&lt;-1\)</span>、<span class="arithmatex">\(B\)</span> 不强制，非共振时仍能唯一可解。</p>
+<p>反之，在 <span class="arithmatex">\(\mu=-j^2\)</span> 时，第 <span class="arithmatex">\(j\)</span> 行为 <span class="arithmatex">\(0\cdot u_j=f_j\)</span>：</p>
+<table>
+<thead>
+<tr>
+<th>右端条件</th>
+<th>全问题结论</th>
+<th>核系数的含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(f_j\ne0\)</span></td>
+<td>无解</td>
+<td>没有任何系数能满足这一行</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(f_j=0\)</span></td>
+<td>多解</td>
+<td><span class="arithmatex">\(u_j\)</span> 任意；指定它才选出一个代表</td>
+</tr>
+</tbody>
+</table>
+<p>这是本对称模型的 Fredholm 相容性。一般非对称算子的可解条件要对<strong>伴随算子的核</strong>正交，不能自动用原算子的核替代。</p>
+<p>接近共振但不在共振上时，<span class="arithmatex">\(u_j=f_j/d_j\)</span> 很大但仍唯一。有限矩阵在通常欧氏系数范数中的条件数是 <span class="arithmatex">\(\max_{k\le N}|d_k|/\min_{k\le N}|d_k|\)</span>；它与按梯度范数衡量的谱比不是同一个数。</p>
+<p>再看一个能量上的区别：取 <span class="arithmatex">\(\mu=-1.2\)</span>，第一模态的 <span class="arithmatex">\(d_1&lt;0\)</span>，于是 <span class="arithmatex">\(J(t\phi_1)\)</span> 随 <span class="arithmatex">\(|t|\to\infty\)</span> 趋于 <span class="arithmatex">\(-\infty\)</span>。尽管非共振时弱解唯一，它也不是这个能量泛函的最小值。</p>
+<p><strong>一般域上的离散谱从哪里来？</strong> 对有界域上的对称、强制 Dirichlet 型，解算子 <span class="arithmatex">\(K:f\mapsto u\)</span> 是
+<span class="arithmatex">\(L^2\to H_0^1\hookrightarrow L^2\)</span> 的复合。第一步由能量估计有界，第二步由 Rellich 紧嵌入给紧性，所以 <span class="arithmatex">\(K\)</span> 是紧算子。若 <span class="arithmatex">\(Kf=u\)</span>、<span class="arithmatex">\(Kg=v\)</span>，对称性给</p>
+<div class="arithmatex">\[
+(Kf,g)_{L^2}=B(u,v)=(f,Kg)_{L^2}.
+\]</div>
+<p>因此它自伴；且 <span class="arithmatex">\((Kf,f)=B(u,u)&gt;0\)</span> 对非零 <span class="arithmatex">\(f\)</span> 成立。紧自伴谱定理给出 <span class="arithmatex">\(L^2\)</span> 正交基与正特征值</p>
+<div class="arithmatex">\[
+K\phi_j=\sigma_j\phi_j,\qquad \sigma_j\to0.
+\]</div>
+<p>将微分算子 <span class="arithmatex">\(L\)</span> 的定义域取为那些弱作用可由 <span class="arithmatex">\(L^2\)</span> 函数表示的 <span class="arithmatex">\(u\in H_0^1\)</span>，则</p>
+<div class="arithmatex">\[
+L\phi_j=\lambda_j\phi_j,\qquad \lambda_j=\sigma_j^{-1}\to\infty.
+\]</div>
+<p>趋零的是紧解算子的特征值，趋无穷的是通常无界的微分算子的特征值。分离变量和正弦展开是一维可显式计算的特例；不能把有限个模态的数值结果当成这一一般定理的证明。</p>
+<h2 id="4">4 · 截断之后，怎样诚实地报告误差<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>Galerkin 空间 <span class="arithmatex">\(V_N=\operatorname{span}\{\phi_1,\ldots,\phi_N\}\)</span> 只要求前 <span class="arithmatex">\(N\)</span> 个系数方程成立。若 <span class="arithmatex">\(\mu=-4\)</span>、<span class="arithmatex">\(N=1\)</span>、<span class="arithmatex">\(f_2\ne0\)</span>，有限系统可以解，完整方程却无解。实验分别显示两个结论；不存在的全解不填写系数、曲线或误差。</p>
+<p>相容共振时，实验允许指定核系数 <span class="arithmatex">\(u_j=t\)</span>。若 <span class="arithmatex">\(j&gt;N\)</span>，有限解没有这项；误差计算必须把它包括在内，不能悄悄把全解代表换成 <span class="arithmatex">\(t=0\)</span>。</p>
+<p>当有限系统可解时，它代回完整方程的残差是</p>
+<div class="arithmatex">\[
+\|r_N\|_2^2=\sum_{k&gt;N}|f_k|^2.
+\]</div>
+<p>这与有限矩阵内部的残差不同。后者解析上为零，浮点计算中会留下舍入误差；它不能代替整个方程的残差。</p>
+<p>全问题可解且代表固定时，</p>
+<div class="arithmatex">\[
+\|(u-u_N)'\|_2^2=\sum_k\lambda_k|u_k-u_k^{(N)}|^2,
+\qquad
+B(u-u_N,u-u_N)=\sum_k d_k|u_k-u_k^{(N)}|^2.
+\]</div>
+<p>第二项只有在正定条件下才能叫能量范数平方。含核或负方向时，它可能不能区分非零函数，甚至为负。</p>
+<p>实验把前 <span class="arithmatex">\(M\)</span> 项全部列出，再对 <span class="arithmatex">\(k&gt;M\)</span> 的无穷尾项加界。由于 <span class="arithmatex">\(M\ge64\)</span>、<span class="arithmatex">\(-16\le\mu\le4\)</span>，这一段的 <span class="arithmatex">\(r_k\)</span> 全正。设</p>
+<div class="arithmatex">\[
+r_-=\min\!\left(1,1+\frac{\mu}{(M+1)^2}\right),\qquad
+r_+=\max\!\left(1,1+\frac{\mu}{(M+1)^2}\right).
+\]</div>
+<p>对下降函数作积分比较，任意 <span class="arithmatex">\(s&gt;1\)</span> 都有</p>
+<div class="arithmatex">\[
+\frac1{(s-1)(M+1)^{s-1}}
+\le\sum_{k&gt;M}k^{-s}
+\le\frac1{(s-1)M^{s-1}}.
+\]</div>
+<p>例如梯度平方尾项满足</p>
+<div class="arithmatex">\[
+\frac{\tau^2}{5\pi^2r_+^2(M+1)^5}
+\le\sum_{k&gt;M}\lambda_k|u_k|^2
+\le\frac{\tau^2}{5\pi^2r_-^2M^5}.
+\]</div>
+<p>其他尾项只需逐项检查幂次：</p>
+<table>
+<thead>
+<tr>
+<th>尾项</th>
+<th>单项表达式</th>
+<th>使用的幂和</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>残差平方</td>
+<td><span class="arithmatex">\(\tau^2/k^4\)</span></td>
+<td><span class="arithmatex">\(s=4\)</span></td>
+</tr>
+<tr>
+<td>梯度误差平方</td>
+<td><span class="arithmatex">\(\tau^2/(\pi^2k^6r_k^2)\)</span></td>
+<td><span class="arithmatex">\(s=6\)</span></td>
+</tr>
+<tr>
+<td>有符号能量的高频尾项</td>
+<td><span class="arithmatex">\(\tau^2/(\pi^2k^6r_k)\)</span></td>
+<td><span class="arithmatex">\(s=6\)</span></td>
+</tr>
+<tr>
+<td>函数误差平方</td>
+<td><span class="arithmatex">\(\tau^2/(\pi^4k^8r_k^2)\)</span></td>
+<td><span class="arithmatex">\(s=8\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>将已算部分加上尾项上下界，再开平方，才得到范数的上下界。高频能量尾项为正，不代表低频不定型的贡献也为正。这些是解析级数的剩余项界；页面用普通浮点计算有限和，没有把它包装成包含全部舍入误差的严格区间算术。</p>
+<p>参考曲线画的是 <span class="arithmatex">\(\sum_{k=1}^M u_k\phi_k\)</span>，其一致余项有</p>
+<div class="arithmatex">\[
+\left\|u-\sum_{k=1}^M u_k\phi_k\right\|_\infty
+\le\frac{\sqrt2|\tau|}{3\pi^2r_-M^3}.
+\]</div>
+<p>这是用 <span class="arithmatex">\(|\phi_k|\le\sqrt2\)</span> 和 <span class="arithmatex">\(s=4\)</span> 的尾界得到的。图采用 <span class="arithmatex">\(8M+1\)</span> 个节点以分辨最高保留频率，端点解析值置为零。有限条曲线仍不是一般谱定理的证明。</p>
+<h2 id="5">5 · 有限元：从局部单元真正装配一个解<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>现在回到 <span class="arithmatex">\(-u''=1\)</span>。取网格 <span class="arithmatex">\(0=x_0&lt;x_1&lt;\cdots&lt;x_K=1\)</span>，单元长度 <span class="arithmatex">\(h_i=x_{i+1}-x_i\)</span>。每个单元上两个线性形函数的导数分别为 <span class="arithmatex">\(-1/h_i\)</span>、<span class="arithmatex">\(1/h_i\)</span>，所以局部刚度与载荷为</p>
+<div class="arithmatex">\[
+K^{(i)}=\frac1{h_i}
+\begin{pmatrix}1&amp;-1\\-1&amp;1\end{pmatrix},
+\qquad
+f^{(i)}=\frac{h_i}{2}\begin{pmatrix}1\\1\end{pmatrix}.
+\]</div>
+<p>将相邻单元在同一个内部节点上的贡献相加，并去掉已知为零的两个端点，得到</p>
+<div class="arithmatex">\[
+-\frac{U_{i-1}}{h_{i-1}}
++\left(\frac1{h_{i-1}}+\frac1{h_i}\right)U_i
+-\frac{U_{i+1}}{h_i}
+=\frac{h_{i-1}+h_i}{2}.
+\]</div>
+<p>实验实际装配并求解这个三对角系统。Thomas 算法先将下一行的下对角消掉，再从最后一个未知数回代；账本列出每一步乘子、主元、变换后的载荷与回代值。正定性保证精确算术下主元为正，程序也检查这个条件。精确节点值只用于事后核验。</p>
+<p>为什么这里求得的节点恰好等于抛物线的节点？记 <span class="arithmatex">\(I_hu\)</span> 为插值。在每个单元上，</p>
+<div class="arithmatex">\[
+(I_hu)'=\frac{u(x_{i+1})-u(x_i)}{h_i}
+=\frac1{h_i}\int_{x_i}^{x_{i+1}}u'(x)\,dx.
+\]</div>
+<p>而任意分段线性测试函数 <span class="arithmatex">\(v_h\)</span> 的导数在该单元是常数，故</p>
+<div class="arithmatex">\[
+\int_{x_i}^{x_{i+1}}(u'-(I_hu)')v_h'\,dx=0.
+\]</div>
+<p>求和得到 Galerkin 正交性。有限系统唯一，所以 <span class="arithmatex">\(u_h=I_hu\)</span>。这是本一维常系数 Poisson 问题的特殊性质，不能推广为“有限元总能给精确节点”。</p>
+<p>对长为 <span class="arithmatex">\(h\)</span> 的单元，抛物线与其弦的差在局部坐标 <span class="arithmatex">\(t\in[0,h]\)</span> 上为 <span class="arithmatex">\(t(h-t)/2\)</span>，因此</p>
+<div class="arithmatex">\[
+\int_{\text{单元}}|u'-u_h'|^2=\frac{h^3}{12},
+\qquad
+\int_{\text{单元}}|u-u_h|^2=\frac{h^5}{120}.
+\]</div>
+<p>均匀网格 <span class="arithmatex">\(h=1/K\)</span> 上，求和得到</p>
+<div class="arithmatex">\[
+\|u'-u_h'\|_2=\frac{h}{\sqrt{12}},\qquad
+\|u-u_h\|_2=\frac{h^2}{\sqrt{120}}.
+\]</div>
+<p>实验还提供 <span class="arithmatex">\(x_i=(i/K)^g\)</span> 的非均匀网格。这个解的二阶导数处处相同，给定单元数时，由凸性可知 <span class="arithmatex">\(\sum h_i^3\)</span> 在均匀网格最小；把节点盲目堆在左端会增大本例的梯度误差。自适应网格需要针对真实误差结构，不能只追求局部更密。</p>
+<p>浮点求解的节点与理想插值可能有小偏差，所以程序不直接拿上述理论误差替换实际误差。对单元中点 <span class="arithmatex">\(m_x\)</span>、离散斜率 <span class="arithmatex">\(s_h\)</span>，令 <span class="arithmatex">\(m=1/2-m_x\)</span>。实际梯度误差的精确积分为</p>
+<div class="arithmatex">\[
+\frac{h^3}{12}+h(m-s_h)^2.
+\]</div>
+<p>实际函数误差改写到中心坐标 <span class="arithmatex">\(z\in[-1,1]\)</span> 后为 <span class="arithmatex">\(C+Dz+Ez^2\)</span>，其中</p>
+<div class="arithmatex">\[
+C=u(m_x)-\frac{U_i+U_{i+1}}2,\qquad
+D=\frac h2(m-s_h),\qquad E=-\frac{h^2}{8}.
+\]</div>
+<p>使用 Legendre 多项式的正交性，</p>
+<div class="arithmatex">\[
+\int_{\text{单元}}|u-u_h|^2
+=h\left[\left(C+\frac E3\right)^2+\frac{D^2}3+
+\frac15\left(\frac{2E}3\right)^2\right].
+\]</div>
+<p>这是非负项之和，避免用两个接近的总能量相减来计算小误差。</p>
+<h2 id="6-cea">6 · Céa 引理说明什么，能量等号又多用了什么<a class="headerlink" href="#6-cea" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(V_h\subset V\)</span>，<span class="arithmatex">\(u\)</span> 与 <span class="arithmatex">\(u_h\)</span> 分别满足全空间和子空间的弱方程。两式相减：</p>
+<div class="arithmatex">\[
+B(u-u_h,w_h)=0\quad(w_h\in V_h).
+\]</div>
+<p>令 <span class="arithmatex">\(e=u-u_h\)</span>，对任意 <span class="arithmatex">\(v_h\in V_h\)</span>，由有界性和强制性，</p>
+<div class="arithmatex">\[
+\alpha\|e\|_V^2
+\le B(e,e)
+=B(e,u-v_h)
+\le\beta\|e\|_V\|u-v_h\|_V.
+\]</div>
+<p>若 <span class="arithmatex">\(e\ne0\)</span> 就约去一个范数，再取下确界；<span class="arithmatex">\(e=0\)</span> 时显然成立：</p>
+<div class="arithmatex">\[
+\|u-u_h\|_V\le\frac\beta\alpha
+\inf_{v_h\in V_h}\|u-v_h\|_V.
+\]</div>
+<p>这是一条准最佳逼近上界。若 <span class="arithmatex">\(B\)</span> 对称正定，它定义能量范数，正交性进一步给出</p>
+<div class="arithmatex">\[
+\|u-v_h\|_B^2
+=\|u-u_h\|_B^2+\|u_h-v_h\|_B^2.
+\]</div>
+<p>于是能量范数下有精确最佳逼近。不同范数中的等号与上界不能混用。可对照 <a href="https://finite-element.github.io/L5_convergence.html#galerkin-approximations-of-linear-variational-problems">有限元课程 §5.4 的 Céa 引理</a>。</p>
+<p>本例 <span class="arithmatex">\(J(u)=-1/24\)</span>，而 <span class="arithmatex">\(J(u_h)=\frac12\int|u_h'|^2-\int u_h\)</span>。第2节的恒等式给出</p>
+<div class="arithmatex">\[
+J(u_h)-J(u)=\frac12\|u_h'-u'\|_2^2.
+\]</div>
+<p>页面把左右两侧分别计算，再列出其差。小残差可以帮助找实现错误；恒等式成立的理由仍是弱方程和对称性。</p>
+<h2 id="7">7 · 内部正则性为什么需要差商与局部截断<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>弱解一开始只要求一阶导数平方可积。要得到二阶导数，需要额外的系数正则性。例如一致椭圆的主部系数局部 Lipschitz、<span class="arithmatex">\(c\in L^\infty\)</span>、<span class="arithmatex">\(f\in L^2\)</span> 时，可得到 <span class="arithmatex">\(u\in H^2_{\mathrm{loc}}\)</span>。先将 <span class="arithmatex">\(cu\)</span> 吸收入右端，它仍是局部 <span class="arithmatex">\(L^2\)</span>；再处理主部。</p>
+<p>证明不能直接假设 <span class="arithmatex">\(u\)</span> 已有二阶导数并拿它作测试函数。取 <span class="arithmatex">\(\Omega'\Subset\Omega''\Subset\Omega\)</span>，光滑截断 <span class="arithmatex">\(\eta\)</span> 在 <span class="arithmatex">\(\Omega'\)</span> 为1且支集位于 <span class="arithmatex">\(\Omega''\)</span>，定义</p>
+<div class="arithmatex">\[
+D_h^ku(x)=\frac{u(x+he_k)-u(x)}h,\qquad
+v=-D_{-h}^k(\eta^2D_h^ku).
+\]</div>
+<p><span class="arithmatex">\(h\)</span> 足够小时，<span class="arithmatex">\(v\in H_0^1(\Omega)\)</span>，可以合法代入弱方程。离散分部积分把差商转移，主项由椭圆性控制
+<span class="arithmatex">\(\int\eta^2|\nabla D_h^ku|^2\)</span>。其他项来自 <span class="arithmatex">\(\nabla\eta\)</span> 与 <span class="arithmatex">\(D_h^kA\)</span>；Lipschitz 条件使系数差商一致有界。Cauchy–Schwarz 与
+<span class="arithmatex">\(ab\le\varepsilon a^2+b^2/(4\varepsilon)\)</span> 把包含高阶差商的项吸收到左边，得到独立于 <span class="arithmatex">\(h\)</span> 的估计。</p>
+<p>差商有界后，弱紧性给出子列；对测试函数转移差商并令 <span class="arithmatex">\(h\to0\)</span>，识别其极限正是二阶弱导数。再用一次局部能量估计，可将中间的 <span class="arithmatex">\(H^1\)</span> 项压到右端的 <span class="arithmatex">\(L^2\)</span> 项，得到</p>
+<div class="arithmatex">\[
+\|u\|_{H^2(\Omega')}
+\le C\bigl(\|f\|_{L^2(\Omega)}+\|u\|_{L^2(\Omega)}\bigr)
+\]</div>
+<p>的标准局部版本，常数依赖嵌套域、椭圆性和系数界。这里给出证明结构；完整差商估计可见 <a href="https://www.math.ucdavis.edu/~hunter/pdes/pde_notes.pdf">Hunter §4.11</a>，其 <span class="arithmatex">\(C^1\)</span> 系数证明中系数差商的控制也解释了 Lipschitz 版本。</p>
+<p>全局 <span class="arithmatex">\(H^2(\Omega)\)</span> 还要控制边界。例如在有界 <span class="arithmatex">\(C^{1,1}\)</span> 域上，主部系数在闭包上 Lipschitz 且一致椭圆，<span class="arithmatex">\(c\in L^\infty\)</span>、<span class="arithmatex">\(f\in L^2\)</span>，齐次 Dirichlet 问题的弱解属于 <span class="arithmatex">\(H^2\)</span>；若要同时保证唯一存在，还需前面给出的强制性等适定条件。非零边界值通常需达到 <span class="arithmatex">\(H^{3/2}(\partial\Omega)\)</span>。这些是充分条件，任意 Lipschitz 域不能直接套用。可对照 <a href="https://people.tamu.edu/~guermond/M610_SPRING_2016/chap24.pdf">Guermond 第24章定理24.19</a>。内正则性没有自动穿过边界。</p>
+<p>更高正则性可以逐级建立。例如所有系数光滑、<span class="arithmatex">\(f\in H^k_{\mathrm{loc}}\)</span> 时，对方程再作差商并控制新的系数项，得到 <span class="arithmatex">\(u\in H^{k+2}_{\mathrm{loc}}\)</span>。若系数与右端都光滑，再用高阶 Sobolev 嵌入，得到内部的光滑解。仅有光滑右端而没有相应的系数或边界条件，不能无条件作这种提升。</p>
+<h2 id="8">8 · 把凹角反例完整写出来<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>取开口角 <span class="arithmatex">\(\Theta\in(0,2\pi)\)</span> 的扇形，极坐标为 <span class="arithmatex">\(0&lt;r&lt;1\)</span>、<span class="arithmatex">\(0&lt;\varphi&lt;\Theta\)</span>。令</p>
+<div class="arithmatex">\[
+\nu=\frac\pi\Theta,\qquad w(r,\varphi)=r^\nu\sin(\nu\varphi).
+\]</div>
+<p>两条直边上的函数值为零。极坐标 Laplace 算子给出</p>
+<div class="arithmatex">\[
+\Delta w=w_{rr}+\frac1r w_r+\frac1{r^2}w_{\varphi\varphi}
+=\bigl[\nu(\nu-1)+\nu-\nu^2\bigr]r^{\nu-2}\sin(\nu\varphi)=0.
+\]</div>
+<p>但外圆弧上的值还不为零。选径向 <span class="arithmatex">\(\eta\in C^\infty([0,\infty))\)</span>，在 <span class="arithmatex">\(r\le1/4\)</span> 恒为1、<span class="arithmatex">\(r\ge1/2\)</span> 恒为0，令 <span class="arithmatex">\(u=\eta w\)</span>。于是整个外边界都是零，且</p>
+<div class="arithmatex">\[
+-\Delta u=
+-\left[\eta''(r)r^\nu+(2\nu+1)\eta'(r)r^{\nu-1}\right]
+\sin(\nu\varphi).
+\]</div>
+<p>右端支集远离角点，在扇形闭包上有光滑延拓。角点附近没有额外奇源。<span class="arithmatex">\(u\in H_0^1\)</span>：函数连续趋零，梯度平方在角点可积；若在半径 <span class="arithmatex">\(\varepsilon\)</span> 内再截去一点，所增加的梯度能量为 <span class="arithmatex">\(O(\varepsilon^{2\nu})\to0\)</span>，随后可按零迹空间的逼近处理。</p>
+<p>在 <span class="arithmatex">\(\eta=1\)</span> 的邻域，梯度与 Hessian 的欧氏平方分别为</p>
+<div class="arithmatex">\[
+|\nabla w|^2=\nu^2r^{2\nu-2},\qquad
+|D^2w|_{\mathrm F}^2=2\nu^2(\nu-1)^2r^{2\nu-4}.
+\]</div>
+<p>后一式可在正交极坐标标架中核对：两个对角分量为相反的
+<span class="arithmatex">\(\nu(\nu-1)r^{\nu-2}\sin(\nu\varphi)\)</span>，两个相等的非对角分量为
+<span class="arithmatex">\(\nu(\nu-1)r^{\nu-2}\cos(\nu\varphi)\)</span>。</p>
+<p>乘上面积元 <span class="arithmatex">\(r\,dr\,d\varphi\)</span> 后，一阶能量在零点有限。若凹角 <span class="arithmatex">\(\Theta&gt;\pi\)</span>，则 <span class="arithmatex">\(0&lt;\nu&lt;1\)</span>，二阶积分却包含
+<span class="arithmatex">\(\int_0 r^{2\nu-3}\,dr=\infty\)</span>。例如 <span class="arithmatex">\(\Theta=3\pi/2\)</span> 时 <span class="arithmatex">\(\nu=2/3\)</span>，构造得到光滑右端与零边界的 <span class="arithmatex">\(H_0^1\)</span> 弱解，却不属于 <span class="arithmatex">\(H^2\)</span>。</p>
+<p>这证明全局正则性可能失败，不表示凹角域上每个光滑右端都会产生非零奇性系数。取右端零，解零当然光滑。</p>
+<p>实验观察未乘截断的局部模式在 <span class="arithmatex">\(\rho&lt;r&lt;1\)</span> 上的积分：</p>
 <div class="arithmatex">\[
 \begin{aligned}
-\int_0^1v\,dx&amp;=\int_0^1(-u'')v\,dx\\
-&amp;=-[u'v]_0^1+\int_0^1u'v'\,dx\\
-&amp;=\int_0^1u'v'\,dx.
+\int |w|^2&amp;=\frac{\Theta}{4\nu+4}(1-\rho^{2\nu+2}),\\
+\int |\nabla w|^2&amp;=\frac{\Theta\nu}{2}(1-\rho^{2\nu}),\\
+\int |D^2w|_{\mathrm F}^2
+&amp;=2\Theta\nu^2(\nu-1)^2
+\frac{1-\rho^{2\nu-2}}{2\nu-2}\quad(\nu\ne1).
 \end{aligned}
 \]</div>
-<p>边界项消失是因为 <strong><span class="arithmatex">\(v\)</span> 在端点为零</strong>。最后一个等式不再出现 <span class="arithmatex">\(u''\)</span>，所以即使候选函数没有经典二阶导数，只要它属于 <span class="arithmatex">\(H_0^1(0,1)\)</span>，两边仍有意义。利用光滑测试函数在 <span class="arithmatex">\(H_0^1\)</span> 中的稠密性，等式延伸到所有 <span class="arithmatex">\(v\in H_0^1\)</span>；这就是弱形式。</p>
-<figure class="plot">
-<p><img alt="抛物线精确解与单个帽函数近似：两端为零，在中点都等于八分之一，近似解在中点有折角。" src="assets/img/elliptic-weak-bridge.svg" /></p>
-<figcaption>实线是精确解，虚线是只有一个自由系数的 Galerkin 近似。折角妨碍经典二阶求导，却不妨碍弱形式中的积分。</figcaption>
-</figure>
-<p>具体取“帽函数” <span class="arithmatex">\(\varphi(x)=2x\)</span>（<span class="arithmatex">\(x\le1/2\)</span>）、<span class="arithmatex">\(2(1-x)\)</span>（<span class="arithmatex">\(x\ge1/2\)</span>），试 <span class="arithmatex">\(u_h=a\varphi\)</span>。在子空间 <span class="arithmatex">\(V_h=\mathrm{span}\{\varphi\}\)</span> 中只需检验 <span class="arithmatex">\(v=\varphi\)</span>：</p>
-<div class="arithmatex">\[
-a\underbrace{\int_0^1(\varphi')^2dx}_{4}
-=\underbrace{\int_0^1\varphi\,dx}_{1/2}
-\quad\Longrightarrow\quad a=1/8.
-\]</div>
-<p>这只是对 <span class="arithmatex">\(V_h\)</span> 内所有测试函数成立的近似解，不是对整个 <span class="arithmatex">\(H_0^1\)</span> 成立的精确弱解。增加基函数，才有机会逼近更多形状。</p>
-<p>接下来把方程改为 <span class="arithmatex">\(-u''+cu=f\)</span>，弱形式随之多出 <span class="arithmatex">\(\int cuv\)</span>。实验选择 <span class="arithmatex">\(\phi_k=\sqrt2\sin(k\pi x)\)</span>，因为它们满足零端点条件、彼此 <span class="arithmatex">\(L^2\)</span> 正交归一，且 <span class="arithmatex">\(-\phi_k''=(k\pi)^2\phi_k\)</span>。分部积分还给出 <span class="arithmatex">\(\int_0^1\phi_j'\phi_k'dx=(k\pi)^2\delta_{jk}\)</span>。代入 <span class="arithmatex">\(u_N=\sum_{j=1}^Nu_j\phi_j\)</span> 并逐个取 <span class="arithmatex">\(v=\phi_k\)</span>，交叉项消失，留下 <span class="arithmatex">\(((k\pi)^2+c)u_k=f_k\)</span>，其中 <span class="arithmatex">\(f_k=\int_0^1f\phi_k\,dx\)</span>。<strong>弱形式把函数问题变成一组系数方程；共振就是某个模态的乘子 <span class="arithmatex">\((k\pi)^2+c\)</span> 恰好变为零。</strong></p>
-<h3 id="1">1. 先预测：强制性、可逆性与共振不是同一件事<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>固定一维光滑域 <span class="arithmatex">\(\Omega=(0,1)\)</span>、齐次 Dirichlet 条件，并把</p>
-<div class="arithmatex">\[
--u''+cu=f,\qquad u(0)=u(1)=0
-\]</div>
-<p>放到归一化正弦基</p>
-<div class="arithmatex">\[
-\phi_k(x)=\sqrt2\sin(k\pi x),\qquad \lambda_k=(k\pi)^2,\qquad
-a(\phi_k,\phi_k)=d_k=\lambda_k+c
-\]</div>
-<p>上。实验前先回答五个问题：</p>
-<ol>
-<li><span class="arithmatex">\(c&gt;-\pi^2\)</span> 时，<span class="arithmatex">\(a\)</span> 在 <span class="arithmatex">\(H_0^1\)</span> 上是否强制？</li>
-<li><span class="arithmatex">\(c\approx-\pi^2\)</span> 但不等于 <span class="arithmatex">\(-\pi^2\)</span> 时，<span class="arithmatex">\(f_1\ne0\)</span> 会得到“唯一但敏感”、无解还是多解？</li>
-<li><span class="arithmatex">\(c=-\pi^2\)</span> 且 <span class="arithmatex">\(f_1=0\)</span> 时，第一模态的 Fredholm 相容性给出什么？</li>
-<li><span class="arithmatex">\(c=-\pi^2\)</span> 且 <span class="arithmatex">\(f_1\ne0\)</span> 时，方程 <span class="arithmatex">\(0\cdot u_1=f_1\)</span> 能否成立？</li>
-<li><span class="arithmatex">\(c&lt;-\pi^2\)</span> 但不在任何 <span class="arithmatex">\(-\lambda_k\)</span> 上时，强制性失败是否自动推出算子不可逆？</li>
-</ol>
-<p>这里“强制性”指（以下用 <span class="arithmatex">\(\|u'\|_{L^2}\)</span> 作为 <span class="arithmatex">\(H_0^1\)</span> 的等价范数）</p>
-<div class="arithmatex">\[
-\alpha_{H^1}(c)=\inf_{k\ge1}\frac{d_k}{\lambda_k}
- =\min\left\{1,1+\frac{c}{\pi^2}\right\}&gt;0,
-\]</div>
-<p>它是 Lax–Milgram 的<strong>充分条件</strong>，不是可逆性的必要条件。第一模态的有符号余量 <span class="arithmatex">\(\delta(c)=d_1=\pi^2+c\)</span> 穿过零点时，双线性型会失去强制性；但 <span class="arithmatex">\(c\)</span> 只要不等于某个 <span class="arithmatex">\(-\lambda_k\)</span>，一维 Dirichlet 算子仍可由谱分解判定为可逆。落在谱点时，才需要逐个检查 Fredholm 相容性 <span class="arithmatex">\(f_k=0\)</span>。</p>
-<h3 id="2-galerkin">2. 精确账本：Galerkin 截断与全模态结论<a class="headerlink" href="#2-galerkin" title="Permanent link"></a></h3>
-<p>写 <span class="arithmatex">\(f=\sum_{k\ge1}f_k\phi_k\)</span>、<span class="arithmatex">\(u=\sum_{k\ge1}u_k\phi_k\)</span>。对 <span class="arithmatex">\(V_N=\operatorname{span}\{\phi_1,\ldots,\phi_N\}\)</span>，Galerkin 方程逐模态对角化为</p>
-<div class="arithmatex">\[
-d_k u_k^{(N)}=f_k\quad(1\le k\le N),
-\qquad u_k^{(N)}=0\quad(k&gt;N).
-\]</div>
-<p>因此在本确定性模型中，<span class="arithmatex">\(d_k\ne0\)</span> 时 <span class="arithmatex">\(u_k=f_k/d_k\)</span>；<span class="arithmatex">\(d_k=0\)</span> 时，<span class="arithmatex">\(f_k\ne0\)</span> 是无解，<span class="arithmatex">\(f_k=0\)</span> 是自由核方向。有限 <span class="arithmatex">\(N\)</span> 只是在一个子空间里算这本账，不能替代一般 PDE 的存在性证明。</p>
-<p>若有限方程可解，实验同时报告两种残差：有限矩阵内的模态残差，以及把 <span class="arithmatex">\(u_N\)</span> 代回完整方程的 <span class="arithmatex">\(L^2\)</span> 残差</p>
-<div class="arithmatex">\[
-\|r_N\|_{L^2}^2=\sum_{k&gt;N}|f_k|^2.
-\]</div>
-<p>在非共振或取共振自由系数为 <span class="arithmatex">\(0\)</span> 的规范代表时，截断误差有精确级数</p>
-<div class="arithmatex">\[
-\|(u-u_N)'\|_{L^2}^2
- =\sum_{k&gt;N}\lambda_k\left|\frac{f_k}{d_k}\right|^2,
-\qquad
-a(u-u_N,u-u_N)=\sum_{k&gt;N}d_k\left|\frac{f_k}{d_k}\right|^2.
-\]</div>
-<p>后一项在强制区可视为能量平方；强制性失败后它只是<strong>有符号的双线性型尾项</strong>，不能被误叫作范数。</p>
-<div class="learning-lab" data-learning-lab="elliptic-coercivity">
-<p><strong>JavaScript 失效时的完整静态后备：</strong>令 <span class="arithmatex">\(\phi_k=\sqrt2\sin(k\pi x)\)</span>，取确定性强迫系数</p>
-<div class="arithmatex">\[
-f_1=\begin{cases}0.85,&amp;\text{一般强迫},\\0,&amp;\text{第一模态相容强迫},\end{cases}
-\qquad f_k=\frac{0.8(-1)^{k+1}}{k^2}\quad(k\ge2).
-\]</div>
-<p>每一行都只需检查 <span class="arithmatex">\(d_k=(k\pi)^2+c\)</span> 与 <span class="arithmatex">\(d_ku_k=f_k\)</span>：</p>
-<table>
-<thead>
-<tr>
-<th>分支</th>
-<th><span class="arithmatex">\(c\)</span> 与强迫</th>
-<th>最小余量 / 强制性</th>
-<th>全模态结论</th>
-<th><span class="arithmatex">\(N\)</span> 阶截断读法</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>强制</td>
-<td><span class="arithmatex">\(c=0\)</span>，<span class="arithmatex">\(f_1=0.85\)</span></td>
-<td><span class="arithmatex">\(\delta=\pi^2\)</span>，<span class="arithmatex">\(\alpha_{H^1}=1\)</span></td>
-<td>唯一</td>
-<td>唯一且有 Lax–Milgram 证书</td>
-</tr>
-<tr>
-<td>接近第一共振</td>
-<td><span class="arithmatex">\(c=-\pi^2+0.18\)</span>，<span class="arithmatex">\(f_1=0.85\)</span></td>
-<td><span class="arithmatex">\(\delta=0.18\)</span>，<span class="arithmatex">\(\alpha_{H^1}\approx0.0182\)</span></td>
-<td>唯一但第一系数敏感</td>
-<td>可算；证书存在但很弱</td>
-</tr>
-<tr>
-<td>第一共振相容</td>
-<td><span class="arithmatex">\(c=-\pi^2\)</span>，<span class="arithmatex">\(f_1=0\)</span></td>
-<td><span class="arithmatex">\(\delta=0\)</span>，<span class="arithmatex">\(\alpha_{H^1}=0\)</span></td>
-<td>多解：<span class="arithmatex">\(u+t\phi_1\)</span></td>
-<td>共振行取 <span class="arithmatex">\(u_1=0\)</span> 只是规范代表</td>
-</tr>
-<tr>
-<td>第一共振不相容</td>
-<td><span class="arithmatex">\(c=-\pi^2\)</span>，<span class="arithmatex">\(f_1=0.85\)</span></td>
-<td><span class="arithmatex">\(\delta=0\)</span>，<span class="arithmatex">\(\alpha_{H^1}=0\)</span></td>
-<td>无解：<span class="arithmatex">\(0\cdot u_1=0.85\)</span></td>
-<td>有限矩阵也报告不相容</td>
-</tr>
-<tr>
-<td>下方非共振</td>
-<td><span class="arithmatex">\(c=-12\)</span>，<span class="arithmatex">\(c\ne-\lambda_k\)</span></td>
-<td><span class="arithmatex">\(\delta=\pi^2-12&lt;0\)</span></td>
-<td>唯一，但 <span class="arithmatex">\(a\)</span> 不强制</td>
-<td><strong>本有限截断可算但无 Lax–Milgram 证书</strong></td>
-</tr>
-<tr>
-<td>截断陷阱</td>
-<td><span class="arithmatex">\(c=-4\pi^2\)</span>，<span class="arithmatex">\(N=1\)</span>，<span class="arithmatex">\(f_2=-0.2\)</span></td>
-<td>第 2 模态余量为 <span class="arithmatex">\(0\)</span></td>
-<td>全问题无解</td>
-<td><span class="arithmatex">\(N=1\)</span> 矩阵可算，却看不到第 2 模态相容性</td>
-</tr>
-</tbody>
-</table>
-<p>第一模态附近的三行最能区分概念：近共振时 <span class="arithmatex">\(u_1=f_1/(\pi^2+c)\)</span> 很大但仍唯一；恰在共振且 <span class="arithmatex">\(f_1=0\)</span> 时核方向使解不唯一；恰在共振且 <span class="arithmatex">\(f_1\ne0\)</span> 时 Fredholm 相容性失败而无解。<span class="arithmatex">\(c&lt;-\pi^2\)</span> 的非共振行则提醒：Lax–Milgram 失败不自动等于不可逆。</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: right;"><span class="arithmatex">\(k\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(\lambda_k\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(f_k\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(d_k=\lambda_k+c\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(u_k^{(N)}\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(u_k\)</span>（非共振时）</th>
-<th style="text-align: right;">有限模态残差</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;"><span class="arithmatex">\(\pi^2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.85\)</span> 或 <span class="arithmatex">\(0\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(\pi^2+c\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(f_1/d_1\)</span>（若 <span class="arithmatex">\(d_1\ne0\)</span>）</td>
-<td style="text-align: right;"><span class="arithmatex">\(f_1/d_1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
-</tr>
-<tr>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;"><span class="arithmatex">\(4\pi^2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(-0.2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(4\pi^2+c\)</span></td>
-<td style="text-align: right;">同上（若 <span class="arithmatex">\(2\le N\)</span>）</td>
-<td style="text-align: right;"><span class="arithmatex">\(f_2/d_2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
-</tr>
-<tr>
-<td style="text-align: right;"><span class="arithmatex">\(k&gt;N\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\((k\pi)^2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.8(-1)^{k+1}/k^2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\((k\pi)^2+c\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(f_k/d_k\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(-f_k\)</span></td>
-</tr>
-</tbody>
-</table>
-<p>共振相容时把自由系数选为 <span class="arithmatex">\(u_j=0\)</span>，再用上式计算规范代表的尾误差；共振不相容时，全解系数与能量误差写作“未定义”，而不是把失败的有限求解器输出当成解。</p>
-</div>
-<h3 id="3">3. 这个模型不能替代哪些一般定理？<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<ul>
-<li><strong>强制性与可逆性。</strong> Lax–Milgram 说“有界 + 强制 <span class="arithmatex">\(\Rightarrow\)</span> 对每个有界泛函存在唯一弱解并稳定依赖”；它是充分条件。强制性失败后，需用谱理论、Fredholm 理论或别的估计判断；失败本身不推出无解，也不推出非唯一。</li>
-<li><strong>Fredholm 相容性。</strong> 在共振点 <span class="arithmatex">\(c=-\lambda_j\)</span>，对称 Dirichlet 算子的核由相应特征函数张成；可解的必要条件是 <span class="arithmatex">\(f\)</span> 对核正交，即 <span class="arithmatex">\(f_j=0\)</span>。相容时解集沿核平移，多解；不相容时无解。这比“把分母设为零”更完整，因为它保留了右端条件。</li>
-<li><strong>内正则性与边界正则性。</strong> 内正则性只在 <span class="arithmatex">\(\Omega'\Subset\Omega\)</span> 上工作，不会自动穿过边界：在一致椭圆、系数足够光滑（例如 <span class="arithmatex">\(A\in C^{0,1}\)</span>）且 <span class="arithmatex">\(f\in L^2\)</span> 的典型假设下，得到 <span class="arithmatex">\(u\in H^2_{loc}(\Omega)\)</span>。若要全局 <span class="arithmatex">\(H^2(\Omega)\)</span>，常见充分条件还包括 <span class="arithmatex">\(\partial\Omega\)</span> 为 <span class="arithmatex">\(C^{1,1}\)</span>、系数有 Lipschitz 正则性以及相容的边界数据；仅 Lipschitz 域或角点可能产生奇性。L 形域的内角 <span class="arithmatex">\(3\pi/2\)</span> 给出 <span class="arithmatex">\(u\sim r^{2/3}\)</span> 的边界障碍，正是内正则性成立而全局 <span class="arithmatex">\(H^2\)</span> 失败的例子。</li>
-<li><strong>光滑度必须逐项说清。</strong> 域的边界、主部系数 <span class="arithmatex">\(A\)</span>、低阶系数 <span class="arithmatex">\(c\)</span>、右端 <span class="arithmatex">\(f\)</span> 和边界数据分别进入不同的正则性定理。<span class="arithmatex">\(C^\infty\)</span> 数据只有在算子系数与边界同样满足相应光滑要求时，才可逐级 bootstrap 到 <span class="arithmatex">\(C^\infty\)</span>；本实验的平滑区间和常系数只保证这个一维模态模型的精确代数。</li>
-</ul>
-<p>这组正弦计算是 Galerkin/谱账本与相容性诊断，不是对一般域上的 Lax–Milgram、Fredholm 或正则性定理的有限模态“证明”。</p>
-</section>
-<h2 id="1_1">1. 弱形式：把方程变成积分等式<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p>样板问题（Dirichlet）：</p>
-<div class="arithmatex">\[
--\Delta u = f \ \text{于 } \Omega, \qquad u = 0 \ \text{于 } \partial\Omega
-\]</div>
-<p>对测试函数 <span class="arithmatex">\(v \in H_0^1\)</span> 乘方程、分部积分（边界项被 <span class="arithmatex">\(v|_{\partial\Omega} = 0\)</span> 杀死）：</p>
-<div class="arithmatex">\[
-\int_\Omega \nabla u\cdot\nabla v\,dx = \int_\Omega f v\,dx \qquad \forall v \in H_0^1(\Omega)
-\]</div>
-<p><strong>定义（弱解）</strong>：满足上式的 <span class="arithmatex">\(u \in H_0^1\)</span>。这里要求可平方积分的<strong>一阶弱导数</strong>，而不预先要求经典解的 <span class="arithmatex">\(C^2\)</span> 光滑性；这是正则性要求的改变，不是“数量级”的比较。边界条件内化在空间 <span class="arithmatex">\(H_0^1\)</span> 里（pde2-02 迹定理的安排）。一般椭圆算子 <span class="arithmatex">\(-\mathrm{div}(A\nabla u) + cu\)</span> 同构，双线性形式 <span class="arithmatex">\(B[u,v] = \int A\nabla u\cdot\nabla v + cuv\)</span>。</p>
-<h2 id="2-laxmilgram">2. Lax–Milgram 定理（存在唯一性的发动机）<a class="headerlink" href="#2-laxmilgram" title="Permanent link"></a></h2>
-<p><strong>定理（Lax–Milgram）</strong> Hilbert 空间 <span class="arithmatex">\(H\)</span> 上的双线性形式 <span class="arithmatex">\(B\)</span> 若满足
-（i）<strong>有界</strong>：<span class="arithmatex">\(|B[u,v]| \leq \beta\|u\|\|v\|\)</span>；（ii）<strong>强制（coercive）</strong>：<span class="arithmatex">\(B[u,u] \geq \alpha\|u\|^2\)</span>，
-则对每个有界线性泛函 <span class="arithmatex">\(F\)</span>，存在唯一 <span class="arithmatex">\(u \in H\)</span> 使 <span class="arithmatex">\(B[u, v] = F(v)\ \forall v\)</span>，且 <span class="arithmatex">\(\|u\| \leq \frac{1}{\alpha}\|F\|\)</span>。</p>
-<p><strong>【证明】</strong> ① 固定 <span class="arithmatex">\(u\)</span>，<span class="arithmatex">\(v \mapsto B[u,v]\)</span> 有界线性 ⇒ Riesz 表示（泛函 II）给算子 <span class="arithmatex">\(Au\)</span>：<span class="arithmatex">\(B[u,v] = \langle Au, v\rangle\)</span>；<span class="arithmatex">\(A\)</span> 线性有界（(i)）。② 强制性给 <span class="arithmatex">\(\alpha\|u\|^2 \leq \langle Au, u\rangle \leq \|Au\|\|u\|\)</span> ⇒ <span class="arithmatex">\(\|Au\| \geq \alpha\|u\|\)</span>：<span class="arithmatex">\(A\)</span> 单射且值域闭（Cauchy 列拉回）。③ 值域稠密：若 <span class="arithmatex">\(w \perp \mathrm{ran}A\)</span> 则 <span class="arithmatex">\(\alpha\|w\|^2 \leq B[w,w] = \langle Aw, w\rangle = 0\)</span> ⇒ <span class="arithmatex">\(w = 0\)</span>。闭 + 稠 = 满射。④ <span class="arithmatex">\(F\)</span> 用 Riesz 表示成 <span class="arithmatex">\(\langle w_F, \cdot\rangle\)</span>，解 <span class="arithmatex">\(u = A^{-1}w_F\)</span>；唯一性与界由 ②。<span class="arithmatex">\(\blacksquare\)</span>
-（对称情形另有变分证明：<span class="arithmatex">\(u = \arg\min \frac12 B[v,v] - F(v)\)</span>——<strong>弱解 = 能量极小元</strong>，Dirichlet 原理的严格版；非对称时 L–M 正是"没有变分结构也能活"的价值所在。）</p>
-<p><strong>应用到样板</strong>：<span class="arithmatex">\(B[u,v] = \int\nabla u\cdot\nabla v\)</span> 在 <span class="arithmatex">\(H_0^1\)</span>（范数取 <span class="arithmatex">\(\|\nabla u\|_{L^2}\)</span>）上：有界 = Cauchy–Schwarz；<strong>强制 = Poincaré 不等式</strong>（pde2-02 §3 在此交货——<span class="arithmatex">\(B[u,u] = \|\nabla u\|^2 \gtrsim \|u\|_{H^1}^2\)</span>）⇒ <strong>对每个 <span class="arithmatex">\(f \in L^2\)</span>（甚至 <span class="arithmatex">\(H^{-1}\)</span>），弱解存在唯一且 <span class="arithmatex">\(\|u\|_{H_0^1} \leq C\|f\|\)</span></strong>——存在、唯一、稳定（连续依赖），Hadamard 适定性三条一次交齐（本科 pde-01 的悬念闭环）。</p>
-<h2 id="3_1">3. 能量估计与正则性：赎回光滑<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p>弱解只有一阶导数——它"配得上"更多吗？</p>
-<p><strong>定理（内正则性）【骨架】</strong> 在主部系数一致椭圆且具有足够局部正则性（例如 <span class="arithmatex">\(A\in C^{0,1}\)</span>）时，<span class="arithmatex">\(f \in L^2 \Rightarrow u \in H^2_{loc}\)</span>，且 <span class="arithmatex">\(\|u\|_{H^2_{loc}} \leq C(\|f\|_{L^2} + \|u\|_{L^2})\)</span>；没有系数假设不能把这句话裸用。
-<em>思路（差商法，Nirenberg）</em>：用平移差商 <span class="arithmatex">\(D^h u = \frac{u(x+he) - u(x)}{h}\)</span> 当测试函数的原料代入弱形式，能量估计给 <span class="arithmatex">\(\|\nabla D^hu\|_{L^2}\)</span> 关于 <span class="arithmatex">\(h\)</span> 一致有界 ⇒ 差商弱收敛的极限即二阶弱导数（"差商有界 ⇒ 导数存在"的 <span class="arithmatex">\(L^2\)</span> 版）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>自举（bootstrap）</strong>：在系数、域边界和边界数据也有相应光滑度时，<span class="arithmatex">\(u \in H^2\)</span> 使方程可逐项再差商 ⇒ <span class="arithmatex">\(f \in H^k \Rightarrow u \in H^{k+2}_{loc}\)</span>；配合 Sobolev 嵌入（pde2-02：<span class="arithmatex">\(H^k\)</span>，<span class="arithmatex">\(k\)</span> 大 ⇒ 连续可微）：<strong><span class="arithmatex">\(f \in C^\infty\)</span> 只在这些附加假设同时成立时才推出 <span class="arithmatex">\(u \in C^\infty\)</span></strong>——椭圆算子把数据的光滑性"加二传递"。边界正则性还需平坦化与全局边界估计，粗糙域/角点不能直接套用内正则性。</p>
-<p><strong>谱理论闭环【骨架】</strong>：对对称、强制的 Dirichlet 形式（例如 <span class="arithmatex">\(c\ge0\)</span>），令椭圆算子为 <span class="arithmatex">\(L\)</span>，解算子 <span class="arithmatex">\(T=L^{-1}:f\mapsto u\)</span> 是 <span class="arithmatex">\(L^2\to H_0^1\hookrightarrow L^2\)</span> 的复合——<strong>Rellich 紧嵌入（pde2-02）使 <span class="arithmatex">\(T\)</span> 紧</strong>且自伴正。紧自伴谱定理给出</p>
-<div class="arithmatex">\[
-T\phi_j=\mu_j\phi_j,\qquad \mu_1\ge\mu_2\ge\cdots&gt;0,\qquad \mu_j\to0,
-\]</div>
-<p>以及 <span class="arithmatex">\(L^2\)</span> 正交基 <span class="arithmatex">\(\{\phi_j\}\)</span>。同一组函数满足原椭圆算子</p>
-<div class="arithmatex">\[
-L\phi_j=\lambda_j\phi_j,\qquad \lambda_j=\mu_j^{-1}\to\infty.
-\]</div>
-<p>趋零的是<strong>紧解算子</strong>的特征值，趋无穷的是通常无界的<strong>微分算子</strong>特征值，二者不能共用同一个 <span class="arithmatex">\(\lambda_j\)</span> 句子。<span class="arithmatex">\(c\)</span> 变号或强制性失败时，必须改用相应的自伴算子/Fredholm 框架，不能无条件沿用“正解算子”措辞。<strong>本科 pde-01 分离变量法的合法性证明书</strong>在此正式签发（那页引用的 Sturm–Liouville 理论即本段的一维情形）。</p>
-<h2 id="4-pde">4. 现代 PDE 三页资产盘点<a class="headerlink" href="#4-pde" title="Permanent link"></a></h2>
-<table>
-<thead>
-<tr>
-<th>资产</th>
-<th>一句话</th>
-<th>呼应</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>分布/弱导数</td>
-<td>求导转嫁给测试函数；δ 有户口</td>
-<td>ReLU、基本解</td>
-</tr>
-<tr>
-<td>Sobolev 嵌入</td>
-<td>导数可积 ⇄ 函数良好，按 <span class="arithmatex">\(p\)</span> vs <span class="arithmatex">\(n\)</span> 定价</td>
-<td>变分法、逼近论</td>
-</tr>
-<tr>
-<td>Poincaré/Rellich</td>
-<td>钉边界 ⇒ 导数控制一切；紧性可购买</td>
-<td>强制性、谱离散</td>
-</tr>
-<tr>
-<td>Lax–Milgram + 正则性</td>
-<td>弱空间里赢存在性，自举赎回光滑</td>
-<td>分离变量的执照、FEM</td>
-</tr>
-</tbody>
-</table>
-<p><strong>工程出口：有限元与 Céa 引理。</strong> 取有限维相容子空间 <span class="arithmatex">\(V_h\subset V=H_0^1\)</span>，在其中解同一个弱形式。若 <span class="arithmatex">\(B\)</span> 在 <span class="arithmatex">\(V\)</span> 上有界（常数 <span class="arithmatex">\(\beta\)</span>）且强制（常数 <span class="arithmatex">\(\alpha&gt;0\)</span>），则</p>
-<div class="arithmatex">\[
-\|u-u_h\|_V\le\frac{\beta}{\alpha}\inf_{v_h\in V_h}\|u-v_h\|_V.
-\]</div>
-<p>这是误差的<strong>上界</strong>。令 <span class="arithmatex">\(e=u-u_h\)</span>，Galerkin 正交性 <span class="arithmatex">\(B[e,w_h]=0\)</span> 给出
-<span class="arithmatex">\(\alpha\|e\|_V^2\le B[e,e]=B[e,u-v_h]\le\beta\|e\|_V\|u-v_h\|_V\)</span>；对 <span class="arithmatex">\(v_h\)</span> 取下确界即得结论。当 <span class="arithmatex">\(B\)</span> 还对称时，它定义能量范数 <span class="arithmatex">\(\|w\|_B=\sqrt{B[w,w]}\)</span>，此时才有精确最佳逼近关系 <span class="arithmatex">\(\|u-u_h\|_B=\min_{v_h\in V_h}\|u-v_h\|_B\)</span>。一般范数下的准最佳上界与能量范数下的等号不能混用。可核对 <a href="https://finite-element.github.io/L5_convergence.html">Galerkin 收敛讲义</a>。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（L–M 条件检查）</strong> <span class="arithmatex">\(-\Delta u + cu = f\)</span>，<span class="arithmatex">\(c(x) \geq 0\)</span>：<span class="arithmatex">\(B[u,u] = \|\nabla u\|^2 + \int cu^2 \geq \|\nabla u\|^2\)</span>——强制性照旧（<span class="arithmatex">\(c \geq 0\)</span> 白送）。若常数 <span class="arithmatex">\(c&lt; -\lambda_1\)</span>，强制性破产，但这本身不等于共振或不可逆；在 <span class="arithmatex">\(c\ne-\lambda_k\)</span> 的谱点之外，算子仍可能唯一可逆。恰在 <span class="arithmatex">\(c=-\lambda_k\)</span> 时，核出现，解是否存在由 <span class="arithmatex">\(f\)</span> 对该核的正交条件决定：相容则多解，不相容则无解（Fredholm 择一【引用】），这是本科 ode-02 共振现象的椭圆版。</p>
-<p><strong>例 2（弱解亲手验证）</strong> 一维 <span class="arithmatex">\(-u'' = 1\)</span> 于 <span class="arithmatex">\((0,1)\)</span>、零边界：<span class="arithmatex">\(u = \frac{x(1-x)}{2}\)</span>；验证弱形式 <span class="arithmatex">\(\int u'v' = \int v\)</span> 对 <span class="arithmatex">\(v \in C_c^\infty\)</span>（分部积分）——最小的完整弱解实例，值得写全。</p>
-<p><strong>例 3（正则性的边界失效）</strong> L 形域（内角 <span class="arithmatex">\(\frac{3\pi}{2}\)</span>）上 <span class="arithmatex">\(\Delta u = f\)</span> 光滑数据：角点处 <span class="arithmatex">\(u \sim r^{2/3}\)</span>——<strong>不在 <span class="arithmatex">\(H^2\)</span></strong>：内正则性 ✓ 而边界角点破坏全局正则性（FEM 在角点要加密网格的数学原因）。"正则性理论的边界条件"本身就是工程知识。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>概率与分析线九门全部完卷（测度概率/高维概率/随机分析/现代 PDE）。接下来：统计与学习线——渐近统计、统计学习理论、MDP。</em></p>
+<p>平角 <span class="arithmatex">\(\Theta=\pi\)</span> 时，<span class="arithmatex">\(\nu=1\)</span> 且 <span class="arithmatex">\(w=r\sin\varphi=y\)</span>，Hessian <strong>恒为零</strong>。必须先处理这个退化系数，不能把分母为零机械解释成二阶积分对数发散。</p>
+<p>数值实现用 <span class="arithmatex">\(\Theta/\pi=a\)</span>，将 <span class="arithmatex">\(\nu-1\)</span> 写成 <span class="arithmatex">\((1-a)/a\)</span>，再用 expm1 计算接近零的指数差；相邻机器角度也不会因相近数相减而产生错误量级。图的纵轴为 <span class="arithmatex">\(\log_{10}(1+\text{积分})\)</span>，既保留零值，也能显示跨尺度增长。<span class="arithmatex">\(\rho\)</span> 是观察内半径，不是另加的一条 Dirichlet 边界。</p>
+<h2 id="9">9 · 四道迁移练习<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<h3 id="1_1">练习1：一行有限方程能遗漏怎样的障碍？<a class="headerlink" href="#1_1" title="Permanent link"></a></h3>
+<p>取 μ=−4、N=1。分别令第二强迫系数非零与为零；相容时指定第二核系数为1。比较全问题、有限系统、梯度误差与能量误差。</p>
+<p><details class="answer" markdown="1"><summary>展开完整答案：核方向是否进入测试空间</summary></p>
+<p>第一行乘子为 <span class="arithmatex">\(-3\pi^2\)</span>，所以有限系统可解。完整问题还有第二行 <span class="arithmatex">\(0\cdot u_2=f_2\)</span>：若 <span class="arithmatex">\(f_2\ne0\)</span>，全问题无解，即使第一行矩阵残差为零也无济于事。</p>
+<p>若 <span class="arithmatex">\(f_2=0\)</span>，全问题多解。指定 <span class="arithmatex">\(u_2=1\)</span> 后，<span class="arithmatex">\(N=1\)</span> 的有限解仍没有第二项，因此误差至少含 <span class="arithmatex">\(\phi_2\)</span>，其梯度平方为 <span class="arithmatex">\(\lambda_2=4\pi^2\)</span>。这一项对双线性型误差的贡献却是 <span class="arithmatex">\(d_2\cdot1^2=0\)</span>。因此失去正定性时，双线性型为零不能推出误差函数为零。若另有高频强迫，还须加上相应尾项；不能把这两个量误称为同一种误差。
+</details></p>
+<h3 id="2">练习2：一个帽函数与两个范数中的收敛速度<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>对 −u″=1、零端点条件，用K个均匀线性单元。手算K=2的节点值与两种误差，再解释为什么加倍单元数时，梯度误差减半、函数误差变成四分之一。</p>
+<details class="answer">
+<summary>展开完整答案：从装配到整个区间积分</summary>
+<p><span class="arithmatex">\(K=2\)</span> 时只有中间节点未知，刚度为 <span class="arithmatex">\(2+2=4\)</span>，载荷为 <span class="arithmatex">\(1/4+1/4=1/2\)</span>，故 <span class="arithmatex">\(U_1=1/8\)</span>。每个单元长 <span class="arithmatex">\(h=1/2\)</span>，梯度平方误差总和为 <span class="arithmatex">\(2h^3/12=1/48\)</span>，函数平方误差为 <span class="arithmatex">\(2h^5/120=1/1920\)</span>；范数分别开平方。</p>
+<p>一般均匀网格有K项，每项分别为 <span class="arithmatex">\(h^3/12\)</span> 与 <span class="arithmatex">\(h^5/120\)</span>，且 <span class="arithmatex">\(Kh=1\)</span>，所以范数为 <span class="arithmatex">\(h/\sqrt{12}\)</span> 与 <span class="arithmatex">\(h^2/\sqrt{120}\)</span>。加倍K使h减半，分别得到二倍与四倍的改善。结论来自这个精确解的误差积分，不是看到双对数图上一条直线就断言所有问题同阶。</p>
+</details>
+<h3 id="3_1">练习3：证明梯度误差的高频剩余界<a class="headerlink" href="#3_1" title="Permanent link"></a></h3>
+<p>对给定的强迫尾系数，推导第4节的梯度平方尾界；解释为什么“算到很大M”仍需要这一项。</p>
+<details class="answer">
+<summary>展开完整答案：每个系数先平方再求和</summary>
+<p>高频系数为 <span class="arithmatex">\(u_k=\tau(-1)^{k+1}/(\pi^2k^4r_k)\)</span>，乘 <span class="arithmatex">\(\lambda_k=\pi^2k^2\)</span> 后，
+<span class="arithmatex">\(\lambda_k|u_k|^2=\tau^2/(\pi^2k^6r_k^2)\)</span>。在 <span class="arithmatex">\(k&gt;M\)</span> 上，<span class="arithmatex">\(0&lt;r_-\le r_k\le r_+\)</span>，因此分别用 <span class="arithmatex">\(r_+^2\)</span>、<span class="arithmatex">\(r_-^2\)</span> 控制分母，再对 <span class="arithmatex">\(k^{-6}\)</span> 作积分比较，即得两侧的五次幂界。</p>
+<p>M变大使界变小，但有限和本身始终没有包含所有高频项。表中应分别保留已算部分与剩余项界，最后才合成范数。若全问题不相容无解，这个“全解误差”从一开始就未定义；尾界不能替一个不存在的解补出定义。
+</details></p>
+<h3 id="4_1">练习4：凹角反例为何不违反内部正则性？<a class="headerlink" href="#4_1" title="Permanent link"></a></h3>
+<p>检查开口3π/2的局部模式、径向截断后的右端，以及开口π时的特殊结论。为什么不能只写“解像r的某个幂”？</p>
+<details class="answer">
+<summary>展开完整答案：角向边界、径向截断与导数积分</summary>
+<p>开口3π/2对应 <span class="arithmatex">\(\nu=2/3\)</span>。角向因子 <span class="arithmatex">\(\sin(2\varphi/3)\)</span> 保证两条直边为零，径向截断保证外圆弧也为零。右端只含截断的导数，支集位于远离角点的环带，所以数据光滑。角点的一阶能量为常数乘 <span class="arithmatex">\(\int_0 r^{1/3}\,dr\)</span>，有限；二阶能量为常数乘 <span class="arithmatex">\(\int_0 r^{-5/3}\,dr\)</span>，发散。</p>
+<p>任意严格位于域内的紧子域都与角点有正距离，因此解在其中光滑，没有违反内部正则性。失败发生在趋近边界角点时。</p>
+<p>若开口π，则ν=1，局部模式为y，所有二阶导数为零。只看径向幂而漏掉角向因子，会遗漏边界条件；只看积分分母而漏掉 <span class="arithmatex">\((\nu-1)^2\)</span> 系数，会把线性特殊值错判为发散。</p>
+</details>
+<h2 id="10">10 · 参数范围与后续方向<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>正弦实验限制 −16≤μ≤4、1≤N≤32、64≤M≤512；阶数必须为整数，归零模态为0–4。三个幅度允许0或绝对值在10⁻¹⁰⁰–2之间，以保留平方积分的数值量级。有限元单元数2–64、网格幂次1–4；扇形角与π的比值0.5–1.75，观察内半径10⁻⁶–1。隐藏模式的参数不参与当前计算，无效输入会明确提示并重新锁定结果。</p>
+<p>这三页已经把分布定义、Sobolev 控制与椭圆求解连接起来，但并未穷尽 PDE。下一步可以沿 <a href="bridge-18-heat-distributions.html">热核正则化与随机分布</a>研究低正则性右端，或沿 <a href="frontier-02-singular-spde.html">奇异 SPDE</a>追问非线性乘积何时需要新的定义。使用更前沿的理论之前，仍要先核对同样几件事：测试空间、边界条件、可解性、误差与极限。</p>
+</details>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="pde2-02-sobolev.html"><span class="pager-label">上一页</span>现代 PDE II · Sobolev 空间</a>
