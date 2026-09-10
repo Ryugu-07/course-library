@@ -68,27 +68,8 @@ def ap04_massradius():
 
 
 def ap05_disk():
-    fig, (a1, a2) = plt.subplots(1, 2, figsize=(9.8, 4.0))
-    r = np.logspace(0, 3, 400)
-    T = r**(-0.75)*(1-r**(-0.5))**0.25
-    T = np.nan_to_num(T)
-    a1.loglog(r, T/np.nanmax(T), color=ACC, lw=2.6)
-    a1.loglog(r[r > 10], 0.42*r[r > 10]**(-0.75), "--", color=RED, lw=1.8,
-              label=r"$T\propto r^{-3/4}$")
-    a1.set_xlabel(r"radius  $r/r_{\rm in}$"); a1.set_ylabel("temperature (norm.)")
-    a1.set_title("Thin-disc temperature profile", color=INK, fontsize=11.5)
-    a1.legend(frameon=False, fontsize=10)
-    nu = np.logspace(-2.5, 1.5, 500)
-    F = nu**(1/3)*np.exp(-nu/2.2)*(1-np.exp(-(nu/0.02)**2))
-    a2.loglog(nu, F/np.nanmax(F), color=ACC, lw=2.8)
-    a2.loglog(nu[(nu > .06) & (nu < .8)], 1.15*nu[(nu > .06) & (nu < .8)]**(1/3),
-              "--", color=RED, lw=1.8, label=r"$F_\nu\propto\nu^{1/3}$")
-    a2.set_xlabel(r"frequency  $\nu$ (arb.)"); a2.set_ylabel(r"$F_\nu$ (norm.)")
-    a2.set_title("Multi-colour blackbody spectrum", color=INK, fontsize=11.5)
-    a2.legend(frameon=False, fontsize=10)
-    a2.set_ylim(1e-3, 2)
-    fig.tight_layout()
-    save(fig, "ap-05-accretion-disk")
+    """Preserve the physical Planck-integral figure; rebuild with tools/build_accretion_figure.py."""
+    _preserve_reviewed_svg("ap-05-accretion-disk")
 
 
 def ap06_rotation():
