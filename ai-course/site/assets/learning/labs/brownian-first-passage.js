@@ -33,6 +33,9 @@
 
   var PATH_SEEDS = [20260722, 31415926, 27182818];
 
+  PRESETS.push({id:"rare",label:"小概率：a=3, T=0.05",a:3,T:.05});
+  PRESETS.forEach(Object.freeze);Object.freeze(PRESETS);Object.freeze(PATH_SEEDS);
+
   var STYLE_TEXT = [
     ".bfp-lab{--bfp-blue:var(--cl-blue,#315f9d);--bfp-gold:var(--cl-gold,#9b6a12);--bfp-green:var(--cl-green,#39734d);--bfp-red:var(--cl-red,#b64335);--bfp-soft:var(--fg-soft,#6f6a60);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere;}",
     "html[data-theme=\"dark\"] .bfp-lab{--bfp-blue:#83c8ff;--bfp-gold:#e2b458;--bfp-green:#72bd8b;--bfp-red:#f08c7d;--bfp-soft:#b8b2a7;}",
@@ -55,6 +58,8 @@
     "@media(prefers-reduced-motion:reduce){.bfp-lab *{animation:none!important;transition:none!important;}}"
   ].join("\n");
 
+  STYLE_TEXT += "\n.bfp-lab .bfp-layout{grid-template-columns:minmax(0,1fr)}.bfp-lab .bfp-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.bfp-lab .bfp-stage-frame{overflow-x:auto}.bfp-lab .bfp-svg{width:820px;min-width:820px;max-width:none}.bfp-lab table{display:table!important;overflow:visible!important;max-width:none!important;min-width:900px}.bfp-lab .bfp-stage-frame:focus-visible,.bfp-lab .bfp-ledger:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}@media(max-width:600px){.bfp-lab .bfp-controls{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){html:has(.bfp-lab),.bfp-lab *{scroll-behavior:auto!important}}";
+
   function finite(value) {
     return typeof value === "number" && Number.isFinite(value);
   }
@@ -69,29 +74,48 @@
     return T;
   }
 
-  function erf(value) {
-    var sign = value < 0 ? -1 : 1;
-    var x = Math.abs(value);
-    var p = 0.3275911;
-    var a1 = 0.254829592;
-    var a2 = -0.284496736;
-    var a3 = 1.421413741;
-    var a4 = -1.453152027;
-    var a5 = 1.061405429;
-    var t = 1 / (1 + p * x);
-    var polynomial = (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t;
-    return sign * (1 - polynomial * Math.exp(-x * x));
+  function normalLogTail(value) {
+    if(typeof value!=="number"||Number.isNaN(value))throw new TypeError("normal argument must be a number");
+    if(value===Infinity)return -Infinity;
+    if(value===-Infinity)return 0;
+    if(value<0)return Math.log1p(-Math.exp(normalLogTail(-value)));
+    if(value===0)return -Math.LN2;
+    var z=value/SQRT_TWO, x=value<1e154?value*value/2:z*z;
+    if(x===Infinity)return -Infinity;
+    if(x===0)return -Math.LN2;
+    var logPref=-x+.5*Math.log(x)-.5*Math.log(Math.PI);
+    if(x<1.5){
+      var ap=.5,term=2,sum=term;
+      for(var n=1;n<=1000;n++){
+        ap+=1;term*=x/ap;sum+=term;
+        if(Math.abs(term)<=Math.abs(sum)*Number.EPSILON){
+          var lower=Math.exp(logPref)*sum;
+          return Math.log1p(-lower)-Math.LN2;
+        }
+      }
+    }else{
+      // Continued fraction for Q(1/2,x); compute its logarithm before exponentiating.
+      var b=x+.5,c=1e300,d=1/b,h=d;
+      for(var i=1;i<=10000;i++){
+        var an=-i*(i-.5);b+=2;
+        d=an*d+b;if(Math.abs(d)<1e-300)d=1e-300;
+        c=b+an/c;if(Math.abs(c)<1e-300)c=1e-300;
+        d=1/d;var change=d*c;h*=change;
+        if(Math.abs(change-1)<=4*Number.EPSILON)return logPref+Math.log(h)-Math.LN2;
+      }
+    }
+    throw new Error("normal tail iteration did not converge");
   }
 
+  function normalTail(value) { return Math.exp(normalLogTail(value)); }
   function normalCdf(value) {
-    if (!finite(value)) return value === Infinity ? 1 : 0;
-    return 0.5 * (1 + erf(value / SQRT_TWO));
+    if(typeof value!=="number"||Number.isNaN(value))throw new TypeError("normal argument must be a number");
+    return normalTail(-value);
   }
-
-  function normalTail(value) {
-    if (value < 0) return 1 - normalTail(-value);
-    if (value > 8) return 0;
-    return 1 - normalCdf(value);
+  function erf(value) {
+    if(typeof value!=="number"||Number.isNaN(value))throw new TypeError("erf argument must be a number");
+    if(value===0)return 0;
+    return (value<0?-1:1)*(1-2*normalTail(Math.abs(value)*SQRT_TWO));
   }
 
   function endpointExceedance(a, T) {
@@ -106,19 +130,23 @@
     validateTime(T);
     if (a <= 0) return 1;
     if (T === 0) return 0;
-    return 2 * normalTail(a / Math.sqrt(T));
+    return Math.exp(Math.LN2 + normalLogTail(a / Math.sqrt(T)));
   }
 
   function firstPassageCdf(a, T) {
     return maximumExceedance(a, T);
   }
 
-  function firstPassageDensity(a, t) {
-    validateLevel(a);
-    validateTime(t);
-    if (a <= 0) return NaN;
-    if (t === 0) return 0;
-    return (a / (SQRT_TWO_PI * Math.pow(t, 1.5))) * Math.exp(-(a * a) / (2 * t));
+  function firstPassageLogDensity(a,t) {
+    validateLevel(a);validateTime(t);
+    if(a<=0)return null;
+    if(t===0)return -Infinity;
+    var z=a/Math.sqrt(t)/SQRT_TWO;
+    return Math.log(a)-Math.log(SQRT_TWO_PI)-1.5*Math.log(t)-z*z;
+  }
+  function firstPassageDensity(a,t) {
+    var log=firstPassageLogDensity(a,t);
+    return log===null?null:Math.exp(log);
   }
 
   function analyze(a, T) {
@@ -126,7 +154,7 @@
     validateTime(T);
     var endpoint = endpointExceedance(a, T);
     var maximum = maximumExceedance(a, T);
-    var density = a > 0 && T > 0 ? firstPassageDensity(a, T) : null;
+    var density = firstPassageDensity(a,T);
     return {
       a: a,
       T: T,
@@ -135,6 +163,9 @@
       twiceEndpoint: 2 * endpoint,
       firstPassageCdf: firstPassageCdf(a, T),
       firstPassageDensity: density,
+      logEndpoint: T===0 ? (a<=0?0:-Infinity) : normalLogTail(a/Math.sqrt(T)),
+      logMaximum: a<=0?0:T===0?-Infinity:Math.LN2+normalLogTail(a/Math.sqrt(T)),
+      logDensity: firstPassageLogDensity(a,T),
       reflectionDifference: maximum - 2 * endpoint,
       reflectionDomain: a > 0 && T > 0,
       densityStatus: a <= 0 ? "atom-at-zero" : T === 0 ? "right-limit-at-zero" : "continuous"
@@ -142,19 +173,29 @@
   }
 
   function makeRng(seed) {
-    var state = seed >>> 0;
+    if(!Number.isInteger(seed)||seed<0||seed>4294967295)throw new RangeError("seed must be uint32");
+    var state = seed;
     return function () {
       state = (state + 0x6D2B79F5) | 0;
       var value = Math.imul(state ^ (state >>> 15), 1 | state);
       value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value;
-      return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+      return (((value ^ (value >>> 14)) >>> 0)+.5) / 4294967296;
     };
   }
 
   function gaussian(rng) {
-    var u = 0;
-    while (u === 0) u = rng();
-    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rng());
+    if(typeof rng!=="function")throw new TypeError("rng must be a function");
+    var u=rng(),v=rng();
+    if(!finite(u)||!finite(v)||u<=0||u>=1||v<=0||v>=1)throw new RangeError("rng samples must be in (0,1)");
+    return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+  }
+
+  function bridgeCrossing(a,x,y,dt) {
+    validateLevel(a);validateLevel(x);validateLevel(y);validateTime(dt);
+    if(x>=a||y>=a)return 1;
+    if(dt===0)return 0;
+    var scale=Math.sqrt(dt);
+    return Math.exp(-2*((a-x)/scale)*((a-y)/scale));
   }
 
   function samplePath(seed, T, steps, a) {
@@ -165,15 +206,22 @@
     validateLevel(a);
     var rng = makeRng(seed);
     var dt = T / steps;
+    if(T>0&&dt===0)throw new RangeError("time grid is below floating-point resolution");
+    var stepScale = Math.sqrt(T)/Math.sqrt(steps);
     var path = [{ t: 0, value: 0 }];
     var value = 0;
-    var firstDiscreteIndex = null;
+    var firstDiscreteIndex = a<=0?0:null;
     for (var i = 1; i <= steps; i += 1) {
-      value += Math.sqrt(dt) * gaussian(rng);
-      path.push({ t: i * dt, value: value });
+      value += stepScale * gaussian(rng);
+      var time=T*(i/steps);
+      if(T>0&&!(time>path[path.length-1].t))throw new RangeError("time grid does not advance in floating point");
+      path.push({ t: time, value: value });
       if (firstDiscreteIndex === null && value >= a) firstDiscreteIndex = i;
     }
+    var logNoCross=0;
+    if(firstDiscreteIndex===null)for(var j=1;j<path.length;j++)logNoCross+=Math.log1p(-bridgeCrossing(a,path[j-1].value,path[j].value,dt));
     return {
+      bridgeCrossing: firstDiscreteIndex!==null?1:-Math.expm1(logNoCross),
       seed: seed,
       T: T,
       steps: steps,
@@ -238,10 +286,13 @@
 
   function formatNumber(api, value, digits) {
     if (value === null || value === undefined || Number.isNaN(value)) return "—";
-    if (!finite(value)) return value === Infinity ? "∞" : "—";
-    if (api && typeof api.format === "function") return api.format(value, digits);
+    if (!finite(value)) return value === Infinity ? "超出浮点范围" : "—";
     var places = digits === undefined ? 4 : digits;
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
+    if(value===0)return "0";
+    if(Math.abs(value)<.0001||Math.abs(value)>=1e6)return value.toExponential(5);
+    var text=value.toFixed(places);
+    return text.indexOf(".")<0?text:text.replace(/0+$/, "").replace(/\.$/, "");
+
   }
 
   function metricNode(api, doc, label, value) {
@@ -258,6 +309,8 @@
   }
 
   function drawChart(api, doc, a, T, prefix) {
+    validateLevel(a);validateTime(T);
+    if(a < -1 || a > 3 || T > 2)throw new RangeError("chart supports a in [-1,3], T in [0,2]");
     var samples = PATH_SEEDS.map(function (seed) { return samplePath(seed, T, 128, a); });
     var values = [0, a];
     samples.forEach(function (sample) {
@@ -269,10 +322,10 @@
     var pad = Math.max(0.2, 0.12 * (yMax - yMin));
     yMin -= pad;
     yMax += pad;
-    var left = 48;
-    var top = 22;
-    var width = 700;
-    var height = 238;
+    var left = 80;
+    var top = 40;
+    var width = 690;
+    var height = 280;
     function xMap(t) { return left + (T === 0 ? 0 : (t / T) * width); }
     function yMap(value) { return top + (yMax - value) / (yMax - yMin) * height; }
     var children = [
@@ -283,21 +336,30 @@
       svgElement(api, doc, "line", { className: "bfp-zero", x1: left, y1: yMap(0), x2: left + width, y2: yMap(0) }),
       svgElement(api, doc, "line", { className: "bfp-threshold", x1: left, y1: yMap(a), x2: left + width, y2: yMap(a) }),
       svgElement(api, doc, "text", { className: "bfp-chart-label", x: left + 7, y: Math.max(top + 14, yMap(a) - 7) }, "a=" + formatNumber(api, a, 2)),
-      svgElement(api, doc, "text", { className: "bfp-label", x: left + width - 3, y: top + height + 19, "text-anchor": "end" }, "t=" + formatNumber(api, T, 2)),
-      svgElement(api, doc, "text", { className: "bfp-label", x: left - 7, y: top + 4, "text-anchor": "end" }, "B_t")
+      svgElement(api, doc, "text", { className: "bfp-label", x: left, y: top + height + 46 }, "观察时长 T=" + formatNumber(api, T, 2)),
+      svgElement(api, doc, "text", { className: "bfp-label", x: left - 7, y: top - 12, "text-anchor": "end" }, "B_t")
     ];
+    for(var tick=0;tick<=4;tick++){
+      var y=yMin+(yMax-yMin)*tick/4;
+      children.push(svgElement(api,doc,"line",{className:"bfp-grid",x1:left,y1:yMap(y),x2:left+width,y2:yMap(y)}));
+      children.push(svgElement(api,doc,"text",{x:left-9,y:yMap(y)+4,"text-anchor":"end","font-size":12},formatNumber(null,y,2)));
+      if(T>0)children.push(svgElement(api,doc,"text",{x:left+width*tick/4,y:top+height+21,"text-anchor":"middle","font-size":12},formatNumber(null,T*tick/4,2)));
+    }
     samples.forEach(function (sample, index) {
       var d = sample.path.map(function (point, pointIndex) {
-        return (pointIndex === 0 ? "M" : "L") + " " + xMap(point.t).toFixed(2) + " " + yMap(point.value).toFixed(2);
+        return (pointIndex === 0 ? "M" : "L") + " " + xMap(point.t) + " " + yMap(point.value);
       }).join(" ");
-      children.push(svgElement(api, doc, "path", { className: "bfp-path", d: d, "aria-label": "seed " + sample.seed }));
+      var dash=["","8 4","2 4"][index];
+      children.push(svgElement(api, doc, "path", { className: "bfp-path", d: d, "stroke-dasharray":dash, "aria-label": "seed " + sample.seed, "data-seed":sample.seed }));
       var endpointClass = sample.endpoint >= a ? "bfp-endpoint bfp-crossed" : "bfp-endpoint";
-      children.push(svgElement(api, doc, "circle", { className: endpointClass, cx: xMap(T), cy: yMap(sample.endpoint), r: 4.2 }));
-      children.push(svgElement(api, doc, "text", { className: "bfp-label", x: xMap(T) - 5, y: yMap(sample.endpoint) - 7 - index * 11, "text-anchor": "end" }, String(index + 1)));
+      children.push(svgElement(api, doc, "circle", { className: endpointClass, cx: xMap(T), cy: yMap(sample.endpoint), r: 4.2, "data-seed":sample.seed, "data-value":sample.endpoint }));
+      children.push(svgElement(api, doc, "text", { className: "bfp-label", x: left+width-8, y: top+height+44+index*18, "text-anchor": "end" }, "路径 "+(index+1)+" · seed "+sample.seed));
+      children.push(svgElement(api,doc,"line",{className:"bfp-path",x1:555,x2:625,y1:top+height+40+index*18,y2:top+height+40+index*18,"stroke-dasharray":dash}));
     });
     return svgElement(api, doc, "svg", {
       className: "bfp-svg",
-      viewBox: "0 0 760 285",
+      viewBox: "0 0 820 425",
+      "data-y-min":yMin,"data-y-max":yMax,
       role: "img",
       "aria-labelledby": prefix + "-chart-title " + prefix + "-chart-desc"
     }, children);
@@ -360,7 +422,7 @@
         var button = element(api, doc, "button", { type: "button", "aria-pressed": "false" }, choice.label);
         button.addEventListener("click", function () {
           state.predictions[question.key] = choice.value;
-          renderPrediction();
+          state.revealed=false;render();renderPrediction();
         });
         choice.button = button;
         row.appendChild(button);
@@ -396,25 +458,25 @@
       presetGrid.appendChild(button);
     });
 
-    var aOutput = element(api, doc, "output", {}, formatNumber(api, state.a, 2));
-    var aInput = element(api, doc, "input", { type: "range", min: "-1", max: "3", step: "0.1", value: String(state.a), "aria-label": "阈值 a" });
-    var tOutput = element(api, doc, "output", {}, formatNumber(api, state.T, 2));
-    var tInput = element(api, doc, "input", { type: "range", min: "0", max: "2", step: "0.05", value: String(state.T), "aria-label": "时间 T" });
+    var aOutput = element(api, doc, "output", {for:prefix+"-a"}, formatNumber(api, state.a, 2));
+    var aInput = element(api, doc, "input", { id:prefix+"-a", type: "range", min: "-1", max: "3", step: "0.1", value: String(state.a), "aria-label": "阈值 a" });
+    var tOutput = element(api, doc, "output", {for:prefix+"-T"}, formatNumber(api, state.T, 2));
+    var tInput = element(api, doc, "input", { id:prefix+"-T", type: "range", min: "0", max: "2", step: "0.05", value: String(state.T), "aria-label": "时间 T" });
     aInput.addEventListener("input", function () { state.a = Number(aInput.value); render(); });
     tInput.addEventListener("input", function () { state.T = Number(tInput.value); render(); });
     var controls = element(api, doc, "section", { className: "bfp-controls", "aria-labelledby": prefix + "-controls-title" }, [
       element(api, doc, "h4", { id: prefix + "-controls-title" }, "参数"),
       presetGrid,
-      element(api, doc, "div", { className: "bfp-control" }, [element(api, doc, "label", {}, ["阈值 a = ", aOutput]), aInput]),
-      element(api, doc, "div", { className: "bfp-control" }, [element(api, doc, "label", {}, ["观察时间 T = ", tOutput]), tInput]),
-      element(api, doc, "p", { className: "bfp-note" }, "同一组固定 seed 只重画离散路径；精确概率由解析公式计算，有限路径不承担定理证明。")
+      element(api, doc, "div", { className: "bfp-control" }, [element(api, doc, "label", {htmlFor:prefix+"-a"}, ["阈值 a = ", aOutput]), aInput]),
+      element(api, doc, "div", { className: "bfp-control" }, [element(api, doc, "label", {htmlFor:prefix+"-T"}, ["观察时间 T = ", tOutput]), tInput]),
+      element(api, doc, "p", { className: "bfp-note" }, "固定 seed 的单位区间高斯增量随 √T 缩放；改 T 并不是截取同一条长路径的前缀。解析概率独立计算；三条折线不估计总体频率。")
     ]);
 
-    var chartHost = element(api, doc, "div", { className: "bfp-stage-frame" });
+    var chartHost = element(api, doc, "div", { className: "bfp-stage-frame", role:"region",tabindex:"0","aria-label":"布朗离散路径，可横向滚动" });
     var legend = element(api, doc, "div", { className: "bfp-legend", "aria-label": "图例" }, [
       element(api, doc, "span", { className: "bfp-legend-item" }, [element(api, doc, "i", { className: "bfp-swatch bfp-swatch-path" }), "固定 seed 路径"]),
       element(api, doc, "span", { className: "bfp-legend-item" }, [element(api, doc, "i", { className: "bfp-swatch bfp-swatch-threshold" }), "阈值 a"]),
-      element(api, doc, "span", { className: "bfp-legend-item" }, [element(api, doc, "i", { className: "bfp-swatch bfp-swatch-endpoint" }), "终点"])
+      element(api, doc, "span", { className: "bfp-legend-item" }, [element(api, doc, "i", { className: "bfp-swatch bfp-swatch-endpoint" }), "终点：金色未达阈值，绿色已达阈值"])
     ]);
     var metrics = element(api, doc, "div", { className: "bfp-metrics", "aria-label": "核心概率" });
     var metricMaximum = element(api, doc, "div");
@@ -433,8 +495,8 @@
       ])]),
       ledgerBody
     ]);
-    var stageNote = element(api, doc, "p", { className: "bfp-caution" }, "反例与迁移：终点越界不能代表路径越界；只有正阈值的反射原理把两者精确接起来。迁移到带漂移布朗运动时要先换到无漂移坐标，迁移到离散随机游走时还要单独处理跳跃越界与格点误差。 ");
-    var stage = element(api, doc, "section", { className: "bfp-revealed", hidden: true, "aria-labelledby": prefix + "-stage-title" });
+    var stageNote = element(api, doc, "p", { className: "bfp-caution" }, "反例与迁移：终点越界不能代表路径越界；只有正阈值的反射原理把两者精确接起来。减去漂移后，常数阈值会变成移动边界，不能再套同一个无漂移反射式；离散随机游走还须单独处理跳跃和格点。 ");
+    var stage = element(api, doc, "section", { className: "bfp-revealed", tabindex:"-1", hidden: true, "aria-labelledby": prefix + "-stage-title" });
     stage.appendChild(element(api, doc, "h3", { id: prefix + "-stage-title" }, "解析账本与固定路径"));
     stage.appendChild(element(api, doc, "div", { className: "bfp-layout" }, [
       controls,
@@ -443,11 +505,15 @@
         chartHost,
         legend,
         metrics,
-        element(api, doc, "div", { className: "bfp-ledger" }, table),
+        element(api, doc, "div", { className: "bfp-ledger",role:"region",tabindex:"0","aria-label":"首次通过账本，可横向滚动" }, table),
         stageNote
       ])
     ]));
 
+    var pathBody=element(api,doc,"tbody");
+    var pathTable=element(api,doc,"table",{},[element(api,doc,"caption",{},"固定离散路径及连续桥的条件越界概率"),element(api,doc,"thead",{},element(api,doc,"tr",{},["seed","终点","网格最大值","首次网格达标","给定全部网格值的连续越界概率"].map(function(t){return element(api,doc,"th",{scope:"col"},t);}))),pathBody]);
+    stage.appendChild(element(api,doc,"div",{className:"bfp-ledger",role:"region",tabindex:"0","aria-label":"布朗桥条件账本，可横向滚动"},pathTable));
+    stage.appendChild(element(api,doc,"p",{className:"bfp-note"},"网格最大值只是连续最大值的下界；桥概率使用给定全部网格端点后的条件高斯模型，不是对真实最大值的观测。图和两份账本均可横向滚动，键盘聚焦区域后使用左右方向键。"));
     root.replaceChildren(gate, stage);
     root.classList.add("bfp-lab");
 
@@ -479,8 +545,10 @@
         ledgerRow(api, doc, ["τ_a≤T", formatNumber(api, result.firstPassageCdf, 6), "与 {M_T≥a} 是同一事件"]),
         ledgerRow(api, doc, ["f_τ(T)", formatNumber(api, result.firstPassageDensity, 6), "a>0,T>0: a exp(−a²/(2T))/(√(2π)T^{3/2})"]),
         ledgerRow(api, doc, ["反射差", formatNumber(api, result.reflectionDifference, 6), result.reflectionDomain ? "应为 0；由解析式直接检查" : "边界提示：先看起点和 T=0"]),
-        ledgerRow(api, doc, ["密度边界", result.densityStatus, "a≤0 时 τ_a=0 有原子；T=0 只读 CDF 端点"])
+        ledgerRow(api, doc, ["密度边界", result.a<=0?"零时刻原子":result.T===0?"右端极限0":"正时间连续密度", "a≤0 时 τ_a=0 有原子；T=0 只读 CDF 端点"])
       ];
+      rows.push(ledgerRow(api,doc,["log P(M_T≥a)",result.logMaximum===-Infinity?"−∞（零时窗）":formatNumber(null,result.logMaximum,6),"保留自然对数；若概率读数下溢为0，log仍区分非零小概率"]));
+      rows.push(ledgerRow(api,doc,["log f_τ(T)",result.logDensity===-Infinity?"−∞":formatNumber(null,result.logDensity,6),"a≤0没有覆盖原子的普通密度；密度有1/时间单位，不是概率"]));
       replaceChildren(ledgerBody, rows);
     }
 
@@ -498,6 +566,8 @@
       replaceChildren(chartHost, drawChart(api, doc, state.a, state.T, prefix));
       renderMetrics(result);
       renderLedger(result);
+      var samples=PATH_SEEDS.map(function(seed){return samplePath(seed,state.T,128,state.a);});
+      replaceChildren(pathBody,samples.map(function(r){return ledgerRow(api,doc,[String(r.seed),formatNumber(null,r.endpoint,5),formatNumber(null,r.max,5),r.firstDiscreteIndex===null?"网格未达标":r.firstDiscreteIndex===0?"起点 t=0":"t="+formatNumber(null,r.path[r.firstDiscreteIndex].t,5),formatNumber(null,r.bridgeCrossing,6)]);}));
     }
 
     reveal.addEventListener("click", function () {
@@ -509,7 +579,7 @@
       }
       state.revealed = true;
       var correct = questions.filter(function (question) { return state.predictions[question.key] === question.expected; }).length;
-      render();
+      render();renderPrediction();stage.focus({preventScroll:true});
       feedback.textContent = "已揭示：" + correct + "/" + questions.length + " 个预测命中。答案与解析已显示；路径仍不是定理证明。";
       feedback.className = "bfp-feedback " + (correct === questions.length ? "bfp-pass" : "bfp-warn");
       if (api && typeof api.announce === "function") api.announce(root, feedback.textContent);
@@ -523,6 +593,7 @@
       renderPrediction();
       render();
       feedback.textContent = "已重置；答案再次隐藏。";
+      questions[0].choices[0].button.focus({preventScroll:true});
       if (api && typeof api.announce === "function") api.announce(root, feedback.textContent);
     });
 
@@ -549,7 +620,7 @@
     assert(maximumExceedance(0, 1) === 1 && firstPassageCdf(0, 1) === 1, "zero level boundary");
     assert(endpointExceedance(1, 0) === 0 && maximumExceedance(1, 0) === 0, "positive level T=0");
     assert(endpointExceedance(0, 0) === 1 && maximumExceedance(0, 0) === 1, "zero level T=0");
-    assert(Number.isNaN(firstPassageDensity(0, 1)), "atom has no ordinary density");
+    assert(firstPassageDensity(0, 1)===null, "atom has no ordinary density");
     assert(firstPassageDensity(1, 0) === 0, "positive-level density right limit at zero");
     assert(analyze(1, 1).reflectionDomain === true, "analytic domain flag");
     assert(analyze(-1, 1).densityStatus === "atom-at-zero", "boundary status");
@@ -566,12 +637,43 @@
     threw = false;
     try { samplePath(1, 1, 0, 1); } catch (error) { threw = error instanceof RangeError; }
     assert(threw, "invalid step count rejected");
-    return { checks: checks };
+    var rare=analyze(3,.05),reference=4.846411842405361e-41;
+    assert(Math.abs(rare.maximum/reference-1)<5e-13,"rare tail remains positive and accurate");
+    assert(normalTail(40)===0 && Number.isFinite(normalLogTail(40)),"log tail survives probability underflow");
+    close(bridgeCrossing(1,0,0,1),Math.exp(-2),1e-14,"Brownian bridge crossing");
+    assert(bridgeCrossing(1,1,0,1)===1,"bridge endpoint already reached");
+    assert(samplePath(1,0,16,0).firstDiscreteIndex===0,"origin counts as first passage");
+    assert(samplePath(1,1,16,-1).bridgeCrossing===1,"origin crossing has conditional probability one");
+    assert(formatNumber(null,1e-40)==="1.00000e-40" && formatNumber(null,10,0)==="10","scientific and integer formatting");
+    [null,"1",-1,1.5,4294967296].forEach(function(seed){
+      var rejected=false;try{makeRng(seed);}catch(error){rejected=true;}
+      assert(rejected,"strict uint32 seed");
+    });
+    [0,1,NaN].forEach(function(value){
+      var rejected=false;try{gaussian(function(){return value;});}catch(error){rejected=true;}
+      assert(rejected,"Gaussian generator rejects closed endpoints");
+    });
+    [Number.MIN_VALUE,Number.MIN_VALUE*77].forEach(function(T){
+      var rejected=false;try{samplePath(1,T,128,1);}catch(error){rejected=true;}
+      assert(rejected,"unrepresentable time grid rejected");
+    });
+    PRESETS.forEach(function(preset){
+      var result=analyze(preset.a,preset.T);
+      assert(result.maximum>=0&&result.maximum<=1&&result.endpoint>=0&&result.endpoint<=1,"preset probability domains");
+    });
+    return { checks: checks, presets: PRESETS.length };
   }
 
   return {
     PRESETS: PRESETS,
     PATH_SEEDS: PATH_SEEDS,
+    normalTail: normalTail,
+    normalLogTail: normalLogTail,
+    firstPassageLogDensity: firstPassageLogDensity,
+    gaussian: gaussian,
+    bridgeCrossing: bridgeCrossing,
+    drawChart: drawChart,
+    formatNumber: formatNumber,
     erf: erf,
     normalCdf: normalCdf,
     endpointExceedance: endpointExceedance,

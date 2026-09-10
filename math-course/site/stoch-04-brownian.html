@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 06:12</div>
+    <div class="build-time">构建于 2026-09-10 08:25</div>
   </div>
 </nav>
 <main id="content">
@@ -54,28 +54,47 @@ try {
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
 <li><a href="#_1">学习层：最大值看到的，比终点更多</a><ul>
-<li><a href="#1-learning-contract">1. Learning contract</a></li>
+<li><a href="#1">1. 本页要学会什么</a></li>
 <li><a href="#2">2. 反射原理账本</a></li>
 <li><a href="#3">3. 边界、反例与迁移</a></li>
 <li><a href="#4">4. 动手实验：预测门、解析账本和固定路径</a></li>
 </ul>
 </li>
-<li><a href="#1">1. 布朗运动：随机游走的极限</a></li>
-<li><a href="#2_1">2. 几何布朗运动与金融一瞥</a></li>
-<li><a href="#3_1">3. 鞅：公平赌博的数学</a></li>
-<li><a href="#4_1">4. 典型例题</a></li>
+<li><a href="#1_1">1. 从随机游走到布朗运动：极限究竟在哪里？</a><ul>
+<li><a href="#11">1.1 定义与信息流</a></li>
+<li><a href="#12">1.2 缩放、不可导与二次变差</a></li>
+</ul>
+</li>
+<li><a href="#2_1">2. 反射原理、首次通过与网格漏检</a><ul>
+<li><a href="#21">2.1 几乎必然到达，期望却无穷</a></li>
+<li><a href="#22">2.2 端点都低于阈值，桥仍可能越过</a></li>
+</ul>
+</li>
+<li><a href="#3_1">3. 鞅：条件期望与信息</a></li>
+<li><a href="#4_1">4. 可选停时：必须写出的条件</a><ul>
+<li><a href="#41">4.1 反例：公平游走等到第一次赚到一元</a></li>
+<li><a href="#42">4.2 赌徒破产：先截断，再合法过极限</a></li>
+</ul>
+</li>
+<li><a href="#5">5. 几何布朗运动：一个明确的模型</a></li>
+<li><a href="#6">6. 例题与练习</a><ul>
+<li><a href="#1_2">练习 1：为什么“密度比概率大”并不矛盾？</a></li>
+<li><a href="#2_2">练习 2：两端都没越界，桥会不会越界？</a></li>
+<li><a href="#3_2">练习 3：哪个停止论证成立？</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </details>
 <h1 id="iv">随机过程 IV · 布朗运动与鞅（一瞥）<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
 <blockquote>
-<p>收官页打开两扇通往研究生阶段的门：<strong>布朗运动</strong>（连续时间随机过程之王，金融数学的地基）与<strong>鞅</strong>（"公平赌博"的数学化，现代概率的统一语言）。定位是"一瞥"：定义、核心性质、两个漂亮应用——深挖属于随机分析课，但这一瞥足够支撑你读懂 Black–Scholes 和扩散模型的 SDE 语言。</p>
+<p>从终点无法判断一条路径是否曾经越界。布朗运动让这个差别可以精确计算；鞅则说明，何时能把固定时刻的条件期望结论延伸到随机停止时刻。本页保留入门定位，但把极限、路径和停时各自需要的条件写出来。</p>
 </blockquote>
 <div data-learning-page></div>
 
 <section class="learning-layer">
 <h2 id="_1">学习层：最大值看到的，比终点更多<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="1-learning-contract">1. Learning contract<a class="headerlink" href="#1-learning-contract" title="Permanent link"></a></h3>
+<h3 id="1">1. 本页要学会什么<a class="headerlink" href="#1" title="Permanent link"></a></h3>
 <p>本页实验只处理从 <span class="arithmatex">\(B_0=0\)</span> 出发的<strong>标准布朗运动</strong>。你要区分四件事：终点事件 <span class="arithmatex">\(\{B_T\ge a\}\)</span>、路径事件 <span class="arithmatex">\(\{M_T\ge a\}\)</span>（其中 <span class="arithmatex">\(M_T=\max_{0\le s\le T}B_s\)</span>）、首次通过时间 <span class="arithmatex">\(\tau_a=\inf\{t\ge0:B_t\ge a\}\)</span>，以及密度 <span class="arithmatex">\(f_{\tau_a}\)</span>。固定 seed 的折线只负责让“路径可能先越界、最后又回来”可见；反射原理和解析公式才是定理证据。</p>
 <p>先写下预测，再打开实验：</p>
 <ol>
@@ -101,12 +120,12 @@ f_{\tau_a}(t)=\frac{a}{\sqrt{2\pi}\,t^{3/2}}\exp\left(-\frac{a^2}{2t}\right),\qu
 <li>若 <span class="arithmatex">\(a&lt;0\)</span>，以及按 <span class="arithmatex">\(\tau_a=\inf\{t\ge0:B_t\ge a\}\)</span> 的约定取 <span class="arithmatex">\(a=0\)</span>，起点已经在阈值上方或阈值处，所以 <span class="arithmatex">\(\tau_a=0\)</span> 几乎处处，CDF 在 <span class="arithmatex">\(0\)</span> 有原子，不能继续声称上面的 <span class="arithmatex">\(t&gt;0\)</span> 密度覆盖全部分布。</li>
 <li>若 <span class="arithmatex">\(T=0\)</span>，<span class="arithmatex">\(B_0=M_0=0\)</span>：<span class="arithmatex">\(a&gt;0\)</span> 时两个越界事件概率都是 <span class="arithmatex">\(0\)</span>；<span class="arithmatex">\(a\le0\)</span> 时都是 <span class="arithmatex">\(1\)</span>。因此不能把 <span class="arithmatex">\(T&gt;0\)</span> 的连续正态端点公式机械代入 <span class="arithmatex">\(T=0\)</span>，也不能把 <span class="arithmatex">\(2P(B_0\ge a)\)</span> 当作一般反射定理。</li>
 <li>反例：一条离散采样路径没有越过 <span class="arithmatex">\(a\)</span>，不代表连续路径没有越过；线性插值也不等于 Brownian 桥的精确条件分布。固定 seed 图像是直觉材料，不是有限 Monte Carlo 对定理的证明。</li>
-<li>迁移：带漂移的 <span class="arithmatex">\(X_t=\mu t+\sigma B_t\)</span> 需要先标准化或换测度；离散随机游走的首次越界还会遇到跳跃和格点 overshoot，不能直接照抄连续密度。</li>
+<li>迁移：带漂移的 <span class="arithmatex">\(X_t=\mu t+\sigma B_t\)</span>（<span class="arithmatex">\(\sigma&gt;0\)</span>）满足越界条件 <span class="arithmatex">\(B_t\ge(a-\mu t)/\sigma\)</span>，减去漂移会把常数阈值变成移动边界，不能再直接套固定阈值反射式；离散随机游走的首次越界还会遇到跳跃和格点 overshoot，不能直接照抄连续密度。</li>
 </ul>
 <h3 id="4">4. 动手实验：预测门、解析账本和固定路径<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>实验默认 <span class="arithmatex">\(a=1,T=1\)</span>。答案提交前，理论读数和路径图保持隐藏；提交后可以切换 <span class="arithmatex">\(a\)</span>、<span class="arithmatex">\(T\)</span>，直接查看解析概率、首次通过密度和固定 seed 的三条离散路径。图中的路径不重新抽样，因此改变参数不会制造 Monte Carlo 证据。</p>
+<p>实验默认 <span class="arithmatex">\(a=1,T=1\)</span>。答案提交前，理论读数和路径图保持隐藏；提交后可以切换 <span class="arithmatex">\(a\)</span>、<span class="arithmatex">\(T\)</span>，直接查看解析概率、首次通过密度和固定 seed 的三条离散路径。改变 <span class="arithmatex">\(a\)</span> 保留网格值；改变 <span class="arithmatex">\(T\)</span> 则把同一单位区间的样本按 <span class="arithmatex">\(\sqrt T\)</span> 缩放，并不是截取某条更长路径的前缀。程序使用有限精度伪随机数，折线不作为 Monte Carlo 频率估计。</p>
 <div class="learning-lab" data-learning-lab="brownian-first-passage">
-<p><strong>JavaScript 失效时的静态 fallback：</strong> 默认 <span class="arithmatex">\(a=T=1\)</span>。记 <span class="arithmatex">\(\Phi\)</span> 为标准正态 CDF，则</p>
+<p><strong>JavaScript 失效时的静态读法：</strong> 默认 <span class="arithmatex">\(a=T=1\)</span>。记 <span class="arithmatex">\(\Phi\)</span> 为标准正态 CDF，则</p>
 <div class="arithmatex">\[
 P(B_1\ge1)=1-\Phi(1)\approx0.1587,
 \quad P(M_1\ge1)=P(\tau_1\le1)=2[1-\Phi(1)]\approx0.3173,
@@ -115,46 +134,175 @@ P(B_1\ge1)=1-\Phi(1)\approx0.1587,
 <div class="arithmatex">\[
 f_{\tau_1}(1)=\frac{e^{-1/2}}{\sqrt{2\pi}}\approx0.2420.
 \]</div>
-<p>边界读法是：<span class="arithmatex">\(a\le0\)</span> 时 <span class="arithmatex">\(\tau_a=0\)</span> 有点质量；<span class="arithmatex">\(T=0,a&gt;0\)</span> 时三种越界/CDF 数值为 <span class="arithmatex">\(0\)</span>，而 <span class="arithmatex">\(T=0,a\le0\)</span> 时起点事件为 <span class="arithmatex">\(1\)</span>。固定 seed 路径只用于视觉检查“最大值不由终点完全决定”，不用于证明反射原理。</p>
+<p>边界读法是：<span class="arithmatex">\(a\le0\)</span> 时 <span class="arithmatex">\(\tau_a=0\)</span> 有点质量；<span class="arithmatex">\(T=0,a&gt;0\)</span> 时三种越界/CDF 数值为 <span class="arithmatex">\(0\)</span>，而 <span class="arithmatex">\(T=0,a\le0\)</span> 时起点事件为 <span class="arithmatex">\(1\)</span>。固定 seed 路径只用于视觉检查“最大值不由终点完全决定”，不用于证明反射原理。程序还保留概率的自然对数：例如 <span class="arithmatex">\(a=3,T=.05\)</span> 时最大值越界概率约为 <span class="arithmatex">\(4.8464\times10^{-41}\)</span>，不能因为小数显示不足就当成零。解析公式和其数值求值应分开，反射差中的末位舍入不代表定理失效。</p>
 </div>
 </section>
-<h2 id="1">1. 布朗运动：随机游走的极限<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<h2 id="1_1">1. 从随机游走到布朗运动：极限究竟在哪里？<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(\xi_k\)</span> 独立同分布、均值 <span class="arithmatex">\(0\)</span>、方差 <span class="arithmatex">\(1\)</span>，<span class="arithmatex">\(S_n=\sum_{k=1}^n\xi_k\)</span>。把 <span class="arithmatex">\(n^{-1/2}S_{\lfloor nt\rfloor}\)</span> 作线性插值。<strong>Donsker 不变原理</strong>说明，它作为 <span class="arithmatex">\(C([0,T])\)</span> 上的随机函数，依分布趋向标准布朗运动。这里只要求有限方差；对称 <span class="arithmatex">\(\pm1\)</span> 步长是最直接的例子。</p>
+<p>普通 CLT 可以解释单个时刻的正态极限，但<strong>各时刻的极限不自动给出连续路径空间中的收敛</strong>；还需要联合有限维分布及紧性等论证。步长满足 <span class="arithmatex">\((\Delta x)^2/\Delta t\to1\)</span> 给单位方差率，若趋于常数 <span class="arithmatex">\(\sigma^2&gt;0\)</span>，则得到 <span class="arithmatex">\(\sigma B_t\)</span>；不是只有字面上的 <span class="arithmatex">\(\Delta x=\sqrt{\Delta t}\)</span> 才能出现非平凡极限。</p>
+<h3 id="11">1.1 定义与信息流<a class="headerlink" href="#11" title="Permanent link"></a></h3>
+<p>标准布朗运动满足 <span class="arithmatex">\(B_0=0\)</span>，具有几乎必然连续的轨道，并且对 <span class="arithmatex">\(0\le s&lt;t\)</span>，</p>
+<div class="arithmatex">\[
+B_t-B_s\sim N(0,t-s),
+\]</div>
+<p>不相交时间区间的增量独立。讨论相对于信息流 <span class="arithmatex">\((\mathcal F_t)\)</span> 的布朗运动时，还要求 <span class="arithmatex">\(B_t\)</span> 适应于它，且 <span class="arithmatex">\(B_t-B_s\)</span> 独立于 <span class="arithmatex">\(\mathcal F_s\)</span>。不能任意把未来信息提前加入过滤后仍宣称鞅性质成立。</p>
+<p>也可以先构造相容的高斯有限维分布，再用
+<span class="arithmatex">\(\mathbb E|B_t-B_s|^p=C_p|t-s|^{p/2}\)</span>（<span class="arithmatex">\(p&gt;2\)</span>）
+和连续性定理取得连续版本。修改版本指每个固定时刻几乎必然相等；涉及整条轨道时还须留意零概率集合与量词。</p>
+<p>由增量独立性，</p>
+<div class="arithmatex">\[
+\mathbb EB_t=0,\quad \operatorname{Var}(B_t)=t,\quad
+\operatorname{Cov}(B_s,B_t)=\min(s,t).
+\]</div>
+<p>例如 <span class="arithmatex">\(s\le t\)</span> 时，
+<span class="arithmatex">\(\mathbb E[B_sB_t]=\mathbb E[B_s^2]+\mathbb E[B_s(B_t-B_s)]=s\)</span>。
+布朗运动本身不平稳，因为方差随时间变化；平稳的是增量分布。</p>
+<h3 id="12">1.2 缩放、不可导与二次变差<a class="headerlink" href="#12" title="Permanent link"></a></h3>
+<p>对 <span class="arithmatex">\(c&gt;0\)</span>，过程 <span class="arithmatex">\((B_{ct})_{t\ge0}\)</span> 与 <span class="arithmatex">\((\sqrt c\,B_t)_{t\ge0}\)</span> <strong>同分布</strong>，不是在同一条样本上处处相等。连续版本以概率 <span class="arithmatex">\(1\)</span> 处处不可导，并在任意固定紧区间上具有任意 <span class="arithmatex">\(\alpha&lt;1/2\)</span> 阶的 Hölder 连续性；这些是路径定理，有限分辨率的折线不能证明它们。</p>
+<p>给定 <span class="arithmatex">\([0,T]\)</span> 上一列确定性分割，网格大小 <span class="arithmatex">\(|\Pi_n|\to0\)</span>，令
+<span class="arithmatex">\(Q_n=\sum_i(B_{t_{i+1}}-B_{t_i})^2\)</span>。高斯增量独立且 <span class="arithmatex">\(\operatorname{Var}(Z^2)=2v^2\)</span>（<span class="arithmatex">\(Z\sim N(0,v)\)</span>），所以</p>
+<div class="arithmatex">\[
+\mathbb EQ_n=T,\qquad
+\operatorname{Var}(Q_n)=2\sum_i(\Delta t_i)^2
+\le2T|\Pi_n|\longrightarrow0.
+\]</div>
+<p>因此 <span class="arithmatex">\(Q_n\to T\)</span> 在 <span class="arithmatex">\(L^2\)</span> 中成立。对二进制等分，偏离固定误差的概率可求和，Chebyshev 与 Borel–Cantelli 进一步给出几乎必然收敛。不能把这个结论改成“所有任意选取的随机分割都自动有同一种收敛”。</p>
+<p>连续且有限全变差的函数满足
+<span class="arithmatex">\(\sum(\Delta f)^2\le\max|\Delta f|\sum|\Delta f|\to0\)</span>。
+布朗运动在 <span class="arithmatex">\(T&gt;0\)</span> 时有非零二次变差，因此几乎必然不是有限全变差路径。符号“<span class="arithmatex">\((dB)^2=dt\)</span>”是这种极限规律在随机积分中的记法，不是普通微分的代数恒等式。</p>
+<h2 id="2_1">2. 反射原理、首次通过与网格漏检<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<div aria-label="布朗反射静态示意图，可横向滚动" class="brownian-static" role="region" tabindex="0">
 <figure class="plot">
-<p><img alt="布朗运动样本轨道" src="assets/img/stoch-04-brownian.svg" /></p>
-<figcaption><span class="fig-id">图 4.1</span>布朗运动的一条样本轨道：布朗运动存在连续版本，而且其轨道以概率 1 处处不可导。有限分辨率图像只展示这种粗糙性的直觉，不能证明“处处”。</figcaption>
+<p><img alt="首次到达后反射的折线示意，以及最大值和终点事件的解析概率曲线" src="assets/img/stoch-04-brownian.svg" /></p>
+<figcaption><span class="fig-id">图 2.1</span>左图是人为选定的折线反射示意，不是完整布朗样本；它说明反射如何交换两个终点。右图是正阈值 a=1 时的解析概率，两条曲线始终相差两倍。手机可横向滚动。</figcaption>
 </figure>
-<p><strong>从随机游走出发</strong>：对称随机游走步长 <span class="arithmatex">\(\Delta x\)</span>、步频 <span class="arithmatex">\(\Delta t\)</span>，令 <span class="arithmatex">\(\Delta x = \sqrt{\Delta t} \to 0\)</span>（<strong>这个缩放是唯一能得到非平凡极限的</strong>——方差 <span class="arithmatex">\(\frac{t}{\Delta t}(\Delta x)^2 = t\)</span> 恰好有限），由 CLT（概率 V）各时刻趋于正态——极限过程即布朗运动。</p>
-<p><strong>定义</strong> <span class="arithmatex">\(\{B(t), t \geq 0\}\)</span> 为标准布朗运动（Wiener 过程），若：1. <span class="arithmatex">\(B(0) = 0\)</span>；2. 独立增量；3. <span class="arithmatex">\(B(t) - B(s) \sim N(0,\ t - s)\)</span>；4. 轨道以概率 <span class="arithmatex">\(1\)</span> 连续。也常先由有限维分布构造过程，再说明它有一个连续版本；“版本”允许在每个固定时刻的零概率集合上修改，而不改变有限维分布。</p>
-<p>（与 Poisson 过程恰成一对：同为独立平稳增量，一个连续正态、一个跳跃泊松——独立增量过程的两大原色。）</p>
-<p><strong>基本量</strong>：<span class="arithmatex">\(B(t) \sim N(0, t)\)</span>；<span class="arithmatex">\(\mathrm{Cov}(B(s), B(t)) = \min(s, t)\)</span>（<em>一行推导</em>：<span class="arithmatex">\(s &lt; t\)</span> 时 <span class="arithmatex">\(E[B_s B_t] = E[B_s(B_s + (B_t - B_s))] = s\)</span>，独立增量灭掉交叉项）。</p>
-<p><strong>三条轨道性格</strong>（认知级）：对连续版本，轨道以概率 <span class="arithmatex">\(1\)</span> <strong>处处不可导</strong>（不是对每个固定 <span class="arithmatex">\(t\)</span> 分别说“概率 <span class="arithmatex">\(1\)</span>”后就自动交换量词；严格结论覆盖同一条轨道上的所有时刻）；<strong>自相似</strong> <span class="arithmatex">\(B(ct) \overset{d}{=} \sqrt{c}\,B(t)\)</span>（分形）；对任意一列确定性分割 <span class="arithmatex">\(\Pi_n\)</span>，当网格 <span class="arithmatex">\(|\Pi_n|\to0\)</span> 时，二次变差 <span class="arithmatex">\(\sum_{[t_i,t_{i+1}]\in\Pi_n}(B_{t_{i+1}}-B_{t_i})^2\to t\)</span> 在 <span class="arithmatex">\(L^2\)</span> 中成立，因为该和的期望为 <span class="arithmatex">\(t\)</span>，方差为 <span class="arithmatex">\(2\sum_i(\Delta t_i)^2\le2t|\Pi_n|\)</span>。特别地，对二进制等分 <span class="arithmatex">\(|\Pi_n|=t2^{-n}\)</span>，Chebyshev 不等式的偏差概率可求和，Borel–Cantelli 进一步给出几乎处处收敛。收敛模式和“网格趋于零”缺一不可。这条结果被记成“<span class="arithmatex">\((dB)^2=dt\)</span>”，正是 Itô 微积分需要重写链式法则的原因。</p>
-<h2 id="2_1">2. 几何布朗运动与金融一瞥<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p>股价不能为负、涨跌按<strong>比例</strong>发生，故建模对数：</p>
+</div>
+<style>
+.brownian-static{max-width:100%;overflow-x:auto}.brownian-static figure{width:1100px;max-width:none;margin:0}.brownian-static img{width:1100px;max-width:none}.brownian-static:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+
+<p>对 <span class="arithmatex">\(a&gt;0\)</span>，连续性保证首次达到“<span class="arithmatex">\(\ge a\)</span>”时恰好等于 <span class="arithmatex">\(a\)</span>。在 <span class="arithmatex">\(\tau_a\)</span> 有限的事件上，停时之后的增量具有独立标准布朗运动的条件分布，这是<strong>强 Markov 性</strong>，比仅在确定时刻成立的独立增量更强。再用增量正负对称性，首次到达后的反射保持路径律，由此得到前面列出的最大值公式；这里不需要预先假定必然到达。</p>
+<h3 id="21">2.1 几乎必然到达，期望却无穷<a class="headerlink" href="#21" title="Permanent link"></a></h3>
+<p>当 <span class="arithmatex">\(T\to\infty\)</span>，<span class="arithmatex">\(2[1-\Phi(a/\sqrt T)]\to1\)</span>，所以 <span class="arithmatex">\(\tau_a&lt;\infty\)</span> 几乎必然。但</p>
 <div class="arithmatex">\[
-S(t) = S_0 \exp\Big(\big(\mu - \tfrac{\sigma^2}{2}\big)t + \sigma B(t)\Big)
+\Pr(\tau_a&gt;t)=2\Phi(a/\sqrt t)-1
+\sim\sqrt{\frac2\pi}\,\frac a{\sqrt t},
+\qquad
+\mathbb E\tau_a=\int_0^\infty\Pr(\tau_a&gt;t)\,dt=\infty.
 \]</div>
-<p>——<strong>几何布朗运动</strong>（GBM）：对数收益率正态、独立增量（有效市场的数学表述），<span class="arithmatex">\(E S(t) = S_0 e^{\mu t}\)</span>。那个 <span class="arithmatex">\(-\frac{\sigma^2}{2}\)</span> 修正项来自 Jensen 不等式（概率 IV：<span class="arithmatex">\(E e^X &gt; e^{EX}\)</span>，波动本身抬高期望，要扣回去；严格推导即 Itô 引理的第一次上岗）。<strong>Black–Scholes 期权定价</strong>即在 GBM + 无套利下推出——金融工程整栋大楼的地基就是本页这个过程。</p>
-<p>⚠️ 清醒剂：GBM 假设收益正态、波动恒定——真实市场厚尾、波动聚集（你的研报库里"尾部风险"一词的数学背景）；它是"第一近似"而非真相。</p>
-<h2 id="3_1">3. 鞅：公平赌博的数学<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>定义</strong> <span class="arithmatex">\(\{M_n\}\)</span> 关于信息流 <span class="arithmatex">\(\{\mathcal{F}_n\}\)</span>（到 <span class="arithmatex">\(n\)</span> 为止的全部历史）是<strong>鞅</strong>，若 <span class="arithmatex">\(E|M_n| &lt; \infty\)</span> 且</p>
+<p>“最终会到”不等于“平均等待有限”。密度积分为 <span class="arithmatex">\(1\)</span>，并不意味着它的一阶矩也有限。布朗缩放还给 <span class="arithmatex">\(\tau_a\overset d=a^2\tau_1\)</span>。</p>
+<h3 id="22">2.2 端点都低于阈值，桥仍可能越过<a class="headerlink" href="#22" title="Permanent link"></a></h3>
+<p>在长为 <span class="arithmatex">\(\Delta t&gt;0\)</span> 的一个区间，两端值为 <span class="arithmatex">\(x,y&lt;a\)</span>。给定这两个端点，内部是 Brownian 桥，越过 <span class="arithmatex">\(a\)</span> 的条件概率为</p>
 <div class="arithmatex">\[
-E[M_{n+1} \mid \mathcal{F}_n] = M_n
+p_{\rm bridge}
+=\exp\left[-\frac{2(a-x)(a-y)}{\Delta t}\right].
 \]</div>
-<p>——<strong>已知全部历史，下一步的条件期望 = 现值</strong>（公平：既不期望赚也不期望亏；条件期望的塔性质——概率 IV——是鞅论的日常语法）。<span class="arithmatex">\(\geq\)</span> 为下鞅（有利），<span class="arithmatex">\(\leq\)</span> 为上鞅（不利，赌场给你的那种）。</p>
-<p><strong>三个标准例</strong>：对称随机游走 <span class="arithmatex">\(S_n\)</span>；<span class="arithmatex">\(S_n^2 - n\)</span>（平方减补偿——方差的"公平化"）；指数鞅 <span class="arithmatex">\(e^{\theta S_n}/(\cosh\theta)^n\)</span>。<strong>判鞅是考题常型：算一次条件期望即可。</strong></p>
-<p><strong>定理（可选停时定理，OST，条件从略的实用版）</strong> 鞅在"合理的"停时 <span class="arithmatex">\(\tau\)</span> 处仍公平：<span class="arithmatex">\(E[M_\tau] = E[M_0]\)</span>。</p>
-<p>——"没有能把公平赌博变成稳赢的退出策略"（赌徒的所有"打法"在数学上被一句话终结）。它同时是强大的<strong>计算工具</strong>：</p>
-<p><strong>应用（赌徒破产的鞅式秒解）</strong> 对称赌局，本金 <span class="arithmatex">\(i\)</span>、目标 <span class="arithmatex">\(N\)</span>：<span class="arithmatex">\(S_n\)</span> 是鞅，OST 给 <span class="arithmatex">\(i = E[S_\tau] = N \cdot h_i + 0 \cdot (1 - h_i)\)</span> ⇒ <span class="arithmatex">\(h_i = i/N\)</span>——随机过程 II 里解差分方程的结论，一行拿到。再用鞅 <span class="arithmatex">\(S_n^2 - n\)</span>：<span class="arithmatex">\(E[\tau] = i(N - i)\)</span>（期望局数，同样一行）。<strong>鞅方法 = 找对守恒量</strong>，与物理里的守恒律思维同构。</p>
-<p>🔗 <strong>衔接</strong>：鞅是"信息与公平"的语言——金融定价的核心定理（风险中性测度下折现价格是鞅）、概率算法分析（Azuma 不等式一族集中不等式）都说这门语言；扩散模型的 SDE <span class="arithmatex">\(dx = f\,dt + g\,dB\)</span>（comfy 课 03 讲的采样方程）里的 <span class="arithmatex">\(dB\)</span> 就是本页的布朗运动增量——你在 ComfyUI 里每按一次生成，就有一条离散化的布朗轨道在潜空间里被采样。</p>
-<h2 id="4_1">4. 典型例题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（布朗运动概率计算）</strong> <span class="arithmatex">\(B(2) \sim N(0, 2)\)</span>，求 <span class="arithmatex">\(P(B(2) &gt; 1 \mid B(1) = 1)\)</span>。
-<em>解</em>：<span class="arithmatex">\(B(2) - B(1) \sim N(0,1)\)</span> 独立于历史：<span class="arithmatex">\(P(B(2) - B(1) &gt; 0) = \frac12\)</span>。（独立增量把条件概率变成增量概率——布朗运动计算的第一反射。）</p>
-<p><strong>例 2（协方差）</strong> 求 <span class="arithmatex">\(D(B(1) + B(3))\)</span>。
-<em>解</em>：<span class="arithmatex">\(D = 1 + 3 + 2\min(1,3) = 6\)</span>。</p>
-<p><strong>例 3（判鞅）</strong> 验证 <span class="arithmatex">\(M_n = S_n^2 - n\)</span>（<span class="arithmatex">\(S_n\)</span> 对称随机游走）是鞅：
-<span class="arithmatex">\(E[M_{n+1}\mid\mathcal F_n] = E[(S_n + X)^2 \mid \mathcal F_n] - (n+1) = S_n^2 + 2S_n\underbrace{E[X]}_{0} + \underbrace{E[X^2]}_{1} - n - 1 = M_n\)</span> ✓。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>随机过程四页完工：Poisson（跳）、Markov（转移）、布朗（连续扩散）、鞅（公平）——四种原型覆盖了随机演化的基本语法。概率统计线至此全线建成。</em></p>
+<p>这是反射后的终点密度与原终点密度之比：</p>
+<div class="arithmatex">\[
+\frac{\exp[-(2a-y-x)^2/(2\Delta t)]}
+{\exp[-(y-x)^2/(2\Delta t)]}
+=p_{\rm bridge}.
+\]</div>
+<p>若任一端点已经达到阈值，概率为 <span class="arithmatex">\(1\)</span>。给定<strong>全部网格值</strong>后，各个区间的桥条件独立；若网格均低于 <span class="arithmatex">\(a\)</span>，至少一个区间发生连续越界的条件概率为
+<span class="arithmatex">\(1-\prod_i(1-p_i)\)</span>。实验第二份账本显示这个量，计算时用对数保留很小的跨越概率。</p>
+<p>例如 <span class="arithmatex">\(x=y=0,a=1,\Delta t=1\)</span>，尽管线性插值整段为零，桥仍以 <span class="arithmatex">\(e^{-2}\approx.1353\)</span> 的概率上穿 <span class="arithmatex">\(1\)</span>。反过来，网格已经上穿只说明连续路径也已上穿；首次<strong>网格</strong>达标时刻通常晚于真实首次通过时间。</p>
+<p>这些条件公式属于理想高斯过程。固定种子、有限位数的 Box–Muller 生成和折线仅是可复现数值展示，不能把所有连续越界位置直接从三个样本恢复出来。</p>
+<h2 id="3_1">3. 鞅：条件期望与信息<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>离散过程 <span class="arithmatex">\((M_n)\)</span> 关于过滤 <span class="arithmatex">\((\mathcal F_n)\)</span> 是鞅，要求：</p>
+<ul>
+<li>适应性：<span class="arithmatex">\(M_n\)</span> 是 <span class="arithmatex">\(\mathcal F_n\)</span> 可测的；</li>
+<li>可积性：<span class="arithmatex">\(\mathbb E|M_n|&lt;\infty\)</span>；</li>
+<li><span class="arithmatex">\(\mathbb E[M_{n+1}\mid\mathcal F_n]=M_n\)</span>。</li>
+</ul>
+<p>不等号“<span class="arithmatex">\(\ge\)</span>”给下鞅，“<span class="arithmatex">\(\le\)</span>”给上鞅。它们描述<strong>条件期望方向</strong>，不保证每条路径或每一步都向相同方向走。过滤表示当前可用的信息，不一定只能取过程自身的自然历史。</p>
+<p>若 <span class="arithmatex">\(\xi_{n+1}\)</span> 独立于 <span class="arithmatex">\(\mathcal F_n\)</span>、等概率为 <span class="arithmatex">\(\pm1\)</span>，<span class="arithmatex">\(S_n=\sum_{k=1}^n\xi_k\)</span>，则</p>
+<div class="arithmatex">\[
+S_n,\qquad S_n^2-n,\qquad
+\frac{e^{\theta S_n}}{(\cosh\theta)^n}
+\]</div>
+<p>都是鞅。第二式由
+<span class="arithmatex">\(\mathbb E[(S_n+\xi_{n+1})^2\mid\mathcal F_n]=S_n^2+1\)</span>；
+第三式由 <span class="arithmatex">\(\mathbb Ee^{\theta\xi_{n+1}}=\cosh\theta\)</span>。</p>
+<p>连续时间下，要求对所有 <span class="arithmatex">\(s\le t\)</span> 有 <span class="arithmatex">\(\mathbb E[M_t\mid\mathcal F_s]=M_s\)</span>。相对于布朗信息流，</p>
+<div class="arithmatex">\[
+B_t,\qquad B_t^2-t,\qquad
+\exp(\theta B_t-\theta^2t/2)
+\]</div>
+<p>也都是鞅；高斯独立增量可以逐项验证。平方减补偿的形式在离散和连续时间中互相对应。</p>
+<h2 id="4_1">4. 可选停时：必须写出的条件<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>非负整数值随机时间 <span class="arithmatex">\(\tau\)</span> 是停时，若 <span class="arithmatex">\(\{\tau\le n\}\in\mathcal F_n\)</span>：到第 <span class="arithmatex">\(n\)</span> 步时就能决定是否已经停止。“第一次达到目标”是停时；“最后一次达到目标，然后才结束观察”通常需要未来信息，不能直接当作停时。</p>
+<p><strong>有界停时版。</strong> 若 <span class="arithmatex">\((M_n)\)</span> 是鞅，且 <span class="arithmatex">\(\tau\le N\)</span> 几乎必然，其中 <span class="arithmatex">\(N\)</span> 是确定整数，则</p>
+<div class="arithmatex">\[
+\mathbb E M_\tau=\mathbb E M_0.
+\]</div>
+<p>证明把停止值写成</p>
+<div class="arithmatex">\[
+M_\tau=M_0+\sum_{k=1}^N
+\mathbf1_{\{\tau\ge k\}}(M_k-M_{k-1}).
+\]</div>
+<p>指标 <span class="arithmatex">\(\mathbf1_{\{\tau\ge k\}}\)</span> 在第 <span class="arithmatex">\(k-1\)</span> 步已知；对 <span class="arithmatex">\(\mathcal F_{k-1}\)</span> 取条件期望，每项为零。</p>
+<p>对无界但几乎必然有限的 <span class="arithmatex">\(\tau\)</span>，可以先对 <span class="arithmatex">\(\tau\wedge n\)</span> 用有界版，再考虑令 <span class="arithmatex">\(n\to\infty\)</span>。<strong>不能只凭几乎必然收敛就交换极限和期望。</strong> 一项充分条件是停止后的族 <span class="arithmatex">\(\{M_{\tau\wedge n}\}_{n\ge1}\)</span> 一致可积：</p>
+<div class="arithmatex">\[
+\lim_{K\to\infty}\sup_n
+\mathbb E\!\left[|M_{\tau\wedge n}|
+\mathbf1_{\{|M_{\tau\wedge n}|&gt;K\}}\right]=0.
+\]</div>
+<p>这保证 <span class="arithmatex">\(L^1\)</span> 收敛并保住期望。统一有界的停止值就是一个容易检查的特例。另一个实用充分条件是 <span class="arithmatex">\(\mathbb E\tau&lt;\infty\)</span> 且鞅增量有统一绝对界；此时用可积的 <span class="arithmatex">\(|M_0|+C\tau\)</span> 控制停止过程。</p>
+<h3 id="41">4.1 反例：公平游走等到第一次赚到一元<a class="headerlink" href="#41" title="Permanent link"></a></h3>
+<p>从 <span class="arithmatex">\(S_0=0\)</span> 出发的对称整数游走，取 <span class="arithmatex">\(\tau=\inf\{n:S_n=1\}\)</span>。上一页的常返性说明 <span class="arithmatex">\(\tau&lt;\infty\)</span> 几乎必然，但 <span class="arithmatex">\(S_\tau=1\)</span>，所以
+<span class="arithmatex">\(\mathbb ES_\tau=1\ne0\)</span>。这不反驳 OST：停止过程不一致可积，且 <span class="arithmatex">\(\mathbb E\tau=\infty\)</span>。若误把“几乎必然最终停止”当作唯一条件，就会得出错误等式。</p>
+<p>布朗运动等到首次到达 <span class="arithmatex">\(a&gt;0\)</span> 也给出相同警示：<span class="arithmatex">\(B_{\tau_a}=a\)</span>，不能无条件从 <span class="arithmatex">\(\mathbb EB_t=0\)</span> 推出 <span class="arithmatex">\(\mathbb EB_{\tau_a}=0\)</span>。上面的长尾正好说明为何平均等待时间会出问题。</p>
+<h3 id="42">4.2 赌徒破产：先截断，再合法过极限<a class="headerlink" href="#42" title="Permanent link"></a></h3>
+<p>从本金 <span class="arithmatex">\(i\in\{1,\ldots,N-1\}\)</span> 出发的对称游走，在到 <span class="arithmatex">\(0\)</span> 或 <span class="arithmatex">\(N\)</span> 时停止。有限链的吸收论证保证 <span class="arithmatex">\(\tau&lt;\infty\)</span> 几乎必然，且 <span class="arithmatex">\(0\le S_{\tau\wedge n}\le N\)</span>。由有界停时和支配收敛，</p>
+<div class="arithmatex">\[
+i=\mathbb ES_\tau=N\,\Pr_i(S_\tau=N),
+\qquad \Pr_i(S_\tau=N)=i/N.
+\]</div>
+<p>对鞅 <span class="arithmatex">\(S_n^2-n\)</span> 先在 <span class="arithmatex">\(\tau\wedge n\)</span> 停止：</p>
+<div class="arithmatex">\[
+\mathbb E(\tau\wedge n)=
+\mathbb ES_{\tau\wedge n}^2-i^2\le N^2.
+\]</div>
+<p>左侧用单调收敛，右侧的平方用有界支配收敛，得到
+<span class="arithmatex">\(\mathbb E\tau=\mathbb ES_\tau^2-i^2=Ni-i^2=i(N-i)\)</span>。
+这样没有先假定未知的期望有限再用它证明自己。</p>
+<h2 id="5">5. 几何布朗运动：一个明确的模型<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(S_0&gt;0\)</span>、<span class="arithmatex">\(\mu,\sigma\)</span> 为常数，定义</p>
+<div class="arithmatex">\[
+S_t=S_0\exp\!\left((\mu-\sigma^2/2)t+\sigma B_t\right).
+\]</div>
+<p>正态矩母函数给出</p>
+<div class="arithmatex">\[
+\mathbb ES_t=S_0e^{\mu t},\qquad
+\operatorname{Var}(S_t)=S_0^2e^{2\mu t}(e^{\sigma^2t}-1).
+\]</div>
+<p>减去 <span class="arithmatex">\(\sigma^2/2\)</span> 是精确的指数矩补偿：<span class="arithmatex">\(\mathbb Ee^{\sigma B_t}=e^{\sigma^2t/2}\)</span>；Jensen 不等式只能解释方向，不能单独给出这个系数。后续 Itô 引理会说明此过程满足 <span class="arithmatex">\(dS_t=\mu S_t\,dt+\sigma S_t\,dB_t\)</span>。</p>
+<p>这个模型具有独立正态的<strong>对数增量</strong>；<span class="arithmatex">\(S_t\)</span> 自身的增量通常既不独立也不平稳。这样的分布假设不等同于“有效市场”。在 Black–Scholes 模型中，还须区分真实概率下的漂移和风险中性定价测度下的漂移，并另给市场与无套利假设，不能从本页一个指数式就推出定价结论。</p>
+<p>随机扩散方程也使用 <span class="arithmatex">\(dB_t\)</span>，但数值生成算法可能采用随机 SDE、确定性概率流 ODE 或其他离散更新。不能断言每次 AIGC 采样都在生成一条布朗轨道。数学连接在于噪声的建模与离散化，具体算法须看实际方程。</p>
+<h2 id="6">6. 例题与练习<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>例 1：零概率条件如何读？</strong> <span class="arithmatex">\(B_2\mid B_1=x\)</span> 的一个正则条件分布版本为 <span class="arithmatex">\(N(x,1)\)</span>，因此在该连续高斯条件核下，
+<span class="arithmatex">\(\Pr(B_2&gt;1\mid B_1=1)=1/2\)</span>。因为 <span class="arithmatex">\(\Pr(B_1=1)=0\)</span>，这里不是把两个事件概率直接相除。</p>
+<p><strong>例 2：协方差。</strong> <span class="arithmatex">\(\operatorname{Var}(B_1+B_3)=1+3+2\min(1,3)=6\)</span>；独立的是不重叠增量，不是 <span class="arithmatex">\(B_1\)</span> 与 <span class="arithmatex">\(B_3\)</span>。</p>
+<h3 id="1_2">练习 1：为什么“密度比概率大”并不矛盾？<a class="headerlink" href="#1_2" title="Permanent link"></a></h3>
+<p>对 <span class="arithmatex">\(a=1\)</span> 的首次通过密度，求它达到最大值的时间，并解释密度与 CDF 的单位。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p><span class="arithmatex">\(\log f(t)=-\tfrac12\log(2\pi)-\tfrac32\log t-\tfrac1{2t}\)</span>，
+导数为 <span class="arithmatex">\(-3/(2t)+1/(2t^2)\)</span>，所以峰值在 <span class="arithmatex">\(t=1/3\)</span>。一般阈值峰值在 <span class="arithmatex">\(a^2/3\)</span>，密度峰高按 <span class="arithmatex">\(1/a^2\)</span> 缩放，可以超过 <span class="arithmatex">\(1\)</span>。CDF 无单位且在 <span class="arithmatex">\([0,1]\)</span>；密度有“每单位时间”的量纲，只有积分才是概率。</p>
+</details>
+<h3 id="2_2">练习 2：两端都没越界，桥会不会越界？<a class="headerlink" href="#2_2" title="Permanent link"></a></h3>
+<p>固定 <span class="arithmatex">\(x=y=0,a=1\)</span>，比较区间长度 <span class="arithmatex">\(1\)</span> 和 <span class="arithmatex">\(1/4\)</span> 的条件越界概率。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>代入桥公式分别得到 <span class="arithmatex">\(e^{-2}\approx.135335\)</span> 和 <span class="arithmatex">\(e^{-8}\approx.000335463\)</span>。缩短观察间隔且端点保持远离阈值，会大幅减小区间内漏检概率；线性插值在两种情况下都为零，却不能替代条件随机桥。若端点接近阈值，公式中的 <span class="arithmatex">\((a-x)(a-y)\)</span> 也会变化，不能只看时间间隔。</p>
+</details>
+<h3 id="3_2">练习 3：哪个停止论证成立？<a class="headerlink" href="#3_2" title="Permanent link"></a></h3>
+<p>比较“对称游走在首次到达 <span class="arithmatex">\(+1\)</span> 时停止”与“在首次到达 <span class="arithmatex">\(-m\)</span> 或 <span class="arithmatex">\(+1\)</span> 时停止”，其中 <span class="arithmatex">\(m\)</span> 是正整数。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>后一种停止位置有界，平移为区间 <span class="arithmatex">\([0,m+1]\)</span> 的赌徒破产问题，从 <span class="arithmatex">\(m\)</span> 出发，达到 <span class="arithmatex">\(+1\)</span> 的概率为 <span class="arithmatex">\(m/(m+1)\)</span>，达到 <span class="arithmatex">\(-m\)</span> 的概率为 <span class="arithmatex">\(1/(m+1)\)</span>。停止值期望是 <span class="arithmatex">\(m/(m+1)-m/(m+1)=0\)</span>，平均时长为 <span class="arithmatex">\(m\)</span>。让 <span class="arithmatex">\(m\to\infty\)</span> 时，成功概率趋于 <span class="arithmatex">\(1\)</span>，但罕见负值的幅度也增长，负向期望贡献并不消失。这正是缺少一致可积时不能交换极限与期望的具体机制。</p>
+</details>
+<p>依据与延伸：<a href="https://ocw.mit.edu/courses/15-070j-advanced-stochastic-processes-fall-2013/aca1518a09539a09ddd37428ab0d0268_MIT15_070JF13_Lec7.pdf">MIT 的反射原理与首次通过讲义</a>、<a href="https://ocw.mit.edu/courses/18-440-probability-and-random-variables-spring-2014/95835880b8b2c186229980f4622897df_MIT18_440S14_Lecture35.pdf">MIT 的鞅与可选停时讲义</a>。进一步学习：<a href="sde-01-ito.html">Itô 积分</a>、<a href="sde-02-sde-diffusion.html">随机微分方程</a>、<a href="sde-03-black-scholes.html">Black–Scholes 模型</a>。这些基础页仍须分别建立积分、解和模型条件，不以“一瞥”代替后续课程。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="stoch-03-markov-2.html"><span class="pager-label">上一页</span>随机过程 III · Markov 链（二）</a>
