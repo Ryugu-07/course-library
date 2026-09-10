@@ -132,6 +132,12 @@ for n,p in enumerate(points,1):
  x,y=map(float,p.split(','));bound=min(1,(.0672*n+.1728*n*(n-1))/(.1*n)**4)
  near(x,150+800*math.log10(n)/3,'static x',0,1e-8);near(y,1090-62*math.log10(bound/.001),'static y',0,1e-8)
 body=(ROOT/'grad-math/lectures/mt-02-lln.md').read_text();check(body.count('<details class="answer"')==3,'three full answers');check('\n+E[\\mathbf1_{A_k}(R_n-R_k)^2]'in body,'maximal inequality plus sign')
+# Source and generated HTML must both preserve addition in the fourth-moment bound.
+operator = r'\le \frac{m_4}{n^3\varepsilon^4}' + '\n+ ' + r'\frac{3(n-1)m_2^2}{n^3\varepsilon^4}.'
+check(operator in body, 'fourth-moment addition operator in source')
+html = (ROOT/'grad-math/site/mt-02-lln.html').read_text()
+check(operator in html, 'fourth-moment addition operator in shipped HTML')
+
 for c in ['grad-math','math-course','ai-course']:check((ROOT/c/'site/assets/learning/labs/lln-integrability.js').read_bytes()==(ROOT/'course-shared/labs/lln-integrability.js').read_bytes(),'JS mirror')
 check(figure.read_bytes()==(ROOT/'grad-math/site/assets/img/mt-02-lln.svg').read_bytes(),'figure mirror')
 print(f'LLN PASS: {COUNT:,} checks; {len(configs)} complete paths; {len(momentcases)} Decimal moment cases; {len(boundcases)} bounds; {data["strict"]} strict; {data["self"]["checks"]} self')

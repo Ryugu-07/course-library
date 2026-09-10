@@ -90,7 +90,7 @@ $$
 $$
 P(|S_n/n-\mu|>\varepsilon)
 \le \frac{m_4}{n^3\varepsilon^4}
- \frac{3(n-1)m_2^2}{n^3\varepsilon^4}.
++ \frac{3(n-1)m_2^2}{n^3\varepsilon^4}.
 $$
 
 右侧对 $n$ 可求和。BC-I 给每个固定 $\varepsilon$ 的越界只有有限次；再对 $\varepsilon=1/k$ 取可数交，得到 $S_n/n\to\mu$ a.s.
