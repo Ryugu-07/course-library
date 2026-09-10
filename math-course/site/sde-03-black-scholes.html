@@ -46,101 +46,219 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-10 11:11</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#black-scholes-learning-title">学习层：先分清“公式、复制定理、一次路径”</a><ul>
-<li><a href="#1">1. 直觉案例：为什么价格里没有股票的历史漂移？</a></li>
-<li><a href="#2-ito">2. 形式推导桥：从 Itô 到风险中性价格</a></li>
-<li><a href="#3-greeks">3. 公式、平价和 Greeks：把每一笔放回自己的定义</a></li>
-<li><a href="#4">4. 模型边界与常见误读</a></li>
-<li><a href="#5">5. 确定性实验：先过预测门，再读两本账</a></li>
+<li><a href="#black-scholes-learning-title">学习层：平价、价格、对冲误差不是同一项检验</a></li>
+<li><a href="#1">1. 模型前提与“风险中性”的含义</a><ul>
+<li><a href="#11">1.1 改变测度没有改变到期合约</a></li>
 </ul>
 </li>
-<li><a href="#1_1">1. 市场模型与无套利复制</a></li>
-<li><a href="#2-blackscholes-greeks">2. Black–Scholes 公式与 Greeks</a></li>
-<li><a href="#3-put-call-parity">3. Put-call parity 的独立地位</a></li>
-<li><a href="#4_1">4. 连续对冲与离散账本</a></li>
-<li><a href="#5_1">5. 三个检查题</a></li>
+<li><a href="#2-delta">2. Delta 对冲必须交代调仓资金</a></li>
+<li><a href="#3">3. 从正态分布算出价格</a><ul>
+<li><a href="#31">3.1 平价不是一张万能的数值合格证</a></li>
+<li><a href="#32">3.2 很小的价格也不应被减没</a></li>
+</ul>
+</li>
+<li><a href="#4-greeks">4. Greeks：先固定变量，再说导数</a><ul>
+<li><a href="#41">4.1 到期时：支付的折点不让所有导数都失效</a></li>
+<li><a href="#42">4.2 零波动时：折点移到了折现执行价</a></li>
+</ul>
+</li>
+<li><a href="#5">5. 离散账本：每次买股的钱从哪里来？</a><ul>
+<li><a href="#51">5.1 同一驱动与误差方向</a></li>
+</ul>
+</li>
+<li><a href="#6">6. 三道逐步核算题</a></li>
+<li><a href="#7">7. 参考与下一步</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iii-blackscholesgreeks">随机微积分 III · Black–Scholes、Greeks 与离散对冲<a class="headerlink" href="#iii-blackscholesgreeks" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Shreve <em>Stochastic Calculus for Finance II</em> §5–7 ｜ <strong>前置</strong>：sde-01、sde-02、概率 II、PDE II
-这页把三个容易混淆的对象拆开：连续完备市场中的定价定理、无套利的 put-call parity，以及一条固定 seed 的有限次 delta-hedge 场景。最后一个账本有误差并不反驳前两个结论。</p>
+<p>同一份到期支付，若能用股票与现金复制，今天应值多少？本页从这本自融资账出发，分别讨论无套利恒等式、连续模型的定价公式，以及有限次调仓的一条路径。它们回答不同的问题。</p>
 </blockquote>
 <div data-learning-page></div>
 
 <section aria-labelledby="black-scholes-learning-title" class="learning-layer">
-<h2 id="black-scholes-learning-title">学习层：先分清“公式、复制定理、一次路径”<a class="headerlink" href="#black-scholes-learning-title" title="Permanent link"></a></h2>
-<h3 id="1">1. 直觉案例：为什么价格里没有股票的历史漂移？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>假设股票满足</p>
+<h2 id="black-scholes-learning-title">学习层：平价、价格、对冲误差不是同一项检验<a class="headerlink" href="#black-scholes-learning-title" title="Permanent link"></a></h2>
+<p>设无股息股票价格为 <span class="arithmatex">\(S_t\)</span>，执行价 <span class="arithmatex">\(K&gt;0\)</span>，到期时间 <span class="arithmatex">\(T\)</span>。欧式看涨期权（call）支付 <span class="arithmatex">\((S_T-K)^+\)</span>，看跌期权（put）支付 <span class="arithmatex">\((K-S_T)^+\)</span>，其中 <span class="arithmatex">\(x^+=\max(x,0)\)</span>。</p>
+<p>先比较两个组合：</p>
+<table>
+<thead>
+<tr>
+<th>组合</th>
+<th>到期支付</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>call + 到期支付 <span class="arithmatex">\(K\)</span> 的债券</td>
+<td><span class="arithmatex">\((S_T-K)^++K\)</span></td>
+</tr>
+<tr>
+<td>put + 一股股票</td>
+<td><span class="arithmatex">\((K-S_T)^++S_T\)</span></td>
+</tr>
+</tbody>
+</table>
+<p><strong>两边都等于 <span class="arithmatex">\(\max(S_T,K)\)</span>，并非总等于 <span class="arithmatex">\(S_T\)</span>。</strong> 例如 <span class="arithmatex">\(S_T=60,K=100\)</span> 时，两个组合都支付 100；只有 <span class="arithmatex">\(S_T\ge K\)</span> 时才都支付 <span class="arithmatex">\(S_T\)</span>。</p>
+<p>在可交易这些资产、可作相应多空组合且无套利的条件下，相同到期现金流必须有相同的今天价格。这给出 put-call parity：</p>
 <div class="arithmatex">\[
-dS_t=\mu S_t\,dt+\sigma S_t\,dW_t,\qquad dM_t=rM_t\,dt,
+\boxed{C-P=S-Ke^{-r\tau}},\qquad \tau=T-t.
 \]</div>
-<p>其中 <span class="arithmatex">\(M_t\)</span> 是银行账户。我们要给欧式 call
-<span class="arithmatex">\(C(S,t)=\text{value of }\max(S_T-K,0)\)</span> 定价。</p>
-<p>先做四个预测，再打开实验台：</p>
-<ol>
-<li>价格公式里的漂移应是历史/场景漂移 <span class="arithmatex">\(\mu\)</span>，还是无风险利率 <span class="arithmatex">\(r\)</span>？</li>
-<li>连续复制定理与每隔 <span class="arithmatex">\(\Delta t\)</span> 调一次仓的路径，哪一个允许出现 terminal hedge error？</li>
-<li><span class="arithmatex">\(T=0\)</span> 时，<span class="arithmatex">\(d_1,d_2\)</span> 是否仍可直接代入？</li>
-<li><span class="arithmatex">\(\sigma=0\)</span> 时，是“公式发散”，还是风险中性股票路径退化为确定路径？</li>
-</ol>
-<p>核心直觉是：持有一份期权、做空 <span class="arithmatex">\(\Delta\)</span> 股股票时，股票的随机项可以在瞬间被抵消。能被股票直接对冲的方向风险不需要另付风险溢价；剩下的曲率和融资才进入定价方程。</p>
-<h3 id="2-ito">2. 形式推导桥：从 Itô 到风险中性价格<a class="headerlink" href="#2-ito" title="Permanent link"></a></h3>
-<p>对 <span class="arithmatex">\(\Pi=C-\Delta S\)</span> 用 Itô 引理：</p>
+<p>它尚未给出 <span class="arithmatex">\(C\)</span> 和 <span class="arithmatex">\(P\)</span> 各自是多少。要分别定价，还需模型或额外市场信息。</p>
+<div class="learning-lab" data-learning-lab="black-scholes-hedge">
+<p><strong>无 JavaScript 时的核算：</strong>取 <span class="arithmatex">\(S_0=K=100,r=0.05,\sigma=0.2,T=1\)</span>，时间单位为年，利率连续复利，股票不支付股息。</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th>数值或定义</th>
+<th>应怎样解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>call</td>
+<td>约 <span class="arithmatex">\(10.450584\)</span></td>
+<td>模型价格</td>
+</tr>
+<tr>
+<td>put</td>
+<td>约 <span class="arithmatex">\(5.573526\)</span></td>
+<td>模型价格</td>
+</tr>
+<tr>
+<td>初始 delta</td>
+<td>约 <span class="arithmatex">\(0.636831\)</span> 股</td>
+<td>复制组合的股票持仓</td>
+</tr>
+<tr>
+<td>初始现金</td>
+<td><span class="arithmatex">\(C-\Delta_0S_0\)</span>，约 <span class="arithmatex">\(-53.23248\)</span></td>
+<td>负现金代表模型内借款</td>
+</tr>
+<tr>
+<td>平价差</td>
+<td><span class="arithmatex">\(C-P=S_0-Ke^{-rT}\)</span></td>
+<td>现金流恒等式</td>
+</tr>
+<tr>
+<td>离散终点误差</td>
+<td><span class="arithmatex">\(V_T-(S_T-K)^+\)</span></td>
+<td>一条有限网格路径的结果</td>
+</tr>
+</tbody>
+</table>
+<p>把场景漂移 <span class="arithmatex">\(\mu\)</span> 改掉，模型价格不变，路径和离散对冲误差却可变化。增加调仓次数时，还必须保留同一驱动路径，才能解释差异来自什么。</p>
+</div>
+<p>实验先记录四个预测，再开放参数。它把 384 个细区间的 Brownian 增量聚合到八个网格，所有网格具有相同终点股票值；提供 3 组固定种子、逐行现金账以及两种期权的 Greeks。有限路径的误差不保证随细分单调下降。</p>
+</section>
+<h2 id="1">1. 模型前提与“风险中性”的含义<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<style>
+.bsh-static{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+.bsh-static img{display:block;width:1100px;max-width:none!important}
+.bsh-static:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+
+<div aria-label="平价支付与自融资静态图，可横向滚动" class="figure bsh-static" role="region" tabindex="0">
+<p><img alt="两个平价组合的共同支付，以及调仓前后的股票与现金价值守恒" src="assets/img/sde-03-gbm-payoff.svg" /></p>
+<p>上图把“股票跌到执行价以下”单独显露出来；下方现金账将在第 5 节展开。这两项核算都不需要随机模拟。</p>
+</div>
+<p>先在有限时段上取常数 <span class="arithmatex">\(r,\mu\)</span> 和 <span class="arithmatex">\(\sigma&gt;0\)</span>：</p>
 <div class="arithmatex">\[
-d\Pi=\left(C_t+\mu SC_S+\frac12\sigma^2S^2C_{SS}-\Delta\mu S\right)dt
- +(C_S-\Delta)\sigma S\,dW_t.
+dS_t=\mu S_t\,dt+\sigma S_t\,dW_t,\qquad
+dM_t=rM_t\,dt,\qquad S_0&gt;0,\ M_0=1.
 \]</div>
-<p>取 <span class="arithmatex">\(\Delta=C_S\)</span>，随机项消失；在<strong>无摩擦、可连续交易且市场完备</strong>的模型中，无风险组合只能按 <span class="arithmatex">\(r\)</span> 增长：</p>
+<p>本页假设股票不支付股息，可以无摩擦连续交易、借贷和做空，使用可容许的自融资策略，并以这个 Brownian 驱动的信息为市场信息。在这个单噪声、可交易股票与银行账户的模型内，可建立完备性；若额外加入未交易的随机风险，不能自动声称整个市场仍完备。</p>
+<p>可容许性排除靠无限借贷、加倍下注等病态策略制造的伪套利。有限交易成本、买卖价差、跳跃、随机波动率或融资限制会改变问题，本页公式是相应简化模型的结论。</p>
+<h3 id="11">1.1 改变测度没有改变到期合约<a class="headerlink" href="#11" title="Permanent link"></a></h3>
+<p>设 <span class="arithmatex">\(\lambda=(\mu-r)/\sigma\)</span>。常数参数满足有限时段的指数可积条件，Girsanov 变换可取</p>
 <div class="arithmatex">\[
-d\Pi=r\Pi\,dt
-\quad\Longrightarrow\quad
-\boxed{C_t+\frac12\sigma^2S^2C_{SS}+rSC_S-rC=0}.
+\frac{dQ}{dP}\bigg|_{\mathcal F_T}
+=\exp(-\lambda W_T-\tfrac12\lambda^2T),
+\qquad W_t^Q=W_t+\lambda t.
 \]</div>
-<p>因此 <span class="arithmatex">\(\mu\)</span> 在方程中抵消。等价地，在风险中性测度 <span class="arithmatex">\(Q\)</span> 下，</p>
+<p>在等价测度 <span class="arithmatex">\(Q\)</span> 下，股票满足</p>
 <div class="arithmatex">\[
-\begin{aligned}
-C_t=C(S_t,t)&amp;=e^{-r\tau}E_t^Q[(S_T-K)^+],\qquad \tau=T-t,\\
-dS_t&amp;=rS_t\,dt+\sigma S_t\,dW_t^Q.
-\end{aligned}
+dS_t=rS_t\,dt+\sigma S_t\,dW_t^Q.
 \]</div>
-<h3 id="3-greeks">3. 公式、平价和 Greeks：把每一笔放回自己的定义<a class="headerlink" href="#3-greeks" title="Permanent link"></a></h3>
-<p>令 <span class="arithmatex">\(\tau=T-t&gt;0\)</span>，且 <span class="arithmatex">\(S&gt;0,\sigma&gt;0\)</span>：</p>
+<p>这是给可复制现金流定价的测度，不是断言真实世界的收益漂移一定等于 <span class="arithmatex">\(r\)</span>。实际/场景测度中的 <span class="arithmatex">\(\mu\)</span> 仍影响路径概率。</p>
+<p>当 <span class="arithmatex">\(\sigma=0\)</span> 时，这个除以 <span class="arithmatex">\(\sigma\)</span> 的变换不适用。若仍要求无摩擦无套利的确定性股票模型，就必须有 <span class="arithmatex">\(\mu=r\)</span>；否则可利用两个不同的确定增长率构造套利。实验允许 <span class="arithmatex">\(\sigma=0,\mu\ne r\)</span> 作为<strong>模型失配场景</strong>，并明确标注，不能把它读成上述无套利定理的适用例。</p>
+<h2 id="2-delta">2. Delta 对冲必须交代调仓资金<a class="headerlink" href="#2-delta" title="Permanent link"></a></h2>
+<p>令复制组合价值为</p>
 <div class="arithmatex">\[
-d_1=\frac{\ln(S/K)+(r+\frac12\sigma^2)\tau}{\sigma\sqrt{\tau}},
-\qquad d_2=d_1-\sigma\sqrt{\tau}.
+V_t=\Delta_tS_t+\beta_tM_t.
 \]</div>
-<p>实验台会同时显示</p>
+<p><strong>自融资</strong>的含义是：买入新股票所需的现金来自组合内部，没有额外注资或提取。相应收益过程满足</p>
+<div class="arithmatex">\[
+dV_t=\Delta_t\,dS_t+\beta_t\,dM_t
+=\Delta_t\,dS_t+r(V_t-\Delta_tS_t)\,dt.
+\]</div>
+<p>若期权价值函数为 <span class="arithmatex">\(u(t,S)\)</span>，并令 <span class="arithmatex">\(V_t=u(t,S_t)\)</span>，<a href="sde-01-ito.html">Itô 公式</a>给出</p>
+<div class="arithmatex">\[
+du=\left(u_t+\mu S u_S+\tfrac12\sigma^2S^2u_{SS}\right)dt
++\sigma S u_S\,dW_t.
+\]</div>
+<p>比较随机项，必须取 <span class="arithmatex">\(\Delta_t=u_S(t,S_t)\)</span>。再比较漂移项：</p>
+<div class="arithmatex">\[
+u_t+\mu S u_S+\tfrac12\sigma^2S^2u_{SS}
+=\mu S u_S+r(u-Su_S),
+\]</div>
+<p>所以得到 Black–Scholes PDE：</p>
+<div class="arithmatex">\[
+\boxed{u_t+\tfrac12\sigma^2S^2u_{SS}+rSu_S-ru=0.}
+\]</div>
+<p>看涨期权终端条件为 <span class="arithmatex">\(u(T,S)=(S-K)^+\)</span>。虽然终端支付有折点，在 <span class="arithmatex">\(\tau&gt;0,\sigma&gt;0,S&gt;0\)</span> 的内点，定价函数有用于上述推导的光滑性。</p>
+<p><strong>不能直接漏掉动态持仓的微分。</strong> 若写 <span class="arithmatex">\(\Pi_t=u(t,S_t)-\Delta_tS_t\)</span>，乘积公式给出
+<span class="arithmatex">\(d(\Delta S)=\Delta\,dS+S\,d\Delta+d[\Delta,S]\)</span>。把 <span class="arithmatex">\(d\Pi\)</span> 写成 <span class="arithmatex">\(du-\Delta\,dS\)</span> 而不解释自融资现金账，会遗漏调仓项。上面的复制组合推导正是为了把这一步说清楚。</p>
+<h2 id="3">3. 从正态分布算出价格<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>在风险中性测度下，</p>
+<div class="arithmatex">\[
+S_T=S\exp[(r-\tfrac12\sigma^2)\tau+\sigma\sqrt\tau\,Z],
+\qquad Z\sim N(0,1).
+\]</div>
+<p>贴现条件期望为</p>
+<div class="arithmatex">\[
+C=e^{-r\tau}\mathbb E^Q[(S_T-K)^+\mid S_t=S].
+\]</div>
+<p>把事件 <span class="arithmatex">\(S_T&gt;K\)</span> 写成关于 <span class="arithmatex">\(Z\)</span> 的阈值，再对正态密度配方，得到</p>
+<div class="arithmatex">\[
+d_1=\frac{\ln(S/K)+(r+\sigma^2/2)\tau}{\sigma\sqrt\tau},
+\qquad d_2=d_1-\sigma\sqrt\tau,
+\]</div>
 <div class="arithmatex">\[
 C=S\Phi(d_1)-Ke^{-r\tau}\Phi(d_2),\qquad
-P=C-S+Ke^{-r\tau}.
+P=Ke^{-r\tau}\Phi(-d_2)-S\Phi(-d_1).
 \]</div>
-<p>一张到期支付 <span class="arithmatex">\(K\)</span> 的零息债券在到期时交付现金 <span class="arithmatex">\(K\)</span>，今天的价格是
-<span class="arithmatex">\(Ke^{-r\tau}\)</span>。因此，</p>
+<p><span class="arithmatex">\(\Phi\)</span> 是标准正态累积分布，<span class="arithmatex">\(\phi=\Phi'\)</span> 是其密度。<span class="arithmatex">\(\mu\)</span> 消失是复制与风险中性结构的结果，不能理解为所有衍生品在任意模型下都与风险溢价无关。</p>
+<h3 id="31">3.1 平价不是一张万能的数值合格证<a class="headerlink" href="#31" title="Permanent link"></a></h3>
+<p>对于无股息欧式期权，同执行价、到期日与交割规则下，平价来自学习层的现金流复制，不需要假定股票一定服从 GBM。若存在股息、不同融资规则或提前行权，必须先重新写现金流。</p>
+<p>另外有模型内的价格界：</p>
 <div class="arithmatex">\[
-\begin{aligned}
-\text{call}+\text{债券}&amp;\longrightarrow (S_T-K)^+ + K,\\
-\text{put}+\text{股票}&amp;\longrightarrow (K-S_T)^+ + S_T.
-\end{aligned}
+\max(S-Ke^{-r\tau},0)\le C\le S,\qquad
+\max(Ke^{-r\tau}-S,0)\le P\le Ke^{-r\tau}.
 \]</div>
-<p>两边都等于 <span class="arithmatex">\(S_T\)</span>，无套利先给出今天的价格关系</p>
+<p>一个程序若先计算 <span class="arithmatex">\(C\)</span>，再强制令 <span class="arithmatex">\(P=C-S+Ke^{-r\tau}\)</span>，即使 <span class="arithmatex">\(C\)</span> 算错，平价残差也可以是 0。因此需要独立价格参考、支付恒等式和边界检验。</p>
+<h3 id="32">3.2 很小的价格也不应被减没<a class="headerlink" href="#32" title="Permanent link"></a></h3>
+<p>深度价外期权的价格可能远小于两个正态尾项。粗略 CDF 近似或用两个接近的数相减，会把正价格算成 0，甚至负数。</p>
+<p>实验采用另一条正值表示。令 <span class="arithmatex">\(D=Ke^{-r\tau}\)</span>、<span class="arithmatex">\(m=\ln(S/D)\)</span>、<span class="arithmatex">\(w=\sigma\sqrt\tau\)</span>。看涨与看跌的共同时间价值为</p>
 <div class="arithmatex">\[
-C_t+Ke^{-r\tau}=P_t+S_t,
+\operatorname{TV}
+=\frac{\sqrt{SD}}{\sqrt{2\pi}}
+\int_0^w \exp\!\left[-\frac{m^2}{2v^2}-\frac{v^2}{8}\right]dv.
 \]</div>
-<p>也就是</p>
-<div class="arithmatex">\[
-\boxed{C_t-P_t=S_t-Ke^{-r\tau}}.
-\]</div>
-<p>不依赖 GBM 的具体分布；它是无套利现金流复制，不是“再加一个波动率公式”。</p>
-<p>常用 Greeks（<span class="arithmatex">\(\Theta=C_t\)</span>，按日历时间求导）是</p>
+<p>积分下端按极限理解。由 Vega 对总波动率积分即可推出该式；零波动端的价格是折现内在价值。因此
+<span class="arithmatex">\(C=(S-D)^++\operatorname{TV}\)</span>、<span class="arithmatex">\(P=(D-S)^++\operatorname{TV}\)</span>。
+它避免直接相减两个尾概率，但也意味着屏幕上的平价残差仍只是一项代数一致性检查。</p>
+<p>例如 <span class="arithmatex">\(S=40,K=180,r=0.05,\sigma=0.1,\tau=1\)</span>，模型 call 约为 <span class="arithmatex">\(1.88196\times10^{-48}\)</span>，仍为正。更极端的量若低于浮点可表示范围，数值 0 表示下溢，不是数学上的零价格证明。</p>
+<h2 id="4-greeks">4. Greeks：先固定变量，再说导数<a class="headerlink" href="#4-greeks" title="Permanent link"></a></h2>
+<p>内点公式如下。<span class="arithmatex">\(\Theta=\partial u/\partial t=-\partial u/\partial\tau\)</span>，保持 <span class="arithmatex">\(S\)</span> 固定；时间单位为年。Vega 是对波动率<strong>一个绝对单位</strong>的导数，<span class="arithmatex">\(\rho\)</span> 对利率一个绝对单位求导；若要表示一个百分点的变化，一阶近似还要乘 <span class="arithmatex">\(0.01\)</span>。</p>
 <table>
 <thead>
 <tr>
@@ -151,149 +269,146 @@ C_t+Ke^{-r\tau}=P_t+S_t,
 </thead>
 <tbody>
 <tr>
-<td><span class="arithmatex">\(\Delta\)</span></td>
+<td><span class="arithmatex">\(\Delta=\partial_Su\)</span></td>
 <td><span class="arithmatex">\(\Phi(d_1)\)</span></td>
-<td><span class="arithmatex">\(\Phi(d_1)-1\)</span></td>
+<td><span class="arithmatex">\(-\Phi(-d_1)\)</span></td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(\Gamma\)</span></td>
-<td><span class="arithmatex">\(\frac{\phi(d_1)}{S\sigma\sqrt{\tau}}\)</span></td>
+<td><span class="arithmatex">\(\Gamma=\partial_{SS}u\)</span></td>
+<td><span class="arithmatex">\(\phi(d_1)/(S\sigma\sqrt\tau)\)</span></td>
 <td>同 call</td>
 </tr>
 <tr>
-<td>Vega</td>
-<td><span class="arithmatex">\(S\phi(d_1)\sqrt{\tau}\)</span></td>
+<td>Vega <span class="arithmatex">\(=\partial_\sigma u\)</span></td>
+<td><span class="arithmatex">\(S\phi(d_1)\sqrt\tau\)</span></td>
 <td>同 call</td>
 </tr>
 <tr>
 <td><span class="arithmatex">\(\Theta\)</span></td>
-<td><span class="arithmatex">\(-\frac{S\phi(d_1)\sigma}{2\sqrt{\tau}}-rKe^{-r\tau}\Phi(d_2)\)</span></td>
-<td><span class="arithmatex">\(-\frac{S\phi(d_1)\sigma}{2\sqrt{\tau}}+rKe^{-r\tau}\Phi(-d_2)\)</span></td>
+<td><span class="arithmatex">\(-\frac{S\phi(d_1)\sigma}{2\sqrt\tau}-rD\Phi(d_2)\)</span></td>
+<td><span class="arithmatex">\(-\frac{S\phi(d_1)\sigma}{2\sqrt\tau}+rD\Phi(-d_2)\)</span></td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(\rho\)</span></td>
-<td><span class="arithmatex">\(K\tau e^{-r\tau}\Phi(d_2)\)</span></td>
-<td><span class="arithmatex">\(-K\tau e^{-r\tau}\Phi(-d_2)\)</span></td>
+<td><span class="arithmatex">\(\rho=\partial_ru\)</span></td>
+<td><span class="arithmatex">\(\tau D\Phi(d_2)\)</span></td>
+<td><span class="arithmatex">\(-\tau D\Phi(-d_2)\)</span></td>
 </tr>
 </tbody>
 </table>
-<h3 id="4">4. 模型边界与常见误读<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<blockquote>
-<p><strong>模型边界面板</strong></p>
-<ul>
-<li><strong>连续复制</strong>需要 GBM、常数 <span class="arithmatex">\(r,\sigma\)</span>、无摩擦、市场完备和连续交易。</li>
-<li><strong>有限网格账本</strong>只生成一个固定 seed 的场景；它不是连续对冲定理，也不是最坏情形误差上界。</li>
-<li><span class="arithmatex">\(\mu\)</span> 不进入 B–S 价格，但可以作为生成路径的场景漂移；不要把“场景路径”读成“定价输入”。</li>
-<li><span class="arithmatex">\(T=0\)</span> 时价格直接是 payoff，<span class="arithmatex">\(S=K\)</span> 处 payoff 不可微；页内用 <span class="arithmatex">\(\Delta=1/2\)</span> 作为显示约定，<span class="arithmatex">\(\Gamma\)</span> 不是普通有限函数。</li>
-<li><span class="arithmatex">\(\sigma=0\)</span> 时风险中性股票确定为 <span class="arithmatex">\(S_T=Se^{r\tau}\)</span>，call 变成 <span class="arithmatex">\(\max(S-Ke^{-r\tau},0)\)</span>；在 forward-ATM <span class="arithmatex">\(S=Ke^{-r\tau}\)</span> 处，<span class="arithmatex">\(\Delta\)</span> 是单侧/显示约定，Vega 是 <span class="arithmatex">\(\sigma\downarrow0\)</span> 的单侧值，<span class="arithmatex">\(\Gamma,\Theta,\rho\)</span> 标为 unavailable，不能把 <span class="arithmatex">\(0/0\)</span> 的 <span class="arithmatex">\(d_1\)</span> 形式硬代进去。</li>
-<li>交互边界元数据会把 <code>one-sided</code> 与 <code>unavailable</code> 写出来；这不改变普通内点的数字 Greeks。</li>
-</ul>
-</blockquote>
-<h3 id="5">5. 确定性实验：先过预测门，再读两本账<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<p>预测提交后，实验台显示五个 Greeks、put-call parity 残差、GBM 路径，以及每一行的股票、目标 delta、持股、现金、组合价值和误差。切换“细分”只改变有限次再平衡的场景账本；切换“sigma=0”则把边界行为直接暴露出来。</p>
-<div class="learning-lab" data-learning-lab="black-scholes-hedge">
-<p><strong>无 JavaScript 时的静态读法：</strong> 取 <span class="arithmatex">\(S_0=K=100,r=0.05,\sigma=0.2,T=1\)</span>。标准正态函数记作 <span class="arithmatex">\(\Phi,\phi\)</span>。</p>
+<p>Greeks 是局部导数，不能把 <span class="arithmatex">\(\Delta\,\Delta S\)</span> 当成任意幅度价格变化的精确结果；二阶近似还要考虑曲率和交叉项。</p>
+<h3 id="41">4.1 到期时：支付的折点不让所有导数都失效<a class="headerlink" href="#41" title="Permanent link"></a></h3>
+<p>当 <span class="arithmatex">\(\tau=0\)</span>，价格就是支付。远离 <span class="arithmatex">\(S=K\)</span>，call 的 delta 为 0 或 1，gamma 为 0；在 <span class="arithmatex">\(S=K\)</span>，对 <span class="arithmatex">\(S\)</span> 的普通导数不存在，实验显示 <span class="arithmatex">\(1/2\)</span> 仅是约定，不能叫作唯一数学 delta。</p>
+<p><strong>但到期价格不依赖 <span class="arithmatex">\(\sigma\)</span>，所以到期 Vega 恒为 0，包括平值处。</strong> 到期 <span class="arithmatex">\(\rho\)</span> 也为 0。不能因为 <span class="arithmatex">\(d_1\)</span> 不能代入，就把所有敏感度都标成不可用。</p>
+<p>时间只允许从到期前靠近，故 Theta 要说明单侧口径。<span class="arithmatex">\(\sigma&gt;0,S=K\)</span> 时，价格含 <span class="arithmatex">\(\sqrt\tau\)</span> 主项，Theta 没有有限的到期前极限；远离折点，call 的极限为价内 <span class="arithmatex">\(-rK\)</span>、价外 0，put 对称。</p>
+<p>若同时 <span class="arithmatex">\(\sigma=0,S=K\)</span>，时间方向还取决于 <span class="arithmatex">\(r\)</span>：call 的单侧 Theta 为 <span class="arithmatex">\(-\max(rK,0)\)</span>，put 为 <span class="arithmatex">\(\min(rK,0)\)</span>。不同方向的边界极限不要混为一个无条件公式。</p>
+<h3 id="42">4.2 零波动时：折点移到了折现执行价<a class="headerlink" href="#42" title="Permanent link"></a></h3>
+<p>当 <span class="arithmatex">\(\sigma=0,\tau&gt;0\)</span>，</p>
+<div class="arithmatex">\[
+C=(S-D)^+,\qquad P=(D-S)^+.
+\]</div>
+<p>远离 <span class="arithmatex">\(S=D\)</span>，gamma 为 0，波动率右侧导数 Vega 也为 0。恰在 <span class="arithmatex">\(S=D\)</span>，对 <span class="arithmatex">\(S\)</span> 的普通 delta/gamma 不存在，但波动率的右侧导数存在：</p>
+<div class="arithmatex">\[
+\left.\partial_{\sigma+}C\right|_{\sigma=0,S=D}
+=\left.\partial_{\sigma+}P\right|_{\sigma=0,S=D}
+=\frac{S\sqrt\tau}{\sqrt{2\pi}}.
+\]</div>
+<p>此时 <span class="arithmatex">\(\rho\)</span> 有折点；Theta 在 <span class="arithmatex">\(r\ne0\)</span> 时也有时间方向的折点。<strong>若 <span class="arithmatex">\(r=0\)</span>，价格不随 <span class="arithmatex">\(\tau\)</span> 改变，Theta 为 0</strong>，不能一概标成不可用。</p>
+<p>实验的零波动平值预设用 <span class="arithmatex">\(r=0,S=K\)</span> 表示明确的等号。一般接近折现执行价时，机器计算的相等不是数学等号的证明；不能用一个任意容差把附近的非折点全部归类为折点。</p>
+<h2 id="5">5. 离散账本：每次买股的钱从哪里来？<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>在网格 <span class="arithmatex">\(0=t_0&lt;\cdots&lt;t_n=T\)</span>，先用模型价格建立组合：</p>
+<div class="arithmatex">\[
+\Delta_0=C_S(0,S_0),\qquad b_0=C(0,S_0)-\Delta_0S_0.
+\]</div>
+<p><span class="arithmatex">\(b\)</span> 是现金金额，不是银行账户份数，也不是 Brownian 运动。进入下一时刻后，先计息，再调仓：</p>
+<div class="arithmatex">\[
+\begin{aligned}
+b_{j+1}^{\mathrm{pre}}&amp;=b_je^{r(t_{j+1}-t_j)},\\
+q_{j+1}&amp;=\Delta_{j+1}-\Delta_j,\\
+b_{j+1}&amp;=b_{j+1}^{\mathrm{pre}}-q_{j+1}S_{t_{j+1}},\\
+V_{j+1}&amp;=\Delta_{j+1}S_{t_{j+1}}+b_{j+1}.
+\end{aligned}
+\]</div>
+<p>买入 <span class="arithmatex">\(q\)</span> 股花费 <span class="arithmatex">\(qS\)</span>；卖出时 <span class="arithmatex">\(q&lt;0\)</span>，现金增加。调仓前后组合价值不变，这才是自融资的逐行检查。</p>
+<p>最后一行无需再买入到期 delta；实验保留到期前持股，按 <span class="arithmatex">\(S_T\)</span> 计价，比较</p>
+<div class="arithmatex">\[
+E_T=V_T-(S_T-K)^+.
+\]</div>
+<p>在无摩擦模型里，到期卖掉股票只把股票价值变成现金，不会改变组合总值或这个误差。“不平仓才保留真正误差”不是正确解释。</p>
+<h3 id="51">5.1 同一驱动与误差方向<a class="headerlink" href="#51" title="Permanent link"></a></h3>
+<p>实验使用精确 GBM 网格值：</p>
+<div class="arithmatex">\[
+S_{t_j}=S_0\exp[(\mu-\tfrac12\sigma^2)t_j+\sigma W_{t_j}].
+\]</div>
+<p>先生成细区间 Brownian 增量，再聚合到粗网格，所以所有调仓方案都在同一条采样路径上比较。折线只连接这些采样时刻，不表示区间内部的真实路径。</p>
+<p>在足够光滑、远离终端折点且步长小的局部展开中，对冲组合相对期权的单步误差主项近似为</p>
+<div class="arithmatex">\[
+\tfrac12\Gamma\sigma^2S^2\,[h-(\Delta W)^2].
+\]</div>
+<p>其中 <span class="arithmatex">\((\Delta W)^2\)</span> 并不每次等于 <span class="arithmatex">\(h\)</span>，所以误差有正有负。有限层级、单路径的绝对误差可以不单调；连续复制极限的论证还需要概率意义与可积性控制，尤其不能忽略到期附近的曲率。</p>
+<h2 id="6">6. 三道逐步核算题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p><strong>题 1：平价组合到底支付什么？</strong> 取 <span class="arithmatex">\(K=100\)</span>，分别令 <span class="arithmatex">\(S_T=60,100,140\)</span>，列出 call、put、call+债券、put+股票的支付。</p>
+<details class="answer" markdown="1">
+<summary>展开：用三种到期状态核对</summary>
+
 <table>
 <thead>
 <tr>
-<th>账本</th>
-<th>公式/静态读数</th>
-<th>量词</th>
+<th><span class="arithmatex">\(S_T\)</span></th>
+<th>call</th>
+<th>put</th>
+<th>call+<span class="arithmatex">\(100\)</span></th>
+<th>put+<span class="arithmatex">\(S_T\)</span></th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>欧式 call</td>
-<td><span class="arithmatex">\(C=S_0\Phi(d_1)-Ke^{-rT}\Phi(d_2)\approx10.4506\)</span></td>
-<td>模型价格</td>
+<td>60</td>
+<td>0</td>
+<td>40</td>
+<td>100</td>
+<td>100</td>
 </tr>
 <tr>
-<td>欧式 put</td>
-<td><span class="arithmatex">\(P=C-S_0+Ke^{-rT}\approx5.5735\)</span></td>
-<td>由平价核对</td>
+<td>100</td>
+<td>0</td>
+<td>0</td>
+<td>100</td>
+<td>100</td>
 </tr>
 <tr>
-<td>平价残差</td>
-<td><span class="arithmatex">\(C-P-(S_0-Ke^{-rT})=0\)</span></td>
-<td>无套利恒等式</td>
-</tr>
-<tr>
-<td>初始复制组合</td>
-<td><span class="arithmatex">\(\Delta_0=\Phi(d_1)\)</span>，现金 <span class="arithmatex">\(=C-\Delta_0S_0\)</span></td>
-<td>连续理论的起点</td>
-</tr>
-<tr>
-<td>有限路径</td>
-<td><span class="arithmatex">\(S_{j+1}=S_j\exp((\mu-\sigma^2/2)\Delta t+\sigma\sqrt{\Delta t}z_j)\)</span></td>
-<td>固定 seed 的场景</td>
-</tr>
-<tr>
-<td>终点误差</td>
-<td>最后组合价值 <span class="arithmatex">\(-\)</span> <span class="arithmatex">\((S_T-K)^+\)</span></td>
-<td><strong>离散场景，不是定理</strong></td>
-</tr>
-<tr>
-<td><span class="arithmatex">\(T=0\)</span></td>
-<td><span class="arithmatex">\(C=(S-K)^+\)</span>；<span class="arithmatex">\(\Delta=1,0\)</span>，ATM 显示约定 <span class="arithmatex">\(1/2\)</span>；kink 上 <span class="arithmatex">\(\Gamma,\text{Vega},\Theta\)</span> unavailable，非 kink 的 <span class="arithmatex">\(\Theta\)</span> 只取到期前单侧值</td>
-<td>payoff 边界</td>
-</tr>
-<tr>
-<td><span class="arithmatex">\(\sigma=0\)</span></td>
-<td><span class="arithmatex">\(C=\max(S-Ke^{-r\tau},0)\)</span>；远离 forward kink 时 <span class="arithmatex">\(\Gamma=\text{Vega}=0\)</span>，forward-ATM 的 <span class="arithmatex">\(\Delta\)</span> 单侧、Vega 单侧且 <span class="arithmatex">\(\Gamma,\Theta,\rho\)</span> unavailable</td>
-<td>确定性边界</td>
+<td>140</td>
+<td>40</td>
+<td>0</td>
+<td>140</td>
+<td>140</td>
 </tr>
 </tbody>
 </table>
-<p>若交互失效，先用前五行复核公式和自融资关系，再把最后一行读成“本条路径在本调仓网格下发生了多少误差”，不要把它改写成“B–S 误差”。</p>
-</div>
-</section>
-<h2 id="1_1">1. 市场模型与无套利复制<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p>本页的定理性声明有明确前提：</p>
-<ol>
-<li>股票按 GBM 演化，波动率 <span class="arithmatex">\(\sigma\)</span> 与短利率 <span class="arithmatex">\(r\)</span> 为常数；</li>
-<li>可以无摩擦交易、借贷和做空；</li>
-<li>交易连续，且股票和银行账户构成完备市场；</li>
-<li>期权是欧式，只有到期 payoff，没有提前行权。</li>
-</ol>
-<p>若交易有 bid-ask spread、跳跃、随机波动率、融资约束或离散交易，下面的精确公式就变成基准模型，而不是完整现实。</p>
-<h2 id="2-blackscholes-greeks">2. Black–Scholes 公式与 Greeks<a class="headerlink" href="#2-blackscholes-greeks" title="Permanent link"></a></h2>
-<p>在普通区域 <span class="arithmatex">\(\tau&gt;0,\sigma&gt;0,S&gt;0\)</span>，风险中性解为</p>
-<div class="arithmatex">\[
-C(S,t)=S\Phi(d_1)-Ke^{-r\tau}\Phi(d_2),
-\quad
-P(S,t)=Ke^{-r\tau}\Phi(-d_2)-S\Phi(-d_1).
-\]</div>
-<p>这里的 Vega 是对“波动率的一个绝对单位”求导；交易屏幕常把它再除以 <span class="arithmatex">\(100\)</span> 或按一天缩放。Theta 的符号也取决于日历时间和显示单位，不能只看一个未经标注的数字。</p>
-<h2 id="3-put-call-parity">3. Put-call parity 的独立地位<a class="headerlink" href="#3-put-call-parity" title="Permanent link"></a></h2>
-<p>持有 call 加上债券与持有 put 加股票的到期现金流分别是</p>
-<div class="arithmatex">\[
-(S_T-K)^+ + K
-\quad\text{和}\quad
-(K-S_T)^+ + S_T.
-\]</div>
-<p>第一行中的零息债券今天值 <span class="arithmatex">\(Ke^{-r\tau}\)</span>、到期支付 <span class="arithmatex">\(K\)</span>；两边到期都等于 <span class="arithmatex">\(S_T\)</span>，故今天价值必须满足</p>
-<div class="arithmatex">\[
-C_t+Ke^{-r\tau}=P_t+S_t
-\quad\Longleftrightarrow\quad
-C_t-P_t=S_t-Ke^{-r\tau}.
-\]</div>
-<p>这个论证只依赖可复制现金流与无套利；它不需要知道 <span class="arithmatex">\(\mu\)</span>，也不需要先相信 Black–Scholes 的 PDE。</p>
-<h2 id="4_1">4. 连续对冲与离散账本<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p>连续理论的 delta 是 <span class="arithmatex">\(C_S\)</span>。在有限网格 <span class="arithmatex">\(0=t_0&lt;\cdots&lt;t_n=T\)</span>，实验按以下自融资规则记账：</p>
-<div class="arithmatex">\[
-\begin{aligned}
-B_{j+1}^{\rm pre}&amp;=B_j e^{r\Delta t},\\
-\Delta B_{j+1}&amp;=-(\Delta_{j+1}-\Delta_j)S_{t_{j+1}},\\
-V_{j+1}^{\rm hedge}&amp;=\Delta_{j+1}S_{t_{j+1}}+B_{j+1}.
-\end{aligned}
-\]</div>
-<p>到期前一行会再平衡；最后一行保留到期前的持仓，与 <span class="arithmatex">\((S_T-K)^+\)</span> 比较。它是一个 deterministic seeded simulation：同一参数会重复同一账本，但它没有替代连续时间极限、概率量词或误差估计。</p>
-<h2 id="5_1">5. 三个检查题<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<p><strong>例 1（漂移隔离）</strong> 把路径生成器的 <span class="arithmatex">\(\mu\)</span> 从 <span class="arithmatex">\(0.08\)</span> 改到 <span class="arithmatex">\(-0.08\)</span>，公式价格不应变化；路径和有限对冲误差会变化。这正是定价测度与场景测度的接口。</p>
-<p><strong>例 2（边界先于公式）</strong> 在 <span class="arithmatex">\(T=0,S=K\)</span> 处，call 的价格为 <span class="arithmatex">\(0\)</span>，但 payoff 的普通导数不存在。一个交互组件选择 <span class="arithmatex">\(1/2\)</span> 只是可重复的显示 convention，不是宣称 kink 有唯一经典 delta。</p>
-<p><strong>例 3（平价审计）</strong> 若屏幕给出的 <span class="arithmatex">\(C_t-P_t\)</span> 与 <span class="arithmatex">\(S_t-Ke^{-r\tau}\)</span> 不同，先检查股息、融资利率、行权/交割约定，再谈波动率模型；平价是最先应审计的现金流恒等式。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>本页收束随机微积分的金融接口：Itô 引理提供局部账本，delta 对冲消去随机项，风险中性定价给出精确公式；现实交易再用跳跃、随机波动率、交易成本和离散风险把模型边界补回来。</em></p>
+<p>两个组合总是相同，支付为 <span class="arithmatex">\(\max(S_T,100)\)</span>。它们不等于“总是持有一股股票”；在股价低于执行价时还有保护性支付。再把今天的债券价格换成 <span class="arithmatex">\(100e^{-r\tau}\)</span>，得到平价。</p>
+</details>
+<p><strong>题 2：借款账户是否被忽略了？</strong> 初始 <span class="arithmatex">\(S_0=100\)</span>、组合价值 <span class="arithmatex">\(10\)</span>、持股 <span class="arithmatex">\(0.6\)</span>。忽略本小题区间内的利息，下一时刻股价为 110，目标持股变成 0.7。调仓后现金与组合价值是多少？</p>
+<details class="answer">
+<summary>展开：买入的 0.1 股必须付钱</summary>
+<p>初始现金 <span class="arithmatex">\(10-0.6\times100=-50\)</span>。下一时刻调仓前组合值 <span class="arithmatex">\(0.6\times110-50=16\)</span>。
+买入 <span class="arithmatex">\(0.1\)</span> 股花费 11，现金变为 <span class="arithmatex">\(-61\)</span>；调仓后组合值 <span class="arithmatex">\(0.7\times110-61=16\)</span>，没有凭空增值。
+若把现金仍写成 <span class="arithmatex">\(-50\)</span>，就偷偷注入了 11，不能再称为自融资。</p>
+</details>
+<p><strong>题 3：平值处的 Vega 为什么有两个不同答案？</strong> 比较 <span class="arithmatex">\(\tau=0,S=K\)</span> 与 <span class="arithmatex">\(\tau&gt;0,r=0,S=K,\sigma=0\)</span>。</p>
+<details class="answer">
+<summary>展开：固定到期时间，与从正期限靠近，是不同问题</summary>
+<p>到期时价格是 <span class="arithmatex">\((S-K)^+\)</span>，与波动率无关，所以 Vega 为 0。
+若 <span class="arithmatex">\(\tau&gt;0,r=0,S=K\)</span>，小波动率下
+<span class="arithmatex">\(C=S[2\Phi(\sigma\sqrt\tau/2)-1]
+=S\sigma\sqrt\tau/\sqrt{2\pi}+O(\sigma^3)\)</span>，
+所以在 <span class="arithmatex">\(\sigma=0\)</span> 的右侧 Vega 为 <span class="arithmatex">\(S\sqrt\tau/\sqrt{2\pi}&gt;0\)</span>。
+再让 <span class="arithmatex">\(\tau\downarrow0\)</span>，它也趋于 0，并不矛盾。缺少普通 delta 的空间折点，不会自动破坏对其他变量的导数。</p>
+</details>
+<h2 id="7">7. 参考与下一步<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<ul>
+<li><a href="https://www.math.uchicago.edu/~lawler/finbook.pdf">Lawler，Stochastic Calculus，§5.6–5.7</a>：可容许自融资组合、测度变换与鞅定价。</li>
+<li><a href="https://ocw.mit.edu/courses/18-366-random-walks-and-diffusion-fall-2006/365b24f3b4d11990849fa85ed7a9ed58_iap00_lecture.pdf">MIT，Financial Derivatives 讲义</a>：支付组合、无套利与期权定价的数学背景。</li>
+</ul>
+<p>随机微积分三页至此形成一条联系：Itô 描述路径上的函数变化，扩散方程描述概率分布，自融资复制把路径变化变成价格方程。后续研究跳跃、随机波动率或交易摩擦时，应先检查这条推导中的哪一项假设发生了变化。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="sde-02-sde-diffusion.html"><span class="pager-label">上一页</span>随机微积分 II · SDE 与扩散模型</a>
