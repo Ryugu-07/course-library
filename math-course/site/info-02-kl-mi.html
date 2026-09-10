@@ -46,7 +46,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 05:53</div>
+    <div class="build-time">构建于 2026-09-10 09:26</div>
   </div>
 </nav>
 <main id="content">
@@ -76,11 +76,13 @@ try {
 </ul>
 </li>
 <li><a href="#5-bsc">5. 一个可算的信道：BSC 与信息账本</a><ul>
-<li><a href="#51-fano">5.1 Fano：信息不足怎样变成误码下界</a></li>
+<li><a href="#51">5.1 微弱信息：图上看不见，不等于数学上为零</a></li>
+<li><a href="#52-fano">5.2 Fano：信息不足怎样变成误码下界</a></li>
 </ul>
 </li>
 <li><a href="#6">6. 机器学习连接，和它们没有说到的地方</a></li>
-<li><a href="#7-feynman">7. 回到 Feynman：三句不能混用的话</a></li>
+<li><a href="#7">7. 三道检验：从公式走到判断</a></li>
+<li><a href="#8">8. 参考与后续</a></li>
 </ul>
 </div>
 </details>
@@ -98,9 +100,9 @@ try {
 <li>如果第二段以概率 <span class="arithmatex">\(1/2\)</span> 翻转，<span class="arithmatex">\(Z\)</span> 还会不会保留关于 <span class="arithmatex">\(X\)</span> 的信息？</li>
 <li>仅用 <span class="arithmatex">\(Y\)</span> 做确定或随机后处理，什么时候可能保持信息量不变？</li>
 </ol>
-<p>下面的实验先锁住答案，再显示精确的行、KL 账本和固定刻度图。它不抽样，所有读数都由公式直接计算。</p>
+<p>下面的实验先锁住答案，再显示解析条件行、KL 账本和固定刻度图。它不抽样，所有读数由解析公式计算，并以有限位数显示。</p>
 <div class="learning-lab" data-learning-lab="information-processing">
-<p><strong>无 JavaScript 时的静态读法：</strong>令 <span class="arithmatex">\(X\sim\operatorname{Bernoulli}(1/2)\)</span>，<span class="arithmatex">\(Y=X\oplus N_\eta\)</span>，<span class="arithmatex">\(Z=Y\oplus N_\rho\)</span>，其中 <span class="arithmatex">\(\eta,\rho\in[0,1/2]\)</span>，并令</p>
+<p><strong>无 JavaScript 时的静态读法：</strong>令 <span class="arithmatex">\(X\sim\operatorname{Bernoulli}(1/2)\)</span>，<span class="arithmatex">\(Y=X\oplus N_\eta\)</span>，<span class="arithmatex">\(Z=Y\oplus N_\rho\)</span>，其中 <span class="arithmatex">\(X,N_\eta,N_\rho\)</span> 相互独立，<span class="arithmatex">\(N_p\sim\operatorname{Bernoulli}(p)\)</span>，<span class="arithmatex">\(\eta,\rho\in[0,1/2]\)</span>，并令</p>
 <div class="arithmatex">\[
 \tau=\eta+\rho-2\eta\rho,
 \qquad h_2(p)=-p\log_2p-(1-p)\log_2(1-p),
@@ -214,11 +216,11 @@ D\bigl(P(Z\mid X=0)\Vert P(Z\mid X=1)\bigr).
 \]</div>
 <p>边界要照实写：<span class="arithmatex">\(\eta=0,\rho=0\)</span> 时两侧条件分布互不重叠，两个 KL 都是 <span class="arithmatex">\(+\infty\)</span>，不能把它格式化成 0 或 NaN；若 <span class="arithmatex">\(\eta=0,\rho&gt;0\)</span>，第二段噪声会让输出支持重叠，右侧可以变成有限值。</p>
 </div>
-<p>这三个问题的共同检查法是：先问随机变量的联合分布和条件分布是什么，再问支持是否匹配，最后才把“看起来更随机”翻译成比特数。Feynman 式的自测不是背一句“加工不增信息”，而是能在一张条件概率表上指出哪一行被混合、哪一个 KL 项因此变小。</p>
+<p>这三个问题的共同检查法是：先问随机变量的联合分布和条件分布是什么，再问支持是否匹配，最后才把“看起来更随机”翻译成比特数。请在条件概率表上指出哪一行被混合，再在加权账本中检查变化；“加工不增信息”需要联合分布满足相应条件。</p>
 </section>
 <h2 id="1-kl">1. 单位、对象与 KL 散度<a class="headerlink" href="#1-kl" title="Permanent link"></a></h2>
 <h3 id="11-log_2">1.1 这页的对数是 <span class="arithmatex">\(\log_2\)</span><a class="headerlink" href="#11-log_2" title="Permanent link"></a></h3>
-<p>本页先讨论有限或可数离散字母表，并统一约定</p>
+<p>正文的熵差和等号推导先限于<strong>有限离散字母表</strong>；可数与连续对象另列边界。统一约定</p>
 <div class="arithmatex">\[
 \log=\log_2,
 \qquad \text{信息量的单位是 bits（二进制位）}.
@@ -237,7 +239,7 @@ D_{\mathrm{KL}}(P\Vert Q)=+\infty.
 \]</div>
 <p>若 <span class="arithmatex">\(P(x)=0\)</span>，该项按 <span class="arithmatex">\(0\log(0/Q(x))=0\)</span> 处理；<span class="arithmatex">\(P\)</span> 的零质量点不会贡献 KL。测度语言中，这个边界就是 <span class="arithmatex">\(P\)</span> 不绝对连续于 <span class="arithmatex">\(Q\)</span>。连续密度版本也必须相对于同一支配测度写出，并先检查 <span class="arithmatex">\(P\ll Q\)</span>。</p>
 <h3 id="12-gibbs">1.2 Gibbs 不等式：非负性从哪里来<a class="headerlink" href="#12-gibbs" title="Permanent link"></a></h3>
-<p>在本页的有限字母表证明中，<span class="arithmatex">\(P,Q\)</span> 是归一化概率分布；若 <span class="arithmatex">\(P\)</span> 不绝对连续于 <span class="arithmatex">\(Q\)</span>，上面的支持边界已经给出 <span class="arithmatex">\(+\infty\)</span>。其余情形假设 <span class="arithmatex">\(P\ll Q\)</span>，且对数比值可积，使 Jensen 下面的期望有意义。令 <span class="arithmatex">\(S=\{x:P(x)&gt;0\}\)</span>，则</p>
+<p>在本页的有限字母表证明中，<span class="arithmatex">\(P,Q\)</span> 是归一化概率分布；若 <span class="arithmatex">\(P\)</span> 不绝对连续于 <span class="arithmatex">\(Q\)</span>，上面的支持边界已经给出 <span class="arithmatex">\(+\infty\)</span>。其余情形假设 <span class="arithmatex">\(P\ll Q\)</span>，此时有限字母表上有关对数比值自动可积。令 <span class="arithmatex">\(S=\{x:P(x)&gt;0\}\)</span>，则</p>
 <div class="arithmatex">\[
 \begin{aligned}
 -D(P\Vert Q)
@@ -277,13 +279,14 @@ H(P,Q)=H(P)+D(P\Vert Q),
 \qquad
 H(P)=-\sum_xP(x)\log_2P(x).
 \]</div>
-<p>所以当数据分布 <span class="arithmatex">\(P\)</span> 固定时，最小化交叉熵与最小化前向 KL 完全等价；<span class="arithmatex">\(H(P)\)</span> 是不可由模型参数改变的基线。对数损失之所以适合概率预测，正是因为它在每个错误的低概率事件上留下了可加、可比较的代价。</p>
+<p>所以当数据分布 <span class="arithmatex">\(P\)</span> 固定且 <span class="arithmatex">\(H(P)&lt;\infty\)</span> 时，最小化交叉熵与最小化前向 KL 等价；<span class="arithmatex">\(H(P)\)</span> 是不可由模型参数改变的基线。对数损失之所以适合概率预测，正是因为它在每个错误的低概率事件上留下了可加、可比较的代价。</p>
+<p>可数字母表上，非负扩展值恒等式 <span class="arithmatex">\(H(P,Q)=H(P)+D(P\Vert Q)\)</span> 仍成立，但若 <span class="arithmatex">\(H(P)=\infty\)</span>，所有交叉熵都是 <span class="arithmatex">\(\infty\)</span>，无法再“减去固定基线”来比较模型。例如 <span class="arithmatex">\(Q=P\)</span> 时 KL 为 0，交叉熵却仍可为无穷。优化等价所需的有限性是实质条件。</p>
 <h3 id="21-mle">2.1 有限字母表上的经验 MLE 等价<a class="headerlink" href="#21-mle" title="Permanent link"></a></h3>
 <p>给定有限字母表上的样本 <span class="arithmatex">\(x_1,\ldots,x_n\)</span>，经验分布为</p>
 <div class="arithmatex">\[
 \widehat P_n(x)=\frac1n\sum_{i=1}^n\mathbf 1\{x_i=x\}.
 \]</div>
-<p>对一个概率模型族 <span class="arithmatex">\(Q_\theta\)</span>，只要模型在观测到的符号上给出正概率，</p>
+<p>对一个概率模型族 <span class="arithmatex">\(Q_\theta\)</span>，以下经验平均恒等式对任意样本都成立；要把概率乘积称为这批数据的联合似然，还需假设样本在模型下独立同分布（或明确采用这一乘积似然）。先设模型在观测符号上给出正概率，</p>
 <div class="arithmatex">\[
 \begin{aligned}
 \frac1n\sum_{i=1}^n\log_2Q_\theta(x_i)
@@ -297,16 +300,16 @@ H(P)=-\sum_xP(x)\log_2P(x).
 =\arg\min_\theta H(\widehat P_n,Q_\theta)
 =\arg\min_\theta D(\widehat P_n\Vert Q_\theta),
 \]</div>
-<p>最后一个等号只是在有限字母表上减去了与 <span class="arithmatex">\(\theta\)</span> 无关的 <span class="arithmatex">\(H(\widehat P_n)\)</span>。若某个观测符号被模型赋予 0 概率，平均对数似然为 <span class="arithmatex">\(-\infty\)</span>，同一个支持边界会把 KL 写成 <span class="arithmatex">\(+\infty\)</span>。这就是“MLE、交叉熵训练、经验分布到模型的前向 KL”在有限离散问题中的精确同一性。</p>
+<p>最后一个等号只是在有限字母表上减去了与 <span class="arithmatex">\(\theta\)</span> 无关的 <span class="arithmatex">\(H(\widehat P_n)\)</span>。若某个观测符号被模型赋予 0 概率，平均对数似然为 <span class="arithmatex">\(-\infty\)</span>，同一个支持边界会把 KL 写成 <span class="arithmatex">\(+\infty\)</span>。在上述乘积似然设定下，三个目标拥有相同的最优参数集合；集合也可能为空，例如参数域不闭而最优值只能在边界逼近。等价不保证极值存在，也不保证优化算法能找到它。</p>
 <h3 id="22">2.2 连续数据的一个重要刹车<a class="headerlink" href="#22" title="Permanent link"></a></h3>
-<p>不要把上面的等式不加检查地搬到连续数据。连续样本的经验分布是若干 Dirac 原子，而普通密度 <span class="arithmatex">\(q_\theta(x)\)</span> 是相对于 Lebesgue 测度的对象；原子经验测度与连续密度测度可能互相奇异，字面上的 <span class="arithmatex">\(D(\widehat P_n\Vert Q_\theta)\)</span> 并不是一个合适的有限量，甚至不在同一支配测度下。</p>
-<p>连续 MLE 的稳健写法是直接优化观测点上的期望负对数似然</p>
+<p>不要把上面的等式不加检查地搬到连续数据。连续样本的经验分布是若干 Dirac 原子，而 <span class="arithmatex">\(Q_\theta\)</span> 若具有 Lebesgue 密度，则对有限样本集合赋予概率 0。因此 <span class="arithmatex">\(\widehat P_n\not\ll Q_\theta\)</span>，字面上的 <span class="arithmatex">\(D(\widehat P_n\Vert Q_\theta)=\infty\)</span>。两个概率测度总有共同支配测度，例如 <span class="arithmatex">\(\widehat P_n+Q_\theta\)</span>；问题是绝对连续性失败，不能靠换支配测度消除。</p>
+<p>在独立同分布密度模型下，连续 MLE 直接优化观测点上的<strong>经验平均负对数密度</strong></p>
 <div class="arithmatex">\[
 -\frac1n\sum_{i=1}^n\log q_\theta(x_i),
 \]</div>
-<p>或谈真实连续分布 <span class="arithmatex">\(P\)</span> 与密度 <span class="arithmatex">\(q_\theta\)</span> 的交叉熵 <span class="arithmatex">\(-\mathbb E_P\log q_\theta(X)\)</span>。这仍然是预测评分和交叉熵的故事，但不要把“经验原子对连续密度的字面 KL”当作自动成立的公式。支配测度、支持和可积性都要先说清楚。</p>
+<p>或谈真实连续分布 <span class="arithmatex">\(P\)</span> 与密度 <span class="arithmatex">\(q_\theta\)</span> 的交叉熵 <span class="arithmatex">\(-\mathbb E_P\log q_\theta(X)\)</span>。这仍然是预测评分和交叉熵的故事，但不要把“经验原子对连续密度的字面 KL”当作自动成立的公式。密度不是点概率，密度可以大于 1，负对数密度也可以为负；换计量单位会改变它的数值。使用固定参考测度并检查可积性与模型的极值存在性。</p>
 <h2 id="3">3. 互信息：知道一边，另一边少猜多少<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>对离散随机变量 <span class="arithmatex">\(X,Y\)</span>，互信息定义为联合分布与“假装独立”的乘积分布之间的 KL：</p>
+<p>对有限离散随机变量 <span class="arithmatex">\(X,Y\)</span>，互信息定义为联合分布与“假装独立”的乘积分布之间的 KL：</p>
 <div class="arithmatex">\[
 \begin{aligned}
 I(X;Y)
@@ -319,25 +322,26 @@ I(X;Y)
 <div class="arithmatex">\[
 I(X;Y)=H(X)-H(X\mid Y)=H(Y)-H(Y\mid X)=H(X)+H(Y)-H(X,Y).
 \]</div>
-<p>它是对称的，因为“联合分布偏离独立分布”不区分哪一边先写；它以 bits 为单位，表示知道 <span class="arithmatex">\(Y\)</span> 后 <span class="arithmatex">\(X\)</span> 的平均 log-loss 减少量。由 KL 非负性，在离散且熵有限的范围内</p>
+<p>它是对称的，因为“联合分布偏离独立分布”不区分哪一边先写；它以 bits 为单位，表示知道 <span class="arithmatex">\(Y\)</span> 后 <span class="arithmatex">\(X\)</span> 的平均 log-loss 减少量。由 KL 非负性（这一点也适用于一般测度定义）</p>
 <div class="arithmatex">\[
 I(X;Y)\geq0,
 \qquad I(X;Y)=0\Longleftrightarrow P_{XY}=P_XP_Y,
 \]</div>
 <p>也就是恰好独立。互信息是依赖量，不是因果效应，也不是相关系数；它不需要线性关系。</p>
+<p>可数字母表上的互信息仍应由 KL 定义；<span class="arithmatex">\(I=H(X)-H(X\mid Y)\)</span> 只在右侧不是 <span class="arithmatex">\(\infty-\infty\)</span> 时使用。例如 <span class="arithmatex">\(X,Y\)</span> 独立且都具有无穷熵时，KL 明确给出 <span class="arithmatex">\(I=0\)</span>，而三个无穷熵相减没有意义。</p>
 <h3 id="31">3.1 一个相关系数看不见的依赖<a class="headerlink" href="#31" title="Permanent link"></a></h3>
 <p>令 <span class="arithmatex">\(X\)</span> 在 <span class="arithmatex">\(\{-1,0,1\}\)</span> 上均匀，<span class="arithmatex">\(Y=X^2\)</span>。对称性使得
 <span class="arithmatex">\(\operatorname{Cov}(X,Y)=\mathbb E[X^3]-\mathbb E[X]\mathbb E[Y]=0\)</span>，但 <span class="arithmatex">\(Y\)</span> 并不独立于 <span class="arithmatex">\(X\)</span>，因为 <span class="arithmatex">\(Y\)</span> 完全由 <span class="arithmatex">\(X\)</span> 决定。这里 <span class="arithmatex">\(P(Y=0)=1/3\)</span>、<span class="arithmatex">\(P(Y=1)=2/3\)</span>，所以</p>
 <div class="arithmatex">\[
 I(X;Y)=H(Y)=h_2(1/3)\approx0.918\text{ bits}.
 \]</div>
-<p>Feynman 式检查是：给你 <span class="arithmatex">\(X\)</span>，你不需要再猜 <span class="arithmatex">\(Y\)</span>；即使线性相关为 0，预测不确定性仍然被完全消掉。</p>
+<p>检查方法是：给你 <span class="arithmatex">\(X\)</span>，你不需要再猜 <span class="arithmatex">\(Y\)</span>；即使线性相关为 0，预测不确定性仍然被完全消掉。</p>
 <h3 id="32">3.2 确定函数的边界<a class="headerlink" href="#32" title="Permanent link"></a></h3>
 <p>若 <span class="arithmatex">\(Y=f(X)\)</span>，且 <span class="arithmatex">\(X,Y\)</span> 是离散变量、<span class="arithmatex">\(H(Y)&lt;\infty\)</span>，则 <span class="arithmatex">\(H(Y\mid X)=0\)</span>，因而</p>
 <div class="arithmatex">\[
 I(X;Y)=H(Y).
 \]</div>
-<p>这句话的范围很窄：它不是“任何确定关系都给出一个普通的有限微分熵公式”。若 <span class="arithmatex">\(X,Y\)</span> 连续且 <span class="arithmatex">\(Y=f(X)\)</span>，联合分布集中在一条图像上，往往相对于 <span class="arithmatex">\(P_XP_Y\)</span> 是奇异的，按 KL 定义的互信息可能为 <span class="arithmatex">\(+\infty\)</span>。此时条件微分熵的形式运算可能出现 <span class="arithmatex">\(-\infty\)</span>，不能机械地写成 <span class="arithmatex">\(H(Y)-0\)</span>。连续确定关系要先说明采用的互信息定义、噪声或量化方式。</p>
+<p>这句话的范围很窄：它不是“任何确定关系都给出一个普通的有限微分熵公式”。若 <span class="arithmatex">\(X,Y\)</span> 连续且 <span class="arithmatex">\(Y=f(X)\)</span>，联合分布集中在一条图像上，往往相对于 <span class="arithmatex">\(P_XP_Y\)</span> 是奇异的，按 KL 定义的互信息可能为 <span class="arithmatex">\(+\infty\)</span>。此时条件微分熵的形式运算可能出现 <span class="arithmatex">\(-\infty\)</span>，不能机械地写成 <span class="arithmatex">\(H(Y)-0\)</span>。例如 <span class="arithmatex">\(X=Y\sim U[0,1]\)</span>：联合分布在对角线上质量为 1，而独立乘积分布对这条线质量为 0，所以 <span class="arithmatex">\(I(X;Y)=\infty\)</span>。若改为观察 <span class="arithmatex">\(Z_k=\lfloor2^kX\rfloor\)</span>（端点 <span class="arithmatex">\(X=1\)</span> 是零概率事件），则 <span class="arithmatex">\(I(X;Z_k)=k\)</span> bits；量化精度改变了观测变量，有限读数与无穷极限可以同时成立。</p>
 <h2 id="4">4. 链式法则与数据处理不等式<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <h3 id="41-kl">4.1 KL 链式法则<a class="headerlink" href="#41-kl" title="Permanent link"></a></h3>
 <p>联合分布的比值可以按条件分解：</p>
@@ -352,7 +356,7 @@ D(P_{XY}\Vert Q_{XY})
 =D(P_X\Vert Q_X)
 +\mathbb E_{P_X}D\bigl(P_{Y\mid X}\Vert Q_{Y\mid X}\bigr),
 \]</div>
-<p>在相应支持和可积性条件下成立。它说总 log-loss 差异 = 先看 <span class="arithmatex">\(X\)</span> 的差异 + 已知 <span class="arithmatex">\(X\)</span> 后条件预测的平均差异。</p>
+<p>有限字母表上按支持约定成立，条件行只需在相应正边缘概率处定义；一般标准 Borel 空间上也有以条件 KL 为基础的非负扩展值版本。它说总 log-loss 差异 = 先看 <span class="arithmatex">\(X\)</span> 的差异 + 已知 <span class="arithmatex">\(X\)</span> 后条件预测的平均差异。</p>
 <p>把这条分解用于互信息，得到互信息链式法则：</p>
 <div class="arithmatex">\[
 I(X;Y,Z)=I(X;Y)+I(X;Z\mid Y)
@@ -379,15 +383,20 @@ I(X;Y)=I(X;Z)+I(X;Y\mid Z),
 I(X;Z)\leq I(X;Y).
 \]</div>
 <p>确定函数 <span class="arithmatex">\(Z=f(Y)\)</span> 和独立随机噪声后处理都是这个条件的例子。若 <span class="arithmatex">\(Z\)</span> 还使用了 <span class="arithmatex">\(X\)</span> 的额外观测，Markov 条件被破坏，就不能把 DPI 套上去；“后处理不能创造信息”不是脱离概率图的口号。</p>
-<p>等号的精确条件是</p>
+<p>当 <span class="arithmatex">\(I(X;Y)&lt;\infty\)</span> 时，DPI 等号的精确条件是</p>
 <div class="arithmatex">\[
 I(X;Y\mid Z)=0
 \quad\Longleftrightarrow\quad
 X\perp Y\mid Z.
 \]</div>
-<p>在统计语言中，<span class="arithmatex">\(Z\)</span> 对 <span class="arithmatex">\(X\)</span> 来说是相对于 <span class="arithmatex">\(Y\)</span> 的充分统计量：知道 <span class="arithmatex">\(Z\)</span> 后，原始 <span class="arithmatex">\(Y\)</span> 不再为判断 <span class="arithmatex">\(X\)</span> 提供额外信息。若 <span class="arithmatex">\(Y\)</span> 可以由 <span class="arithmatex">\(Z\)</span> 准确恢复，这是一个直接的充分条件；但恢复 <span class="arithmatex">\(Y\)</span> 不是必要条件，压缩后的等价类也可能已经充分。一般的有损后处理会让条件互信息严格为正。</p>
+<p>在统计语言中，<span class="arithmatex">\(Z\)</span> 对 <span class="arithmatex">\(X\)</span> 来说是相对于 <span class="arithmatex">\(Y\)</span> 的充分统计量：知道 <span class="arithmatex">\(Z\)</span> 后，原始 <span class="arithmatex">\(Y\)</span> 不再为判断 <span class="arithmatex">\(X\)</span> 提供额外信息。若 <span class="arithmatex">\(Y\)</span> 可以由 <span class="arithmatex">\(Z\)</span> 准确恢复，这是一个直接的充分条件；但恢复 <span class="arithmatex">\(Y\)</span> 不是必要条件，压缩后的等价类也可能已经充分。在有限信息设定下，条件互信息严格为正才说明关于 <span class="arithmatex">\(X\)</span> 的信息确实有损；丢掉与 <span class="arithmatex">\(X\)</span> 无关的随机细节，可以保持等号。</p>
+<p><strong>为什么不能省略有限性？</strong> 取可数随机变量 <span class="arithmatex">\(U\)</span> 满足 <span class="arithmatex">\(H(U)=\infty\)</span>，另取独立均匀比特 <span class="arithmatex">\(V\)</span>，令 <span class="arithmatex">\(X=Y=(U,V)\)</span>、<span class="arithmatex">\(Z=U\)</span>。例如可令 <span class="arithmatex">\(P(U=n)\)</span> 正比于 <span class="arithmatex">\(1/[n(\ln n)^2]\)</span>，<span class="arithmatex">\(n\ge2\)</span>；归一化级数收敛，而熵级数含有发散的 <span class="arithmatex">\(1/(n\ln n)\)</span> 主项。此时 <span class="arithmatex">\(X\to Y\to Z\)</span>，</p>
+<div class="arithmatex">\[
+I(X;Y)=I(X;Z)=\infty,\qquad I(X;Y\mid Z)=H(V)=1.
+\]</div>
+<p>两边同为无穷仍丢掉了一个比特。链式法则是合法的 <span class="arithmatex">\(\infty=\infty+1\)</span>，不能把它改成 <span class="arithmatex">\(\infty-\infty=1\)</span>。</p>
 <h2 id="5-bsc">5. 一个可算的信道：BSC 与信息账本<a class="headerlink" href="#5-bsc" title="Permanent link"></a></h2>
-<p>令 <span class="arithmatex">\(X\sim\operatorname{Bernoulli}(1/2)\)</span>，<span class="arithmatex">\(N_\eta,N_\rho\)</span> 独立，且</p>
+<p>令 <span class="arithmatex">\(X\sim\operatorname{Bernoulli}(1/2)\)</span>，<span class="arithmatex">\(X,N_\eta,N_\rho\)</span> 相互独立，<span class="arithmatex">\(N_p\sim\operatorname{Bernoulli}(p)\)</span>，且</p>
 <div class="arithmatex">\[
 Y=X\oplus N_\eta,
 \qquad Z=Y\oplus N_\rho,
@@ -409,7 +418,7 @@ H(Y)=H(Z)=1,
 I(X;Y)=1-h_2(\eta),
 \qquad I(X;Z)=1-h_2(\tau).
 \]</div>
-<p>这条式子把 DPI 变成一眼可见的曲线：<span class="arithmatex">\(\rho=0\)</span> 时 <span class="arithmatex">\(Z=Y\)</span>，信息保持；<span class="arithmatex">\(\rho=1/2\)</span> 时 <span class="arithmatex">\(Z\)</span> 与 <span class="arithmatex">\(X\)</span> 独立，<span class="arithmatex">\(I(X;Z)=0\)</span>；<span class="arithmatex">\(\eta=1/2\)</span> 时第一次观察已经没有关于 <span class="arithmatex">\(X\)</span> 的信息，后面也没有东西可恢复。</p>
+<p>在 <span class="arithmatex">\([0,1/2]\)</span> 上，<span class="arithmatex">\(h_2\)</span> 严格递增，且 <span class="arithmatex">\(\tau-\eta=\rho(1-2\eta)\ge0\)</span>，所以本模型恰在 <span class="arithmatex">\(\rho=0\)</span> 或 <span class="arithmatex">\(\eta=1/2\)</span> 时取等号，其余参数严格损失。具体说，<span class="arithmatex">\(\rho=0\)</span> 时 <span class="arithmatex">\(Z=Y\)</span>，信息保持；<span class="arithmatex">\(\rho=1/2\)</span> 时 <span class="arithmatex">\(Z\)</span> 与 <span class="arithmatex">\(X\)</span> 独立，<span class="arithmatex">\(I(X;Z)=0\)</span>；<span class="arithmatex">\(\eta=1/2\)</span> 时第一次观察已经没有关于 <span class="arithmatex">\(X\)</span> 的信息，后面也没有东西可恢复。</p>
 <p>还有一个适合逐行核对的恒等式：</p>
 <div class="arithmatex">\[
 \begin{aligned}
@@ -423,33 +432,105 @@ I(X;Y)
 <div class="arithmatex">\[
 D(PK_\rho\Vert QK_\rho)\leq D(P\Vert Q).
 \]</div>
+<p>一个直接证明来自 log-sum 不等式：固定输出 <span class="arithmatex">\(z\)</span>，对 <span class="arithmatex">\(a_y=P(y)K(z\mid y)\)</span>、<span class="arithmatex">\(b_y=Q(y)K(z\mid y)\)</span> 使用</p>
+<div class="arithmatex">\[
+\sum_y a_y\log\frac{a_y}{b_y}
+\ge \Bigl(\sum_y a_y\Bigr)
+\log\frac{\sum_y a_y}{\sum_y b_y}.
+\]</div>
+<p>它本身由归一化后的 Gibbs 不等式乘以 <span class="arithmatex">\(\sum a_y\)</span> 得到；零和与支持不匹配按相同极限约定处理。再对 <span class="arithmatex">\(z\)</span> 求和，利用 <span class="arithmatex">\(\sum_zK(z\mid y)=1\)</span>，左侧回到 <span class="arithmatex">\(D(P\Vert Q)\)</span>，右侧正是输出 KL。</p>
 <p>取 <span class="arithmatex">\(P=P(Y\mid X=0)\)</span>、<span class="arithmatex">\(Q=P(Y\mid X=1)\)</span>，就得到实验中的条件行 KL 收缩。支持边界仍然优先：输入 KL 可能为 <span class="arithmatex">\(+\infty\)</span>；经过带正噪声的第二段后输出 KL 可以有限，经过 <span class="arithmatex">\(\rho=0\)</span> 的恒等核则仍为 <span class="arithmatex">\(+\infty\)</span>。这是“无限大”在数学上真实存在的边界，不是数值故障。</p>
-<h3 id="51-fano">5.1 Fano：信息不足怎样变成误码下界<a class="headerlink" href="#51-fano" title="Permanent link"></a></h3>
+<h3 id="51">5.1 微弱信息：图上看不见，不等于数学上为零<a class="headerlink" href="#51" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(d=1-2\eta\)</span> 表示偏离完全随机的程度。串联时偏差相乘：</p>
+<div class="arithmatex">\[
+d_{\rm out}=(1-2\eta)(1-2\rho).
+\]</div>
+<p>把 <span class="arithmatex">\(I(d)=1-h_2((1-d)/2)\)</span> 求导，得到
+<span class="arithmatex">\(I'(d)=[\ln(1+d)-\ln(1-d)]/(2\ln2)\)</span>。将对数级数逐项积分，并用 <span class="arithmatex">\(I(0)=0\)</span> 固定常数，得到</p>
+<div class="arithmatex">\[
+I(d)=\frac1{\ln2}\sum_{k=1}^{\infty}
+\frac{d^{2k}}{(2k)(2k-1)}
+=\frac{d^2}{2\ln2}+O(d^4),\qquad |d|&lt;1.
+\]</div>
+<p>这是非负项之和，避免两个接近 1 的数相减。实验在小偏差时使用此级数，并一直保留级联偏差；即使显示的 <span class="arithmatex">\(\tau\)</span> 已舍入到 <span class="arithmatex">\(0.5\)</span>，也不据此把互信息清零。取 <span class="arithmatex">\(\eta=\rho=0.4999\)</span>，则</p>
+<div class="arithmatex">\[
+d_{\rm in}=2\times10^{-4},\quad d_{\rm out}=4\times10^{-8},
+\quad I(X;Y)\approx2.88539010\times10^{-8},
+\quad I(X;Z)\approx1.15415603\times10^{-15}\ \text{bits}.
+\]</div>
+<p>两者都非零；在固定 0–1 bit 纵轴上，两根柱都可能小于一个屏幕像素。请同时看科学计数读数与参数判定的严格不等号，不把数值显示的舍入相等当作 DPI 等号。条件表中的概率也只显示有限位数，不能拿显示相同的两行反推“精确独立”。</p>
+<style>
+.information-static{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+.information-static img{display:block;width:1100px;max-width:none!important}
+.information-static:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+
+<div aria-label="信息账本静态图，可横向滚动" class="figure information-static" role="region" tabindex="0">
+<p><img alt="信息的三个口径：默认信道保留多少、近随机信道的非零信息、充分压缩仍能丢掉无关噪声" src="../images/info-02-information-ledger.svg" /></p>
+<p>图中上方两条长度使用相同的 bit 刻度；中间两点使用独立标明的对数刻度，不能与上方长度直接比较。下方的 <span class="arithmatex">\(W\)</span> 是独立噪声，只保留 <span class="arithmatex">\(X\)</span> 仍有 1 bit 关于 <span class="arithmatex">\(X\)</span> 的信息。</p>
+</div>
+<h3 id="52-fano">5.2 Fano：信息不足怎样变成误码下界<a class="headerlink" href="#52-fano" title="Permanent link"></a></h3>
 <p>设离散变量 <span class="arithmatex">\(X\)</span> 取值于大小为 <span class="arithmatex">\(M\ge2\)</span> 的字母表，解码器只看 <span class="arithmatex">\(Y\)</span> 并输出 <span class="arithmatex">\(\widehat X=g(Y)\)</span>；记错误事件概率为 <span class="arithmatex">\(P_e=P(\widehat X\ne X)\)</span>。Fano 不等式给出</p>
 <div class="arithmatex">\[
 H(X\mid Y)\le h_2(P_e)+P_e\log_2(M-1).
 \]</div>
+<p>令 <span class="arithmatex">\(E=\mathbf1\{\widehat X\ne X\}\)</span>。给定 <span class="arithmatex">\(X,Y\)</span> 后 <span class="arithmatex">\(E\)</span> 已知，因而</p>
+<div class="arithmatex">\[
+\begin{aligned}
+H(X\mid Y)&amp;=H(E,X\mid Y)\\
+&amp;=H(E\mid Y)+H(X\mid E,Y)\\
+&amp;\le h_2(P_e)+P_e\log_2(M-1).
+\end{aligned}
+\]</div>
+<p>这里 <span class="arithmatex">\(E=0\)</span> 时 <span class="arithmatex">\(X=g(Y)\)</span>，无需额外猜测；<span class="arithmatex">\(E=1\)</span> 时至多剩 <span class="arithmatex">\(M-1\)</span> 个选择。解码器输出属于该字母表；若它还有独立随机种子，可把种子一并作为观测，得到相同结论。</p>
 <p>左边是观测后仍未消掉的不确定性，右边是“是否出错”这一比特，加上出错时还要在至多 <span class="arithmatex">\(M-1\)</span> 个候选中定位的代价。结合 <span class="arithmatex">\(H(X\mid Y)=H(X)-I(X;Y)\)</span> 和 <span class="arithmatex">\(h_2(P_e)\le1\)</span>，当 <span class="arithmatex">\(M&gt;2\)</span> 时得到粗但方便的反推式</p>
 <div class="arithmatex">\[
 P_e\ge
 \frac{H(X)-I(X;Y)-1}{\log_2(M-1)}.
 \]</div>
-<p>若 <span class="arithmatex">\(X\)</span> 在 <span class="arithmatex">\(M\)</span> 个符号上均匀，还常写成较松的 <span class="arithmatex">\(P_e\ge1-[I(X;Y)+1]/\log_2M\)</span>。这些是不可能性下界，不是某个具体解码器一定能达到的误码率；<span class="arithmatex">\(M=2\)</span> 时不能除以 <span class="arithmatex">\(\log_2(M-1)=0\)</span>，应保留原式 <span class="arithmatex">\(H(X\mid Y)\le h_2(P_e)\)</span> 单独分析。Fano 的作用正是把“还剩多少条件熵”翻译成“任何只看 <span class="arithmatex">\(Y\)</span> 的解码器至少会错多少”。</p>
+<p>若 <span class="arithmatex">\(X\)</span> 在 <span class="arithmatex">\(M\)</span> 个符号上均匀，还常写成较松的 <span class="arithmatex">\(P_e\ge1-[I(X;Y)+1]/\log_2M\)</span>。若右侧为负，合并 <span class="arithmatex">\(P_e\ge0\)</span> 取较强的下界。这些是不可能性下界，不是某个具体解码器一定能达到的误码率；<span class="arithmatex">\(M=2\)</span> 时不能除以 <span class="arithmatex">\(\log_2(M-1)=0\)</span>，应保留原式 <span class="arithmatex">\(H(X\mid Y)\le h_2(P_e)\)</span> 单独分析。若二元情形要用 <span class="arithmatex">\(h_2^{-1}\)</span> 反推，须指定 <span class="arithmatex">\(h_2\)</span> 在 <span class="arithmatex">\([0,1/2]\)</span> 上的递增分支；最优二元 Bayes 解码器确有 <span class="arithmatex">\(P_e\le1/2\)</span>。不能在整个 <span class="arithmatex">\([0,1]\)</span> 上假装 <span class="arithmatex">\(h_2\)</span> 单调。均匀 BSC 的最优判决是输出收到的比特，<span class="arithmatex">\(P_e=\eta\)</span>，恰有 <span class="arithmatex">\(H(X\mid Y)=h_2(\eta)\)</span>，可用来检验公式。</p>
 <h2 id="6">6. 机器学习连接，和它们没有说到的地方<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <ul>
-<li><strong>交叉熵训练。</strong> 分类器最小化经验负对数似然，在有限离散标签上就是前向经验 KL 加一个与参数无关的熵。连续输入的 NLL 仍然稳健，但要记住上一节的测度边界。</li>
+<li><strong>交叉熵训练。</strong> 分类器输出 <span class="arithmatex">\(Q_\theta(y\mid x)\)</span>。对给定输入的标签乘积似然，损失是逐样本 <span class="arithmatex">\(-\log Q_\theta(y_i\mid x_i)\)</span>；应按输入分组或按经验输入边缘加权讨论条件 KL，而非忽略 <span class="arithmatex">\(x\)</span> 对所有标签混成一个边缘分布。连续输入不妨碍离散标签的对数评分；连续输出密度另需前述测度边界。</li>
 <li><strong>InfoNCE。</strong> 在特定的正负样本构造、负样本分布和可积性假设下，InfoNCE 可提供互信息的下界或相关的对比估计；有限 batch、采样偏差和表示/温度参数会让这个下界松弛。不能把每个 InfoNCE 损失数值直接称为真实互信息，也不能从“下界变大”无条件推出所有依赖都被准确估计。</li>
 <li><strong>RLHF 中的 KL 惩罚。</strong> 常见目标会惩罚策略 <span class="arithmatex">\(\pi\)</span> 偏离参考策略 <span class="arithmatex">\(\pi_{\mathrm{ref}}\)</span>，例如 <span class="arithmatex">\(D(\pi\Vert\pi_{\mathrm{ref}})\)</span>，但方向、支持、奖励尺度、策略族和优化器都属于设定的一部分。把某个方向概括为“必然 mode-seeking”或把 KL 惩罚等同于普适的保守性定理，都超出了 KL 本身能保证的内容。</li>
 <li><strong>推断口径。</strong> 本页的 <span class="arithmatex">\(P,Q\)</span> 是概率分布，<span class="arithmatex">\(P(Y\mid X)\)</span> 是条件分布；这里没有 p-value，也没有要由数据自动产生的 Bayesian posterior。p-value、后验和互信息回答的是不同问题，不能把一个 bits 数读成显著性概率或后验概率。</li>
 </ul>
-<h2 id="7-feynman">7. 回到 Feynman：三句不能混用的话<a class="headerlink" href="#7-feynman" title="Permanent link"></a></h2>
-<ol>
-<li><strong>KL 是有方向的预测代价。</strong> 先确定“真分布是谁、模型是谁”，再谈大或小；先查支持，再用 Gibbs。</li>
-<li><strong>互信息是依赖和预测增益。</strong> 它是联合分布相对独立基线的 KL；确定离散输出时等于输出熵，但连续奇异关系不能套同一句。</li>
-<li><strong>DPI 是条件概率图的结论。</strong> 只有在 <span class="arithmatex">\(X\to Y\to Z\)</span> 的 Markov 条件下，<span class="arithmatex">\(I(X;Z)\leq I(X;Y)\)</span>；等号当且仅当 <span class="arithmatex">\(Z\)</span> 已经对 <span class="arithmatex">\(X\)</span> 充分，而原始 <span class="arithmatex">\(Y\)</span> 可由 <span class="arithmatex">\(Z\)</span> 恢复只是一个容易看见的充分情形。</li>
-</ol>
-<p>最后做一个迁移检查：给定任意三元分布，先写出 <span class="arithmatex">\(P_{XYZ}\)</span>，再问是否能分解为 <span class="arithmatex">\(P_{XY}P_{Z\mid Y}\)</span>；若能，尝试把 <span class="arithmatex">\(I(X;Y)-I(X;Z)\)</span> 化成 <span class="arithmatex">\(I(X;Y\mid Z)\)</span>。如果不能，别让一句“加工不增信息”替你跳过缺失的旁路信息。</p>
-<p><em>下一页：最大熵与信道编码。前者问在已知约束下哪个分布最不武断，后者问在噪声下哪些 bits 仍能可靠传过去。</em></p>
+<h2 id="7">7. 三道检验：从公式走到判断<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>先独立写出答案，再展开核对；目标是解释支持、加权和充分性，而不是记住小数。</p>
+<p><strong>题 1：错把不可能当成小概率。</strong> 真分布 <span class="arithmatex">\(P=(1/2,1/2)\)</span>，比较 <span class="arithmatex">\(Q_a=(1,0)\)</span> 与 <span class="arithmatex">\(Q_b=(3/4,1/4)\)</span> 的交叉熵、前向 KL。为何反向 KL <span class="arithmatex">\(D(Q_a\Vert P)\)</span> 却有限？</p>
+<details class="answer">
+<summary>展开：先看谁给谁取平均</summary>
+<p><span class="arithmatex">\(H(P)=1\)</span> bit。<span class="arithmatex">\(Q_a\)</span> 把真实会出现的第二种结果赋予 0 概率，所以 <span class="arithmatex">\(H(P,Q_a)=D(P\Vert Q_a)=\infty\)</span>。而</p>
+<div class="arithmatex">\[
+H(P,Q_b)=\tfrac12\log_2(4/3)+\tfrac12\log_2 4
+=\tfrac12\log_2(16/3)\approx1.207519,
+\quad D(P\Vert Q_b)\approx0.207519.
+\]</div>
+<p>反向的平均来自 <span class="arithmatex">\(Q_a\)</span>，它只在第一项有质量，所以 <span class="arithmatex">\(D(Q_a\Vert P)=\log_2 2=1\)</span>。有限与无穷的区别来自支持方向，不能用对称“距离”的直觉处理。</p>
+</details>
+<p><strong>题 2：不用恢复整个观测也能取等号吗？</strong> <span class="arithmatex">\(X,W\)</span> 为独立均匀比特，<span class="arithmatex">\(Y=(X,W)\)</span>，<span class="arithmatex">\(Z=X\)</span>。计算 <span class="arithmatex">\(I(X;Y)\)</span>、<span class="arithmatex">\(I(X;Z)\)</span>、<span class="arithmatex">\(H(Y\mid Z)\)</span>，说明是否违反 DPI。</p>
+<details class="answer">
+<summary>展开：关于目标的信息与无关细节不同</summary>
+<p><span class="arithmatex">\(Y\)</span> 和 <span class="arithmatex">\(Z\)</span> 都包含 <span class="arithmatex">\(X\)</span> 的完整值，所以两个互信息都是 <span class="arithmatex">\(H(X)=1\)</span> bit；但 <span class="arithmatex">\(H(Y\mid Z)=H(W)=1\)</span> bit，无法由 <span class="arithmatex">\(Z\)</span> 恢复独立的 <span class="arithmatex">\(W\)</span>。给定 <span class="arithmatex">\(Z\)</span> 后 <span class="arithmatex">\(X\)</span> 已确定，<span class="arithmatex">\(I(X;Y\mid Z)=0\)</span>，故 DPI 取等号。无损的是“关于 <span class="arithmatex">\(X\)</span> 的信息”，并不是所有原始数据。</p>
+</details>
+<p><strong>题 3：0.1 与 0.2 的级联。</strong> 写出 <span class="arithmatex">\(\tau\)</span>，列出 <span class="arithmatex">\(X=0,1\)</span> 两行对 <span class="arithmatex">\(I(X;Z)\)</span> 的贡献；最优接收器仅看 <span class="arithmatex">\(Z\)</span> 时误码率多少？用 Fano 检查。</p>
+<details class="answer">
+<summary>展开：两行贡献相加，再核对误码</summary>
+<p><span class="arithmatex">\(\tau=0.1(0.8)+0.9(0.2)=0.26\)</span>。条件行为 <span class="arithmatex">\((0.74,0.26)\)</span> 和 <span class="arithmatex">\((0.26,0.74)\)</span>，边缘行为 <span class="arithmatex">\((0.5,0.5)\)</span>。每行 KL 是</p>
+<div class="arithmatex">\[
+0.74\log_2(1.48)+0.26\log_2(0.52)
+=1-h_2(0.26)\approx0.173254.
+\]</div>
+<p>各行权重为 <span class="arithmatex">\(1/2\)</span>，各贡献约 <span class="arithmatex">\(0.086627\)</span> bit，加起来才是 <span class="arithmatex">\(I(X;Z)\)</span>。最优判决 <span class="arithmatex">\(\widehat X=Z\)</span> 的 <span class="arithmatex">\(P_e=0.26\)</span>，而 <span class="arithmatex">\(H(X\mid Z)=h_2(0.26)\)</span>；二元 Fano 在这里取等号。条件 KL 收缩表比较的是“两条相反条件行”，其数值不是这份互信息账本的行 KL。</p>
+</details>
+<p>读其他模型时，先写联合分布与支持，再查后处理有没有读取旁路信息；使用熵差与 DPI 等号前，确认有关量有限。互信息度量依赖，不自动给出因果效应或预测算法。</p>
+<h2 id="8">8. 参考与后续<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<ul>
+<li><a href="https://ocw.mit.edu/courses/6-441-information-theory-spring-2016/resources/mit6_441s16_chapter_2/">MIT 6.441，第 2 章：互信息、条件互信息与数据处理</a>：核对 KL 定义、链式法则及概率核后处理。</li>
+<li><a href="https://ocw.mit.edu/courses/6-441-information-theory-spring-2016/resources/mit6_441s16_chapter_5/">MIT 6.441，第 5 章：错误概率与 Fano</a>：从条件熵转向估计与解码的不可能性边界。</li>
+</ul>
+<p>接着阅读<a href="info-03-maxent-channel.html">最大熵与信道编码</a>：一个问题是在约束下选择分布，另一个问题是在长码块和指定误码准则下可靠通信。本页的一次传输互信息，不能直接替代完整编码定理的条件。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="info-01-entropy.html"><span class="pager-label">上一页</span>信息论 I · 熵与信源编码</a>

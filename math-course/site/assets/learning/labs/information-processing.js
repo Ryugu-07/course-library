@@ -42,7 +42,7 @@
   var STYLE_ID = "cl-information-processing-styles";
   var INSTANCE = 0;
   var EPS = 1e-10;
-  var DEFAULT = { eta: 0.1, rho: 0.2 };
+  var DEFAULT = Object.freeze({ eta: 0.1, rho: 0.2 });
   var PRESETS = [
     {
       id: "default",
@@ -76,6 +76,10 @@
     }
   ];
 
+  PRESETS.push({id: "rare", label: "微弱信息：η=ρ=.4999", eta: 0.4999, rho: 0.4999});
+  PRESETS.forEach(Object.freeze);
+  Object.freeze(PRESETS);
+
   var STYLE_TEXT = [
     ".ip-lab{--ip-blue:var(--cl-blue,#315f9d);--ip-gold:var(--cl-gold,#9b6a12);--ip-green:var(--cl-green,#39734d);--ip-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;}",
     ".ip-lab *,.ip-lab *::before,.ip-lab *::after{box-sizing:border-box;}",
@@ -102,7 +106,7 @@
     ".ip-lab .ip-pass{color:var(--ip-green);}",
     ".ip-lab .ip-warn{color:var(--ip-red);}",
     ".ip-lab .ip-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}",
-    ".ip-lab .ip-layout{display:grid;grid-template-columns:minmax(205px,.72fr) minmax(0,1.28fr);gap:16px;align-items:start;min-width:0;}",
+    ".ip-lab .ip-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start;min-width:0;}",
     ".ip-lab .ip-controls,.ip-lab .ip-stage{min-width:0;}",
     ".ip-lab .ip-controls{display:grid;gap:12px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}",
     ".ip-lab .ip-control{display:grid;gap:5px;min-width:0;}",
@@ -114,7 +118,7 @@
     ".ip-lab .ip-preset-row button{font-size:12px;}",
     ".ip-lab .ip-stage-frame{min-width:0;padding:9px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}",
     ".ip-lab .ip-stage-title{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin:0 0 8px;color:var(--fg-soft);font-size:13px;}",
-    ".ip-lab .ip-svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg);}",
+    ".ip-lab .ip-svg{display:block;width:560px;max-width:none!important;height:320px;color:var(--fg);}",
     ".ip-lab .ip-svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}",
     ".ip-lab .ip-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.7;}",
     ".ip-lab .ip-axis{stroke:currentColor;stroke-width:1.3;stroke-opacity:.75;}",
@@ -129,12 +133,13 @@
     ".ip-lab .ip-metric span{display:block;color:var(--fg-soft);font-size:11.5px;line-height:1.4;}",
     ".ip-lab .ip-metric strong{display:block;margin-top:3px;color:var(--fg);font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
     ".ip-lab .ip-table-wrap{max-width:100%;margin-top:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;}",
-    ".ip-lab table{width:100%;min-width:670px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}",
+    ".ip-lab table{width:100%;min-width:900px;display:table!important;max-width:none!important;overflow:visible!important;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}",
     ".ip-lab th,.ip-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}",
     ".ip-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750;}",
     ".ip-lab .ip-interpretation{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--ip-green);background:var(--bg);color:var(--fg);font-size:13px;line-height:1.7;overflow-wrap:anywhere;}",
     "@media(max-width:760px){.ip-lab .ip-choice-row{grid-template-columns:minmax(0,1fr);}.ip-lab .ip-layout{grid-template-columns:minmax(0,1fr);}.ip-lab .ip-preset-row{grid-template-columns:minmax(0,1fr);}}",
-    "@media(prefers-reduced-motion:reduce){.ip-lab *{animation:none!important;transition:none!important;}}"
+    "@media(prefers-reduced-motion:reduce){.ip-lab *{animation:none!important;transition:none!important;}}",
+    ".ip-lab .ip-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;}.ip-lab .ip-scroll:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px;}\n@media(prefers-reduced-motion:reduce){html:has(.ip-lab){scroll-behavior:auto!important;}}"
   ].join("\n");
 
   function finite(value) {
@@ -162,13 +167,14 @@
     if (p === 0 || p === 1) {
       return 0;
     }
-    return -(p * Math.log(p) + (1 - p) * Math.log(1 - p)) / Math.LN2;
+    p = Math.min(p, 1 - p);
+    return -(p * Math.log(p) + (1 - p) * Math.log1p(-p)) / Math.LN2;
   }
 
   function tau(eta, rho) {
     validateNoise(eta, "eta");
     validateNoise(rho, "rho");
-    return eta + rho - 2 * eta * rho;
+    return eta + (1 - 2 * eta) * rho;
   }
 
   function binaryRow(input, noise) {
@@ -179,24 +185,93 @@
     return input === 0 ? [1 - noise, noise] : [noise, 1 - noise];
   }
 
-  function kl(p, q) {
-    if (!Array.isArray(p) || !Array.isArray(q) || p.length !== q.length) {
-      throw new TypeError("KL rows must have equal lengths");
+  // Public KL API: accept probability rows only. Normalize their permitted
+  // (<=1e-12) summation roundoff explicitly; never turn arbitrary weights into rows.
+  function probabilityRow(row) {
+    if (!Array.isArray(row) || row.length === 0 || row.length > 256) {
+      throw new TypeError("probability row must have 1..256 entries");
     }
+    row.forEach(function (v) {
+      if (!finite(v) || v < 0 || v > 1) throw new RangeError("invalid probability");
+    });
+    var mass = compensatedSum(row);
+    if (Math.abs((mass[0] - 1) + mass[1]) > 1e-12) throw new RangeError("probabilities must sum to 1");
+    return {values: row.slice(), mass: mass};
+  }
+
+  function compensatedSum(values) {
+    var total = 0, error = 0;
+    values.forEach(function (v) {
+      var next = total + v;
+      error += Math.abs(total) >= Math.abs(v) ? (total - next) + v : (v - next) + total;
+      total = next;
+    });
+    return [total, error];
+  }
+
+  function productParts(a, b) {
+    var value = a * b;
+    var ca = 134217729 * a, cb = 134217729 * b;
+    var ah = ca - (ca - a), al = a - ah, bh = cb - (cb - b), bl = b - bh;
+    return [value, ((ah * bh - value) + ah * bl + al * bh) + al * bl];
+  }
+
+  function kl(p, q) {
+    var pp = probabilityRow(p), qq = probabilityRow(q);
+    p = pp.values; q = qq.values;
+    if (p.length !== q.length) throw new TypeError("KL row lengths differ");
+    var A = pp.mass, B = qq.mass;
+    var massP = A[0] + A[1], massQ = B[0] + B[1];
+    // f-divergence form: p*log(p/q)-p+q is nonnegative term by term.
+    // Its sum equals KL for normalized rows, without cancellation between signs.
     var total = 0;
     for (var i = 0; i < p.length; i += 1) {
-      if (!finite(p[i]) || !finite(q[i]) || p[i] < 0 || q[i] < 0) {
-        throw new RangeError("KL rows must contain nonnegative finite values");
+      if (p[i] === 0) { total += q[i] / massQ; continue; }
+      if (q[i] === 0) return Infinity;
+      // Relative difference of the normalized probabilities. Retain the low
+      // parts of the row masses and products before cancellation.
+      var pb = productParts(p[i], B[0]), qa = productParts(q[i], A[0]);
+      var delta = compensatedSum([pb[0], -qa[0], pb[1], -qa[1], p[i] * B[1], -q[i] * A[1]]);
+      var d = (delta[0] + delta[1]) / (q[i] * massP), term;
+      if (Math.abs(d) <= 0.5) {
+        var power = d * d, value = power / 2;
+        for (var n = 3; n < 256; n += 1) {
+          power *= -d;
+          var next = value + power / (n * (n - 1));
+          if (next === value) break;
+          value = next;
+        }
+        term = (q[i] / massQ) * value;
+      } else {
+        var x = p[i] / massP, y = q[i] / massQ;
+        var logRatio = Math.log(p[i]) - Math.log(q[i]) + Math.log(B[0]) + Math.log1p(B[1] / B[0]) - Math.log(A[0]) - Math.log1p(A[1] / A[0]);
+        term = x * logRatio - (x - y);
       }
-      if (p[i] === 0) {
-        continue;
-      }
-      if (q[i] === 0) {
-        return Infinity;
-      }
-      total += p[i] * (Math.log(p[i] / q[i]) / Math.LN2);
+      total += term;
     }
-    return total < 0 && total > -EPS ? 0 : total;
+    return total / Math.LN2;
+  }
+
+  function informationFromBias(bias, noise) {
+    if (bias <= 0.5) {
+      var power = bias * bias, value = power / 2;
+      for (var k = 2; k < 128; k += 1) {
+        power *= bias * bias;
+        var next = value + power / ((2 * k) * (2 * k - 1));
+        if (next === value) break;
+        value = next;
+      }
+      return value / Math.LN2;
+    }
+    return 1 - h2(noise);
+  }
+
+  function conditionalKL(bias, noise) {
+    if (noise === 0) return Infinity;
+    var logRatio = bias <= 0.5
+      ? Math.log1p(bias) - Math.log1p(-bias)
+      : Math.log1p(-noise) - Math.log(noise);
+    return bias * logRatio / Math.LN2;
   }
 
   function sum(values) {
@@ -210,13 +285,17 @@
     validateNoise(rho, "rho");
 
     var totalNoise = tau(eta, rho);
+    var biasY = 1 - 2 * eta;
+    var biasZ = biasY * (1 - 2 * rho);
+    var iXY = informationFromBias(biasY, eta);
+    var iXZ = informationFromBias(biasZ, totalNoise);
     var pY = [0.5, 0.5];
     var pZ = [0.5, 0.5];
     var yRows = [binaryRow(0, eta), binaryRow(1, eta)];
     var zGivenYRows = [binaryRow(0, rho), binaryRow(1, rho)];
     var zRows = [binaryRow(0, totalNoise), binaryRow(1, totalNoise)];
     var yMiRows = yRows.map(function (row, x) {
-      var rowKl = kl(row, pY);
+      var rowKl = iXY;
       return {
         x: x,
         pX: 0.5,
@@ -227,7 +306,7 @@
       };
     });
     var zMiRows = zRows.map(function (row, x) {
-      var rowKl = kl(row, pZ);
+      var rowKl = iXZ;
       return {
         x: x,
         pX: 0.5,
@@ -244,8 +323,11 @@
       tau: totalNoise,
       hEta: h2(eta),
       hTau: h2(totalNoise),
-      iXY: 1 - h2(eta),
-      iXZ: 1 - h2(totalNoise),
+      iXY: iXY,
+      iXZ: iXZ,
+      biasY: biasY,
+      biasZ: biasZ,
+      dpiEquality: rho === 0 || eta === 0.5,
       pY: pY,
       pZ: pZ,
       yRows: yRows,
@@ -253,8 +335,8 @@
       zRows: zRows,
       yMiRows: yMiRows,
       zMiRows: zMiRows,
-      inputConditionalKL: kl(yRows[0], yRows[1]),
-      outputConditionalKL: kl(zRows[0], zRows[1])
+      inputConditionalKL: conditionalKL(biasY, eta),
+      outputConditionalKL: conditionalKL(biasZ, totalNoise)
     };
   }
 
@@ -292,7 +374,7 @@
     assert(near(kl([1, 0], [0.5, 0.5]), 1), "finite endpoint KL");
     assert(kl([1, 0], [0, 1]) === Infinity, "support KL infinity");
 
-    var grid = [0, 0.01, 0.1, 0.25, 0.5];
+    var grid = [0, Number.MIN_VALUE, 1e-20, 0.01, 0.1, 0.25, 0.4999, 0.49999999999999994, 0.5];
     grid.forEach(function (eta) {
       grid.forEach(function (rho) {
         var data = summarize(eta, rho);
@@ -326,13 +408,13 @@
         assert(near(sum(data.zRows[0]), 1), "Z row 0 normalization");
         assert(near(sum(data.zRows[1]), 1), "Z row 1 normalization");
 
-        if (near(rho, 0)) {
+        if (rho === 0) {
           assert(near(data.iXZ, data.iXY), "rho=0 equality");
         }
-        if (near(rho, 0.5)) {
+        if (rho === 0.5) {
           assert(near(data.iXZ, 0), "rho=.5 gives zero");
         }
-        if (near(eta, 0.5)) {
+        if (eta === 0.5) {
           assert(near(data.iXY, 0) && near(data.iXZ, 0), "eta=.5 equality");
         }
         if (finite(data.inputConditionalKL)) {
@@ -362,6 +444,23 @@
     assert(near(defaultData.iXZ, 0.17325362750738216), "default I(X;Z)");
     assert(defaultData.inputConditionalKL > defaultData.outputConditionalKL, "default KL strict contraction");
 
+    assert(summarize(0.4999, 0.4999).iXZ > 1e-15, "small nonzero cascade MI");
+    assert(summarize(0.49999999999999994, 0.49999999999999994).iXZ > 1e-65, "bias survives rounded tau");
+    assert(!summarize(0.1, Number.MIN_VALUE).dpiEquality, "exact strictness without EPS");
+    assert(finite(summarize(Number.MIN_VALUE, 0).inputConditionalKL), "tiny positive support finite");
+    assert(Math.abs(kl([0.5, 0.49999999999999994], [0.5, 0.5]) / 2.222823663893618e-33 - 1) < 1e-13, "retain normalization residual in tiny KL");
+    assert(format(0.0001, 3) !== "0", "small chart label remains nonzero");
+    var invalid = [
+      function () { return kl([], []); },
+      function () { return kl([1, 0], [0, NaN]); },
+      function () { return kl([2, 0], [1, 0]); },
+      function () { return kl([0.2, 0.2], [0.5, 0.5]); },
+      function () { return summarize(-1, 0); }
+    ];
+    invalid.forEach(function (call) {
+      var failed = false; try { call(); } catch (_) { failed = true; }
+      assert(failed, "strict validation");
+    });
     return { checks: checks, grid: grid.length * grid.length };
   }
 
@@ -444,11 +543,11 @@
     if (!finite(value)) {
       return "—";
     }
-    if (Math.abs(value) < 5e-10) {
-      value = 0;
-    }
+    if (value === 0) return "0";
+    if (Math.abs(value) < 0.0001 || Math.abs(value) >= 1e6) return value.toExponential(5);
     var places = digits === undefined ? 4 : digits;
     var text = value.toFixed(places);
+    if (Number(text) === 0) return value.toExponential(5);
     return text.indexOf(".") === -1
       ? text
       : text.replace(/0+$/, "").replace(/\.$/, "");
@@ -574,14 +673,14 @@
     var values = [
       {
         x: 156,
-        value: clamp(data.iXY, 0, 1),
+        value: data.iXY,
         label: "I(X;Y)",
         barClass: "ip-bar-y",
         valueClass: "ip-value-y"
       },
       {
         x: 346,
-        value: clamp(data.iXZ, 0, 1),
+        value: data.iXZ,
         label: "I(X;Z)",
         barClass: "ip-bar-z",
         valueClass: "ip-value-z"
@@ -699,6 +798,9 @@
         );
         button.addEventListener("click", function () {
           prediction[key] = option.value;
+          revealed = false;
+          state = copyDefaultState();
+          if (refs.revealedPanel) { refs.revealedPanel.remove(); refs.revealedPanel = null; }
           renderPrediction();
         });
         predictionButtons.push({
@@ -809,7 +911,7 @@
         refs.gateFeedback.textContent =
           "预测已提交，" +
           correct +
-          "/3 命中。下面显示精确公式、条件行和 KL 收缩账本。";
+          "/3 命中。下面显示解析公式、条件行和 KL 收缩账本。";
         refs.gateFeedback.className =
           "ip-feedback " + (correct === 3 ? "ip-pass" : "ip-warn");
         announce(
@@ -833,6 +935,7 @@
         };
         revealed = false;
         buildGate();
+        predictionButtons[0].node.focus();
         announce(api, root, "已重置；请重新完成三个预测。");
       });
       refs.gateFeedback = element(
@@ -853,7 +956,7 @@
 
     function addRangeControl(container, key, label, inputRef, outputRef) {
       var id = uid + "-" + key;
-      var output = element(doc, "output", { id: id + "-value" }, [""]);
+      var output = element(doc, "output", { id: id + "-value", htmlFor: id }, [""]);
       var labelNode = element(doc, "label", { htmlFor: id }, [
         label + " = ",
         output
@@ -863,13 +966,14 @@
         type: "range",
         min: "0",
         max: "0.5",
-        step: "0.01",
+        step: "0.0001",
         value: String(state[key]),
         "aria-label": label
       });
       input.addEventListener("input", function () {
         state[key] = clamp(Number(input.value), 0, 0.5);
-        state.presetId = "custom";
+        var matching = PRESETS.find(function (p) { return p.eta === state.eta && p.rho === state.rho; });
+        state.presetId = matching ? matching.id : "custom";
         renderResults();
       });
       inputRef.value = input;
@@ -905,7 +1009,7 @@
       refs.rhoOutput = controls.querySelector("#" + uid + "-rho-value");
       controls.appendChild(
         element(doc, "p", { className: "ip-note" }, [
-          "滑块只在揭示后出现；模型使用精确 h₂ 和级联误差 τ，不做 Monte Carlo 抽样。"
+          "滑块只在揭示后出现；模型使用解析公式和级联偏差乘积，不做 Monte Carlo 抽样。"
         ])
       );
 
@@ -955,6 +1059,7 @@
         };
         revealed = false;
         buildGate();
+        predictionButtons[0].node.focus();
         announce(api, root, "已重置；请重新完成三个预测。");
       });
       controls.appendChild(
@@ -985,7 +1090,7 @@
             ]),
             element(doc, "span", {}, ["bits"])
           ]),
-          svg
+          element(doc, "div", {className: "ip-scroll", role: "region", tabindex: 0, "aria-label": "互信息图，可横向滚动"}, [svg])
         ])
       );
 
@@ -1008,21 +1113,21 @@
       );
 
       stage.appendChild(
-        element(doc, "h4", {}, ["精确条件信道行"])
+        element(doc, "h4", {}, ["条件信道行（显示经过舍入）"])
       );
       stage.appendChild(
         element(doc, "p", { className: "ip-note" }, [
-          "每一行都是条件概率，不是随机样本。P(Y) 和 P(Z) 均为 (0.5, 0.5)。"
+          "每一行都是条件概率，P(Y) 和 P(Z) 均为 (0.5, 0.5)。接近 0.5 的数可能显示相同；互信息保留偏差乘积计算，不从已舍入的表格反算。"
         ])
       );
-      refs.channelTable = makeTable(doc, "二元信道的精确条件行", [
+      refs.channelTable = makeTable(doc, "二元信道的条件行", [
         "条件",
         "P(0)",
         "P(1)",
         "阶段"
       ]);
       stage.appendChild(
-        element(doc, "div", { className: "ip-table-wrap" }, [
+        element(doc, "div", { className: "ip-table-wrap ip-scroll", role: "region", tabindex: 0, "aria-label": "概率或 KL 账本，可横向滚动" }, [
           refs.channelTable
         ])
       );
@@ -1044,7 +1149,7 @@
         "p(x)×KL（bits）"
       ]);
       stage.appendChild(
-        element(doc, "div", { className: "ip-table-wrap" }, [refs.miTable])
+        element(doc, "div", { className: "ip-table-wrap ip-scroll", role: "region", tabindex: 0, "aria-label": "概率或 KL 账本，可横向滚动" }, [refs.miTable])
       );
 
       stage.appendChild(
@@ -1058,7 +1163,7 @@
         "判读"
       ]);
       stage.appendChild(
-        element(doc, "div", { className: "ip-table-wrap" }, [
+        element(doc, "div", { className: "ip-table-wrap ip-scroll", role: "region", tabindex: 0, "aria-label": "概率或 KL 账本，可横向滚动" }, [
           refs.contractionTable
         ])
       );
@@ -1079,8 +1184,8 @@
       var data = summarize(state.eta, state.rho);
       refs.etaInput.value = String(state.eta);
       refs.rhoInput.value = String(state.rho);
-      refs.etaOutput.textContent = format(state.eta, 2);
-      refs.rhoOutput.textContent = format(state.rho, 2);
+      refs.etaOutput.textContent = format(state.eta, 4);
+      refs.rhoOutput.textContent = format(state.rho, 4);
       refs.presetButtons.forEach(function (item) {
         item.node.setAttribute(
           "aria-pressed",
@@ -1102,40 +1207,15 @@
         ["P(Z|X=1)", format(data.zRows[1][0], 4), format(data.zRows[1][1], 4), "级联 X→Z"]
       ]);
 
-      replaceTableRows(refs.miTable, [
-        [
-          "X=0",
-          "0.5",
-          probabilityText(data.yMiRows[0].row),
-          probabilityText(data.yMiRows[0].marginal),
-          format(data.yMiRows[0].kl, 4),
-          format(data.yMiRows[0].contribution, 4)
-        ],
-        [
-          "X=1",
-          "0.5",
-          probabilityText(data.yMiRows[1].row),
-          probabilityText(data.yMiRows[1].marginal),
-          format(data.yMiRows[1].kl, 4),
-          format(data.yMiRows[1].contribution, 4)
-        ],
-        [
-          "合计 I(X;Y)",
-          "",
-          "",
-          "",
-          "",
-          format(data.iXY, 4) + " bit"
-        ],
-        [
-          "级联校验 I(X;Z)",
-          "",
-          "",
-          "",
-          "",
-          format(data.iXZ, 4) + " bit"
-        ]
-      ]);
+      var miRows = [];
+      [["Y", data.yMiRows, data.iXY], ["Z", data.zMiRows, data.iXZ]].forEach(function (stage) {
+        stage[1].forEach(function (row) {
+          miRows.push([stage[0] + " | X=" + row.x, "0.5", probabilityText(row.row),
+            probabilityText(row.marginal), format(row.kl, 6), format(row.contribution, 6)]);
+        });
+        miRows.push(["合计 I(X;" + stage[0] + ")", "", "", "", "", format(stage[2], 6) + " bit"]);
+      });
+      replaceTableRows(refs.miTable, miRows);
 
       replaceTableRows(refs.contractionTable, [
         [
@@ -1154,21 +1234,16 @@
         ]
       ]);
 
-      var strict =
-        data.iXZ < data.iXY - EPS
-          ? "严格变小"
-          : near(data.iXZ, data.iXY)
-          ? "相等"
-          : "需要检查 Markov 假设";
+      var strict = data.dpiEquality ? "相等" : "严格变小（按参数判定，不以显示差值是否为零判定）";
       var endpointNote =
         data.inputConditionalKL === Infinity
           ? "输入条件行的 KL 为 ∞；这是真实的支持不匹配。"
           : "两行条件分布支持匹配，KL 数值有限。";
       refs.interpretation.textContent =
         "当前 η=" +
-        format(data.eta, 2) +
+        format(data.eta, 4) +
         "、ρ=" +
-        format(data.rho, 2) +
+        format(data.rho, 4) +
         "，τ=" +
         format(data.tau, 4) +
         "。I(X;Z)=" +
@@ -1182,14 +1257,14 @@
     }
 
     function buildRevealed() {
-      buildGate();
-      var revealedPanel = element(doc, "div", { className: "ip-revealed" }, []);
+      var revealedPanel = element(doc, "div", { className: "ip-revealed", tabindex: -1, role: "region", "aria-label": "信道实验结果" }, []);
+      refs.revealedPanel = revealedPanel;
       revealedPanel.appendChild(
-        element(doc, "h4", {}, ["结果与精确账本"])
+        element(doc, "h4", {}, ["结果与解析账本"])
       );
       revealedPanel.appendChild(
         element(doc, "p", { className: "ip-note" }, [
-          "现在可以调整参数。纵轴固定为 0 到 1 bit，便于比较不同设置；重置会回到预测门。"
+          "现在可以调整参数。纵轴固定为 0 到 1 bit，极小柱可能看不见，请同时看科学计数读数；未给柱子设置假高度。表格与图可横向滚动，聚焦后使用方向键。改答会返回默认参数并隐藏结果。"
         ])
       );
       var controls = buildControls();
@@ -1202,6 +1277,8 @@
       );
       shell.appendChild(revealedPanel);
       renderResults();
+      renderPrediction();
+      revealedPanel.focus();
     }
 
     buildGate();
@@ -1215,6 +1292,8 @@
     binaryRow: binaryRow,
     kl: kl,
     summarize: summarize,
+    format: format,
+    drawChart: drawChart,
     selfTest: selfTest,
     mount: mount
   };
