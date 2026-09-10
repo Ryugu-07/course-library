@@ -444,7 +444,7 @@ $$
 
 <div class="figure information-static" role="region" aria-label="信息账本静态图，可横向滚动" tabindex="0" markdown="1">
 
-![信息的三个口径：默认信道保留多少、近随机信道的非零信息、充分压缩仍能丢掉无关噪声](../images/info-02-information-ledger.svg)
+![信息的三个口径：默认信道保留多少、近随机信道的非零信息、充分压缩仍能丢掉无关噪声](assets/img/info-02-information-ledger.svg)
 
 图中上方两条长度使用相同的 bit 刻度；中间两点使用独立标明的对数刻度，不能与上方长度直接比较。下方的 $W$ 是独立噪声，只保留 $X$ 仍有 1 bit 关于 $X$ 的信息。
 

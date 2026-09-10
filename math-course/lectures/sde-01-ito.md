@@ -1,192 +1,364 @@
 # 随机微积分 I · 二次变差与 Itô 引理
 
-> 布朗运动处处不可微（随机过程页的结论）——经典微积分对它全面失效。随机微积分重建一套能对布朗运动积分求导的演算，核心只有一条新公理：**$(dB)^2 = dt$**。由它长出 Itô 引理——本课程往后每一页（SDE、Black–Scholes、扩散模型）的发动机。
-
-## 1. 为什么需要新微积分：二次变差
-
-<figure class="plot" markdown="1">
-![布朗运动的二次变差趋于 t](assets/img/sde-01-quadratic-variation.svg)
-<figcaption><span class="fig-id">图 1.1</span>布朗运动的二次变差 \(\sum(\Delta W)^2\) 收敛到确定的 \(t\)（不像光滑函数趋于零）——正是这条使 Itô 引理多出 \(\frac12 f'' dt\) 一项。</figcaption>
-</figure>
+> 把一段波动的平方加起来，会留下什么？光滑路径的答案趋于零；布朗运动的答案却趋于经过的时间。Itô 公式里的二阶修正来自这个可证明的极限。$(dB)^2=dt$ 是它的记账方式。
 
 <div data-learning-page></div>
 
 <section class="learning-layer" markdown="1" aria-labelledby="ito-learning-title">
 
-<h2 id="ito-learning-title">学习层：同一个增量，究竟在逼近哪一种解？</h2>
+<h2 id="ito-learning-title">学习层：一条路径、一次样本平均、一个期望</h2>
 
-### 1. 具体实例：带噪声的账户与没有噪声的账户
-
-把账户余额写成 \(X_t\)。若每个小时间片只按比例增长，模型是 ODE
-
-$$
-dX_t=aX_t\,dt.
-$$
-
-若每个小时间片还受到不可预见的市场踢动，模型变成 Itô SDE
+设一个正量从 $X_0=1$ 开始增长。无噪声模型是 $dX=aX\,dt$；加入比例噪声后，Itô 模型为
 
 $$
 dX_t=aX_t\,dt+\sigma X_t\,dB_t.
 $$
 
-两者的漂移项看起来相同，但第二式的噪声增量典型大小是 \(\sqrt{dt}\)，不是 \(dt\)。因此“把 ODE 的 Euler 步加一项随机扰动”必须精确说明扰动的标度、取值时刻与解的概念。实验台固定一份布朗增量，同时画 ODE、Itô 和 Stratonovich 的数值轨迹；结果揭示前，先不要把最接近某一条曲线的路径叫作“真解”。
+这里 $a$ 的量纲是时间的倒数，$\sigma$ 是时间平方根的倒数；$B$ 的增量方差等于时间增量。噪声项是 $\sigma X_n\sqrt h\,Z_n$，其中 $Z_n$ 为独立标准正态，不能把 $\sqrt h$ 换成 $h$。
 
-### 2. 先预测：你要预测的是路径、期望，还是解释方式？
-
-提交实验台的三个判断前，先写下理由：
-
-- 若 \(h\) 减半，Itô 的 Euler–Maruyama 强误差应大致按 \(h^{1/2}\) 还是 \(h\) 缩放？ODE 的确定性 Euler 误差呢？
-- 把同一个形式写成 \(\sigma(X_t)\,dB_t\) 与 \(\sigma(X_t)\circ dB_t\)，二者的漂移是否完全相同？
-- 一条路径在终点偏离解析均值，能否推出终点分布的均值也偏离？
-
-实验先隐藏误差阶、Itô/Stratonovich 的终点表和分布统计；按下“揭示结果”后才显示。这一步刻意把“看见一条漂亮曲线”与“作出关于分布的结论”分开。
-
-### 3. 正式桥：四个词各自负责哪一本账？
-
-ODE 的 Euler 步是
-
-$$
-X_{n+1}=X_n+b(X_n,t_n)h.
-$$
-
-Itô 的 Euler–Maruyama 步则是
-
-$$
-X_{n+1}=X_n+b(X_n,t_n)h+\sigma(X_n,t_n)\sqrt{h}\,Z_n,
-\qquad Z_n\sim N(0,1).
-$$
-
-左端点取值使积分适应于当前信息。若系数足够光滑，一维 Itô 与 Stratonovich 记号满足
-
-$$
-\sigma(X_t)\circ dB_t
-=\sigma(X_t)\,dB_t
-+\frac12\sigma(X_t)\sigma'(X_t)\,dt.
-$$
-
-所以同样的“漂移加噪声”文字，在两种积分约定下不是同一个模型。**强解**是在给定概率空间、滤子和这一个 Brownian 运动上构造适应过程 \(X\)；**弱解**允许连概率空间、滤子和 Brownian 运动一起换，只要求某个概率模型实现该方程的分布关系。强解/弱解是解的存在性与唯一性语言，不等同于强/弱数值误差。
-
-在常见的全局 Lipschitz、线性增长条件下，EM 的路径均方根强误差通常是 \(O(h^{1/2})\)，而对足够光滑测试函数 \(\varphi\) 的弱误差
-
-$$
-\left\lvert \mathbb{E}\varphi(X_T^{(h)})-\mathbb{E}\varphi(X_T)\right\rvert
-$$
-
-通常是 \(O(h)\)。强误差要用同一份噪声逐路径比较；弱误差只比较期望，不能用一条路径替代。
-
-### 4. 可操作实验与静态 fallback
+先回答一个问题：**64 条数值路径的终点均值，减去解析真均值，是否就是弱离散误差？** 读完账本后，还应能够解释为什么一条路径的偏差不能回答这个问题。
 
 <div class="learning-lab" data-learning-lab="ito-sde" markdown="1">
 
-**静态 fallback（脚本不可用时）：**取 \(T=1, X_0=1, a=0.35, \sigma=0.7\)，用同一批固定的标准正态增量聚合到不同步长。ODE 没有随机宽度；Itô 几何布朗运动的精确终点为 \(X_0\exp((a-\sigma^2/2)T+\sigma B_T)\)；Stratonovich 版本的精确终点为 \(X_0\exp(aT+\sigma B_T)\)。正确 EM 的随机项是 \(\sigma X_n\sqrt h Z_n\)，不是 \(\sigma X_n hZ_n\)。
+**无 JavaScript 时的读法：**取 $T=1,X_0=1,a=0.35,\sigma=0.7$。把同一批细网格布朗增量聚合为 $n=8,16,32,64,128$ 步；$h=T/n$。以下公式可独立核对：
 
-<table>
-<caption>固定参数下可先核对的静态读法</caption>
-<thead><tr><th>对象</th><th>路径账本</th><th>分布账本</th><th>边界</th></tr></thead>
-<tbody>
-<tr><td>ODE</td><td>确定性 Euler，误差通常为一阶</td><td>退化为一个点，不是随机样本</td><td>不能把 ODE 的阶数套到 SDE</td></tr>
-<tr><td>Itô</td><td>同一噪声下比较 EM 与精确解</td><td>用多条终点样本比较均值与方差</td><td>强阶与弱阶依赖系数、范数和光滑性</td></tr>
-<tr><td>Stratonovich</td><td>中点/预测校正读法与 Itô 漂移不同</td><td>统计量不由一条路径决定</td><td>有限步实验不是一般收敛定理</td></tr>
-</tbody>
-</table>
+| 模型 | 同噪声的解析终点 | 解析总体均值 |
+|---|---|---|
+| ODE | $X_0e^{aT}$ | $X_0e^{aT}$ |
+| Itô | $X_0e^{(a-\sigma^2/2)T+\sigma B_T}$ | $X_0e^{aT}$ |
+| 相同书面漂移的 Stratonovich | $X_0e^{aT+\sigma B_T}$ | $X_0e^{(a+\sigma^2/2)T}$ |
+
+ODE 与 Itô EM 的**离散总体均值**均为 $X_0(1+ah)^n$。本实验的 Stratonovich 随机 Heun 法有离散均值
+$X_0[1+ah+(a^2h^2+\sigma^2h)/2]^n$。因此弱均值误差可以直接从这两种解析均值计算，不必混入 Monte Carlo 抽样噪声。
+
+同一条路径上的另一本账是
+
+$$
+\sum B_{t_i}\Delta B_i
+=\frac{B_T^2-\sum(\Delta B_i)^2}{2},\qquad
+\sum\frac{B_{t_i}+B_{t_{i+1}}}{2}\Delta B_i=\frac{B_T^2}{2}.
+$$
+
+这两个有限和恒等式逐项就能验证；它们为何趋向不同积分，是本页的主线。
 
 </div>
 
-### 5. 定理与失败边界
-
-- \((dB)^2=dt\) 是二次变差记账规则；它不表示每条离散路径的平方增量都等于时间增量。
-- EM 的强阶 \(1/2\) 与弱阶 \(1\) 是带假设的典型结论；乘性噪声、非 Lipschitz 系数、爆破或不合适的测试函数都可能改变结论。
-- 固定一条 Brownian 路径只能支持强误差的耦合比较；它不能证明终点分布、期望或几乎处处结论。
-- 细网格曲线更平滑不等于它更接近 Itô 解；若把 \(\sqrt h\) 错写为 \(h\)，极限模型的随机宽度会塌缩。
+实验使用 3 组固定种子，每组 64 条伪随机路径，每条先生成 256 个正态增量，再聚合到各网格。更换步长保留同一批噪声；更换种子可观察样本波动。折线只连接采样时刻的值，不是完整的布朗路径。有限样本与有限层级可以检验计算，不能证明几乎必然结论或一般收敛阶。
 
 </section>
 
-**回顾**：布朗运动 $B_t$：独立增量、$B_t - B_s \sim N(0, t-s)$、路径连续但**处处不可微**（增量 $\sim\sqrt{\Delta t}$，差商 $\sim 1/\sqrt{\Delta t}$ 爆炸）。
+## 1. 二次变差：先证明，再使用微分记号
 
-**二次变差（新公理的出处）**：把 $[0, t]$ 分成 $n$ 段，考察增量平方和：
+### 1.1 分割必须真正变细
 
-$$
-\sum_{i}\big(B_{t_{i+1}} - B_{t_i}\big)^2 \;\xrightarrow[n\to\infty]{L^2}\; t
-$$
+回顾[布朗运动](stoch-04-brownian.html)：$B_0=0$，增量独立且 $B_t-B_s\sim N(0,t-s)$，路径连续，**几乎必然处处不可微**。增量的均方根为 $\sqrt{t-s}$，但“差商的方差发散”本身不是处处不可微的完整证明。
 
-*证明思路（两行）*：每项期望 $= \Delta t_i$，和的期望 $= t$；方差 $= \sum 2\Delta t_i^2 \to 0$（正态四阶矩）——和收敛到常数 $t$。$\blacksquare$
-
-**对比**：光滑函数的二次变差为零（$\sum(\Delta f)^2 \sim \sum (\Delta t)^2 \to 0$）。布朗运动的平方增量**不可忽略且是确定的**——微分记号
+固定 $T>0$，取确定性分割 $\pi=\{0=t_0<\cdots<t_n=T\}$，网格宽度为 $|\pi|=\max_i(t_{i+1}-t_i)$。定义
 
 $$
-\boxed{(dB)^2 = dt, \qquad dB\,dt = 0, \qquad (dt)^2 = 0}
+Q_\pi=\sum_i(\Delta B_i)^2.
 $$
 
-这三行乘法表是整门课的新增内容，其余全是老微积分带着它重跑一遍。
-
-## 2. Itô 积分
-
-**定义思想**：先对简单可预测过程 $H_s=\sum_i\xi_i1_{(t_i,t_{i+1}]}(s)$ 定义
+正态四阶矩给出 $\operatorname{Var}[(\Delta B_i)^2]=2(\Delta t_i)^2$，加上独立增量，
 
 $$
-\int_0^t H_s\,dB_s=\sum_i\xi_i(B_{t_{i+1}}-B_{t_i}),\qquad \xi_i\in L^2(\mathcal F_{t_i}).
+\mathbb E Q_\pi=T,\qquad
+\mathbb E(Q_\pi-T)^2=2\sum_i(\Delta t_i)^2
+\le2T|\pi|.
 $$
 
-系数在每段开始时就已确定。对满足 $E\int_0^t f_s^2ds<\infty$ 的可预测过程 $f$，选简单过程 $H^{(n)}\to f$ 于 $L^2(\Omega\times[0,t])$，再用下述等距性定义积分的 $L^2(\Omega)$ 极限；它不依赖所选近似。
+因此只要 $|\pi_m|\to0$，就有 $Q_{\pi_m}\to T$ 于 $L^2$，从而依概率收敛。**仅增加分割段数还不够**：若始终保留一段长度为 $T/2$ 的大区间，它的波动不会消失。
 
-**不能把一般积分当成任意左端采样。** 对连续且满足适当平方可积控制的适应过程，左端阶梯近似通常可行；一般可预测 $L^2$ 过程却只按几乎处处等价类定义。例如在 $[0,1]$ 上取确定性 $f_s=1_{\mathbb Q}(s)$，其积分为零；若所有分割点为有理数，直接取 $f_{t_i}$ 却给出 $B_1$。这说明需要的是 $L^2$ 近似，不是无条件逐点采样。
-
-**两条基本性质**：
-
-- **鞅性**：在上述平方可积条件下，$M_t=\int_0^t f_s\,dB_s$ 是平方可积鞅，因而 $E[M_t]=0$；若只假设局部平方可积，则通常只能先得到**连续局部鞅**，不能未经一致可积或其他积分性条件就升级成真鞅；
-- **Itô 等距**：$E\Big[\big(\int_0^t f\,dB\big)^2\Big] = E\Big[\int_0^t f^2\,ds\Big]$——随机积分的"勾股定理"（$L^2$ 理论的地基，方差可算）。
-
-（**Stratonovich 积分**一嘴：取中点的另一种定义，保持经典链式法则但失去鞅性——物理惯用；金融与概率统一用 Itô，两者可互换转换。）
-
-## 3. Itô 引理（随机世界的链式法则）
-
-**定理** $X_t$ 满足 $dX = \mu\,dt + \sigma\,dB$，$f(t, x)$ 二阶光滑，则
+对等长 $n$ 段，
 
 $$
-df(t, X_t) = \Big(f_t + \mu f_x + \frac{1}{2}\sigma^2 f_{xx}\Big)dt + \sigma f_x\,dB
+\operatorname{Var}(Q_n)=\frac{2T^2}{n},\qquad
+\operatorname{SD}(Q_n)=T\sqrt{\frac2n}.
 $$
 
-*推导（就是带新乘法表的 Taylor 展开）*：
+这是总体分布的标准差，不是每条路径的误差上界。沿二分网格 $n=2^m$，Chebyshev 上界可求和，再用 Borel–Cantelli 可推出固定 $T$ 处的几乎必然收敛；不能把 $L^2$ 收敛直接改写成“对任意一切分割、每条路径都收敛”。
+
+### 1.2 与连续有限变差路径对比
+
+若连续路径 $A$ 在 $[0,T]$ 上总变差有限，则
 
 $$
-df = f_t\,dt + f_x\,dX + \frac12 f_{xx}(dX)^2 + \cdots
+\sum_i(\Delta A_i)^2
+\le\max_i|\Delta A_i|\,\operatorname{TV}(A;[0,T])\longrightarrow0.
 $$
 
-经典微积分里 $(dX)^2$ 是高阶小量直接扔；现在 $(dX)^2 = \sigma^2(dB)^2 + \cdots = \sigma^2\,dt$ **是一阶量必须保留**——多出来的 $\frac12\sigma^2 f_{xx}\,dt$ 就是**Itô 修正项**，随机微积分与经典微积分的全部差异浓缩于此。$\blacksquare$
-
-**修正项的直觉**：$f$ 凸时（$f_{xx} > 0$），噪声的上下抖动经过凸函数后**平均向上**（Jensen 不等式的瞬时版）——漂移凭空多出一块。
-
-## 4. 两个必会计算
-
-**例 A（$B^2$ 的反常）**：$f = x^2$，$\mu = 0, \sigma = 1$：
+连续性使最大增量趋零。对 Brownian 部分与有限变差部分的交叉和，Cauchy–Schwarz 又给出
+$|\sum\Delta A_i\Delta B_i|\le[\sum(\Delta A_i)^2\sum(\Delta B_i)^2]^{1/2}\to0$
+（依概率）。所以可写
 
 $$
-d(B_t^2) = 2B_t\,dB_t + dt \quad\Longleftrightarrow\quad \int_0^t B\,dB = \frac{B_t^2 - t}{2}
+[B]_t=t,\qquad [A]_t=[A,B]_t=0.
 $$
 
-经典答案 $\frac{B^2}{2}$ 被修正了 $-\frac t2$——鞅性验证：右边期望恰为 0 ✓（经典答案期望 $\frac t2 \neq 0$，暴露它不是 Itô 积分）。
+简写成 $(dB)^2=dt$、$dt\,dB=(dt)^2=0$ 时，说的是**细分后累加的极限贡献**。单个 $(\Delta B)^2$ 仍然随机，绝不逐步等于 $\Delta t$。
 
-**例 B（几何布朗运动，金融页的主角提前登场）**：解 $dS = \mu S\,dt + \sigma S\,dB$。对 $f = \ln S$ 用 Itô（$f_x = \frac1S, f_{xx} = -\frac{1}{S^2}$）：
+<style>
+.ito-static{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+.ito-static img{display:block;width:1100px;max-width:none!important}
+.ito-static:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="figure ito-static" role="region" aria-label="二次变差与积分静态图，可横向滚动" tabindex="0" markdown="1">
+
+![二次变差的总体波动随网格缩小，以及同一组离散增量的左端和与梯形和](assets/img/sde-01-quadratic-variation.svg)
+
+上图画的是可证明的总体标准差，没有挑选一条恰好靠近极限的路径。下图使用明确给定的教学增量核算两个有限和，不把这些人工数值当作 Brownian 分布证据。
+
+</div>
+
+## 2. Itô 积分：不读取未来的信息
+
+固定满足通常条件的滤子 $(\mathcal F_t)$，令 $B$ 是相对于该滤子的 Brownian 运动；特别是未来增量独立于当前 $\mathcal F_t$。这比仅要求“$B$ 本身有独立增量”更明确：不能提前把未来轨迹放进当前信息集。
+
+对简单可预测过程
 
 $$
-d\ln S = \Big(\mu - \frac{\sigma^2}{2}\Big)dt + \sigma\,dB
-\;\Rightarrow\;
-S_t = S_0\exp\Big[\Big(\mu - \frac{\sigma^2}{2}\Big)t + \sigma B_t\Big]
+H_s=\sum_i\xi_i\,\mathbf1_{(t_i,t_{i+1}]}(s),
+\qquad \xi_i\in L^2(\mathcal F_{t_i}),
 $$
 
-**那个 $-\frac{\sigma^2}{2}$**：波动率对复利增长的隐形税（Itô 修正项的镜像——$\ln$ 凹，抖动平均向下）。实感：年化收益 ±20% 交替的资产，算术平均 0%，实际年化 $\approx -2\%$——**波动本身吞噬复利**，"波动率拖累"是每个投资者该会算的第一笔随机微积分账。
+定义 $\int_0^T H_s\,dB_s=\sum_i\xi_i\Delta B_i$。系数在每段开始时已经确定。由于增量的条件均值为零，不同区间的交叉项期望为零，而
 
-## 5. 典型例题
+$$
+\mathbb E[\xi_i^2(\Delta B_i)^2]
+=\mathbb E[\xi_i^2\,\mathbb E((\Delta B_i)^2\mid\mathcal F_{t_i})]
+=\mathbb E[\xi_i^2]\Delta t_i.
+$$
 
-**例 1（Itô 引理练手）** 求 $d(e^{B_t})$：$f = e^x$，$= e^{B}\big(\frac12 dt + dB\big)$——期望以 $e^{t/2}$ 增长（对数正态均值 $e^{t/2}$ 的微分版，概率 II 呼应）。
+于是得到 **Itô 等距**
 
-**例 2（构造鞅）** 证 $M_t = B_t^3 - 3tB_t$ 是鞅：Itô 给 $dM = 3B^2 dB + 3B\,dt - 3B\,dt - 3t\,dB = (3B^2 - 3t)\,dB$——纯 $dB$ 项、无漂移 ⇒ 鞅 ✓。**"用 Itô 消漂移"是构造鞅的标准手法**（下一页风险中性定价的技术核心）。
+$$
+\mathbb E\left|\int_0^T H_s\,dB_s\right|^2
+=\mathbb E\int_0^T H_s^2\,ds.
+$$
 
-**例 3（验证乘法表）** $d(tB_t) = B\,dt + t\,dB + \underbrace{dt\,dB}_{=0}$——交叉项按乘法表归零，分部积分公式 $\int_0^t s\,dB_s = tB_t - \int_0^t B\,ds$ 成立（此例无修正项：$f = tx$ 对 $x$ 线性，$f_{xx} = 0$——**修正项只找弯曲的函数**）。$\blacksquare$
+对可预测 $H$ 满足 $\mathbb E\int_0^T H_s^2ds<\infty$，先在 $L^2(\Omega\times[0,T])$ 中用简单过程逼近，再由等距定义积分的 $L^2(\Omega)$ 极限。等距保证极限不依赖所选近似。得到的积分过程是平方可积鞅，均值为零。
 
----
+**不能把一般积分定义成任意左端采样。** 对连续适应过程，在适当平方可积控制下可用左端阶梯近似；但一般 $L^2$ 过程只按几乎处处等价类定义。例如确定性 $H_s=\mathbf1_{\mathbb Q}(s)$ 的积分是 0；若分割端点全是有理数，机械取 $H_{t_i}=1$ 的左和却是 $B_T$。这些阶梯过程没有在所需的 $L^2$ 空间逼近 $H$。
 
-*下一页：让方程整个随机化——SDE、OU 过程与 Fokker–Planck 方程，并与扩散模型正式对账。*
+若仅有 $\int_0^T H_s^2ds<\infty$ 几乎必然，可用停时局部化构造积分，通常首先得到**连续局部鞅**。局部鞅不自动是真鞅；“微分中没有 $dt$ 项”不足以保证期望恒定，仍要检查积分性或一致可积等条件。
 
+## 3. Itô 公式：带二次变差的链式法则
 
-**积分构造来源：**北京大学李东风 [《应用随机过程》§8.2](https://math.pku.edu.cn/teachers/lidf/course/stochproc/stochprocnotes/html/_book/stocint.html) 给出简单可料过程、等距延拓与版本约定。
+设连续 Itô 过程
+
+$$
+X_t=X_0+\int_0^t a_s\,ds+\int_0^t b_s\,dB_s,
+$$
+
+系数适当可测，且每个有限时段上 $\int(|a_s|+b_s^2)\,ds<\infty$ 几乎必然；可预测版本用于随机积分。若 $f(t,x)\in C^{1,2}$，即时间一阶、空间二阶导数连续，则
+
+$$
+\boxed{
+df(t,X_t)=
+\left(f_t+a_t f_x+\tfrac12b_t^2 f_{xx}\right)(t,X_t)\,dt
+b_t f_x(t,X_t)\,dB_t.}
+$$
+
+它是积分恒等式的简写，并不是对处处不可微的 $X_t$ 作经典求导。一般先局部化到系数、过程和导数受控的区间，再解除停时；公式本身不保证随机积分项有零期望。
+
+### 3.1 二阶项为什么没有消失
+
+形式 Taylor 展开提供计算路线：
+
+$$
+\Delta f\approx f_t\Delta t+f_x\Delta X
++\tfrac12f_{xx}(\Delta X)^2.
+$$
+
+在分割上求和后，有限变差平方和与交叉项消失，而扩散部分的加权平方和留下 $\int b_s^2 f_{xx}(s,X_s)\,ds$。真正的证明还须控制局部化后的 Taylor 余项，并在相应概率或积分范数中取极限；只写“$(dB)^2=dt$”是推导提示，不替代这些步骤。
+
+当 $f$ 在空间上凸时，修正项 $\tfrac12b^2f_{xx}$ 非负，说明波动经弯曲函数变换后产生额外的局部漂移。这没有声称总漂移非负：$f_t+a f_x$ 也可能为负；无积分性时更不能直接对整个公式取期望。
+
+### 3.2 乘积与多个噪声
+
+若 $dX=a\,dt+b\,dB$、$dY=c\,dt+d\,dB$，则
+
+$$
+d(XY)=X\,dY+Y\,dX+bd\,dt.
+$$
+
+两个变量共享同一噪声，交叉二次变差不能漏掉。若改为两个独立 Brownian 驱动，交叉二次变差为零；若联合 Brownian 驱动满足常相关系数 $\rho$，则 $dB^1dB^2=\rho\,dt$。高维 Itô 公式的二阶项是 Hessian 与扩散协方差矩阵的配对。含跳过程另有跳跃修正，不能原样套本页连续过程公式。
+
+## 4. 左端与对称积分为何不同
+
+对 $f(x)=x^2$ 应用 Itô 公式，
+
+$$
+d(B_t^2)=2B_t\,dB_t+dt,\qquad
+\int_0^T B_t\,dB_t=\frac{B_T^2-T}{2}.
+$$
+
+也可以完全从有限和开始：$B_{i+1}^2-B_i^2=2B_i\Delta B_i+(\Delta B_i)^2$。望远镜求和后，左和为 $(B_T^2-Q_\pi)/2$；二次变差极限提供那个 $-T/2$。
+
+相反，梯形和逐项满足
+
+$$
+\frac{B_i+B_{i+1}}2\,\Delta B_i
+=\frac{B_{i+1}^2-B_i^2}{2},
+$$
+
+其和直接为 $B_T^2/2$。连续半鞅情形可定义 Stratonovich 积分
+
+$$
+\int H\circ dB=\int H\,dB+\tfrac12[H,B].
+$$
+
+对足够光滑的标量扩散系数 $\sigma(x)$，
+
+$$
+dX=a(X)\,dt+\sigma(X)\circ dB
+\quad\Longleftrightarrow\quad
+dX=\left[a(X)+\tfrac12\sigma(X)\sigma'(X)\right]dt+\sigma(X)\,dB.
+$$
+
+Stratonovich 形式保留相应的经典链式法则，但并非任何被积过程都可无条件用“中点取值”定义。它的积分也不是一定不为鞅：确定性适当被积函数使交叉变差为零；而 $\int B\circ dB=B_T^2/2$ 的期望为 $T/2$，这例确实不是鞅。两种约定都用于建模，应根据模型推导选择，不能仅按学科名称断定。
+
+## 5. 几何布朗运动：先构造正解，再取对数
+
+对常数 $a,\sigma$ 和确定性 $X_0>0$，定义
+
+$$
+X_t=X_0\exp[(a-\sigma^2/2)t+\sigma B_t].
+$$
+
+该过程显然为正；对指数函数应用 Itô 公式，直接验证它满足 $dX=aX\,dt+\sigma X\,dB$。线性系数的全局 Lipschitz 条件给出唯一强解，因此再对 $\ln X_t$ 使用 Itô 是合法的，而不是预先假定了待证的正性。
+
+$$
+d\ln X_t=(a-\sigma^2/2)\,dt+\sigma\,dB_t.
+$$
+
+若 $X_0=0$，唯一解恒为零，不能取对数；若 $X_0<0$，同一指数表达式保持负号，可处理 $\ln|X|$，但它不再是通常的正量模型。实验仅开放正初值。
+
+高斯矩母函数给出
+
+$$
+\mathbb E X_t=X_0e^{at},\qquad
+\operatorname{Var}(X_t)=X_0^2e^{2at}(e^{\sigma^2t}-1),\qquad
+\operatorname{median}(X_t)=X_0e^{(a-\sigma^2/2)t}.
+$$
+
+所以 $-\sigma^2/2$ 修正的是对数增长率；它没有把 $\mathbb E X_t$ 的增长率从 $a$ 改掉。这是明确模型内的均值与中位数区别，不能脱离假设推广成所有现实过程的增长定律。若相同书面漂移改用 Stratonovich 约定，解为 $X_0e^{at+\sigma B_t}$，其均值相应改变。
+
+## 6. 数值实验究竟估计什么
+
+### 6.1 三种更新
+
+设 $h=T/n$，在所有方法中共享同一组 $\Delta B_i$。ODE Euler 用 $X_{i+1}=X_i(1+ah)$；Itô Euler–Maruyama 用
+
+$$
+X_{i+1}=X_i(1+ah+\sigma\Delta B_i).
+$$
+
+对本页标量线性 Stratonovich 模型，预测校正即随机 Heun 法可写为
+
+$$
+u_i=ah+\sigma\Delta B_i,\qquad
+X_{i+1}=X_i(1+u_i+\tfrac12u_i^2).
+$$
+
+EM 的乘子可能为负，因此粗网格数值解可能穿过零；实验保留这些值并报告负终点个数，不截断成零。Heun 乘子为 $[(u_i+1)^2+1]/2>0$，在这个特定线性模型中保持正性；不能据此声称一般 SDE 的 Heun 方法都保正。
+
+### 6.2 总体误差、样本估计与抽样误差
+
+终点强 $L^2$ 误差为
+
+$$
+\left(\mathbb E|X_T^{(h)}-X_T|^2\right)^{1/2}.
+$$
+
+必须把数值解与真解放在**同一噪声**上比较。实验用 $M=64$ 条配对路径的 RMS 估计它；单一路径绝对差也不是这个期望范数，更不是整个时间区间的最大误差。
+
+弱误差依赖测试函数。这里固定 $\varphi(x)=x$，因此
+
+$$
+e_{\rm weak}(h)=|\mathbb E X_T^{(h)}-\mathbb E X_T|.
+$$
+
+独立增量使每步乘子的期望可以相乘。EM/ODE 的离散均值为 $X_0(1+ah)^n$；Heun 的为 $X_0[1+ah+(a^2h^2+\sigma^2h)/2]^n$。实验用这些公式计算弱均值误差，接近相等时用 $\operatorname{log1p}$、$\operatorname{expm1}$ 的数值版本避免消减。
+
+设 $\bar X_h$ 为数值样本均值，则严格分解为
+
+$$
+\bar X_h-\mathbb E X_T
+=\underbrace{\mathbb E X_T^{(h)}-\mathbb E X_T}_{\text{离散偏差}}
++\underbrace{\bar X_h-\mathbb E X_T^{(h)}}_{\text{抽样偏差}}.
+$$
+
+另外令 $D_j=X_{T,j}^{(h)}-X_{T,j}$，配对均差 $\bar D$ 估计离散偏差。实验报告
+
+$$
+\widehat{\operatorname{SE}}(\bar D)
+=\sqrt{\frac{\sum_j(D_j-\bar D)^2}{M(M-1)}}.
+$$
+
+这是把路径视为独立抽样时的样本标准误估计；固定伪随机样本和大尾部可能令估计不稳定，不能把 $\bar D\pm2\,\widehat{\rm SE}$ 自动称为精确置信区间。直方图展示完整 64 个终点的频数，不是解析密度。
+
+### 6.3 阶数的条件与退化情形
+
+常见全局 Lipschitz、增长与时间正则条件下，EM 强 $L^2$ 误差为 $O(h^{1/2})$；弱一阶还需相应系数和测试函数的光滑性、矩控制。强/弱**数值收敛**不同于强/弱**解**：强解在给定滤子与 Brownian 运动上构造；弱解允许概率空间与驱动一起作为待构造对象。
+
+本页非零乘性噪声的 EM 通常展示强半阶，标量光滑 Stratonovich 随机 Heun 法通常展示强一阶；但 $\sigma=0$ 时它们退化为确定性 Euler 一阶和 Heun 二阶。若同时 $a=0,\sigma=0$，解和更新均为常数，误差为零，谈拟合斜率没有意义。对 Itô 模型即使 $a=0,\sigma>0$，测试函数 $x$ 的弱均值误差也恰为零，不能由此推出路径误差为零。
+
+实验只对正误差点拟合有限层级斜率；零值另列，不在对数图上放一个人为地板。改变步长、样本量、种子可能改变拟合值，图中的一条直线不是一般定理的证明。
+
+## 7. 三道逐步核算题
+
+**题 1：有限分割上“少掉的半个时间”在哪里？** 给定四个教学增量 $(0.5,-0.25,0.75,-0.5)$，$B_0=0,T=1$，计算终点、二次变差、左端和、梯形和及 Itô 目标。不要假设这四个数已经满足 $Q=T$。
+
+<details class="answer" markdown="1">
+<summary>展开：先列路径端点再累加</summary>
+
+路径端点为 $0,0.5,0.25,1,0.5$，所以 $B_T=0.5$、$Q=0.25+0.0625+0.5625+0.25=1.125$。
+左端和为 $0-0.125+0.1875-0.5=-0.4375=(0.25-1.125)/2$；梯形和为 $0.125=B_T^2/2$。
+Itô 目标是 $(0.25-1)/2=-0.375$。有限左和与目标相差 $-0.0625=-(Q-T)/2$；误差来自这组离散二次变差，不是因为恒等式失效。
+
+</details>
+
+**题 2：消掉漂移足够证明真鞅吗？** 对 $M_t=B_t^3-3tB_t$ 应用 Itô，并补足有限时段上的积分性核验。
+
+<details class="answer" markdown="1">
+<summary>展开：公式消漂移，矩估计完成证明</summary>
+
+$$
+dM_t=3(B_t^2-t)\,dB_t.
+$$
+
+这一步先给出局部鞅。用 $\mathbb EB_t^2=t$、$\mathbb EB_t^4=3t^2$，
+
+$$
+\mathbb E\int_0^T9(B_t^2-t)^2dt
+=9\int_0^T2t^2dt=6T^3<\infty.
+$$
+
+故积分是平方可积真鞅，$M_0=0$，$\mathbb EM_t=0$。一般“没有漂移”只能完成第一步；本例能升级，是因为额外的矩估计。
+
+</details>
+
+**题 3：弱误差为零，数值法是否已经精确？** 取 Itô 模型 $a=0,\sigma>0,X_0=1$。比较 EM 的终点均值与方差。
+
+<details class="answer" markdown="1">
+<summary>展开：换一个测试函数，误差就显现</summary>
+
+每步 EM 乘子 $1+\sigma\Delta B$ 的均值是 1，二阶矩为 $1+\sigma^2h$。独立相乘给出
+
+$$
+\mathbb EX_T^{(h)}=1=\mathbb EX_T,\qquad
+\operatorname{Var}(X_T^{(h)})=(1+\sigma^2h)^n-1.
+$$
+
+真解方差为 $e^{\sigma^2T}-1$，有限 $h>0$ 时严格更大，因为 $\ln(1+z)<z$（$z>0$）。所以对 $\varphi(x)=x$ 弱误差为零，对 $\varphi(x)=x^2$ 却不为零，路径也没有因此精确。实验中的 64 条样本均值仍可偏离 1；那是抽样偏差。
+
+</details>
+
+## 8. 参考与下一步
+
+- [Lawler，Stochastic Calculus，第 2.8、3、4.1 节](https://www.math.uchicago.edu/~lawler/finbook.pdf)：二次变差、随机积分与局部鞅的系统论述。
+- [Higham，数值模拟 SDE 的算法导论](https://webhomes.maths.ed.ac.uk/~dhigham/Publications/P42.pdf)：沿同噪声构造数值实验，并区别强收敛和弱收敛。
+
+下一页：[SDE、OU 过程与 Fokker–Planck 方程](sde-02-sde-diffusion.html)。本页追踪路径上的函数变换；下一页进一步问，一群路径的概率密度如何演化。

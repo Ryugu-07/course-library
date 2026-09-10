@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+from html.parser import HTMLParser
+from urllib.parse import unquote, urlsplit
 import shutil
 import sys
 
@@ -49,6 +51,36 @@ def format_mib(size: int) -> str:
     return f"{size / (1024 * 1024):.2f} MiB"
 
 
+def check_packaged_images(output: Path) -> tuple[int, list[str]]:
+    """Check actual img src targets inside the deployment tree, not source dirs."""
+    class Images(HTMLParser):
+        def __init__(self):
+            super().__init__(convert_charrefs=True)
+            self.sources = []
+
+        def handle_starttag(self, tag, attrs):
+            if tag == "img":
+                src = dict(attrs).get("src")
+                if src:
+                    self.sources.append(src)
+
+    output = output.resolve()
+    checked, missing = 0, []
+    for page in output.rglob("*.html"):
+        parser = Images()
+        parser.feed(page.read_text(encoding="utf-8"))
+        for src in parser.sources:
+            parsed = urlsplit(src)
+            if parsed.scheme or parsed.netloc:
+                continue
+            path = unquote(parsed.path)
+            target = ((output / path.lstrip("/")) if path.startswith("/") else page.parent / path).resolve()
+            checked += 1
+            if not target.is_relative_to(output) or not target.is_file():
+                missing.append(f"{page.relative_to(output)}: {src}")
+    return checked, missing
+
+
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     output = root / "public"
@@ -80,6 +112,14 @@ def main() -> int:
     )
 
     (output / "_headers").write_text(HEADERS, encoding="ascii")
+
+    image_count, missing_images = check_packaged_images(output)
+    if missing_images:
+        print("ERROR: image targets missing from deployment package:", file=sys.stderr)
+        for missing in missing_images:
+            print(f"  {missing}", file=sys.stderr)
+        return 1
+    print(f"PASS: {image_count} local image references resolve inside the deployment package")
 
     files = [path for path in output.rglob("*") if path.is_file()]
     largest = max(files, key=lambda path: path.stat().st_size)
