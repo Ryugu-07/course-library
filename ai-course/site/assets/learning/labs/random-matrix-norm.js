@@ -1,993 +1,273 @@
-(function (root, factory) {
+(function(root,factory){
   "use strict";
-
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("random-matrix-norm", exported.mount);
+  const api=factory();
+  if(typeof module==="object"&&module.exports)module.exports=api;
+  if(root&&root.CourseLearning)root.CourseLearning.register("random-matrix-norm",api.mount);
+  if(typeof require==="function"&&require.main===module)console.log(api.selfTest());
+})(typeof window!=="undefined"?window:globalThis,function(){
+  "use strict";
+  const DEFAULTS={mode:"net",major:4,minor:1,angle:17,count:16,preset:"gaussian",m:5,n:4,seed:20260722,iterations:18,start:"ones"};
+  const PRESETS=[
+    {id:"gaussian",label:"高斯矩形",m:5,n:4},
+    {id:"rademacher",label:"随机符号矩形",m:5,n:4},
+    {id:"wigner",label:"Wigner 对称",m:6,n:6},
+    {id:"covariance",label:"未扣样本均值的二阶矩",m:8,n:4},
+    {id:"correlated",label:"相关条目诊断",m:6,n:4},
+    {id:"heavy-tail",label:"无限方差重尾诊断",m:6,n:4},
+    {id:"blind",label:"幂迭代盲点",m:2,n:2,start:"axis"},
+    {id:"hole",label:"四维方向遗漏",m:2,n:4,start:"ones"}
+  ];
+  const QUESTIONS=[
+    ["扫描许多方向后，最大读数必然是什么？",["算子范数的下界","整个球面的上确界"],0,"有限方向属于球面，只能先给下界；上界还要覆盖证明。"],
+    ["把每个坐标平面的角度继续加密，能否自动覆盖四维球面？",["不能，仍会漏掉四个坐标同时非零的方向","能，只要方向数量足够多"],0,"与二稀疏方向的距离存在正下界，增加角度数量无法消除。"],
+    ["幂迭代的特征向量残差为零，能否证明找到了最大特征值？",["不能，可能停在另一个特征向量","能，残差零就是最大值"],0,"残差判断特征对是否成立，不负责判断它是不是谱的顶端。"],
+    ["一次种子实验吻合 √m+√n，能否证明高概率界？",["不能，需要分布假设与概率论证","能，可以据此确定通用常数"],0,"一个固定矩阵的计算和一族随机矩阵的概率量词不同。"]
+  ];
+  function number(v,name,lo,hi,integer=false){
+    if(typeof v==="string"){if(!v.trim())throw Error(name+"不能为空");v=Number(v);}
+    if(typeof v!=="number"||!Number.isFinite(v)||v<lo||v>hi||(integer&&!Number.isInteger(v)))throw Error(name+"须为 "+lo+" 至 "+hi+" 的"+(integer?"整数":"有限数"));
+    return v;
   }
-  if (
-    typeof module === "object" &&
-    module.exports &&
-    typeof require === "function" &&
-    require.main === module
-  ) {
-    try {
-      var report = exported.selfTest();
-      console.log(
-        "random-matrix-norm self-test: PASS (" +
-          report.checks +
-          " checks, " +
-          report.presets +
-          " presets)"
-      );
-    } catch (error) {
-      console.error("random-matrix-norm self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
+  function config(raw={}){
+    if(!raw||typeof raw!=="object"||Array.isArray(raw))throw Error("参数须为对象");
+    const s=Object.assign({},DEFAULTS,raw);
+    if(!["net","matrix"].includes(s.mode))throw Error("未知实验");
+    if(s.mode==="net"){
+      s.major=number(s.major,"大奇异值",.1,10);s.minor=number(s.minor,"小奇异值",0,s.major);
+      s.angle=number(s.angle,"奇异方向角",0,180);s.count=number(s.count,"方向数",4,256,true);
+      if((s.count&(s.count-1))!==0)throw Error("方向数须为 4 至 256 的 2 的幂");
+    }else{
+      if(!PRESETS.some(p=>p.id===s.preset))throw Error("未知矩阵模型");
+      s.m=number(s.m,"行数 m",2,8,true);s.n=number(s.n,"列数 n",2,8,true);
+      s.seed=number(s.seed,"seed",0,4294967295,true);s.iterations=number(s.iterations,"迭代步数",0,64,true);
+      if(!["ones","axis","difference"].includes(s.start))throw Error("未知初始向量");
+      if(s.preset==="wigner"&&s.m!==s.n)throw Error("Wigner 模型要求 m=n");
+      if(s.preset==="blind"&&(s.m!==2||s.n!==2))throw Error("幂迭代盲点固定为 2×2");
+      if(s.preset==="hole"&&(s.m!==2||s.n!==4))throw Error("方向遗漏固定为 2×4");
     }
+    return s;
   }
-})(
-  typeof window !== "undefined"
-    ? window
-    : typeof globalThis !== "undefined"
-      ? globalThis
-      : this,
-  function (host) {
-    "use strict";
-
-    var SVG_NS = "http://www.w3.org/2000/svg";
-    var STYLE_ID = "random-matrix-norm-lab-styles";
-    var MAX_DIM = 8;
-    var ANGLE_STEPS = 24;
-    var DEFAULT_ITERATIONS = 18;
-
-    var PRESETS = [
-      {
-        id: "gaussian",
-        label: "Gaussian iid",
-        object: "rectangular",
-        distribution: "gaussian",
-        m: 5,
-        n: 4,
-        seed: 20260722,
-        iterations: DEFAULT_ITERATIONS
-      },
-      {
-        id: "rademacher",
-        label: "Rademacher iid",
-        object: "rectangular",
-        distribution: "rademacher",
-        m: 5,
-        n: 4,
-        seed: 20260722,
-        iterations: DEFAULT_ITERATIONS
-      },
-      {
-        id: "wigner",
-        label: "Wigner",
-        object: "wigner",
-        distribution: "gaussian",
-        m: 6,
-        n: 6,
-        seed: 20260723,
-        iterations: DEFAULT_ITERATIONS
-      },
-      {
-        id: "covariance",
-        label: "Sample covariance",
-        object: "covariance",
-        distribution: "gaussian",
-        m: 8,
-        n: 4,
-        seed: 20260724,
-        iterations: DEFAULT_ITERATIONS
-      },
-      {
-        id: "correlated",
-        label: "Correlated / low-rank",
-        object: "correlated",
-        distribution: "gaussian",
-        m: 6,
-        n: 4,
-        seed: 20260725,
-        iterations: DEFAULT_ITERATIONS
-      },
-      {
-        id: "heavy-tail",
-        label: "Heavy tail",
-        object: "rectangular",
-        distribution: "heavy-tail",
-        m: 6,
-        n: 4,
-        seed: 20260726,
-        iterations: DEFAULT_ITERATIONS
+  const dot=(a,b)=>a.reduce((s,x,i)=>s+x*b[i],0);
+  const norm=v=>Math.hypot(...v);
+  const mv=(a,v)=>a.map(r=>dot(r,v));
+  const transpose=a=>a[0].map((_,j)=>a.map(r=>r[j]));
+  const gram=a=>{const t=transpose(a);return t.map(u=>t.map(v=>dot(u,v)));};
+  const eye=n=>Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>+(i===j)));
+  const unit=v=>{const h=norm(v);if(h===0)throw Error("零向量不能归一化");return v.map(x=>x/h);};
+  function trig(deg){
+    if(deg%90===0){const k=((deg/90)%4+4)%4;return [[1,0],[0,1],[-1,0],[0,-1]][k];}
+    const t=deg*Math.PI/180;return [Math.cos(t),Math.sin(t)];
+  }
+  function createRng(seed){
+    let state=number(seed,"seed",0,4294967295,true),spare=null;
+    const uniform=()=>{state=(Math.imul(1664525,state)+1013904223)>>>0;return (state+.5)/4294967296;};
+    const normal=()=>{if(spare!==null){const z=spare;spare=null;return z;}const r=Math.sqrt(-2*Math.log(uniform())),t=2*Math.PI*uniform();spare=r*Math.sin(t);return r*Math.cos(t);};
+    return {uniform,normal};
+  }
+  function net(s){
+    const [c,h]=trig(s.angle),a=[[s.major*c,s.major*h],[-s.minor*h,s.minor*c]];
+    function row(deg){const v=trig(deg),av=mv(a,v);return {angle:deg,vector:v,image:av,value:norm(av)};}
+    const directions=Array.from({length:s.count},(_,i)=>row(360*i/s.count));
+    const curve=Array.from({length:721},(_,i)=>row(i/2));
+    const levels=[];
+    for(let n=4;n<=s.count;n*=2){
+      const maximum=Math.max(...Array.from({length:n},(_,i)=>row(360*i/n).value));
+      const epsilon=2*Math.sin(Math.PI/(2*n));
+      levels.push({count:n,epsilon,maximum,generic:maximum/(1-epsilon),sharp:maximum/Math.cos(Math.PI/n)});
+    }
+    return {config:s,matrix:a,directions,curve,levels,exactNorm:s.major,...levels[levels.length-1]};
+  }
+  function jacobi(input){
+    const n=input.length;
+    if(!n||input.some(r=>r.length!==n||r.some(x=>!Number.isFinite(x))))throw Error("Jacobi 需要有限方阵");
+    if(input.some((r,i)=>r.some((x,j)=>x!==input[j][i])))throw Error("Jacobi 需要对称矩阵");
+    const a=input.map(r=>r.slice()),q=eye(n),scale=Math.hypot(...a.flat()),tol=32*Number.EPSILON*scale;
+    let rotations=0,off=0;
+    for(;rotations<100*n*n;rotations++){
+      let p=0,r=0;off=0;
+      for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)if(Math.abs(a[i][j])>off){off=Math.abs(a[i][j]);p=i;r=j;}
+      if(off<=tol)break;
+      const tau=(a[r][r]-a[p][p])/(2*a[p][r]);
+      const t=(tau>=0?1:-1)/(Math.abs(tau)+Math.hypot(1,tau)),c=1/Math.hypot(1,t),h=t*c,ap=a[p][p],ar=a[r][r],b=a[p][r];
+      a[p][p]=ap-t*b;a[r][r]=ar+t*b;a[p][r]=a[r][p]=0;
+      for(let k=0;k<n;k++){
+        if(k!==p&&k!==r){const x=a[k][p],y=a[k][r];a[k][p]=a[p][k]=c*x-h*y;a[k][r]=a[r][k]=h*x+c*y;}
+        const x=q[k][p],y=q[k][r];q[k][p]=c*x-h*y;q[k][r]=h*x+c*y;
       }
+    }
+    off=0;for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)off=Math.max(off,Math.abs(a[i][j]));
+    const pairs=Array.from({length:n},(_,i)=>{
+      const vector=q.map(r=>r[i]),value=a[i][i],image=mv(input,vector);
+      return {value,vector,image,residual:norm(image.map((x,j)=>x-value*vector[j]))};
+    }).sort((a,b)=>b.value-a.value);
+    let orthogonality=0;for(let i=0;i<n;i++)for(let j=0;j<n;j++)orthogonality=Math.max(orthogonality,Math.abs(dot(pairs[i].vector,pairs[j].vector)-+(i===j)));
+    return {pairs,rotations,off,scale,tolerance:tol,converged:off<=tol,orthogonality};
+  }
+  function directionGrid(n){
+    const out=[];
+    for(let i=0;i<n;i++){const v=Array(n).fill(0);v[i]=1;out.push(v);}
+    for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)for(let k=0;k<24;k++){
+      const v=Array(n).fill(0),[c,s]=trig(15*k);v[i]=c;v[j]=s;out.push(v);
+    }
+    return out;
+  }
+  function makeMatrix(s){
+    if(s.preset==="blind")return {matrix:[[1,0],[0,2]],source:null};
+    if(s.preset==="hole")return {matrix:[[.5,.5,.5,.5],[0,0,0,0]],source:null};
+    const rng=createRng(s.seed),sample=()=>s.preset==="rademacher"?(rng.uniform()<.5?-1:1):s.preset==="heavy-tail"?(rng.uniform()<.5?-1:1)*.75*Math.pow(1-rng.uniform(),-2/3):rng.normal();
+    if(s.preset==="wigner"){
+      const a=Array.from({length:s.n},()=>Array(s.n).fill(0));
+      for(let i=0;i<s.n;i++)for(let j=i;j<s.n;j++)a[i][j]=a[j][i]=sample()/Math.sqrt(s.n);
+      return {matrix:a,source:null};
+    }
+    const x=Array.from({length:s.m},()=>{
+      if(s.preset==="correlated"){const common=1+.15*rng.normal();return Array.from({length:s.n},()=>common+.12*rng.normal());}
+      return Array.from({length:s.n},sample);
+    });
+    return s.preset==="covariance"?{matrix:gram(x).map(r=>r.map(v=>v/s.m)),source:x}:{matrix:x,source:null};
+  }
+  function matrix(s){
+    const {matrix:a,source}=makeMatrix(s),g=gram(a),target=s.preset==="covariance"?a:g,eigen=jacobi(target);
+    const top=eigen.pairs[0].value,operatorNorm=s.preset==="covariance"?top:Math.sqrt(Math.max(0,top));
+    const directions=directionGrid(s.n).map((vector,index)=>{const image=mv(a,vector);return {index,vector,image,value:norm(image)};});
+    let v=unit(s.start==="ones"?Array(s.n).fill(1):s.start==="axis"?[1,...Array(s.n-1).fill(0)]:[1,-1,...Array(s.n-2).fill(0)]);
+    const history=[];let stop="达到指定步数";
+    for(let k=0;k<=s.iterations;k++){
+      const image=mv(target,v),rayleigh=dot(v,image),av=mv(a,v);
+      history.push({iteration:k,vector:v.slice(),image,rayleigh,residual:norm(image.map((x,i)=>x-rayleigh*v[i])),estimate:norm(av)});
+      if(k===s.iterations)break;
+      if(norm(image)===0){stop="迭代像为零；不能归一化，停止";break;}
+      v=unit(image);
+    }
+    const spectrum=s.preset==="wigner"?jacobi(a):null;
+    const reference=s.preset==="wigner"?2:s.preset==="covariance"?(1+Math.sqrt(s.n/s.m))**2:Math.sqrt(s.m)+Math.sqrt(s.n);
+    return {config:s,matrix:a,source,gram:g,target,eigen,spectrum,operatorNorm,directions,gridMax:Math.max(...directions.map(r=>r.value)),history,stop,reference,referenceValid:["gaussian","rademacher","wigner","covariance"].includes(s.preset),frobenius:Math.hypot(...a.flat())};
+  }
+  function snapshot(raw){const s=config(raw);return s.mode==="net"?net(s):matrix(s);}
+  function fmt(x){
+    if(x===null||x===undefined)return "—";
+    if(Array.isArray(x))return "["+x.map(fmt).join(", ")+"]";
+    if(typeof x!=="number")return String(x);
+    if(x===0)return "0";
+    return Number(x.toPrecision(9)).toString();
+  }
+  function ledgers(d){
+    const mat=(key,title,a)=>({key,title,headers:["行",...a[0].map((_,i)=>"列 "+(i+1))],rows:a.map((r,i)=>[i+1,...r])});
+    if(d.config.mode==="net")return [
+      mat("matrix","旋转奇异方向的矩阵 A",d.matrix),
+      {key:"levels",title:"嵌套加密：下界与两个有证明的上界",headers:["N","覆盖半径 ε","网格下界 L","L/(1−ε)","L/cos(π/N)","解析范数"],rows:d.levels.map(r=>[r.count,r.epsilon,r.maximum,r.generic,r.sharp,d.exactNorm])},
+      {key:"directions",title:"全部网点与矩阵像",headers:["角度 °","单位方向 u","Au","‖Au‖"],rows:d.directions.map(r=>[r.angle,r.vector,r.image,r.value])},
+      {key:"curve",title:"完整半度扫描（画曲线用，覆盖证书另由公式给出）",headers:["角度 °","u","Au","‖Au‖"],rows:d.curve.map(r=>[r.angle,r.vector,r.image,r.value])}
     ];
-
-    var QUESTIONS = [
-      {
-        id: "grid",
-        prompt: "有限方向网格的最大值与算子范数？",
-        options: [
-          { id: "lower", label: "不超过，但不一定相等" },
-          { id: "equal", label: "必然相等" },
-          { id: "upper", label: "可以超过" }
-        ],
-        answer: "lower"
-      },
-      {
-        id: "scale",
-        prompt: "sqrt(m)+sqrt(n) 应该怎样读？",
-        options: [
-          { id: "high-probability", label: "iid 次高斯的高概率尺度" },
-          { id: "deterministic", label: "一次样本的确定上界" },
-          { id: "universal", label: "相关/重尾也无条件成立" }
-        ],
-        answer: "high-probability"
-      },
-      {
-        id: "objects",
-        prompt: "Wigner、矩形 iid、sample covariance 的谱结论？",
-        options: [
-          { id: "separate", label: "对象与归一化决定各自结论" },
-          { id: "mix", label: "半圆律、MP、范数可以互换" },
-          { id: "sample", label: "一次样本即可证明渐近定理" }
-        ],
-        answer: "separate"
-      }
-    ];
-
-    var STYLE_TEXT = [
-      ".rmn-lab{--rmn-blue:var(--cl-blue,#315f9d);--rmn-gold:var(--cl-gold,#9b6a12);--rmn-green:var(--cl-green,#39734d);--rmn-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere;}",
-      ".rmn-lab *,.rmn-lab *::before,.rmn-lab *::after{box-sizing:border-box}.rmn-lab [hidden]{display:none!important}.rmn-lab h3,.rmn-lab h4{margin:0;color:var(--fg);letter-spacing:0}.rmn-lab h3{font-size:1.16rem}.rmn-lab h4{font-size:1rem}",
-      ".rmn-lab .rmn-note,.rmn-lab .rmn-feedback,.rmn-lab .rmn-detail{color:var(--fg-soft);font-size:13px;line-height:1.7}.rmn-lab .rmn-note{margin:8px 0}.rmn-lab .rmn-feedback{min-height:2em;margin:9px 0 0;font-weight:700}.rmn-lab .rmn-pass{color:var(--rmn-green)}.rmn-lab .rmn-warn{color:var(--rmn-red)}",
-      ".rmn-lab button,.rmn-lab input{font:inherit}.rmn-lab button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.rmn-lab button:hover{border-color:var(--accent)}.rmn-lab button:focus-visible,.rmn-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.rmn-lab button[aria-pressed=true],.rmn-lab button.rmn-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750}.rmn-lab button:disabled{cursor:not-allowed;opacity:.55}",
-      ".rmn-lab .rmn-preset-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:10px 0}.rmn-lab .rmn-preset-grid button{font-size:12px}.rmn-lab .rmn-control-row{display:grid;grid-template-columns:minmax(180px,.8fr) minmax(0,1.2fr);gap:10px;align-items:center;margin:11px 0;padding:10px 12px;border:1px solid var(--border);background:var(--bg)}.rmn-lab .rmn-control-row label{color:var(--fg-soft);font-size:13px;font-weight:700}.rmn-lab .rmn-control-row output{color:var(--accent);font-variant-numeric:tabular-nums}.rmn-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent)}",
-      ".rmn-lab .rmn-prediction{margin-top:13px;padding:12px 14px;border-left:3px solid var(--rmn-gold);background:var(--bg)}.rmn-lab fieldset{min-width:0;margin:0 0 12px;padding:0;border:0}.rmn-lab legend{max-width:100%;margin-bottom:8px;color:var(--fg);font-size:13px;font-weight:750;line-height:1.55}.rmn-lab .rmn-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.rmn-lab .rmn-choice-grid button{font-size:12px}.rmn-lab .rmn-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.rmn-lab .rmn-actions>*{flex:1 1 170px}",
-      ".rmn-lab .rmn-results{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}.rmn-lab .rmn-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;margin:12px 0}.rmn-lab .rmn-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg)}.rmn-lab .rmn-metric:nth-child(4n+1){border-top-color:var(--rmn-blue)}.rmn-lab .rmn-metric:nth-child(4n+2){border-top-color:var(--rmn-gold)}.rmn-lab .rmn-metric:nth-child(4n+3){border-top-color:var(--rmn-green)}.rmn-lab .rmn-metric:nth-child(4n){border-top-color:var(--rmn-red)}.rmn-lab .rmn-metric span{display:block;color:var(--fg-soft);font-size:11.5px;line-height:1.4}.rmn-lab .rmn-metric strong{display:block;margin-top:3px;color:var(--fg);font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-      ".rmn-lab .rmn-status{margin:10px 0;padding:10px 12px;border-left:3px solid var(--rmn-green);background:var(--bg);font-size:13px;line-height:1.7}.rmn-lab .rmn-status.rmn-boundary{border-left-color:var(--rmn-red)}.rmn-lab .rmn-status.rmn-caution{border-left-color:var(--rmn-gold)}.rmn-lab .rmn-chart-frame{min-width:0;margin-top:12px;padding:7px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow:hidden}.rmn-lab svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg)}.rmn-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.rmn-lab .rmn-grid{stroke:currentColor;stroke-opacity:.16;stroke-width:1}.rmn-lab .rmn-axis{stroke:currentColor;stroke-opacity:.65;stroke-width:1.2}.rmn-lab .rmn-point-line{fill:none;stroke:var(--rmn-blue);stroke-width:2}.rmn-lab .rmn-point{fill:var(--rmn-blue);stroke:var(--bg);stroke-width:1.2}.rmn-lab .rmn-exact-line{stroke:var(--rmn-red);stroke-width:2;stroke-dasharray:7 4}.rmn-lab .rmn-grid-line{stroke:var(--rmn-gold);stroke-width:1.7;stroke-dasharray:3 4}.rmn-lab .rmn-bar-exact{fill:var(--rmn-red)}.rmn-lab .rmn-bar-power{fill:var(--rmn-blue)}.rmn-lab .rmn-bar-scale{fill:var(--rmn-gold)}.rmn-lab .rmn-chart-title{font-size:13px;font-weight:750}.rmn-lab .rmn-chart-label{font-size:10.5px}.rmn-lab .rmn-chart-note{fill:var(--fg-soft);font-size:10px}",
-      ".rmn-lab .rmn-matrix-section{margin-top:14px}.rmn-lab .rmn-matrix-scroll{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);background:var(--bg)}.rmn-lab table{border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.rmn-lab th,.rmn-lab td{padding:6px 8px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}.rmn-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750}.rmn-lab td:first-child,.rmn-lab th:first-child{text-align:left}.rmn-lab .rmn-detail{margin:10px 0;padding:9px 11px;border-left:3px solid var(--rmn-blue);background:var(--bg)}.rmn-lab .rmn-detail.rmn-boundary{border-left-color:var(--rmn-red)}.rmn-lab .rmn-detail strong{color:var(--fg)}",
-      "@media(max-width:760px){.rmn-lab .rmn-preset-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.rmn-lab .rmn-choice-grid{grid-template-columns:minmax(0,1fr)}.rmn-lab .rmn-control-row{grid-template-columns:minmax(0,1fr);gap:4px}}@media(max-width:420px){.rmn-lab .rmn-preset-grid{grid-template-columns:minmax(0,1fr)}.rmn-lab .rmn-prediction{padding:10px}.rmn-lab .rmn-chart-frame{padding:4px}.rmn-lab table{font-size:11.5px}.rmn-lab th,.rmn-lab td{padding-left:5px;padding-right:5px}}@media(prefers-reduced-motion:reduce){.rmn-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
-    ].join("\n");
-
-    function finite(value) {
-      return typeof value === "number" && isFinite(value);
-    }
-
-    function near(left, right, tolerance) {
-      return Math.abs(left - right) <= tolerance * Math.max(1, Math.abs(left), Math.abs(right));
-    }
-
-    function clampInteger(value, minimum, maximum, fallback) {
-      var parsed = Number(value);
-      if (!finite(parsed)) parsed = fallback;
-      return Math.max(minimum, Math.min(maximum, Math.round(parsed)));
-    }
-
-    function copyMatrix(matrix) {
-      return matrix.map(function (row) { return row.slice(); });
-    }
-
-    function zeroMatrix(rows, columns) {
-      var matrix = [];
-      for (var row = 0; row < rows; row += 1) {
-        matrix.push(Array.apply(null, Array(columns)).map(function () { return 0; }));
-      }
-      return matrix;
-    }
-
-    function dot(left, right) {
-      var total = 0;
-      for (var index = 0; index < left.length; index += 1) total += left[index] * right[index];
-      return total;
-    }
-
-    function norm(vector) {
-      return Math.sqrt(Math.max(0, dot(vector, vector)));
-    }
-
-    function normalizeVector(vector) {
-      var length = norm(vector);
-      if (!(length > 0)) return vector.map(function () { return 0; });
-      return vector.map(function (value) { return value / length; });
-    }
-
-    function matrixVector(matrix, vector) {
-      return matrix.map(function (row) { return dot(row, vector); });
-    }
-
-    function transposeGram(matrix) {
-      var rows = matrix.length;
-      var columns = rows ? matrix[0].length : 0;
-      var gram = zeroMatrix(columns, columns);
-      for (var row = 0; row < rows; row += 1) {
-        for (var left = 0; left < columns; left += 1) {
-          for (var right = left; right < columns; right += 1) {
-            gram[left][right] += matrix[row][left] * matrix[row][right];
-          }
-        }
-      }
-      for (var i = 0; i < columns; i += 1) {
-        for (var j = i + 1; j < columns; j += 1) gram[j][i] = gram[i][j];
-      }
-      return gram;
-    }
-
-    function createRng(seed) {
-      var state = (Number(seed) >>> 0) || 0x6d2b79f5;
-      var spare = null;
-      return {
-        next: function () {
-          state = (Math.imul(1664525, state) + 1013904223) >>> 0;
-          return state / 4294967296;
-        },
-        normal: function () {
-          if (spare !== null) {
-            var saved = spare;
-            spare = null;
-            return saved;
-          }
-          var first = Math.max(this.next(), 1e-12);
-          var second = this.next();
-          var radius = Math.sqrt(-2 * Math.log(first));
-          spare = radius * Math.sin(2 * Math.PI * second);
-          return radius * Math.cos(2 * Math.PI * second);
-        }
-      };
-    }
-
-    function drawValue(rng, distribution) {
-      if (distribution === "rademacher") return rng.next() < 0.5 ? -1 : 1;
-      if (distribution === "heavy-tail") {
-        var uniform = Math.max(rng.next(), 1e-12);
-        var magnitude = Math.pow(1 - uniform, -1 / 1.5);
-        return (rng.next() < 0.5 ? -1 : 1) * 0.75 * magnitude;
-      }
-      return rng.normal();
-    }
-
-    function presetById(id) {
-      for (var index = 0; index < PRESETS.length; index += 1) {
-        if (PRESETS[index].id === id) return PRESETS[index];
-      }
-      return PRESETS[0];
-    }
-
-    function normalizeSpec(input) {
-      var raw = input || {};
-      var preset = presetById(raw.presetId || raw.id || "gaussian");
-      var object = raw.object || preset.object;
-      var distribution = raw.distribution || preset.distribution;
-      if (["rectangular", "wigner", "covariance", "correlated"].indexOf(object) < 0) object = preset.object;
-      if (["gaussian", "rademacher", "heavy-tail"].indexOf(distribution) < 0) distribution = preset.distribution;
-      if (object === "heavy-tail") distribution = "heavy-tail";
-      var m = clampInteger(raw.m === undefined ? preset.m : raw.m, 2, MAX_DIM, preset.m);
-      var n = clampInteger(raw.n === undefined ? preset.n : raw.n, 2, MAX_DIM, preset.n);
-      if (object === "wigner") m = n;
-      var rawSeed = raw.seed === undefined ? preset.seed : Number(raw.seed);
-      var seed = finite(rawSeed) ? rawSeed >>> 0 : preset.seed;
-      return {
-        presetId: preset.id,
-        object: object,
-        distribution: distribution,
-        m: m,
-        n: n,
-        seed: seed,
-        iterations: clampInteger(
-          raw.iterations === undefined ? preset.iterations : raw.iterations,
-          4,
-          32,
-          DEFAULT_ITERATIONS
-        )
-      };
-    }
-
-    function generateMatrix(spec) {
-      var rng = createRng(spec.seed);
-      var row;
-      var column;
-      var matrix;
-      var source;
-
-      if (spec.object === "wigner") {
-        matrix = zeroMatrix(spec.n, spec.n);
-        var wignerScale = 1 / Math.sqrt(spec.n);
-        for (row = 0; row < spec.n; row += 1) {
-          for (column = row; column < spec.n; column += 1) {
-            var wignerValue = drawValue(rng, spec.distribution) * wignerScale;
-            matrix[row][column] = wignerValue;
-            matrix[column][row] = wignerValue;
-          }
-        }
-        return { matrix: matrix, source: matrix };
-      }
-
-      if (spec.object === "covariance") {
-        source = zeroMatrix(spec.m, spec.n);
-        for (row = 0; row < spec.m; row += 1) {
-          for (column = 0; column < spec.n; column += 1) {
-            source[row][column] = drawValue(rng, spec.distribution);
-          }
-        }
-        matrix = transposeGram(source).map(function (gramRow) {
-          return gramRow.map(function (value) { return value / spec.m; });
-        });
-        return { matrix: matrix, source: source };
-      }
-
-      matrix = zeroMatrix(spec.m, spec.n);
-      if (spec.object === "correlated") {
-        var common = [];
-        for (row = 0; row < spec.m; row += 1) common.push(1 + 0.15 * rng.normal());
-        for (row = 0; row < spec.m; row += 1) {
-          for (column = 0; column < spec.n; column += 1) {
-            matrix[row][column] = common[row] + 0.12 * rng.normal();
-          }
-        }
-      } else {
-        for (row = 0; row < spec.m; row += 1) {
-          for (column = 0; column < spec.n; column += 1) {
-            matrix[row][column] = drawValue(rng, spec.distribution);
-          }
-        }
-      }
-      return { matrix: matrix, source: matrix };
-    }
-
-    /* Jacobi is deliberately limited to the small symmetric matrices made here. */
-    function smallSymmetricEigenvalues(input) {
-      var matrix = copyMatrix(input);
-      var size = matrix.length;
-      var limit = Math.max(12, 12 * size * size);
-      for (var sweep = 0; sweep < limit; sweep += 1) {
-        var p = 0;
-        var q = 0;
-        var largest = 0;
-        for (var row = 0; row < size; row += 1) {
-          for (var column = row + 1; column < size; column += 1) {
-            if (Math.abs(matrix[row][column]) > largest) {
-              largest = Math.abs(matrix[row][column]);
-              p = row;
-              q = column;
-            }
-          }
-        }
-        if (largest < 1e-13) break;
-        var app = matrix[p][p];
-        var aqq = matrix[q][q];
-        var apq = matrix[p][q];
-        var tau = (aqq - app) / (2 * apq);
-        var t = tau === 0 ? 1 : (tau < 0 ? -1 : 1) / (Math.abs(tau) + Math.sqrt(1 + tau * tau));
-        var cosine = 1 / Math.sqrt(1 + t * t);
-        var sine = t * cosine;
-        for (var index = 0; index < size; index += 1) {
-          if (index === p || index === q) continue;
-          var indexP = matrix[index][p];
-          var indexQ = matrix[index][q];
-          matrix[index][p] = cosine * indexP - sine * indexQ;
-          matrix[p][index] = matrix[index][p];
-          matrix[index][q] = sine * indexP + cosine * indexQ;
-          matrix[q][index] = matrix[index][q];
-        }
-        matrix[p][p] = app - t * apq;
-        matrix[q][q] = aqq + t * apq;
-        matrix[p][q] = 0;
-        matrix[q][p] = 0;
-      }
-      var eigenvalues = matrix.map(function (row, index) { return row[index]; });
-      eigenvalues.sort(function (left, right) { return right - left; });
-      return eigenvalues;
-    }
-
-    function powerIteration(target, iterations) {
-      var size = target.length;
-      var vector = normalizeVector(Array.apply(null, Array(size)).map(function (_, index) {
-        return 1 + index / size;
-      }));
-      var step;
-      for (step = 0; step < iterations; step += 1) {
-        vector = normalizeVector(matrixVector(target, vector));
-      }
-      var image = matrixVector(target, vector);
-      return {
-        iterations: iterations,
-        vector: vector,
-        rayleigh: dot(vector, image)
-      };
-    }
-
-    function directionGrid(size) {
-      var directions = [];
-      for (var axis = 0; axis < size; axis += 1) {
-        var coordinate = Array.apply(null, Array(size)).map(function () { return 0; });
-        coordinate[axis] = 1;
-        directions.push(coordinate);
-      }
-      for (var left = 0; left < size; left += 1) {
-        for (var right = left + 1; right < size; right += 1) {
-          for (var step = 0; step < ANGLE_STEPS; step += 1) {
-            var angle = (2 * Math.PI * step) / ANGLE_STEPS;
-            var direction = Array.apply(null, Array(size)).map(function () { return 0; });
-            direction[left] = Math.cos(angle);
-            direction[right] = Math.sin(angle);
-            directions.push(direction);
-          }
-        }
-      }
-      return directions;
-    }
-
-    function referenceScale(spec) {
-      if (spec.object === "wigner") {
-        return {
-          value: 2,
-          label: "Wigner edge ~ 2",
-          valid: spec.distribution !== "heavy-tail",
-          note: "Wigner uses symmetric 1/sqrt(n) normalization; the semicircle edge is the comparison."
-        };
-      }
-      if (spec.object === "covariance") {
-        return {
-          value: Math.pow(1 + Math.sqrt(spec.n / spec.m), 2),
-          label: "MP upper edge",
-          valid: spec.distribution !== "heavy-tail",
-          note: "For S = X^T X / m, MP's upper edge is (1 + sqrt(n/m))^2 in the iid regime."
-        };
-      }
-      return {
-        value: Math.sqrt(spec.m) + Math.sqrt(spec.n),
-        label: spec.object === "correlated" ? "iid reference sqrt(m)+sqrt(n)" : "sqrt(m)+sqrt(n)",
-        valid: spec.object !== "correlated" && spec.distribution !== "heavy-tail",
-        note: "This is an iid subgaussian high-probability scale, not a deterministic bound for one sample."
-      };
-    }
-
-    function distributionLabel(distribution) {
-      if (distribution === "rademacher") return "Rademacher ±1";
-      if (distribution === "heavy-tail") return "symmetric Pareto-like";
-      return "Gaussian N(0,1)";
-    }
-
-    function objectLabel(object) {
-      if (object === "wigner") return "Wigner 对称阵";
-      if (object === "covariance") return "sample covariance S=XᵀX/m";
-      if (object === "correlated") return "相关/低秩矩形阵";
-      return "矩形 iid A";
-    }
-
-    function evaluate(input) {
-      var spec = normalizeSpec(input);
-      var generated = generateMatrix(spec);
-      var matrix = generated.matrix;
-      var target;
-      var targetLabel;
-      var operatorApply;
-      var operatorNorm;
-      var eigenvalues;
-      var wignerEigenvalues = null;
-
-      if (spec.object === "covariance") {
-        target = matrix;
-        targetLabel = "S";
-        operatorApply = function (vector) { return matrixVector(matrix, vector); };
-        eigenvalues = smallSymmetricEigenvalues(target);
-        operatorNorm = Math.max(0, eigenvalues[0]);
-      } else {
-        target = transposeGram(matrix);
-        targetLabel = "A^T A";
-        operatorApply = function (vector) { return matrixVector(matrix, vector); };
-        eigenvalues = smallSymmetricEigenvalues(target);
-        operatorNorm = Math.sqrt(Math.max(0, eigenvalues[0]));
-        if (spec.object === "wigner") wignerEigenvalues = smallSymmetricEigenvalues(matrix);
-      }
-
-      var directions = directionGrid(spec.n);
-      var gridValues = directions.map(function (direction, index) {
-        return {
-          index: index,
-          value: norm(operatorApply(direction))
-        };
-      });
-      var rawGridMax = gridValues.reduce(function (maximum, item) {
-        return Math.max(maximum, item.value);
-      }, 0);
-      var gridMax = rawGridMax;
-      var power = powerIteration(target, spec.iterations);
-      var powerNorm = spec.object === "covariance"
-        ? Math.max(0, power.rayleigh)
-        : Math.sqrt(Math.max(0, power.rayleigh));
-      var scale = referenceScale(spec);
-      var singularValues = eigenvalues.map(function (value) {
-        return spec.object === "covariance" ? Math.max(0, value) : Math.sqrt(Math.max(0, value));
-      });
-      var rankThreshold = Math.max(1e-10, operatorNorm * 1e-8);
-      var numericalRank = singularValues.filter(function (value) { return value > rankThreshold; }).length;
-      var sourceNorm = null;
-      if (spec.object === "covariance") {
-        var sourceEigenvalues = smallSymmetricEigenvalues(transposeGram(generated.source));
-        sourceNorm = Math.sqrt(Math.max(0, sourceEigenvalues[0]));
-      }
-
-      return {
-        spec: spec,
-        presetId: spec.presetId,
-        object: spec.object,
-        objectLabel: objectLabel(spec.object),
-        distribution: spec.distribution,
-        distributionLabel: distributionLabel(spec.distribution),
-        m: spec.m,
-        n: spec.n,
-        seed: spec.seed,
-        matrix: copyMatrix(matrix),
-        source: generated.source ? copyMatrix(generated.source) : null,
-        targetLabel: targetLabel,
-        exactMethod: spec.object === "covariance" ? "eigenvalues of S" : "sqrt(lambda_max(A^T A))",
-        eigenvalues: eigenvalues,
-        singularValues: singularValues,
-        operatorNorm: operatorNorm,
-        powerNorm: powerNorm,
-        powerRayleigh: power.rayleigh,
-        powerIterations: power.iterations,
-        powerVector: power.vector,
-        gridValues: gridValues,
-        gridCount: directions.length,
-        gridMaxRaw: rawGridMax,
-        gridMax: gridMax,
-        gridGap: Math.max(0, operatorNorm - gridMax),
-        referenceScale: scale.value,
-        referenceScaleLabel: scale.label,
-        referenceScaleValid: scale.valid,
-        referenceScaleNote: scale.note,
-        numericalRank: numericalRank,
-        sourceNorm: sourceNorm,
-        covarianceIdentity: sourceNorm === null ? null : sourceNorm * sourceNorm / spec.m,
-        wignerEigenvalues: wignerEigenvalues,
-        wignerEigenEdge: wignerEigenvalues === null
-          ? null
-          : wignerEigenvalues.reduce(function (maximum, value) { return Math.max(maximum, Math.abs(value)); }, 0)
-      };
-    }
-
-    function format(value, digits) {
-      if (value === Infinity) return "∞";
-      if (value === -Infinity) return "-∞";
-      if (!finite(value)) return "—";
-      if (Math.abs(value) < 0.0005) return "0";
-      var places = digits === undefined ? 3 : digits;
-      if (Math.abs(value) >= 10000 || Math.abs(value) < 0.001) return value.toExponential(Math.min(places, 4));
-      var text = value.toFixed(places);
-      return text.replace(/0+$/, "").replace(/\.$/, "");
-    }
-
-    function setAttributes(node, attrs) {
-      Object.keys(attrs || {}).forEach(function (key) {
-        var value = attrs[key];
-        if (value === undefined || value === null || value === false) return;
-        if (key === "className") node.setAttribute("class", String(value));
-        else if (key === "text") node.textContent = String(value);
-        else if (value === true) node.setAttribute(key, "");
-        else node.setAttribute(key, String(value));
-      });
-      return node;
-    }
-
-    function appendChildren(node, children) {
-      if (children === undefined || children === null) return node;
-      var list = Array.isArray(children) ? children : [children];
-      list.forEach(function (child) {
-        if (child === undefined || child === null || child === false) return;
-        node.appendChild(child && child.nodeType ? child : node.ownerDocument.createTextNode(String(child)));
-      });
-      return node;
-    }
-
-    function element(doc, tag, className, children) {
-      return appendChildren(setAttributes(doc.createElement(tag), { className: className }), children);
-    }
-
-    function svgNode(doc, tag, attrs, children) {
-      return appendChildren(setAttributes(doc.createElementNS(SVG_NS, tag), attrs), children);
-    }
-
-    function clear(node) {
-      while (node && node.firstChild) node.removeChild(node.firstChild);
-    }
-
-    function replace(node, children) {
-      clear(node);
-      appendChildren(node, children);
-    }
-
-    function installStyles(doc) {
-      if (!doc || !doc.getElementById || doc.getElementById(STYLE_ID)) return;
-      var style = doc.createElement("style");
-      style.id = STYLE_ID;
-      style.textContent = STYLE_TEXT;
-      (doc.head || doc.documentElement || doc.body).appendChild(style);
-    }
-
-    function metric(doc, label, value) {
-      return element(doc, "div", "rmn-metric", [
-        element(doc, "span", "", label),
-        element(doc, "strong", "", value)
-      ]);
-    }
-
-    function chartText(doc, x, y, text, className, attrs) {
-      var all = attrs || {};
-      all.x = x;
-      all.y = y;
-      all.className = className || "rmn-chart-label";
-      return svgNode(doc, "text", all, text);
-    }
-
-    function chartPath(points, xScale, yScale) {
-      return points.map(function (point, index) {
-        return (index === 0 ? "M" : "L") + xScale(point.index).toFixed(2) + " " + yScale(point.value).toFixed(2);
-      }).join(" ");
-    }
-
-    function drawChart(doc, result) {
-      var svg = svgNode(doc, "svg", {
-        viewBox: "0 0 760 390",
-        role: "img",
-        "aria-label": "Finite direction grid and operator norm comparison"
-      });
-      svg.appendChild(svgNode(doc, "title", {}, "Operator norm ledger"));
-      svg.appendChild(svgNode(doc, "desc", {}, "A finite direction grid is compared with the exact small-matrix operator norm and a power iteration estimate."));
-
-      var left = { x: 22, y: 18, width: 350, height: 345 };
-      var right = { x: 388, y: 18, width: 350, height: 345 };
-      [left, right].forEach(function (panel) {
-        svg.appendChild(svgNode(doc, "rect", {
-          x: panel.x,
-          y: panel.y,
-          width: panel.width,
-          height: panel.height,
-          fill: "var(--bg)",
-          stroke: "var(--border)",
-          "stroke-width": 1
-        }));
-      });
-
-      var plotLeft = left.x + 45;
-      var plotRight = left.x + left.width - 16;
-      var plotTop = left.y + 48;
-      var plotBottom = left.y + left.height - 44;
-      var maximum = Math.max(result.operatorNorm, result.referenceScale, result.powerNorm, 1e-9) * 1.12;
-      var yScale = function (value) { return plotBottom - (value / maximum) * (plotBottom - plotTop); };
-      var xScale = function (index) {
-        return plotLeft + (index / Math.max(1, result.gridValues.length - 1)) * (plotRight - plotLeft);
-      };
-      for (var tick = 0; tick <= 4; tick += 1) {
-        var y = plotBottom - (tick / 4) * (plotBottom - plotTop);
-        svg.appendChild(svgNode(doc, "line", { x1: plotLeft, y1: y, x2: plotRight, y2: y, className: "rmn-grid" }));
-        svg.appendChild(chartText(doc, plotLeft - 7, y + 4, format((tick / 4) * maximum, 2), "rmn-chart-label", { "text-anchor": "end" }));
-      }
-      svg.appendChild(svgNode(doc, "line", { x1: plotLeft, y1: plotTop, x2: plotLeft, y2: plotBottom, className: "rmn-axis" }));
-      svg.appendChild(svgNode(doc, "line", { x1: plotLeft, y1: plotBottom, x2: plotRight, y2: plotBottom, className: "rmn-axis" }));
-      svg.appendChild(svgNode(doc, "path", { d: chartPath(result.gridValues, xScale, yScale), className: "rmn-point-line" }));
-      result.gridValues.forEach(function (point) {
-        svg.appendChild(svgNode(doc, "circle", { cx: xScale(point.index), cy: yScale(point.value), r: 2.5, className: "rmn-point" }));
-      });
-      svg.appendChild(svgNode(doc, "line", { x1: plotLeft, y1: yScale(result.operatorNorm), x2: plotRight, y2: yScale(result.operatorNorm), className: "rmn-exact-line" }));
-      svg.appendChild(svgNode(doc, "line", { x1: plotLeft, y1: yScale(result.gridMax), x2: plotRight, y2: yScale(result.gridMax), className: "rmn-grid-line" }));
-      svg.appendChild(chartText(doc, left.x + 12, left.y + 25, "Finite direction grid", "rmn-chart-title"));
-      svg.appendChild(chartText(doc, left.x + left.width - 12, left.y + 25, "grid is not the sphere supremum", "rmn-chart-note", { "text-anchor": "end" }));
-      svg.appendChild(chartText(doc, (plotLeft + plotRight) / 2, left.y + left.height - 12, "direction index", "rmn-chart-label", { "text-anchor": "middle" }));
-      svg.appendChild(chartText(doc, left.x + 13, plotTop - 7, "||Av||_2", "rmn-chart-label"));
-      svg.appendChild(chartText(doc, plotRight - 2, yScale(result.operatorNorm) - 6, "operator norm", "rmn-chart-label", { "text-anchor": "end" }));
-      svg.appendChild(chartText(doc, plotRight - 2, yScale(result.gridMax) + 13, "grid max", "rmn-chart-label", { "text-anchor": "end" }));
-
-      var barLeft = right.x + 54;
-      var barRight = right.x + right.width - 16;
-      var barTop = right.y + 62;
-      var barBottom = right.y + right.height - 51;
-      var values = [
-        { label: "operator norm", value: result.operatorNorm, className: "rmn-bar-exact" },
-        { label: "power", value: result.powerNorm, className: "rmn-bar-power" },
-        { label: "reference scale", value: result.referenceScale, className: "rmn-bar-scale" }
-      ];
-      var barMaximum = Math.max(result.operatorNorm, result.powerNorm, result.referenceScale, 1e-9) * 1.12;
-      var barY = function (value) { return barBottom - (value / barMaximum) * (barBottom - barTop); };
-      for (var barTick = 0; barTick <= 4; barTick += 1) {
-        var barLineY = barBottom - (barTick / 4) * (barBottom - barTop);
-        svg.appendChild(svgNode(doc, "line", { x1: barLeft, y1: barLineY, x2: barRight, y2: barLineY, className: "rmn-grid" }));
-        svg.appendChild(chartText(doc, barLeft - 7, barLineY + 4, format((barTick / 4) * barMaximum, 2), "rmn-chart-label", { "text-anchor": "end" }));
-      }
-      svg.appendChild(svgNode(doc, "line", { x1: barLeft, y1: barTop, x2: barLeft, y2: barBottom, className: "rmn-axis" }));
-      svg.appendChild(svgNode(doc, "line", { x1: barLeft, y1: barBottom, x2: barRight, y2: barBottom, className: "rmn-axis" }));
-      values.forEach(function (item, index) {
-        var center = barLeft + 45 + index * 82;
-        var barWidth = 44;
-        svg.appendChild(svgNode(doc, "rect", {
-          x: center - barWidth / 2,
-          y: barY(item.value),
-          width: barWidth,
-          height: Math.max(0, barBottom - barY(item.value)),
-          className: item.className
-        }));
-        svg.appendChild(chartText(doc, center, barBottom + 17, item.label, "rmn-chart-label", { "text-anchor": "middle" }));
-        svg.appendChild(chartText(doc, center, barY(item.value) - 6, format(item.value, 2), "rmn-chart-label", { "text-anchor": "middle" }));
-      });
-      svg.appendChild(chartText(doc, right.x + 12, right.y + 25, "Scale check", "rmn-chart-title"));
-      svg.appendChild(chartText(doc, right.x + right.width - 12, right.y + 25, result.referenceScaleLabel, "rmn-chart-note", { "text-anchor": "end" }));
-      svg.appendChild(chartText(doc, right.x + 15, barTop - 8, "value", "rmn-chart-label"));
-      return svg;
-    }
-
-    function matrixTable(doc, result) {
-      var matrix = result.matrix;
-      var table = element(doc, "table", "", []);
-      var head = element(doc, "tr", "", [element(doc, "th", "", "")]);
-      for (var column = 0; column < matrix[0].length; column += 1) {
-        head.appendChild(element(doc, "th", "", "j" + (column + 1)));
-      }
-      table.appendChild(element(doc, "thead", "", [head]));
-      var body = element(doc, "tbody", "", []);
-      matrix.forEach(function (row, rowIndex) {
-        var tr = element(doc, "tr", "", [element(doc, "th", "", "i" + (rowIndex + 1))]);
-        row.forEach(function (value) {
-          tr.appendChild(element(doc, "td", "", format(value, 2)));
-        });
-        body.appendChild(tr);
-      });
-      table.appendChild(body);
-      return table;
-    }
-
-    function scaleStatus(result) {
-      if (result.referenceScaleValid) {
-        return "当前参考量是适用模型下的典型尺度；它是高概率/渐近语言，不是一次样本的确定上界。";
-      }
-      if (result.object === "correlated") {
-        return "这里只把 sqrt(m)+sqrt(n) 留作 iid 对照；相关的低秩成分可能产生 sqrt(mn) 级主方向，所以不能引用 iid 结论。";
-      }
-      return "重尾预设只作失败边界诊断；Pareto-like 条目不满足本页的亚高斯假设，极端条目可能支配算子范数。";
-    }
-
-    function renderResults(doc, results, result) {
-      replace(results, []);
-      var exact = format(result.operatorNorm, 5);
-      var power = format(result.powerNorm, 5);
-      var grid = format(result.gridMax, 5);
-      var powerError = format(Math.abs(result.powerNorm - result.operatorNorm), 4);
-      results.appendChild(element(doc, "div", "rmn-metrics", [
-        metric(doc, "对象", result.objectLabel),
-        metric(doc, "固定 seed", String(result.seed)),
-        metric(doc, "精确/双精度", exact),
-        metric(doc, "power iteration", power),
-        metric(doc, "有限网格 max", grid),
-        metric(doc, "精确 - 网格", format(result.gridGap, 5)),
-        metric(doc, "power 误差", powerError),
-        metric(doc, "参考尺度", format(result.referenceScale, 4))
-      ]));
-
-      var statusClass = result.referenceScaleValid ? "rmn-status rmn-caution" : "rmn-status rmn-boundary";
-      results.appendChild(element(doc, "p", statusClass, [
-        "矩阵 " + result.m + "×" + result.n + "，条目/对象：" + result.distributionLabel + "；精确栏用 " + result.exactMethod + "。",
-        " 网格 max = " + grid + " ≤ 算子范数 = " + exact + "；这是有限方向下界，不是单位球上确界。"
-      ]));
-      results.appendChild(element(doc, "div", "rmn-chart-frame", [drawChart(doc, result)]));
-
-      var matrixSection = element(doc, "section", "rmn-matrix-section", [
-        element(doc, "h4", "", "矩阵预览：" + (result.object === "covariance" ? "S = XᵀX/m" : result.object === "wigner" ? "W" : "A")),
-        element(doc, "p", "rmn-note", result.object === "covariance"
-          ? "表中显示的是样本协方差 S；底层 X 使用同一个固定 seed 生成。"
-          : "表中显示的是实验实际取算子范数的矩阵；每次选择同一预设都会复现同一数值。"),
-        element(doc, "div", "rmn-matrix-scroll", [matrixTable(doc, result)])
-      ]);
-      results.appendChild(matrixSection);
-
-      var objectDetail;
-      if (result.object === "wigner") {
-        objectDetail = "Wigner 的双精度特征值范围约为 [" + format(result.wignerEigenvalues[result.wignerEigenvalues.length - 1], 3) + ", " + format(result.wignerEigenvalues[0], 3) + "]；这里的半圆律参照只属于对称、1/sqrt(n) 归一化对象，不是 MP。";
-      } else if (result.object === "covariance") {
-        objectDetail = "sample covariance 使用 S = XᵀX/m；本次还可核对 ||S|| = ||X||²/m = " + format(result.covarianceIdentity, 5) + "。MP 上边缘只是 iid 大维度参照。";
-      } else {
-        objectDetail = "矩形对象的 finite grid 在 S^(n−1) 中只取坐标轴与坐标二维平面的有限角度；它没有覆盖整个单位球，也没有自动提供 ε-网证书。";
-      }
-      results.appendChild(element(doc, "p", "rmn-detail", objectDetail));
-      results.appendChild(element(doc, "p", "rmn-detail " + (result.referenceScaleValid ? "" : "rmn-boundary"), scaleStatus(result)));
-    }
-
-    function mount(rootElement, api) {
-      if (!rootElement || !rootElement.ownerDocument) return;
-      var doc = rootElement.ownerDocument;
-      installStyles(doc);
-      var state = normalizeSpec(PRESETS[0]);
-      var predictions = {};
-      var revealed = false;
-      var shell = element(doc, "div", "rmn-lab", []);
-      shell.appendChild(element(doc, "p", "rmn-note", "先选预设并预测，再揭示小矩阵账本；所有预设的 PRNG、seed 和初始 power 向量都是固定的。"));
-
-      var presetGrid = element(doc, "div", "rmn-preset-grid", []);
-      var presetButtons = [];
-      PRESETS.forEach(function (preset) {
-        var button = element(doc, "button", "", preset.label);
-        button.type = "button";
-        button.addEventListener("click", function () {
-          state = normalizeSpec(preset);
-          predictions = {};
-          revealed = false;
-          render();
-        });
-        presetButtons.push({ id: preset.id, node: button });
-        presetGrid.appendChild(button);
-      });
-      shell.appendChild(presetGrid);
-
-      var controlRow = element(doc, "div", "rmn-control-row", []);
-      var controlLabel = element(doc, "label", "", ["power iteration 步数：", element(doc, "output", "", String(state.iterations))]);
-      var iterationRange = element(doc, "input", "", []);
-      iterationRange.type = "range";
-      iterationRange.min = "4";
-      iterationRange.max = "32";
-      iterationRange.step = "1";
-      iterationRange.setAttribute("aria-label", "power iteration steps");
-      iterationRange.addEventListener("input", function () {
-        state.iterations = clampInteger(iterationRange.value, 4, 32, DEFAULT_ITERATIONS);
-        predictions = {};
-        revealed = false;
-        render();
-      });
-      controlRow.appendChild(controlLabel);
-      controlRow.appendChild(iterationRange);
-      shell.appendChild(controlRow);
-
-      var predictionBox = element(doc, "div", "rmn-prediction", []);
-      var choiceButtons = {};
-      QUESTIONS.forEach(function (question) {
-        var fieldset = element(doc, "fieldset", "", []);
-        fieldset.appendChild(element(doc, "legend", "", question.prompt));
-        var choices = element(doc, "div", "rmn-choice-grid", []);
-        choiceButtons[question.id] = [];
-        question.options.forEach(function (option) {
-          var button = element(doc, "button", "", option.label);
-          button.type = "button";
-          button.addEventListener("click", function () {
-            predictions[question.id] = option.id;
-            revealed = false;
-            render();
-          });
-          choiceButtons[question.id].push({ id: option.id, node: button });
-          choices.appendChild(button);
-        });
-        fieldset.appendChild(choices);
-        predictionBox.appendChild(fieldset);
-      });
-      var actions = element(doc, "div", "rmn-actions", []);
-      var reveal = element(doc, "button", "rmn-primary", "揭示账本");
-      var reset = element(doc, "button", "", "重置预测");
-      reveal.type = "button";
-      reset.type = "button";
-      var feedback = element(doc, "p", "rmn-feedback", "每题先作一个预测。");
-      reveal.addEventListener("click", function () {
-        var missing = QUESTIONS.some(function (question) { return !predictions[question.id]; });
-        if (missing) {
-          feedback.textContent = "请先完成三个预测，再揭示账本。";
-          feedback.className = "rmn-feedback rmn-warn";
-          return;
-        }
-        revealed = true;
-        render();
-      });
-      reset.addEventListener("click", function () {
-        predictions = {};
-        revealed = false;
-        render();
-      });
-      actions.appendChild(reveal);
-      actions.appendChild(reset);
-      predictionBox.appendChild(actions);
-      predictionBox.appendChild(feedback);
-      shell.appendChild(predictionBox);
-
-      var results = element(doc, "div", "rmn-results", []);
-      results.hidden = true;
-      shell.appendChild(results);
-      replace(rootElement, [shell]);
-
-      function renderPrediction() {
-        QUESTIONS.forEach(function (question) {
-          choiceButtons[question.id].forEach(function (choice) {
-            choice.node.setAttribute("aria-pressed", predictions[question.id] === choice.id ? "true" : "false");
-          });
-        });
-      }
-
-      function render() {
-        iterationRange.value = String(state.iterations);
-        controlLabel.querySelector("output").textContent = String(state.iterations);
-        presetButtons.forEach(function (item) {
-          item.node.setAttribute("aria-pressed", item.id === state.presetId ? "true" : "false");
-        });
-        renderPrediction();
-        if (!revealed) {
-          results.hidden = true;
-          feedback.textContent = Object.keys(predictions).length
-            ? "预测已记录，点击“揭示账本”查看数值。"
-            : "每题先作一个预测。";
-          feedback.className = "rmn-feedback";
-          return;
-        }
-        var result = evaluate(state);
-        results.hidden = false;
-        var correct = QUESTIONS.every(function (question) { return predictions[question.id] === question.answer; });
-        feedback.textContent = correct
-          ? "预测命中。现在把一次固定样本与高概率/渐近语言分开读。"
-          : "预测已核对；请特别重读网格下界、iid 典型尺度和三类对象的归一化。";
-        feedback.className = "rmn-feedback " + (correct ? "rmn-pass" : "rmn-warn");
-        renderResults(doc, results, result);
-        if (api && typeof api.announce === "function") api.announce(rootElement, feedback.textContent);
-      }
-
-      render();
-    }
-
-    function assert(condition, message) {
-      if (!condition) throw new Error(message);
-    }
-
-    function selfTest() {
-      var checks = 0;
-      function check(condition, message) {
-        checks += 1;
-        assert(condition, message);
-      }
-
-      check(PRESETS.length === 6, "six named deterministic presets");
-      var gaussianFirst = evaluate(PRESETS[0]);
-      var gaussianSecond = evaluate(PRESETS[0]);
-      check(gaussianFirst.matrix[0][0] === gaussianSecond.matrix[0][0], "Gaussian seed is reproducible");
-      check(gaussianFirst.matrix[2][3] === gaussianSecond.matrix[2][3], "Gaussian matrix is reproducible");
-      check(gaussianFirst.operatorNorm > 0, "Gaussian operator norm is positive");
-      check(gaussianFirst.gridMaxRaw <= gaussianFirst.operatorNorm * (1 + 1e-10), "finite grid is a lower bound");
-      check(gaussianFirst.gridMax <= gaussianFirst.operatorNorm * (1 + 1e-10), "reported grid bound respects floating-point tolerance");
-      check(gaussianFirst.powerNorm <= gaussianFirst.operatorNorm * (1 + 1e-8), "power Rayleigh estimate respects PSD bound");
-
-      var rademacher = evaluate(PRESETS[1]);
-      check(rademacher.matrix.every(function (row) {
-        return row.every(function (value) { return value === -1 || value === 1; });
-      }), "Rademacher entries are signs");
-      check(rademacher.seed === 20260722, "Rademacher fixed seed");
-
-      var diagonal = smallSymmetricEigenvalues([[2, 1], [1, 2]]);
-      check(near(diagonal[0], 3, 1e-12) && near(diagonal[1], 1, 1e-12), "small Jacobi eigenvalue check");
-
-      var wigner = evaluate(PRESETS[2]);
-      check(wigner.wignerEigenvalues.length === 6, "Wigner eigenvalues are exposed separately");
-      check(near(wigner.operatorNorm, wigner.wignerEigenEdge, 1e-8), "symmetric Wigner eigenvalue and norm ledger agree");
-      check(wigner.referenceScaleLabel === "Wigner edge ~ 2", "Wigner scale is separate");
-
-      var covariance = evaluate(PRESETS[3]);
-      check(covariance.sourceNorm !== null, "sample covariance keeps source X");
-      check(near(covariance.operatorNorm, covariance.covarianceIdentity, 1e-10), "S=X^T X/m normalization identity");
-      check(covariance.referenceScaleLabel === "MP upper edge", "covariance scale is MP-specific");
-
-      var correlated = evaluate(PRESETS[4]);
-      var heavyTail = evaluate(PRESETS[5]);
-      check(!correlated.referenceScaleValid, "correlated preset is outside iid scale assumptions");
-      check(!heavyTail.referenceScaleValid, "heavy-tail preset is outside subgaussian assumptions");
-      [wigner, covariance, correlated, heavyTail].forEach(function (result) {
-        check(result.gridMaxRaw <= result.operatorNorm * (1 + 1e-9), result.presetId + " finite grid bound");
-        check(finite(result.powerNorm), result.presetId + " finite power estimate");
-      });
-      return { checks: checks, presets: PRESETS.length };
-    }
-
-    var exported = {
-      PRESETS: PRESETS,
-      QUESTIONS: QUESTIONS,
-      createRng: createRng,
-      directionGrid: directionGrid,
-      evaluate: evaluate,
-      smallSymmetricEigenvalues: smallSymmetricEigenvalues,
-      powerIteration: powerIteration,
-      selfTest: selfTest,
-      mount: mount
-    };
-
-    return exported;
+    const out=[mat("matrix","实际研究的矩阵 A（或二阶矩 S）",d.matrix)];
+    if(d.source)out.push(mat("source","原始数据 X；S=XᵀX/m，未扣样本均值",d.source));
+    out.push(mat("gram","AᵀA；二阶矩模式下这是 S²",d.gram));
+    out.push({key:"eigen",title:"Jacobi 数值特征对：二阶矩模式对 S，其他模式对 AᵀA",headers:["λ","q","Tq","‖Tq−λq‖"],rows:d.eigen.pairs.map(r=>[r.value,r.vector,r.image,r.residual])});
+    if(d.spectrum)out.push({key:"wigner",title:"Wigner 有符号特征值，区别于 AᵀA 的特征值",headers:["λ","q","Aq","残差"],rows:d.spectrum.pairs.map(r=>[r.value,r.vector,r.image,r.residual])});
+    out.push({key:"history",title:"幂迭代全过程（第 0 行为初始向量）",headers:["步","v","Tv","Rayleigh 商","残差","‖Av‖ 下界"],rows:d.history.map(r=>[r.iteration,r.vector,r.image,r.rayleigh,r.residual,r.estimate])});
+    out.push({key:"directions",title:"全部坐标平面方向扫描；包含重复方向，未证明高维覆盖",headers:["索引","u","Au","‖Au‖"],rows:d.directions.map(r=>[r.index,r.vector,r.image,r.value])});
+    return out;
   }
-);
+  function plots(d){
+    if(d.config.mode==="net")return [
+      {title:"单位圆上的网点：最大角距离 π/N，最大弦长 ε",x:"u₁",y:"u₂",xmin:-1.2,xmax:1.2,ymin:-1.2,ymax:1.2,equal:true,series:[
+        {key:"circle",color:"#687d8c",points:d.curve.map(r=>r.vector),line:true},
+        {key:"net",color:"#bf691e",points:d.directions.map(r=>r.vector),line:false},
+        {key:"singular",color:"#8e53a3",points:[[0,0],trig(d.config.angle)],line:true},
+        {key:"covering-chord",color:"#c54040",points:[[1,0],trig(180/d.config.count)],line:true}
+      ]},
+      {title:"有限方向读数与解析最大值",x:"方向角（度）",y:"‖Au‖",xmin:0,xmax:360,ymin:0,ymax:d.sharp*1.13,series:[
+        {key:"response",color:"#327ab5",points:d.curve.map(r=>[r.angle,r.value]),line:true},
+        {key:"samples",color:"#bf691e",points:d.directions.map(r=>[r.angle,r.value]),line:false},
+        {key:"norm",color:"#8e53a3",points:[[0,d.exactNorm],[360,d.exactNorm]],line:true},
+        {key:"upper",color:"#34815e",points:[[0,d.sharp],[360,d.sharp]],line:true}
+      ]}
+    ];
+    const ymax=Math.max(d.operatorNorm,d.gridMax,...d.history.map(r=>r.estimate))*1.15||1;
+    return [
+      {title:"算法下界与数值谱范数",x:"幂迭代步数",y:"‖Av‖",xmin:0,xmax:Math.max(1,d.config.iterations),ymin:0,ymax,series:[
+        {key:"power",color:"#327ab5",points:d.history.map(r=>[r.iteration,r.estimate]),line:true},
+        {key:"norm",color:"#8e53a3",points:[[0,d.operatorNorm],[Math.max(1,d.config.iterations),d.operatorNorm]],line:true}
+      ]},
+      {title:"坐标平面扫描只给下界",x:"方向索引（含重复）",y:"‖Au‖",xmin:0,xmax:d.directions.length-1,ymin:0,ymax,series:[
+        {key:"directions",color:"#bf691e",points:d.directions.map(r=>[r.index,r.value]),line:false},
+        {key:"norm",color:"#8e53a3",points:[[0,d.operatorNorm],[d.directions.length-1,d.operatorNorm]],line:true}
+      ]}
+    ];
+  }
+  const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function svg(q){
+    const left=q.equal?250:100,width=q.equal?400:750,height=q.equal?400:250,top=85;
+    const x=v=>left+width*(v-q.xmin)/(q.xmax-q.xmin),y=v=>top+height-height*(v-q.ymin)/(q.ymax-q.ymin),bottom=top+height;
+    let s='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="'+(bottom+90)+'" role="img" aria-label="'+esc(q.title)+'"><title>'+esc(q.title)+'</title><text x="25" y="32" font-size="22">'+esc(q.title)+'</text>';
+    for(let i=0;i<5;i++){
+      const xx=q.xmin+(q.xmax-q.xmin)*i/4,yy=q.ymin+(q.ymax-q.ymin)*i/4;
+      s+='<path d="M'+left+' '+y(yy)+'H'+(left+width)+'" stroke="currentColor" opacity=".18"/><text x="'+(left-12)+'" y="'+(y(yy)+5)+'" text-anchor="end">'+fmt(Number(yy.toPrecision(4)))+'</text><text x="'+x(xx)+'" y="'+(bottom+28)+'" text-anchor="middle">'+fmt(Number(xx.toPrecision(4)))+'</text>';
+    }
+    s+='<text x="'+left+'" y="65">'+esc(q.y)+'</text><text x="'+(left+width/2)+'" y="'+(bottom+63)+'" text-anchor="middle">'+esc(q.x)+'</text>';
+    for(const series of q.series){
+      if(series.line)s+='<polyline data-series="'+series.key+'" points="'+series.points.map(p=>x(p[0])+','+y(p[1])).join(" ")+'" stroke="'+series.color+'" stroke-width="2" fill="none"/>';
+      series.points.forEach((p,i)=>{s+='<circle data-series="'+series.key+'" data-index="'+i+'" cx="'+x(p[0])+'" cy="'+y(p[1])+'" r="'+(series.line?1.1:3.5)+'" fill="'+series.color+'"/>';});
+    }
+    return s+"</svg>";
+  }
+  function mount(container){
+    const doc=container.ownerDocument;
+    if(!doc.getElementById("rm129-style")){
+      const style=doc.createElement("style");style.id="rm129-style";style.textContent=".rm129{color:var(--fg,#273646)}.rm129 .rm-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}.rm129 label{display:flex;flex-direction:column;gap:6px}.rm129 input,.rm129 select{font:inherit;padding:8px;max-width:100%;background:var(--bg,#fff);color:inherit;border:1px solid #8b98a0;border-radius:5px}.rm129 button{font:inherit;padding:8px 12px;margin:5px;cursor:pointer}.rm129 button[aria-pressed=true]{outline:3px solid #478aaa}.rm129 .rm-scroll{overflow:auto;max-width:100%;margin:16px 0}.rm129 .rm-scroll:focus{outline:3px solid #478aaa}.rm129 .rm-ledger{max-height:420px}.rm129 svg{width:900px!important;max-width:none!important;display:block;fill:currentColor;font:16px system-ui}.rm129 table{min-width:900px;border-collapse:collapse;font-variant-numeric:tabular-nums}.rm129 th,.rm129 td{padding:9px;border:1px solid #98a4ab;text-align:left;white-space:nowrap}.rm129 .rm-error{color:#c74b39}.rm129 [hidden]{display:none!important}.rm129 fieldset{margin:16px 0;padding:12px}.rm129 details{margin:16px 0}.rm129 summary{cursor:pointer;font-weight:600}.rm129 .rm-legend{font-size:.95em}.rm129 .rm-note{line-height:1.7}";
+      doc.head.appendChild(style);
+    }
+    const field=(key,label,options)=>'<label data-field="'+key+'">'+label+(options?'<select data-key="'+key+'">'+options.map(([v,t])=>'<option value="'+v+'">'+t+'</option>').join("")+'</select>':'<input data-key="'+key+'" type="number" step="any">')+'</label>';
+    container.innerHTML='<div class="rm129"><h3>从覆盖证书到数值算法</h3><div class="rm-controls">'+
+      field("mode","实验",[["net","二维可证明 ε-网"],["matrix","小矩阵与算法"]])+
+      field("major","大奇异值（0.1–10）")+field("minor","小奇异值（0–大奇异值）")+field("angle","最大拉伸方向（0–180°）")+
+      field("count","圆上方向数",[4,8,16,32,64,128,256].map(n=>[n,n]))+
+      field("preset","矩阵模型",PRESETS.map(p=>[p.id,p.label]))+field("m","行数 m（2–8）")+field("n","列数 n（2–8）")+field("seed","seed（0–4294967295）")+field("iterations","幂迭代步数（0–64）")+
+      field("start","初始向量",[["ones","全 1 向量归一化"],["axis","第一坐标轴 e₁"],["difference","(1,−1,0,…) 归一化"]])+
+      '</div><p class="rm-note">先做预测，再看结果。参数改变后保留预测；无效输入会保留原值，修正后需重新揭示。</p><div class="rm-questions">'+
+      QUESTIONS.map((q,i)=>'<fieldset data-question="'+i+'"><legend>'+(i+1)+'. '+q[0]+'</legend>'+q[1].map((a,j)=>'<button type="button" data-choice="'+j+'" aria-pressed="false">'+a+'</button>').join("")+'</fieldset>').join("")+
+      '</div><button type="button" data-action="reveal">揭示账本</button><button type="button" data-action="reset">重置预测</button><p class="rm-error" role="alert"></p><p class="rm-feedback" role="status"></p><div class="rm-results" hidden></div></div>';
+    const fields=Array.from(container.querySelectorAll("[data-key]")),answers=Array(QUESTIONS.length).fill(null),results=container.querySelector(".rm-results"),button=container.querySelector("[data-action=reveal]"),feedback=container.querySelector(".rm-feedback"),error=container.querySelector(".rm-error");
+    fields.forEach(e=>e.value=DEFAULTS[e.dataset.key]);
+    let revealed=false,valid=null;
+    function read(){return Object.fromEntries(fields.map(e=>[e.dataset.key,e.value]));}
+    function render(d){
+      const note=d.config.mode==="net"?
+        "解析范数 "+fmt(d.exactNorm)+"；网格下界 "+fmt(d.maximum)+"；ε="+fmt(d.epsilon)+"；一般上界 "+fmt(d.generic)+"；二维更紧上界 "+fmt(d.sharp)+"。曲线采样只负责显示；覆盖半径由等角间隔证明。":
+        "数值谱范数 "+fmt(d.operatorNorm)+"；坐标扫描下界 "+fmt(d.gridMax)+"；幂迭代下界 "+fmt(d.history.at(-1).estimate)+"。"+d.stop+"。Jacobi "+(d.eigen.converged?"达到相对停止条件":"未收敛")+"，旋转 "+d.eigen.rotations+" 次；最大非对角元 "+fmt(d.eigen.off)+"，停止阈值 "+fmt(d.eigen.tolerance)+"，正交误差 "+fmt(d.eigen.orthogonality)+"。这些是浮点诊断，不是区间算术的严格误差证书。Frobenius 确定上界 "+fmt(d.frobenius)+"。"+
+        (d.referenceValid?"分布适用时的尺度参考 "+fmt(d.reference)+"；有限小矩阵不要求精确等于此值。":"此预设不满足 iid 次高斯尺度的适用假设。")+
+        "伪随机生成器为 32 位 LCG；均匀数 (state+0.5)/2³²，经 Box–Muller 等变换。有限精度样本不是真正连续独立随机量。";
+      results.innerHTML='<p class="rm-note">'+esc(note)+'</p><p class="rm-legend">蓝：响应／幂迭代；橙：有限扫描；紫：最大奇异方向／范数；绿：二维上界；圆图红弦：网点与相邻间隙中点的距离 ε。图和长表可聚焦后用方向键横向查看。</p>'+
+        plots(d).map(q=>'<div class="rm-scroll" role="region" tabindex="0" aria-label="'+esc(q.title)+'">'+svg(q)+'</div>').join("")+
+        ledgers(d).map(t=>'<details data-ledger="'+t.key+'"><summary>'+esc(t.title)+'（'+t.rows.length+' 行）</summary><div class="rm-scroll rm-ledger" role="region" tabindex="0" aria-label="'+esc(t.title)+'"><table data-table="'+t.key+'"><thead><tr>'+t.headers.map(h=>'<th scope="col">'+esc(h)+'</th>').join("")+'</tr></thead><tbody>'+t.rows.map(r=>'<tr>'+r.map(v=>'<td>'+esc(fmt(v))+'</td>').join("")+'</tr>').join("")+'</tbody></table></div></details>').join("");
+    }
+    function score(){feedback.textContent=revealed?answers.filter((x,i)=>x===QUESTIONS[i][2]).length+" / "+QUESTIONS.length+"。"+QUESTIONS.map(q=>q[3]).join(" "):"";}
+    function update(){
+      const raw=read(),active=raw.mode==="net"?["mode","major","minor","angle","count"]:["mode","preset","m","n","seed","iterations","start"];
+      fields.forEach(e=>e.parentElement.hidden=!active.includes(e.dataset.key));
+      try{valid=config(raw);error.textContent="";}catch(e){valid=null;revealed=false;error.textContent=e.message;}
+      button.disabled=!valid||answers.some(x=>x===null);results.hidden=!revealed;
+      if(revealed&&valid)render(snapshot(valid));score();
+    }
+    fields.forEach(e=>e.addEventListener(e.tagName==="SELECT"?"change":"input",()=>{
+      if(e.dataset.key==="preset"){const p=PRESETS.find(p=>p.id===e.value);for(const k of ["m","n","start"])container.querySelector('[data-key="'+k+'"]').value=p[k]||(k==="start"?"ones":DEFAULTS[k]);}
+      update();
+    }));
+    container.querySelectorAll("[data-choice]").forEach(b=>b.addEventListener("click",()=>{
+      const i=Number(b.parentElement.dataset.question);answers[i]=Number(b.dataset.choice);
+      b.parentElement.querySelectorAll("[data-choice]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));update();
+    }));
+    button.addEventListener("click",()=>{if(!button.disabled){revealed=true;update();}});
+    container.querySelector("[data-action=reset]").addEventListener("click",()=>{answers.fill(null);revealed=false;container.querySelectorAll("[data-choice]").forEach(b=>b.setAttribute("aria-pressed","false"));update();container.querySelector("[data-choice]").focus();});
+    update();
+  }
+  function selfTest(){
+    let checks=0;const check=(b,s)=>{checks++;if(!b)throw Error(s);};
+    const d=snapshot();check(d.maximum<=4+1e-14&&d.sharp>=4,"net sandwich");
+    const b=snapshot({mode:"matrix",preset:"blind",m:2,n:2,start:"axis"});check(b.operatorNorm===2&&b.history.at(-1).estimate===1&&b.history.at(-1).residual===0,"blind eigenpair");
+    const h=snapshot({mode:"matrix",preset:"hole",m:2,n:4});check(Math.abs(h.gridMax-Math.SQRT1_2)<1e-14,"grid hole");
+    check(createRng(0).uniform()!==createRng(1).uniform(),"seed zero retained");
+    return {status:"PASS",checks};
+  }
+  return {DEFAULTS,PRESETS,QUESTIONS,config,snapshot,evaluate:snapshot,createRng,directionGrid,jacobi,ledgers,plots,svg,fmt,mount,selfTest};
+});

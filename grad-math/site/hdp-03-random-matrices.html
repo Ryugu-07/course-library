@@ -52,165 +52,369 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 04:59</div>
+    <div class="build-time">构建于 2026-09-10 22:57</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#hdp03-learning-title">学习层：一次矩阵计算，究竟能替哪个结论作证？</a><ul>
-<li><a href="#1">1. 先预测，再打开账本</a></li>
-<li><a href="#2">2. 三个对象，三套归一化</a></li>
-<li><a href="#3">3. 实验怎样读</a></li>
-<li><a href="#4">4. 失效边界：先问假设，再读数字</a></li>
+<li><a href="#hdp03-learning-title">先看一个会漏检的测量</a><ul>
+<li><a href="#_1">可以检查的二维模型</a></li>
+<li><a href="#_2">先预测，再揭示实验</a></li>
+<li><a href="#_3">数值实验的责任范围</a></li>
 </ul>
 </li>
-<li><a href="#1-">1. ε-网：把球面数字化</a></li>
-<li><a href="#2_1">2. 随机矩阵的谱范数</a></li>
-<li><a href="#3_1">3. 兑现欠条：协方差估计定理</a></li>
-<li><a href="#4_1">4. 练习与要点</a></li>
+<li><a href="#1">1. 从有限方向得到整个球面的控制</a><ul>
+<li><a href="#_4">网点的数量从哪里来</a></li>
+<li><a href="#_5">单网引理：一步一步补上漏掉的方向</a></li>
+<li><a href="#_6">双网与对称二次型</a></li>
+</ul>
+</li>
+<li><a href="#2">2. 随机矩阵：用尾概率支付方向数量</a><ul>
+<li><a href="#_7">确定界与分布假设</a></li>
+</ul>
+</li>
+<li><a href="#3">3. 三种谱对象不要混用</a></li>
+<li><a href="#4">4. 协方差估计：每个方向上的方差都要准确</a></li>
+<li><a href="#5">5. 四道迁移题：能否自己完成关键推理</a></li>
+<li><a href="#6">6. 下一次遇到算子界时怎么用</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iii-">高维概率 III · ε-网与随机矩阵的谱界<a class="headerlink" href="#iii-" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Vershynin <em>HDP</em> §4.2–4.6 ｜ <strong>前置</strong>：hdp-01/02、高代 V/VI、矩阵分析 I（可后补）
-本页解决一个模式问题：<strong>如何控制"无穷多个方向的上确界"</strong>——矩阵谱范数 <span class="arithmatex">\(\|A\| = \sup_{\|u\|=1}\|Au\|\)</span> 是连续统上的 sup，union bound 直接失效。解法是本课程最重要的技术之一：<strong>ε-网离散化</strong>。产出：随机矩阵谱范数界与上一页欠下的协方差估计定理。</p>
+<p><strong>前置</strong>：<a href="hdp-01-subgaussian.html">亚高斯集中</a>、<a href="hdp-02-random-vectors.html">随机向量与各向同性</a>，以及欧氏范数、矩阵乘法和对称矩阵的谱定理。下文会补出本页需要的网论证。</p>
+<p><strong>本页的问题</strong>：一台线性装置把输入 <span class="arithmatex">\(u\)</span> 变成 <span class="arithmatex">\(Au\)</span>。试过许多输入之后，怎样保证没有漏掉最容易被放大的方向？本页先给一个可以完整证明的二维实验，再把“有限扫描”升级为高维概率界，最后用它证明协方差估计的样本量结论。</p>
 </blockquote>
 <div data-learning-page></div>
 
 <section aria-labelledby="hdp03-learning-title" class="learning-layer">
-<h2 id="hdp03-learning-title">学习层：一次矩阵计算，究竟能替哪个结论作证？<a class="headerlink" href="#hdp03-learning-title" title="Permanent link"></a></h2>
-<h3 id="1">1. 先预测，再打开账本<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>实验固定伪随机数发生器和 seed；默认矩阵很小，足够把 <span class="arithmatex">\(A^\top A\)</span> 的双精度特征值、power iteration 与有限方向扫描同时算出来。先不要看结果，预测：</p>
-<ol>
-<li>若 <span class="arithmatex">\(\mathcal G\subset S^{n-1}\)</span> 只是有限方向网格，<span class="arithmatex">\(\max_{v\in\mathcal G}\|Av\|_2\)</span> 与 <span class="arithmatex">\(\|A\|\)</span> 的关系是哪一个？它是否就是单位球面上的 supremum？</li>
-<li>对独立、零均值、单位尺度的 Gaussian 或 Rademacher 矩形矩阵，<span class="arithmatex">\(\sqrt m+\sqrt n\)</span> 应该读成一次样本的确定上界，还是高概率的典型尺度？</li>
-<li>把同一个名字“谱”搬到 Wigner、矩形 iid 矩阵和 sample covariance 上时，半圆律、Marchenko–Pastur 与算子范数结论能否直接互换？</li>
-</ol>
-<p>点击“揭示账本”之前，实验隐藏数值结果；预测错了也保留这次记录。结果只解释当前固定矩阵，不把一条 seed 路径伪装成高概率定理。</p>
-<h3 id="2">2. 三个对象，三套归一化<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<h2 id="hdp03-learning-title">先看一个会漏检的测量<a class="headerlink" href="#hdp03-learning-title" title="Permanent link"></a></h2>
+<p>如果只把标准基向量输入 <span class="arithmatex">\(A=\begin{pmatrix}1&amp;1\\0&amp;0\end{pmatrix}\)</span>，两次读数都是 <span class="arithmatex">\(1\)</span>；但沿 <span class="arithmatex">\(u=(1,1)/\sqrt2\)</span> 输入，读数是 <span class="arithmatex">\(\sqrt2\)</span>。最大放大率不是“最大一列的长度”，而是</p>
+<div class="arithmatex">\[
+\|A\|_{\mathrm{op}}=\max_{\|u\|_2=1}\|Au\|_2.
+\]</div>
+<p>这里输入和输出都用欧氏范数；矩阵有限维，单位球面紧且 <span class="arithmatex">\(u\mapsto\|Au\|\)</span> 连续，因此最大值能达到。只试有限方向，得到的是下界。要反过来给上界，必须知道<strong>每个未试方向离某个已试方向有多远</strong>。</p>
+<h3 id="_1">可以检查的二维模型<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(s_1\ge s_2\ge0\)</span>，以 <span class="arithmatex">\(\theta\)</span> 表示最大拉伸方向，取</p>
+<div class="arithmatex">\[
+A=\begin{pmatrix}s_1&amp;0\\0&amp;s_2\end{pmatrix}
+\begin{pmatrix}\cos\theta&amp;\sin\theta\\-\sin\theta&amp;\cos\theta\end{pmatrix},
+\qquad
+u_\phi=(\cos\phi,\sin\phi).
+\]</div>
+<p>旋转不改变长度，所以</p>
+<div class="arithmatex">\[
+\|Au_\phi\|_2^2
+=s_1^2\cos^2(\phi-\theta)+s_2^2\sin^2(\phi-\theta),
+\qquad \|A\|_{\mathrm{op}}=s_1.
+\]</div>
+<p>圆上均匀放置 <span class="arithmatex">\(N\)</span> 个方向，角间距是 <span class="arithmatex">\(2\pi/N\)</span>。任意方向到最近网点的角距离至多 <span class="arithmatex">\(\pi/N\)</span>，单位圆上对应的弦长至多</p>
+<div class="arithmatex">\[
+\varepsilon_N=2\sin\frac{\pi}{2N}.
+\]</div>
+<p>记扫描最大值为 <span class="arithmatex">\(L_N\)</span>。一般的网引理给出第一个上界；二维模型还能利用最接近最大奇异方向的网点，给出第二个：</p>
+<div class="arithmatex">\[
+L_N\le s_1\le \frac{L_N}{1-\varepsilon_N},
+\qquad
+s_1\le\frac{L_N}{\cos(\pi/N)}
+\quad(N\ge4).
+\]</div>
+<p>第二式来自 <span class="arithmatex">\(\|Au_\phi\|\ge s_1|\cos(\phi-\theta)|\)</span>。这里的覆盖证明来自角间距，曲线上的密集像素不承担证明责任。取 <span class="arithmatex">\(N=4,8,16,\ldots\)</span> 时网点嵌套，所以 <span class="arithmatex">\(L_N\)</span> 不减；对任意两张不嵌套的网，仅比较方向数量并不能保证下界不减。</p>
+<figure class="plot">
+<p><img alt="圆上覆盖、矩阵响应和高维遗漏反例" src="assets/img/hdp-03-net-ledgers.svg" /></p>
+<figcaption><span class="fig-id">图 3.1</span>上两图使用同一默认矩阵：橙色网点控制角间距，紫色方向给出解析范数。下两图展示坐标扫描遗漏与幂迭代盲点；横纵坐标及全部数据在实验账本中可查。</figcaption>
+</figure>
+<h3 id="_2">先预测，再揭示实验<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>先判断：扫描最大值是上界还是下界？角度加密能否补上四维方向？残差为零是否必然找到了最大特征值？一次种子实验能否决定高概率定理的通用常数？</p>
+<div class="learning-lab" data-learning-lab="random-matrix-norm">
+<p><strong>无需 JavaScript 的默认账本。</strong>二维模型取 s₁=4、s₂=1、θ=17°、N=16。以下数值为浮点近似，范数等于 4 和覆盖公式则是解析结论。</p>
+<table>
+<thead>
+<tr>
+<th>读数</th>
+<th>数值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>矩阵第一行</td>
+<td>[3.82521902, 1.16948682]</td>
+<td>A 的第一行</td>
+</tr>
+<tr>
+<td>矩阵第二行</td>
+<td>[-0.292371705, 0.956304756]</td>
+<td>A 的第二行</td>
+</tr>
+<tr>
+<td>解析范数</td>
+<td>4</td>
+<td>等于大奇异值</td>
+</tr>
+<tr>
+<td>方向数</td>
+<td>16</td>
+<td>整圆均匀分布；角间距22.5°</td>
+</tr>
+<tr>
+<td>最大角距离</td>
+<td>11.25°</td>
+<td>任意方向到最近网点</td>
+</tr>
+<tr>
+<td>覆盖半径</td>
+<td>0.196034281</td>
+<td>单位圆弦长</td>
+</tr>
+<tr>
+<td>扫描下界</td>
+<td>3.98273824</td>
+<td>所有网点读数的最大值</td>
+</tr>
+<tr>
+<td>一般上界</td>
+<td>4.95386575</td>
+<td>L/(1−ε)</td>
+</tr>
+<tr>
+<td>二维上界</td>
+<td>4.06076469</td>
+<td>L/cos(π/N)</td>
+</tr>
+<tr>
+<td>四维遗漏</td>
+<td>1/√2 ≈ 0.707106781</td>
+<td>真正范数为1，扫描加密仍漏方向</td>
+</tr>
+<tr>
+<td>幂迭代盲点</td>
+<td>下界1，残差0</td>
+<td>真正范数为2；第0–18步均停在e₁</td>
+</tr>
+</tbody>
+</table>
+<p>改变参数后，实验显示实际矩阵、所有圆上网点、每个矩阵像，以及所有加密层级。第二个模式保留高斯、随机符号、Wigner、二阶矩、相关与重尾预设，并加入两个确定反例。每个模式都可以查看全部特征向量、残差、幂迭代步骤与扫描方向。</p>
+</div>
+<h3 id="_3">数值实验的责任范围<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>实验以 32 位线性同余发生器固定样本，seed=0 也是独立保留的合法输入；均匀数取 <span class="arithmatex">\((\mathrm{state}+1/2)/2^{32}\)</span>。Box–Muller 等变换产生的是有限精度伪随机样本。固定 seed 帮助复算，不构成独立性或连续分布的证明。</p>
+<p>小矩阵模式中，以 <span class="arithmatex">\(T=A^\top A\)</span> 做 Jacobi 特征分解和幂迭代；二阶矩模式直接以 <span class="arithmatex">\(T=S\)</span> 迭代。Jacobi 栏显示数值特征对、停止阈值、非对角余量与正交误差。原始特征值保留符号，若理论半正定矩阵出现极小负值，应结合计算尺度检查舍入。它们是数值诊断，不能冒充严格的区间误差证书。</p>
+<p>每步单位向量 <span class="arithmatex">\(v_k\)</span> 的 <span class="arithmatex">\(\|Av_k\|\)</span> 都是范数下界。残差</p>
+<div class="arithmatex">\[
+r_k=\|Tv_k-(v_k^\top Tv_k)v_k\|_2
+\]</div>
+<p>衡量当前向量是否接近某个特征向量，并不自动识别最大的那个。实验中零迭代像会明确停止，不能将零向量归一化，也不能编造后续轨迹。</p>
+</section>
+<h2 id="1">1. 从有限方向得到整个球面的控制<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<h3 id="_4">网点的数量从哪里来<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p><span class="arithmatex">\(\mathcal N\subset S^{n-1}\)</span> 称为欧氏 <span class="arithmatex">\(\varepsilon\)</span>-网，指每个球面点到某个网点的距离不超过 <span class="arithmatex">\(\varepsilon\)</span>。当 <span class="arithmatex">\(\varepsilon&gt;0\)</span> 时存在</p>
+<div class="arithmatex">\[
+|\mathcal N|\le(1+2/\varepsilon)^n.
+\]</div>
+<p>证明时不断选取与已有点距离都大于 <span class="arithmatex">\(\varepsilon\)</span> 的球面点。以这些点为中心、半径 <span class="arithmatex">\(\varepsilon/2\)</span> 的开球两两不交，且全在半径 <span class="arithmatex">\(1+\varepsilon/2\)</span> 的大球中。比较 <span class="arithmatex">\(n\)</span> 维体积，</p>
+<div class="arithmatex">\[
+|\mathcal N|(\varepsilon/2)^n\operatorname{vol}(B_2^n)
+\le(1+\varepsilon/2)^n\operatorname{vol}(B_2^n).
+\]</div>
+<p>这个有限上界使选点过程必须终止。终止时若仍有球面点离全部网点超过 <span class="arithmatex">\(\varepsilon\)</span>，就还能继续选，矛盾。因此它确实覆盖球面。进一步简写为 <span class="arithmatex">\((3/\varepsilon)^n\)</span> 时，要有 <span class="arithmatex">\(0&lt;\varepsilon\le1\)</span>。</p>
+<h3 id="_5">单网引理：一步一步补上漏掉的方向<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>设 <span class="arithmatex">\(L=\max_{u\in\mathcal N}\|Au\|\)</span>，<span class="arithmatex">\(0&lt;\varepsilon&lt;1\)</span>。取达到算子范数的 <span class="arithmatex">\(u_*\)</span>，找 <span class="arithmatex">\(u_0\in\mathcal N\)</span> 使 <span class="arithmatex">\(\|u_*-u_0\|\le\varepsilon\)</span>。由三角不等式和算子范数定义，</p>
+<div class="arithmatex">\[
+\|A\|=\|Au_*\|
+\le\|Au_0\|+\|A(u_*-u_0)\|
+\le L+\varepsilon\|A\|.
+\]</div>
+<p>移项得到</p>
+<div class="arithmatex">\[
+L\le\|A\|\le\frac{L}{1-\varepsilon}.
+\]</div>
+<p>当 <span class="arithmatex">\(\varepsilon=1/4\)</span>，常数可取 <span class="arithmatex">\(4/3\)</span>；取较松的 <span class="arithmatex">\(2\)</span> 也对，但应知道损失来自哪里。</p>
+<h3 id="_6">双网与对称二次型<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<p>对 <span class="arithmatex">\(A\in\mathbb R^{m\times n}\)</span>，输入 <span class="arithmatex">\(u\in S^{n-1}\)</span>，输出测试方向 <span class="arithmatex">\(v\in S^{m-1}\)</span>，有</p>
+<div class="arithmatex">\[
+\|A\|=\max_{u,v}|v^\top Au|.
+\]</div>
+<p>分别取两个球面的 <span class="arithmatex">\(\varepsilon\)</span>-网，令 <span class="arithmatex">\(u_0,v_0\)</span> 为最近网点。精确分解</p>
+<div class="arithmatex">\[
+v^\top Au-v_0^\top Au_0
+=(v-v_0)^\top Au+v_0^\top A(u-u_0)
+\]</div>
+<p>说明误差至多 <span class="arithmatex">\(2\varepsilon\|A\|\)</span>。因此当 <span class="arithmatex">\(\varepsilon&lt;1/2\)</span>，</p>
+<div class="arithmatex">\[
+\|A\|\le\frac{1}{1-2\varepsilon}
+\max_{u_0\in\mathcal N,\ v_0\in\mathcal M}|v_0^\top Au_0|.
+\]</div>
+<p>对称方阵 <span class="arithmatex">\(B\)</span> 则由谱定理得到 <span class="arithmatex">\(\|B\|=\max_{\|u\|=1}|u^\top Bu|\)</span>。使用</p>
+<div class="arithmatex">\[
+u^\top Bu-u_0^\top Bu_0
+=(u-u_0)^\top Bu+u_0^\top B(u-u_0)
+\]</div>
+<p>即可用同一个网和同一个 <span class="arithmatex">\(1/(1-2\varepsilon)\)</span> 常数控制二次型。绝对值不能省：负特征值的绝对值也可能决定算子范数。</p>
+<h2 id="2">2. 随机矩阵：用尾概率支付方向数量<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>假设 <span class="arithmatex">\(A_{ij}\)</span> 独立、均值为零，且 <span class="arithmatex">\(\|A_{ij}\|_{\psi_2}\le K\)</span>。这里</p>
+<div class="arithmatex">\[
+\|Z\|_{\psi_2}=\inf\{b&gt;0:\mathbb E e^{Z^2/b^2}\le2\}.
+\]</div>
+<p>存在与维数无关的正常数 <span class="arithmatex">\(C,c\)</span>，对任意 <span class="arithmatex">\(t&gt;0\)</span>，</p>
+<div class="arithmatex">\[
+\mathbb P\!\left\{\|A\|&gt;CK(\sqrt m+\sqrt n+t)\right\}
+\le2e^{-t^2}.
+\]</div>
+<p>右侧大于 1 时不提供有用概率保证；它仍是一个成立的上界。证明分三步。</p>
+<p><strong>固定方向。</strong>取确定的单位向量 <span class="arithmatex">\(u,v\)</span>，</p>
+<div class="arithmatex">\[
+Z=v^\top Au=\sum_{i=1}^{m}\sum_{j=1}^{n}v_i A_{ij}u_j,
+\qquad
+\sum_{i,j}v_i^2u_j^2=1.
+\]</div>
+<p>独立中心亚高斯量的线性组合仍为亚高斯，尺度至多常数倍的 <span class="arithmatex">\(K\)</span>，故 <span class="arithmatex">\(\mathbb P\{|Z|&gt;s\}\le2e^{-cs^2/K^2}\)</span>。不能把 <span class="arithmatex">\(u,v\)</span> 换成已经观察矩阵后挑出的随机最大方向，再直接沿用这个固定方向尾界。</p>
+<p><strong>统一控制。</strong>预先取两个 <span class="arithmatex">\(1/4\)</span>-网，大小分别至多 <span class="arithmatex">\(9^n,9^m\)</span>。并集界不要求网点事件彼此独立，给出</p>
+<div class="arithmatex">\[
+\mathbb P\!\left\{\max_{\mathcal N\times\mathcal M}|v^\top Au|&gt;s\right\}
+\le2\exp\!\left((m+n)\log9-\frac{cs^2}{K^2}\right).
+\]</div>
+<p><strong>回到连续球面。</strong>取 <span class="arithmatex">\(s=(K/\sqrt c)\sqrt{(m+n)\log9+t^2}\)</span>，再乘双网引理的常数 2。利用 <span class="arithmatex">\(\sqrt{m+n}\le\sqrt m+\sqrt n\)</span> 并合并绝对常数，就得到定理。维数代价来自网点数的对数，而不是一句模糊的“随机抵消”。</p>
+<p>若条目是真正的独立标准高斯，固定方向的 <span class="arithmatex">\(Z\)</span> 恰为 <span class="arithmatex">\(N(0,1)\)</span>，可使用明确的尾界 <span class="arithmatex">\(2e^{-s^2/2}\)</span>，于是这个较松但常数明确的结论是</p>
+<div class="arithmatex">\[
+\mathbb P\!\left\{\|A\|&gt;
+2\sqrt{2\big((m+n)\log9+\log(2/\delta)\big)}\right\}
+\le\delta,\quad0&lt;\delta&lt;1.
+\]</div>
+<p>这与更精细的 <span class="arithmatex">\(\sqrt m+\sqrt n\)</span> 边缘结果不是同一个精度的结论；一张模拟矩阵不能决定所有维数与所有允许分布共用的 <span class="arithmatex">\(C\)</span>。</p>
+<h3 id="_7">确定界与分布假设<a class="headerlink" href="#_7" title="Permanent link"></a></h3>
+<p>对每个有限矩阵始终有</p>
+<div class="arithmatex">\[
+\max_{i,j}|A_{ij}|\le\|A\|
+\le\|A\|_{\mathrm F}
+\le\sqrt{mn}\max_{i,j}|A_{ij}|.
+\]</div>
+<p>只有逐项 <span class="arithmatex">\(|A_{ij}|\le1\)</span> 时，最后才能简化成 <span class="arithmatex">\(\sqrt{mn}\)</span>。高斯条目无界，不能省去最大条目因子。全 1 矩阵达到 <span class="arithmatex">\(\sqrt{mn}\)</span>，也说明有方向结构的矩阵可以远离根号级的 iid 典型尺度。</p>
+<p>相关预设每行共享一个随机量，且具有非零均值，故同时违反独立条目和中心化条件。重尾预设使用随机符号乘上 Pareto 型幅度，尾指数 <span class="arithmatex">\(3/2\)</span>，理论方差无穷；有限伪随机实现有最大可生成值，这不使它成为上述理论模型的亚高斯样本。</p>
+<h2 id="3">3. 三种谱对象不要混用<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
 <th>对象</th>
-<th>模型与归一化</th>
-<th>应该引用的典型谱尺度</th>
-<th>不应混用的结论</th>
+<th>归一化</th>
+<th>渐近谱信息</th>
+<th>本页小实验能说明什么</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Wigner</td>
-<td>对称 <span class="arithmatex">\(W=W^\top\)</span>，独立上三角变量 <span class="arithmatex">\(\xi_{ij}\)</span>，<span class="arithmatex">\(W_{ij}=\xi_{ij}/\sqrt n\)</span></td>
-<td>半圆律的特征值支撑约为 <span class="arithmatex">\([-2,2]\)</span>；<span class="arithmatex">\(\|W\|\)</span> 的边缘尺度约为 <span class="arithmatex">\(2\)</span></td>
-<td>这是对称特征值对象，不是矩形 iid 的 <span class="arithmatex">\(\sqrt m+\sqrt n\)</span> 表达式，也不是 MP</td>
+<td>Wigner 对称矩阵</td>
+<td>上三角独立中心变量，非对角方差 1，再除以 √n</td>
+<td>适当矩条件下经验特征值分布趋向半圆律</td>
+<td>可检查有符号特征值与范数；不能用 n≤8 证明极限</td>
 </tr>
 <tr>
-<td>矩形 iid</td>
-<td><span class="arithmatex">\(A\in\mathbb R^{m\times n}\)</span>，条目独立、方差约为 <span class="arithmatex">\(1\)</span>，不先除以 <span class="arithmatex">\(\sqrt m\)</span></td>
-<td><span class="arithmatex">\(\|A\|\sim\sqrt m+\sqrt n\)</span> 的高概率尺度</td>
-<td>这是算子范数尺度；不能把它当作 Wigner 的半圆律或 covariance 的特征值边缘</td>
+<td>矩形 iid 矩阵 A</td>
+<td>条目方差 1，不先缩放</td>
+<td>范数具有 √m+√n 的典型尺度；精细边缘需相应假设</td>
+<td>可以比较同一矩阵的多种数值下界与谱计算</td>
 </tr>
 <tr>
-<td>sample covariance</td>
-<td><span class="arithmatex">\(X\in\mathbb R^{m\times n}\)</span>，<span class="arithmatex">\(S=X^\top X/m\)</span></td>
-<td><span class="arithmatex">\(S\)</span> 的 MP 上边缘约为 <span class="arithmatex">\((1+\sqrt{n/m})^2\)</span>；且 <span class="arithmatex">\(\|S\|=\|X\|^2/m\)</span></td>
-<td>MP 讨论 <span class="arithmatex">\(S\)</span> 的特征值；<span class="arithmatex">\(\|X\|\)</span> 仍是矩形矩阵问题，不能少掉平方与 <span class="arithmatex">\(m\)</span> 的归一化</td>
+<td>二阶矩 S=XᵀX/m</td>
+<td>m 行样本、n 个特征</td>
+<td>n/m→y&gt;0 时的 MP 分布；连续部分端点为 (1±√y)²</td>
+<td>精确代数关系 ‖S‖=‖X‖²/m；有限样本边缘会波动</td>
 </tr>
 </tbody>
 </table>
-<p>因此本页实验把对象、矩阵形状、归一化、比较基准一起显示。<code>Gaussian</code> 与 <code>Rademacher</code> 都用固定 seed；相关/低秩和重尾预设则是<strong>失败边界诊断</strong>，不是 iid 次高斯定理的额外样本。</p>
-<h3 id="3">3. 实验怎样读<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>小矩阵的“精确”栏是针对本实验尺寸的双精度 Jacobi 特征值计算：矩形 iid 与 Wigner 先看 <span class="arithmatex">\(A^\top A\)</span>，sample covariance 直接看 <span class="arithmatex">\(S\)</span>。power iteration 从固定初始向量出发，只是一个近似算法；方向网格则只取有限个单位向量。</p>
-<p>必有的确定性关系是</p>
+<p>以一个明确充分的模型理解极限即可：Wigner 的独立非对角标准高斯和独立有界方差高斯对角，或 iid 标准高斯的 <span class="arithmatex">\(X\)</span>。实验的 Wigner 对角与非对角都按 <span class="arithmatex">\(1/\sqrt n\)</span> 缩放，属于 Wigner 模型，但不是对角方差为非对角两倍的标准 GOE 规范。</p>
+<p><strong>整体分布收敛不排除极少数离群点。</strong>经验谱测度是 <span class="arithmatex">\(\mu_n=n^{-1}\sum_{j=1}^n\delta_{\lambda_j}\)</span>。把一个特征值改成 <span class="arithmatex">\(n\)</span>，任意有界测试函数的平均值最多改变 <span class="arithmatex">\(2\|f\|_\infty/n\)</span>，弱极限不变，最大特征值却发散。因此半圆律本身不保证谱边缘；Bai–Yin 型边缘控制要另核矩条件和矩阵模型。</p>
+<p>当 <span class="arithmatex">\(y=n/m&gt;1\)</span> 时，MP 分布在 0 的原子质量为 <span class="arithmatex">\(1-1/y\)</span>。有限维原因已经可见：<span class="arithmatex">\(\operatorname{rank}(X^\top X)\le m&lt;n\)</span>，故至少 <span class="arithmatex">\(n-m\)</span> 个零特征值。实验的 <span class="arithmatex">\(S\)</span> <strong>没有减样本均值</strong>：总体均值为零时它是协方差估计；否则估计的是二阶矩。若改成扣样本均值再除以 <span class="arithmatex">\(m-1\)</span> 的无偏样本协方差，秩至多 <span class="arithmatex">\(m-1\)</span>，归一化也随之改变。</p>
+<h2 id="4">4. 协方差估计：每个方向上的方差都要准确<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(X_1,\ldots,X_m\in\mathbb R^n\)</span> 为独立同分布、中心、各向同性随机向量：</p>
 <div class="arithmatex">\[
-\max_{v\in\mathcal G}\|Av\|_2\leq \sup_{\|u\|_2=1}\|Au\|_2=\|A\|.
+\mathbb EX_i=0,\qquad
+\mathbb EX_iX_i^\top=I,\qquad
+\sup_{\|u\|=1}\|\langle X_i,u\rangle\|_{\psi_2}\le K,\quad K\ge1.
 \]</div>
-<p>网格越密，通常越接近，但“网格最大值”不是单位球面上的 supremum，也不是一个自动成立的 <span class="arithmatex">\(\varepsilon\)</span>-网证书。脚本用同一固定矩阵把这个下界、power iteration 近似和小矩阵特征值并排显示。</p>
-<div class="learning-lab" data-learning-lab="random-matrix-norm">
-<p><strong>JavaScript 失效时的静态 fallback：</strong>默认预设是 <span class="arithmatex">\(5\times4\)</span> 的矩形 Gaussian 矩阵，条目服从 <span class="arithmatex">\(N(0,1)\)</span>，seed 为 <code>20260722</code>；方向网格是各坐标二维平面上的有限角度网格，不是整个 <span class="arithmatex">\(S^3\)</span>。下表的数值只描述这一张固定矩阵；加载脚本后还可切换 Rademacher、Wigner、sample covariance、相关/低秩与 heavy-tail 诊断。</p>
-<table>
-<thead>
-<tr>
-<th>账本</th>
-<th>静态读法</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>精确/双精度值</td>
-<td>默认 Gaussian：<span class="arithmatex">\(\|A\|\approx3.539316\)</span>；以 <span class="arithmatex">\(A^\top A\)</span> 的最大特征值开平方得到，不是把有限方向扫描叫作精确值</td>
-</tr>
-<tr>
-<td>power iteration</td>
-<td>默认 18 步约为 <span class="arithmatex">\(3.539316\)</span>；固定初始向量和有限步数得到近似，误差来自算法迭代，不是随机定理的失败概率</td>
-</tr>
-<tr>
-<td>方向网格</td>
-<td>共 148 个方向，默认最大值约为 <span class="arithmatex">\(3.455315\le3.539316\)</span>；它不是单位球上确界</td>
-</tr>
-<tr>
-<td>典型尺度</td>
-<td><span class="arithmatex">\(\sqrt m+\sqrt n\)</span> 是 iid 次高斯的高概率阶，不是这次抽样的确定上界</td>
-</tr>
-<tr>
-<td>量词</td>
-<td>一次固定 seed 只给一个样本；不能单独证明“以高概率”或半圆律/MP 的渐近结论</td>
-</tr>
-</tbody>
-</table>
-<p>切换到同一 seed <code>20260722</code> 的 Rademacher 后，精确/幂迭代/网格约为 <span class="arithmatex">\(3.290658/3.290658/3.162278\)</span>；这两个固定矩阵都只是教学用的可复现实例。</p>
-</div>
-<h3 id="4">4. 失效边界：先问假设，再读数字<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<ul>
-<li><strong>相关/低秩：</strong>若 <span class="arithmatex">\(A=uv^\top+E\)</span>，秩一项的范数是 <span class="arithmatex">\(\|u\|_2\|v\|_2\)</span>；它可以达到 <span class="arithmatex">\(\sqrt{mn}\)</span> 级，远离 iid 的 <span class="arithmatex">\(\sqrt m+\sqrt n\)</span>。相关条目破坏了独立性，必须把结构写进模型或改用相应的协方差/低秩分析。</li>
-<li><strong>重尾：</strong>若条目只有很弱的矩条件，甚至方差不存在，一个极端条目就可能支配 <span class="arithmatex">\(\|A\|\)</span>；不能把亚高斯尾界的常数悄悄沿用。截断、稳健化或额外矩假设是另一条理论路线。</li>
-<li><strong>样本与定理：</strong>即使 Gaussian 预设的数值落在 <span class="arithmatex">\(\sqrt m+\sqrt n\)</span> 附近，也只说明这次固定样本；高概率结论要对随机矩阵取概率，并保留独立性、尾部、归一化和维度量词。</li>
-</ul>
-</section>
-<h2 id="1-">1. ε-网：把球面数字化<a class="headerlink" href="#1-" title="Permanent link"></a></h2>
-<p><strong>定义</strong> <span class="arithmatex">\(\mathcal{N} \subseteq S^{n-1}\)</span> 是 <strong>ε-网</strong>：球面任一点距 <span class="arithmatex">\(\mathcal{N}\)</span> 不超过 <span class="arithmatex">\(\varepsilon\)</span>。</p>
-<p><strong>引理（网的大小）【证明】</strong> 单位球面存在 <span class="arithmatex">\(|\mathcal{N}| \leq \big(1 + \frac{2}{\varepsilon}\big)^n \leq \big(\frac{3}{\varepsilon}\big)^n\)</span> 的 ε-网。
-<em>证</em>：贪心取极大 ε-分离点集（两两距离 <span class="arithmatex">\(&gt; \varepsilon\)</span>，极大性保证它是 ε-网）；以各点为心 <span class="arithmatex">\(\frac\varepsilon2\)</span> 为半径的球两两不交、全装进半径 <span class="arithmatex">\(1 + \frac\varepsilon2\)</span> 的球——体积比给 <span class="arithmatex">\(|\mathcal{N}| \leq \frac{(1+\varepsilon/2)^n}{(\varepsilon/2)^n}\)</span>。<span class="arithmatex">\(\blacksquare\)</span>
-（<strong>指数于维数</strong>——这是"高维的代价"最赤裸的形态；但只要尾概率也是指数小，就付得起：两指数赛跑，集中赢。）</p>
-<p><strong>引理（sup 的离散化）【证明】</strong> 对任意矩阵 <span class="arithmatex">\(A\)</span> 与 <span class="arithmatex">\(\frac14\)</span>-网 <span class="arithmatex">\(\mathcal{N}\)</span>：</p>
+<p>同一向量的坐标可以相关；此处需要的是各行样本独立，以及所有方向统一的亚高斯条件。令 <span class="arithmatex">\(\widehat\Sigma=m^{-1}\sum_iX_iX_i^\top\)</span>。固定单位方向 <span class="arithmatex">\(u\)</span>，其方差估计误差为</p>
 <div class="arithmatex">\[
-\|A\| \leq 2\max_{u \in \mathcal{N}} \|Au\|_2, \qquad \text{对称阵还有 } \|A\| \leq 2\max_{u\in\mathcal{N}}|\langle Au, u\rangle|
+u^\top(\widehat\Sigma-I)u
+=\frac1m\sum_{i=1}^mY_i,\qquad
+Y_i=\langle X_i,u\rangle^2-1.
 \]</div>
-<p><em>证</em>：取达到 <span class="arithmatex">\(\|A\|\)</span> 的 <span class="arithmatex">\(u^*\)</span>，网点 <span class="arithmatex">\(u\)</span> 距其 <span class="arithmatex">\(\leq \frac14\)</span>：<span class="arithmatex">\(\|Au\| \geq \|Au^*\| - \|A\|\cdot\frac14 \geq \frac34\|A\|\)</span>……整理即得（对称版同法用二次型的 Lipschitz 性）。<span class="arithmatex">\(\blacksquare\)</span>
-<strong>模式定型</strong>：<strong>连续 sup ≤ 常数 × 有限 max</strong> + 每个网点用 hdp-01 集中 + union bound 付 <span class="arithmatex">\(e^{Cn}\)</span> 网点数——三件套从此通杀"算子级"的概率界。</p>
-<h2 id="2_1">2. 随机矩阵的谱范数<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<figure class="plot">
-<p><img alt="Wigner 半圆律" src="assets/img/hdp-03-semicircle.svg" /></p>
-<figcaption><span class="fig-id">图 3.1</span>Wigner 半圆律：大随机对称矩阵的特征值分布收敛到半圆——随机矩阵谱的普适规律。</figcaption>
-</figure>
-<p><strong>定理（亚高斯矩阵的算子范数）</strong> <span class="arithmatex">\(A \in \mathbb{R}^{m\times n}\)</span> 元素独立、零均值、亚高斯范数 <span class="arithmatex">\(\leq K\)</span>：以概率 <span class="arithmatex">\(1 - 2e^{-t^2}\)</span>，</p>
+<p>因为 <span class="arithmatex">\(\|Z^2\|_{\psi_1}=\|Z\|_{\psi_2}^2\)</span>，且减均值只增加常数倍尺度，<span class="arithmatex">\(Y_i\)</span> 是中心亚指数量，<span class="arithmatex">\(\|Y_i\|_{\psi_1}\le CK^2\)</span>。Bernstein 不等式给出</p>
 <div class="arithmatex">\[
-\|A\| \;\leq\; CK\big(\sqrt{m} + \sqrt{n} + t\big)
+\mathbb P\!\left\{\left|\frac1m\sum_iY_i\right|&gt;a\right\}
+\le2\exp\!\left[-cm\min\!\left(\frac{a^2}{K^4},\frac a{K^2}\right)\right].
 \]</div>
-<p><strong>【证明】</strong> 三件套执行：取 <span class="arithmatex">\(S^{m-1}, S^{n-1}\)</span> 上的 <span class="arithmatex">\(\frac14\)</span>-网（大小 <span class="arithmatex">\(\leq 9^m, 9^n\)</span>）；固定网点对 <span class="arithmatex">\((u, v)\)</span>：<span class="arithmatex">\(\langle Au, v\rangle = \sum_{ij}A_{ij}u_iv_j\)</span> 是独立亚高斯量的线性组合，<span class="arithmatex">\(\|\cdot\|_{\psi_2} \leq CK\)</span>（hdp-01 的"方差式相加"，权重平方和 <span class="arithmatex">\(= \|u\|^2\|v\|^2 = 1\)</span>）⇒ 尾界 <span class="arithmatex">\(2e^{-cs^2/K^2}\)</span>；union bound 于 <span class="arithmatex">\(9^{m+n}\)</span> 对网点，取 <span class="arithmatex">\(s = CK(\sqrt m + \sqrt n + t)\)</span> 吃掉网点数的指数。双侧离散化引理（<span class="arithmatex">\(\|A\| \leq 2\max\langle Au, v\rangle\)</span> 变体）收尾。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>读法</strong>：对独立、零均值、单位尺度的 <span class="arithmatex">\(m\times n\)</span> 矩形 iid 矩阵，谱范数的典型尺度是 <span class="arithmatex">\(\sqrt m+\sqrt n\)</span>——<strong>元素是 <span class="arithmatex">\(O(1)\)</span> 的、矩阵却只有根号级的算子范数</strong>：随机方向互相抵消，"无结构的噪声没有主方向"。这是高概率尺度，不是一次样本的确定上界；确定性最坏情形仍是 <span class="arithmatex">\(\|A\|\leq\sqrt{mn}\)</span>（全 1 矩阵达到）。</p>
-<p>不要把相邻的三个名字压成一个结论：Bai–Yin/矩形算子范数先服务于 iid 矩形矩阵；Wigner 半圆律要求对称且通常按 <span class="arithmatex">\(1/\sqrt n\)</span> 归一化；Marchenko–Pastur 描述 <span class="arithmatex">\(S=X^\top X/m\)</span> 的样本协方差特征值。归一化一换，数值尺度就要跟着换；一张固定矩阵也不可能单独证明这些高概率或渐近定理。</p>
-<h2 id="3_1">3. 兑现欠条：协方差估计定理<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>定理（hdp-02 §2 的正身）</strong> 亚高斯各向同性，<span class="arithmatex">\(m\)</span> 个样本：以概率 <span class="arithmatex">\(1 - 2e^{-t^2}\)</span>，</p>
+<p>对 <span class="arithmatex">\(9^n\)</span> 个网点取并集，再用对称二次型引理。令 <span class="arithmatex">\(q=n+t^2\)</span>，选择 <span class="arithmatex">\(a=C_0K^2(\sqrt{q/m}+q/m)\)</span>；其平方段与线性段都能使指数至少为常数倍的 <span class="arithmatex">\(q\)</span>。取足够大的 <span class="arithmatex">\(C_0\)</span>，抵消 <span class="arithmatex">\(n\log9\)</span> 后得到</p>
 <div class="arithmatex">\[
-\|\hat\Sigma - I\|_{\mathrm{op}} \leq CK^2\Big(\sqrt{\frac{n + t^2}{m}} + \frac{n + t^2}{m}\Big)
+\mathbb P\!\left\{
+\|\widehat\Sigma-I\|&gt;
+CK^2\left(\sqrt{\frac{n+t^2}{m}}+\frac{n+t^2}{m}\right)
+\right\}\le2e^{-t^2}.
 \]</div>
-<p>因此在 <span class="arithmatex">\(0&lt;\varepsilon\le1\)</span>、<span class="arithmatex">\(K\ge1\)</span> 的常用归一化下，一个清楚的充分条件是</p>
+<p>要使误差至多 <span class="arithmatex">\(\varepsilon\in(0,1]\)</span>、失败概率至多 <span class="arithmatex">\(\delta\in(0,1)\)</span>，取 <span class="arithmatex">\(t^2=\log(2/\delta)\)</span>。一个充分样本量是</p>
 <div class="arithmatex">\[
-m\gtrsim K^4\varepsilon^{-2}(n+t^2),
+m\ge C'K^4\varepsilon^{-2}\big(n+\log(2/\delta)\big).
 \]</div>
-<p>此时两项都不超过常数倍的 <span class="arithmatex">\(\varepsilon\)</span>。省略 <span class="arithmatex">\(K^4\)</span> 只有在把亚高斯范数 <span class="arithmatex">\(K\)</span> 当作固定常数时才合法。
-<strong>【骨架】</strong> 对称版三件套：<span class="arithmatex">\(\langle(\hat\Sigma - I)u, u\rangle = \frac1m\sum_i\big(\langle X_i, u\rangle^2 - 1\big)\)</span>——独立零均值<strong>亚指数</strong>量（亚高斯的平方！hdp-01 §2 的那句话正是为此准备）的均值 ⇒ Bernstein 双段尾；union bound 于 <span class="arithmatex">\(9^n\)</span> 网点：小偏差段给 <span class="arithmatex">\(\sqrt{n/m}\)</span>、大偏差段给 <span class="arithmatex">\(n/m\)</span>，恰是定理的两项。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>读法</strong>：当尾部尺度 <span class="arithmatex">\(K=O(1)\)</span> 时，<strong>"样本 ≈ 维数"</strong>即可得到常数级谱误差；若要误差 <span class="arithmatex">\(\varepsilon\)</span>，则还要付 <span class="arithmatex">\(\varepsilon^{-2}\)</span>，重尾程度则通过 <span class="arithmatex">\(K^4\)</span> 定价。两项结构 = Bernstein 的高斯/指数双段在样本量上的投影（<span class="arithmatex">\(m \gg n\)</span> 时根号项主导——渐近统计的 <span class="arithmatex">\(\sqrt{n/m}\)</span> 速率；<span class="arithmatex">\(m \sim n\)</span> 时线性项显形——高维修正）。🔗 PCA 的样本量依据、高维回归 <span class="arithmatex">\((X^\top X)\)</span> 的条件保障、以及"embedding 空间协方差白化要多少数据"全部由此定价。</p>
-<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（网技术的手感）</strong> 用 §1 双引理证明：对称随机符号矩阵（元素 ±1）<span class="arithmatex">\(\|A\| \leq C\sqrt n\)</span> w.h.p.——按三件套写全每一步（这是本页的标准自测题：三步能独立写出，ε-网就学会了）。</p>
-<p><strong>例 2（数值对账）</strong> 模拟 <span class="arithmatex">\(1000\times1000\)</span> 标准高斯矩阵：<span class="arithmatex">\(\|A\| \approx 2\sqrt{1000} \approx 63\)</span>（Bai–Yin）；定理的常数 <span class="arithmatex">\(C\)</span> 给的是同阶上界——<strong>理论管阶、模拟定常数</strong>，两者互为 verify（你的实验习惯在此有理论座位）。</p>
-<p><strong>例 3（各向异性推广）</strong> 一般协方差 <span class="arithmatex">\(\Sigma\)</span>：白化后套定理得 <span class="arithmatex">\(\|\hat\Sigma - \Sigma\|_{\mathrm{op}} \leq \varepsilon\|\Sigma\|_{\mathrm{op}}\)</span>（相对误差版）——实际数据不各向同性时的正确引用姿势（直接搬绝对误差版是常见误用）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：当"方向族"不再是球面而是任意函数类——chaining 与 Dudley 熵积分：一致大数定律的现代引擎，通往统计学习理论的桥。</em></p>
+<p>根号项和线性项必须同时检查。将 <span class="arithmatex">\(K\)</span> 当作固定常数时才可省略 <span class="arithmatex">\(K^4\)</span>；“样本量约等于维数”仅表示常数误差、固定置信度和固定尾部尺度。</p>
+<p>这个误差控制所有单位方向上的方差。若 <span class="arithmatex">\(\varepsilon&lt;1\)</span>，<span class="arithmatex">\(\widehat\Sigma\)</span> 的特征值位于 <span class="arithmatex">\([1-\varepsilon,1+\varepsilon]\)</span>，于是可逆，条件数至多 <span class="arithmatex">\((1+\varepsilon)/(1-\varepsilon)\)</span>。要进一步保证 PCA 的特征向量准确，还需要总体特征值之间的间隙；方差接近不等于每个主方向可辨识。</p>
+<h2 id="5">5. 四道迁移题：能否自己完成关键推理<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<details class="exercise">
+<summary>1 · 对称随机符号矩阵为什么仍有根号级范数？</summary>
+<p>设上三角（含对角）的 <span class="arithmatex">\(\xi_{ij}\)</span> 独立、等概率取 <span class="arithmatex">\(\pm1\)</span>，并令 <span class="arithmatex">\(A_{ji}=A_{ij}\)</span>。整张矩阵的所有条目并不独立，不能直接套矩形条目定理。固定单位向量 <span class="arithmatex">\(u\)</span>，</p>
+<div class="arithmatex">\[
+u^\top Au=\sum_i\xi_{ii}u_i^2+
+2\sum_{i&lt;j}\xi_{ij}u_iu_j.
+\]</div>
+<p>这是独立符号的加权和。权重平方和</p>
+<div class="arithmatex">\[
+\sum_i u_i^4+4\sum_{i&lt;j}u_i^2u_j^2
+=2-\sum_i u_i^4\le2.
+\]</div>
+<p>由 <span class="arithmatex">\(\cosh z\le e^{z^2/2}\)</span>，其矩母函数至多 <span class="arithmatex">\(e^{\lambda^2}\)</span>，Chernoff 优化给双侧尾界 <span class="arithmatex">\(2e^{-s^2/4}\)</span>。在 <span class="arithmatex">\(1/4\)</span>-网的至多 <span class="arithmatex">\(9^n\)</span> 个点取并集，再乘二次型引理的常数 2，可得</p>
+<div class="arithmatex">\[
+\mathbb P\{\|A\|&gt;4\sqrt{n\log9+t^2}\}\le2e^{-t^2}.
+\]</div>
+<p>这里的独立对象是上三角变量，非整个对称矩阵的所有位置。</p>
+</details>
+<details class="exercise">
+<summary>2 · 为什么把所有坐标平面都扫得很密仍不够？</summary>
+<p>在 <span class="arithmatex">\(\mathbb R^4\)</span> 取 <span class="arithmatex">\(w=(1,1,1,1)/2\)</span>。任意至多两个非零坐标的单位向量 <span class="arithmatex">\(v\)</span>，由 Cauchy–Schwarz，</p>
+<div class="arithmatex">\[
+\langle w,v\rangle\le\frac{\sqrt2}{2},
+\qquad
+\|w-v\|^2=2-2\langle w,v\rangle\ge2-\sqrt2.
+\]</div>
+<p>所以无论每个坐标平面的角度多密，覆盖半径都不可能小于 <span class="arithmatex">\(\sqrt{2-\sqrt2}\approx0.765367\)</span>。</p>
+<p>取 <span class="arithmatex">\(A\)</span> 第一行为 <span class="arithmatex">\(w^\top\)</span>、第二行为零，则 <span class="arithmatex">\(\|A\|=1\)</span>；在所有二稀疏方向上的最大读数仅为 <span class="arithmatex">\(1/\sqrt2\)</span>。实验“方向遗漏”的 15° 网包含 45°，因此已经达到这个受限最大值，继续加密也无法补上缺失的维度。</p>
+</details>
+<details class="exercise">
+<summary>3 · 零残差为何不能给算法验收盖章？</summary>
+<p>取 <span class="arithmatex">\(A=\operatorname{diag}(1,2)\)</span>，于是 <span class="arithmatex">\(T=A^\top A=\operatorname{diag}(1,4)\)</span>。从 <span class="arithmatex">\(v_0=e_1\)</span> 开始，<span class="arithmatex">\(Tv_0=e_1\)</span>，每一步归一化后还是 <span class="arithmatex">\(e_1\)</span>。Rayleigh 商为 1、残差为 0、范数下界为 1，而 <span class="arithmatex">\(\|A\|=2\)</span>。</p>
+<p>若 <span class="arithmatex">\(v_0=c_1e_1+c_2e_2\)</span> 且 <span class="arithmatex">\(c_2\ne0\)</span>，则 <span class="arithmatex">\(T^kv_0=c_1e_1+4^kc_2e_2\)</span>，归一化方向才会趋向 <span class="arithmatex">\(e_2\)</span>。谱间隙和初始向量对最大特征空间的非零投影，都是收敛判断的一部分。</p>
+<p>换到“方向遗漏”，以 <span class="arithmatex">\((1,-1,0,0)/\sqrt2\)</span> 开始，第一步的像为零；正确行为是明确停止，而非把未定义的归一化继续画成一条曲线。</p>
+</details>
+<details class="exercise">
+<summary>4 · 一般协方差怎样白化，奇异时怎么办？</summary>
+<p>设 <span class="arithmatex">\(\Sigma=\mathbb EXX^\top\)</span> 且 <span class="arithmatex">\(\mathbb EX=0\)</span>。若 <span class="arithmatex">\(\Sigma\)</span> 正定，令 <span class="arithmatex">\(Z=\Sigma^{-1/2}X\)</span>。除各向同性之外，还须假设白化后的方向尾部受控，例如</p>
+<div class="arithmatex">\[
+\|\langle X,u\rangle\|_{\psi_2}
+\le K\sqrt{u^\top\Sigma u}\quad\text{对所有 }u.
+\]</div>
+<p>于是 <span class="arithmatex">\(\|\langle Z,v\rangle\|_{\psi_2}\le K\|v\|\)</span>。样本满足</p>
+<div class="arithmatex">\[
+\widehat\Sigma-\Sigma
+=\Sigma^{1/2}(\widehat\Sigma_Z-I)\Sigma^{1/2},
+\qquad
+\|\widehat\Sigma-\Sigma\|
+\le\|\Sigma\|\|\widehat\Sigma_Z-I\|.
+\]</div>
+<p>若 <span class="arithmatex">\(\Sigma\)</span> 秩为 <span class="arithmatex">\(r&lt;n\)</span>，对任意核向量 <span class="arithmatex">\(u\)</span>，<span class="arithmatex">\(\mathbb E\langle X,u\rangle^2=0\)</span>，故 <span class="arithmatex">\(\langle X,u\rangle=0\)</span> 几乎处处。用核的一组有限基可知 <span class="arithmatex">\(X\)</span> 几乎处处落在 <span class="arithmatex">\(\Sigma\)</span> 的像空间。在该 <span class="arithmatex">\(r\)</span> 维空间白化并套定理即可；维数可用 <span class="arithmatex">\(r\)</span>，不需要对零特征值求逆。</p>
+<p>仅知道各坐标亚高斯，或直接用未白化的 <span class="arithmatex">\(K\)</span>，不能自动得到上述相对误差结论。
+</details></p>
+<h2 id="6">6. 下一次遇到算子界时怎么用<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>先写清要控制的连续方向族；再给出覆盖半径，而不只列出采样数量；然后针对固定方向证明尾界，用网点数量的对数支付并集代价，最后把离散控制送回连续对象。协方差、PCA 和随机嵌入都可复用这条推理链。下一页的 chaining 会处理更一般的方向族，并讨论为什么单一尺度的网可能浪费几何信息。</p>
+<p>本页网引理、亚高斯矩阵与协方差证明可对照 Vershynin 的 <a href="https://www.math.uci.edu/~rvershyn/papers/HDP-book/HDP-2.pdf">High-Dimensional Probability 第二版 §4.2、§4.4、§4.7</a>。半圆律与谱边缘的区别可继续阅读 Tao 的 <a href="https://terrytao.wordpress.com/wp-content/uploads/2011/08/matrix-book.pdf">Topics in Random Matrix Theory §2.3–2.4</a>。本页二维覆盖和两个反例均已给出独立推导，实验承担复算与诊断用途。</p>
+</details>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="hdp-02-random-vectors.html"><span class="pager-label">上一页</span>高维概率 II · 随机向量与降维</a>
