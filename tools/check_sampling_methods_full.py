@@ -218,8 +218,44 @@ if len(sys.argv)==1:
  panels=ET.parse(image).getroot().findall('.//{http://www.w3.org/2000/svg}svg');ck(len(panels)==4,'four static panels')
  code="const a=require(process.argv[1]);console.log(JSON.stringify([a.plots(a.snapshot({mode:'integration'}))[3],a.plots(a.snapshot({}))[2],a.plots(a.snapshot({proposal:.9}))[3],a.plots(a.snapshot({mode:'ensemble'}))[0]].map(a.svg)))"
  expected=json.loads(subprocess.check_output(PREFIX+['node','-e',code,str(JS.resolve())],text=True))
- for p,s in zip(panels,expected):
-  e=ET.fromstring(s);p.attrib.pop('x');p.attrib.pop('y');ck(ET.tostring(p)==ET.tostring(e),'static panel exact')
+ # Math transcendental results can differ by a few ulps across Node/CPU builds.
+ # Compare every SVG node and attribute, allowing only sub-nanopixel geometry
+ # differences. Text, labels, series identities and point counts remain exact.
+ def compare_svg(a,b,path='svg'):
+  ck(a.tag==b.tag and set(a.attrib)==set(b.attrib),('static structure',path))
+  ck(a.text==b.text and a.tail==b.tail,('static text',path,a.text,b.text))
+  for key,v in a.attrib.items():
+   w=b.attrib[key]
+   if key in {'x','y','x1','x2','y1','y2','cx','cy','r','width','height'}:
+    close(float(v),float(w),('static coordinate',path,key),rtol=0,atol=1e-9)
+   elif key in {'points','d'}:
+    pattern=r'[-+]?(?:\d*\.\d+|\d+\.?\d*)(?:[eE][-+]?\d+)?'
+    ck(re.sub(pattern,'#',v)==re.sub(pattern,'#',w),('static geometry syntax',path,key))
+    av=re.findall(pattern,v);bv=re.findall(pattern,w)
+    ck(len(av)==len(bv),('static geometry length',path,key))
+    for j,(x,y) in enumerate(zip(av,bv)):
+     close(float(x),float(y),('static geometry value',path,key,j),rtol=0,atol=1e-9)
+   else:ck(v==w,('static attribute',path,key,v,w))
+  ck(len(a)==len(b),('static child count',path))
+  for j,(x,y) in enumerate(zip(a,b)):compare_svg(x,y,path+'/'+str(j))
+ for i,(p,s) in enumerate(zip(panels,expected)):
+  e=ET.fromstring(s);p.attrib.pop('x');p.attrib.pop('y')
+  compare_svg(p,e,'panel'+str(i))
+ # The comparator must accept an ulp-scale coordinate change and reject
+ # substantive geometry, missing points, or an altered instructional label.
+ original=ET.fromstring('<svg><text x="10">target</text><polyline points="1,2 3,4"/></svg>')
+ tiny=ET.fromstring(ET.tostring(original));tiny[0].set('x','10.000000000000002');compare_svg(original,tiny)
+ for mutation in ['coordinate','point','label','attribute','node']:
+  changed=ET.fromstring(ET.tostring(original))
+  if mutation=='coordinate':changed[0].set('x','10.000001')
+  elif mutation=='point':changed[1].set('points','1,2')
+  elif mutation=='label':changed[0].text='wrong target'
+  elif mutation=='attribute':changed[1].set('stroke','red')
+  else:changed.remove(changed[1])
+  rejected=False
+  try:compare_svg(original,changed)
+  except AssertionError:rejected=True
+  ck(rejected,('static comparator negative control',mutation))
  table=re.search(r'data-learning-lab="monte-carlo-md".*?<tbody>(.*?)</tbody>',site,re.S).group(1)
  vals=[float(html.unescape(x))for x in re.findall(r'<tr>\s*<td>.*?</td>\s*<td[^>]*>(.*?)</td>\s*</tr>',table,re.S)]
  t=data['states'][0]['result'];th=t['theory']
