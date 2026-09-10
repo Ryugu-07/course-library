@@ -1,1105 +1,197 @@
-(function () {
-  "use strict";
-
-  if (
-    typeof window === "undefined" ||
-    !window.CourseLearning ||
-    typeof window.CourseLearning.register !== "function"
-  ) {
-    return;
+(function(root,factory){"use strict";var api=factory();if(typeof module==="object"&&module.exports)module.exports=api;if(root&&root.CourseLearning)root.CourseLearning.register("schwarzschild-orbits",api.mount);})(typeof window!=="undefined"?window:null,function(){
+"use strict";
+var MODES=Object.freeze({potential:"类时：全外部有效势与根",photon:"光子：捕获、临界与散射",precession:"束缚轨道：精确进动与弱场近似"});
+var LEVELS=Object.freeze({manual:"手动K",stable:"加载外支稳定圆轨道能量",unstable:"加载内支不稳定圆轨道能量",isco:"精确ISCO（要求q=12）"});
+var DEFAULTS=Object.freeze({mode:"potential",q:16,K:-.0246875,level:"manual",beta:1.2,p:10,e:.3});
+function finite(x,lo,hi,key){if(typeof x!=="number"||!Number.isFinite(x)||x<lo||x>hi)throw RangeError(key+" must be in ["+lo+","+hi+"]");return x;}
+function config(o){if(!o||typeof o!=="object"||Array.isArray(o))throw TypeError("config object required");var c=Object.assign({},DEFAULTS,o);if(typeof c.mode!=="string"||!Object.hasOwn(MODES,c.mode))throw RangeError("mode");if(typeof c.level!=="string"||!Object.hasOwn(LEVELS,c.level))throw RangeError("level");finite(c.q,0,100,"q");finite(c.K,-.12,.2,"K");if(c.K!==0&&Math.abs(c.K)<1e-12)throw RangeError("K must be zero or have magnitude at least 1e-12");finite(c.beta,0,4,"beta");finite(c.p,6,1e8,"p");finite(c.e,0,.9,"e");if(c.mode==="potential"){if(c.level==="isco"&&c.q!==12)throw RangeError("exact ISCO requires q=12");if(["stable","unstable"].includes(c.level)&&c.q<=12)throw RangeError("two circular branches require q>12");}if(c.mode==="precession"&&c.p<6+2*c.e+.02)throw RangeError("this model requires p >= 6+2e+0.02");return c;}
+function unique(xs){return Array.from(new Set(xs)).sort(function(a,b){return a-b;});}
+function potential(u,q){return u*(q*u*(.5-u)-1);}
+function radial(u,q,K){return 2*K+u*(2+q*u*(2*u-1));}
+function circular(q){
+ finite(q,0,100,"q");if(q<12)return[];
+ function row(u,type){var r=1/u,K=potential(u,q);return{u:u,r:r,type:type,K:K,E:Math.sqrt(1+2*K),second:(r-6)/(r*r*r*(r-3))};}
+ if(q===12)return[row(1/6,"ISCO")];
+ var w=Math.sqrt(1-12/q);return[row((1+w)/6,"不稳定"),row(2/(q*(1+w)),"稳定")];
+}
+function bisect(fn,a,b){var fa=fn(a),fb=fn(b);if(fa===0)return a;if(fb===0)return b;if(!(fa*fb<0))throw Error("not bracketed");for(var i=0;i<120;i++){var m=a+(b-a)/2;if(m===a||m===b)return m;var fm=fn(m);if(fm===0)return m;if((fm>0)===(fa>0)){a=m;fa=fm;}else b=m;}return a+(b-a)/2;}
+function intervals(fn,roots){var cuts=unique([0,.5].concat(roots.map(function(r){return r.u;}))),out=[];for(var i=0;i<cuts.length-1;i++){var a=cuts[i],b=cuts[i+1];if(fn((a+b)/2)>0)out.push({uMin:a,uMax:b,rMin:1/b,rMax:a===0?null:1/a});}return out;}
+function timelike(o){
+ if(o!==undefined&&(!o||typeof o!=="object"||Array.isArray(o)))throw TypeError("config object required");
+ var c=config(Object.assign({},o,{mode:"potential"})),orbits=circular(c.q),q=c.q,K=c.K,rootRows=[],status="resolved",reason="",critical=null,fn;
+ if(c.level!=="manual"){
+  critical=c.level==="isco"?orbits[0]:orbits[c.level==="stable"?1:0];K=critical.K;
+  var u0=critical.u,other=.5-2*u0;
+  if(c.level==="isco"){fn=function(u){return 24*Math.pow(u-1/6,3);};rootRows=[{u:1/6,r:6,multiplicity:3,kind:"临界圆轨道；非普通反弹点"}];}
+  else{
+   fn=function(u){return 2*q*(u-u0)*(u-u0)*(u-other);};
+   rootRows=[{u:u0,r:1/u0,multiplicity:2,kind:c.level==="stable"?"孤立稳定圆轨道":"不稳定圆轨道；渐近端点"}];
+   if(other>0&&other<.5)rootRows.push({u:other,r:1/other,multiplicity:1,kind:"普通转向点"});
   }
-
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var EPSILON = 1e-7;
-  var ROOT_TOLERANCE = 1e-9;
-  var ALLOWED_TOLERANCE = 2e-7;
-  var PLOT_MIN = 2;
-  var SAMPLE_MIN = 2.0001;
-  var DEFAULT_PRESET = "bound";
-  var SERIAL = 0;
-  var VIEW = {
-    width: 900,
-    height: 510,
-    left: 74,
-    right: 34,
-    top: 42,
-    bottom: 72
-  };
-  var PLOT_WIDTH = VIEW.width - VIEW.left - VIEW.right;
-  var PLOT_HEIGHT = VIEW.height - VIEW.top - VIEW.bottom;
-  var PRESET_ORDER = ["noBarrier", "isco", "bound", "highAngular"];
-  var PRESETS = {
-    noBarrier: {
-      label: "无势垒",
-      ell: 2.5,
-      energy: 1.05,
-      note: "ℓ²<12：没有圆轨道极值。"
-    },
-    isco: {
-      label: "ISCO",
-      ell: Math.sqrt(12),
-      energy: Math.sqrt(8 / 9),
-      note: "ℓ²=12：两支在 r=6 合并，边缘稳定。"
-    },
-    bound: {
-      label: "束缚轨道",
-      ell: 4,
-      energy: 0.975,
-      note: "ℓ²=16：外支稳定势阱与有限允许区。"
-    },
-    highAngular: {
-      label: "高角动量",
-      ell: 6.5,
-      energy: 1.02,
-      note: "ℓ²=42.25：r−=3.25、r+=39。"
-    }
-  };
-
-  function setAttributes(node, attrs) {
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", String(value));
-      else if (key === "htmlFor") node.setAttribute("for", String(value));
-      else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, String(value));
-    });
-    return node;
+ }else{
+  fn=function(u){return radial(u,q,K);};
+  // Close-to-critical inputs are retained and plotted, but no uncertified root classification is emitted.
+  var unresolved=orbits.filter(function(r){return Math.abs(K-r.K)<=64*Number.EPSILON*Math.max(1,Math.abs(K),Math.abs(r.K));});
+  if(unresolved.length){status="unresolved";reason="手动能量距圆轨道阈值低于此双精度分类的分辨率；请选择明确圆轨道模型或改变K。";}
+  else{
+   var cuts=unique([0,.5].concat(orbits.map(function(r){return r.u;})));
+   for(var i=0;i<cuts.length-1;i++){var a=cuts[i],b=cuts[i+1],fa=fn(a),fb=fn(b);if(fa*fb<0){var u=bisect(fn,a,b);rootRows.push({u:u,r:1/u,multiplicity:1,kind:"普通转向点"});}}
   }
-
-  function appendChildren(node, children, doc) {
-    if (children === undefined || children === null) return node;
-    (Array.isArray(children) ? children : [children]).forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child && child.nodeType ? child : doc.createTextNode(String(child)));
-    });
-    return node;
-  }
-
-  function makeElement(doc, tag, attrs, children) {
-    return appendChildren(setAttributes(doc.createElement(tag), attrs), children, doc);
-  }
-
-  function makeSvg(doc, tag, attrs, children) {
-    return appendChildren(
-      setAttributes(doc.createElementNS(SVG_NS, tag), attrs),
-      children,
-      doc
-    );
-  }
-
-  function clear(node) {
-    if (!node) return;
-    if (typeof node.replaceChildren === "function") {
-      node.replaceChildren();
-      return;
-    }
-    while (node.firstChild) node.removeChild(node.firstChild);
-  }
-
-  function number(value, fallback) {
-    var parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  }
-
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-  }
-
-  function formatNumber(api, value, digits) {
-    if (api && typeof api.format === "function") return api.format(value, digits);
-    if (!Number.isFinite(value)) return "−";
-    var places = digits === undefined ? 3 : digits;
-    var text = value.toFixed(places);
-    if (text.indexOf(".") >= 0) {
-      text = text.replace(/0+$/, "").replace(/\.$/, "");
-    }
-    return text === "-0" ? "0" : text;
-  }
-
-  function potential(r, ellSquared) {
-    return -1 / r + ellSquared / (2 * r * r) - ellSquared / (r * r * r);
-  }
-
-  function circularEnergy(r) {
-    var denominator = 1 - 3 / r;
-    if (denominator <= 0) return NaN;
-    return Math.sqrt(((1 - 2 / r) * (1 - 2 / r)) / denominator);
-  }
-
-  function secondDerivative(r, ellSquared) {
-    return -2 / (r * r * r) +
-      3 * ellSquared / (r * r * r * r) -
-      12 * ellSquared / (r * r * r * r * r);
-  }
-
-  function circularOrbits(ell) {
-    var ellSquared = ell * ell;
-    if (ellSquared < 12 - EPSILON) return [];
-    var discriminant = Math.max(0, ellSquared * (ellSquared - 12));
-    var separation = Math.sqrt(discriminant);
-    if (Math.abs(ellSquared - 12) <= EPSILON) {
-      return [{
-        r: 6,
-        label: "ISCO",
-        type: "isco",
-        stability: "marginal",
-        energy: Math.sqrt(8 / 9),
-        level: potential(6, ellSquared),
-        curvature: secondDerivative(6, ellSquared)
-      }];
-    }
-    var inner = (ellSquared - separation) / 2;
-    var outer = (ellSquared + separation) / 2;
-    return [
-      {
-        r: inner,
-        label: "r−",
-        type: "unstable",
-        stability: "不稳定",
-        energy: circularEnergy(inner),
-        level: potential(inner, ellSquared),
-        curvature: secondDerivative(inner, ellSquared)
-      },
-      {
-        r: outer,
-        label: "r+",
-        type: "stable",
-        stability: "稳定",
-        energy: circularEnergy(outer),
-        level: potential(outer, ellSquared),
-        curvature: secondDerivative(outer, ellSquared)
-      }
-    ];
-  }
-
-  function radialGap(r, ellSquared, level) {
-    return level - potential(r, ellSquared);
-  }
-
-  function uniqueSorted(values) {
-    var result = [];
-    values
-      .filter(function (value) { return Number.isFinite(value); })
-      .sort(function (left, right) { return left - right; })
-      .forEach(function (value) {
-        if (!result.length || Math.abs(value - result[result.length - 1]) > 2e-5) {
-          result.push(value);
-        }
-      });
-    return result;
-  }
-
-  function bisectRoot(left, right, leftValue, rightValue, ellSquared, level) {
-    var a = left;
-    var b = right;
-    var fa = leftValue;
-    var fb = rightValue;
-    for (var iteration = 0; iteration < 90; iteration += 1) {
-      var middle = (a + b) / 2;
-      var fm = radialGap(middle, ellSquared, level);
-      if (fm === 0 || Math.abs(b - a) <= 1e-9) {
-        return middle;
-      }
-      if (fa * fm <= 0) {
-        b = middle;
-        fb = fm;
-      } else {
-        a = middle;
-        fa = fm;
-      }
-    }
-    return (a + b) / 2;
-  }
-
-  function findTurningPoints(ell, level, domainMax, orbits) {
-    var ellSquared = ell * ell;
-    var cuts = [SAMPLE_MIN, domainMax];
-    orbits.forEach(function (orbit) {
-      if (orbit.r > SAMPLE_MIN && orbit.r < domainMax) cuts.push(orbit.r);
-    });
-    cuts = uniqueSorted(cuts);
-    var roots = [];
-
-    function addRoot(value) {
-      if (value > SAMPLE_MIN - 1e-6 && value < domainMax + 1e-6) {
-        roots.push(clamp(value, SAMPLE_MIN, domainMax));
-      }
-    }
-
-    for (var index = 0; index < cuts.length - 1; index += 1) {
-      var left = cuts[index];
-      var right = cuts[index + 1];
-      var leftValue = radialGap(left, ellSquared, level);
-      var rightValue = radialGap(right, ellSquared, level);
-      var leftIsRoot = Math.abs(leftValue) <= ROOT_TOLERANCE;
-      var rightIsRoot = Math.abs(rightValue) <= ROOT_TOLERANCE;
-      if (leftIsRoot) addRoot(left);
-      if (rightIsRoot) addRoot(right);
-      if (!leftIsRoot && !rightIsRoot && leftValue * rightValue < 0) {
-        addRoot(bisectRoot(left, right, leftValue, rightValue, ellSquared, level));
-      }
-    }
-    return uniqueSorted(roots);
-  }
-
-  function domainMaximum(level, orbits) {
-    var maximum = 24;
-    if (orbits.length) {
-      maximum = Math.max(maximum, orbits[orbits.length - 1].r * 1.18);
-    }
-    if (level < -0.004) {
-      maximum = Math.max(maximum, Math.min(72, 1.3 / Math.abs(level)));
-    }
-    return clamp(maximum, 24, 72);
-  }
-
-  function allowedIntervals(ell, level, domainMax, roots) {
-    var ellSquared = ell * ell;
-    var bounds = [SAMPLE_MIN].concat(roots, [domainMax]);
-    var intervals = [];
-    for (var index = 0; index < bounds.length - 1; index += 1) {
-      var left = bounds[index];
-      var right = bounds[index + 1];
-      if (right - left < 1e-5) continue;
-      var middle = (left + right) / 2;
-      if (radialGap(middle, ellSquared, level) >= -ALLOWED_TOLERANCE) {
-        intervals.push({ left: left, right: right });
-      }
-    }
-    return intervals;
-  }
-
-  function intervalText(api, interval, domainMax) {
-    var left = interval.left <= SAMPLE_MIN + 0.001
-      ? "2+"
-      : formatNumber(api, interval.left, 3);
-    var right = interval.right >= domainMax - 0.001
-      ? formatNumber(api, domainMax, 2) + "（图窗边界）"
-      : formatNumber(api, interval.right, 3);
-    return "[" + left + ", " + right + "]";
-  }
-
-  function niceStep(range, count) {
-    var raw = range / count;
-    if (!(raw > 0)) return 1;
-    var power = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10));
-    var fraction = raw / power;
-    var unit = fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 5 ? 5 : 10;
-    return unit * power;
-  }
-
-  function ticks(minimum, maximum, count) {
-    var step = niceStep(maximum - minimum, count);
-    var first = Math.ceil(minimum / step - 1e-9) * step;
-    var values = [];
-    for (var value = first; value <= maximum + step * 0.25 && values.length < 40; value += step) {
-      values.push(Math.abs(value) < step * 1e-8 ? 0 : value);
-    }
-    return values;
-  }
-
-  function xScale(r, domainMax) {
-    return VIEW.left + (r - PLOT_MIN) / (domainMax - PLOT_MIN) * PLOT_WIDTH;
-  }
-
-  function yScale(value, yDomain) {
-    return VIEW.top + (yDomain.maximum - value) /
-      (yDomain.maximum - yDomain.minimum) * PLOT_HEIGHT;
-  }
-
-  function pathFor(values, domainMax, yDomain) {
-    var pieces = [];
-    values.forEach(function (item, index) {
-      pieces.push((index ? "L" : "M") + xScale(item.r, domainMax).toFixed(2) + "," +
-        yScale(item.value, yDomain).toFixed(2));
-    });
-    return pieces.join(" ");
-  }
-
-  function derive(state) {
-    var ellSquared = state.ell * state.ell;
-    var level = (state.energy * state.energy - 1) / 2;
-    var orbits = circularOrbits(state.ell);
-    var domainMax = domainMaximum(level, orbits);
-    var turningPoints = findTurningPoints(state.ell, level, domainMax, orbits);
-    var intervals = allowedIntervals(state.ell, level, domainMax, turningPoints);
-    var samples = [];
-    var minimum = Math.min(0, level);
-    var maximum = Math.max(0, level);
-    var sampleCount = 560;
-    for (var index = 0; index <= sampleCount; index += 1) {
-      var r = SAMPLE_MIN + (domainMax - SAMPLE_MIN) * index / sampleCount;
-      var value = potential(r, ellSquared);
-      samples.push({ r: r, value: value });
-      minimum = Math.min(minimum, value);
-      maximum = Math.max(maximum, value);
-    }
-    orbits.forEach(function (orbit) {
-      minimum = Math.min(minimum, orbit.level);
-      maximum = Math.max(maximum, orbit.level);
-    });
-    var padding = Math.max(0.035, (maximum - minimum) * 0.13);
-    var yDomain = {
-      minimum: minimum - padding,
-      maximum: maximum + padding
-    };
-    var shape;
-    if (ellSquared < 12 - EPSILON) {
-      shape = "无势垒：ℓ²<12 时没有圆轨道极值。";
-    } else if (Math.abs(ellSquared - 12) <= EPSILON) {
-      shape = "临界势形：r=6 为 ISCO，二阶曲率为 0。";
-    } else {
-      shape = "有势垒：r− 为不稳定极大值，r+ 为稳定极小值。";
-    }
-    return {
-      ellSquared: ellSquared,
-      level: level,
-      orbits: orbits,
-      domainMax: domainMax,
-      turningPoints: turningPoints,
-      intervals: intervals,
-      samples: samples,
-      yDomain: yDomain,
-      shape: shape
-    };
-  }
-
-  function injectStyles(doc) {
-    if (doc.querySelector && doc.querySelector("style[data-cl-schwarzschild-style]")) return;
-    var style = doc.createElement("style");
-    style.setAttribute("data-cl-schwarzschild-style", "true");
-    style.textContent = [
-      ".cl-schwarzschild-lab { --sch-bg: var(--bg, #fffdf8); --sch-panel: var(--block-bg, #f2f5f7); --sch-fg: var(--fg, #222b33); --sch-muted: var(--fg-soft, #586572); --sch-border: var(--border, #c9d2da); --sch-accent: var(--cl-blue, #1f5f96); --sch-energy: #a85b00; --sch-stable: #147a4b; --sch-unstable: #b4382e; --sch-reference: #714a99; --sch-allowed: #9bc9a6; color: var(--sch-fg); background: var(--sch-bg); font-size: .95em; line-height: 1.5; max-width: 100%; }",
-      "html[data-theme=\"dark\"] .cl-schwarzschild-lab { --sch-bg: #111820; --sch-panel: #1c2731; --sch-fg: #edf3f8; --sch-muted: #b6c3ce; --sch-border: #526272; --sch-accent: #8bc8ff; --sch-energy: #ffc26b; --sch-stable: #78d39d; --sch-unstable: #ff9287; --sch-reference: #d6a9ff; --sch-allowed: #316342; }",
-      ".cl-schwarzschild-lab *, .cl-schwarzschild-lab *::before, .cl-schwarzschild-lab *::after { box-sizing: border-box; }",
-      ".cl-schwarzschild-heading { margin: 0 0 .25rem; color: var(--sch-accent); font-size: 1.25rem; }",
-      ".cl-schwarzschild-intro, .cl-schwarzschild-note, .cl-schwarzschild-status, .cl-schwarzschild-small { color: var(--sch-muted); }",
-      ".cl-schwarzschild-intro { margin: 0 0 1rem; }",
-      ".cl-schwarzschild-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-items: start; width: 100%; }",
-      ".cl-schwarzschild-controls { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; min-width: 0; width: 100%; }",
-      ".cl-schwarzschild-controls > * { min-width: 0; }",
-      ".cl-schwarzschild-fieldset { min-width: 0; margin: 0; padding: 12px; border: 1px solid var(--sch-border); border-radius: 7px; background: var(--sch-panel); }",
-      ".cl-schwarzschild-fieldset legend { max-width: 100%; padding: 0 5px; color: var(--sch-muted); font-weight: 700; }",
-      ".cl-schwarzschild-preset-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }",
-      ".cl-schwarzschild-action-row { display: grid; gap: 8px; align-content: start; }",
-      ".cl-schwarzschild-button, .cl-schwarzschild-select { min-width: 0; min-height: 44px; padding: 8px 10px; border: 1px solid var(--sch-border); border-radius: 6px; background: var(--sch-bg); color: inherit; cursor: pointer; font: inherit; line-height: 1.3; overflow-wrap: anywhere; }",
-      ".cl-schwarzschild-button:hover:not(:disabled), .cl-schwarzschild-select:hover { border-color: var(--sch-accent); }",
-      ".cl-schwarzschild-button[aria-pressed=\"true\"], .cl-schwarzschild-primary { border-color: var(--sch-accent); background: var(--sch-accent); color: var(--sch-bg); font-weight: 750; }",
-      ".cl-schwarzschild-button:focus-visible, .cl-schwarzschild-select:focus-visible, .cl-schwarzschild-range:focus-visible { outline: 3px solid var(--cl-focus, #1769aa); outline-offset: 2px; }",
-      ".cl-schwarzschild-button:disabled { cursor: not-allowed; opacity: .55; }",
-      ".cl-schwarzschild-field { display: grid; gap: 5px; margin-top: 10px; }",
-      ".cl-schwarzschild-field:first-child { margin-top: 0; }",
-      ".cl-schwarzschild-field-caption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 7px; color: var(--sch-muted); font-size: .9em; font-weight: 700; }",
-      ".cl-schwarzschild-output { color: var(--sch-accent); font-variant-numeric: tabular-nums; }",
-      ".cl-schwarzschild-range { display: block; width: 100%; min-height: 44px; margin: 0; accent-color: var(--sch-accent); }",
-      ".cl-schwarzschild-small { margin: .35rem 0 0; font-size: .84em; }",
-      ".cl-schwarzschild-stage { min-width: 0; width: 100%; }",
-      ".cl-schwarzschild-stage-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 7px; }",
-      ".cl-schwarzschild-stage-title { color: var(--sch-muted); font-size: .9em; }",
-      ".cl-schwarzschild-formula { margin: 0 0 9px; padding: 8px 10px; border-left: 3px solid var(--sch-accent); background: var(--sch-panel); color: var(--sch-fg); overflow-wrap: anywhere; }",
-      ".cl-schwarzschild-svg-scroll { width: 100%; max-width: 100%; overflow: hidden; border: 1px solid var(--sch-border); border-radius: 7px; background: var(--sch-bg); -webkit-overflow-scrolling: touch; }",
-      ".cl-schwarzschild-svg { display: block; width: 100%; max-width: 100%; height: auto; color: var(--sch-fg); }",
-      ".cl-schwarzschild-svg text { fill: currentColor; font-family: inherit; letter-spacing: 0; }",
-      ".cl-schwarzschild-chart-bg { fill: var(--sch-bg); }",
-      ".cl-schwarzschild-grid-line { stroke: var(--sch-border); stroke-width: 1; opacity: .52; }",
-      ".cl-schwarzschild-axis { stroke: var(--sch-fg); stroke-width: 1.5; }",
-      ".cl-schwarzschild-tick { fill: var(--sch-muted) !important; font-size: 12px; }",
-      ".cl-schwarzschild-axis-label { fill: var(--sch-muted) !important; font-size: 13px; font-weight: 700; }",
-      ".cl-schwarzschild-potential { fill: none; stroke: var(--sch-accent); stroke-width: 3; stroke-linejoin: round; stroke-linecap: round; }",
-      ".cl-schwarzschild-energy { stroke: var(--sch-energy); stroke-width: 2.5; stroke-dasharray: 8 5; }",
-      ".cl-schwarzschild-zero { stroke: var(--sch-muted); stroke-width: 1.3; stroke-dasharray: 3 4; opacity: .8; }",
-      ".cl-schwarzschild-allowed { fill: var(--sch-allowed); opacity: .22; }",
-      ".cl-schwarzschild-turning-guide { stroke: var(--sch-energy); stroke-width: 1.4; stroke-dasharray: 3 4; opacity: .9; }",
-      ".cl-schwarzschild-turning-point { fill: var(--sch-energy); stroke: var(--sch-bg); stroke-width: 2; }",
-      ".cl-schwarzschild-horizon { stroke: var(--sch-unstable); stroke-width: 1.8; stroke-dasharray: 7 4; }",
-      ".cl-schwarzschild-photon { stroke: var(--sch-reference); stroke-width: 1.8; stroke-dasharray: 2 5; }",
-      ".cl-schwarzschild-reference-label { fill: var(--sch-reference) !important; font-size: 12px; font-weight: 700; }",
-      ".cl-schwarzschild-horizon-label { fill: var(--sch-unstable) !important; font-size: 12px; font-weight: 700; }",
-      ".cl-schwarzschild-energy-label { fill: var(--sch-energy) !important; font-size: 12px; font-weight: 750; }",
-      ".cl-schwarzschild-orbit-stable { fill: var(--sch-stable); stroke: var(--sch-bg); stroke-width: 2; }",
-      ".cl-schwarzschild-orbit-unstable { fill: var(--sch-unstable); stroke: var(--sch-bg); stroke-width: 2; }",
-      ".cl-schwarzschild-orbit-isco { fill: var(--sch-reference); stroke: var(--sch-bg); stroke-width: 2; }",
-      ".cl-schwarzschild-orbit-guide { stroke-width: 1.3; stroke-dasharray: 4 4; opacity: .8; }",
-      ".cl-schwarzschild-orbit-guide.stable { stroke: var(--sch-stable); }",
-      ".cl-schwarzschild-orbit-guide.unstable { stroke: var(--sch-unstable); }",
-      ".cl-schwarzschild-orbit-guide.isco { stroke: var(--sch-reference); }",
-      ".cl-schwarzschild-orbit-label { font-size: 12px; font-weight: 750; }",
-      ".cl-schwarzschild-orbit-label.stable { fill: var(--sch-stable) !important; }",
-      ".cl-schwarzschild-orbit-label.unstable { fill: var(--sch-unstable) !important; }",
-      ".cl-schwarzschild-orbit-label.isco { fill: var(--sch-reference) !important; }",
-      ".cl-schwarzschild-plot-note { fill: var(--sch-muted) !important; font-size: 12px; }",
-      ".cl-schwarzschild-legend { display: flex; flex-wrap: wrap; gap: 7px 15px; margin-top: 8px; color: var(--sch-muted); font-size: .86em; }",
-      ".cl-schwarzschild-legend-item { display: inline-flex; align-items: center; gap: 5px; }",
-      ".cl-schwarzschild-swatch { display: inline-block; width: 18px; height: 0; border-top: 3px solid currentColor; }",
-      ".cl-schwarzschild-swatch.energy { border-top-style: dashed; color: var(--sch-energy); }",
-      ".cl-schwarzschild-swatch.allowed { width: 15px; height: 12px; border: 0; background: var(--sch-allowed); opacity: .65; }",
-      ".cl-schwarzschild-swatch.stable { width: 11px; height: 11px; border: 0; border-radius: 50%; background: var(--sch-stable); }",
-      ".cl-schwarzschild-swatch.unstable { width: 11px; height: 11px; border: 0; background: var(--sch-unstable); transform: rotate(45deg); }",
-      ".cl-schwarzschild-swatch.reference { border-top-style: dotted; color: var(--sch-reference); }",
-      ".cl-schwarzschild-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 11px; }",
-      ".cl-schwarzschild-metric { min-width: 0; padding: 9px; border-top: 2px solid var(--sch-border); background: var(--sch-panel); }",
-      ".cl-schwarzschild-metric span { display: block; color: var(--sch-muted); font-size: 11px; }",
-      ".cl-schwarzschild-metric strong { display: block; margin-top: 3px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }",
-      ".cl-schwarzschild-ledger-wrap { max-width: 100%; margin-top: 12px; }",
-      ".cl-schwarzschild-ledger { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: .86em; }",
-      ".cl-schwarzschild-ledger caption { margin-bottom: 5px; color: var(--sch-muted); text-align: left; font-weight: 700; }",
-      ".cl-schwarzschild-ledger th, .cl-schwarzschild-ledger td { border-bottom: 1px solid var(--sch-border); padding: 6px 5px; text-align: left; vertical-align: top; overflow-wrap: anywhere; }",
-      ".cl-schwarzschild-ledger th { width: 27%; color: var(--sch-muted); font-weight: 700; }",
-      ".cl-schwarzschild-status { min-height: 1.6em; margin: .75rem 0 0; }",
-      ".cl-schwarzschild-status strong { color: var(--sch-fg); }",
-      ".cl-schwarzschild-migration-status { min-height: 1.5em; margin: .65rem 0 0; font-size: .88em; }",
-      ".cl-schwarzschild-pass { color: var(--sch-stable) !important; font-weight: 750; }",
-      ".cl-schwarzschild-fail { color: var(--sch-unstable) !important; font-weight: 750; }",
-      "@media (max-width: 1050px) { .cl-schwarzschild-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); } }",
-      "@media (max-width: 700px) { .cl-schwarzschild-lab { margin-left: -8px; margin-right: -8px; padding: 14px; } .cl-schwarzschild-controls { grid-template-columns: minmax(0, 1fr); } .cl-schwarzschild-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }",
-      "@media (max-width: 600px) { .cl-schwarzschild-svg-scroll { overflow-x: auto; } .cl-schwarzschild-svg { width: 900px; min-width: 900px; max-width: none; } .cl-schwarzschild-metrics { grid-template-columns: minmax(0, 1fr); } }",
-      "@media (prefers-reduced-motion: reduce) { .cl-schwarzschild-lab *, .cl-schwarzschild-lab *::before, .cl-schwarzschild-lab *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }"
-    ].join("\n");
-    var host = doc.head || doc.documentElement || doc.body;
-    if (host) host.appendChild(style);
-  }
-
-  function makeMetric(doc, label, value) {
-    var card = makeElement(doc, "div", { className: "cl-schwarzschild-metric" });
-    card.appendChild(makeElement(doc, "span", {}, label));
-    card.appendChild(makeElement(doc, "strong", {}, value));
-    return card;
-  }
-
-  function describeOrbits(api, orbits) {
-    if (!orbits.length) return "无圆轨道极值";
-    return orbits.map(function (orbit) {
-      if (orbit.type === "isco") return "ISCO r=6";
-      return orbit.label + "=" + formatNumber(api, orbit.r, 3) + "（" + orbit.stability + "）";
-    }).join("；");
-  }
-
-  function describeTurningPoints(api, turningPoints) {
-    if (!turningPoints.length) return "图窗内无转向点";
-    return turningPoints.map(function (value) {
-      return "r≈" + formatNumber(api, value, 4);
-    }).join("，");
-  }
-
-  function describeIntervals(api, intervals, domainMax) {
-    if (!intervals.length) return "图窗内无允许区";
-    return intervals.map(function (interval) {
-      return "r∈" + intervalText(api, interval, domainMax);
-    }).join("；");
-  }
-
-  function renderSvg(doc, refs, ids, api, state, derived) {
-    clear(refs.svg);
-    refs.svg.appendChild(makeSvg(doc, "title", { id: ids.svgTitle }, "Schwarzschild 类时赤道测地线有效势"));
-    refs.svg.appendChild(makeSvg(
-      doc,
-      "desc",
-      { id: ids.svgDesc },
-      "横轴为无量纲半径 r，纵轴为有效势。蓝线是 V_eff，橙色虚线是 K=(E²−1)/2，绿色阴影为允许区；r=2 与 r=3 为参照线，圆轨道以稳定、不稳定或 ISCO 标记。"
-    ));
-    refs.svg.appendChild(makeSvg(doc, "rect", {
-      x: VIEW.left,
-      y: VIEW.top,
-      width: PLOT_WIDTH,
-      height: PLOT_HEIGHT,
-      className: "cl-schwarzschild-chart-bg"
-    }));
-
-    var xTicks = ticks(PLOT_MIN, derived.domainMax, 7);
-    var yTicks = ticks(derived.yDomain.minimum, derived.yDomain.maximum, 5);
-    xTicks.forEach(function (value) {
-      var x = xScale(value, derived.domainMax);
-      refs.svg.appendChild(makeSvg(doc, "line", {
-        x1: x,
-        y1: VIEW.top,
-        x2: x,
-        y2: VIEW.top + PLOT_HEIGHT,
-        className: "cl-schwarzschild-grid-line"
-      }));
-      refs.svg.appendChild(makeSvg(doc, "text", {
-        x: x,
-        y: VIEW.top + PLOT_HEIGHT + 22,
-        "text-anchor": "middle",
-        className: "cl-schwarzschild-tick"
-      }, formatNumber(api, value, 0)));
-    });
-    yTicks.forEach(function (value) {
-      var y = yScale(value, derived.yDomain);
-      refs.svg.appendChild(makeSvg(doc, "line", {
-        x1: VIEW.left,
-        y1: y,
-        x2: VIEW.left + PLOT_WIDTH,
-        y2: y,
-        className: "cl-schwarzschild-grid-line"
-      }));
-      refs.svg.appendChild(makeSvg(doc, "text", {
-        x: VIEW.left - 9,
-        y: y + 4,
-        "text-anchor": "end",
-        className: "cl-schwarzschild-tick"
-      }, formatNumber(api, value, 3)));
-    });
-
-    derived.intervals.forEach(function (interval) {
-      var left = xScale(interval.left, derived.domainMax);
-      var right = xScale(interval.right, derived.domainMax);
-      refs.svg.appendChild(makeSvg(doc, "rect", {
-        x: left,
-        y: VIEW.top,
-        width: Math.max(0, right - left),
-        height: PLOT_HEIGHT,
-        className: "cl-schwarzschild-allowed"
-      }));
-    });
-
-    var zeroY = yScale(0, derived.yDomain);
-    if (zeroY >= VIEW.top && zeroY <= VIEW.top + PLOT_HEIGHT) {
-      refs.svg.appendChild(makeSvg(doc, "line", {
-        x1: VIEW.left,
-        y1: zeroY,
-        x2: VIEW.left + PLOT_WIDTH,
-        y2: zeroY,
-        className: "cl-schwarzschild-zero"
-      }));
-    }
-
-    var horizonX = xScale(2, derived.domainMax);
-    refs.svg.appendChild(makeSvg(doc, "line", {
-      x1: horizonX,
-      y1: VIEW.top,
-      x2: horizonX,
-      y2: VIEW.top + PLOT_HEIGHT,
-      className: "cl-schwarzschild-horizon"
-    }));
-    refs.svg.appendChild(makeSvg(doc, "text", {
-      x: horizonX + 5,
-      y: VIEW.top - 12,
-      className: "cl-schwarzschild-horizon-label"
-    }, "r=2 horizon"));
-
-    var photonX = xScale(3, derived.domainMax);
-    refs.svg.appendChild(makeSvg(doc, "line", {
-      x1: photonX,
-      y1: VIEW.top,
-      x2: photonX,
-      y2: VIEW.top + PLOT_HEIGHT,
-      className: "cl-schwarzschild-photon"
-    }));
-    refs.svg.appendChild(makeSvg(doc, "text", {
-      x: photonX + 5,
-      y: VIEW.top + 14,
-      className: "cl-schwarzschild-reference-label"
-    }, "r=3 photon sphere（null 参照）"));
-
-    refs.svg.appendChild(makeSvg(doc, "path", {
-      d: pathFor(derived.samples, derived.domainMax, derived.yDomain),
-      className: "cl-schwarzschild-potential"
-    }));
-
-    var levelY = yScale(derived.level, derived.yDomain);
-    refs.svg.appendChild(makeSvg(doc, "line", {
-      x1: VIEW.left,
-      y1: levelY,
-      x2: VIEW.left + PLOT_WIDTH,
-      y2: levelY,
-      className: "cl-schwarzschild-energy"
-    }));
-    refs.svg.appendChild(makeSvg(doc, "text", {
-      x: VIEW.left + PLOT_WIDTH - 5,
-      y: levelY - 8,
-      "text-anchor": "end",
-      className: "cl-schwarzschild-energy-label"
-    }, "K=" + formatNumber(api, derived.level, 4)));
-
-    derived.turningPoints.forEach(function (value, index) {
-      var x = xScale(value, derived.domainMax);
-      refs.svg.appendChild(makeSvg(doc, "line", {
-        x1: x,
-        y1: VIEW.top,
-        x2: x,
-        y2: VIEW.top + PLOT_HEIGHT,
-        className: "cl-schwarzschild-turning-guide"
-      }));
-      refs.svg.appendChild(makeSvg(doc, "circle", {
-        cx: x,
-        cy: levelY,
-        r: 5.5,
-        className: "cl-schwarzschild-turning-point"
-      }));
-      var turningLabelY = index % 2 ? levelY + 27 : levelY - 14;
-      refs.svg.appendChild(makeSvg(doc, "text", {
-        x: x + 7,
-        y: clamp(turningLabelY, VIEW.top + 18, VIEW.top + PLOT_HEIGHT - 7),
-        className: "cl-schwarzschild-energy-label"
-      }, "转向点 " + formatNumber(api, value, 3)));
-    });
-
-    derived.orbits.forEach(function (orbit) {
-      var x = xScale(orbit.r, derived.domainMax);
-      var y = yScale(orbit.level, derived.yDomain);
-      var kind = orbit.type;
-      var guideClass = "cl-schwarzschild-orbit-guide " + kind;
-      var labelClass = "cl-schwarzschild-orbit-label " + kind;
-      refs.svg.appendChild(makeSvg(doc, "line", {
-        x1: x,
-        y1: VIEW.top,
-        x2: x,
-        y2: VIEW.top + PLOT_HEIGHT,
-        className: guideClass
-      }));
-      if (kind === "unstable") {
-        refs.svg.appendChild(makeSvg(doc, "polygon", {
-          points: x + "," + (y - 8) + " " + (x + 8) + "," + y + " " +
-            x + "," + (y + 8) + " " + (x - 8) + "," + y,
-          className: "cl-schwarzschild-orbit-unstable"
-        }));
-      } else {
-        refs.svg.appendChild(makeSvg(doc, "circle", {
-          cx: x,
-          cy: y,
-          r: kind === "isco" ? 8 : 7,
-          className: "cl-schwarzschild-orbit-" + kind
-        }));
-      }
-      var anchorEnd = x > VIEW.left + PLOT_WIDTH - 125;
-      var labelX = anchorEnd ? x - 10 : x + 10;
-      var labelY = clamp(y - 12, VIEW.top + 18, VIEW.top + PLOT_HEIGHT - 10);
-      refs.svg.appendChild(makeSvg(doc, "text", {
-        x: labelX,
-        y: labelY,
-        "text-anchor": anchorEnd ? "end" : "start",
-        className: labelClass
-      }, orbit.label + "=" + formatNumber(api, orbit.r, 3)));
-    });
-
-    refs.svg.appendChild(makeSvg(doc, "line", {
-      x1: VIEW.left,
-      y1: VIEW.top + PLOT_HEIGHT,
-      x2: VIEW.left + PLOT_WIDTH,
-      y2: VIEW.top + PLOT_HEIGHT,
-      className: "cl-schwarzschild-axis"
-    }));
-    refs.svg.appendChild(makeSvg(doc, "line", {
-      x1: VIEW.left,
-      y1: VIEW.top,
-      x2: VIEW.left,
-      y2: VIEW.top + PLOT_HEIGHT,
-      className: "cl-schwarzschild-axis"
-    }));
-    refs.svg.appendChild(makeSvg(doc, "text", {
-      x: VIEW.left + PLOT_WIDTH / 2,
-      y: VIEW.height - 18,
-      "text-anchor": "middle",
-      className: "cl-schwarzschild-axis-label"
-    }, "无量纲半径 r（r>2；单位 GM/c²）"));
-    refs.svg.appendChild(makeSvg(doc, "text", {
-      x: 18,
-      y: VIEW.top + PLOT_HEIGHT / 2,
-      "text-anchor": "middle",
-      transform: "rotate(-90 18 " + (VIEW.top + PLOT_HEIGHT / 2) + ")",
-      className: "cl-schwarzschild-axis-label"
-    }, "V_eff 与 K"));
-    refs.svg.appendChild(makeSvg(doc, "text", {
-      x: VIEW.left + 8,
-      y: VIEW.top + PLOT_HEIGHT - 10,
-      className: "cl-schwarzschild-plot-note"
-    }, "阴影：K≥V_eff 的允许区"));
-  }
-
-  function renderMetrics(doc, refs, api, state, derived) {
-    clear(refs.metrics);
-    refs.metrics.appendChild(makeMetric(
-      doc,
-      "角动量",
-      "ℓ=" + formatNumber(api, state.ell, 4) + "；ℓ²=" + formatNumber(api, derived.ellSquared, 4)
-    ));
-    refs.metrics.appendChild(makeMetric(
-      doc,
-      "能量水平",
-      "E=" + formatNumber(api, state.energy, 4) + "；K=" + formatNumber(api, derived.level, 5)
-    ));
-    refs.metrics.appendChild(makeMetric(doc, "圆轨道", describeOrbits(api, derived.orbits)));
-    refs.metrics.appendChild(makeMetric(
-      doc,
-      "转向点",
-      derived.turningPoints.length ? derived.turningPoints.length + " 个（图窗内）" : "0 个（图窗内）"
-    ));
-  }
-
-  function addLedgerRow(doc, body, label, value) {
-    var row = makeElement(doc, "tr");
-    row.appendChild(makeElement(doc, "th", { scope: "row" }, label));
-    row.appendChild(makeElement(doc, "td", {}, value));
-    body.appendChild(row);
-  }
-
-  function renderLedger(doc, refs, api, state, derived) {
-    clear(refs.ledger);
-    refs.ledger.appendChild(makeElement(
-      doc,
-      "caption",
-      {},
-      "数值账本（确定性求根；允许区只在当前图窗 2<r≤" + formatNumber(api, derived.domainMax, 2) + " 内列出）"
-    ));
-    var body = makeElement(doc, "tbody");
-    addLedgerRow(
-      doc,
-      body,
-      "输入 ℓ、ℓ²",
-      formatNumber(api, state.ell, 5) + "，" + formatNumber(api, derived.ellSquared, 5)
-    );
-    addLedgerRow(
-      doc,
-      body,
-      "输入 E、K",
-      formatNumber(api, state.energy, 5) + "，" + formatNumber(api, derived.level, 6)
-    );
-    addLedgerRow(doc, body, "势形", derived.shape);
-    addLedgerRow(doc, body, "圆轨道", describeOrbits(api, derived.orbits));
-    addLedgerRow(doc, body, "转向点 V_eff=K", describeTurningPoints(api, derived.turningPoints));
-    addLedgerRow(
-      doc,
-      body,
-      "允许区 K≥V_eff",
-      describeIntervals(api, derived.intervals, derived.domainMax)
-    );
-    addLedgerRow(
-      doc,
-      body,
-      "尺度边界",
-      "r=2 是外部图边界；r=3 仅为 null photon sphere 参照；本实验的 ISCO 只在 ℓ²=12、r=6 出现。"
-    );
-    refs.ledger.appendChild(body);
-  }
-
-  function mount(root, api) {
-    var doc = root.ownerDocument || (typeof document !== "undefined" ? document : null);
-    if (!doc) return;
-    injectStyles(doc);
-    root.classList.add("cl-schwarzschild-lab");
-    SERIAL += 1;
-    var serial = SERIAL;
-    var ids = {
-      ell: "cl-schwarzschild-ell-" + serial,
-      energy: "cl-schwarzschild-energy-" + serial,
-      migration: "cl-schwarzschild-migration-" + serial,
-      svgTitle: "cl-schwarzschild-svg-title-" + serial,
-      svgDesc: "cl-schwarzschild-svg-desc-" + serial
-    };
-    var state = {
-      presetId: DEFAULT_PRESET,
-      ell: PRESETS[DEFAULT_PRESET].ell,
-      energy: PRESETS[DEFAULT_PRESET].energy,
-      message: "已载入“" + PRESETS[DEFAULT_PRESET].label + "”预设。"
-    };
-    var refs = { presetButtons: Object.create(null) };
-
-    var shell = makeElement(doc, "div", { className: "cl-schwarzschild-shell" });
-    shell.appendChild(makeElement(
-      doc,
-      "h3",
-      { className: "cl-schwarzschild-heading" },
-      "Schwarzschild 类时轨道：势垒、转向点与 ISCO"
-    ));
-    shell.appendChild(makeElement(
-      doc,
-      "p",
-      { className: "cl-schwarzschild-intro" },
-      "只画 G=M=c=1、r>2 的类时赤道测地线。拖动 ℓ 与 E：蓝线是 V_eff，橙色水平线是 K=(E²−1)/2，绿色阴影是径向速度平方非负的区域。"
-    ));
-
-    var grid = makeElement(doc, "div", { className: "cl-schwarzschild-grid" });
-    var controls = makeElement(doc, "div", { className: "cl-schwarzschild-controls" });
-    var stage = makeElement(doc, "div", { className: "cl-schwarzschild-stage" });
-    grid.appendChild(controls);
-    grid.appendChild(stage);
-    shell.appendChild(grid);
-
-    var presetSet = makeElement(doc, "fieldset", { className: "cl-schwarzschild-fieldset" });
-    presetSet.appendChild(makeElement(doc, "legend", {}, "ℓ / E 预设"));
-    var presetRow = makeElement(doc, "div", {
-      className: "cl-schwarzschild-preset-row",
-      role: "group",
-      "aria-label": "Schwarzschild 轨道预设"
-    });
-    PRESET_ORDER.forEach(function (id) {
-      var button = makeElement(doc, "button", {
-        type: "button",
-        className: "cl-schwarzschild-button",
-        "aria-pressed": id === state.presetId ? "true" : "false"
-      }, PRESETS[id].label);
-      button.addEventListener("click", function () { loadPreset(id); });
-      refs.presetButtons[id] = button;
-      presetRow.appendChild(button);
-    });
-    presetSet.appendChild(presetRow);
-    refs.presetNote = makeElement(doc, "p", { className: "cl-schwarzschild-small" }, PRESETS[DEFAULT_PRESET].note);
-    presetSet.appendChild(refs.presetNote);
-    controls.appendChild(presetSet);
-
-    var parameterSet = makeElement(doc, "fieldset", { className: "cl-schwarzschild-fieldset" });
-    parameterSet.appendChild(makeElement(doc, "legend", {}, "参数滑杆"));
-    var ellField = makeElement(doc, "div", { className: "cl-schwarzschild-field" });
-    var ellCaption = makeElement(doc, "div", { className: "cl-schwarzschild-field-caption" });
-    ellCaption.appendChild(makeElement(doc, "label", { htmlFor: ids.ell }, "ℓ（无量纲）"));
-    refs.ellOutput = makeElement(doc, "output", {
-      className: "cl-schwarzschild-output",
-      htmlFor: ids.ell
-    });
-    ellCaption.appendChild(refs.ellOutput);
-    ellField.appendChild(ellCaption);
-    refs.ell = makeElement(doc, "input", {
-      id: ids.ell,
-      className: "cl-schwarzschild-range",
-      type: "range",
-      min: "2",
-      max: "8",
-      step: "0.0001",
-      value: String(state.ell),
-      "aria-label": "无量纲角动量 ℓ"
-    });
-    refs.ell.addEventListener("input", function () {
-      state.ell = clamp(number(refs.ell.value, state.ell), 2, 8);
-      state.presetId = null;
-      state.message = "已调整 ℓ；观察 ℓ²=12 的临界是否被越过。";
-      render();
-    });
-    ellField.appendChild(refs.ell);
-    ellField.appendChild(makeElement(
-      doc,
-      "p",
-      { className: "cl-schwarzschild-small" },
-      "阈值：ℓ²=12（ℓ=√12）；外部域只取 r>2。"
-    ));
-    parameterSet.appendChild(ellField);
-
-    var energyField = makeElement(doc, "div", { className: "cl-schwarzschild-field" });
-    var energyCaption = makeElement(doc, "div", { className: "cl-schwarzschild-field-caption" });
-    energyCaption.appendChild(makeElement(doc, "label", { htmlFor: ids.energy }, "E（单位静质量）"));
-    refs.energyOutput = makeElement(doc, "output", {
-      className: "cl-schwarzschild-output",
-      htmlFor: ids.energy
-    });
-    energyCaption.appendChild(refs.energyOutput);
-    energyField.appendChild(energyCaption);
-    refs.energy = makeElement(doc, "input", {
-      id: ids.energy,
-      className: "cl-schwarzschild-range",
-      type: "range",
-      min: "0.88",
-      max: "1.16",
-      step: "0.0001",
-      value: String(state.energy),
-      "aria-label": "单位静质量能量 E"
-    });
-    refs.energy.addEventListener("input", function () {
-      state.energy = clamp(number(refs.energy.value, state.energy), 0.88, 1.16);
-      state.presetId = null;
-      state.message = "已调整 E；橙色水平线 K 决定转向点。";
-      render();
-    });
-    energyField.appendChild(refs.energy);
-    energyField.appendChild(makeElement(
-      doc,
-      "p",
-      { className: "cl-schwarzschild-small" },
-      "实验画的是 K=(E²−1)/2，而不是把 E 当作势能本身。"
-    ));
-    parameterSet.appendChild(energyField);
-    controls.appendChild(parameterSet);
-
-    var actionSet = makeElement(doc, "fieldset", { className: "cl-schwarzschild-fieldset" });
-    actionSet.appendChild(makeElement(doc, "legend", {}, "操作"));
-    var actionRow = makeElement(doc, "div", { className: "cl-schwarzschild-action-row" });
-    refs.reset = makeElement(doc, "button", {
-      type: "button",
-      className: "cl-schwarzschild-button cl-schwarzschild-primary"
-    }, "重置为束缚轨道");
-    refs.reset.addEventListener("click", function () { loadPreset(DEFAULT_PRESET); });
-    actionRow.appendChild(refs.reset);
-    actionRow.appendChild(makeElement(
-      doc,
-      "p",
-      { className: "cl-schwarzschild-small" },
-      "重复拖动只重画固定节点集合；不会叠加曲线、标记或账本行。"
-    ));
-    actionSet.appendChild(actionRow);
-    controls.appendChild(actionSet);
-
-    var migrationSet = makeElement(doc, "fieldset", { className: "cl-schwarzschild-fieldset" });
-    migrationSet.appendChild(makeElement(doc, "legend", {}, "迁移问题"));
-    migrationSet.appendChild(makeElement(
-      doc,
-      "label",
-      { htmlFor: ids.migration },
-      "改成光子后，能否只复用这条类时势？"
-    ));
-    refs.migration = makeElement(doc, "select", {
-      id: ids.migration,
-      className: "cl-schwarzschild-select",
-      "aria-label": "选择光子有效势迁移答案"
-    });
-    refs.migration.appendChild(makeElement(doc, "option", { value: "" }, "请选择…"));
-    refs.migration.appendChild(makeElement(
-      doc,
-      "option",
-      { value: "reuse" },
-      "可以，只需把 E 改成另一个数值"
-    ));
-    refs.migration.appendChild(makeElement(
-      doc,
-      "option",
-      { value: "null" },
-      "不能，null 测地线需要另一套有效势"
-    ));
-    migrationSet.appendChild(refs.migration);
-    refs.checkMigration = makeElement(doc, "button", {
-      type: "button",
-      className: "cl-schwarzschild-button"
-    }, "检查迁移答案");
-    refs.checkMigration.addEventListener("click", checkMigration);
-    migrationSet.appendChild(refs.checkMigration);
-    refs.migrationStatus = makeElement(doc, "p", {
-      className: "cl-schwarzschild-migration-status",
-      role: "status",
-      "aria-live": "polite"
-    });
-    migrationSet.appendChild(refs.migrationStatus);
-    controls.appendChild(migrationSet);
-
-    var stageHead = makeElement(doc, "div", { className: "cl-schwarzschild-stage-head" });
-    stageHead.appendChild(makeElement(doc, "strong", {}, "有效势图"));
-    stageHead.appendChild(makeElement(
-      doc,
-      "span",
-      { className: "cl-schwarzschild-stage-title" },
-      "固定 ℓ 读势形；改变 E 只移动能量水平"
-    ));
-    stage.appendChild(stageHead);
-    stage.appendChild(makeElement(
-      doc,
-      "p",
-      { className: "cl-schwarzschild-formula" },
-      "½(dr/dτ)² + V_eff = K，K=(E²−1)/2，V_eff=−1/r+ℓ²/(2r²)−ℓ²/r³"
-    ));
-    var svgScroll = makeElement(doc, "div", { className: "cl-schwarzschild-svg-scroll" });
-    refs.svg = makeSvg(doc, "svg", {
-      className: "cl-schwarzschild-svg",
-      viewBox: "0 0 900 510",
-      role: "img",
-      "aria-labelledby": ids.svgTitle + " " + ids.svgDesc
-    });
-    svgScroll.appendChild(refs.svg);
-    stage.appendChild(svgScroll);
-
-    var legend = makeElement(doc, "div", {
-      className: "cl-schwarzschild-legend",
-      "aria-label": "图例"
-    });
-    [
-      ["", "V_eff", "cl-schwarzschild-swatch"],
-      ["energy", "K 能量水平", "cl-schwarzschild-swatch energy"],
-      ["allowed", "允许区 K≥V_eff", "cl-schwarzschild-swatch allowed"],
-      ["stable", "外支稳定", "cl-schwarzschild-swatch stable"],
-      ["unstable", "内支不稳定", "cl-schwarzschild-swatch unstable"],
-      ["reference", "r=2 / r=3 参照", "cl-schwarzschild-swatch reference"]
-    ].forEach(function (item) {
-      var legendItem = makeElement(doc, "span", { className: "cl-schwarzschild-legend-item" });
-      legendItem.appendChild(makeElement(doc, "i", { className: item[2], "aria-hidden": "true" }));
-      legendItem.appendChild(makeElement(doc, "span", {}, item[1]));
-      legend.appendChild(legendItem);
-    });
-    stage.appendChild(legend);
-
-    refs.metrics = makeElement(doc, "div", {
-      className: "cl-schwarzschild-metrics",
-      "aria-label": "轨道摘要"
-    });
-    stage.appendChild(refs.metrics);
-    var ledgerWrap = makeElement(doc, "div", { className: "cl-schwarzschild-ledger-wrap" });
-    refs.ledger = makeElement(doc, "table", { className: "cl-schwarzschild-ledger" });
-    ledgerWrap.appendChild(refs.ledger);
-    stage.appendChild(ledgerWrap);
-    refs.status = makeElement(doc, "p", {
-      className: "cl-schwarzschild-status",
-      role: "status",
-      "aria-live": "polite"
-    });
-    stage.appendChild(refs.status);
-    refs.note = makeElement(
-      doc,
-      "p",
-      { className: "cl-schwarzschild-note" },
-      "提示：horizon r=2 是本实验外部域的边界，photon sphere r=3 只用于比较；ISCO 是类时稳定圆轨道族的边界 r=6。"
-    );
-    stage.appendChild(refs.note);
-
-    clear(root);
-    root.appendChild(shell);
-
-    function announce(message) {
-      if (api && typeof api.announce === "function") api.announce(root, message);
-    }
-
-    function loadPreset(id) {
-      var preset = PRESETS[id] || PRESETS[DEFAULT_PRESET];
-      state.presetId = id;
-      state.ell = preset.ell;
-      state.energy = preset.energy;
-      state.message = "已载入“" + preset.label + "”预设。";
-      refs.migration.value = "";
-      refs.migrationStatus.className = "cl-schwarzschild-migration-status";
-      refs.migrationStatus.textContent = "";
-      render();
-      announce(state.message);
-    }
-
-    function checkMigration() {
-      if (refs.migration.value === "null") {
-        refs.migrationStatus.className = "cl-schwarzschild-migration-status cl-schwarzschild-pass";
-        refs.migrationStatus.textContent = "答对：光子满足 null 条件，需重新推导 null 有效势；r=3 不是本实验的 ISCO。";
-        announce("迁移答案正确：光子需要另一套 null 有效势。");
-      } else if (refs.migration.value === "reuse") {
-        refs.migrationStatus.className = "cl-schwarzschild-migration-status cl-schwarzschild-fail";
-        refs.migrationStatus.textContent = "还需区分粒子类型：不能把类时归一化势只靠改 E 复用到光子。";
-        announce("迁移答案需要修正。");
-      } else {
-        refs.migrationStatus.className = "cl-schwarzschild-migration-status cl-schwarzschild-fail";
-        refs.migrationStatus.textContent = "请选择一个答案，再检查它是否尊重 null 与 timelike 的区别。";
-      }
-    }
-
-    function renderControls() {
-      refs.ell.value = String(state.ell);
-      refs.energy.value = String(state.energy);
-      refs.ellOutput.textContent = "ℓ=" + formatNumber(api, state.ell, 4);
-      refs.energyOutput.textContent = "E=" + formatNumber(api, state.energy, 4);
-      PRESET_ORDER.forEach(function (id) {
-        refs.presetButtons[id].setAttribute(
-          "aria-pressed",
-          id === state.presetId ? "true" : "false"
-        );
-      });
-      refs.presetNote.textContent = state.presetId && PRESETS[state.presetId]
-        ? PRESETS[state.presetId].note
-        : "自定义参数：先看 ℓ² 是否越过 12，再读橙色水平线的交点。";
-    }
-
-    function render() {
-      var derived = derive(state);
-      renderControls();
-      renderSvg(doc, refs, ids, api, state, derived);
-      renderMetrics(doc, refs, api, state, derived);
-      renderLedger(doc, refs, api, state, derived);
-      refs.status.textContent = state.message + " " + derived.shape +
-        " 图窗内允许区：" + describeIntervals(api, derived.intervals, derived.domainMax) + "。";
-    }
-
-    render();
-  }
-
-  window.CourseLearning.register("schwarzschild-orbits", function (root, api) {
-    mount(root, api);
-  });
-}());
+ }
+ rootRows.sort(function(a,b){return a.u-b.u;});rootRows.forEach(function(r){r.residual=fn(r.u);});
+ var allowed=status==="resolved"?intervals(fn,rootRows):[];
+ var grid=unique(Array.from({length:501},function(_,i){return i/1000;}).concat(rootRows.map(function(r){return r.u;}),orbits.map(function(r){return r.u;})));
+ return{config:c,q:q,ell:Math.sqrt(q),K:K,E:Math.sqrt(1+2*K),orbits:orbits,roots:rootRows,allowed:allowed,status:status,reason:reason,critical:critical,
+ rows:grid.map(function(u){return{u:u,r:u===0?null:1/u,potential:potential(u,q),K:K,radialSquared:fn(u),newton:-u+.5*q*u*u};})};
+}
+function photon(beta){
+ finite(beta,0,4,"beta");var b=3*Math.sqrt(3)*beta,fn=function(u){return -(beta-1)*(beta+1)+beta*beta*(1-3*u)*(1-3*u)*(1+6*u);},roots=[],kind;
+ if(beta<1)kind="从无穷远入射会被捕获";
+ else if(beta===1){kind="临界：渐近光子圆轨道";roots=[{u:1/3,r:3,multiplicity:2,kind:"渐近端点"}];}
+ else{kind="从无穷远入射会散射返回";for(var bracket of [[0,1/3],[1/3,.5]]){var u=bisect(fn,bracket[0],bracket[1]);roots.push({u:u,r:1/u,multiplicity:1,kind:"普通转向点"});}}
+ roots.forEach(function(r){r.residual=fn(r.u);});
+ var us=unique(Array.from({length:501},function(_,i){return i/1000;}).concat([1/3],roots.map(function(r){return r.u;})));
+ return{beta:beta,b:b,kind:kind,roots:roots,allowed:intervals(fn,roots),closestFromInfinity:beta>1?roots[0].r:beta===1?3:null,
+ rows:us.map(function(u){return{u:u,r:u===0?null:1/u,barrier:27*beta*beta*u*u*(1-2*u),radialSquared:fn(u),energy:1};})};
+}
+function excess(p,e,chi){var alpha=6+2*e*Math.cos(chi),x=alpha/p,s=Math.sqrt(1-x);return x/(s*(1+s));}
+function integrateAdvance(p,e,n,higher){
+ var step=2*Math.PI/n,sum=0,correction=0;
+ for(var i=0;i<=n;i++){var w=i===0||i===n?1:i%2?4:2,x=(6+2*e*Math.cos(i*step))/p,s=Math.sqrt(1-x),value=w*(higher?x*x*(s+2)/(2*s*(1+s)*(1+s)):excess(p,e,i*step)),y=value-correction,t=sum+y;correction=(t-sum)-y;sum=t;}
+ return sum*step/3;
+}
+function precession(p,e){
+ finite(p,6,1e8,"p");finite(e,0,.9,"e");if(p<6+2*e+.02)throw RangeError("p must be >=6+2e+0.02");
+ var n=1024,step=2*Math.PI/n,rows=[],cumulative=0;
+ // Boole's rule per displayed interval; all three interior evaluations are retained.
+ for(var i=0;i<=n;i++){
+  var chi=i*step,v=excess(p,e,chi),mid=i?excess(p,e,chi-step/2):null,q1=i?excess(p,e,chi-3*step/4):null,q3=i?excess(p,e,chi-step/4):null;
+  if(i)cumulative+=step*(7*rows[i-1].excess+32*q1+12*mid+32*q3+7*v)/90;
+  var ratio=1/(1+e*Math.cos(chi)),phi=chi+cumulative;
+  rows.push({i:i,chi:chi,r:p*ratio,rOverP:ratio,excess:v,quarter1Excess:q1,midpointExcess:mid,quarter3Excess:q3,advanceSoFar:cumulative,phi:phi,x:ratio*Math.cos(phi),y:ratio*Math.sin(phi),newtonX:ratio*Math.cos(chi),newtonY:ratio*Math.sin(chi)});
+ }
+ var delta=integrateAdvance(p,e,2048),weak=6*Math.PI/p,convergence=[256,512,1024,2048].map(function(n){return{n:n,advance:integrateAdvance(p,e,n)};});
+ var q=p*p/(p-3-e*e),K=(1-e*e)*(4-p)/(2*p*(p-3-e*e)),E2=1+2*K,higher=integrateAdvance(p,e,2048,true);
+ var second=rows.slice(1).map(function(r){var phi=r.phi+2*Math.PI+delta;return{chi:r.chi+2*Math.PI,phi:phi,rOverP:r.rOverP,x:r.rOverP*Math.cos(phi),y:r.rOverP*Math.sin(phi)};});
+ return{p:p,e:e,gap:p-6-2*e,q:q,E:Math.sqrt(E2),K:K,periapsis:p/(1+e),apoapsis:p/(1-e),advance:delta,weak:weak,higher:higher,relativeWeakError:higher/delta,frequencyRatio:1+delta/(2*Math.PI),circularLimit:e===0,rows:rows,secondCycle:second,convergence:convergence,convergenceDifference:Math.abs(convergence[3].advance-convergence[2].advance)};
+}
+function snapshot(o){var c=config(o===undefined?{}:o),s=c.mode==="potential"?timelike(c):c.mode==="photon"?photon(c.beta):precession(c.p,c.e);s.config=c;return s;}
+function fmt(v){if(v===null)return"—（边界或不适用）";if(typeof v!=="number")return String(v);if(!Number.isFinite(v))throw Error("nonfinite display");if(v===0)return"0";return v.toPrecision(8).replace(/e-/g,"e−");}
+function selfTest(){var checks=0;function ck(x,s){checks++;if(!x)throw Error(s);}ck(circular(11.99999999).length===0,"below threshold");ck(circular(12).length===1,"exact threshold");ck(circular(12.00000001).length===2,"above threshold");var a=timelike({q:12,level:"isco"});ck(a.roots.length===1&&a.roots[0].multiplicity===3,"triple");a=timelike({q:16,level:"stable"});ck(a.roots.length===2&&a.roots.some(function(r){return r.r===12;}),"stable");ck(photon(1).roots[0].multiplicity===2,"photon critical");ck(photon(.99999999).roots.length===0,"capture");ck(photon(1.00000001).roots.length===2,"scatter");var s=precession(1e8,.2);ck(s.advance>0&&Math.abs(s.advance/s.weak-1)<1e-6,"weak advance");return{status:"PASS",checks:checks};}
+function ledgers(s){
+var mode=s.config.mode,tables=[],summary;
+function add(key,title,headers,rows){tables.push({key:key,title:title,headers:headers,rows:rows});}
+if(mode==="potential"){
+summary=[["模型","类时测试粒子","G=M=c=1；只算r>2的真空外部"],["q=ℓ² / ℓ",s.q,s.ell],["实际K / E",s.K,s.E],["输入方式",LEVELS[s.config.level],"手动K仅在手动模式中决定能量"],["根分类",s.status,s.reason||"普通根、重根及分离允许区分别列出"],["极值 / 外部根数量",s.orbits.length,s.roots.length],["边界u=0 / u=0.5","r→∞ / r→2+","图含边界极限；两端不属于开放外部域"]];
+add("circles","圆轨道：极值与稳定性",["u","r","类型","K","E","V″(r)"],s.orbits.map(function(r){return[r.u,r.r,r.type,r.K,r.E,r.second];}));
+}else if(mode==="photon"){
+summary=[["模型","无穷远入射、初始向内的光子","守恒量按光子能量归一化"],["β=b/(3√3) / b",s.beta,s.b],["入射结果",s.kind,"β=1是明确临界输入；不以容差吞并两侧"],["无穷远入射最近半径",s.closestFromInfinity,s.beta===1?"渐近r=3，不能在有限仿射参数到达":s.beta<1?"无外部转向点；穿过视界":"到外根后散射返回"],["光子球 / 视界",3,2],["边界说明","u=0和u=0.5为极限","阴影也可能含入射光无法抵达的另一分支"]];
+}else{
+summary=[["模型","Schwarzschild束缚测试粒子","无自力、无辐射；p≥6+2e+0.02"],["p / e",s.p,s.e],["距分界线p−6−2e",s.gap,"网格精度限制；不是物理新分界线"],["q / E",s.q,s.E],["K",s.K,"由精确端点参数得到"],["近日点 / 远日点半径",s.periapsis,s.apoapsis],["精确进动(rad/径向周期)",s.advance,"2048子区间复合Simpson"],["1PN进动(rad/径向周期)",s.weak,"6π/p"],["一阶近似相对误差",s.relativeWeakError,"(精确−1PN)/精确；稳定计算高阶余项"],["方位/径向频率比",s.frequencyRatio,s.circularLimit?"e=0：解释为圆轨道附近微扰极限":"一个径向周期的总角/2π"],["2048与1024进动之差",s.convergenceDifference,"收敛诊断；不是严格误差界"],["图形相位末值减2π",s.rows[s.rows.length-1].advanceSoFar,"逐段Boole，独立于上方整周期Simpson"],["圆轨道解释",s.circularLimit?"无唯一近日点":"近日点方向随径向周期改变","坐标轨迹，不是相机成像"]];
+add("convergence","整周期求积收敛对照",["Simpson子区间数","进动(rad)"],s.convergence.map(function(r){return[r.n,r.advance];}));
+add("quadrature","完整求积账本：1025端点与3072内部评估",["i","χ","f(χ)","前段1/4的f","前段1/2的f","前段3/4的f","累计额外角","φ=χ+额外角"],s.rows.map(function(r){return[r.i,r.chi,r.excess,r.quarter1Excess,r.midpointExcess,r.quarter3Excess,r.advanceSoFar,r.phi];}));
+add("orbit","第一径向周期：完整1025轨迹节点",["χ","r","r/p","φ","x/p","y/p","Newton x/p","Newton y/p"],s.rows.map(function(r){return[r.chi,r.r,r.rOverP,r.phi,r.x,r.y,r.newtonX,r.newtonY];}));
+add("secondCycle","第二径向周期：完整1024后续节点",["χ","φ","r/p","x/p","y/p"],s.secondCycle.map(function(r){return[r.chi,r.phi,r.rOverP,r.x,r.y];}));
+}
+if(mode!=="precession"){
+add("roots","外部根：重数决定能否普通反弹",["u","r","重数","类型","数值残差"],s.roots.map(function(r){return[r.u,r.r,r.multiplicity,r.kind,r.residual];}));
+add("allowed","径向速度平方严格为正的连通区间",["u下界","u上界","r下界","r上界"],s.allowed.map(function(r){return[r.uMin,r.uMax,r.rMin,r.rMax===null?"∞":r.rMax];}));
+add("nodes","全外部节点：边界极限、全部极值与全部根",mode==="potential"?["u","r","V","实际K","(dr/dτ)²","Newton V"]:["u","r","光子势垒","归一化能量","归一化径向速度²"],s.rows.map(function(r){return mode==="potential"?[r.u,r.r,r.potential,r.K,r.radialSquared,r.newton]:[r.u,r.r,r.barrier,r.energy,r.radialSquared];}));
+}
+tables.unshift({key:"summary",title:"当前参数、可观测量与模型条件",headers:["量","读数","解释或第二读数"],rows:summary});return tables;
+}
+function plots(s){
+function curve(title,xlabel,ylabel,rows,xkey,series){
+var xs=rows.map(function(r){return r[xkey];}),all=[];
+series.forEach(function(q){q.values=rows.map(function(r){var v=q.value?q.value(r):r[q.key];all.push(v);return v;});});
+var lo=Math.min.apply(null,all.concat([0])),hi=Math.max.apply(null,all.concat([0])),pad=(hi-lo)*.08||1;
+return{title:title,xlabel:xlabel,ylabel:ylabel,xmin:Math.min.apply(null,xs),xmax:Math.max.apply(null,xs),ymin:lo-pad,ymax:hi+pad,xs:xs,series:series};
+}
+var a,b,mode=s.config.mode;
+if(mode==="potential"){
+a=curve("类时：紧化横轴覆盖整个真空外部","u=1/r；左端∞，右端视界r=2","每单位质量的有效势",s.rows,"u",[{key:"potential",label:"Schwarzschild V"},{key:"K",label:"实际K"},{key:"newton",label:"Newton V"}]);
+b=curve("类时：只有F>0的区间允许径向运动","u=1/r（仍绘制dr/dτ，而不是du/dτ）","F=(dr/dτ)²",s.rows,"u",[{key:"radialSquared",label:"径向速度平方"}]);b.allowed=s.allowed;b.roots=s.roots;
+}else if(mode==="photon"){
+a=curve("光子：归一化势垒与入射能量","u=1/r；光子球位于u=1/3","势垒/光子能量²",s.rows,"u",[{key:"barrier",label:"27β²u²(1−2u)"},{key:"energy",label:"归一化能量1"}]);
+b=curve("光子：入射光只能沿连通允许分支传播","u=1/r；不能跨过F<0禁区","归一化径向速度平方",s.rows,"u",[{key:"radialSquared",label:"1−27β²u²(1−2u)"}]);b.allowed=s.allowed;b.roots=s.roots;
+}else{
+var span=1/(1-s.e)*1.06,joined=[s.rows[s.rows.length-1]].concat(s.secondCycle);
+a={title:s.circularLimit?"圆轨道：几何圆与径向微扰频率分开":"相同尺度的两次径向周期：近日点方向改变",xlabel:"x/p（横纵等比例）",ylabel:"y/p",xmin:-span,xmax:span,ymin:-span,ymax:span,equalAspect:true,
+xs:s.rows.map(function(r){return r.x;}),series:[{key:"first",label:"第一径向周期",values:s.rows.map(function(r){return r.y;})},{key:"second",label:"第二径向周期",xs:joined.map(function(r){return r.x;}),values:joined.map(function(r){return r.y;})},{key:"newton",label:"Newton闭合椭圆参考",xs:s.rows.map(function(r){return r.newtonX;}),values:s.rows.map(function(r){return r.newtonY;})}]};
+b=curve("额外角的累积：整周期再比较1PN","Darwin径向相位χ（rad）","φ−χ（rad）",s.rows,"chi",[{key:"advanceSoFar",label:"精确积分数值相位"},{key:"weak",label:"1PN局部积分",value:function(r){return(3*r.chi+s.e*Math.sin(r.chi))/s.p;}}]);
+}return[a,b];
+}
+var SO_INSTANCE=0;
+function mount(root){
+var doc=root.ownerDocument,id="so126-"+(++SO_INSTANCE),fields={},state={predictions:[null,null,null,null],revealed:false,error:false},last=null;
+if(!doc.getElementById("so126-style")){
+var style=doc.createElement("style");style.id="so126-style";
+style.textContent=".so126{color:var(--fg);line-height:1.65;min-width:0}.so126 *{box-sizing:border-box}.so126 [hidden]{display:none!important}.so126 input,.so126 select,.so126 button{font:inherit;min-height:44px;background:var(--bg);color:var(--fg);border:1px solid var(--border);border-radius:5px;padding:7px}.so126 input,.so126 select{width:100%}.so126 button{cursor:pointer}.so126 button:disabled{opacity:.5;cursor:default}.so126 .so-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.so126 .so-field{display:grid;gap:4px;min-width:0}.so126 .so-question{margin:14px 0;padding:12px;border:1px solid var(--border)}.so126 .so-choices,.so126 .so-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.so126 [aria-pressed=true]{background:var(--accent);color:var(--bg)}.so126 .so-region{max-width:100%;overflow:auto;margin:14px 0}.so126 details .so-region{max-height:480px}.so126 summary{cursor:pointer;padding:12px;border:1px solid var(--border)}.so126 .so-region:focus-visible,.so126 button:focus-visible,.so126 input:focus-visible,.so126 select:focus-visible,.so126 summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}.so126 svg{display:block;width:900px;min-width:900px;max-width:none;background:var(--bg);color:var(--fg)}.so126 table{min-width:900px;width:100%;border-collapse:collapse;font-size:14px}.so126 th,.so126 td{padding:9px;border:1px solid var(--border);text-align:left;vertical-align:top}.so126 caption{font-weight:700;text-align:left;margin:8px 0}.so126 .so-feedback{padding:10px;border-left:3px solid var(--accent)}.so126 .so-legend{min-width:900px;display:flex;gap:20px;flex-wrap:wrap}.so126 .so-note{font-size:14px;color:var(--fg-soft)}@media(max-width:700px){.so126 .so-controls{grid-template-columns:1fr}}";
+doc.head.appendChild(style);}
+function el(tag,attrs,text){var e=doc.createElement(tag);Object.keys(attrs||{}).forEach(function(k){e.setAttribute(k,attrs[k]);});if(text!==undefined)e.textContent=text;return e;}
+var lab=el("div",{class:"so126"});lab.appendChild(el("h3",{},"从允许区到近日点进动：三个模型逐项核对"));
+var controls=el("div",{class:"so-controls"});
+function select(key,label,options){var w=el("label",{class:"so-field"},label),e=el("select",{"data-key":key,"aria-label":label});Object.keys(options).forEach(function(k){e.appendChild(el("option",{value:k},options[k]));});fields[key]=e;w.appendChild(e);controls.appendChild(w);}
+function input(key,label,min,max){var w=el("label",{class:"so-field"},label),e=el("input",{type:"number",step:"any",min:min,max:max,"data-key":key,"aria-label":label});fields[key]=e;w.appendChild(e);controls.appendChild(w);}
+select("mode","实验模型",MODES);
+input("q","类时 q=ℓ²（0–100）",0,100);
+select("level","类时能量输入方式",LEVELS);
+input("K","手动K（−0.12–0.2；非零绝对值至少10⁻¹²）",-.12,.2);
+input("beta","光子 β=b/(3√3)（0–4）",0,4);
+input("p","束缚轨道 p（6+2e+0.02 至10⁸）",6,1e8);
+input("e","束缚轨道 e（0–0.9）",0,.9);
+lab.appendChild(controls);
+lab.appendChild(el("p",{class:"so-note"},"三个模型分别使用q与能量、β、p与e。所有输入仍须是有效数值；仅当前模型检查参数间的条件。解析圆轨道模式直接使用重根模型，不能把舍入后的手动K当作精确临界值。"));
+var presets=el("div",{class:"so-actions"});
+[
+["普通束缚区",{mode:"potential",q:16,K:-.0246875,level:"manual"}],
+["孤立稳定圆轨道",{mode:"potential",q:16,level:"stable"}],
+["精确ISCO",{mode:"potential",q:12,level:"isco"}],
+["临界光子",{mode:"photon",beta:1}],
+["近分界线进动",{mode:"precession",p:7.82,e:.9}],
+["近圆弱场",{mode:"precession",p:1e8,e:0}]
+].forEach(function(pair){var b=el("button",{type:"button","data-preset":pair[0]},pair[0]);b.onclick=function(){Object.keys(pair[1]).forEach(function(k){fields[k].value=String(pair[1][k]);});validate(true);};presets.appendChild(b);});
+lab.appendChild(presets);
+var questions=[
+["q略小于12、恰为12、略大于12，能否都称为同一个ISCO？",["不能，圆轨道根结构不同","可以，用一个小容差统一"]],
+["光子轨道能否只靠改变类时能量E来计算？",["不能，归一化与径向方程不同","可以，其余方程全部照用"]],
+["孤立稳定圆轨道与有限束缚区，是否描述同一类径向初值？",["不是，孤立点没有有限振幅径向往返","是，所有根之间都可运动"]],
+["e=0时，是否仍有唯一近日点方向可直接观测进动？",["没有；频率比解释为微扰极限","有，圆轨道上可任选一个当真实近日点"]]
+],buttons=[];
+questions.forEach(function(q,i){var w=el("section",{class:"so-question","data-question":i});w.appendChild(el("p",{},(i+1)+". "+q[0]));var opts=el("div",{class:"so-choices"});buttons[i]=[];q[1].forEach(function(t,j){var b=el("button",{type:"button","data-choice":j,"aria-pressed":"false"},t);b.onclick=function(){state.predictions[i]=j;buttons[i].forEach(function(b,k){b.setAttribute("aria-pressed",k===j?"true":"false");});validate(false);if(state.revealed&&!state.error)feedback.textContent=score();};buttons[i].push(b);opts.appendChild(b);});w.appendChild(opts);lab.appendChild(w);});
+var actions=el("div",{class:"so-actions"}),submit=el("button",{type:"button","data-action":"submit"},"揭示并核对"),reset=el("button",{type:"button","data-action":"reset"},"重置");actions.appendChild(submit);actions.appendChild(reset);lab.appendChild(actions);
+var feedback=el("p",{class:"so-feedback",role:"status"},"先回答四个预测。"),results=el("div",{class:"so-results",hidden:""});lab.appendChild(feedback);lab.appendChild(results);root.replaceChildren(lab);
+function score(){return state.predictions.filter(function(x){return x===0;}).length+" / 4 个预测命中。先确认当前模型，再检查根、允许区和量的单位。";}
+function read(){var o={};Object.keys(fields).forEach(function(k){var e=fields[k];if(e.tagName==="SELECT")o[k]=e.value;else{if(e.value.trim()===""||!e.validity.valid)throw Error(e.getAttribute("aria-label")+"：输入无效，保留原值");o[k]=Number(e.value);}});return config(o);}
+function validate(auto){try{last=read();submit.disabled=state.predictions.some(function(x){return x===null;})||(state.revealed&&!state.error);if(state.error||!state.revealed){results.hidden=true;if(!submit.disabled)feedback.textContent="参数与预测已记录，点击揭示。";}else if(auto)render(snapshot(last));}catch(e){state.error=true;results.hidden=true;submit.disabled=true;feedback.textContent=e.message;}}
+var colors=["#347fbd","#b87b20","#348557","#af4f96"];
+function svg(p){
+var ns="http://www.w3.org/2000/svg";function e(tag,attrs,text){var n=doc.createElementNS(ns,tag);Object.keys(attrs||{}).forEach(function(k){n.setAttribute(k,attrs[k]);});if(text!==undefined)n.textContent=text;return n;}
+var left=p.equalAspect?250:120,width=p.equalAspect?400:740,top=80,height=p.equalAspect?400:230,bottom=top+height;
+var s=e("svg",{viewBox:"0 0 900 "+(bottom+130),role:"img","aria-label":p.title,"data-equal-aspect":String(!!p.equalAspect)}),x=function(v){return left+width*(v-p.xmin)/(p.xmax-p.xmin);},y=function(v){return bottom-height*(v-p.ymin)/(p.ymax-p.ymin);};
+s.appendChild(e("title",{},p.title));s.appendChild(e("text",{x:30,y:30,fill:"currentColor","font-size":17},p.title));
+(p.allowed||[]).forEach(function(a,i){s.appendChild(e("rect",{"data-allowed":i,x:x(a.uMin),y:top,width:x(a.uMax)-x(a.uMin),height:height,fill:"#348557","fill-opacity":.13}));});
+for(var i=0;i<=4;i++){var xv=p.xmin+(p.xmax-p.xmin)*i/4,yv=p.ymin+(p.ymax-p.ymin)*i/4;s.appendChild(e("line",{x1:left,x2:left+width,y1:y(yv),y2:y(yv),stroke:"currentColor","stroke-opacity":.2}));s.appendChild(e("text",{x:left-8,y:y(yv)+4,"text-anchor":"end",fill:"currentColor","font-size":12},fmt(yv)));s.appendChild(e("text",{x:x(xv),y:bottom+25,"text-anchor":"middle",fill:"currentColor","font-size":12},fmt(xv)));}
+if(p.ymin<=0&&p.ymax>=0)s.appendChild(e("line",{x1:left,x2:left+width,y1:y(0),y2:y(0),stroke:"currentColor","stroke-width":1}));
+p.series.forEach(function(q,j){var xs=q.xs||p.xs,points=[];q.values.forEach(function(v,i){var xp=x(xs[i]),yp=y(v);points.push(xp+","+yp);s.appendChild(e("circle",{"data-series":q.key,"data-index":i,cx:xp,cy:yp,r:1.5,fill:colors[j%4]}));});s.appendChild(e("polyline",{"data-series":q.key,points:points.join(" "),fill:"none",stroke:colors[j%4],"stroke-width":1.6,"stroke-dasharray":q.key==="newton"?"5 4":"none"}));});
+(p.roots||[]).forEach(function(r,i){s.appendChild(e("circle",{"data-root":i,cx:x(r.u),cy:y(0),r:r.multiplicity>1?6:4,fill:"var(--bg)",stroke:"currentColor","stroke-width":2}));});
+s.appendChild(e("text",{x:450,y:bottom+65,"text-anchor":"middle",fill:"currentColor","font-size":15},p.xlabel));s.appendChild(e("text",{x:450,y:bottom+96,"text-anchor":"middle",fill:"currentColor","font-size":14},"纵轴："+p.ylabel));return s;
+}
+function region(label){return el("div",{class:"so-region",role:"region",tabindex:"0","aria-label":label+"，可滚动查看全部内容"});}
+function render(s){
+results.replaceChildren();results.appendChild(el("h4",{tabindex:"-1"},"实验结果与完整账本"));
+if(s.status==="unresolved")results.appendChild(el("p",{class:"so-feedback"},s.reason));
+if(s.config.mode==="precession"&&s.circularLimit)results.appendChild(el("p",{class:"so-feedback"},"当前e=0：轨迹是圆；进动读数只表示附近径向微扰的频率极限。"));
+plots(s).forEach(function(p){var r=region(p.title);r.appendChild(svg(p));var l=el("div",{class:"so-legend"});p.series.forEach(function(q,j){var t=el("span",{},q.label);t.style.color=colors[j%4];l.appendChild(t);});if(p.allowed)l.appendChild(el("span",{},"浅绿：F>0连通区；圆圈：根，重根不自动是反弹点"));r.appendChild(l);results.appendChild(r);});
+ledgers(s).forEach(function(d){var r=region(d.title),t=el("table",{"data-table":d.key});t.appendChild(el("caption",{},d.title));var th=el("tr",{});d.headers.forEach(function(h){th.appendChild(el("th",{scope:"col"},h));});t.appendChild(el("thead",{}));t.lastChild.appendChild(th);var body=el("tbody",{});d.rows.forEach(function(row){var tr=el("tr",{});row.forEach(function(v){tr.appendChild(el("td",{},fmt(v)));});body.appendChild(tr);});t.appendChild(body);r.appendChild(t);
+if(d.key==="summary")results.appendChild(r);else{var detail=el("details",{"data-ledger":d.key});detail.appendChild(el("summary",{},d.title+"（"+d.rows.length+"行）"));detail.appendChild(r);if(d.rows.length===0)detail.appendChild(el("p",{},"此参数下没有此类条目；未解析状态不代表已经证明不存在。"));results.appendChild(detail);}});
+results.hidden=false;
+}
+submit.onclick=function(){try{last=read();if(state.predictions.some(function(x){return x===null;}))return;state.error=false;state.revealed=true;render(snapshot(last));submit.disabled=true;feedback.textContent=score();results.querySelector("h4").focus();}catch(e){state.error=true;results.hidden=true;submit.disabled=true;feedback.textContent=e.message;}};
+function defaults(){Object.keys(fields).forEach(function(k){fields[k].value=String(DEFAULTS[k]);});}
+reset.onclick=function(){defaults();state={predictions:[null,null,null,null],revealed:false,error:false};buttons.flat().forEach(function(b){b.setAttribute("aria-pressed","false");});results.replaceChildren();results.hidden=true;feedback.textContent="先回答四个预测。";validate(false);buttons[0][0].focus();};
+Object.keys(fields).forEach(function(k){fields[k].addEventListener(fields[k].tagName==="SELECT"?"change":"input",function(){validate(true);});});defaults();validate(false);
+}
+
+return{MODES:MODES,LEVELS:LEVELS,DEFAULTS:DEFAULTS,config:config,potential:potential,radial:radial,circular:circular,timelike:timelike,photon:photon,precession:precession,snapshot:snapshot,fmt:fmt,selfTest:selfTest,ledgers:ledgers,plots:plots,mount:mount};
+});

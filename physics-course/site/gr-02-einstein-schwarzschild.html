@@ -56,143 +56,445 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-10 20:46</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#schwarzschild">学习层：把 Schwarzschild 圆轨道读成一条势能曲线</a><ul>
-<li><a href="#gr-schwarzschild-learning-title">1. 先钉住范围：哪一个定理、哪一种粒子？</a></li>
-<li><a href="#2">2. 有效势的归一化：能量水平就是一条水平线</a></li>
-<li><a href="#3-l">3. 先预测，再拖动：固定 ℓ 会看到什么？</a></li>
-<li><a href="#4-schwarzschild">4. Schwarzschild 有效势实验</a></li>
+<li><a href="#_1">学习层：先读允许区，再读轨道</a><ul>
+<li><a href="#1">1. 把“势能图”读成速度平方</a></li>
+<li><a href="#2">2. 四个预测</a></li>
+<li><a href="#3">3. 三种模型与静态读法</a></li>
+<li><a href="#4">4. 本页的证据边界</a></li>
 </ul>
 </li>
-<li><a href="#1-einstein">1. Einstein 场方程</a></li>
-<li><a href="#2-schwarzschild">2. Schwarzschild 解</a></li>
-<li><a href="#3">3. 三大经典检验（测地线的收割）</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#1-einstein">1. 为什么几何侧需要 Einstein 张量？</a><ul>
+<li><a href="#11-newton-8">1.1 用 Newton 极限确定那个 8π</a></li>
+<li><a href="#12">1.2 用作用量复核符号、系数与单位</a></li>
+</ul>
+</li>
+<li><a href="#2-schwarzschild">2. 从球对称真空得到 Schwarzschild</a></li>
+<li><a href="#3_1">3. 类时轨道：普通根、重根与孤立允许点</a><ul>
+<li><a href="#31">3.1 圆轨道为何分成两支？</a></li>
+<li><a href="#32-q16">3.2 q=16 的两个反例</a></li>
+<li><a href="#33">3.3 求根图的数值承诺</a></li>
+</ul>
+</li>
+<li><a href="#4_1">4. 光子需要另一条有效势</a></li>
+<li><a href="#5">5. 精确束缚轨道怎样产生进动？</a><ul>
+<li><a href="#51">5.1 弱场公式是怎样展开出来的？</a></li>
+<li><a href="#52-e0">5.2 e=0 为什么要换一种说法？</a></li>
+</ul>
+</li>
+<li><a href="#6">6. 三项经典检验：先说明量、单位和观测协议</a><ul>
+<li><a href="#61">6.1 水星：每圈的角度怎样变成每世纪？</a></li>
+<li><a href="#62">6.2 光偏折：给定的是冲量参数</a></li>
+<li><a href="#63-shapiro">6.3 Shapiro 延迟：单程、往返不能混用</a></li>
+</ul>
+</li>
+<li><a href="#7">7. 迁移练习与完整解答</a></li>
+<li><a href="#8">8. 带着哪些问题进入下一页？</a></li>
 </ul>
 </div>
 </details>
 <h1 id="ii-einstein-schwarzschild">广相 II · Einstein 方程与 Schwarzschild 解<a class="headerlink" href="#ii-einstein-schwarzschild" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Carroll §4–5 ｜ <strong>前置</strong>：gr-01、流形几何 IV（Ricci/Bianchi）
-本页立起理论的心脏——<strong>Einstein 场方程</strong>（物质告诉时空怎么弯），并求出它最著名的精确解——<strong>Schwarzschild 时空</strong>（球对称真空），随即收割三大经典检验：水星进动、光线弯曲、雷达延迟。</p>
+<p><strong>前置</strong>：<a href="gr-01-equivalence.html">等效原理与测地线</a>、<a href="../../grad-math/site/mfld-04-curvature.html">曲率与收缩 Bianchi 恒等式</a>，以及<a href="mech-01-newton.html">中心力运动</a>的有效势方法。
+<strong>这页解决的问题</strong>：度规由什么方程决定？同一球对称外部，为什么有的粒子被捕获，有的在外部往返，光子又需要另一套判据？</p>
 </blockquote>
 <div data-learning-page></div>
 
 <section aria-labelledby="gr-schwarzschild-learning-title" class="learning-layer">
-<h2 id="schwarzschild">学习层：把 Schwarzschild 圆轨道读成一条势能曲线<a class="headerlink" href="#schwarzschild" title="Permanent link"></a></h2>
-<h3 id="gr-schwarzschild-learning-title">1. 先钉住范围：哪一个定理、哪一种粒子？<a class="headerlink" href="#gr-schwarzschild-learning-title" title="Permanent link"></a></h3>
-<p>本学习层只讨论 <strong>Schwarzschild 外部的类时、赤道面测地线</strong>：粒子满足 <span class="arithmatex">\(u^\mu u_\mu=-1\)</span>，取 <span class="arithmatex">\(θ=\pi/2\)</span>，并且始终在 <span class="arithmatex">\(r&gt;2\)</span>。这里使用几何单位 <span class="arithmatex">\(G=M=c=1\)</span>；长度 <span class="arithmatex">\(r\)</span> 已用 <span class="arithmatex">\(GM/c^2\)</span> 归一化，固有时 <span class="arithmatex">\(\tau\)</span> 用 <span class="arithmatex">\(GM/c^3\)</span> 归一化，<span class="arithmatex">\(E\)</span> 是单位静质量的守恒能量，<span class="arithmatex">\(\ell\)</span> 是单位静质量的守恒角动量（以 <span class="arithmatex">\(GM/c\)</span> 为单位）。这不是在视界内积分，也不是光子的 null 测地线。</p>
-<p>Birkhoff 定理的适用条件要说完整：在四维 Einstein 引力中，一个足够光滑、球对称的<strong>真空区域</strong>（<span class="arithmatex">\(T_{\mu\nu}=0\)</span>，本页取 <span class="arithmatex">\(\Lambda=0\)</span>，<span class="arithmatex">\(r\)</span> 是面积半径）在合适的局部坐标片上必为 Schwarzschild，并在 <span class="arithmatex">\(\nabla r\)</span> 为类空的外部片上静态。它是局部真空结论，不负责物质源的内部、全局延拓或非球对称扰动；若保留 <span class="arithmatex">\(\Lambda\ne0\)</span>，相应答案是 Schwarzschild–(A)dS，而非本页的渐近平直 Schwarzschild 外部。</p>
-<h3 id="2">2. 有效势的归一化：能量水平就是一条水平线<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>从</p>
+<h2 id="_1">学习层：先读允许区，再读轨道<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 把“势能图”读成速度平方<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>本页的轨道实验都使用 <span class="arithmatex">\(G=M=c=1\)</span>：长度以 <span class="arithmatex">\(GM/c^2\)</span> 为单位，时间以 <span class="arithmatex">\(GM/c^3\)</span> 为单位。类时粒子的 <span class="arithmatex">\(E\)</span> 是每单位静质量、再除以 <span class="arithmatex">\(c^2\)</span> 的守恒能量；<span class="arithmatex">\(\ell\)</span> 是比角动量以 <span class="arithmatex">\(GM/c\)</span> 为单位的数值。实验直接调节 <span class="arithmatex">\(q=\ell^2\)</span>，让 <span class="arithmatex">\(q=12\)</span> 的临界条件可以准确输入。</p>
+<p>对类时赤道面测地线，</p>
 <div class="arithmatex">\[
-\left(\frac{dr}{d\tau}\right)^2=E^2-\left(1-\frac2r\right)\left(1+\frac{\ell^2}{r^2}\right)
+\frac12\left(\frac{dr}{d\tau}\right)^2+V(r)=K,
+\qquad K=\frac{E^2-1}{2},\qquad
+V(r)=-\frac1r+\frac{q}{2r^2}-\frac{q}{r^3}.
 \]</div>
-<p>得到本实验采用的唯一归一化：</p>
+<p>横线高于势曲线时，径向速度平方为正；普通交点是转向点。切触的重根却不能一概叫作“碰到就反弹”：稳定圆轨道可能是孤立允许点，不稳定圆轨道可以是无限趋近的端点。</p>
+<p>为了把整个外部装进同一张图，取 <span class="arithmatex">\(u=1/r\)</span>。横轴从 <span class="arithmatex">\(u=0\)</span>（无穷远边界）走到 <span class="arithmatex">\(u=1/2\)</span>（视界边界），真正的计算域是两者之间。图中的函数是</p>
 <div class="arithmatex">\[
-\frac12\left(\frac{dr}{d\tau}\right)^2+V_{\rm eff}(r)=K,\qquad
-K=\frac{E^2-1}{2},\qquad
-V_{\rm eff}(r)=-\frac1r+\frac{\ell^2}{2r^2}-\frac{\ell^2}{r^3}.
+F(u)=\left(\frac{dr}{d\tau}\right)^2
+=2K+2u-qu^2+2qu^3.
 \]</div>
-<p>因此允许区满足 <span class="arithmatex">\(K\ge V_{\rm eff}\)</span>，等号是转向点；若等号同时在势的极值处，就是圆轨道。这里的 <span class="arithmatex">\(V_{\rm eff}\)</span> 已经把静质量和 <span class="arithmatex">\(c\)</span> 等尺度吸收进去，不能再把它和未归一化的 Newton 势或 null 有效势直接比较。</p>
-<h3 id="3-l">3. 先预测，再拖动：固定 ℓ 会看到什么？<a class="headerlink" href="#3-l" title="Permanent link"></a></h3>
-<p>由</p>
-<div class="arithmatex">\[
-V'_{\rm eff}=0\quad\Longleftrightarrow\quad r^2-\ell^2r+3\ell^2=0
-\]</div>
-<p>可见阈值是 <span class="arithmatex">\(\ell^2=12\)</span>。当 <span class="arithmatex">\(\ell^2&lt;12\)</span> 时没有两个外部极值，因而没有圆轨道势垒；当 <span class="arithmatex">\(\ell^2&gt;12\)</span> 时</p>
-<div class="arithmatex">\[
-r_\pm=\frac{\ell^2\pm\ell\sqrt{\ell^2-12}}{2},
-\]</div>
-<p>其中内支 <span class="arithmatex">\(r_-\)</span> 是势垒顶、<strong>不稳定</strong>，外支 <span class="arithmatex">\(r_+\)</span> 是势阱底、<strong>稳定</strong>。在阈值 <span class="arithmatex">\(\ell^2=12\)</span> 两支合并于 <span class="arithmatex">\(r=6\)</span>，这才是 Schwarzschild 类时稳定圆轨道族的内边界，即 ISCO（innermost stable circular orbit）。所以“<span class="arithmatex">\(L\)</span> 再大也存在 ISCO <span class="arithmatex">\(r=6\)</span>”是混淆：ISCO 不是任意固定 <span class="arithmatex">\(\ell\)</span> 的稳定半径；固定 <span class="arithmatex">\(\ell&gt;\sqrt{12}\)</span> 有两支，且外支随 <span class="arithmatex">\(\ell\)</span> 增大而向外移动。</p>
-<p>图上另外标出 <span class="arithmatex">\(r=2\)</span>（horizon）与 <span class="arithmatex">\(r=3\)</span>（photon sphere）只是尺度参照：<span class="arithmatex">\(r=3\)</span> 属于 null 测地线的光子圆轨道，光子要用另一套 null 有效势；它既不是本实验的类时 ISCO，也不能把 <span class="arithmatex">\(r=2,3,6\)</span> 统称成 EHT 光环。EHT 的成像环是光传播、引力透镜和发射分布共同形成的观测结构，不能由一条类时粒子势曲线直接等同推出。</p>
-<h3 id="4-schwarzschild">4. Schwarzschild 有效势实验<a class="headerlink" href="#4-schwarzschild" title="Permanent link"></a></h3>
-<p>下面的确定性实验用 <span class="arithmatex">\(\ell\)</span> 和 <span class="arithmatex">\(E\)</span> 两个滑杆重画 <span class="arithmatex">\(V_{\rm eff}\)</span> 与 <span class="arithmatex">\(K\)</span>，标出稳定/不稳定圆轨道、允许区和转向点，并把所有输入与根放进数值账本。滑杆改变的是同一个归一化模型；没有随机抽样，也没有把交互历史累积到图中。</p>
+<p>注意左侧仍是 <span class="arithmatex">\(dr/d\tau\)</span>，不是 <span class="arithmatex">\(du/d\tau\)</span>。紧化只改变横轴的标记，不改变允许区判据。</p>
+<h3 id="2">2. 四个预测<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<ol>
+<li><span class="arithmatex">\(q\)</span> 略小于 12、恰等于 12、略大于 12，能否都标成同一个 ISCO？</li>
+<li>把粒子换成光子，只改变类时能量 <span class="arithmatex">\(E\)</span> 就够了吗？</li>
+<li>孤立稳定圆轨道与两端之间往返的有限允许区，是同一种初值运动吗？</li>
+<li>圆轨道有可辨认的近日点吗？弱场的“每圈进动”怎样换成“每世纪进动”？</li>
+</ol>
+<h3 id="3">3. 三种模型与静态读法<a class="headerlink" href="#3" title="Permanent link"></a></h3>
 <div class="learning-lab" data-learning-lab="schwarzschild-orbits">
-<p><strong>无 JavaScript 时的静态读法：</strong>固定 <span class="arithmatex">\(\ell\)</span> 后画 <span class="arithmatex">\(V_{\rm eff}(r)\)</span>，再画 <span class="arithmatex">\(K=(E^2-1)/2\)</span>。阴影允许区满足 <span class="arithmatex">\(K\ge V_{\rm eff}\)</span>，交点是转向点；<span class="arithmatex">\(\ell^2&gt;12\)</span> 时内支 <span class="arithmatex">\(r_-\)</span> 不稳定、外支 <span class="arithmatex">\(r_+\)</span> 稳定，<span class="arithmatex">\(\ell^2=12\)</span> 时两支在 <span class="arithmatex">\(r=6\)</span> 合并为 ISCO。</p>
+<p><strong>不启用脚本也可核对：</strong></p>
 <table>
 <thead>
 <tr>
-<th>预设</th>
-<th style="text-align: right;"><span class="arithmatex">\(\ell\)</span>、<span class="arithmatex">\(\ell^2\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(E\)</span></th>
-<th>读图目的</th>
+<th>情形</th>
+<th>模型读数</th>
+<th>如何解释</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>无势垒</td>
-<td style="text-align: right;"><span class="arithmatex">\(2.5\)</span>、<span class="arithmatex">\(6.25\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1.05\)</span></td>
-<td><span class="arithmatex">\(\ell^2&lt;12\)</span>，没有圆轨道极值</td>
+<td>类时 q=6.25</td>
+<td>无圆轨道极值</td>
+<td>不表示所有运动都没有转向点</td>
 </tr>
 <tr>
-<td>ISCO</td>
-<td style="text-align: right;"><span class="arithmatex">\(\sqrt{12}\)</span>、<span class="arithmatex">\(12\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(\sqrt{8/9}\)</span></td>
-<td>两支合并于 <span class="arithmatex">\(r=6\)</span>，为临界稳定</td>
+<td>精确 ISCO：q=12</td>
+<td>r=6，E=√(8/9)</td>
+<td>根为三重；不是普通势阱底</td>
 </tr>
 <tr>
-<td>束缚轨道</td>
-<td style="text-align: right;"><span class="arithmatex">\(4\)</span>、<span class="arithmatex">\(16\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.975\)</span></td>
-<td>外支 <span class="arithmatex">\(r_+=12\)</span> 的势阱与有限允许区</td>
+<td>q=16，加载稳定圆轨道能量</td>
+<td>r=12 为孤立稳定圆轨道，另有 r=3 的普通根</td>
+<td>不能把这两个根之间全部涂为允许区</td>
 </tr>
 <tr>
-<td>高角动量</td>
-<td style="text-align: right;"><span class="arithmatex">\(6.5\)</span>、<span class="arithmatex">\(42.25\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1.02\)</span></td>
-<td><span class="arithmatex">\(r_-=3.25\)</span> 不稳定、<span class="arithmatex">\(r_+=39\)</span> 稳定；<span class="arithmatex">\(r=3\)</span> 仍只是 null 参照</td>
+<td>q=16，K=−0.0246875</td>
+<td>普通根约 r=3.12995、6.76410、30.61228</td>
+<td>外部束缚区约为 [6.76410,30.61228]；近视界还有分离的允许区</td>
+</tr>
+<tr>
+<td>光子 β=b/(3√3)=1</td>
+<td>r=3 为不稳定光子圆轨道</td>
+<td>从无穷远入射的临界光线渐近它</td>
+</tr>
+<tr>
+<td>光子 β小于1 / 大于1</td>
+<td>捕获 / 散射返回</td>
+<td>对无穷远入射、初始向内的光线而言</td>
+</tr>
+<tr>
+<td>束缚轨道 p=10、e=0.3</td>
+<td>精确进动约 3.69384 rad/径向周期；一阶近似约 1.88496 rad</td>
+<td>该例不是弱场，不能只信一阶值</td>
+</tr>
+<tr>
+<td>e=0 的圆轨道极限</td>
+<td>方位/径向微扰频率比为 1/√(1−6/p)</td>
+<td>精确圆轨道自身没有唯一近日点</td>
 </tr>
 </tbody>
 </table>
-<p><strong>迁移问题：</strong>若把实验对象改成光子，能否只把 <span class="arithmatex">\(E\)</span> 滑杆改成某个值继续使用这条类时曲线？先作答，再用“检查迁移答案”核对：不能，null 测地线要从 <span class="arithmatex">\(d\tau=0\)</span> 重新得到另一套有效势；<span class="arithmatex">\(r=3\)</span> 的 photon sphere 不能被当成这里的 ISCO。</p>
+<p>交互中的手动 K 与解析圆轨道能量是两种输入方式。手动输入保留原值；如果过于接近临界能量，双精度不能可靠分类，实验明确显示未解析，不能用小容差把它擅自认成圆轨道。光子和进动是独立模型，不能把它们的能量归一化混用。</p>
 </div>
+<h3 id="4">4. 本页的证据边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>本页讨论四维、非旋转、球对称真空外部，取 <span class="arithmatex">\(\Lambda=0\)</span>。轨道是无自力、无辐射反作用的测试粒子测地线。若使用普通恒星模型，必须额外确认轨道没有进入恒星物质内部；形式上的真空外推不是恒星内部解。二维坐标轨迹也不是相机成像，更不是 EHT 的亮度环。</p>
 </section>
-<h2 id="1-einstein">1. Einstein 场方程<a class="headerlink" href="#1-einstein" title="Permanent link"></a></h2>
-<p><strong>需求清单</strong>：张量方程（广义协变）；源 = 能动张量 <span class="arithmatex">\(T_{\mu\nu}\)</span>（sr-01 四动量的场版——能量密度/动量流/应力打包）；守恒 <span class="arithmatex">\(\nabla^\mu T_{\mu\nu} = 0\)</span> 须自动成立；牛顿极限回收 Poisson 方程 <span class="arithmatex">\(\nabla^2\Phi = 4\pi G\rho\)</span>。</p>
-<p><strong>唯一答案【构造级论证】</strong>：几何侧要一个"二阶导、对称、自动无散"的张量——<strong>Bianchi 恒等式</strong>（流形 IV）说 Einstein 张量 <span class="arithmatex">\(G_{\mu\nu} = R_{\mu\nu} - \frac12 R\,g_{\mu\nu}\)</span> 恰好 <span class="arithmatex">\(\nabla^\mu G_{\mu\nu} \equiv 0\)</span>（几何恒等式 ⇒ 能量守恒不是附加假设而是<strong>结构自带</strong>）：</p>
+<style>.so-static{max-width:100%;overflow-x:auto}.so-static img{display:block;width:1100px;min-width:1100px;max-width:none!important}.so-static:focus-visible{outline:3px solid var(--accent)}</style>
+<div class="so-static" role="region" tabindex="0" aria-label="全外部允许区、光子临界根和等比例进动轨迹，可左右滚动"><img src="assets/img/gr-02-effective-potential.svg" alt="类时三个根与分离允许区，稳定圆轨道孤立点，临界光子双重根，以及横纵等比例的两次径向周期。" loading="lazy"></div>
+
+<h2 id="1-einstein">1. 为什么几何侧需要 Einstein 张量？<a class="headerlink" href="#1-einstein" title="Permanent link"></a></h2>
+<p>能动张量 <span class="arithmatex">\(T_{\mu\nu}\)</span> 统一描述局部能量密度、动量流与应力。若直接猜 <span class="arithmatex">\(R_{\mu\nu}=\kappa T_{\mu\nu}\)</span>，收缩 Bianchi 恒等式却告诉我们</p>
 <div class="arithmatex">\[
-G_{\mu\nu} + \Lambda g_{\mu\nu} = \frac{8\pi G}{c^4}\,T_{\mu\nu}
+\nabla^\mu R_{\mu\nu}=\frac12\nabla_\nu R.
 \]</div>
-<p>系数由牛顿极限定标【骨架：弱场线性化 <span class="arithmatex">\(g = \eta + h\)</span>，<span class="arithmatex">\(G_{00} \approx -\frac12\nabla^2h_{00}\)</span> 对上 Poisson】。<span class="arithmatex">\(\Lambda\)</span>：宇宙学常数——数学允许的唯一附加项（cosmo 线的主角，暗能量的席位）。10 条非线性耦合 PDE（<strong>非线性 = 引力场自己有能量、自己造引力</strong>——与电磁的线性叠加的本质区别；也是精确解稀缺的原因）。变分出身一嘴：Einstein–Hilbert 作用量 <span class="arithmatex">\(S = \frac{c^4}{16\pi G}\int R\sqrt{-g}\,d^4x\)</span>——mech-02 的哲学统治到引力（"曲率标量是最简单的协变拉氏量"）。</p>
-<h2 id="2-schwarzschild">2. Schwarzschild 解<a class="headerlink" href="#2-schwarzschild" title="Permanent link"></a></h2>
-<figure class="plot">
-<p><img alt="Schwarzschild 有效势" src="assets/img/gr-02-effective-potential.svg" /></p>
-<figcaption><span class="fig-id">图 2.1</span>Schwarzschild 有效势比牛顿多一项 \(-L^2/r^3\)：近距离势垒被压低，允许粒子"坠入"——近日点进动与黑洞吸积的根。</figcaption>
-</figure>
-<p><strong>定理（Schwarzschild 1916 / Birkhoff，条件限定）</strong> 在 <span class="arithmatex">\(T_{\mu\nu}=0\)</span>、<span class="arithmatex">\(\Lambda=0\)</span> 的足够光滑球对称真空区域内，使用面积半径 <span class="arithmatex">\(r\)</span> 的解在局部上唯一为 Schwarzschild；外部 <span class="arithmatex">\(r&gt;r_s\)</span> 的坐标片是静态的。这里的“唯一”是局部真空结论，不包含物质内部、全局延拓或非球对称扰动；若 <span class="arithmatex">\(\Lambda\ne0\)</span>，对应的是 Schwarzschild–(A)dS：</p>
+<p>右侧一般不为零。换成</p>
 <div class="arithmatex">\[
-ds^2 = -\Big(1 - \frac{r_s}{r}\Big)c^2dt^2 + \Big(1 - \frac{r_s}{r}\Big)^{-1}dr^2 + r^2d\Omega^2, \qquad r_s = \frac{2GM}{c^2}
+G_{\mu\nu}=R_{\mu\nu}-\frac12Rg_{\mu\nu},
+\qquad \nabla^\mu G_{\mu\nu}\equiv0,
 \]</div>
-<p><strong>【骨架】</strong> 球对称 ansatz <span class="arithmatex">\(ds^2 = -e^{2\alpha(r)}dt^2 + e^{2\beta(r)}dr^2 + r^2d\Omega^2\)</span> 代入 <span class="arithmatex">\(R_{\mu\nu} = 0\)</span>：两条独立 ODE 给 <span class="arithmatex">\(\alpha = -\beta\)</span> 与 <span class="arithmatex">\((re^{2\alpha})' = 1\)</span>——积分即得；常数由牛顿极限对号（<span class="arithmatex">\(g_{00} \to -(1 + \frac{2\Phi}{c^2})\)</span>，gr-01 字典）。<span class="arithmatex">\(\blacksquare\)</span>（Birkhoff：球对称自动静态——球对称脉动不辐射引力波：ced-02"无偶极辐射"的引力版预告。）</p>
-<p><strong>Schwarzschild 半径</strong>：太阳 3 km、地球 9 mm——普通天体的 <span class="arithmatex">\(r_s\)</span> 深埋体内（外部解照用）；本页学习层只取外部 <span class="arithmatex">\(r&gt;r_s\)</span>，<span class="arithmatex">\(r \leq r_s\)</span> 的完整故事（视界、黑洞）留给 gr-03。</p>
-<h2 id="3">3. 三大经典检验（测地线的收割）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>Schwarzschild 测地线：对称性给两个守恒量（能量 <span class="arithmatex">\(E\)</span>、角动量——Killing 矢量，Noether/流形语言），化为一维有效势问题（mech-01 的方法在弯曲时空重演）。为避免把不同单位的势混在一起，以下速查式也采用 <span class="arithmatex">\(G=M=c=1\)</span>、<span class="arithmatex">\(r\)</span> 以 <span class="arithmatex">\(GM/c^2\)</span> 为单位，并只对外部类时赤道测地线成立：</p>
+<p>便与物质方程在壳上的 <span class="arithmatex">\(\nabla^\mu T_{\mu\nu}=0\)</span> 相容。采用最低阶的纯度规引力作用量，会得到</p>
 <div class="arithmatex">\[
-\frac12\dot r^2 + V_{\text{eff}}(r) = \frac{E^2-1}{2}, \qquad V_{\text{eff}} = -\frac1r + \frac{\ell^2}{2r^2} - \frac{\ell^2}{r^3},
-\qquad \dot r=\frac{dr}{d\tau}.
+G_{\mu\nu}+\Lambda g_{\mu\nu}
+=\frac{8\pi G}{c^4}T_{\mu\nu}.
 \]</div>
-<p>其中 <span class="arithmatex">\(\tau\)</span> 已按 <span class="arithmatex">\(GM/c^3\)</span> 归一化，<span class="arithmatex">\(\ell\)</span> 按 <span class="arithmatex">\(GM/c\)</span> 归一化；这就是本页实验的有效势归一化。光子满足的是 null 条件，不能把这条类时势直接套到光线上。</p>
-<p><strong>水星近日点进动【推导骨架】</strong>：新 <span class="arithmatex">\(\frac{1}{r^3}\)</span> 项微扰 Kepler 轨道（qm-04 式的微扰思路用在轨道方程上）：每圈进动</p>
+<p>这不是由“写成张量”四个字唯一逼出的全部可能理论。若允许额外场、更高阶导数或不同耦合，仍可构造其他协变理论。这里选择的是 Einstein 引力，并用实验检验它。</p>
+<p>协变散度为零也不等于任意时空都有一个统一的全局总能量。全局能量的定义还需要对称性、边界或渐近条件；局部引力能量不能随意当作另一个普通张量塞到右侧。十个对称分量方程受 Bianchi 恒等式与坐标自由度联系，不能把它们数成十个独立传播自由度。</p>
+<h3 id="11-newton-8">1.1 用 Newton 极限确定那个 8π<a class="headerlink" href="#11-newton-8" title="Permanent link"></a></h3>
+<p>先令 <span class="arithmatex">\(\Lambda=0\)</span>。取迹并回代，</p>
 <div class="arithmatex">\[
-\Delta\varphi = \frac{6\pi GM}{c^2a(1 - e^2)} \approx 43''/\text{世纪}
+R=-\kappa T,\qquad
+R_{\mu\nu}=\kappa\left(T_{\mu\nu}-\frac12Tg_{\mu\nu}\right).
 \]</div>
-<p>——牛顿力学解释不了的著名残差被一分不差吃下（Einstein 自述算出此数时"心悸数日"）。</p>
-<p><strong>光线弯曲</strong>：光测地线（<span class="arithmatex">\(d\tau = 0\)</span>）同法：擦日偏转 <span class="arithmatex">\(\theta = \frac{4GM}{c^2R_\odot} = 1.75''\)</span>——<strong>恰是"牛顿粒子说"值的两倍</strong>（空间弯曲贡献另一半——gr-01 §3"低速只看时间部分"的反面：光够快，空间部分平权）。1919 年 Eddington 日食观测 ✓——广相登上世界头条的时刻；现代版：<strong>引力透镜</strong>（星系团的光弧、微透镜找系外行星/暗物质——弯光从检验变成了望远镜）。</p>
-<p><strong>Shapiro 雷达延迟</strong>：掠日雷达信号往返多 ~200 μs【引用】——第四检验；卡西尼号验证至 <span class="arithmatex">\(10^{-5}\)</span> 精度。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>例 1（进动量级迁移）</strong> 同公式用于近双星 PSR B1913+16：进动 4.2°/年（水星的 3.5 万倍）——强场系统把"世纪级效应"变成"年级"；该双星的轨道衰减是引力波的首个证据（gr-03 接力）。</p>
-<p><strong>例 2（有效势读图）</strong> 在归一化变量中，<span class="arithmatex">\(V_{\text{eff}}\)</span> 的新项改变了近距势垒。ISCO 是类时稳定圆轨道族的最内边界：<span class="arithmatex">\(\ell^2=12\)</span> 时两支圆轨道在 <span class="arithmatex">\(r=6\)</span> 合并并满足 <span class="arithmatex">\(V''_{\text{eff}}=0\)</span>；但对任意固定 <span class="arithmatex">\(\ell^2&gt;12\)</span>，仍有内侧不稳定支 <span class="arithmatex">\(r_-\)</span> 与外侧稳定支 <span class="arithmatex">\(r_+\)</span>，不能说“<span class="arithmatex">\(\ell\)</span> 再大也固定存在 <span class="arithmatex">\(r=6\)</span> 的 ISCO”。<span class="arithmatex">\(r=3\)</span> 是 null photon sphere，EHT 光环还涉及光线传播、透镜和发射分布，不能与 ISCO 或 horizon 混为同一个尺度。</p>
-<p><strong>例 3（透镜小算）</strong> 太阳质量恒星在 1 kpc 处：Einstein 环半径 <span class="arithmatex">\(\theta_E = \sqrt{\frac{4GM}{c^2}\frac{D_{LS}}{D_LD_S}} \sim\)</span> mas 级——微透镜光变曲线的时标 ~ 周：OGLE 类巡天找暗天体的设计参数。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：把解推进视界之内——黑洞、引力波与宇宙学度规：广相的三大前沿出口一次打通。</em></p>
+<p>在弱场、静态、慢速且压强远小于静质量能量密度的极限，采用 <span class="arithmatex">\(x^0=ct\)</span>，有 <span class="arithmatex">\(T_{00}\simeq\rho c^2\)</span>、<span class="arithmatex">\(T\simeq-\rho c^2\)</span>，因此</p>
+<div class="arithmatex">\[
+R_{00}\simeq\frac{\kappa}{2}\rho c^2.
+\]</div>
+<p>另一方面，上一页的 <span class="arithmatex">\(g_{00}=-(1+2\Phi/c^2)\)</span> 给出</p>
+<div class="arithmatex">\[
+R_{00}\simeq\partial_i\Gamma^i_{00}
+=\frac{\nabla^2\Phi}{c^2}.
+\]</div>
+<p>与 <span class="arithmatex">\(\nabla^2\Phi=4\pi G\rho\)</span> 比较，得到 <span class="arithmatex">\(\kappa=8\pi G/c^4\)</span>。<strong>这里用的是 Ricci 分量 <span class="arithmatex">\(R_{00}\)</span>，不能把它直接改名为 <span class="arithmatex">\(G_{00}\)</span>。</strong> 后者还含迹项；这会改变定标中的因子。</p>
+<h3 id="12">1.2 用作用量复核符号、系数与单位<a class="headerlink" href="#12" title="Permanent link"></a></h3>
+<p>明确取四个长度坐标 <span class="arithmatex">\(x^0=ct\)</span>，令 <span class="arithmatex">\(d^4x=dx^0dx^1dx^2dx^3\)</span>，则</p>
+<div class="arithmatex">\[
+S_g=\frac{c^3}{16\pi G}
+\int (R-2\Lambda)\sqrt{-g}\,d^4x,\qquad
+\delta S_m=-\frac1{2c}\int
+T_{\mu\nu}\delta g^{\mu\nu}\sqrt{-g}\,d^4x.
+\]</div>
+<p>两项都具有作用量单位。若积分改用 <span class="arithmatex">\(dt\,d^3x\)</span>，系数中的光速因子也要跟着改变，不能只抄一个 <span class="arithmatex">\(c^3\)</span> 或 <span class="arithmatex">\(c^4\)</span>。</p>
+<p>对在内部紧支撑的逆度规变分，</p>
+<div class="arithmatex">\[
+\delta\sqrt{-g}=-\frac12\sqrt{-g}\,g_{\mu\nu}\delta g^{\mu\nu},
+\qquad
+g^{\mu\nu}\delta R_{\mu\nu}
+=\nabla_\rho W^\rho,
+\]</div>
+<p>其中后一项为全散度。此处的变分支撑使边界项消失；若研究有实际边界且只固定诱导度规的变分问题，应加入相应边界作用量。于是</p>
+<div class="arithmatex">\[
+\delta(S_g+S_m)
+=\int\sqrt{-g}\left[
+\frac{c^3}{16\pi G}(G_{\mu\nu}+\Lambda g_{\mu\nu})
+-\frac1{2c}T_{\mu\nu}\right]\delta g^{\mu\nu}\,d^4x.
+\]</div>
+<p>要求任意这类变分都使作用量驻定，就恢复同一个场方程。<a href="https://preposterousuniverse.com/wp-content/uploads/grnotes-four.pdf">推导背景：Carroll 讲义第 4 章</a></p>
+<h2 id="2-schwarzschild">2. 从球对称真空得到 Schwarzschild<a class="headerlink" href="#2-schwarzschild" title="Permanent link"></a></h2>
+<p>Birkhoff 结论需要限定：在四维 Einstein 引力、<span class="arithmatex">\(\Lambda=0\)</span>、足够光滑的球对称真空区域中，解局部为 Schwarzschild。在面积半径梯度为类空的外部片上，它是静态的。这个结论不负责物质内部、全局延拓或非球对称扰动；<span class="arithmatex">\(\Lambda\ne0\)</span> 时对应 Schwarzschild–(A)dS。</p>
+<p>下面在外部片给出计算。以 <span class="arithmatex">\(x^0=ct\)</span> 为时间坐标，球对称度规可写为</p>
+<div class="arithmatex">\[
+ds^2=-e^{2\alpha(x^0,r)}(dx^0)^2
++e^{2\beta(x^0,r)}dr^2+r^2d\Omega^2.
+\]</div>
+<p>先不假设静态。真空方程中的两个分量为</p>
+<div class="arithmatex">\[
+R_{0r}=\frac2r\,\partial_0\beta=0,\qquad
+R_{\theta\theta}
+=1+e^{-2\beta}[r(\partial_r\beta-\partial_r\alpha)-1]=0.
+\]</div>
+<p>第一式给出 <span class="arithmatex">\(\beta=\beta(r)\)</span>；再对第二式取时间导数，得到 <span class="arithmatex">\(\partial_0\partial_r\alpha=0\)</span>，故 <span class="arithmatex">\(\alpha=A(r)+B(x^0)\)</span>。把时间改成 <span class="arithmatex">\(d\widetilde x^0=e^{B(x^0)}dx^0\)</span>，可吸收后一个函数，使度规静态。</p>
+<p>静态之后，两个 Ricci 分量的组合为</p>
+<div class="arithmatex">\[
+e^{2(\beta-\alpha)}R_{00}+R_{rr}
+=\frac2r(\alpha'+\beta')=0.
+\]</div>
+<p>因此 <span class="arithmatex">\(\alpha+\beta\)</span> 为常数；再用时间归一化吸收常数。取 <span class="arithmatex">\(\beta=-\alpha\)</span>，令 <span class="arithmatex">\(f=e^{2\alpha}\)</span>，角向方程化成</p>
+<div class="arithmatex">\[
+rf'+f=1,\qquad (rf)'=1,\qquad
+f=1+\frac{C}{r}.
+\]</div>
+<p>渐近平直弱场要求 <span class="arithmatex">\(g_{00}\simeq-(1+2\Phi/c^2)\)</span>，其中 <span class="arithmatex">\(\Phi=-GM/r\)</span>，所以 <span class="arithmatex">\(C=-2GM/c^2\)</span>。最终</p>
+<div class="arithmatex">\[
+ds^2=-\left(1-\frac{r_s}{r}\right)c^2dt^2
++\left(1-\frac{r_s}{r}\right)^{-1}dr^2+r^2d\Omega^2,
+\qquad r_s=\frac{2GM}{c^2}.
+\]</div>
+<p>由真空方程推出外部静态，才是这次推导中的关键。球对称脉动可以改变物质内部，却不产生真空外部的球对称引力辐射；这与非球对称系统的引力波不同。<a href="https://preposterousuniverse.com/wp-content/uploads/grnotes-seven.pdf">Ricci 组合与解的推导：Carroll 第 7 章</a></p>
+<h2 id="3_1">3. 类时轨道：普通根、重根与孤立允许点<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>以下恢复实验的无量纲单位 <span class="arithmatex">\(G=M=c=1\)</span>，并取赤道面。时间平移与转动对称性给出</p>
+<div class="arithmatex">\[
+E=\left(1-\frac2r\right)\frac{dt}{d\tau},
+\qquad \ell=r^2\frac{d\varphi}{d\tau}.
+\]</div>
+<p>把它们代入四速度归一化 <span class="arithmatex">\(u^\mu u_\mu=-1\)</span>，得到</p>
+<div class="arithmatex">\[
+-1=-\frac{E^2}{1-2/r}
++\frac{\dot r^2}{1-2/r}+\frac{\ell^2}{r^2},
+\qquad
+\dot r^2=E^2-\left(1-\frac2r\right)\left(1+\frac{q}{r^2}\right).
+\]</div>
+<p>展开便是学习层中的 <span class="arithmatex">\(V\)</span> 与 <span class="arithmatex">\(K\)</span>。允许区必须满足 <span class="arithmatex">\(\dot r^2\ge0\)</span>，但要成为实际轨道，还需给出初始半径和径向运动方向。</p>
+<h3 id="31">3.1 圆轨道为何分成两支？<a class="headerlink" href="#31" title="Permanent link"></a></h3>
+<p>圆轨道要求 <span class="arithmatex">\(V'(r)=0\)</span>，因此</p>
+<div class="arithmatex">\[
+r^2-qr+3q=0,\qquad
+r_\pm=\frac{q\pm\sqrt{q(q-12)}}2.
+\]</div>
+<p>只有 <span class="arithmatex">\(q\ge12\)</span> 才有实数圆轨道。用圆轨道关系 <span class="arithmatex">\(q=r^2/(r-3)\)</span> 代回二阶导数，</p>
+<div class="arithmatex">\[
+V''(r)
+=-\frac2{r^3}+\frac{3q}{r^4}-\frac{12q}{r^5}
+=\frac{r-6}{r^3(r-3)}
+\quad\text{（仅在圆轨道上）}.
+\]</div>
+<p>所以 <span class="arithmatex">\(3&lt;r&lt;6\)</span> 的内支不稳定，<span class="arithmatex">\(r&gt;6\)</span> 的外支稳定。<span class="arithmatex">\(q=12\)</span> 时两支在 <span class="arithmatex">\(r=6\)</span> 合并，二阶导数为零，这是稳定圆轨道族的内边界 ISCO。它不是任意固定角动量下都存在的一条 <span class="arithmatex">\(r=6\)</span> 稳定轨道。</p>
+<p>对稳定圆轨道作微小径向扰动，<span class="arithmatex">\(\delta\ddot r+V''(r)\delta r=0\)</span>。在同一固有时参数下比较径向振荡与方位运动，</p>
+<div class="arithmatex">\[
+\omega_r^2=V''(r),\qquad
+\omega_\varphi^2=\frac{q}{r^4},\qquad
+\frac{\omega_r^2}{\omega_\varphi^2}=1-\frac6r.
+\]</div>
+<p>这也独立检查了二阶导数中的半径幂次。</p>
+<h3 id="32-q16">3.2 q=16 的两个反例<a class="headerlink" href="#32-q16" title="Permanent link"></a></h3>
+<p>外支圆轨道为 <span class="arithmatex">\(r=12\)</span>。加载它的解析能量 <span class="arithmatex">\(K=-1/27\)</span> 后，径向多项式可因式分解为</p>
+<div class="arithmatex">\[
+F(u)=32\left(u-\frac1{12}\right)^2\left(u-\frac13\right).
+\]</div>
+<p>在 <span class="arithmatex">\(u=1/12\)</span> 邻域，除根本身外 <span class="arithmatex">\(F&lt;0\)</span>：这是一条孤立的稳定圆轨道。另一个允许区是 <span class="arithmatex">\(u&gt;1/3\)</span>，即 <span class="arithmatex">\(2&lt;r&lt;3\)</span>。它们之间的禁区不会因为“有两个根”就变成往返轨道。</p>
+<p>内支圆轨道为 <span class="arithmatex">\(r=4\)</span>，能量 <span class="arithmatex">\(K=0\)</span>，此时</p>
+<div class="arithmatex">\[
+F(u)=32u\left(u-\frac14\right)^2.
+\]</div>
+<p>两侧都允许，但接近双根时，径向速度与到圆轨道的距离成正比，抵达需要对数发散的固有时。因此从外部趋近它的轨道不是在有限时间“撞上势垒然后反弹”。</p>
+<p>精确 ISCO 的 <span class="arithmatex">\(q=12\)</span>、<span class="arithmatex">\(K=-1/18\)</span> 则给出</p>
+<div class="arithmatex">\[
+F(u)=24\left(u-\frac16\right)^3.
+\]</div>
+<p>这三个分解说明：普通根、双根和三重根的动力学含义不同，单靠“残差很小”不能分类。</p>
+<h3 id="33">3.3 求根图的数值承诺<a class="headerlink" href="#33" title="Permanent link"></a></h3>
+<p>实验按 <span class="arithmatex">\(F\)</span> 的单调区间括住根，求整个 <span class="arithmatex">\(0&lt;u&lt;1/2\)</span> 中的根，不把大于某个图窗半径的根藏起来。解析圆轨道按钮明确选择上面的临界模型。手动能量若离极值能量低于双精度分类阈值，就只显示输入和曲线，停止报告未经确定的根与允许区。这个“未解析”是计算精度声明，不是新的物理相。</p>
+<p>默认 <span class="arithmatex">\(q=16\)</span>、<span class="arithmatex">\(K=-0.0246875\)</span> 的三个普通根约为 <span class="arithmatex">\(3.12995\)</span>、<span class="arithmatex">\(6.76410\)</span> 和 <span class="arithmatex">\(30.61228\)</span>。初值位于后两个根之间时可作束缚径向往返；近视界允许区属于另一个连通分支。没有相同能量下穿过禁区的经典测地线。</p>
+<h2 id="4_1">4. 光子需要另一条有效势<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>光子没有可用的固有时参数。取仿射参数，利用能量归一化把径向方程写为</p>
+<div class="arithmatex">\[
+\left(\frac{dr}{d\sigma}\right)^2
+=1-\frac{b^2}{r^2}\left(1-\frac2r\right),
+\qquad b=\frac{L}{\mathcal E}.
+\]</div>
+<p>这里 <span class="arithmatex">\(b\)</span> 是无穷远的冲量参数；无量纲化后以 <span class="arithmatex">\(GM/c^2\)</span> 为单位。它依赖角动量与能量的比值，所以改变光子的整体频率而保持入射方向，不会改变这条几何轨迹。</p>
+<p>光子势垒 <span class="arithmatex">\(b^2u^2(1-2u)\)</span> 在 <span class="arithmatex">\(u=1/3\)</span> 取最大值 <span class="arithmatex">\(b^2/27\)</span>。因此</p>
+<div class="arithmatex">\[
+b_c=3\sqrt3,\qquad \beta=\frac{b}{b_c}.
+\]</div>
+<p>对于从无穷远向内入射的光线，<span class="arithmatex">\(\beta&lt;1\)</span> 无外部反弹点，最终被捕获；<span class="arithmatex">\(\beta&gt;1\)</span> 在外侧普通根反弹并散射回去；<span class="arithmatex">\(\beta=1\)</span> 渐近 <span class="arithmatex">\(r=3\)</span> 的不稳定光子圆轨道。临界时</p>
+<div class="arithmatex">\[
+F_{\rm null}(u)=(1-3u)^2(1+6u).
+\]</div>
+<p>因此 <span class="arithmatex">\(r=2\)</span> 的视界、<span class="arithmatex">\(r=3\)</span> 的光子球、<span class="arithmatex">\(r=6\)</span> 的类时 ISCO 分别回答不同问题。相机中的亮环还需发射分布和辐射转移，不能把这三个数中的某一个直接贴成观测环半径。</p>
+<h2 id="5">5. 精确束缚轨道怎样产生进动？<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>用半通径参数 <span class="arithmatex">\(p\)</span> 和偏心率 <span class="arithmatex">\(e\)</span> 表示近日点与远日点：</p>
+<div class="arithmatex">\[
+r_{\rm p}=\frac{p}{1+e},\qquad
+r_{\rm a}=\frac{p}{1-e},\qquad 0\le e&lt;1.
+\]</div>
+<p>让这两个半径都满足径向转向条件，可解出</p>
+<div class="arithmatex">\[
+E^2=\frac{(p-2)^2-4e^2}{p(p-3-e^2)},
+\qquad q=\frac{p^2}{p-3-e^2}.
+\]</div>
+<p>再引入 Darwin 相位 <span class="arithmatex">\(\chi\)</span>，规定一次径向周期为 <span class="arithmatex">\(0\le\chi\le2\pi\)</span>：</p>
+<div class="arithmatex">\[
+r(\chi)=\frac{p}{1+e\cos\chi},\qquad
+\frac{d\varphi}{d\chi}
+=\sqrt{\frac{p}{p-6-2e\cos\chi}}.
+\]</div>
+<p>后式可直接从 <span class="arithmatex">\(dr/d\chi\)</span>、<span class="arithmatex">\(\dot\varphi=\ell/r^2\)</span> 和径向方程相除得到。中间的径向多项式分解为</p>
+<div class="arithmatex">\[
+F=2q\left(u-\frac{1-e}{p}\right)
+\left(u-\frac{1+e}{p}\right)
+\left(u-\frac{p-4}{2p}\right).
+\]</div>
+<p>要求整段径向振荡处于束缚分支，就得到 <span class="arithmatex">\(p&gt;6+2e\)</span>。实验保留至少 0.02 的间隔以控制数值解析度，不声称覆盖分界线本身或其内侧的坠落运动。</p>
+<p>一个径向周期内，方位角通常超过 <span class="arithmatex">\(2\pi\)</span>：</p>
+<div class="arithmatex">\[
+\Delta\varphi
+=\int_0^{2\pi}
+\left[\sqrt{\frac{p}{p-6-2e\cos\chi}}-1\right]d\chi&gt;0.
+\]</div>
+<p>所以轨迹回到同一个近日点半径时，方向已经转过额外角度。图中的两次径向周期展示这一点；横纵坐标都除以 <span class="arithmatex">\(p\)</span>，并使用相同绘图比例，避免把坐标缩放造成的形变冒充物理偏心率。<a href="https://link.aps.org/accepted/10.1103/PhysRevD.93.044010">Darwin 参数与精确积分：Hopper、Kavanagh、Ottewill，PRD 93, 044010，式 (2.4)–(2.9)</a></p>
+<h3 id="51">5.1 弱场公式是怎样展开出来的？<a class="headerlink" href="#51" title="Permanent link"></a></h3>
+<p>记 <span class="arithmatex">\(x=(6+2e\cos\chi)/p\)</span>。当 <span class="arithmatex">\(p\)</span> 远大于 6 时，</p>
+<div class="arithmatex">\[
+(1-x)^{-1/2}=1+\frac{x}{2}+\frac{3x^2}{8}+\cdots.
+\]</div>
+<p>余弦在整周期上积分为零，一阶就给出</p>
+<div class="arithmatex">\[
+\Delta\varphi_{\rm 1PN}=\frac{6\pi}{p}
+=\frac{6\pi GM}{c^2a(1-e^2)}.
+\]</div>
+<p>最后一个等号使用弱场椭圆的 <span class="arithmatex">\(p=a(1-e^2)c^2/(GM)\)</span>。近分界线时不能截在这一阶：例如 <span class="arithmatex">\(p=10,e=0.3\)</span> 的精确值约为 3.69384 rad，而一阶只有 1.88496 rad。</p>
+<p>数值上不先计算接近 <span class="arithmatex">\(2\pi\)</span> 的总角再相减。令 <span class="arithmatex">\(s=\sqrt{1-x}\)</span>，直接使用</p>
+<div class="arithmatex">\[
+\frac1{\sqrt{1-x}}-1=\frac{x}{s(1+s)},\qquad
+\frac1{\sqrt{1-x}}-1-\frac{x}{2}
+=\frac{x^2(s+2)}{2s(1+s)^2}.
+\]</div>
+<p>这同时稳定计算微小进动和一阶近似的误差。图形相位用逐段高阶求积，全部内部节点保留在账本；整周期另列多档 Simpson 结果用于收敛对照。不同档位显示相同值只是当前数值分辨率下未分出差异，不是严格误差上界。验收还用高精度椭圆积分独立核对。</p>
+<h3 id="52-e0">5.2 e=0 为什么要换一种说法？<a class="headerlink" href="#52-e0" title="Permanent link"></a></h3>
+<p>精确圆轨道没有唯一的近日点方向。取 <span class="arithmatex">\(e\to0\)</span> 的连续极限，积分给出</p>
+<div class="arithmatex">\[
+\frac{\Omega_\varphi}{\Omega_r}
+=\frac1{\sqrt{1-6/p}},
+\qquad
+\Delta\varphi_{\rm limiting}
+=2\pi\left(\frac1{\sqrt{1-6/p}}-1\right).
+\]</div>
+<p>它描述在圆轨道附近加一个无穷小径向扰动后的两种频率之比。不要给一个完全圆形的轨道凭空指定可观测近日点。</p>
+<h2 id="6">6. 三项经典检验：先说明量、单位和观测协议<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<h3 id="61">6.1 水星：每圈的角度怎样变成每世纪？<a class="headerlink" href="#61" title="Permanent link"></a></h3>
+<p>取教学用的太阳引力参数 <span class="arithmatex">\(GM_\odot=1.3271244\times10^{20}\ {\rm m^3s^{-2}}\)</span>，水星半长轴 <span class="arithmatex">\(a=5.7909\times10^{10}\ {\rm m}\)</span>、偏心率 <span class="arithmatex">\(e=0.2056\)</span>。这些取整轨道参数与 <a href="https://ssd.jpl.nasa.gov/planets/approx_pos.html">JPL 的 J2000 近似轨道表</a>相符；这里不在做高精度星历拟合。</p>
+<p>先算一个径向周期的附加角：</p>
+<div class="arithmatex">\[
+\Delta\varphi_{\rm orbit}
+=\frac{6\pi GM_\odot}{c^2a(1-e^2)}
+\simeq5.019\times10^{-7}\ {\rm rad}
+\simeq0.1035\ {\rm arcsec}.
+\]</div>
+<p>用 <span class="arithmatex">\(T\simeq87.969\)</span> 天和一个儒略世纪 36525 天，才得到</p>
+<div class="arithmatex">\[
+\Delta\varphi_{\rm century}
+=\Delta\varphi_{\rm orbit}\frac{36525}{87.969}
+\simeq42.98\ {\rm arcsec/century}.
+\]</div>
+<p>不能把“每圈约 0.1035 角秒”直接写成“每世纪约 43 角秒”。这个值是太阳球对称相对论项；真实行星数据还包括其他行星摄动、太阳非球形与坐标参考系等，需要在同一拟合中处理。</p>
+<h3 id="62">6.2 光偏折：给定的是冲量参数<a class="headerlink" href="#62" title="Permanent link"></a></h3>
+<p>弱场、从远处入射再到远处接收的光线，其总偏折角为</p>
+<div class="arithmatex">\[
+\alpha\simeq\frac{4GM}{bc^2},\qquad b\gg GM/c^2.
+\]</div>
+<p><span class="arithmatex">\(b\)</span> 是远处定义的冲量参数，不是任意坐标下的最近距离。由本页光子根方程，在最近距离 <span class="arithmatex">\(r_{\min}\)</span> 有</p>
+<div class="arithmatex">\[
+b^2=\frac{r_{\min}^2}{1-2GM/(c^2r_{\min})}.
+\]</div>
+<p>仅在弱场时才可在最低阶里用 <span class="arithmatex">\(b\simeq r_{\min}\)</span>。教学上取太阳半径 <span class="arithmatex">\(6.957\times10^8\)</span> m，擦过太阳的弱场偏折约为 1.75 角秒；这与 <span class="arithmatex">\(\beta\)</span> 接近 1 时的强场临界散射属于不同参数范围。实验的光子模式核对允许区与临界捕获，不把弱场偏折公式外推到光子球。</p>
+<h3 id="63-shapiro">6.3 Shapiro 延迟：单程、往返不能混用<a class="headerlink" href="#63-shapiro" title="Permanent link"></a></h3>
+<p>设信号从半径 <span class="arithmatex">\(r_1\)</span> 的地面站出发，经靠近太阳的路径到半径 <span class="arithmatex">\(r_2\)</span> 的目标，目标立即回传。忽略端点在传播期间的运动，在 <span class="arithmatex">\(b\ll r_1,r_2\)</span> 的弱场近合日几何下，往返传播时间相对于平直几何路径增加约</p>
+<div class="arithmatex">\[
+\Delta t_{\rm round}
+\simeq2(1+\gamma)\frac{GM}{c^3}
+\ln\frac{4r_1r_2}{b^2}.
+\]</div>
+<p><span class="arithmatex">\(\gamma\)</span> 是参数化后牛顿框架中控制空间曲率的参数，GR 给出 <span class="arithmatex">\(\gamma=1\)</span>。同一静态几何的单程结果是此式的一半，且对数的自变量必须无量纲。</p>
+<p>例如仅作为量级练习，令 <span class="arithmatex">\(r_1=r_2=1\)</span> AU、<span class="arithmatex">\(b\)</span> 取太阳半径，GR 往返延迟约为 239 微秒。它不是 Cassini 的实际端点和实测延迟。Cassini 的 2002 年合日数据通过多频无线电抑制太阳等离子体影响，再拟合传播时延的变化；2003 年原论文的九参数主拟合给出</p>
+<div class="arithmatex">\[
+\gamma-1=(2.1\pm2.3)\times10^{-5}.
+\]</div>
+<p>这是一项历史性的、指定模型与误差下的 <span class="arithmatex">\(\gamma\)</span> 测量，不能改写成“所有广义相对论效应都验证到这个相对精度”，也不代表目前最新的限制。<a href="https://ilorentz.org/research/vanbaal/DECEASED/ART/gr-test.pdf">Bertotti、Iess、Tortora，Nature 425, 374–376 (2003)，作者论文存档</a></p>
+<h2 id="7">7. 迁移练习与完整解答<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<details class="exercise">
+<summary>练习 1：q=16 时，稳定圆轨道为什么不是一整个允许区？</summary>
+<p>由 <span class="arithmatex">\(r^2-qr+3q=0\)</span> 得 <span class="arithmatex">\(r=4,12\)</span>。二阶导数在 <span class="arithmatex">\(r=12\)</span> 为正、在 <span class="arithmatex">\(r=4\)</span> 为负，故外支稳定、内支不稳定。稳定支有</p>
+<div class="arithmatex">\[
+K=-\frac1{27},\quad E=\sqrt{\frac{25}{27}},\qquad
+F(u)=32\left(u-\frac1{12}\right)^2\left(u-\frac13\right).
+\]</div>
+<p>在 <span class="arithmatex">\(0&lt;u&lt;1/3\)</span>，除 <span class="arithmatex">\(u=1/12\)</span> 的零点外，<span class="arithmatex">\(F&lt;0\)</span>。因此 <span class="arithmatex">\(r=12\)</span> 是孤立允许的精确圆轨道初值；<span class="arithmatex">\(r=3\)</span> 才是近视界允许区 <span class="arithmatex">\(2&lt;r\le3\)</span> 的普通转向点。把两个根之间涂满会把负的速度平方误当成真实运动。</p>
+<p>若把能量稍微抬高但仍低于势垒顶，孤立点附近会展开为一个小束缚区。此时两端是普通根，才有往返的径向振荡。不要让输入的小数舍入替你决定“稍微抬高”还是“恰好相等”。</p>
+</details>
+<details class="exercise">
+<summary>练习 2：q=12 的 r=6，以及光子的 r=3，为什么都不能当成普通反弹点？</summary>
+<p>类时 ISCO 的精确能量是 <span class="arithmatex">\(K=-1/18\)</span>，径向方程为</p>
+<div class="arithmatex">\[
+F(u)=24\left(u-\frac16\right)^3.
+\]</div>
+<p>它在 <span class="arithmatex">\(u=1/6\)</span> 为三重根，<span class="arithmatex">\(V''(6)=0\)</span>，不是带非零恢复频率的稳定势阱底。对邻近允许侧，<span class="arithmatex">\(d\tau\propto du/\sqrt{F(u)}\)</span> 的积分在该根附近发散；从外部径向运动不能在有限固有时内到达后像普通根那样反弹。精确圆轨道本身是另一组初值。</p>
+<p>光子在 <span class="arithmatex">\(\beta=1\)</span> 时归一化径向式为</p>
+<div class="arithmatex">\[
+1-27u^2(1-2u)=(1-3u)^2(1+6u).
+\]</div>
+<p><span class="arithmatex">\(u=1/3\)</span> 是双重根，入射临界光线以无限仿射参数渐近光子圆轨道。<span class="arithmatex">\(\beta&lt;1\)</span> 则没有势垒转向根，入射光被捕获；<span class="arithmatex">\(\beta&gt;1\)</span> 有两个普通根，但从无穷远先遇到的是较小 <span class="arithmatex">\(u\)</span>、较大 <span class="arithmatex">\(r\)</span> 的外根。内根附近另有分离的允许区，不能让入射光跳过禁区。</p>
+</details>
+<details class="exercise">
+<summary>练习 3：p=10、e=0.3 的两圈图在检验什么？e=0 又怎样解释？</summary>
+<p>两端半径是</p>
+<div class="arithmatex">\[
+r_{\rm peri}=\frac{10}{1.3}\simeq7.69231,\qquad
+r_{\rm apo}=\frac{10}{0.7}\simeq14.28571.
+\]</div>
+<p>这里 <span class="arithmatex">\(p-(6+2e)=3.4&gt;0\)</span>，属于实验允许的束缚分支。精确积分给 <span class="arithmatex">\(\Delta\varphi\simeq3.69384\)</span> rad/径向周期，而一阶近似 <span class="arithmatex">\(6\pi/p\simeq1.88496\)</span> rad 少估约 49.0%。两次径向周期之间，半径变化会重复，近日点方向却额外转过同一个 <span class="arithmatex">\(\Delta\varphi\)</span>；这是图中非闭合轨迹的来源。</p>
+<p>逐项核对可先看半径是否始终在两个端点内，再看 <span class="arithmatex">\(\varphi-\chi\)</span> 是否从 0 累积到完整进动量，最后看坐标是否满足 <span class="arithmatex">\(x^2+y^2=(r/p)^2\)</span>。图中的横纵等比例很关键。</p>
+<p>若改为 <span class="arithmatex">\(e=0\)</span>，两端半径相同、轨迹是一条圆。此时 <span class="arithmatex">\(1/\sqrt{1-6/p}\)</span> 仍可解释为附近微小径向振荡与方位运动的频率比，但不能声称在圆上测得了一个唯一的近日点进动。</p>
+</details>
+<details class="exercise">
+<summary>练习 4：把 0.1035 角秒和 239 微秒放进观测报告，分别还缺什么？</summary>
+<p>0.1035 角秒缺少“每径向周期”的分母。水星一世纪约有 <span class="arithmatex">\(36525/87.969\simeq415.20\)</span> 圈，相乘才得到约 42.98 角秒/世纪的太阳球对称相对论项；它不等于水星实测总进动，也不包含其他行星摄动。</p>
+<p>239 微秒缺少信号协议与几何。此处是 <span class="arithmatex">\(r_1=r_2=1\)</span> AU、近太阳擦边、立即回传、端点近似静止的 GR 往返教学值。同样几何的单程约为 119.5 微秒。实际实验还要处理端点运动、钟与时间尺度、等离子体等模型，不能把这一量级计算标成实测数据。</p>
+<p>把一个单程公式与一份往返观测直接比较，会人为产生约两倍差异。这是协议错误，不是新物理信号。</p>
+</details>
+<h2 id="8">8. 带着哪些问题进入下一页？<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>现在我们能从度规建立守恒量、从速度平方判断可达区域，并分清类时圆轨道、光子球和弱场检验。下一页的<a href="gr-03-blackholes-waves.html">黑洞与引力波</a>将继续区分坐标奇性与真实曲率、传播扰动与静态外部解。旋转、双体可比质量、自力和辐射反作用需要新的模型，不能靠替换本页的一个质量参数就全部纳入。</p>
+<p>基础推导可对照 <a href="https://preposterousuniverse.com/wp-content/uploads/grnotes-four.pdf">Carroll《广义相对论讲义》第四章：场方程</a>与<a href="https://preposterousuniverse.com/wp-content/uploads/grnotes-seven.pdf">第七章：Schwarzschild 解及轨道</a>；精确束缚轨道参数见第五节所链原论文。学习时可分别复算一个张量收缩、一个根的分支判定和一次单位换算，这三类检查各自防止不同的错误。</p>
+</details>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="gr-01-equivalence.html"><span class="pager-label">上一页</span>广相 I · 等效原理与测地线</a>
