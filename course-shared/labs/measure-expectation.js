@@ -1,692 +1,270 @@
-(function (root, factory) {
-  "use strict";
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("measure-expectation", exported.mount);
+(function(root,factory){
+ "use strict";const api=factory();
+ if(typeof module==="object"&&module.exports){module.exports=api;if(typeof require==="function"&&require.main===module)console.log("measure-expectation self-test: PASS ("+api.selfTest().checks+" checks)");}
+ if(root.CourseLearning)root.CourseLearning.register("measure-expectation",api.mount);
+})(typeof globalThis!=="undefined"?globalThis:this,function(){
+ "use strict";
+ const C=6/(Math.PI*Math.PI),ATOMS=Object.freeze([{x:0,p:.5},{x:1,p:.25},{x:2,p:.125},{x:4,p:.125}].map(Object.freeze));
+ const MODELS=Object.freeze({
+  atoms:{label:"原子：有限分布",description:"P(X=0,1,2,4)=(1/2,1/4,1/8,1/8)，K 表示数值上限",kind:"finite"},
+  density:{label:"密度：Exp(1)",description:"同一指数分布，比较丢弃尾部与封顶；T 是积分上限",kind:"density"},
+  tail:{label:"尾积分：Exp(1)",description:"尾面积等于 E[min(X,T)]，无需密度；本例有密度可作对照",kind:"tail"},
+  positive:{label:"正重尾：X=J²",description:"P(J=k)=c/k²，c=6/π²；K 是数值上限",kind:"positive"},
+  signed:{label:"变号重尾：Y=(−1)ᴶJ",description:"K 是索引截断 J≤K，有限部分和与原期望分开",kind:"signed"},
+  spike:{label:"尖峰族：一致可积",description:"Xₙ=n^α 1{0<U<1/n}，U 为同一个均匀变量；M 是尾部高度阈值",kind:"spike"}
+ });
+ Object.values(MODELS).forEach(Object.freeze);
+ const DEFAULTS={modelId:"atoms",K:4,T:2,steps:160,n:16,alpha:.5,M:4};
+ const PRESETS=Object.freeze(Object.keys(MODELS).map(id=>Object.freeze({id,label:MODELS[id].label,...DEFAULTS,modelId:id,K:id==="positive"||id==="signed"?100:4})));
+ function finite(v,label){if(typeof v!=="number"||!Number.isFinite(v))throw new TypeError(label+" must be a finite number");return v;}
+ function range(v,lo,hi,label){finite(v,label);if(v<lo||v>hi)throw new RangeError(label+" outside ["+lo+","+hi+"]");return v;}
+ function integer(v,lo,hi,label){range(v,lo,hi,label);if(!Number.isInteger(v))throw new TypeError(label+" must be an integer");return v;}
+ function sum(values){let s=0,c=0;for(const x of values){const y=x-c,t=s+y;c=(t-s)-y;s=t;}return s;}
+ function atomsChecked(atoms=ATOMS,nonnegative=false){
+  if(!Array.isArray(atoms)||!atoms.length)throw new TypeError("nonempty atoms required");
+  for(let i=0;i<atoms.length;i++){const a=atoms[i];if(!a||typeof a!=="object")throw new TypeError("atom required");finite(a.x,"atom x");range(a.p,0,1,"atom probability");if(nonnegative&&a.x<0)throw new RangeError("nonnegative atoms required");}
+  if(Math.abs(sum(atoms.map(a=>a.p))-1)>8*Number.EPSILON)throw new RangeError("probabilities must sum to one to input precision");
+  return atoms;
+ }
+ function atomProbability(atoms=ATOMS){return sum(atomsChecked(atoms).map(a=>a.p));}
+ function atomExpectation(atoms=ATOMS){return finite(sum(atomsChecked(atoms).map(a=>a.x*a.p)),"atom expectation");}
+ function atomTruncation(cap,atoms=ATOMS){range(cap,0,1e6,"cap");return sum(atomsChecked(atoms,true).map(a=>Math.min(a.x,cap)*a.p));}
+ function densityValue(x){finite(x,"x");return x<0?0:Math.exp(-x);}
+ function survivalValue(modelId,t){if(modelId!=="tail"&&modelId!=="density")throw new RangeError("exponential model required");range(t,0,100,"time");return Math.exp(-t);}
+ function finiteDensity(T){
+  if(T===0)return 0;
+  if(T<.5){
+   let term=.5,total=term;
+   for(let n=1;n<80;n++){term*=(-T/n)*(n+1)/(n+2);const next=total+term;if(next===total)break;total=next;}
+   return T*(T*total);
   }
-  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module) {
-    try {
-      var report = exported.selfTest();
-      console.log("measure-expectation self-test: PASS (" + report.checks + " checks)");
-    } catch (error) {
-      console.error("measure-expectation self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
+  return -Math.expm1(-T)-T*Math.exp(-T);
+ }
+ function quadrature(upper,steps,kind){
+  range(upper,0,100,"upper");integer(steps,1,2000,"steps");
+  const rows=[];let normalizedTotal=0,compensation=0,total=0;
+  const rescale=v=>kind==="density"?upper*(upper*(v/steps)):upper*(v/steps);
+  for(let i=0;i<steps;i++){
+   const fraction=(i+.5)/steps,midpoint=upper*fraction,exponential=Math.exp(-midpoint);
+   const normalized=(kind==="density"?fraction:1)*exponential,integrand=(kind==="density"?midpoint:1)*exponential;
+   const y=normalized-compensation,next=normalizedTotal+y;
+   compensation=(next-normalizedTotal)-y;normalizedTotal=next;total=rescale(normalizedTotal);
+   rows.push({index:i+1,left:upper*(i/steps),right:upper*((i+1)/steps),midpoint,integrand,area:rescale(normalized),cumulative:total});
   }
-})(typeof window !== "undefined" ? window : null, function (host) {
-  "use strict";
+  const exactFinite=kind==="density"?finiteDensity(upper):-Math.expm1(-upper);
+  const missingTail=(kind==="density"?1+upper:1)*Math.exp(-upper);
+  return {upper,steps,value:total,exactFinite,missingTail,exact:1,error:total-exactFinite,midpointErrorBound:upper**3/((kind==="density"?12:24)*steps**2),rows};
+ }
+ function densityExpectation(upper,steps=240){return quadrature(upper,steps,"density");}
+ function tailIntegral(modelId,upper,steps=240){if(modelId!=="tail"&&modelId!=="density")throw new RangeError("exponential model required");return quadrature(upper,steps,"tail");}
+ function positiveTruncation(cap){
+  range(cap,0,1e6,"cap");let cutoff=Math.floor(Math.sqrt(cap));
+  while(cutoff*cutoff>cap)cutoff--;while((cutoff+1)**2<=cap)cutoff++;
+  const terms=Array.from({length:cutoff},(_,i)=>1/(i+1)**2);
+  const tailMass=1-C*sum(terms),observedTerms=C*cutoff;
+  return {cap,cutoff,observedTerms,tailMass,value:observedTerms+cap*tailMass,exact:Infinity};
+ }
+ function signedPartial(n){
+  integer(n,0,10000,"index cutoff");
+  const positive=sum(Array.from({length:Math.floor(n/2)},(_,i)=>C/(2*i+2)));
+  const negativeMagnitude=sum(Array.from({length:Math.ceil(n/2)},(_,i)=>C/(2*i+1)));
+  const finitePartial=sum(Array.from({length:n},(_,i)=>(i%2===0?-1:1)*C/(i+1)));
+  return {n,positive,negativeMagnitude,absolute:positive+negativeMagnitude,finitePartial,signed:null,exact:null,orderedLimit:-C*Math.LN2};
+ }
+ function spikeSnapshot(n,alpha,M){
+  integer(n,1,400,"n");range(M,0,100,"M");
+  if(![0,.5,1,1.5].includes(alpha))throw new RangeError("unsupported alpha");
+  // Compare integer powers with the exact square of the input binary64 threshold.
+  const dv=new DataView(new ArrayBuffer(8));dv.setFloat64(0,M);
+  const bits=dv.getBigUint64(0),exp=Number((bits>>52n)&2047n),mant=(bits&((1n<<52n)-1n))+(exp?1n<<52n:0n),power=2*(exp?exp-1075:-1074);
+  const square=mant*mant,floorSquare=Number(power<0?square>>BigInt(-power):square<<BigInt(power));
+  const rows=Array.from({length:n},(_,i)=>{
+   const k=i+1,height=k**alpha,width=1/k,expectation=k**(alpha-1);
+   const above=alpha===0?1>M:alpha===.5?k>floorSquare:alpha===1?k>M:k**3>floorSquare;
+   return {n:k,height,width,expectation,tailExpectation:above?expectation:0};
+  });
+  const finiteTailMaximum=Math.max(...rows.map(r=>r.tailExpectation));
+  let infiniteTailSupremum;
+  if(alpha===0)infiniteTailSupremum=M<1?1:0;
+  else if(alpha===.5)infiniteTailSupremum=1/Math.sqrt(floorSquare+1);
+  else if(alpha===1)infiniteTailSupremum=1;
+  else infiniteTailSupremum=Infinity;
+  return {n,alpha,M,rows,current:rows[n-1],finiteTailMaximum,infiniteTailSupremum,uniformlyIntegrable:alpha<1,almostSureLimit:0,expectationLimit:alpha<1?0:alpha===1?1:Infinity};
+ }
+ function normalizeConfig(config={}){
+  if(!config||typeof config!=="object"||Array.isArray(config))throw new TypeError("config object required");
+  const s={...DEFAULTS,...config};
+  if(!Object.hasOwn(MODELS,s.modelId))throw new RangeError("unknown model");
+  integer(s.K,0,400,"K");range(s.T,0,12,"T");integer(s.steps,1,600,"steps");integer(s.n,1,400,"n");range(s.M,0,100,"M");
+  if(![0,.5,1,1.5].includes(s.alpha))throw new RangeError("unsupported alpha");
+  return s;
+ }
+ function expectationSnapshot(config){
+  const state=normalizeConfig(config),model=MODELS[state.modelId],s={...state,label:model.label,kind:model.kind,atoms:null,density:null,tail:null,positive:null,signed:null,spike:null,finiteValue:null,exact:null,series:[]};
+  if(state.modelId==="atoms"){
+   s.atoms={probability:atomProbability(),exact:atomExpectation(),truncated:atomTruncation(state.K),rows:ATOMS.map(a=>({...a,clipped:Math.min(a.x,state.K),contribution:Math.min(a.x,state.K)*a.p}))};s.finiteValue=s.atoms.truncated;s.exact=s.atoms.exact;
+  }else if(state.modelId==="density"||state.modelId==="tail"){
+   s.density=densityExpectation(state.T,state.steps);s.tail=tailIntegral(state.modelId,state.T,state.steps);
+   s.finiteValue=state.modelId==="density"?s.density.value:s.tail.value;s.exact=1;
+   s.series=Array.from({length:81},(_,i)=>{const t=state.T*i/80;return {x:t,densityIntegrand:t*Math.exp(-t),survival:Math.exp(-t),densityIntegral:finiteDensity(t),tailIntegral:-Math.expm1(-t)};});
+  }else if(state.modelId==="positive"){
+   s.positive=positiveTruncation(state.K);s.finiteValue=s.positive.value;s.exact=Infinity;
+   s.series=Array.from({length:state.K+1},(_,k)=>positiveTruncation(k));
+  }else if(state.modelId==="signed"){
+   s.signed=signedPartial(state.K);s.finiteValue=s.signed.finitePartial;s.exact=null;
+   s.series=Array.from({length:state.K+1},(_,k)=>signedPartial(k));
+  }else{
+   s.spike=spikeSnapshot(state.n,state.alpha,state.M);s.finiteValue=s.spike.current.expectation;s.exact=s.spike.expectationLimit;s.series=s.spike.rows;
+  }
+  return s;
+ }
+ function selfTest(){
+  let checks=0;const ck=(v)=>{checks++;if(!v)throw Error("measure-expectation self test "+checks);};
+  ck(atomProbability()===1);ck(atomExpectation()===1);ck(atomTruncation(1)<atomTruncation(4));
+  const d=densityExpectation(12,600),t=tailIntegral("tail",12,600);
+  ck(Math.abs(d.value-1)<.01);ck(Math.abs(d.exactFinite+d.missingTail-1)<1e-14);ck(Math.abs(t.value-1)<.01);ck(t.exactFinite+t.missingTail===1);
+  ck(survivalValue("tail",0)===1);ck(positiveTruncation(4).value<positiveTruncation(100).value);ck(positiveTruncation(100).exact===Infinity);
+  const a=signedPartial(4),b=signedPartial(100);ck(a.positive>0&&a.negativeMagnitude>0);ck(b.positive>a.positive&&b.negativeMagnitude>a.negativeMagnitude);ck(b.signed===null&&Number.isFinite(b.finitePartial));ck(expectationSnapshot({modelId:"tail"}).finiteValue===expectationSnapshot({modelId:"tail"}).finiteValue);ck(PRESETS.length===6);
+  return {checks,models:6};
+ }
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "measure-expectation-lab-styles";
-  var INSTANCE = 0;
-  var LIMITS = { K: [4, 400], T: [1, 12], steps: [40, 600] };
-  var ZETA_TWO = Math.PI * Math.PI / 6;
-  var HARMONIC_NORMALIZER = 1 / ZETA_TWO;
-  var ATOMS = [
-    { x: 0, p: 0.5 },
-    { x: 1, p: 0.25 },
-    { x: 2, p: 0.125 },
-    { x: 4, p: 0.125 }
+ const fmt=v=>{
+  if(v===Infinity)return"+∞";if(v===-Infinity)return"−∞";if(v===null)return"未定义";
+  if(typeof v!=="number"||!Number.isFinite(v))return"不可表示";if(v===0)return"0";
+  if(Math.abs(v)<.0001||Math.abs(v)>=10000)return v.toExponential(5);
+  if(Number.isInteger(v))return String(v);return v.toFixed(6).replace(/0+$/,"").replace(/\.$/,"");
+ };
+ const colors=["#477cbd","#b27b28","#9d6cba","#2b8c6a"];
+ function drawMeasurePlot(svg,title,series,{xmax=1,unit="",step=false}={}){
+  const all=series.flatMap(s=>s.values),lo0=Math.min(0,...all),hi0=Math.max(0,...all),pad=hi0===lo0?1:Math.max((hi0-lo0)*.08,8*Number.MIN_VALUE),lo=lo0-pad,hi=hi0+pad;
+  const barXs=series.filter(s=>s.bars).flatMap(s=>s.xs),xmin=barXs.length?Math.min(...barXs)-.25:0,domainMax=barXs.length?Math.max(...barXs)+.25:xmax;
+  const X=x=>125+740*((x-xmin)/(domainMax-xmin||1)),Y=y=>285-235*((y-lo)/(hi-lo));
+  const g=svg("svg",{viewBox:"0 0 900 380",role:"img","aria-label":title,class:"me-chart"},[svg("title",{},title),svg("desc",{},"全部有限计算值逐点绘制；理论极限与尾部解释见相邻表格。"),svg("text",{x:125,y:25},title),svg("text",{x:15,y:25},unit)]);
+  for(let i=0;i<=4;i++){
+   const y=lo+(hi-lo)*i/4;
+   g.append(svg("line",{x1:125,x2:865,y1:Y(y),y2:Y(y),stroke:"currentColor","stroke-opacity":.16}),svg("text",{x:113,y:Y(y)+5,"text-anchor":"end"},fmt(y)));
+   if(!barXs.length&&(xmax!==0||i===0))g.append(svg("text",{x:125+740*i/4,y:312,"text-anchor":"middle"},fmt(xmax*i/4)));
+  }
+  for(const x of [...new Set(barXs)].sort((a,b)=>a-b))g.append(svg("text",{x:X(x),y:312,"text-anchor":"middle"},fmt(x)));
+  g.append(svg("text",{x:865,y:341,"text-anchor":"end"},unit==="概率"?"取值 x":unit==="高度"?"ω":step?"索引 n / 上限 K":"上限 / 位置 t"));
+  series.forEach((s,i)=>{
+   const color=s.color||colors[i],xs=s.xs;
+   if(s.bars){
+    s.values.forEach((v,j)=>g.append(svg("rect",{"data-bar":s.key,"data-index":j,x:X(xs[j])-14,y:Math.min(Y(v),Y(0)),width:28,height:Math.abs(Y(v)-Y(0)),fill:color})));
+   }else{
+    g.append(svg("polyline",{"data-series":s.key,points:s.values.map((v,j)=>X(xs[j])+","+Y(v)).join(" "),fill:"none",stroke:color,"stroke-width":2.5,"stroke-dasharray":s.dash||"none"}));
+    s.values.forEach((v,j)=>g.append(svg("circle",{"data-point":s.key,"data-index":j,cx:X(xs[j]),cy:Y(v),r:s.values.length>100?1.5:3,fill:color})));
+   }
+  });
+  return g;
+ }
+ function mount(root,api){
+  if(root.dataset.meMounted)return;root.dataset.meMounted="true";const {el,svg}=api,doc=root.ownerDocument;
+  if(!doc.getElementById("measure-expectation-lab-styles"))doc.head.append(el("style",{id:"measure-expectation-lab-styles"},
+   ".me-lab{min-width:0;line-height:1.75}.me-lab [hidden]{display:none!important}.me-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.me-controls label{display:flex;flex-direction:column;gap:6px}.me-lab button,.me-lab input,.me-lab select{font:inherit;padding:9px;color:inherit;background:var(--bg);border:1px solid #80808060;border-radius:5px;max-width:100%}.me-lab button{cursor:pointer}.me-lab button[aria-pressed=true]{outline:2px solid #477cbd}.me-lab button:disabled{opacity:.5;cursor:default}.me-lab :focus-visible{outline:3px solid #477cbd;outline-offset:3px}.me-lab fieldset{min-width:0;border:1px solid #80808050;margin:14px 0;padding:12px}.me-lab fieldset button{margin:5px}.me-lab svg.me-chart{display:block;width:900px!important;min-width:900px;max-width:none!important;color:inherit}.me-chart text{font:15px sans-serif;fill:currentColor}.me-chart text:first-of-type{font-size:19px}.me-scroll{overflow:auto;max-height:500px;margin:14px 0}.me-lab table{min-width:900px;width:100%;font-size:14px}.me-lab th,.me-lab td{padding:7px;text-align:right;white-space:nowrap}.me-lab th:first-child,.me-lab td:first-child{text-align:left}.me-lab figure{margin:20px 0}.me-legend{display:flex;flex-wrap:wrap;gap:8px 24px}.me-legend span{display:flex;align-items:center;gap:5px}.me-legend i{display:inline-block;width:22px;border-top:3px solid}.me-note{border-left:3px solid #477cbd;padding-left:12px}.me-lab details{margin:16px 0}"
+  ));
+  let state={...DEFAULTS},snapshot=expectationSnapshot(state),revealed=false,answers=[null,null,null],invalid=null;
+  const shell=el("div",{className:"me-lab"}),controls=el("div",{className:"me-controls"}),known=el("p",{className:"me-note"}),results=el("section",{className:"me-results",hidden:true}),feedback=el("p",{className:"me-feedback","aria-live":"polite"}),inputs={},labels={};
+  const region=(child,title)=>el("div",{className:"me-scroll",role:"region",tabindex:"0","aria-label":title+"，可横向和纵向滚动"},child);
+  function table(key,title,headers,rows){return region(el("table",{"data-table":key},[el("caption",{},title),el("thead",{},el("tr",{},headers.map(h=>el("th",{scope:"col"},h)))),el("tbody",{},rows.map(row=>el("tr",{},row.map((v,i)=>el(i?"td":"th",i?{}:{scope:"row"},typeof v==="number"||v===null?fmt(v):v)))))]),title);}
+  function figure(title,series,options={}){
+   return el("figure",{},[region(drawMeasurePlot(svg,title,series,options),title),el("figcaption",{},[el("div",{className:"me-legend"},series.map((s,i)=>el("span",{},[el("i",{style:"border-color:"+(s.color||colors[i])+";border-top-style:"+(s.dash?"dashed":"solid")}),s.label]))),el("p",{},options.note||"纵轴独立缩放。图只画有限范围；结论的量词由正文中的证明给出。")])]);
+  }
+  function input(key,title,options){
+   const e=options?el("select",{"data-key":key,"aria-label":title},options.map(([v,t])=>el("option",{value:v},t))):el("input",{"data-key":key,"aria-label":title,type:"number",step:key==="T"||key==="M"?"any":"1",min:"0",max:key==="steps"?"600":key==="T"?"12":key==="M"?"100":"400"});
+   if(key==="n"||key==="steps")e.min="1";e.value=String(state[key]);inputs[key]=e;
+   labels[key]=el("label",{},[title,e]);controls.append(labels[key]);e.addEventListener(options?"change":"input",change);
+  }
+  input("modelId","实验模型",Object.keys(MODELS).map(k=>[k,MODELS[k].label]));
+  input("K","K：数值上限 / 索引截断");input("T","T：积分上限");input("steps","中点求积步数");
+  input("n","已查看的前 n 项");input("alpha","尖峰指数 α",[0,.5,1,1.5].map(a=>[a,String(a)]));input("M","UI 尾部高度阈值 M");
+  const qs=[
+   ["非负变量的尾积分公式是否要求它有概率密度？",[["no-density","不要求，非负可测就能使用"],["density","必须有密度"]],"no-density"],
+   ["MCT/Tonelli 是否允许共同积分为 +∞？",[["infinite","允许，但不等于可积"],["finite","不允许，必须有限"]],"infinite"],
+   ["有符号有限索引部分和收敛，是否证明原期望存在？",[["no","不能，还须检查正负部"],["yes","可以，有限值已趋于稳定"]],"no"]
   ];
-  var MODELS = {
-    atoms: {
-      label: "原子：有限分布",
-      description: "P(X=0,1,2,4)=(1/2,1/4,1/8,1/8)",
-      kind: "finite",
-      theorem: "原子求和合法，E[X]=1"
-    },
-    density: {
-      label: "密度：Exp(1)",
-      description: "f(x)=e^(−x) 1{x≥0}",
-      kind: "density",
-      theorem: "密度积分与 MCT/尾部账给 E[X]=1"
-    },
-    tail: {
-      label: "尾部：Exp(1)",
-      description: "P(X>t)=e^(−t)",
-      kind: "tail",
-      theorem: "Tonelli layer-cake 给 E[X]=1"
-    },
-    positive: {
-      label: "正重尾：X=k²",
-      description: "p_k=c/k²，正部期望发散",
-      kind: "positive",
-      theorem: "E[X]=+∞，MCT 允许极限为 +∞"
-    },
-    signed: {
-      label: "变号重尾：Y=(−1)^k k",
-      description: "p_k=c/k²，正负部都发散",
-      kind: "signed",
-      theorem: "E[Y] 未定义，不是 0"
+  const predictions=el("div",{className:"me-predictions"},qs.map((q,i)=>el("fieldset",{},[el("legend",{},(i+1)+". "+q[0]),...q[1].map(([value,label])=>{
+   const b=el("button",{type:"button","data-question":i,"data-answer":value,"aria-pressed":"false"},label);
+   b.addEventListener("click",()=>{answers[i]=value;revealed=false;predictions.querySelectorAll('[data-question="'+i+'"]').forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.answer===value)));render();});return b;
+  })])));
+  const reveal=el("button",{type:"button",disabled:true},"核对预测并展开计算");
+  reveal.addEventListener("click",()=>{if(invalid||answers.includes(null))return;revealed=true;render();results.querySelector("h4").focus();});
+  const reset=el("button",{type:"button"},"重置实验");reset.addEventListener("click",()=>{
+   state={...DEFAULTS};snapshot=expectationSnapshot(state);revealed=false;answers=[null,null,null];invalid=null;
+   for(const k of Object.keys(inputs))inputs[k].value=String(state[k]);predictions.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed","false"));render();predictions.querySelector("button").focus();
+  });
+  shell.append(el("h3",{},"期望、截断与整个序列的尾部"),controls,known,predictions,el("p",{},[reveal," ",reset]),feedback,results);root.replaceChildren(shell);
+  function change(){
+   const next={};
+   try{
+    for(const k of Object.keys(inputs)){
+     if(inputs[k].value.trim()==="")throw Error("请填入 "+inputs[k].getAttribute("aria-label"));
+     next[k]=k==="modelId"?inputs[k].value:Number(inputs[k].value);
     }
-  };
-  var PRESETS = [
-    { id: "atoms", label: "原子账", modelId: "atoms", K: 16, T: 4, steps: 160 },
-    { id: "density", label: "密度账", modelId: "density", K: 16, T: 6, steps: 240 },
-    { id: "tail", label: "尾积分账", modelId: "tail", K: 16, T: 6, steps: 240 },
-    { id: "positive", label: "正发散", modelId: "positive", K: 100, T: 6, steps: 240 },
-    { id: "signed", label: "正负双发散", modelId: "signed", K: 100, T: 6, steps: 240 }
-  ];
-
-  var STYLE_TEXT = [
-    ".me-lab{--me-blue:var(--cl-blue,#315f9d);--me-gold:var(--cl-gold,#9b6a12);--me-green:var(--cl-green,#39734d);--me-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere}",
-    ".me-lab *,.me-lab *::before,.me-lab *::after{box-sizing:border-box}",
-    ".me-lab [hidden]{display:none!important}",
-    ".me-lab button,.me-lab input{font:inherit}",
-    ".me-lab button{min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);line-height:1.35;cursor:pointer;overflow-wrap:anywhere}",
-    ".me-lab button:hover{border-color:var(--accent)}",
-    ".me-lab button:focus-visible,.me-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}",
-    ".me-lab button[aria-pressed=true],.me-lab .me-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750}",
-    ".me-lab .me-note{color:var(--fg-soft);font-size:13px;line-height:1.65}",
-    ".me-lab .me-prediction{margin-top:14px;padding:13px 14px;border-left:3px solid var(--me-gold);background:var(--bg)}",
-    ".me-lab .me-prediction h3{margin:0 0 10px;font-size:14px}",
-    ".me-lab fieldset{min-width:0;margin:0 0 10px;padding:10px;border:1px solid var(--border);border-radius:6px}",
-    ".me-lab legend{max-width:100%;padding:0 5px;color:var(--fg);font-size:13px;font-weight:750;line-height:1.5}",
-    ".me-lab .me-choices,.me-lab .me-actions,.me-lab .me-presets{display:flex;flex-wrap:wrap;gap:8px}",
-    ".me-lab .me-choices button,.me-lab .me-presets button,.me-lab .me-actions>*{flex:1 1 160px}",
-    ".me-lab .me-feedback{min-height:2em;margin:9px 0 0;color:var(--fg-soft);font-size:13px;font-weight:700}",
-    ".me-lab .me-pass{color:var(--me-green)}.me-lab .me-warn{color:var(--me-red)}",
-    ".me-lab .me-controls{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(220px,.8fr);gap:12px;margin-top:16px}",
-    ".me-lab .me-control-group{display:grid;gap:8px;min-width:0;padding:11px;border:1px solid var(--border);border-radius:6px;background:var(--bg)}",
-    ".me-lab .me-control-group label{color:var(--fg-soft);font-size:12.5px;font-weight:700}",
-    ".me-lab .me-control-group output{color:var(--accent);font-variant-numeric:tabular-nums}",
-    ".me-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent)}",
-    ".me-lab .me-results{margin-top:18px;padding-top:15px;border-top:1px solid var(--border)}",
-    ".me-lab .me-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0 14px}",
-    ".me-lab .me-metric{min-width:0;padding:8px;border-top:2px solid var(--border);background:var(--bg)}",
-    ".me-lab .me-metric span{display:block;color:var(--fg-soft);font-size:11.5px}",
-    ".me-lab .me-metric strong{display:block;margin-top:3px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-    ".me-lab svg{display:block;width:100%;height:auto;max-width:100%;border:1px solid var(--border);border-radius:6px;background:var(--bg)}",
-    ".me-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}",
-    ".me-lab .me-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.55}",
-    ".me-lab .me-axis{stroke:currentColor;stroke-width:1.25;opacity:.75}",
-    ".me-lab .me-curve{fill:none;stroke:var(--me-blue);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}",
-    ".me-lab .me-secondary{fill:none;stroke:var(--me-red);stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}",
-    ".me-lab .me-reference{stroke:var(--me-gold);stroke-width:1.6;stroke-dasharray:5 4}",
-    ".me-lab .me-bar{fill:var(--me-blue);fill-opacity:.6}",
-    ".me-lab .me-ledger{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:13px}",
-    ".me-lab table{width:100%;min-width:720px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}",
-    ".me-lab caption{padding:0 0 7px;text-align:left;color:var(--fg-soft);font-size:12px}",
-    ".me-lab th,.me-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}",
-    ".me-lab th{color:var(--fg-soft);font-size:11.5px}",
-    "@media(max-width:760px){.me-lab .me-controls{grid-template-columns:minmax(0,1fr)}.me-lab .me-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}",
-    "@media(max-width:480px){.me-lab .me-metrics{grid-template-columns:minmax(0,1fr)}.me-lab .me-choices button,.me-lab .me-presets button{flex-basis:100%}}",
-    "@media(prefers-reduced-motion:reduce){.me-lab *{animation:none!important;transition:none!important}}"
-  ].join("\n");
-
-  function assert(condition, message) {
-    if (!condition) throw new Error("measure-expectation self-test failed: " + message);
+    state=normalizeConfig(next);snapshot=expectationSnapshot(state);invalid=null;
+   }catch(e){invalid=e.message;revealed=false;}
+   render();
   }
-
-  function near(a, b, tolerance) {
-    return Math.abs(a - b) <= (tolerance === undefined ? 1e-8 : tolerance) * Math.max(1, Math.abs(a), Math.abs(b));
+  function render(){
+   const model=inputs.modelId.value,exponential=model==="density"||model==="tail",spike=model==="spike";
+   labels.K.hidden=exponential||spike;labels.T.hidden=!exponential;labels.steps.hidden=!exponential;
+   labels.n.hidden=!spike;labels.alpha.hidden=!spike;labels.M.hidden=!spike;
+   known.textContent=invalid?"输入尚未有效："+invalid:MODELS[state.modelId].description;
+   reveal.disabled=!!invalid||answers.includes(null)||revealed;results.hidden=!revealed||!!invalid;
+   feedback.textContent=invalid?"保留你输入的内容；修正参数后再展开。":revealed?"预测核对："+answers.filter((a,i)=>a===qs[i][2]).length+" / 3。非负尾积分无需密度；非负极限可无限；有符号级数的排列极限不是期望存在证明。":"先完成三项预测，再展开有限计算与理论结论。";
+   results.replaceChildren();if(!revealed||invalid)return;
+   const s=snapshot;
+   results.append(el("h4",{tabindex:"-1"},"当前模型："+s.label),table("status","先分清有限计算与极限对象",["对象","数值 / 结论","解释"],[
+    ["当前有限计算",s.finiteValue,s.kind==="signed"?"有限索引部分和，可以相减":s.kind==="spike"?"当前第 n 项的期望":"当前截断 / 求积数值"],
+    [s.kind==="spike"?"期望序列的极限":"原随机变量的期望",s.exact,s.kind==="signed"?"正负部期望都无限，因此原期望未定义":s.kind==="spike"?"几乎处处极限都为0，但期望极限随α改变":"允许扩展值；可积专指绝对期望有限"]
+   ]));
+   if(s.kind==="finite"){
+    const xs=ATOMS.map(a=>a.x);results.append(
+     figure("四个原子的概率",[{key:"probability",label:"原子概率",xs,values:ATOMS.map(a=>a.p),bars:true}],{xmax:5,unit:"概率"}),
+     table("atoms","全部原子与封顶贡献",["x","p","min(x,K)","p min(x,K)"],s.atoms.rows.map(a=>[a.x,a.p,a.clipped,a.contribution])),
+     el("p",{className:"me-note"},"概率总和为 "+fmt(s.atoms.probability)+"；原期望为 1。这里的原子分布与指数分布只有平均值碰巧相同，并不是同一个分布。"));
+   }else if(exponential){
+    const xs=s.series.map(r=>r.x);
+    results.append(
+     figure("两个被积函数：面积对应不同截断",[{key:"density",label:"x e⁻ˣ",xs,values:s.series.map(r=>r.densityIntegrand)},{key:"survival",label:"e⁻ˣ",xs,values:s.series.map(r=>r.survival),dash:"8 4"}],{xmax:s.T}),
+     figure("从0积到当前横坐标：D 与 C 的差别",[{key:"D",label:"D(t)：超出上限的样本记为0",xs,values:s.series.map(r=>r.densityIntegral)},{key:"C",label:"C(t)：超出上限的样本记为t",xs,values:s.series.map(r=>r.tailIntegral),dash:"8 4"}],{xmax:s.T}),
+     table("integrals","两种截断分别补回各自尾部",["账本","中点求积","有限解析值","遗漏尾部","解析值+尾部","求积−解析值","中点离散误差界"],[["密度 D",...["value","exactFinite","missingTail"].map(k=>s.density[k]),s.density.exactFinite+s.density.missingTail,s.density.error,s.density.midpointErrorBound],["尾积分 C",...["value","exactFinite","missingTail"].map(k=>s.tail[k]),s.tail.exactFinite+s.tail.missingTail,s.tail.error,s.tail.midpointErrorBound]]),
+     el("p",{className:"me-note"},"C(T)−D(T)=T e⁻ᵀ="+fmt(s.T*Math.exp(-s.T))+"。中点误差界只控制精确算术下的求积离散误差，不包括浮点舍入。累计值先在缩放后的坐标中累加，再还原尺度；极小单元可先舍入为0而总量仍可表示。低于浮点范围的量可能显示0。"),
+     ...[["density","密度"],["tail","尾积分"]].map(([key,label])=>el("details",{className:"me-quadrature"},[el("summary",{},"展开"+label+"全部 "+s.steps+" 个中点单元"),table(key+"-rows",label+"逐单元账本",["单元","左端","右端","中点","被积函数","单元贡献","累计值"],s[key].rows.map(r=>[String(r.index),r.left,r.right,r.midpoint,r.integrand,r.area,r.cumulative]))])),
+     el("details",{},[el("summary",{},"展开图上全部81个解析取样点"),table("analytic","解析曲线的全部取样点",["t","t e⁻ᵗ","e⁻ᵗ","D(t)","C(t)"],s.series.map(r=>[r.x,r.densityIntegrand,r.survival,r.densityIntegral,r.tailIntegral]))])
+    );
+   }else if(s.kind==="positive"){
+    results.append(
+     figure("正重尾：每个整数上限的封顶期望",[{key:"cap",label:"E[min(J²,K)]",xs:s.series.map(r=>r.cap),values:s.series.map(r=>r.value)}],{xmax:s.K,step:true}),
+     table("positive-current","当前封顶值的两部分",["K","m=floor √K","低于上限的贡献 c m","其余概率质量","封顶尾部贡献 K×质量","合计"],[[s.K,s.positive.cutoff,s.positive.observedTerms,s.positive.tailMass,s.K*s.positive.tailMass,s.positive.value]]),
+     table("positive-all","从0到K的全部有限封顶账",["K","m","已见贡献","其余概率","尾部封顶贡献","总期望"],s.series.map(r=>[r.cap,r.cutoff,r.observedTerms,r.tailMass,r.cap*r.tailMass,r.value])),
+     el("p",{className:"me-note"},"原期望为+∞由 c floor(√K)→∞ 证明。图的上升趋势不能代替这个量词；c 和有限计算在网页中采用浮点近似。")
+    );
+   }else if(s.kind==="signed"){
+    const xs=s.series.map(r=>r.n);
+    results.append(
+     figure("有限索引部分：三笔可计算的账",[{key:"positive",label:"正部部分和",xs,values:s.series.map(r=>r.positive)},{key:"negative",label:"负部幅度部分和",xs,values:s.series.map(r=>r.negativeMagnitude),dash:"8 4"},{key:"signed",label:"有限有符号部分和",xs,values:s.series.map(r=>r.finitePartial),dash:"2 5"}],{xmax:s.K,step:true}),
+     table("signed-all","全部索引截断：有限差有值，原期望未定义",["N","正部部分和","负部幅度部分和","绝对值部分和","有限有符号部分和"],s.series.map(r=>[r.n,r.positive,r.negativeMagnitude,r.absolute,r.finitePartial])),
+     el("p",{className:"me-note"},"固定自然排列的有符号部分和趋于 −c log2≈"+fmt(s.signed.orderedLimit)+"；这个数不是 E[Y]。原变量的正部、负部期望分别为+∞。零阶索引截断 N=0 表示尚未纳入任何结果，其有限部分和为0。")
+    );
+   }else{
+    const a=s.spike,r=a.current,xs=a.rows.map(r=>r.n);
+    results.append(
+     figure("当前尖峰的宽度与高度",[{key:"spike",label:"Xₙ(ω)，端点按指标函数定义",xs:[0,0,r.width,r.width,1],values:[0,r.height,r.height,0,0]}],{xmax:1,unit:"高度",note:"竖边示意跳跃，不是额外函数取值。端点的差异不改变 Lebesgue 积分；所有 n 使用同一个 U。"}),
+     figure("前n项的面积与超过M的面积",[{key:"mean",label:"E[Xⱼ]",xs,values:a.rows.map(r=>r.expectation)},{key:"tail",label:"E[Xⱼ 1{Xⱼ>M}]",xs,values:a.rows.map(r=>r.tailExpectation),dash:"8 4"}],{xmax:s.n,step:true}),
+     table("ui","先取上确界，再让M增大",["对象","数值 / 结论","范围"],[
+      ["前n项尾部最大值",a.finiteTailMaximum,"只在 j=1…n 内取最大"],
+      ["整个无限族的尾部上确界",a.infiniteTailSupremum,"固定M，对所有正整数j取上确界"],
+      ["整个族是否UI",a.uniformlyIntegrable?"是":"否","还须让M→∞"],
+      ["几乎处处极限",0,"每个固定U>0最终离开缩小区间"],
+      ["期望序列的极限",a.expectationLimit,"由 j^(α−1) 的极限判断"]
+     ]),
+     table("spike-all","前n项完整尖峰与尾部账",["j","高度 j^α","宽度 1/j","面积 E[Xⱼ]","超过M的面积"],a.rows.map(r=>[r.n,r.height,r.width,r.expectation,r.tailExpectation])),
+     el("p",{className:"me-note"},"有限个可积变量总能同时压住尾部；这不能证明无限族UI。α=1/2 的无限上确界为 1/√(floor(M²)+1)，阈值使用严格 >；α=1 时恒为1，α=3/2 时为+∞。")
+    );
+   }
   }
-
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-  }
-
-  function integer(value, fallback, min, max) {
-    var parsed = Math.round(Number(value));
-    if (!Number.isFinite(parsed)) parsed = fallback;
-    return clamp(parsed, min, max);
-  }
-
-  function atomExpectation(atoms) {
-    return (atoms || ATOMS).reduce(function (sum, atom) { return sum + atom.x * atom.p; }, 0);
-  }
-
-  function atomProbability(atoms) {
-    return (atoms || ATOMS).reduce(function (sum, atom) { return sum + atom.p; }, 0);
-  }
-
-  function atomTruncation(cap, atoms) {
-    cap = Math.max(0, Number(cap));
-    return (atoms || ATOMS).reduce(function (sum, atom) { return sum + Math.min(atom.x, cap) * atom.p; }, 0);
-  }
-
-  function densityValue(x) {
-    return x < 0 ? 0 : Math.exp(-x);
-  }
-
-  function densityExpectation(upper, steps) {
-    upper = clamp(Number(upper), LIMITS.T[0], LIMITS.T[1]);
-    steps = integer(steps, 240, LIMITS.steps[0], LIMITS.steps[1]);
-    var width = upper / steps;
-    var sum = 0;
-    for (var i = 0; i < steps; i += 1) {
-      var x = (i + 0.5) * width;
-      sum += x * densityValue(x) * width;
-    }
-    return {
-      upper: upper,
-      steps: steps,
-      value: sum,
-      exactFinite: 1 - (upper + 1) * Math.exp(-upper),
-      missingTail: (upper + 1) * Math.exp(-upper),
-      exact: 1
-    };
-  }
-
-  function survivalValue(modelId, t) {
-    t = Math.max(0, Number(t));
-    if (modelId === "tail" || modelId === "density") return Math.exp(-t);
-    return 0;
-  }
-
-  function tailIntegral(modelId, upper, steps) {
-    upper = clamp(Number(upper), LIMITS.T[0], LIMITS.T[1]);
-    steps = integer(steps, 240, LIMITS.steps[0], LIMITS.steps[1]);
-    var width = upper / steps;
-    var sum = 0;
-    for (var i = 0; i < steps; i += 1) {
-      sum += survivalValue(modelId, (i + 0.5) * width) * width;
-    }
-    return {
-      upper: upper,
-      steps: steps,
-      value: sum,
-      exactFinite: 1 - Math.exp(-upper),
-      missingTail: Math.exp(-upper),
-      exact: 1
-    };
-  }
-
-  function inverseSquarePartial(n) {
-    var sum = 0;
-    for (var k = 1; k <= n; k += 1) sum += 1 / (k * k);
-    return sum;
-  }
-
-  function positiveTruncation(cap) {
-    cap = Math.max(1, Number(cap));
-    var cutoff = Math.floor(Math.sqrt(cap));
-    var observed = HARMONIC_NORMALIZER * cutoff;
-    var tailMass = Math.max(0, 1 - HARMONIC_NORMALIZER * inverseSquarePartial(cutoff));
-    return {
-      cap: cap,
-      cutoff: cutoff,
-      observedTerms: observed,
-      tailMass: tailMass,
-      value: observed + cap * tailMass,
-      exact: Infinity
-    };
-  }
-
-  function signedPartial(n) {
-    n = integer(n, 100, 1, 1000);
-    var positive = 0;
-    var negativeMagnitude = 0;
-    for (var k = 1; k <= n; k += 1) {
-      if (k % 2 === 0) positive += HARMONIC_NORMALIZER / k;
-      else negativeMagnitude += HARMONIC_NORMALIZER / k;
-    }
-    return {
-      n: n,
-      positive: positive,
-      negativeMagnitude: negativeMagnitude,
-      absolute: positive + negativeMagnitude,
-      signed: null,
-      exact: null
-    };
-  }
-
-  function normalizeConfig(config) {
-    config = config || {};
-    var modelId = MODELS[config.modelId] ? config.modelId : "atoms";
-    return {
-      modelId: modelId,
-      K: integer(config.K, 16, LIMITS.K[0], LIMITS.K[1]),
-      T: clamp(Number.isFinite(Number(config.T)) ? Number(config.T) : 6, LIMITS.T[0], LIMITS.T[1]),
-      steps: integer(config.steps, 240, LIMITS.steps[0], LIMITS.steps[1])
-    };
-  }
-
-  function expectationSnapshot(config) {
-    var state = normalizeConfig(config);
-    var model = MODELS[state.modelId];
-    var snapshot = {
-      modelId: state.modelId,
-      K: state.K,
-      T: state.T,
-      steps: state.steps,
-      label: model.label,
-      kind: model.kind,
-      theorem: model.theorem,
-      atoms: null,
-      density: null,
-      tail: null,
-      finiteValue: null,
-      exact: null,
-      positive: null,
-      signed: null
-    };
-    if (state.modelId === "atoms") {
-      snapshot.atoms = {
-        probability: atomProbability(),
-        exact: atomExpectation(),
-        truncated: atomTruncation(state.K)
-      };
-      snapshot.finiteValue = snapshot.atoms.truncated;
-      snapshot.exact = snapshot.atoms.exact;
-    } else if (state.modelId === "density") {
-      snapshot.density = densityExpectation(state.T, state.steps);
-      snapshot.tail = tailIntegral("density", state.T, state.steps);
-      snapshot.finiteValue = snapshot.density.value;
-      snapshot.exact = snapshot.density.exact;
-    } else if (state.modelId === "tail") {
-      snapshot.tail = tailIntegral("tail", state.T, state.steps);
-      snapshot.density = densityExpectation(state.T, state.steps);
-      snapshot.finiteValue = snapshot.tail.value;
-      snapshot.exact = snapshot.tail.exact;
-    } else if (state.modelId === "positive") {
-      snapshot.positive = positiveTruncation(state.K);
-      snapshot.finiteValue = snapshot.positive.value;
-      snapshot.exact = Infinity;
-    } else {
-      snapshot.signed = signedPartial(state.K);
-      snapshot.finiteValue = snapshot.signed.signed;
-      snapshot.exact = null;
-    }
-    return snapshot;
-  }
-
-  function formatNumber(value, digits) {
-    if (value === Infinity) return "+∞";
-    if (value === -Infinity) return "−∞";
-    if (value === null || value === undefined || !Number.isFinite(value)) return "未定义";
-    if (Math.abs(value) < 5e-10) return "0";
-    var places = digits === undefined ? 5 : digits;
-    if (Math.abs(value) >= 10000 || Math.abs(value) < 0.001) return value.toExponential(Math.min(places, 4));
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function element(doc, tag, attrs, children) {
-    var node = doc.createElement(tag);
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", value);
-      else if (key === "htmlFor") node.setAttribute("for", value);
-      else if (key === "text") node.textContent = String(value);
-      else if (key.slice(0, 2) === "on" && typeof value === "function") node.addEventListener(key.slice(2).toLowerCase(), value);
-      else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, String(value));
-    });
-    (Array.isArray(children) ? children : [children]).forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child && child.nodeType ? child : doc.createTextNode(String(child)));
-    });
-    return node;
-  }
-
-  function svgElement(doc, tag, attrs, text) {
-    var node = doc.createElementNS(SVG_NS, tag);
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null) return;
-      node.setAttribute(key === "className" ? "class" : key, String(value));
-    });
-    if (text !== undefined) node.textContent = String(text);
-    return node;
-  }
-
-  function installStyles(doc) {
-    if (!doc || doc.getElementById(STYLE_ID)) return;
-    var style = doc.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = STYLE_TEXT;
-    (doc.head || doc.documentElement).appendChild(style);
-  }
-
-  function announce(api, rootNode, message) {
-    if (api && typeof api.announce === "function") api.announce(rootNode, message);
-  }
-
-  function mapX(value, left, right, maximum) {
-    return left + clamp(value / maximum, 0, 1) * (right - left);
-  }
-
-  function mapY(value, top, bottom, maximum) {
-    return bottom - clamp(value / maximum, 0, 1) * (bottom - top);
-  }
-
-  function linePath(points, xMap, yMap) {
-    return points.map(function (point, index) {
-      return (index ? "L " : "M ") + xMap(point[0]).toFixed(2) + " " + yMap(point[1]).toFixed(2);
-    }).join(" ");
-  }
-
-  function plotSvg(doc, snapshot, prefix) {
-    var svg = svgElement(doc, "svg", {
-      viewBox: "0 0 640 320",
-      role: "img",
-      "aria-labelledby": prefix + "-plot-title " + prefix + "-plot-desc"
-    });
-    svg.appendChild(svgElement(doc, "title", { id: prefix + "-plot-title" }, "期望的有限账本"));
-    svg.appendChild(svgElement(doc, "desc", { id: prefix + "-plot-desc" }, "蓝线显示非负截断或尾积分；变号重尾显示正部与负部的分开增长。"));
-    var left = 52;
-    var right = 588;
-    var top = 34;
-    var bottom = 252;
-    var pointsA = [];
-    var pointsB = [];
-    var xMaximum = snapshot.kind === "positive" || snapshot.kind === "signed" ? snapshot.K : snapshot.kind === "finite" ? 4 : snapshot.T;
-    var yMaximum = 1.2;
-    if (snapshot.kind === "positive") {
-      for (var k = 4; k <= snapshot.K; k += Math.max(1, Math.floor(snapshot.K / 80))) pointsA.push([k, positiveTruncation(k).value]);
-      if (pointsA[pointsA.length - 1][0] !== snapshot.K) pointsA.push([snapshot.K, positiveTruncation(snapshot.K).value]);
-      yMaximum = Math.max(1, pointsA[pointsA.length - 1][1] * 1.12);
-    } else if (snapshot.kind === "signed") {
-      for (var j = 4; j <= snapshot.K; j += Math.max(1, Math.floor(snapshot.K / 80))) {
-        var signed = signedPartial(j);
-        pointsA.push([j, signed.positive]);
-        pointsB.push([j, signed.negativeMagnitude]);
-      }
-      if (pointsA[pointsA.length - 1][0] !== snapshot.K) {
-        var last = signedPartial(snapshot.K);
-        pointsA.push([snapshot.K, last.positive]);
-        pointsB.push([snapshot.K, last.negativeMagnitude]);
-      }
-      yMaximum = Math.max(1, pointsA[pointsA.length - 1][1], pointsB[pointsB.length - 1][1]) * 1.18;
-    } else if (snapshot.kind === "finite") {
-      ATOMS.forEach(function (atom) { pointsA.push([atom.x, atom.p]); });
-      yMaximum = 0.62;
-    } else if (snapshot.kind === "tail") {
-      for (var t = 0; t <= 80; t += 1) pointsA.push([snapshot.T * t / 80, survivalValue("tail", snapshot.T * t / 80)]);
-      yMaximum = 1.1;
-    } else {
-      for (var xIndex = 0; xIndex <= 80; xIndex += 1) {
-        var x = snapshot.T * xIndex / 80;
-        pointsA.push([x, x * densityValue(x)]);
-      }
-      yMaximum = 1.1;
-    }
-    [0, 0.5, 1].forEach(function (fraction) {
-      var y = mapY(fraction * yMaximum, top, bottom, yMaximum);
-      svg.appendChild(svgElement(doc, "line", { x1: left, x2: right, y1: y, y2: y, className: "me-grid" }));
-      svg.appendChild(svgElement(doc, "text", { x: left - 8, y: y + 4, "font-size": 11, "text-anchor": "end" }, formatNumber(fraction * yMaximum, 2)));
-    });
-    svg.appendChild(svgElement(doc, "line", { x1: left, x2: left, y1: top, y2: bottom, className: "me-axis" }));
-    svg.appendChild(svgElement(doc, "line", { x1: left, x2: right, y1: bottom, y2: bottom, className: "me-axis" }));
-    if (snapshot.kind === "finite") {
-      var barWidth = 42;
-      pointsA.forEach(function (point) {
-        var xBar = mapX(point[0], left, right, xMaximum) - barWidth / 2;
-        var yBar = mapY(point[1], top, bottom, yMaximum);
-        svg.appendChild(svgElement(doc, "rect", { x: xBar, y: yBar, width: barWidth, height: bottom - yBar, className: "me-bar" }));
-        svg.appendChild(svgElement(doc, "text", { x: xBar + barWidth / 2, y: bottom + 18, "font-size": 10, "text-anchor": "middle" }, "x=" + point[0]));
-      });
-    } else {
-      svg.appendChild(svgElement(doc, "path", {
-        d: linePath(pointsA, function (value) { return mapX(value, left, right, xMaximum); }, function (value) { return mapY(value, top, bottom, yMaximum); }),
-        className: "me-curve"
-      }));
-      if (pointsB.length) {
-        svg.appendChild(svgElement(doc, "path", {
-          d: linePath(pointsB, function (value) { return mapX(value, left, right, xMaximum); }, function (value) { return mapY(value, top, bottom, yMaximum); }),
-          className: "me-secondary"
-        }));
-      }
-    }
-    if (snapshot.kind === "positive") {
-      svg.appendChild(svgElement(doc, "text", { x: right, y: 24, "font-size": 11, "text-anchor": "end" }, "蓝：E[min(X,K)]，理论极限 +∞"));
-    } else if (snapshot.kind === "signed") {
-      svg.appendChild(svgElement(doc, "text", { x: right, y: 24, "font-size": 11, "text-anchor": "end" }, "蓝：E[Y⁺]，红：E[Y⁻]，分别发散"));
-    } else if (snapshot.kind === "tail") {
-      svg.appendChild(svgElement(doc, "text", { x: right, y: 24, "font-size": 11, "text-anchor": "end" }, "蓝：P(X>t)，尾面积是期望"));
-    } else if (snapshot.kind === "density") {
-      svg.appendChild(svgElement(doc, "text", { x: right, y: 24, "font-size": 11, "text-anchor": "end" }, "蓝：x f(x)，有限 T 仍有尾部"));
-    } else {
-      svg.appendChild(svgElement(doc, "text", { x: right, y: 24, "font-size": 11, "text-anchor": "end" }, "蓝柱：原子概率 p_k"));
-    }
-    svg.appendChild(svgElement(doc, "text", { x: left, y: 286, "font-size": 11 }, "有限账本"));
-    svg.appendChild(svgElement(doc, "text", { x: right, y: 286, "font-size": 11, "text-anchor": "end" }, "K=" + snapshot.K + "，T=" + formatNumber(snapshot.T, 2)));
-    return svg;
-  }
-
-  function addLedgerTable(doc, parent, snapshot) {
-    var wrap = element(doc, "div", { className: "me-ledger" });
-    var table = element(doc, "table", { "aria-label": "期望表示与收敛定理账本" });
-    table.appendChild(element(doc, "caption", { text: "有限数值与定理层级分栏；“未定义”不是 0" }));
-    var head = element(doc, "tr");
-    ["账本", "当前有限值", "极限/结论", "交换条件", "证据层级"].forEach(function (label) {
-      head.appendChild(element(doc, "th", { scope: "col", text: label }));
-    });
-    table.appendChild(element(doc, "thead", {}, [head]));
-    var rows = [];
-    if (snapshot.kind === "finite") {
-      rows = [
-        ["原子和 Σxₖpₖ", formatNumber(snapshot.atoms.truncated, 6), "1", "概率和=1；非负", "有限原子 + 精确公式"],
-        ["MCT 截断 X∧K", formatNumber(snapshot.atoms.truncated, 6), "1", "X∧K↑X", "有限诊断"]
-      ];
-    } else if (snapshot.kind === "density" || snapshot.kind === "tail") {
-      rows = [
-        ["密度 ∫₀ᵀxf(x)dx", formatNumber(snapshot.density.value, 6), "1", "DCT/MCT 需看控制或非负", "中点求积"],
-        ["尾账 ∫₀ᵀP(X>t)dt", formatNumber(snapshot.tail.value, 6), "1", "Tonelli layer-cake，X≥0", "中点求积"],
-        ["遗漏尾部", formatNumber(snapshot.tail.missingTail, 6), "→0", "T→∞", "解析尾项"]
-      ];
-    } else if (snapshot.kind === "positive") {
-      rows = [
-        ["正部截断 E[min(X,K)]", formatNumber(snapshot.positive.value, 6), "+∞", "MCT，非负", "有限诊断 + 定理"],
-        ["已见 k≤√K 的项", formatNumber(snapshot.positive.observedTerms, 6), "↑+∞", "Tonelli/MCT", "部分和"],
-        ["剩余概率质量", formatNumber(snapshot.positive.tailMass, 6), "—", "分布归一化", "有限诊断"]
-      ];
-    } else {
-      rows = [
-        ["E[Y⁺] 截断", formatNumber(snapshot.signed.positive, 6), "+∞", "非负部分单调", "部分和"],
-        ["E[Y⁻] 截断", formatNumber(snapshot.signed.negativeMagnitude, 6), "+∞", "非负部分单调", "部分和"],
-        ["E[Y⁺]−E[Y⁻]", "未定义", "未定义", "两部均无限", "∞−∞ 禁止"]
-      ];
-    }
-    var body = element(doc, "tbody");
-    rows.forEach(function (row) {
-      var tr = element(doc, "tr");
-      row.forEach(function (value) { tr.appendChild(element(doc, "td", { text: value })); });
-      body.appendChild(tr);
-    });
-    table.appendChild(body);
-    wrap.appendChild(table);
-    parent.appendChild(wrap);
-  }
-
-  function mount(rootNode, api) {
-    if (!rootNode || rootNode.getAttribute("data-me-mounted") === "true") return;
-    rootNode.setAttribute("data-me-mounted", "true");
-    var doc = rootNode.ownerDocument;
-    installStyles(doc);
-    INSTANCE += 1;
-    var prefix = "me-" + INSTANCE;
-    var state = { modelId: PRESETS[0].modelId, K: PRESETS[0].K, T: PRESETS[0].T, steps: PRESETS[0].steps };
-    var activePreset = PRESETS[0].id;
-    var answers = [null, null, null];
-    var revealed = false;
-    var shell = element(doc, "div", { className: "me-lab" });
-    shell.innerHTML = [
-      '<p class="me-note">先判断三种非负表示与正负部边界，再揭示有限截断。图是确定性诊断；Tonelli、MCT 和 Lebesgue 期望由条件而不是图形授予合法性。</p>',
-      '<div class="me-prediction"><h3>预测门：三项都作答后才能揭示</h3>',
-      '<fieldset data-question="0"><legend>1. 原子、密度、尾概率能否给同一个非负期望？</legend><div class="me-choices">',
-      '<button type="button" data-question="0" data-answer="same">能，是同一 Lebesgue 积分</button><button type="button" data-question="0" data-answer="different">不能，三种定义互斥</button><button type="button" data-question="0" data-answer="sample">只在抽样时相同</button>',
-      '</div></fieldset>',
-      '<fieldset data-question="1"><legend>2. MCT/Tonelli 是否要求最终期望有限？</legend><div class="me-choices">',
-      '<button type="button" data-question="1" data-answer="allow-infinity">不要求，共同值可为 +∞</button><button type="button" data-question="1" data-answer="finite">必须有限</button><button type="button" data-question="1" data-answer="signed">只要对称即可</button>',
-      '</div></fieldset>',
-      '<fieldset data-question="2"><legend>3. 若 E[Y⁺]=E[Y⁻]=+∞，应怎样记录 E[Y]？</legend><div class="me-choices">',
-      '<button type="button" data-question="2" data-answer="zero">对称所以是 0</button><button type="button" data-question="2" data-answer="boundary">未定义；不能做 ∞−∞</button><button type="button" data-question="2" data-answer="positive">一定是 +∞</button>',
-      '</div></fieldset>',
-      '<div class="me-actions"><button class="me-primary" type="button" data-action="reveal">核对预测并揭示</button><button type="button" data-action="reset">重置</button></div>',
-      '<p class="me-feedback" role="status" aria-live="polite" aria-atomic="true">请先完成三项预测。</p></div>',
-      '<div class="me-controls" hidden><div class="me-control-group"><label>教学预设</label><div class="me-presets" data-presets></div></div>',
-      '<div class="me-control-group"><label for="' + prefix + '-k">截断级别 K：<output data-output="K">16</output></label><input id="' + prefix + '-k" data-input="K" type="range" min="4" max="400" step="1" value="16">',
-      '<label for="' + prefix + '-t">尾部上限 T：<output data-output="T">6</output></label><input id="' + prefix + '-t" data-input="T" type="range" min="1" max="12" step="0.5" value="6">',
-      '<label for="' + prefix + '-steps">求积步数：<output data-output="steps">240</output></label><input id="' + prefix + '-steps" data-input="steps" type="range" min="40" max="600" step="20" value="240"></div></div>',
-      '<div class="me-results" hidden><div data-metrics></div><div data-stage></div><div data-table></div><p class="me-note">“密度求积”“尾积分”“重尾截断”都是有限证据；表中标出的 MCT/Tonelli、正负部和 UI 条件才决定无限极限能否换序。</p></div>'
-    ].join("");
-    rootNode.replaceChildren(shell);
-    var lab = shell;
-    var controls = lab.querySelector(".me-controls");
-    var results = lab.querySelector(".me-results");
-    var feedback = lab.querySelector(".me-feedback");
-    var inputs = {
-      K: lab.querySelector('[data-input="K"]'),
-      T: lab.querySelector('[data-input="T"]'),
-      steps: lab.querySelector('[data-input="steps"]')
-    };
-    var presetRow = lab.querySelector("[data-presets]");
-    PRESETS.forEach(function (preset) {
-      presetRow.appendChild(element(doc, "button", {
-        type: "button",
-        text: preset.label,
-        "data-preset": preset.id,
-        "aria-pressed": preset.id === activePreset ? "true" : "false"
-      }));
-    });
-
-    function renderPrediction() {
-      lab.querySelectorAll("button[data-question]").forEach(function (button) {
-        var question = Number(button.getAttribute("data-question"));
-        button.setAttribute("aria-pressed", answers[question] === button.getAttribute("data-answer") ? "true" : "false");
-      });
-    }
-
-    function render() {
-      var snapshot = expectationSnapshot(state);
-      var activePresetItem = PRESETS.filter(function (item) { return item.id === activePreset; })[0];
-      var activeModelId = activePresetItem ? activePresetItem.modelId : null;
-      Object.keys(inputs).forEach(function (key) {
-        inputs[key].value = String(state[key]);
-        lab.querySelector('[data-output="' + key + '"]').textContent = formatNumber(state[key], key === "T" ? 1 : 0);
-      });
-      lab.querySelectorAll("button[data-preset]").forEach(function (button) {
-        button.setAttribute("aria-pressed", button.getAttribute("data-preset") === activePreset && state.modelId === activeModelId ? "true" : "false");
-      });
-      controls.hidden = !revealed;
-      results.hidden = !revealed;
-      renderPrediction();
-      if (!revealed) return;
-      var metrics = lab.querySelector("[data-metrics]");
-      metrics.className = "me-metrics";
-      var finite = snapshot.finiteValue;
-      var exact = snapshot.exact;
-      metrics.innerHTML = [
-        ["当前模型", snapshot.label],
-        ["有限值", formatNumber(finite, 6)],
-        ["理论值", exact === null ? "未定义" : formatNumber(exact, 6)],
-        ["K", String(snapshot.K)],
-        ["T", formatNumber(snapshot.T, 2)],
-        ["步数", String(snapshot.steps)],
-        ["正部", snapshot.signed ? formatNumber(snapshot.signed.positive, 5) : "—"],
-        ["负部", snapshot.signed ? formatNumber(snapshot.signed.negativeMagnitude, 5) : "—"]
-      ].map(function (item) {
-        return '<div class="me-metric"><span>' + item[0] + '</span><strong>' + item[1] + '</strong></div>';
-      }).join("");
-      var stage = lab.querySelector("[data-stage]");
-      stage.replaceChildren(plotSvg(doc, snapshot, prefix));
-      var table = lab.querySelector("[data-table]");
-      table.replaceChildren();
-      addLedgerTable(doc, table, snapshot);
-    }
-
-    lab.addEventListener("click", function (event) {
-      var choice = event.target.closest("button[data-question]");
-      if (choice) {
-        answers[Number(choice.getAttribute("data-question"))] = choice.getAttribute("data-answer");
-        renderPrediction();
-        return;
-      }
-      var presetButton = event.target.closest("button[data-preset]");
-      if (presetButton) {
-        var preset = PRESETS.filter(function (item) { return item.id === presetButton.getAttribute("data-preset"); })[0];
-        if (!preset) return;
-        activePreset = preset.id;
-        state = { modelId: preset.modelId, K: preset.K, T: preset.T, steps: preset.steps };
-        render();
-        return;
-      }
-      var action = event.target.closest("button[data-action]");
-      if (!action) return;
-      if (action.getAttribute("data-action") === "reset") {
-        answers = [null, null, null];
-        revealed = false;
-        activePreset = PRESETS[0].id;
-        state = { modelId: PRESETS[0].modelId, K: PRESETS[0].K, T: PRESETS[0].T, steps: PRESETS[0].steps };
-        feedback.className = "me-feedback";
-        feedback.textContent = "请先完成三项预测。";
-        render();
-        return;
-      }
-      if (answers.some(function (answer) { return answer === null; })) {
-        feedback.className = "me-feedback me-warn";
-        feedback.textContent = "还差 " + answers.filter(function (answer) { return answer === null; }).length + " 项预测。";
-        announce(api, rootNode, feedback.textContent);
-        return;
-      }
-      var expected = ["same", "allow-infinity", "boundary"];
-      var score = answers.reduce(function (sum, answer, index) { return sum + (answer === expected[index] ? 1 : 0); }, 0);
-      revealed = true;
-      feedback.className = "me-feedback " + (score === 3 ? "me-pass" : "me-warn");
-      feedback.textContent = "预测命中 " + score + "/3；现在查看非负交换与正负部账本。";
-      render();
-      announce(api, rootNode, feedback.textContent);
-    });
-    Object.keys(inputs).forEach(function (key) {
-      inputs[key].addEventListener("input", function () {
-        if (key === "K" || key === "steps") state[key] = integer(inputs[key].value, state[key], LIMITS[key][0], LIMITS[key][1]);
-        else state[key] = clamp(Number(inputs[key].value), LIMITS.T[0], LIMITS.T[1]);
-        activePreset = "custom";
-        render();
-      });
-    });
-    render();
-  }
-
-  function selfTest() {
-    var checks = 0;
-    function check(condition, message) {
-      checks += 1;
-      assert(condition, message);
-    }
-    check(near(atomProbability(), 1, 1e-12), "atom probabilities normalize");
-    check(near(atomExpectation(), 1, 1e-12), "atom expectation");
-    check(atomTruncation(1) <= atomTruncation(4) && atomTruncation(4) <= atomExpectation() + 1e-12, "atom truncation monotone");
-    var density = densityExpectation(12, 600);
-    check(density.value > 0.99 && density.value < 1.01, "density finite quadrature");
-    check(near(density.exactFinite + density.missingTail, 1, 1e-12), "density tail ledger");
-    var tail = tailIntegral("tail", 12, 600);
-    check(tail.value > 0.99 && tail.value < 1.01, "tail finite quadrature");
-    check(near(tail.exactFinite + tail.missingTail, 1, 1e-12), "tail complement");
-    check(near(survivalValue("tail", 0), 1, 1e-12) && survivalValue("tail", 3) < 1, "survival function");
-    var positive4 = positiveTruncation(4);
-    var positive100 = positiveTruncation(100);
-    check(positive4.value < positive100.value, "positive truncation grows");
-    check(positive100.exact === Infinity && positive100.tailMass >= 0, "positive divergence ledger");
-    var signed4 = signedPartial(4);
-    var signed100 = signedPartial(100);
-    check(signed4.positive > 0 && signed4.negativeMagnitude > 0, "signed positive and negative parts");
-    check(signed100.positive > signed4.positive && signed100.negativeMagnitude > signed4.negativeMagnitude, "signed parts both grow");
-    check(signed100.signed === null && signed100.exact === null, "signed expectation undefined");
-    var snapshotA = expectationSnapshot({ modelId: "tail", T: 6, steps: 240 });
-    var snapshotB = expectationSnapshot({ modelId: "tail", T: 6, steps: 240 });
-    check(snapshotA.finiteValue === snapshotB.finiteValue, "deterministic replay");
-    check(Object.keys(MODELS).length === 5 && PRESETS.length === 5, "teaching presets");
-    return { checks: checks, models: Object.keys(MODELS).length };
-  }
-
-  return {
-    ATOMS: ATOMS,
-    MODELS: MODELS,
-    PRESETS: PRESETS,
-    atomExpectation: atomExpectation,
-    atomProbability: atomProbability,
-    atomTruncation: atomTruncation,
-    densityExpectation: densityExpectation,
-    survivalValue: survivalValue,
-    tailIntegral: tailIntegral,
-    positiveTruncation: positiveTruncation,
-    signedPartial: signedPartial,
-    expectationSnapshot: expectationSnapshot,
-    mount: mount,
-    selfTest: selfTest
-  };
+  render();
+ }
+ return {ATOMS,MODELS,PRESETS,DEFAULTS,atomExpectation,atomProbability,atomTruncation,densityExpectation,survivalValue,tailIntegral,positiveTruncation,signedPartial,spikeSnapshot,expectationSnapshot,drawMeasurePlot,mount,selfTest};
 });

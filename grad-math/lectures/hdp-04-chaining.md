@@ -163,7 +163,7 @@ $E^*$ 表示外期望，用来覆盖函数类不可数时上确界可能不自�
 
 ## 5. 练习与要点
 
-**例 1（亚高斯 max 界亲算）** $m$ 个 $\|X_i\|_{\psi_2}\leq\sigma$：$E\max X_i \leq C\sigma\sqrt{\ln m}$——用尾界积分 $E\max \leq t_0 + \int_{t_0}^\infty m\,e^{-ct^2/\sigma^2}dt$ 并取 $t_0 = \sigma\sqrt{\ln m}/\sqrt c$。（chaining 每级用的正是这一行；也解释了"$m$ 个高斯的最大值 $\approx \sigma\sqrt{2\ln m}$"——mt-01 例 1 的上界方向。）
+**例 1（亚高斯 max 界亲算）** $m$ 个 $\|X_i\|_{\psi_2}\leq\sigma$：$E\max X_i \leq C\sigma\sqrt{\ln m}$——用尾界积分 $E\max \leq t_0 + \int_{t_0}^\infty m\,e^{-ct^2/\sigma^2}dt$ 并取 $t_0 = \sigma\sqrt{\ln m}/\sqrt c$。（chaining 每级用的正是这一行；也解释了"$m$ 个高斯的最大值 $\approx \sigma\sqrt{2\ln m}$"——[测度概率 §9a](mt-01-measure-expectation.html#9a) 的上界方向。）
 
 **例 2（Dudley 应用：Lipschitz 类）** 必须先钉住常数方向。令
 
