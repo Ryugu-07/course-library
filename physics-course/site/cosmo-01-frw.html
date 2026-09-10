@@ -56,237 +56,635 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-11 00:23</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#cosmo-frw-learning-title">学习层：三种“视界”到底是哪一种边界？</a><ul>
-<li><a href="#1">1. 先做一个因果预测</a></li>
-<li><a href="#2-frw-toy-model">2. 透明的平坦 FRW toy model</a></li>
-<li><a href="#3">3. 四个教学预设：先看解析极限</a></li>
-<li><a href="#4">4. 动手实验：看图、读账本、再预测</a></li>
-<li><a href="#5">5. 三个概念的因果边界</a></li>
-<li><a href="#6">6. 模型边界与迁移题</a></li>
+<li><a href="#cosmo-frw-learning-title">学习层：先沿一束光走，再给宇宙列账</a><ul>
+<li><a href="#1">1. 一个能手算的反直觉例子</a></li>
+<li><a href="#2">2. 辨认输入、输出和模型边界</a></li>
+<li><a href="#3">3. 实验：先预测，再揭示每一行计算</a></li>
+<li><a href="#4">4. 数值读数也要说明证据</a></li>
 </ul>
 </li>
-<li><a href="#1-friedmann">1. Friedmann 方程</a></li>
-<li><a href="#2">2. 宇宙的会计制度：组分与稀释律</a></li>
-<li><a href="#3-cdm">3. ΛCDM 账本（观测宇宙学的现状）</a></li>
-<li><a href="#4_1">4. 练习与要点</a></li>
+<li><a href="#1-frw">1. FRW 度规：对称性允许怎样的宇宙？</a><ul>
+<li><a href="#11">1.1 均匀与各向同性是背景假设</a></li>
+<li><a href="#12-hubble">1.2 Hubble 定律是哪一种速度？</a></li>
+</ul>
+</li>
+<li><a href="#2-friedmann">2. 从度规推出 Friedmann 方程</a><ul>
+<li><a href="#21">2.1 统一压力、密度和 Λ 的单位</a></li>
+<li><a href="#22">2.2 把曲率计算拆到可以复核</a></li>
+<li><a href="#23">2.3 约束、加速度与连续性</a></li>
+</ul>
+</li>
+<li><a href="#3_1">3. 宇宙组分怎样交接？</a><ul>
+<li><a href="#31">3.1 状态方程控制稀释</a></li>
+<li><a href="#32-hubble">3.2 年龄不能只用 Hubble 时间替代</a></li>
+</ul>
+</li>
+<li><a href="#4_1">4. 红移、三种距离与观测</a><ul>
+<li><a href="#41">4.1 红移来自相邻两道波峰</a></li>
+<li><a href="#42">4.2 同一红移的四种“远”</a></li>
+<li><a href="#43">4.3 低红移近似的误差从哪里开始？</a></li>
+</ul>
+</li>
+<li><a href="#5">5. 三种半径、两种端点、一个光子反例</a><ul>
+<li><a href="#51">5.1 先定义，再问是否有限</a></li>
+<li><a href="#52">5.2 实验怎样处理精确无穷端点？</a></li>
+<li><a href="#53-hubble">5.3 把“Hubble 半径外仍可到达”算到底</a></li>
+</ul>
+</li>
+<li><a href="#6">6. 四道完整练习</a></li>
+<li><a href="#7">7. 通向后面的课程</a></li>
 </ul>
 </div>
 </details>
-<h1 id="i-frw-friedmann">宇宙学 I · FRW 与 Friedmann 方程<a class="headerlink" href="#i-frw-friedmann" title="Permanent link"></a></h1>
+<h1 id="i-frwfriedmann">宇宙学 I · FRW、Friedmann 方程与光的距离<a class="headerlink" href="#i-frwfriedmann" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Ryden §4–6 ｜ <strong>前置</strong>：gr-03（FRW 度规）、sm 线
-把整个宇宙当一个物理系统：均匀各向同性 + Einstein 方程 = <strong>一个标度因子 <span class="arithmatex">\(a(t)\)</span> 的 ODE</strong>。本页推 Friedmann 方程、建"宇宙学的会计制度"（各组分如何稀释）、给出 ΛCDM 的账本——宇宙 95% 由未知项构成的现代处境。</p>
+<p><strong>前置</strong>：<a href="gr-01-equivalence.html">等效原理与曲率</a>、理想流体、常微分方程与定积分。<strong>目标</strong>：从对称性写出度规，从 Einstein 方程推出膨胀，再沿光路算出红移、距离和视界。</p>
+<p>同一个遥远星系可以有几种不同的“距离”。我们在问不同的问题：今天的空间切片上隔多远、光走了多久、它看起来多亮、它占多大角度。本页把这些问题接到同一个尺度因子上。</p>
 </blockquote>
+<style>article:has(#cosmo-frw-learning-title) .katex { position: relative; }</style>
+
 <div data-learning-page></div>
 
 <section aria-labelledby="cosmo-frw-learning-title" class="learning-layer">
-<h2 id="cosmo-frw-learning-title">学习层：三种“视界”到底是哪一种边界？<a class="headerlink" href="#cosmo-frw-learning-title" title="Permanent link"></a></h2>
-<h3 id="1">1. 先做一个因果预测<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>想象今天在某个共动星系发出一束光。下面三个问题看起来都像“它离我们多远”，但答案不是同一个量：</p>
-<ol>
-<li><strong>Hubble sphere</strong>：此刻满足 <span class="arithmatex">\(H D=c\)</span> 的距离是多少？它是不是光子绝对过不来的边界？</li>
-<li><strong>粒子视界</strong>：从模型起点到现在，过去发出的光最多已经让我们联系到多远？</li>
-<li><strong>事件视界</strong>：从现在往未来发出的光，最远最终还能联系到多远？</li>
-</ol>
-<p>先在脑中写下你的判断，再打开下方实验。尤其预测：若没有 <span class="arithmatex">\(\Lambda\)</span>，把未来积分真的做到 <span class="arithmatex">\(a'=\infty\)</span> 会发生什么；若是纯 de Sitter，过去的粒子积分又是否收敛？</p>
-<h3 id="2-frw-toy-model">2. 透明的平坦 FRW toy model<a class="headerlink" href="#2-frw-toy-model" title="Permanent link"></a></h3>
-<p>固定今天 <span class="arithmatex">\(a_0=1\)</span>，取空间平坦、只保留辐射、物质和宇宙学常数：</p>
+<h2 id="cosmo-frw-learning-title">学习层：先沿一束光走，再给宇宙列账<a class="headerlink" href="#cosmo-frw-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 一个能手算的反直觉例子<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>考虑平坦、只有无压物质的膨胀宇宙，取今天尺度因子为1。在 <span class="arithmatex">\(a_e=1/4\)</span> 时，让一束光在距离原点<strong>两倍当时 Hubble 半径</strong>处朝原点发射。</p>
+<p>光在每位沿途共动观察者的局部标架中都以 <span class="arithmatex">\(c\)</span> 朝内走；然而，用同一宇宙时刻的尺子比较光子与原点的固有距离，这个距离起初仍会增加。随后它达到最大值，最后在 <span class="arithmatex">\(a=1\)</span> 时到达原点。下面会逐步算出：</p>
 <div class="arithmatex">\[
-\begin{aligned}
-H(a)&amp;=H_0E(a),\\
-E(a)&amp;=\sqrt{\Omega_r a^{-4}+\Omega_m a^{-3}+\Omega_\Lambda},\\
-\Omega_r+\Omega_m+\Omega_\Lambda&amp;=1.
-\end{aligned}
+a_{\rm turn}=\frac49,\qquad a_{\rm arrival}=1.
 \]</div>
-<p>实验中所有距离都除以 <span class="arithmatex">\(c/H_0\)</span>；因此以下数字是无量纲的。物理距离 = <span class="arithmatex">\((c/H_0)\)</span> 乘无量纲距离：</p>
+<p>这已经足以否定“Hubble 半径就是所有光都过不来的边界”。要判断能否通信，需要整条光路，而不只是某一时刻的 <span class="arithmatex">\(H\)</span>。</p>
+<h3 id="2">2. 辨认输入、输出和模型边界<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>实验的前两个模式使用平坦三组分背景：</p>
 <div class="arithmatex">\[
-\begin{aligned}
-D_H(a)&amp;=\frac{c}{H(a)}=\frac{c}{H_0}\frac1{E(a)},\\
-D_p(a)&amp;=a c\int_0^a\frac{da'}{a'^2H(a')},\\
-D_e(a)&amp;=a c\int_a^\infty\frac{da'}{a'^2H(a')}.
-\end{aligned}
+E(a)^2\equiv\frac{H(a)^2}{H_0^2}
+=\Omega_r a^{-4}+\Omega_m a^{-3}+\Omega_\Lambda,
+\qquad \Omega_\Lambda=1-\Omega_r-\Omega_m.
 \]</div>
-<p>这里 <span class="arithmatex">\(D_H\)</span> 是瞬时的 <strong>Hubble sphere</strong>，<span class="arithmatex">\(D_p\)</span> 是物理的粒子视界，<span class="arithmatex">\(D_e\)</span> 是物理的事件视界。后两者是光锥累计量，而不是把 <span class="arithmatex">\(H\)</span> 在某个时刻倒过来就得到的同一个半径。</p>
-<p>为了让积分账本可以逐项复核，令</p>
+<p>未带时间参数的 <span class="arithmatex">\(\Omega_i\)</span> 都指今天的密度参数，<span class="arithmatex">\(a_0=1\)</span>。辐射与物质之间不交换能量，暗能量固定为宇宙学常数；本实验没有空间曲率、随时间变化的暗能量、粒子种类转换或结构扰动。它适合检验背景方程，不能直接替代精密宇宙学拟合。</p>
+<p>输入是 <span class="arithmatex">\(\Omega_r,\Omega_m,H_0\)</span>，以及当前 <span class="arithmatex">\(a\)</span> 或观测红移 <span class="arithmatex">\(z\)</span>。实验明确用剩余量定义 <span class="arithmatex">\(\Omega_\Lambda\)</span>，不会把不合法的组分悄悄归一化。数值域要求每个非零组分至少为 <span class="arithmatex">\(10^{-6}\)</span>；更小组分应使用另行验证的数值设置。第三个光子模式固定为纯物质背景，只有发射尺度因子和初始距离比两个输入。</p>
+<p>所有无量纲距离乘 <span class="arithmatex">\(c/H_0\)</span>，所有无量纲时间乘 <span class="arithmatex">\(1/H_0\)</span>。默认的 <span class="arithmatex">\(H_0=70\ {\rm km\,s^{-1}Mpc^{-1}}\)</span> 只是教学输入，对应</p>
 <div class="arithmatex">\[
-\begin{aligned}
-I_p(a)&amp;=\int_0^a\frac{dx}{\sqrt{\Omega_r+\Omega_m x+\Omega_\Lambda x^4}},\\
-I_e(a)&amp;=\int_0^{1/a}\frac{du}{\sqrt{\Omega_r u^4+\Omega_m u^3+\Omega_\Lambda}}.
-\end{aligned}
+c/H_0\simeq4.28275\ {\rm Gpc},\qquad
+1/H_0\simeq13.9685\ {\rm Gyr}.
 \]</div>
-<p>第一式只是把 <span class="arithmatex">\(1/(a'^2E(a'))\)</span> 展开；第二式用 <span class="arithmatex">\(u=1/a'\)</span> 把<strong>精确的未来无穷端点</strong> <span class="arithmatex">\(a'=\infty\)</span> 变成 <span class="arithmatex">\(u=0\)</span>。所以</p>
-<div class="arithmatex">\[
-\frac{D_p}{c/H_0}=aI_p(a),\qquad \frac{D_e}{c/H_0}=aI_e(a).
-\]</div>
-<p>实验不会把 <span class="arithmatex">\(a'=\infty\)</span> 偷换成某个有限上限：若 <span class="arithmatex">\(I_e\)</span> 发散，读数明确写“发散 / 不存在”。</p>
-<h3 id="3">3. 四个教学预设：先看解析极限<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<h3 id="3">3. 实验：先预测，再揭示每一行计算<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>依次完成三件事：在纯物质和纯辐射预设中核对解析答案；在“物质＋辐射，无 Λ”中观察遥远未来由谁主导；最后切到光子与红移距离模式，把图上各量对应到下文的定义。</p>
+<div class="learning-lab" data-learning-lab="cosmological-horizons">
+<p><strong>无需 JavaScript 的静态账本。</strong> 前五行使用默认平坦教学模型 <span class="arithmatex">\(\Omega_r=0.0001,\Omega_m=0.2999,\Omega_\Lambda=0.7\)</span>，并取 <span class="arithmatex">\(a=1\)</span>。距离单位是 <span class="arithmatex">\(c/H_0\)</span>，时间单位是 <span class="arithmatex">\(1/H_0\)</span>。</p>
 <table>
 <thead>
 <tr>
-<th>预设</th>
-<th><span class="arithmatex">\(E(a)\)</span></th>
+<th>量</th>
+<th style="text-align: right;">数值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>默认 Hubble 半径</td>
+<td style="text-align: right;">1</td>
+<td>瞬时 HD=c</td>
+</tr>
+<tr>
+<td>默认粒子视界</td>
+<td style="text-align: right;">3.23968366</td>
+<td>过去共形积分</td>
+</tr>
+<tr>
+<td>默认事件视界</td>
+<td style="text-align: right;">1.14067037</td>
+<td>未来共形积分</td>
+</tr>
+<tr>
+<td>默认 H₀t</td>
+<td style="text-align: right;">0.963746554</td>
+<td>从模型大爆炸端点算起</td>
+</tr>
+<tr>
+<td>默认 q</td>
+<td style="text-align: right;">-0.54995</td>
+<td>负值：当前尺度因子加速</td>
+</tr>
+<tr>
+<td>纯物质 z=3：DC</td>
+<td style="text-align: right;">1</td>
+<td>今天径向共动距离</td>
+</tr>
+<tr>
+<td>纯物质 z=3：DA</td>
+<td style="text-align: right;">0.25</td>
+<td>角直径距离</td>
+</tr>
+<tr>
+<td>纯物质 z=3：DL</td>
+<td style="text-align: right;">4</td>
+<td>光度距离</td>
+</tr>
+<tr>
+<td>纯物质 z=3：回望时间</td>
+<td style="text-align: right;">0.583333333</td>
+<td>H₀ × 时间</td>
+</tr>
+<tr>
+<td>默认光子 a_turn</td>
+<td style="text-align: right;">0.444444444</td>
+<td>最大固有距离事件</td>
+</tr>
+<tr>
+<td>默认光子 a_arrival</td>
+<td style="text-align: right;">1</td>
+<td>从 Hubble 半径外到达原点</td>
+</tr>
+</tbody>
+</table>
+<p>纯物质在 <span class="arithmatex">\(a=1\)</span> 时，Hubble 半径为1，粒子视界为2，未来共形积分发散，因此没有有限事件视界。纯辐射的前两者都为1；纯 de Sitter 平坦片的 Hubble 半径和事件视界都为1，但过去共形积分发散，且本平坦片不定义有限大爆炸年龄。这些“发散”和“未定义”都不是数值零。</p>
+</div>
+<p><img alt="平坦宇宙的三种半径、密度交接、红移距离及从 Hubble 半径外到达的光路" src="assets/img/cosmo-01-frw-ledgers.svg" /></p>
+<p>半径图使用双对数坐标，以免把早期的小尺度压成零；距离和光路径图使用线性坐标。每条线连接完整实验网格，表格保留全部节点。图中不画发散的量，并不等于把它设成零。</p>
+<h3 id="4">4. 数值读数也要说明证据<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<p>过去与未来的无穷端点先由解析式判断收敛性，再对有限积分计算。自适应 Simpson 对一个面板先算粗近似 <span class="arithmatex">\(S\)</span>，再二分得到 <span class="arithmatex">\(S_2\)</span>，用</p>
+<div class="arithmatex">\[
+\epsilon_{\rm est}=\frac{|S_2-S|}{15},\qquad
+S_{\rm corrected}=S_2+\frac{S_2-S}{15}
+\]</div>
+<p>估计局部误差和修正积分。常数15来自光滑情形下 Simpson 主误差随步长的四次幂缩小。它是嵌入式估计，<strong>不是对任意被积函数都成立的严格误差区间</strong>。</p>
+<p>本实验单位区间上的绝对预算是 <span class="arithmatex">\(2\times10^{-13}\)</span>，相对预算是 <span class="arithmatex">\(2\times10^{-11}\)</span>；绝对预算按区间宽度分配。当前账本保留每个面板的五个函数值、粗细近似、修正值和达标状态。达到深度或面板上限而未达标时，状态为“未收敛”，主结果留空；诊断表保留尚未获接受的近似。数学发散由端点论证给出，不能从计算失败推出。</p>
+</section>
+<h2 id="1-frw">1. FRW 度规：对称性允许怎样的宇宙？<a class="headerlink" href="#1-frw" title="Permanent link"></a></h2>
+<h3 id="11">1.1 均匀与各向同性是背景假设<a class="headerlink" href="#11" title="Permanent link"></a></h3>
+<p>均匀指空间位置之间没有优先点，各向同性指共动观察者周围没有优先方向。它们约束的是理想化的大尺度背景；恒星、星系与密度扰动并没有因此消失。背景是否足够准确，需要用观测和扰动理论检验。</p>
+<p>用沿背景流体运动的观察者建立共动坐标。他们的固有时就是宇宙时间 <span class="arithmatex">\(t\)</span>。本页约定 <span class="arithmatex">\(a(t)\)</span> <strong>无量纲</strong>，径向坐标 <span class="arithmatex">\(r\)</span> 有长度单位，曲率参数 <span class="arithmatex">\(K\)</span> 有长度的负二次方单位：</p>
+<div class="arithmatex">\[
+ds^2=-c^2dt^2+
+a(t)^2\left[\frac{dr^2}{1-Kr^2}
++r^2(d\theta^2+\sin^2\theta\,d\phi^2)\right].
+\]</div>
+<p>空间切片的三维 Ricci 标量为</p>
+<div class="arithmatex">\[
+\vphantom{R}^{(3)}R=\frac{6K}{a^2}.
+\]</div>
+<p><span class="arithmatex">\(K&gt;0,=0,&lt;0\)</span> 分别对应正、零、负常曲率的局部几何。仅凭这个局部度规不能唯一决定整个空间的拓扑。有些书把曲率写成 <span class="arithmatex">\(k=0,\pm1\)</span>，把长度移进尺度因子或曲率半径；不能把不同的量纲约定混用。</p>
+<p>引入径向共动固有坐标</p>
+<div class="arithmatex">\[
+d\chi=\frac{dr}{\sqrt{1-Kr^2}},\qquad
+S_K(\chi)=
+\begin{cases}
+\sin(\sqrt K\chi)/\sqrt K,&amp;K&gt;0,\\
+\chi,&amp;K=0,\\
+\sinh(\sqrt{-K}\chi)/\sqrt{-K},&amp;K&lt;0.
+\end{cases}
+\]</div>
+<p>于是 <span class="arithmatex">\(r=S_K(\chi)\)</span>，度规变成</p>
+<div class="arithmatex">\[
+ds^2=-c^2dt^2+a^2[d\chi^2+S_K(\chi)^2d\Omega^2].
+\]</div>
+<p>正曲率情形原 <span class="arithmatex">\(r\)</span> 坐标的覆盖范围有限；<span class="arithmatex">\(\chi\)</span> 形式更便于讨论径向距离。实验均取 <span class="arithmatex">\(K=0\)</span>。</p>
+<h3 id="12-hubble">1.2 Hubble 定律是哪一种速度？<a class="headerlink" href="#12-hubble" title="Permanent link"></a></h3>
+<p>两个固定共动坐标的观察者，在同一 <span class="arithmatex">\(t\)</span> 切片上的径向固有距离为</p>
+<div class="arithmatex">\[
+D(t)=a(t)\chi,\qquad
+\dot D=HD,\qquad H=\frac{\dot a}{a}.
+\]</div>
+<p>若物体还有特殊运动，<span class="arithmatex">\(\chi\)</span> 不再固定，就有</p>
+<div class="arithmatex">\[
+\dot D=HD+a\dot\chi.
+\]</div>
+<p><span class="arithmatex">\(a\dot\chi\)</span> 是径向局域特殊速度；<span class="arithmatex">\(HD\)</span> 是相对于这套切片的膨胀贡献。遥远两点的 <span class="arithmatex">\(\dot D\)</span> 并不是在同一个局部惯性系里直接测出的相对速度，所以 <span class="arithmatex">\(HD&gt;c\)</span> 本身不违背局域光速限制。</p>
+<p>气球表面可帮助想象距离随 <span class="arithmatex">\(a\)</span> 共同缩放，但不要从比喻附加一个必须存在的外部中心。共动、特殊运动、局域多普勒效应可以在同一几何描述中共存。</p>
+<h2 id="2-friedmann">2. 从度规推出 Friedmann 方程<a class="headerlink" href="#2-friedmann" title="Permanent link"></a></h2>
+<h3 id="21">2.1 统一压力、密度和 Λ 的单位<a class="headerlink" href="#21" title="Permanent link"></a></h3>
+<p>本页 <span class="arithmatex">\(\rho\)</span> 是质量密度，能量密度为 <span class="arithmatex">\(\rho c^2\)</span>，压力为 <span class="arithmatex">\(p\)</span>。四速度满足 <span class="arithmatex">\(u^\mu u_\mu=-c^2\)</span>，理想流体能动张量为</p>
+<div class="arithmatex">\[
+T_{\mu\nu}=\left(\rho+\frac p{c^2}\right)u_\mu u_\nu+pg_{\mu\nu}.
+\]</div>
+<p>共动系中 <span class="arithmatex">\(u^t=1,\ u_t=-c^2\)</span>，所以</p>
+<div class="arithmatex">\[
+T_{tt}=\rho c^4,\qquad T_{ij}=pg_{ij},\qquad T_{ti}=0.
+\]</div>
+<p><span class="arithmatex">\(T_{tt}\)</span> 不是 <span class="arithmatex">\(\rho c^2\)</span>：这里时间坐标是 <span class="arithmatex">\(t\)</span>，而不是 <span class="arithmatex">\(ct\)</span>。宇宙学常数可保留在几何侧，</p>
+<div class="arithmatex">\[
+G_{\mu\nu}+\Lambda g_{\mu\nu}
+=\frac{8\pi G}{c^4}T^{\rm matter}_{\mu\nu},
+\]</div>
+<p>也可移到流体侧，定义</p>
+<div class="arithmatex">\[
+\rho_\Lambda=\frac{\Lambda c^2}{8\pi G},
+\qquad p_\Lambda=-\rho_\Lambda c^2.
+\]</div>
+<p><strong>以下用总 <span class="arithmatex">\(\rho,p\)</span>，已包含 Λ 流体。</strong> 右侧已计入 Λ 时，左侧不再另加它。</p>
+<h3 id="22">2.2 把曲率计算拆到可以复核<a class="headerlink" href="#22" title="Permanent link"></a></h3>
+<p>写 <span class="arithmatex">\(g_{ij}=a^2\gamma_{ij}\)</span>，其中 <span class="arithmatex">\(\gamma_{ij}\)</span> 与时间无关。Christoffel 定义给出含时间的非零分量：</p>
+<div class="arithmatex">\[
+\Gamma^t{}_{ij}=\frac{a\dot a}{c^2}\gamma_{ij}
+=\frac H{c^2}g_{ij},\qquad
+\Gamma^i{}_{tj}=\Gamma^i{}_{jt}=H\delta^i_j.
+\]</div>
+<p>纯空间连接等于 <span class="arithmatex">\(\gamma\)</span> 的连接。时间方向的 Ricci 分量为</p>
+<div class="arithmatex">\[
+R_{tt}=-\partial_t\Gamma^i{}_{it}
+-\Gamma^i{}_{tj}\Gamma^j{}_{ti}
+=-3\dot H-3H^2=-3\frac{\ddot a}{a}.
+\]</div>
+<p>空间分量按静态空间曲率与时间缩放分组。静态部分是 <span class="arithmatex">\(2K\gamma_{ij}\)</span>；含时间的项依次给出</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\partial_t\Gamma^t{}_{ij}
+&amp;=\frac{a\ddot a+\dot a^2}{c^2}\gamma_{ij},\\
+\Gamma^t{}_{ij}\Gamma^k{}_{tk}
+&amp;=\frac{3\dot a^2}{c^2}\gamma_{ij},\\
+-\Gamma^t{}_{ik}\Gamma^k{}_{jt}
+-\Gamma^k{}_{it}\Gamma^t{}_{jk}
+&amp;=-\frac{2\dot a^2}{c^2}\gamma_{ij}.
+\end{aligned}
+\]</div>
+<p>相加即得</p>
+<div class="arithmatex">\[
+R_{ij}=\frac1{c^2}
+\left(\frac{\ddot a}{a}+2H^2+\frac{2Kc^2}{a^2}\right)g_{ij},
+\qquad R_{ti}=0.
+\]</div>
+<p>用 <span class="arithmatex">\(g^{tt}=-1/c^2\)</span>、<span class="arithmatex">\(g^{ij}g_{ij}=3\)</span> 收缩，再求 Einstein 张量：</p>
+<div class="arithmatex">\[
+\begin{aligned}
+R&amp;=\frac6{c^2}\left(\frac{\ddot a}{a}+H^2+\frac{Kc^2}{a^2}\right),\\
+G_{tt}&amp;=3\left(H^2+\frac{Kc^2}{a^2}\right),\\
+G_{ij}&amp;=-\frac1{c^2}
+\left(2\frac{\ddot a}{a}+H^2+\frac{Kc^2}{a^2}\right)g_{ij}.
+\end{aligned}
+\]</div>
+<h3 id="23">2.3 约束、加速度与连续性<a class="headerlink" href="#23" title="Permanent link"></a></h3>
+<p>代入 <span class="arithmatex">\(G_{\mu\nu}=8\pi G T_{\mu\nu}/c^4\)</span>：</p>
+<div class="arithmatex">\[
+\boxed{H^2=\frac{8\pi G}{3}\rho-\frac{Kc^2}{a^2}},
+\qquad
+2\frac{\ddot a}{a}+H^2+\frac{Kc^2}{a^2}
+=-\frac{8\pi G}{c^2}p.
+\]</div>
+<p>用第一式消去后式的后两项：</p>
+<div class="arithmatex">\[
+\boxed{\frac{\ddot a}{a}
+=-\frac{4\pi G}{3}\left(\rho+\frac{3p}{c^2}\right)}.
+\]</div>
+<p>压力也参与引力源。若总 <span class="arithmatex">\(\rho+3p/c^2&lt;0\)</span>，尺度因子可以加速；Λ 的负压力正好能提供这种贡献。能量局域守恒 <span class="arithmatex">\(\nabla_\mu T^{\mu\nu}=0\)</span> 则给出</p>
+<div class="arithmatex">\[
+\boxed{\dot\rho+3H\left(\rho+\frac p{c^2}\right)=0}.
+\]</div>
+<p>在共动体积 <span class="arithmatex">\(V\propto a^3\)</span> 中，它可读作</p>
+<div class="arithmatex">\[
+d(\rho c^2V)=-p\,dV.
+\]</div>
+<p>这是膨胀中的流体能量账本，不要求动态宇宙存在一个定义良好、守恒的全局总能量。对本页 <span class="arithmatex">\(H&gt;0\)</span> 的膨胀支，第一 Friedmann 方程加连续性方程也可推出加速度关系，因此三式并非三个独立条件。</p>
+<p>牛顿球壳法能给出无压情形相似的 <span class="arithmatex">\(H^2\)</span> 方程，是检查直觉的办法；它本身既没有推导压力项，也没有建立时空曲率。不能把完整几何仅仅替换成“宇宙总机械能的正负”。</p>
+<h2 id="3_1">3. 宇宙组分怎样交接？<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<h3 id="31">3.1 状态方程控制稀释<a class="headerlink" href="#31" title="Permanent link"></a></h3>
+<p>若一组分独立守恒，且 <span class="arithmatex">\(p=w\rho c^2\)</span> 中 <span class="arithmatex">\(w\)</span> 为常数，则</p>
+<div class="arithmatex">\[
+\frac{d\rho}{\rho}=-3(1+w)\frac{da}{a}
+\quad\Longrightarrow\quad \rho(a)=\rho_0a^{-3(1+w)}.
+\]</div>
+<table>
+<thead>
+<tr>
+<th>组分</th>
+<th style="text-align: right;"><span class="arithmatex">\(w\)</span></th>
+<th style="text-align: right;">质量密度随 <span class="arithmatex">\(a\)</span> 的变化</th>
+<th>物理来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>无压物质</td>
+<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(a^{-3}\)</span></td>
+<td>固定粒子数分布到更大体积</td>
+</tr>
+<tr>
+<td>辐射</td>
+<td style="text-align: right;"><span class="arithmatex">\(1/3\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(a^{-4}\)</span></td>
+<td>体积稀释，再乘每个光子的红移损失</td>
+</tr>
+<tr>
+<td>宇宙学常数</td>
+<td style="text-align: right;"><span class="arithmatex">\(-1\)</span></td>
+<td style="text-align: right;">常数</td>
+<td>压力恰为负能量密度</td>
+</tr>
+</tbody>
+</table>
+<p>定义 <span class="arithmatex">\(\rho_{\rm crit,0}=3H_0^2/(8\pi G)\)</span>，并令</p>
+<div class="arithmatex">\[
+\Omega_i=\frac{\rho_{i,0}}{\rho_{\rm crit,0}},
+\qquad \Omega_K=-\frac{Kc^2}{H_0^2}.
+\]</div>
+<p>于是一般背景方程为</p>
+<div class="arithmatex">\[
+E(a)^2=\Omega_ra^{-4}+\Omega_ma^{-3}
++\Omega_Ka^{-2}+\Omega_\Lambda,\qquad
+1=\Omega_r+\Omega_m+\Omega_K+\Omega_\Lambda.
+\]</div>
+<p>曲率可在 <span class="arithmatex">\(H^2\)</span> 的代数账本中记一项，但它不是额外的物质流体。平坦实验固定 <span class="arithmatex">\(\Omega_K=0\)</span>。当时的密度分数为</p>
+<div class="arithmatex">\[
+\Omega_r(a)=\frac{\Omega_ra^{-4}}{E(a)^2},\quad
+\Omega_m(a)=\frac{\Omega_ma^{-3}}{E(a)^2},\quad
+\Omega_\Lambda(a)=\frac{\Omega_\Lambda}{E(a)^2}.
+\]</div>
+<p>因此今天的少数项可能在早期占主导。辐射、物质都非零时，相等的尺度因子为</p>
+<div class="arithmatex">\[
+a_{\rm eq}=\frac{\Omega_r}{\Omega_m}.
+\]</div>
+<p>物质、Λ 都非零时，两者相等于 <span class="arithmatex">\(a=(\Omega_m/\Omega_\Lambda)^{1/3}\)</span>。密度相等不等于恰好开始加速：</p>
+<div class="arithmatex">\[
+q=-\frac{\ddot a}{aH^2}
+=\frac{2\Omega_ra^{-4}+\Omega_ma^{-3}-2\Omega_\Lambda}{2E(a)^2}.
+\]</div>
+<p>例如忽略辐射时，加速开始于 <span class="arithmatex">\(\rho_m=2\rho_\Lambda\)</span>，早于两者密度相等。</p>
+<h3 id="32-hubble">3.2 年龄不能只用 Hubble 时间替代<a class="headerlink" href="#32-hubble" title="Permanent link"></a></h3>
+<p>由 <span class="arithmatex">\(\dot a=aH\)</span>，</p>
+<div class="arithmatex">\[
+H_0t(a)=\int_0^a\frac{dx}{xE(x)}
+\]</div>
+<p>仅在模型从 <span class="arithmatex">\(a=0\)</span> 出发且时间积分有限时，才是从大爆炸计算的年龄。平坦、只有一组分且 <span class="arithmatex">\(w&gt;-1\)</span> 时，写 <span class="arithmatex">\(n=3(1+w)/2\)</span>：</p>
+<div class="arithmatex">\[
+\dot a=H_0a^{1-n},\quad
+a(t)=(nH_0t)^{1/n},\quad H_0t(a)=a^n/n.
+\]</div>
+<p>纯辐射今天年龄是 <span class="arithmatex">\(1/(2H_0)\)</span>，纯物质是 <span class="arithmatex">\(2/(3H_0)\)</span>，都不是 <span class="arithmatex">\(1/H_0\)</span>。只有 Λ 时则</p>
+<div class="arithmatex">\[
+a(t)=e^{H_0(t-t_0)}.
+\]</div>
+<p>其平坦坐标片的 <span class="arithmatex">\(a\to0\)</span> 在 <span class="arithmatex">\(t\to-\infty\)</span>，没有有限大爆炸年龄；也不能把这个片的过去端点直接当成完整 de Sitter 时空的全局结论。</p>
+<p>默认三组分教学模型的年龄约为 <span class="arithmatex">\(13.4621\ {\rm Gyr}\)</span>。实验没有把它强行配成某个观测年龄，也没有把任意输入称为最新宇宙学参数。从观测估计年龄，必须同时指定模型、数据集和参数不确定度。</p>
+<h2 id="4_1">4. 红移、三种距离与观测<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<h3 id="41">4.1 红移来自相邻两道波峰<a class="headerlink" href="#41" title="Permanent link"></a></h3>
+<p>径向光线满足 <span class="arithmatex">\(ds^2=0\)</span>，所以</p>
+<div class="arithmatex">\[
+d\chi=\pm\frac{c\,dt}{a(t)}.
+\]</div>
+<p>同一共动光源发出两道相邻波峰，并由同一共动观察者接收。两条路径经过相同共动间隔：</p>
+<div class="arithmatex">\[
+\int_{t_e}^{t_o}\frac{c\,dt}{a(t)}
+=\int_{t_e+\delta t_e}^{t_o+\delta t_o}\frac{c\,dt}{a(t)}.
+\]</div>
+<p>在波周期远小于背景变化时间的几何光学近似中，相减得到</p>
+<div class="arithmatex">\[
+\frac{\delta t_o}{a_o}=\frac{\delta t_e}{a_e}.
+\]</div>
+<p>频率是每位观察者的本地钟测出的周期倒数，于是</p>
+<div class="arithmatex">\[
+1+z\equiv\frac{\nu_e}{\nu_o}
+=\frac{\lambda_o}{\lambda_e}=\frac{a_o}{a_e}.
+\]</div>
+<p>协变语言中，观察者测得的光子能量为 <span class="arithmatex">\(E_{\rm obs}=-p_\mu u^\mu\)</span>。如果光源或接收者有特殊运动，或背景含扰动，测得的红移还含相应局域运动与引力贡献；不能无条件把全部观测红移当成背景的 <span class="arithmatex">\(1/a_e-1\)</span>。</p>
+<h3 id="42">4.2 同一红移的四种“远”<a class="headerlink" href="#42" title="Permanent link"></a></h3>
+<p>以下取观测时 <span class="arithmatex">\(a_o=1\)</span>。因为 <span class="arithmatex">\(dz/dt=-(1+z)H(z)\)</span>，径向共动距离与回望时间分别是</p>
+<div class="arithmatex">\[
+D_C(z)=\frac c{H_0}\int_0^z\frac{dz'}{E(z')},
+\qquad
+t_{\rm lb}(z)=\frac1{H_0}
+\int_0^z\frac{dz'}{(1+z')E(z')},
+\]</div>
+<p>其中 <span class="arithmatex">\(E(z)=E(a=1/(1+z))\)</span>。第一式累积共动光程，第二式沿宇宙时间回看。多出的 <span class="arithmatex">\(1+z'\)</span> 使 <span class="arithmatex">\(ct_{\rm lb}\)</span> 通常不等于 <span class="arithmatex">\(D_C\)</span>。</p>
+<p>平坦模型今天的固有径向距离等于 <span class="arithmatex">\(D_C\)</span>。在曲率背景里，横向共动距离为 <span class="arithmatex">\(D_M=S_K(D_C)\)</span>；一般不能再把它当作 <span class="arithmatex">\(D_C\)</span>。</p>
+<p>设光源具有发射时的横向固有尺寸 <span class="arithmatex">\(\ell\)</span>，观察角度为 <span class="arithmatex">\(\delta\theta\)</span>。横向度规给出</p>
+<div class="arithmatex">\[
+\ell=a_e S_K(D_C)\delta\theta,\qquad
+D_A\equiv\frac{\ell}{\delta\theta}=\frac{D_M}{1+z}.
+\]</div>
+<p>这是角直径距离。它可以先增后减，因此“角度更大”不保证宇宙学红移更低，还必须知道物体真实尺寸。</p>
+<p>再考虑已知总光度 <span class="arithmatex">\(L\)</span> 的光源。接收球面面积是 <span class="arithmatex">\(4\pi D_M^2\)</span>，每个光子能量减少 <span class="arithmatex">\(1+z\)</span> 倍，到达时间间隔也拉长 <span class="arithmatex">\(1+z\)</span> 倍。因此总能量通量满足</p>
+<div class="arithmatex">\[
+F=\frac{L}{4\pi D_M^2(1+z)^2},\qquad
+D_L\equiv\sqrt{\frac{L}{4\pi F}}=(1+z)D_M.
+\]</div>
+<p>这里使用几何光学、沿途透明且光子数守恒的背景传播；消光、波段选择和源演化等观测修正必须另行处理。在这些条件下，</p>
+<div class="arithmatex">\[
+\boxed{D_L=(1+z)^2D_A}.
+\]</div>
+<p>这叫距离对偶关系，与“光走了多久”是不同的定义。实验按这些定义构造三种距离，因此小的浮点残差只是算术核验，不是对真实宇宙的独立观测检验。</p>
+<h3 id="43">4.3 低红移近似的误差从哪里开始？<a class="headerlink" href="#43" title="Permanent link"></a></h3>
+<p>由 <span class="arithmatex">\(\dot H=-(1+q)H^2\)</span> 和 <span class="arithmatex">\(dz/dt=-(1+z)H\)</span>，</p>
+<div class="arithmatex">\[
+E(z)=1+(1+q_0)z+O(z^2).
+\]</div>
+<p>积分给出</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\frac{H_0D_C}{c}&amp;=z-\frac{1+q_0}{2}z^2+O(z^3),\\
+H_0t_{\rm lb}&amp;=z-\frac{2+q_0}{2}z^2+O(z^3),\\
+\frac{H_0D_L}{c}&amp;=z+\frac{1-q_0}{2}z^2+O(z^3).
+\end{aligned}
+\]</div>
+<p>曲率对 <span class="arithmatex">\(D_M=S_K(D_C)\)</span> 的直接修正从三次项开始。因此足够低红移时各距离的一阶项都像 <span class="arithmatex">\(cz/H_0\)</span>，到二阶就要区分定义。特殊速度也会影响低红移实测，不能只看截断级数的数学误差。</p>
+<h2 id="5">5. 三种半径、两种端点、一个光子反例<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h3 id="51">5.1 先定义，再问是否有限<a class="headerlink" href="#51" title="Permanent link"></a></h3>
+<p>平坦背景中的 Hubble 半径、粒子视界与事件视界的固有半径分别为</p>
+<div class="arithmatex">\[
+D_H(t)=\frac c{H(t)},\quad
+D_p(t)=a(t)c\int_{t_i}^{t}\frac{dt'}{a(t')},\quad
+D_e(t)=a(t)c\int_t^{t_f}\frac{dt'}{a(t')}.
+\]</div>
+<p><span class="arithmatex">\(t_i,t_f\)</span> 是所讨论模型的过去与未来端点。粒子视界描述从过去端点到现在积累的共动光程；事件视界描述从现在到未来端点还能积累的共动光程。若对应积分发散，就没有该定义下的有限视界。Hubble 半径只使用当前的 <span class="arithmatex">\(H\)</span>，没有任何历史积分。</p>
+<p>若无限空间中的幂律模型 <span class="arithmatex">\(a=At^\alpha\)</span> 从 <span class="arithmatex">\(t=0\)</span> 开始并延伸到无限未来，且 <span class="arithmatex">\(\alpha&gt;0\)</span>，则</p>
+<div class="arithmatex">\[
+\int_0^t\frac{dt'}{a(t')}&lt;\infty
+\ \Longleftrightarrow\ \alpha&lt;1,\qquad
+\int_t^\infty\frac{dt'}{a(t')}&lt;\infty
+\ \Longleftrightarrow\ \alpha&gt;1.
+\]</div>
+<p><span class="arithmatex">\(\alpha=1\)</span> 两端都是对数发散。对固定幂律，未来事件视界与加速的条件吻合；对一般 <span class="arithmatex">\(a(t)\)</span>，某段时间 <span class="arithmatex">\(\ddot a&gt;0\)</span> 不足以决定无限未来积分，必须检查完整渐近行为。</p>
+<h3 id="52">5.2 实验怎样处理精确无穷端点？<a class="headerlink" href="#52" title="Permanent link"></a></h3>
+<p>把距离除以 <span class="arithmatex">\(c/H_0\)</span>，定义</p>
+<div class="arithmatex">\[
+I_p(a)=\int_0^a\frac{dx}{\sqrt{\Omega_r+\Omega_mx+\Omega_\Lambda x^4}},
+\qquad D_p/(c/H_0)=aI_p(a).
+\]</div>
+<p>未来用 <span class="arithmatex">\(u=1/x\)</span> 换元，把原无穷端点精确变成0：</p>
+<div class="arithmatex">\[
+I_e(a)=\int_0^{1/a}\frac{du}{\sqrt{\Omega_ru^4+\Omega_mu^3+\Omega_\Lambda}},
+\qquad D_e/(c/H_0)=aI_e(a).
+\]</div>
+<p>若 <span class="arithmatex">\(\Omega_\Lambda=0\)</span> 且 <span class="arithmatex">\(\Omega_m&gt;0\)</span>，未来小 <span class="arithmatex">\(u\)</span> 的被积函数按 <span class="arithmatex">\(u^{-3/2}\)</span> 发散；若只剩辐射则按 <span class="arithmatex">\(u^{-2}\)</span> 发散。二者都没有有限事件视界。<strong>混合物质与辐射时，遥远未来由物质主导</strong>，所以</p>
+<div class="arithmatex">\[
+D_H/(c/H_0)\sim a^{3/2}/\sqrt{\Omega_m}.
+\]</div>
+<p>若 <span class="arithmatex">\(\Omega_\Lambda&gt;0\)</span>，未来被积函数在 <span class="arithmatex">\(u=0\)</span> 有限，且</p>
+<div class="arithmatex">\[
+\lim_{a\to\infty}D_H/(c/H_0)
+=\lim_{a\to\infty}D_e/(c/H_0)=1/\sqrt{\Omega_\Lambda}.
+\]</div>
+<p>过去端有辐射时被积函数趋向常数；没有辐射但有物质时按 <span class="arithmatex">\(x^{-1/2}\)</span>，仍可积；纯 Λ 时按 <span class="arithmatex">\(x^{-2}\)</span>，不可积。数值计算用 <span class="arithmatex">\(x=av^2\)</span> 正则化可积的平方根端点，并把所有积分缩放到单位区间。年龄积分只需在 <span class="arithmatex">\(I_p\)</span> 的被积函数上再乘 <span class="arithmatex">\(x\)</span>；相对今天的时间直接积 <span class="arithmatex">\(\int_1^a dx/[xE(x)]\)</span>，不依赖给 de Sitter 人为指定年龄。</p>
+<table>
+<thead>
+<tr>
+<th>平坦单组分</th>
+<th style="text-align: right;"><span class="arithmatex">\(H_0t(a)\)</span></th>
 <th style="text-align: right;"><span class="arithmatex">\(D_H/(c/H_0)\)</span></th>
 <th style="text-align: right;"><span class="arithmatex">\(D_p/(c/H_0)\)</span></th>
 <th style="text-align: right;"><span class="arithmatex">\(D_e/(c/H_0)\)</span></th>
-<th>读法</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>纯辐射</td>
-<td><span class="arithmatex">\(a^{-2}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(a^2/2\)</span></td>
 <td style="text-align: right;"><span class="arithmatex">\(a^2\)</span></td>
 <td style="text-align: right;"><span class="arithmatex">\(a^2\)</span></td>
-<td style="text-align: right;">发散 / 不存在</td>
-<td>过去积分收敛，未来没有加速尾巴把光隔开</td>
+<td style="text-align: right;">无有限值</td>
 </tr>
 <tr>
 <td>纯物质</td>
-<td><span class="arithmatex">\(a^{-3/2}\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2a^{3/2}/3\)</span></td>
 <td style="text-align: right;"><span class="arithmatex">\(a^{3/2}\)</span></td>
 <td style="text-align: right;"><span class="arithmatex">\(2a^{3/2}\)</span></td>
-<td style="text-align: right;">发散 / 不存在</td>
-<td><span class="arithmatex">\(a=1\)</span> 时粒子视界是 <span class="arithmatex">\(2c/H_0\)</span>，但事件视界不存在</td>
+<td style="text-align: right;">无有限值</td>
 </tr>
 <tr>
-<td>纯 de Sitter</td>
-<td><span class="arithmatex">\(1\)</span></td>
+<td>纯 de Sitter 平坦片</td>
+<td style="text-align: right;">无有限大爆炸年龄</td>
 <td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;">发散 / 不存在</td>
+<td style="text-align: right;">无有限值</td>
 <td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td>平坦切片向过去无限延伸；未来事件视界有限</td>
-</tr>
-<tr>
-<td>ΛCDM toy</td>
-<td><span class="arithmatex">\(\sqrt{\Omega_r a^{-4}+\Omega_m a^{-3}+\Omega_\Lambda}\)</span></td>
-<td style="text-align: right;">数值</td>
-<td style="text-align: right;">数值</td>
-<td style="text-align: right;">数值</td>
-<td>三项都在账本中；不是最新精密拟合</td>
 </tr>
 </tbody>
 </table>
-<p>两条最容易漏写的边界是：</p>
-<ul>
-<li><strong><span class="arithmatex">\(a\to0\)</span></strong>：辐射主导时 <span class="arithmatex">\(D_H,D_p\sim a^2\)</span>；物质主导时 <span class="arithmatex">\(D_H\sim a^{3/2}\)</span>、<span class="arithmatex">\(D_p\sim2a^{3/2}\)</span>。若模型还含早期辐射或物质且未来积分收敛，则 <span class="arithmatex">\(D_e\sim a\lim_{a\to0}I_e(a)\to0\)</span>。纯 de Sitter 是例外：<span class="arithmatex">\(I_p\)</span> 从 <span class="arithmatex">\(0\)</span> 端发散，而 <span class="arithmatex">\(D_e=(c/H_0)/\sqrt{\Omega_\Lambda}\)</span> 在所有 <span class="arithmatex">\(a\)</span> 上保持常数。</li>
-<li><strong><span class="arithmatex">\(a'\to\infty\)</span></strong>：只要 <span class="arithmatex">\(\Omega_\Lambda=0\)</span>，<span class="arithmatex">\(I_e\)</span> 发散，事件视界就不存在；不能用“积分到 <span class="arithmatex">\(a'=10^3\)</span>”之类的有限数冒充它。只要 <span class="arithmatex">\(\Omega_\Lambda&gt;0\)</span>，未来渐近 <span class="arithmatex">\(H\to H_0\sqrt{\Omega_\Lambda}\)</span>，事件积分收敛，并且 <span class="arithmatex">\(D_e\to(c/H_0)/\sqrt{\Omega_\Lambda}\)</span>（当 <span class="arithmatex">\(a\to\infty\)</span>）。</li>
-</ul>
-<h3 id="4">4. 动手实验：看图、读账本、再预测<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>先点击“物质主导”和“de Sitter”，把 <span class="arithmatex">\(a\)</span> 留在 <span class="arithmatex">\(1\)</span>，用上表手算，再切换到“辐射主导”和“ΛCDM toy”。观察同一张<strong>因果 / 距离图</strong>如何把有限曲线与“∞（发散）”分开；下方<strong>积分账本</strong>逐行显示 <span class="arithmatex">\(E(a)\)</span>、<span class="arithmatex">\(I_p\)</span>、<span class="arithmatex">\(I_e\)</span> 和三个距离。</p>
-<div class="learning-lab" data-learning-lab="cosmological-horizons">
-<p><strong>无 JavaScript 时的静态 fallback（单位均为 <span class="arithmatex">\(c/H_0\)</span>）：</strong></p>
-<p>手算采用 <span class="arithmatex">\(a=1\)</span>。</p>
-<table>
-<thead>
-<tr>
-<th>预设</th>
-<th style="text-align: right;"><span class="arithmatex">\(E(1)\)</span></th>
-<th style="text-align: right;">Hubble sphere <span class="arithmatex">\(D_H\)</span></th>
-<th style="text-align: right;">粒子视界 <span class="arithmatex">\(D_p\)</span></th>
-<th style="text-align: right;">事件视界 <span class="arithmatex">\(D_e\)</span></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>物质主导：<span class="arithmatex">\(\Omega_m=1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(\displaystyle\int_0^1 \frac{da'}{\sqrt{a'}}=2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(\displaystyle\int_1^\infty \frac{da'}{\sqrt{a'}}=\infty\)</span>，不存在</td>
-</tr>
-<tr>
-<td>de Sitter：<span class="arithmatex">\(\Omega_\Lambda=1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(\displaystyle\int_0^1 \frac{da'}{a'^2}=\infty\)</span>，不存在有限粒子视界</td>
-<td style="text-align: right;"><span class="arithmatex">\(\displaystyle\int_1^\infty \frac{da'}{a'^2}=1\)</span></td>
-</tr>
-</tbody>
-</table>
-<p>这两个手算例子同时提醒：Hubble sphere、粒子视界和事件视界可以相等、不同，或其中一个根本没有有限值；“视界”不能只看一个名字。</p>
-</div>
-<h3 id="5">5. 三个概念的因果边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<ul>
-<li><strong>Hubble sphere 通常不是因果边界。</strong> 在某一时刻，共动星系的退行速度写成 <span class="arithmatex">\(v_{\rm rec}=H D\)</span>；<span class="arithmatex">\(D&gt;c/H\)</span> 只表示这个整体膨胀坐标下的退行速度超过 <span class="arithmatex">\(c\)</span>。它不是局域惯性系里两个相邻物体的相对速度，因此不违反局域狭义相对论；局部光速仍为 <span class="arithmatex">\(c\)</span>。光子能否穿过某个 <span class="arithmatex">\(D_H\)</span>，要沿整个 FRW 光锥积分判断。</li>
-<li><strong>粒子视界回答“过去能否联系”。</strong> <span class="arithmatex">\(D_p\)</span> 是过去光锥从模型起点累计出的最大物理距离：它回答“从过去发来的信号，原则上已经有机会到达我们吗？”它不回答未来发信。</li>
-<li><strong>事件视界回答“未来能否联系”。</strong> <span class="arithmatex">\(D_e\)</span> 把从现在到 <span class="arithmatex">\(a'=\infty\)</span> 的未来都计入：它回答“现在发出的信号，未来是否仍有机会到达目标观察者？”没有加速晚期时，未来积分发散，答案是不存在有限事件视界。</li>
-</ul>
-<p>“超光速退行”与“不可联系”不是同一句话：前者是瞬时、整体膨胀的 <span class="arithmatex">\(HD\)</span> 读数；后者是光锥积分的收敛性与边界条件。</p>
-<h3 id="6">6. 模型边界与迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h3>
-<p>这是一个<strong>透明的教学 toy</strong>：平坦、只含三种成分、<span class="arithmatex">\(w_\Lambda=-1\)</span>，没有曲率、早期热历史细节、扰动、引力透镜或精密观测参数拟合。ΛCDM 预设的数字只为比较积分结构，不应读成当前最佳宇宙学参数。</p>
-<p>迁移题：</p>
-<ol>
-<li>不看实验，证明纯物质在任意 <span class="arithmatex">\(a&gt;0\)</span> 都有 <span class="arithmatex">\(D_p=2D_H\)</span>，但 <span class="arithmatex">\(D_e\)</span> 发散。这个比值是否意味着 Hubble sphere 是因果边界？</li>
-<li>纯 de Sitter 的 <span class="arithmatex">\(D_p\)</span> 为什么发散而 <span class="arithmatex">\(D_e\)</span> 有限？分别指出两个积分的发散端点。</li>
-<li>若给定某个新 <span class="arithmatex">\(E(a)\)</span>，先检查 <span class="arithmatex">\(a\to0\)</span> 和 <span class="arithmatex">\(a\to\infty\)</span> 的幂次，再决定粒子/事件积分是否收敛；不要先画图再凭有限坐标轴猜“视界”。</li>
-</ol>
-</section>
-<h2 id="1-friedmann">1. Friedmann 方程<a class="headerlink" href="#1-friedmann" title="Permanent link"></a></h2>
-<p>FRW 度规（gr-03）+ 理想流体 <span class="arithmatex">\(T_{\mu\nu}\)</span> 代入场方程<strong>【骨架，一个牛顿式替代推导给直觉】</strong>：</p>
+<h3 id="53-hubble">5.3 把“Hubble 半径外仍可到达”算到底<a class="headerlink" href="#53-hubble" title="Permanent link"></a></h3>
+<p>固定纯物质背景 <span class="arithmatex">\(E=a^{-3/2}\)</span>。发射时 <span class="arithmatex">\(a=a_e\)</span>，初始距离定义为</p>
 <div class="arithmatex">\[
-\Big(\frac{\dot a}{a}\Big)^2 = \frac{8\pi G}{3}\rho - \frac{kc^2}{a^2}, \qquad
-\frac{\ddot a}{a} = -\frac{4\pi G}{3}\Big(\rho + \frac{3p}{c^2}\Big)
+D_{\rm emit}=\beta D_H(a_e)=\beta(c/H_0)a_e^{3/2}.
 \]</div>
-<p><em>牛顿直觉版</em>：均匀球中取试验壳，能量守恒 <span class="arithmatex">\(\frac12\dot r^2 - \frac{GM(r)}{r} = E\)</span> 除以 <span class="arithmatex">\(r^2\)</span> 即第一式（<span class="arithmatex">\(k \propto -E\)</span>：空间曲率 = 总能量符号——束缚/临界/逃逸的宇宙版）。<span class="arithmatex">\(\blacksquare\)</span> <strong>加速方程的读法</strong>：<span class="arithmatex">\(\rho + \frac{3p}{c^2}\)</span> 是引力的真实源——<strong>压强也产生引力</strong>（广相特色）；负压足够（<span class="arithmatex">\(p &lt; -\frac{\rho c^2}{3}\)</span>）则 <span class="arithmatex">\(\ddot a &gt; 0\)</span>——加速膨胀的许可条款（§3 暗能量的席位）。</p>
-<p><strong>Hubble 定律</strong>：<span class="arithmatex">\(v = H_0d\)</span>（<span class="arithmatex">\(H \equiv \frac{\dot a}{a}\)</span>）——不是天体在飞而是<strong>空间在长</strong>（gr-03 红移的本地化表述）；<span class="arithmatex">\(H_0 \approx 70\)</span> km/s/Mpc ⇒ Hubble 时间 <span class="arithmatex">\(\frac{1}{H_0} \approx 14\)</span> Gyr（年龄的量级锚）。</p>
-<h2 id="2">2. 宇宙的会计制度：组分与稀释律<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<figure class="plot">
-<p><img alt="宇宙标度因子演化" src="assets/img/cosmo-01-scale-factor.svg" /></p>
-<figcaption><span class="fig-id">图 1.1</span>宇宙标度因子 \(a(t)\) 的演化取决于主导组分：辐射 \(\propto t^{1/2}\)、物质 \(\propto t^{2/3}\)、暗能量指数暴涨。</figcaption>
-</figure>
-<p>连续性方程（<span class="arithmatex">\(T\)</span> 守恒）：<span class="arithmatex">\(\dot\rho = -3H(\rho + \frac{p}{c^2})\)</span>——配状态方程 <span class="arithmatex">\(p = w\rho c^2\)</span> 积分<strong>【推导一行】</strong>：<span class="arithmatex">\(\rho \propto a^{-3(1+w)}\)</span>：</p>
-<table>
-<thead>
-<tr>
-<th>组分</th>
-<th><span class="arithmatex">\(w\)</span></th>
-<th>稀释律</th>
-<th>主导期的 <span class="arithmatex">\(a(t)\)</span></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>物质（尘埃）</td>
-<td>0</td>
-<td><span class="arithmatex">\(a^{-3}\)</span>（数密度稀释）</td>
-<td><span class="arithmatex">\(a \propto t^{2/3}\)</span></td>
-</tr>
-<tr>
-<td>辐射</td>
-<td>1/3</td>
-<td><span class="arithmatex">\(a^{-4}\)</span>（多一份红移）</td>
-<td><span class="arithmatex">\(a \propto t^{1/2}\)</span></td>
-</tr>
-<tr>
-<td><strong>宇宙学常数 Λ</strong></td>
-<td><span class="arithmatex">\(-1\)</span></td>
-<td><strong>常数</strong>（空间自带）</td>
-<td><span class="arithmatex">\(a \propto e^{Ht}\)</span>（de Sitter）</td>
-</tr>
-</tbody>
-</table>
-<p><strong>【推导】</strong> <span class="arithmatex">\(a(t)\)</span> 幂律：单组分 Friedmann <span class="arithmatex">\(\dot a \propto a^{-\frac{1+3w}{2}}\)</span> 分离变量。<span class="arithmatex">\(\blacksquare\)</span>
-<strong>接力剧本</strong>：辐射主导（早期，<span class="arithmatex">\(a^{-4}\)</span> 衰减最快）→ 物质主导（结构形成期）→ Λ 主导（近 50 亿年——当下）：<strong>宇宙史 = 三种稀释律的接力赛</strong>，每次交接改变 <span class="arithmatex">\(a(t)\)</span> 的形状。</p>
-<h2 id="3-cdm">3. ΛCDM 账本（观测宇宙学的现状）<a class="headerlink" href="#3-cdm" title="Permanent link"></a></h2>
-<p>密度参数 <span class="arithmatex">\(\Omega_i = \frac{\rho_i}{\rho_c}\)</span>（<span class="arithmatex">\(\rho_c = \frac{3H_0^2}{8\pi G} \approx\)</span> 每立方米 6 个氢原子——宇宙平坦的临界密度）。<strong>现代账本</strong>（Planck 卫星级【引用】）：</p>
+<p>朝原点传播的光满足</p>
 <div class="arithmatex">\[
-\Omega_\Lambda \approx 0.69, \quad \Omega_{\text{暗物质}} \approx 0.26, \quad \Omega_{\text{普通物质}} \approx 0.05, \quad \Omega_k \approx 0
+\frac{d\chi}{dt}=-\frac ca,\qquad \dot D=HD-c.
 \]</div>
-<p><strong>三行注脚</strong>：<strong>暗物质</strong>——星系旋转曲线平坦、引力透镜（gr-02）、CMB 声学峰三路证据合指"有引力不发光的组分"（粒子身份未知——pp 线的头号悬案之一）；<strong>暗能量</strong>——1998 超新星测距发现加速膨胀（诺奖 2011），与 Λ（<span class="arithmatex">\(w = -1\)</span>）一致（"是否恰为常数"是当前观测焦点【引用 DESI 类】）；<strong>平坦性</strong> <span class="arithmatex">\(\Omega_k \approx 0\)</span>——CMB 声学标尺量出的空间几何（cosmo-02）。<strong>"95% 未知"不是失败而是坐标</strong>：定量宇宙学把无知精确到了小数点。</p>
-<p><strong>年龄积分</strong>：<span class="arithmatex">\(t_0 = \int_0^1\frac{da}{aH(a)} \approx 13.8\)</span> Gyr（ΛCDM 参数代入数值积分——与最老球状星团自洽 ✓：曾经的"年龄危机"被 Λ 化解【引用】）。</p>
-<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（稀释律推导练手）</strong> 辐射为何 <span class="arithmatex">\(a^{-4}\)</span>：数密度 <span class="arithmatex">\(a^{-3}\)</span> × 每光子能量红移 <span class="arithmatex">\(a^{-1}\)</span>——两行；由此定"物质-辐射平权"时刻 <span class="arithmatex">\(1 + z_{eq} = \frac{\Omega_m}{\Omega_r} \approx 3400\)</span>（cosmo-02 热历史的第一块路标）。</p>
-<p><strong>例 2（de Sitter 未来）</strong> Λ 主导后 <span class="arithmatex">\(a \propto e^{Ht}\)</span>：星系将逐个越出视界——<strong>远期宇宙学家将看到空荡的天</strong>（"观测窗口在关闭"的物理实感）；反推：我们恰在"账本还可读"的时代做宇宙学。</p>
-<p><strong>例 3（Friedmann 量纲核算）</strong> 用 <span class="arithmatex">\(H_0 = 70\)</span> km/s/Mpc 算 <span class="arithmatex">\(\rho_c\)</span>：<span class="arithmatex">\(\approx 9\times10^{-27}\ \mathrm{kg/m^3}\)</span>——银河系内密度高它百万倍：<strong>"宇宙平均"与"我们附近"差得远</strong>，均匀性只在 &gt;100 Mpc 尺度成立（宇宙学原理的适用边界）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：倒带回热汤——大爆炸热历史：核合成、复合与 CMB——一张 2.725 K 的完美黑体照片如何成为宇宙学的罗塞塔石碑。</em></p>
+<p>因为 <span class="arithmatex">\(dt/da=a^{1/2}/H_0\)</span>，</p>
+<div class="arithmatex">\[
+\frac{H_0\chi(a)}c
+=\beta\sqrt{a_e}-\int_{a_e}^{a}x^{-1/2}dx
+=(\beta+2)\sqrt{a_e}-2\sqrt a.
+\]</div>
+<p>乘 <span class="arithmatex">\(a\)</span> 就得固有距离。到达原点的条件是 <span class="arithmatex">\(\chi=0\)</span>，即</p>
+<div class="arithmatex">\[
+a_{\rm arrival}=a_e(1+\beta/2)^2.
+\]</div>
+<p>对任意有限 <span class="arithmatex">\(\beta&gt;0\)</span>，这都是有限未来时刻。初始时</p>
+<div class="arithmatex">\[
+\dot D_{\rm emit}/c=\beta-1.
+\]</div>
+<p>当 <span class="arithmatex">\(\beta&gt;1\)</span>，距离先增加。最大距离事件满足 <span class="arithmatex">\(\dot D=0\)</span>，等价于光子恰好跨到当时的 Hubble 半径上：</p>
+<div class="arithmatex">\[
+a_{\rm turn}=a_e[(\beta+2)/3]^2.
+\]</div>
+<p>若 <span class="arithmatex">\(\beta\le1\)</span>，形式上的转折在发射时或之前，实验显示“无未来转折”。默认 <span class="arithmatex">\(a_e=1/4,\beta=2\)</span> 得到开头的 <span class="arithmatex">\(4/9\)</span> 与1。这是完整解析反例，不是对所有膨胀史都成立的到达承诺。</p>
+<h2 id="6">6. 四道完整练习<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<details class="exercise">
+<summary>1 · 检查 c 的次数，并推出加速度方程</summary>
+<p>为什么本页 <span class="arithmatex">\(T_{tt}=\rho c^4\)</span>，但 Einstein 方程右侧最后只留下 <span class="arithmatex">\(8\pi G\rho\)</span>？代入流体定义：</p>
+<div class="arithmatex">\[
+T_{tt}=(\rho+p/c^2)c^4-pc^2=\rho c^4.
+\]</div>
+<p>乘 <span class="arithmatex">\(8\pi G/c^4\)</span> 得 <span class="arithmatex">\(8\pi G\rho\)</span>，单位为时间的负二次方，匹配 <span class="arithmatex">\(G_{tt}=3(H^2+Kc^2/a^2)\)</span>。空间方程除以 <span class="arithmatex">\(g_{ij}/c^2\)</span> 后为</p>
+<div class="arithmatex">\[
+2\ddot a/a+H^2+Kc^2/a^2=-8\pi Gp/c^2.
+\]</div>
+<p>使用约束 <span class="arithmatex">\(H^2+Kc^2/a^2=8\pi G\rho/3\)</span>：</p>
+<div class="arithmatex">\[
+2\ddot a/a=-8\pi Gp/c^2-8\pi G\rho/3.
+\]</div>
+<p>除以2便得加速度方程。若只把普通流体写进 <span class="arithmatex">\(\rho_{\rm matter},p_{\rm matter}\)</span>，必须恢复</p>
+<div class="arithmatex">\[
+\begin{aligned}
+H^2&amp;=\frac{8\pi G\rho_{\rm matter}}3
++\frac{\Lambda c^2}3-\frac{Kc^2}{a^2},\\
+\ddot a/a&amp;=-\frac{4\pi G}3
+\left(\rho_{\rm matter}+\frac{3p_{\rm matter}}{c^2}\right)
++\frac{\Lambda c^2}3.
+\end{aligned}
+\]</div>
+<p>两个写法完全等价；同时使用总密度和显式 Λ 项会把同一来源算两次。</p>
+</details>
+<details class="exercise">
+<summary>2 · 临界密度、组分相等与宇宙年龄</summary>
+<p>取教学值 <span class="arithmatex">\(H_0=70\ {\rm km\,s^{-1}Mpc^{-1}}\)</span>，<span class="arithmatex">\(G=6.67430\times10^{-11}\ {\rm m^3kg^{-1}s^{-2}}\)</span>，质子质量近似 <span class="arithmatex">\(m_p=1.67262\times10^{-27}\ {\rm kg}\)</span>。首先转换单位：</p>
+<div class="arithmatex">\[
+H_0=\frac{70000}{3.08567758149\times10^{22}}\ {\rm s^{-1}}
+\simeq2.26855\times10^{-18}\ {\rm s^{-1}}.
+\]</div>
+<p>于是</p>
+<div class="arithmatex">\[
+\rho_{\rm crit,0}=\frac{3H_0^2}{8\pi G}
+\simeq9.20387\times10^{-27}\ {\rm kg\,m^{-3}},
+\qquad \rho_{\rm crit,0}/m_p\simeq5.50\ {\rm m^{-3}}.
+\]</div>
+<p>后一个数只是“每立方米约5.5个质子质量”的等效说法，不是在断言所有宇宙密度都由自由质子构成。默认教学模型的组分相等时刻是</p>
+<div class="arithmatex">\[
+a_{\rm eq}=0.0001/0.2999\simeq0.000333444,
+\qquad z_{\rm eq}=a_{\rm eq}^{-1}-1=2998.
+\]</div>
+<p>纯物质模型的年龄是 <span class="arithmatex">\(2/(3H_0)\simeq9.31231\ {\rm Gyr}\)</span>；纯辐射是 <span class="arithmatex">\(1/(2H_0)\simeq6.98423\ {\rm Gyr}\)</span>。混合模型需做年龄积分，默认约为 <span class="arithmatex">\(13.4621\ {\rm Gyr}\)</span>。相同的今天 <span class="arithmatex">\(H_0\)</span> 对应不同年龄，因为过去的 <span class="arithmatex">\(H(a)\)</span> 不同。</p>
+<p>长度换算采用 <a href="https://www.iau.org/static/resolutions/IAU2015_English.pdf">IAU 2015 的 parsec 定义</a>，即 <span class="arithmatex">\(1\ {\rm pc}=(648000/\pi)\ {\rm au}\)</span>；时间换算约定1年为365.25日、1日为86400秒。引力常数取 <a href="https://www.nist.gov/how-do-you-measure-it/how-do-you-measure-strength-gravity">NIST 列出的数值</a>，本题只要求所示有效数字。</p>
+</details>
+<details class="exercise">
+<summary>3 · Hubble 半径外的光，最大离开多远？</summary>
+<p>默认光子满足</p>
+<div class="arithmatex">\[
+H_0\chi/c=2-2\sqrt a,\qquad
+H_0D/c=2a(1-\sqrt a).
+\]</div>
+<p>在 <span class="arithmatex">\(a_e=1/4\)</span>：</p>
+<div class="arithmatex">\[
+H_0D_{\rm emit}/c=1/4,\qquad
+H_0D_H(a_e)/c=1/8,\qquad \dot D_{\rm emit}=c.
+\]</div>
+<p>正的固有距离变化率不等于局域光朝外传播：局域项始终为 <span class="arithmatex">\(-c\)</span>，只是最初的 <span class="arithmatex">\(HD=2c\)</span> 更大。对距离求导，</p>
+<div class="arithmatex">\[
+\frac{d(H_0D/c)}{da}=2-3\sqrt a.
+\]</div>
+<p>最大距离在 <span class="arithmatex">\(a=4/9\)</span>，其值为</p>
+<div class="arithmatex">\[
+H_0D_{\max}/c=2(4/9)(1-2/3)=8/27.
+\]</div>
+<p>这恰好等于当时的 <span class="arithmatex">\(D_H/(c/H_0)=(4/9)^{3/2}=8/27\)</span>。后来光在 <span class="arithmatex">\(a=1\)</span> 到达原点。由 <span class="arithmatex">\(\tau=H_0t=2a^{3/2}/3\)</span>，</p>
+<div class="arithmatex">\[
+\tau_e=1/12,\qquad \tau_{\rm turn}=16/81,\qquad
+\tau_{\rm arrival}=2/3.
+\]</div>
+<p>现在能核对光路表中每个事件、时间顺序与极大值，而不只是看两条线似乎相交。</p>
+</details>
+<details class="exercise">
+<summary>4 · 用解析距离同时检验积分、红移和对偶关系</summary>
+<p>纯物质时 <span class="arithmatex">\(E(z)=(1+z)^{3/2}\)</span>。直接积分：</p>
+<div class="arithmatex">\[
+H_0D_C/c=2[1-(1+z)^{-1/2}],\qquad
+H_0t_{\rm lb}=\frac23[1-(1+z)^{-3/2}].
+\]</div>
+<p>例如 <span class="arithmatex">\(z=3\)</span>：</p>
+<div class="arithmatex">\[
+D_C/(c/H_0)=1,\quad D_A/(c/H_0)=1/4,\quad
+D_L/(c/H_0)=4,\quad H_0t_{\rm lb}=7/12.
+\]</div>
+<p>所以 <span class="arithmatex">\(D_L/D_A=16=(1+z)^2\)</span>，而 <span class="arithmatex">\(ct_{\rm lb}/D_C=7/12\)</span>。回望时间乘光速不是这三个距离之一。另两种解析基准为</p>
+<div class="arithmatex">\[
+\begin{array}{c|cc}
+&amp;H_0D_C/c&amp;H_0t_{\rm lb}\\
+\hline
+\text{纯辐射}&amp;z/(1+z)&amp;[1-(1+z)^{-2}]/2\\
+\text{纯 de Sitter 平坦片}&amp;z&amp;\ln(1+z)
+\end{array}
+\]</div>
+<p>de Sitter 的回望时间可对任何有限 <span class="arithmatex">\(z\)</span> 计算，与没有有限大爆炸年龄并不矛盾。若 <span class="arithmatex">\(z\)</span> 极小，用两个接近的年龄相减会损失有效数字；实验直接积分有限区间，并把区间长度 <span class="arithmatex">\(z\)</span> 提到被积函数外。手算纯物质基准也可用 <span class="arithmatex">\(\operatorname{expm1}\)</span> 与 <span class="arithmatex">\(\operatorname{log1p}\)</span> 稳定计算 <span class="arithmatex">\(1-(1+z)^{-p}\)</span>，避免把很小但非零的距离写成0。</p>
+</details>
+<h2 id="7">7. 通向后面的课程<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>现在可以把宇宙膨胀拆成一条可检验的链：对称性给度规，密度与压力决定 <span class="arithmatex">\(a(t)\)</span>，零测地线给红移和光程，光子能量与到达率把几何接到通量。后面的热历史会加入温度、粒子转变与熵；扰动课程研究均匀背景上结构如何成长；暴胀与暗能量则要求检查状态方程、初始条件和因果端点。</p>
+<p>可对照 David Tong 的 <a href="https://www.damtp.cam.ac.uk/user/tong/cosmo/cosmohtml/S1.html">Cosmology §1：光路与背景动力学</a> 和 <a href="https://www.damtp.cam.ac.uk/user/tong/gr/grhtml/S4.html">General Relativity §4.6：FRW 曲率计算</a>。本页独立展开了带 <span class="arithmatex">\(c\)</span> 的张量计算、距离定义和纯物质光子事件。阅读不同教材时，先确认 <span class="arithmatex">\(\rho\)</span> 是质量密度还是能量密度、时间坐标是 <span class="arithmatex">\(t\)</span> 还是 <span class="arithmatex">\(ct\)</span>、尺度因子是否带长度单位。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="amo-01-cold-atoms.html"><span class="pager-label">上一页</span>原子分子光物理 · 激光冷却与量子气体</a>

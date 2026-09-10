@@ -1,1055 +1,251 @@
-(function (root, factory) {
-  "use strict";
-
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (
-    root &&
-    root.CourseLearning &&
-    typeof root.CourseLearning.register === "function"
-  ) {
-    root.CourseLearning.register("cosmological-horizons", exported.mount);
+(function(root,factory){
+ "use strict";const api=factory();
+ if(typeof module==="object"&&module.exports)module.exports=api;
+ if(root&&root.CourseLearning)root.CourseLearning.register("cosmological-horizons",api.mount);
+})(typeof window!=="undefined"?window:globalThis,function(){
+ "use strict";
+ const DEFAULTS=Object.freeze({mode:"background",omegaR:.0001,omegaM:.2999,a:1,H0:70,z:2,emit:.25,beta:2});
+ const PRESETS=Object.freeze([
+  {id:"toy",label:"平坦三组分教学模型",mode:"background",omegaR:.0001,omegaM:.2999},
+  {id:"matter",label:"纯物质",mode:"background",omegaR:0,omegaM:1},
+  {id:"radiation",label:"纯辐射",mode:"background",omegaR:1,omegaM:0},
+  {id:"desitter",label:"纯 de Sitter 平坦片",mode:"background",omegaR:0,omegaM:0},
+  {id:"mixed",label:"物质＋辐射，无 Λ",mode:"background",omegaR:.4,omegaM:.6},
+  {id:"distance",label:"红移与三种距离",mode:"distance",z:2},
+  {id:"photon",label:"Hubble 半径外的来光",mode:"photon",emit:.25,beta:2}
+ ].map(Object.freeze));
+ const QUESTIONS=[
+  ["Hubble 半径之外、朝我们发出的光，是否可能最终到达？",["可能，取决于整个膨胀历史","永远不可能"],0,"Hubble 半径是瞬时 HD=c 条件；纯物质光子是可到达的反例。"],
+  ["无 Λ、同时含物质和辐射时，谁主导遥远未来？",["物质","辐射"],0,"物质按 a⁻³ 稀释，辐射按 a⁻⁴ 稀释，物质最终占优。"],
+  ["平坦模型 z>0 的 DL 与 DA 满足什么关系？",["DL=(1+z)² DA","DL=DA"],0,"一个红移因子来自光子能量，另一个来自到达间隔；角距离还含发射时尺度因子。"],
+  ["数值积分达到细分上限，能否据此断言数学发散？",["不能，须区分未收敛与解析发散","能，写成无穷即可"],0,"解析端点判别与数值误差估计是两套不同的证据。"]
+ ];
+ function number(v,key,lo,hi){
+  if((typeof v!=="number"&&typeof v!=="string")||(typeof v==="string"&&!v.trim()))throw Error(key+" 必须填写有限数值");
+  const n=Number(v);if(!Number.isFinite(n)||n<lo||n>hi)throw Error(key+" 必须在 "+lo+"–"+hi+" 内");return n;
+ }
+ function config(raw={}){
+  if(!raw||Array.isArray(raw)||typeof raw!=="object")throw Error("参数必须为对象");
+  const p=Object.assign({},DEFAULTS,raw);if(!["background","distance","photon"].includes(p.mode))throw Error("未知模式");
+  const s={mode:p.mode};
+  if(p.mode==="photon"){s.emit=number(p.emit,"发射尺度因子",.01,1);s.beta=number(p.beta,"β",.1,4);return s;}
+  s.omegaR=number(p.omegaR,"Ωr",0,1);s.omegaM=number(p.omegaM,"Ωm",0,1);
+  s.omegaLambda=1-(s.omegaR+s.omegaM);
+  if(s.omegaLambda<0)throw Error("Ωr+Ωm 不能大于1；不会自动归一化");
+  // Residual subtraction may round an exact decimal boundary slightly below 1e-6.
+  // Accept a few machine ulps at that boundary; retain the actual residual, without renormalization.
+  for(const [k,v]of Object.entries(s))if(k.startsWith("omega")&&v>0&&v<1e-6-(k==="omegaLambda"?4*Number.EPSILON:0))throw Error(k+" 非零时须至少为 0.000001（本实验数值域）");
+  s.H0=number(p.H0,"H₀",40,100);
+  if(p.mode==="background")s.a=number(p.a,"a",.0001,10);
+  else s.z=number(p.z,"z",0,20);
+  return s;
+ }
+ const C=299792.458,MPC_KM=3.0856775814913673e19,GYR_SECONDS=31557600e9;
+ function scales(s){return {Mpc:C/s.H0,Gpc:C/s.H0/1000,Gyr:MPC_KM/s.H0/GYR_SECONDS};}
+ function expansion(s,a){
+  const r=s.omegaR/a**4,m=s.omegaM/a**3,l=s.omegaLambda,total=r+m+l;
+  return {a,E:Math.sqrt(total),DH:1/Math.sqrt(total),r:r/total,m:m/total,l:l/total,q:(2*r+m-2*l)/(2*total),hdot:-2*r-1.5*m};
+ }
+ // Unit-interval adaptive Simpson. The embedded estimate is a diagnostic, not a rigorous interval enclosure.
+ function quadrature(f,keep=true,options={}){
+  const atol=options.atol===undefined?2e-13:options.atol,rtol=options.rtol===undefined?2e-11:options.rtol,depth=options.depth===undefined?28:options.depth;
+  if(!Number.isFinite(atol)||atol<=0||!Number.isFinite(rtol)||rtol<0||!Number.isInteger(depth)||depth<0||depth>28)throw Error("非法积分控制参数");
+  let evaluations=0,accepted=0,failed=0;const panels=[];
+  const at=x=>{evaluations++;const y=f(x);if(!Number.isFinite(y))throw Error("被积函数非有限");return y;};
+  let result;
+  try{
+   function visit(lo,hi,fa,fm,fb,coarse,budget,left){
+    const mid=(lo+hi)/2,lm=(lo+mid)/2,rm=(mid+hi)/2,fl=at(lm),fr=at(rm);
+    const sl=(mid-lo)*(fa+4*fl+fm)/6,sr=(hi-mid)*(fm+4*fr+fb)/6,refined=sl+sr,error=Math.abs(refined-coarse)/15;
+    const ok=error<=budget+rtol*Math.abs(refined);
+    if(ok||left===0||accepted>=32768){
+     accepted++;if(!ok)failed++;
+     const value=refined+(refined-coarse)/15;
+     if(keep)panels.push({lo,hi,fa,fl,fm,fr,fb,coarse,refined,error,value,converged:ok});
+     return {value,error};
+    }
+    const l=visit(lo,mid,fa,fl,fm,sl,budget/2,left-1),r=visit(mid,hi,fm,fr,fb,sr,budget/2,left-1);
+    return {value:l.value+r.value,error:l.error+r.error};
+   }
+   const fa=at(0),fm=at(.5),fb=at(1);
+   result=visit(0,1,fa,fm,fb,(fa+4*fm+fb)/6,atol,depth);
+  }catch(e){return {status:"unresolved",value:null,error:null,evaluations,accepted,failed,panels,message:e.message};}
+  return Object.assign({status:failed?"unresolved":"finite",evaluations,accepted,failed,panels,atol,rtol},result);
+ }
+ const special=(status,message)=>({status,value:null,error:null,evaluations:0,accepted:0,failed:0,panels:[],message});
+ const zero=()=>({status:"finite",value:0,error:0,evaluations:0,accepted:0,failed:0,panels:[]});
+ function integrals(s,a,keep=true,options={}){
+  const R=s.omegaR,M=s.omegaM,L=s.omegaLambda;
+  const past=(age)=>u=>{
+   if(u===0)return !age&&R===0?2*Math.sqrt(a/M):0;
+   const x=a*u*u,base=2*a*u/Math.sqrt(R+M*x+L*x**4);return age?x*base:base;
+  };
+  const particle=R+M===0?special("divergent","平坦 de Sitter 片过去共形积分发散"):quadrature(past(false),keep,options);
+  const age=R+M===0?special("undefined","平坦片 a→0 位于无限过去，不定义大爆炸年龄"):quadrature(past(true),keep,options);
+  const event=L===0?special("divergent","无 Λ 的本三组分模型未来共形积分发散"):quadrature(t=>{const u=t/a;return 1/a/Math.sqrt(R*u**4+M*u**3+L);},keep,options);
+  const log=Math.log(a),elapsed=a===1?zero():quadrature(t=>log/expansion(s,Math.exp(t*log)).E,keep,options);
+  return {particle,event,age,elapsed};
+ }
+ function backgroundPoint(s,a,keep=false){
+  const e=expansion(s,a),i=integrals(s,a,keep);
+  const finite=q=>q.status==="finite"?q.value:null;
+  return Object.assign(e,{particle:finite(i.particle)===null?null:a*i.particle.value,event:finite(i.event)===null?null:a*i.event.value,age:finite(i.age),elapsed:finite(i.elapsed),integrals:i});
+ }
+ function distances(s,z,keep=false){
+  const dc=z===0?zero():quadrature(u=>z/expansion(s,1/(1+z*u)).E,keep);
+  const lookback=z===0?zero():quadrature(u=>z/((1+z*u)*expansion(s,1/(1+z*u)).E),keep);
+  const DC=dc.status==="finite"?dc.value:null;
+  return {z,DC,DA:DC===null?null:DC/(1+z),DL:DC===null?null:DC*(1+z),lookback:lookback.status==="finite"?lookback.value:null,integrals:{dc,lookback}};
+ }
+ function unique(values){return [...new Set(values)].sort((a,b)=>a-b);}
+ function snapshot(raw={}){
+  const s=config(raw);
+  if(s.mode==="background"){
+   const current=backgroundPoint(s,s.a,true),curve=unique(Array.from({length:401},(_,i)=>10**(-4+5*i/400)).concat([s.a,1])).map(a=>backgroundPoint(s,a));
+   return {config:s,scales:scales(s),current,curve,future:s.omegaLambda>0?"Λ 主导：DH→1/√ΩΛ，De→1/√ΩΛ":s.omegaM>0?"物质主导：DH∼a^(3/2)/√Ωm；无事件视界":"辐射主导：DH∼a²/√Ωr；无事件视界"};
   }
-})(
-  typeof window !== "undefined"
-    ? window
-    : typeof globalThis !== "undefined"
-      ? globalThis
-      : this,
-  function (host) {
-    "use strict";
-
-    var SVG_NS = "http://www.w3.org/2000/svg";
-    var STYLE_ID = "cosmological-horizons-lab-styles";
-    var SERIAL = 0;
-    var DEFAULT_TOLERANCE = 1e-9;
-    var MAX_SIMPSON_DEPTH = 20;
-
-    var PRESETS = [
-      {
-        id: "radiation",
-        label: "辐射主导",
-        omegaR: 1,
-        omegaM: 0,
-        omegaLambda: 0,
-        note: "Ωr=1；a(t)∝t¹ᐟ²；未来无事件视界。"
-      },
-      {
-        id: "matter",
-        label: "物质主导",
-        omegaR: 0,
-        omegaM: 1,
-        omegaLambda: 0,
-        note: "Ωm=1；a(t)∝t²ᐟ³；未来无事件视界。"
-      },
-      {
-        id: "de-sitter",
-        label: "de Sitter",
-        omegaR: 0,
-        omegaM: 0,
-        omegaLambda: 1,
-        note: "ΩΛ=1；H=H0；有有限事件视界，但此平坦坐标片没有有限粒子视界。"
-      },
-      {
-        id: "lcdm",
-        label: "ΛCDM toy",
-        omegaR: 0.0001,
-        omegaM: 0.2999,
-        omegaLambda: 0.7,
-        note: "Ωr=0.0001、Ωm=0.2999、ΩΛ=0.7；三个项都保留的教学 toy。"
-      }
-    ];
-
-    function finite(value) {
-      return typeof value === "number" && Number.isFinite(value);
-    }
-
-    function positivePart(value) {
-      return finite(value) && value > 0 ? value : 0;
-    }
-
-    function readParameter(raw, primary, alias) {
-      if (!raw) return 0;
-      if (raw[primary] !== undefined) return Number(raw[primary]);
-      if (alias && raw[alias] !== undefined) return Number(raw[alias]);
-      return 0;
-    }
-
-    function normalizeParams(raw) {
-      var omegaR = positivePart(readParameter(raw, "omegaR", "r"));
-      var omegaM = positivePart(readParameter(raw, "omegaM", "m"));
-      var omegaLambda = positivePart(readParameter(raw, "omegaLambda", "lambda"));
-      var total = omegaR + omegaM + omegaLambda;
-      if (!(total > 0)) {
-        throw new RangeError("至少需要一个正的密度参数。");
-      }
-      return {
-        omegaR: omegaR / total,
-        omegaM: omegaM / total,
-        omegaLambda: omegaLambda / total
-      };
-    }
-
-    function cloneParams(raw) {
-      var params = normalizeParams(raw);
-      return {
-        omegaR: params.omegaR,
-        omegaM: params.omegaM,
-        omegaLambda: params.omegaLambda
-      };
-    }
-
-    function expansionENormalized(a, params) {
-      if (!finite(a) || a < 0) return NaN;
-      if (a === 0) {
-        if (params.omegaR > 0 || params.omegaM > 0) return Infinity;
-        return Math.sqrt(params.omegaLambda);
-      }
-      var inverseA = 1 / a;
-      var squared =
-        params.omegaR * Math.pow(inverseA, 4) +
-        params.omegaM * Math.pow(inverseA, 3) +
-        params.omegaLambda;
-      return Math.sqrt(squared);
-    }
-
-    function expansionE(a, raw) {
-      return expansionENormalized(a, normalizeParams(raw));
-    }
-
-    function simpsonEstimate(left, right, fLeft, fMid, fRight) {
-      return ((right - left) / 6) * (fLeft + 4 * fMid + fRight);
-    }
-
-    function adaptiveSimpson(fn, left, right, tolerance, maxDepth) {
-      if (left === right) return 0;
-      var fLeft = fn(left);
-      var fRight = fn(right);
-      var mid = (left + right) / 2;
-      var fMid = fn(mid);
-      if (!finite(fLeft) || !finite(fMid) || !finite(fRight)) return Infinity;
-      var whole = simpsonEstimate(left, right, fLeft, fMid, fRight);
-      var target = tolerance === undefined ? DEFAULT_TOLERANCE : tolerance;
-      var depthLimit = maxDepth === undefined ? MAX_SIMPSON_DEPTH : maxDepth;
-
-      function recurse(a, b, fa, fm, fb, wholeEstimate, depth, localTolerance) {
-        var middle = (a + b) / 2;
-        var leftMid = (a + middle) / 2;
-        var rightMid = (middle + b) / 2;
-        var fLeftMid = fn(leftMid);
-        var fRightMid = fn(rightMid);
-        if (!finite(fLeftMid) || !finite(fRightMid)) return Infinity;
-        var leftEstimate = simpsonEstimate(a, middle, fa, fLeftMid, fm);
-        var rightEstimate = simpsonEstimate(middle, b, fm, fRightMid, fb);
-        var refined = leftEstimate + rightEstimate;
-        if (
-          depth <= 0 ||
-          Math.abs(refined - wholeEstimate) <= 15 * localTolerance
-        ) {
-          return refined + (refined - wholeEstimate) / 15;
-        }
-        var leftResult = recurse(
-          a,
-          middle,
-          fa,
-          fLeftMid,
-          fm,
-          leftEstimate,
-          depth - 1,
-          localTolerance / 2
-        );
-        var rightResult = recurse(
-          middle,
-          b,
-          fm,
-          fRightMid,
-          fb,
-          rightEstimate,
-          depth - 1,
-          localTolerance / 2
-        );
-        if (!finite(leftResult) || !finite(rightResult)) return Infinity;
-        return leftResult + rightResult;
-      }
-
-      return recurse(left, right, fLeft, fMid, fRight, whole, depthLimit, target);
-    }
-
-    function particleIntegrandAfterSubstitution(u, a, params) {
-      if (u === 0) {
-        if (params.omegaR > 0) return 0;
-        if (params.omegaM > 0) return 2 * Math.sqrt(a / params.omegaM);
-        return Infinity;
-      }
-      var x = a * u * u;
-      var radicand =
-        params.omegaR +
-        params.omegaM * x +
-        params.omegaLambda * Math.pow(x, 4);
-      return (2 * a * u) / Math.sqrt(radicand);
-    }
-
-    function eventIntegrandAfterSubstitution(u, params) {
-      var radicand =
-        params.omegaR * Math.pow(u, 4) +
-        params.omegaM * Math.pow(u, 3) +
-        params.omegaLambda;
-      return 1 / Math.sqrt(radicand);
-    }
-
-    function particleComovingIntegral(a, raw) {
-      var params = normalizeParams(raw);
-      if (!finite(a) || a < 0) return NaN;
-      if (params.omegaR === 0 && params.omegaM === 0) return Infinity;
-      if (a === 0) return 0;
-      return adaptiveSimpson(
-        function (u) {
-          return particleIntegrandAfterSubstitution(u, a, params);
-        },
-        0,
-        1,
-        DEFAULT_TOLERANCE,
-        MAX_SIMPSON_DEPTH
-      );
-    }
-
-    function eventComovingIntegral(a, raw) {
-      var params = normalizeParams(raw);
-      if (!finite(a) || a <= 0) return NaN;
-      if (params.omegaLambda === 0) return Infinity;
-      // u=1/a' maps the exact upper limit a'=∞ to u=0; this is not a
-      // finite future cutoff.  The transformed integrand is regular when Λ>0.
-      return adaptiveSimpson(
-        function (u) {
-          return eventIntegrandAfterSubstitution(u, params);
-        },
-        0,
-        1 / a,
-        DEFAULT_TOLERANCE,
-        MAX_SIMPSON_DEPTH
-      );
-    }
-
-    function finiteMetric(value) {
-      return { value: value, finite: true, status: "finite" };
-    }
-
-    function divergentMetric(reason) {
-      return {
-        value: Infinity,
-        finite: false,
-        status: "divergent",
-        reason: reason
-      };
-    }
-
-    function undefinedMetric(reason) {
-      return {
-        value: NaN,
-        finite: false,
-        status: "undefined",
-        reason: reason
-      };
-    }
-
-    function distanceLedger(a, raw) {
-      if (!finite(a) || a <= 0) {
-        throw new RangeError("distanceLedger 需要正的尺度因子 a；a→0 请使用 asymptoticLimits。");
-      }
-      var params = normalizeParams(raw);
-      var e = expansionENormalized(a, params);
-      var hubbleValue = e === Infinity ? 0 : 1 / e;
-      var particleIntegral = particleComovingIntegral(a, params);
-      var eventIntegral = eventComovingIntegral(a, params);
-      var particleValue = finite(particleIntegral) ? a * particleIntegral : Infinity;
-      var eventValue = finite(eventIntegral) ? a * eventIntegral : Infinity;
-
-      return {
-        a: a,
-        params: params,
-        E: e,
-        hubble: e === Infinity || finite(hubbleValue)
-          ? finiteMetric(hubbleValue)
-          : undefinedMetric("E(a) 无法定义"),
-        particleIntegral: finite(particleIntegral)
-          ? finiteMetric(particleIntegral)
-          : divergentMetric("过去积分从 a'=0 开始发散"),
-        particle: finite(particleValue)
-          ? finiteMetric(particleValue)
-          : divergentMetric("粒子视界的过去积分发散，因此没有有限粒子视界"),
-        eventIntegral: finite(eventIntegral)
-          ? finiteMetric(eventIntegral)
-          : divergentMetric("未来积分到 a'=∞ 发散"),
-        event: finite(eventValue)
-          ? finiteMetric(eventValue)
-          : divergentMetric("事件视界的未来积分发散，因此事件视界不存在")
-      };
-    }
-
-    function asymptoticLimits(raw) {
-      var params = normalizeParams(raw);
-      var hasEarlyComponent = params.omegaR > 0 || params.omegaM > 0;
-      var pureDeSitter = !hasEarlyComponent && params.omegaLambda > 0;
-      var hubbleAtZero;
-      if (params.omegaR > 0) hubbleAtZero = "0（∝a²）";
-      else if (params.omegaM > 0) hubbleAtZero = "0（∝a³ᐟ²）";
-      else hubbleAtZero = "1/√ΩΛ";
-
-      var hubbleAtInfinity;
-      if (params.omegaLambda > 0) hubbleAtInfinity = "1/√ΩΛ";
-      else if (params.omegaR > 0) hubbleAtInfinity = "∞（∝a²）";
-      else hubbleAtInfinity = "∞（∝a³ᐟ²）";
-
-      return {
-        aToZero: {
-          hubble: hubbleAtZero,
-          particle: pureDeSitter ? "∞（过去积分发散）" : "0",
-          event: pureDeSitter ? "1/√ΩΛ" : params.omegaLambda > 0 ? "0" : "∞（不存在）"
-        },
-        aToInfinity: {
-          hubble: hubbleAtInfinity,
-          particle: "∞",
-          event: params.omegaLambda > 0 ? "1/√ΩΛ" : "∞（不存在）"
-        }
-      };
-    }
-
-    function assertClose(actual, expected, tolerance, message) {
-      if (!finite(actual) || Math.abs(actual - expected) > tolerance) {
-        throw new Error(
-          message + "；得到 " + String(actual) + "，期望 " + String(expected)
-        );
-      }
-    }
-
-    function assertDivergent(metric, message) {
-      if (!metric || metric.status !== "divergent" || metric.value !== Infinity) {
-        throw new Error(message + "；应为 Infinity/发散状态。");
-      }
-    }
-
-    function assertAnalyticLimits() {
-      var radiation = distanceLedger(1, PRESETS[0]);
-      assertClose(radiation.hubble.value, 1, 1e-10, "辐射 a=1 的 Hubble 半径");
-      assertClose(radiation.particle.value, 1, 1e-10, "辐射 a=1 的粒子视界");
-      assertDivergent(radiation.event, "辐射没有事件视界");
-
-      var matter = distanceLedger(1, PRESETS[1]);
-      assertClose(matter.hubble.value, 1, 1e-10, "物质 a=1 的 Hubble 半径");
-      assertClose(matter.particle.value, 2, 1e-9, "物质 a=1 的粒子视界");
-      assertDivergent(matter.event, "物质没有事件视界");
-      var matterEarly = distanceLedger(1e-4, PRESETS[1]);
-      assertClose(
-        matterEarly.particle.value / matterEarly.hubble.value,
-        2,
-        1e-8,
-        "物质 a→0 时 Dp/DH=2"
-      );
-
-      var deSitter = distanceLedger(1, PRESETS[2]);
-      assertClose(deSitter.hubble.value, 1, 1e-10, "de Sitter 的 Hubble 半径");
-      assertDivergent(deSitter.particle, "de Sitter 平坦坐标片没有有限粒子视界");
-      assertClose(deSitter.event.value, 1, 1e-9, "de Sitter 的事件视界");
-      var deSitterHalf = distanceLedger(0.5, PRESETS[2]);
-      assertClose(deSitterHalf.event.value, 1, 1e-9, "de Sitter 任意 a 的事件视界");
-
-      var lcdm = distanceLedger(1, PRESETS[3]);
-      if (!lcdm.particle.finite || !lcdm.event.finite) {
-        throw new Error("ΛCDM toy 应同时有有限粒子视界和事件视界。");
-      }
-      if (asymptoticLimits(PRESETS[1]).aToInfinity.event.indexOf("不存在") === -1) {
-        throw new Error("无 Λ 的未来极限必须标为事件视界不存在。");
-      }
-      if (asymptoticLimits(PRESETS[2]).aToZero.particle.indexOf("发散") === -1) {
-        throw new Error("纯 de Sitter 的 a→0 粒子积分必须标为发散。");
-      }
-      return true;
-    }
-
-    function setAttributes(node, attrs) {
-      Object.keys(attrs || {}).forEach(function (key) {
-        var value = attrs[key];
-        if (value === undefined || value === null || value === false) return;
-        if (key === "className") node.setAttribute("class", String(value));
-        else if (key === "htmlFor") node.setAttribute("for", String(value));
-        else if (key === "text") node.textContent = String(value);
-        else if (value === true) node.setAttribute(key, "");
-        else node.setAttribute(key, String(value));
-      });
-      return node;
-    }
-
-    function appendChildren(node, children, doc) {
-      if (children === undefined || children === null) return node;
-      (Array.isArray(children) ? children : [children]).forEach(function (child) {
-        if (child === undefined || child === null || child === false) return;
-        node.appendChild(child && child.nodeType ? child : doc.createTextNode(String(child)));
-      });
-      return node;
-    }
-
-    function makeElement(api, doc, tag, attrs, children) {
-      if (api && typeof api.el === "function") return api.el(tag, attrs || {}, children);
-      return appendChildren(setAttributes(doc.createElement(tag), attrs || {}), children, doc);
-    }
-
-    function makeSvg(api, doc, tag, attrs, children) {
-      if (api && typeof api.svg === "function") return api.svg(tag, attrs || {}, children);
-      return appendChildren(
-        setAttributes(doc.createElementNS(SVG_NS, tag), attrs || {}),
-        children,
-        doc
-      );
-    }
-
-    function clear(node) {
-      while (node && node.firstChild) node.removeChild(node.firstChild);
-    }
-
-    function formatNumber(value, digits) {
-      if (!finite(value)) return "—";
-      var places = digits === undefined ? 3 : digits;
-      if (Math.abs(value) > 0 && (Math.abs(value) < 0.001 || Math.abs(value) >= 10000)) {
-        return value.toExponential(Math.min(places, 4));
-      }
-      var text = value.toFixed(places);
-      return text.replace(/0+$/, "").replace(/\.$/, "");
-    }
-
-    function metricText(metric, kind) {
-      if (!metric || metric.status === "undefined") return "—";
-      if (metric.status === "divergent") {
-        return kind === "horizon" && metric.reason && metric.reason.indexOf("事件视界") !== -1
-          ? "∞（发散；不存在）"
-          : "∞（发散）";
-      }
-      return formatNumber(metric.value, 3);
-    }
-
-    function formulaParams(params) {
-      return (
-        "Ωr=" + formatNumber(params.omegaR, 4) +
-        "，Ωm=" + formatNumber(params.omegaM, 4) +
-        "，ΩΛ=" + formatNumber(params.omegaLambda, 4)
-      );
-    }
-
-    function injectStyles(doc) {
-      if (!doc || !doc.createElement || doc.getElementById(STYLE_ID)) return;
-      var style = doc.createElement("style");
-      style.id = STYLE_ID;
-      style.textContent = [
-        ".ch-lab{--ch-hubble:var(--cl-blue,var(--accent,#315f9d));--ch-particle:var(--cl-green,#39734d);--ch-event:var(--cl-red,#b64335);--ch-selected:var(--cl-gold,#9b6a12);color:var(--fg);font-size:.95em;line-height:1.5;min-width:0}",
-        ".ch-lab *,.ch-lab *::before,.ch-lab *::after{box-sizing:border-box}",
-        ".ch-lab .ch-shell{display:grid;gap:14px;min-width:0}",
-        ".ch-lab .ch-heading{margin:0;color:var(--accent);font-size:1.2rem}",
-        ".ch-lab .ch-intro,.ch-lab .ch-note,.ch-lab .ch-status{margin:0;color:var(--fg-soft)}",
-        ".ch-lab .ch-control-layout{display:grid;grid-template-columns:minmax(220px,.78fr) minmax(0,1.5fr);gap:16px;align-items:start;min-width:0}",
-        ".ch-lab .ch-controls,.ch-lab .ch-stage,.ch-lab .ch-panel{min-width:0}",
-        ".ch-lab .ch-panel{padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg)}",
-        ".ch-lab .ch-panel h4{margin:0 0 9px;font-size:1rem}",
-        ".ch-lab .ch-control{display:grid;gap:5px;margin-bottom:13px;min-width:0}",
-        ".ch-lab .ch-control-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}",
-        ".ch-lab .ch-control-head label,.ch-lab .ch-label{color:var(--fg-soft);font-size:13px;font-weight:650}",
-        ".ch-lab .ch-control output{color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}",
-        ".ch-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent)}",
-        ".ch-lab .ch-scale{display:flex;justify-content:space-between;gap:8px;color:var(--fg-soft);font-size:11px}",
-        ".ch-lab .ch-preset-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}",
-        ".ch-lab button{min-height:44px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit;line-height:1.25;cursor:pointer}",
-        ".ch-lab button:hover{border-color:var(--accent)}",
-        ".ch-lab button[aria-pressed=true],.ch-lab button.ch-primary{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:700}",
-        ".ch-lab button:focus-visible,.ch-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}",
-        ".ch-lab .ch-prediction{display:grid;gap:8px;margin-top:15px;padding-top:12px;border-top:1px solid var(--border)}",
-        ".ch-lab .ch-prediction-question{margin:0;color:var(--fg);font-weight:650}",
-        ".ch-lab .ch-prediction-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}",
-        ".ch-lab .ch-feedback{min-height:2.9em;margin:0;color:var(--fg-soft);font-size:13px}",
-        ".ch-lab .ch-feedback.ch-good{color:var(--cl-green,#39734d)}",
-        ".ch-lab .ch-feedback.ch-warn{color:var(--cl-red,#b64335)}",
-        ".ch-lab .ch-chart-frame{min-width:0;padding:10px;border:1px solid var(--border);border-radius:7px;background:var(--bg)}",
-        ".ch-lab .ch-chart-title{display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin:0 0 8px;color:var(--fg-soft);font-size:13px}",
-        ".ch-lab .ch-chart-svg{display:block;width:100%;height:auto;min-width:0;color:var(--fg)}",
-        ".ch-lab .ch-grid-line{stroke:currentColor;stroke-opacity:.14;stroke-width:1}",
-        ".ch-lab .ch-axis{stroke:currentColor;stroke-opacity:.6;stroke-width:1.2}",
-        ".ch-lab .ch-series-hubble{fill:none;stroke:var(--ch-hubble);stroke-width:2.5}",
-        ".ch-lab .ch-series-particle{fill:none;stroke:var(--ch-particle);stroke-width:2.5}",
-        ".ch-lab .ch-series-event{fill:none;stroke:var(--ch-event);stroke-width:2.5}",
-        ".ch-lab .ch-point-hubble{fill:var(--ch-hubble);stroke:var(--bg);stroke-width:2}",
-        ".ch-lab .ch-point-particle{fill:var(--ch-particle);stroke:var(--bg);stroke-width:2}",
-        ".ch-lab .ch-point-event{fill:var(--ch-event);stroke:var(--bg);stroke-width:2}",
-        ".ch-lab .ch-chart-infinite-particle{fill:var(--ch-particle);font-weight:700}",
-        ".ch-lab .ch-chart-infinite-event{fill:var(--ch-event);font-weight:700}",
-        ".ch-lab .ch-chart-selected{stroke:var(--ch-selected);stroke-width:1.5;stroke-dasharray:5 4}",
-        ".ch-lab .ch-svg-label{fill:currentColor;font-size:12px}",
-        ".ch-lab .ch-legend{display:flex;flex-wrap:wrap;gap:7px 14px;margin-top:9px;color:var(--fg-soft);font-size:12px}",
-        ".ch-lab .ch-legend-item{display:inline-flex;align-items:center;gap:6px;min-width:0}",
-        ".ch-lab .ch-swatch{display:inline-block;width:23px;height:3px;flex:0 0 auto;background:currentColor}",
-        ".ch-lab .ch-swatch-hubble{color:var(--ch-hubble)}",
-        ".ch-lab .ch-swatch-particle{color:var(--ch-particle)}",
-        ".ch-lab .ch-swatch-event{color:var(--ch-event)}",
-        ".ch-lab .ch-infinity-swatch{height:0;border-top:2px dashed currentColor;background:transparent}",
-        ".ch-lab .ch-chart-note{margin:8px 0 0;color:var(--fg-soft);font-size:12px}",
-        ".ch-lab .ch-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}",
-        ".ch-lab .ch-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg)}",
-        ".ch-lab .ch-metric span{display:block;color:var(--fg-soft);font-size:11.5px;line-height:1.35}",
-        ".ch-lab .ch-metric strong{display:block;margin-top:3px;color:var(--fg);font-size:16px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-        ".ch-lab .ch-metric[data-status=divergent] strong{color:var(--cl-red,#b64335)}",
-        ".ch-lab .ch-ledger-title{margin:15px 0 8px;font-size:1rem}",
-        ".ch-lab .ch-table-scroll{max-width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:5px}",
-        ".ch-lab .ch-ledger{width:100%;min-width:650px;border-collapse:collapse;table-layout:fixed;font-size:12.5px}",
-        ".ch-lab .ch-ledger th,.ch-lab .ch-ledger td{padding:8px 9px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}",
-        ".ch-lab .ch-ledger th{color:var(--fg-soft);font-weight:650;background:var(--block-bg,var(--bg))}",
-        ".ch-lab .ch-ledger tr:last-child td{border-bottom:0}",
-        ".ch-lab .ch-ledger td:nth-child(1){width:18%;font-weight:650}",
-        ".ch-lab .ch-ledger td:nth-child(2){width:37%;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:anywhere}",
-        ".ch-lab .ch-ledger td:nth-child(3){width:18%;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-        ".ch-lab .ch-ledger td:nth-child(4){width:27%;color:var(--fg-soft)}",
-        ".ch-lab .ch-ledger [data-status=divergent]{color:var(--cl-red,#b64335);font-weight:650}",
-        ".ch-lab .ch-concepts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}",
-        ".ch-lab .ch-concept{min-width:0;padding:10px;border-left:3px solid var(--border);background:var(--block-bg,var(--bg))}",
-        ".ch-lab .ch-concept strong{display:block;margin-bottom:3px}",
-        ".ch-lab .ch-concept p{margin:0;color:var(--fg-soft);font-size:12.5px}",
-        ".ch-lab .ch-sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}",
-        "@media (max-width:760px){.ch-lab .ch-control-layout{grid-template-columns:minmax(0,1fr)}.ch-lab .ch-concepts{grid-template-columns:minmax(0,1fr)}}",
-        "@media (max-width:520px){.ch-lab .ch-preset-grid,.ch-lab .ch-prediction-options{grid-template-columns:minmax(0,1fr)}.ch-lab .ch-metrics{grid-template-columns:minmax(0,1fr)}.ch-lab .ch-panel{padding:10px}.ch-lab .ch-ledger{min-width:600px}}",
-        "@media (prefers-reduced-motion:reduce){.ch-lab *,.ch-lab *::before,.ch-lab *::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}"
-      ].join("");
-      doc.head.appendChild(style);
-    }
-
-    function svgText(api, doc, x, y, value, attrs) {
-      var merged = Object.assign(
-        { x: x, y: y, className: "ch-svg-label", fill: "currentColor", "font-size": "12" },
-        attrs || {}
-      );
-      return makeSvg(api, doc, "text", merged, [value]);
-    }
-
-    function makeMetric(api, doc, label) {
-      var node = makeElement(api, doc, "div", { className: "ch-metric" });
-      var name = makeElement(api, doc, "span", { text: label });
-      var value = makeElement(api, doc, "strong", { text: "—" });
-      node.appendChild(name);
-      node.appendChild(value);
-      return { node: node, value: value };
-    }
-
-    function formatA(value) {
-      return "a=" + formatNumber(value, 2);
-    }
-
-    function formatCurrent(metric, kind) {
-      return metricText(metric, kind);
-    }
-
-    function makePrediction(api, doc, root, title, choices, correctChoice, explanation) {
-      var node = makeElement(api, doc, "div", { className: "ch-prediction" });
-      node.appendChild(makeElement(api, doc, "p", { className: "ch-prediction-question" }, title));
-      var options = makeElement(api, doc, "div", {
-        className: "ch-prediction-options",
-        role: "group",
-        "aria-label": title
-      });
-      var feedback = makeElement(api, doc, "p", {
-        className: "ch-feedback",
-        "aria-live": "polite",
-        "aria-atomic": "true",
-        text: "先选一个预测；读数会在下方核对。"
-      });
-      var buttons = [];
-      choices.forEach(function (choice) {
-        var button = makeElement(api, doc, "button", {
-          type: "button",
-          "aria-pressed": "false"
-        }, choice.label);
-        button.addEventListener("click", function () {
-          buttons.forEach(function (other) {
-            other.setAttribute("aria-pressed", other === button ? "true" : "false");
-          });
-          var correct = choice.id === correctChoice();
-          feedback.className = "ch-feedback " + (correct ? "ch-good" : "ch-warn");
-          feedback.textContent = (correct ? "✓ 预测正确。" : "再检查一次积分的上下限。") + explanation();
-          if (root && root.ownerDocument && host && host.CourseLearning && typeof host.CourseLearning.api !== "undefined") {
-            if (typeof host.CourseLearning.api.announce === "function") {
-              host.CourseLearning.api.announce(root, feedback.textContent);
-            }
-          }
-        });
-        buttons.push(button);
-        options.appendChild(button);
-      });
-      node.appendChild(options);
-      node.appendChild(feedback);
-      return {
-        node: node,
-        feedback: feedback,
-        reset: function () {
-          buttons.forEach(function (button) { button.setAttribute("aria-pressed", "false"); });
-          feedback.className = "ch-feedback";
-          feedback.textContent = "模型或 a 已改变；请重新预测。";
-        }
-      };
-    }
-
-    function chartSamples(params, selectedA) {
-      var values = [0.02, 0.04, 0.07, 0.12, 0.2, 0.32, 0.5, 0.75, 1, 1.35, 1.8, 2.4, 3.1, 4];
-      if (values.indexOf(selectedA) === -1) values.push(selectedA);
-      values.sort(function (left, right) { return left - right; });
-      return values.map(function (value) {
-        var ledger = distanceLedger(value, params);
-        return { a: value, hubble: ledger.hubble, particle: ledger.particle, event: ledger.event };
-      });
-    }
-
-    function drawPath(api, doc, data, key, xScale, yScale, className) {
-      var paths = [];
-      var points = [];
-
-      function flush() {
-        if (points.length < 2) {
-          points = [];
-          return;
-        }
-        paths.push(
-          points
-            .map(function (point, index) {
-              return (index === 0 ? "M " : "L ") + point[0].toFixed(2) + " " + point[1].toFixed(2);
-            })
-            .join(" ")
-        );
-        points = [];
-      }
-
-      data.forEach(function (item) {
-        var metric = item[key];
-        if (!metric || !metric.finite) flush();
-        else points.push([xScale(item.a), yScale(metric.value)]);
-      });
-      flush();
-      return paths.map(function (path) {
-        return makeSvg(api, doc, "path", { d: path, className: className });
-      });
-    }
-
-    function drawChart(api, doc, svg, params, selectedA, selectedLedger) {
-      var frame = svg.parentNode;
-      var width = Math.max(300, Math.round((frame && frame.clientWidth) || 680));
-      var height = width < 520 ? 390 : 360;
-      var margin = { left: 58, right: 16, top: 30, bottom: 50 };
-      var plotLeft = margin.left;
-      var plotRight = width - margin.right;
-      var plotTop = margin.top;
-      var plotBottom = height - margin.bottom;
-      var data = chartSamples(params, selectedA);
-      var finiteValues = [];
-      data.forEach(function (item) {
-        [item.hubble, item.particle, item.event].forEach(function (metric) {
-          if (metric && metric.finite) finiteValues.push(metric.value);
-        });
-      });
-      if (selectedLedger) {
-        [selectedLedger.hubble, selectedLedger.particle, selectedLedger.event].forEach(function (metric) {
-          if (metric && metric.finite) finiteValues.push(metric.value);
-        });
-      }
-      var maxValue = finiteValues.length ? Math.max.apply(Math, finiteValues) : 1;
-      maxValue = Math.max(maxValue * 1.15, 1e-6);
-      var minA = 0.02;
-      var maxA = 4;
-      var logMin = Math.log(minA);
-      var logSpan = Math.log(maxA) - logMin;
-      var xScale = function (value) {
-        return plotLeft + ((Math.log(value) - logMin) / logSpan) * (plotRight - plotLeft);
-      };
-      var yScale = function (value) {
-        return plotBottom - (value / maxValue) * (plotBottom - plotTop);
-      };
-
-      svg.setAttribute("viewBox", "0 0 " + width + " " + height);
-      svg.setAttribute("width", "100%");
-      svg.setAttribute("height", String(height));
-      clear(svg);
-
-      svg.appendChild(makeSvg(api, doc, "title", {}, "平坦 FRW 三种距离随尺度因子变化"));
-      svg.appendChild(makeSvg(api, doc, "desc", {}, "横轴为对数尺度因子 a，三条曲线分别表示 Hubble 半径、粒子视界和事件视界；发散积分以无穷标记显示，不使用有限截断。"));
-
-      [0, 0.25, 0.5, 0.75, 1].forEach(function (fraction) {
-        var y = plotBottom - fraction * (plotBottom - plotTop);
-        svg.appendChild(makeSvg(api, doc, "line", {
-          x1: plotLeft,
-          x2: plotRight,
-          y1: y,
-          y2: y,
-          className: "ch-grid-line"
-        }));
-        svg.appendChild(svgText(api, doc, plotLeft - 7, y + 4, formatNumber(maxValue * fraction, 2), {
-          "text-anchor": "end"
-        }));
-      });
-
-      svg.appendChild(makeSvg(api, doc, "line", {
-        x1: plotLeft,
-        x2: plotLeft,
-        y1: plotTop,
-        y2: plotBottom,
-        className: "ch-axis"
-      }));
-      svg.appendChild(makeSvg(api, doc, "line", {
-        x1: plotLeft,
-        x2: plotRight,
-        y1: plotBottom,
-        y2: plotBottom,
-        className: "ch-axis"
-      }));
-
-      var xTicks = width < 520 ? [0.02, 0.2, 1, 4] : [0.02, 0.1, 0.5, 1, 2, 4];
-      xTicks.forEach(function (value) {
-        var x = xScale(value);
-        svg.appendChild(makeSvg(api, doc, "line", {
-          x1: x,
-          x2: x,
-          y1: plotBottom,
-          y2: plotBottom + 5,
-          className: "ch-axis"
-        }));
-        svg.appendChild(svgText(api, doc, x, plotBottom + 20, "a=" + formatNumber(value, value < 0.1 ? 2 : 1), {
-          "text-anchor": "middle"
-        }));
-      });
-
-      svg.appendChild(svgText(api, doc, plotLeft, 16, "距离 / (c/H₀)", {}));
-      svg.appendChild(svgText(api, doc, plotRight, height - 9, "尺度因子 a（对数轴）", {
-        "text-anchor": "end"
-      }));
-
-      drawPath(api, doc, data, "hubble", xScale, yScale, "ch-series-hubble").forEach(function (path) { svg.appendChild(path); });
-      drawPath(api, doc, data, "particle", xScale, yScale, "ch-series-particle").forEach(function (path) { svg.appendChild(path); });
-      drawPath(api, doc, data, "event", xScale, yScale, "ch-series-event").forEach(function (path) { svg.appendChild(path); });
-
-      var selectedX = xScale(selectedA);
-      svg.appendChild(makeSvg(api, doc, "line", {
-        x1: selectedX,
-        x2: selectedX,
-        y1: plotTop,
-        y2: plotBottom,
-        className: "ch-chart-selected"
-      }));
-      [
-        [selectedLedger.hubble, "ch-point-hubble"],
-        [selectedLedger.particle, "ch-point-particle"],
-        [selectedLedger.event, "ch-point-event"]
-      ].forEach(function (item) {
-        if (!item[0].finite) return;
-        svg.appendChild(makeSvg(api, doc, "circle", {
-          cx: selectedX,
-          cy: yScale(item[0].value),
-          r: 4.5,
-          className: item[1]
-        }));
-      });
-      svg.appendChild(svgText(api, doc, Math.min(plotRight - 5, selectedX + 7), plotTop + 15, formatA(selectedA), {
-        "text-anchor": selectedX > plotRight - 70 ? "end" : "start"
-      }));
-
-      var infinityLabels = [];
-      if (selectedLedger.particle.status === "divergent") infinityLabels.push(["∞  粒子视界：过去积分发散", "ch-chart-infinite-particle"]);
-      if (selectedLedger.event.status === "divergent") infinityLabels.push(["∞  事件视界：未来积分发散 / 不存在", "ch-chart-infinite-event"]);
-      infinityLabels.forEach(function (item, index) {
-        svg.appendChild(svgText(api, doc, plotLeft + 8, plotTop + 18 + index * 22, item[0], {
-          className: item[1]
-        }));
-      });
-    }
-
-    function mount(root, api) {
-      var doc = root.ownerDocument || (typeof document !== "undefined" ? document : null);
-      if (!doc) return;
-      injectStyles(doc);
-      root.classList.add("ch-lab");
-      SERIAL += 1;
-      var prefix = "ch-" + SERIAL;
-      var state = {
-        params: cloneParams(PRESETS[3]),
-        presetId: PRESETS[3].id,
-        a: 1
-      };
-      var refs = {};
-      var predictions = [];
-
-      clear(root);
-      var shell = makeElement(api, doc, "div", { className: "ch-shell" });
-      var heading = makeElement(api, doc, "h3", { className: "ch-heading", id: prefix + "-heading" }, "平坦 FRW toy model：三种“视界”的距离账本");
-      shell.appendChild(heading);
-      shell.appendChild(makeElement(api, doc, "p", { className: "ch-intro" }, "距离均以 c/H₀ 归一化；拖动 a 或切换预设，比较 c/H、粒子视界与事件视界。参数是教学 toy，不是最新精密宇宙学拟合。"));
-
-      var layout = makeElement(api, doc, "div", { className: "ch-control-layout" });
-      var controls = makeElement(api, doc, "aside", { className: "ch-controls", "aria-label": "FRW toy model 控制与预测" });
-      var controlPanel = makeElement(api, doc, "section", { className: "ch-panel", "aria-labelledby": prefix + "-control-title" });
-      controlPanel.appendChild(makeElement(api, doc, "h4", { id: prefix + "-control-title" }, "模型与尺度因子"));
-      var presetLabel = makeElement(api, doc, "p", { className: "ch-label", text: "教学预设（平坦且 Ωr+Ωm+ΩΛ=1）" });
-      controlPanel.appendChild(presetLabel);
-      var presetGrid = makeElement(api, doc, "div", { className: "ch-preset-grid", role: "group", "aria-label": "FRW 教学预设" });
-      PRESETS.forEach(function (preset) {
-        var button = makeElement(api, doc, "button", {
-          type: "button",
-          "aria-pressed": preset.id === state.presetId ? "true" : "false"
-        }, preset.label);
-        button.addEventListener("click", function () {
-          state.params = cloneParams(preset);
-          state.presetId = preset.id;
-          predictions.forEach(function (prediction) { prediction.reset(); });
-          render();
-          if (api && typeof api.announce === "function") api.announce(root, "已切换到" + preset.label + "预设。" + preset.note);
-        });
-        preset.button = button;
-        presetGrid.appendChild(button);
-      });
-      controlPanel.appendChild(presetGrid);
-
-      var aControl = makeElement(api, doc, "div", { className: "ch-control" });
-      var aId = prefix + "-scale-factor";
-      var aHead = makeElement(api, doc, "div", { className: "ch-control-head" });
-      aHead.appendChild(makeElement(api, doc, "label", { htmlFor: aId }, "当前尺度因子 a"));
-      refs.aOutput = makeElement(api, doc, "output", { for: aId, text: "a=1" });
-      aHead.appendChild(refs.aOutput);
-      aControl.appendChild(aHead);
-      refs.aInput = makeElement(api, doc, "input", {
-        id: aId,
-        type: "range",
-        min: "0.02",
-        max: "4",
-        step: "0.01",
-        value: "1",
-        "aria-label": "当前尺度因子 a；范围 0.02 到 4"
-      });
-      refs.aInput.addEventListener("input", function () {
-        state.a = Number(refs.aInput.value);
-        predictions.forEach(function (prediction) { prediction.reset(); });
-        render();
-      });
-      aControl.appendChild(refs.aInput);
-      aControl.appendChild(makeElement(api, doc, "div", { className: "ch-scale" }, [
-        makeElement(api, doc, "span", { text: "早期 a→0" }),
-        makeElement(api, doc, "span", { text: "现在 a=1" }),
-        makeElement(api, doc, "span", { text: "未来 a>1" })
-      ]));
-      controlPanel.appendChild(aControl);
-      controlPanel.appendChild(makeElement(api, doc, "p", { className: "ch-note" }, "滑杆避开精确的 a=0 奇点；a→0 的解析极限在学习层、账本边界说明和 Node 断言中单独处理。"));
-
-      var eventPrediction = makePrediction(
-        api,
-        doc,
-        root,
-        "预测 1：未来无穷的光还能回到这里吗？",
-        [
-          { id: "finite", label: "有有限事件视界" },
-          { id: "divergent", label: "发散，不存在" }
-        ],
-        function () { return state.params.omegaLambda > 0 ? "finite" : "divergent"; },
-        function () {
-          return state.params.omegaLambda > 0
-            ? " 当前 ΩΛ>0，使 ∫ₐ^∞ da'/(a'²H) 收敛。"
-            : " 当前 ΩΛ=0，未来积分发散；不能拿有限未来截断冒充事件视界。";
-        }
-      );
-      predictions.push(eventPrediction);
-      controlPanel.appendChild(eventPrediction.node);
-
-      var causalPrediction = makePrediction(
-        api,
-        doc,
-        root,
-        "预测 2：Hubble sphere c/H 是因果边界吗？",
-        [
-          { id: "not-boundary", label: "通常不是" },
-          { id: "boundary", label: "是" }
-        ],
-        function () { return "not-boundary"; },
-        function () {
-          return " c/H 是瞬时退行速度 H D=c 的尺度；因果问题要看过去/未来的光锥积分。";
-        }
-      );
-      predictions.push(causalPrediction);
-      controlPanel.appendChild(causalPrediction.node);
-      controls.appendChild(controlPanel);
-      layout.appendChild(controls);
-
-      var stage = makeElement(api, doc, "section", { className: "ch-stage", "aria-labelledby": prefix + "-stage-title" });
-      var chartFrame = makeElement(api, doc, "div", { className: "ch-chart-frame" });
-      chartFrame.appendChild(makeElement(api, doc, "div", { className: "ch-chart-title", id: prefix + "-stage-title" }, [
-        makeElement(api, doc, "strong", { text: "因果 / 距离图" }),
-        makeElement(api, doc, "span", { text: "有限曲线随 a 变化；∞ 明确表示发散" })
-      ]));
-      refs.svg = makeSvg(api, doc, "svg", {
-        className: "ch-chart-svg",
-        role: "img",
-        "aria-label": "平坦 FRW 三种距离随尺度因子变化",
-        "aria-describedby": prefix + "-chart-note"
-      });
-      refs.svg.appendChild(makeSvg(api, doc, "title", { id: prefix + "-chart-title" }, "平坦 FRW 三种距离随尺度因子变化"));
-      refs.svg.appendChild(makeSvg(api, doc, "desc", { id: prefix + "-chart-desc" }, "Hubble 半径、粒子视界、事件视界的距离曲线；没有有限视界的积分显示为发散标记。"));
-      chartFrame.appendChild(refs.svg);
-      var legend = makeElement(api, doc, "div", { className: "ch-legend", "aria-label": "距离图图例" });
-      refs.legendHubble = makeElement(api, doc, "span", { className: "ch-legend-item" }, [
-        makeElement(api, doc, "i", { className: "ch-swatch ch-swatch-hubble" }),
-        makeElement(api, doc, "span", { text: "Hubble sphere D_H=c/H" })
-      ]);
-      refs.legendParticle = makeElement(api, doc, "span", { className: "ch-legend-item" }, [
-        makeElement(api, doc, "i", { className: "ch-swatch ch-swatch-particle" }),
-        makeElement(api, doc, "span", { text: "粒子视界 D_p" })
-      ]);
-      refs.legendEvent = makeElement(api, doc, "span", { className: "ch-legend-item" }, [
-        makeElement(api, doc, "i", { className: "ch-swatch ch-swatch-event" }),
-        makeElement(api, doc, "span", { text: "事件视界 D_e" })
-      ]);
-      legend.appendChild(refs.legendHubble);
-      legend.appendChild(refs.legendParticle);
-      legend.appendChild(refs.legendEvent);
-      chartFrame.appendChild(legend);
-      refs.chartNote = makeElement(api, doc, "p", { className: "ch-chart-note", id: prefix + "-chart-note" });
-      chartFrame.appendChild(refs.chartNote);
-      stage.appendChild(chartFrame);
-
-      var metricGrid = makeElement(api, doc, "div", { className: "ch-metrics", "aria-label": "当前距离读数" });
-      refs.metricHubble = makeMetric(api, doc, "当前 Hubble sphere D_H/(c/H₀)");
-      refs.metricParticle = makeMetric(api, doc, "当前粒子视界 D_p/(c/H₀)");
-      refs.metricEvent = makeMetric(api, doc, "当前事件视界 D_e/(c/H₀)");
-      metricGrid.appendChild(refs.metricHubble.node);
-      metricGrid.appendChild(refs.metricParticle.node);
-      metricGrid.appendChild(refs.metricEvent.node);
-      stage.appendChild(metricGrid);
-
-      var ledgerTitle = makeElement(api, doc, "h4", { className: "ch-ledger-title" }, "积分账本（当前 a）");
-      stage.appendChild(ledgerTitle);
-      var tableScroll = makeElement(api, doc, "div", { className: "ch-table-scroll" });
-      var table = makeElement(api, doc, "table", { className: "ch-ledger", "aria-label": "FRW 距离积分账本" });
-      var thead = makeElement(api, doc, "thead");
-      thead.appendChild(makeElement(api, doc, "tr", {}, [
-        makeElement(api, doc, "th", { scope: "col", text: "对象" }),
-        makeElement(api, doc, "th", { scope: "col", text: "定义 / 正则化后的积分" }),
-        makeElement(api, doc, "th", { scope: "col", text: "当前读数" }),
-        makeElement(api, doc, "th", { scope: "col", text: "回答的问题" })
-      ]));
-      table.appendChild(thead);
-      var tbody = makeElement(api, doc, "tbody");
-
-      function ledgerRow(key, object, formula, question) {
-        var row = makeElement(api, doc, "tr");
-        row.appendChild(makeElement(api, doc, "td", { text: object }));
-        row.appendChild(makeElement(api, doc, "td", { text: formula }));
-        var current = makeElement(api, doc, "td", { text: "—" });
-        row.appendChild(current);
-        row.appendChild(makeElement(api, doc, "td", { text: question }));
-        tbody.appendChild(row);
-        refs[key] = current;
-      }
-
-      ledgerRow("e", "E(a)", "√(Ωr a⁻⁴+Ωm a⁻³+ΩΛ)", "无量纲膨胀率");
-      ledgerRow("hubble", "Hubble sphere", "D_H/(c/H₀)=1/E(a)", "瞬时 H D=c 的尺度，不等于因果边界");
-      ledgerRow("particleIntegral", "过去积分 I_p", "∫₀ᵃ da'/(a'²E)=∫₀ᵃ dx/√(Ωr+Ωm x+ΩΛx⁴)", "过去光信号累计的共动距离");
-      ledgerRow("particle", "粒子视界", "D_p/(c/H₀)=a I_p", "过去能否联系？");
-      ledgerRow("eventIntegral", "未来积分 I_e", "∫ₐ^∞ da'/(a'²E)=∫₀¹ᐟᵃ du/√(Ωr u⁴+Ωm u³+ΩΛ)", "未来无穷的精确积分；∞ 不截断");
-      ledgerRow("event", "事件视界", "D_e/(c/H₀)=a I_e", "未来能否联系？");
-      table.appendChild(tbody);
-      tableScroll.appendChild(table);
-      stage.appendChild(tableScroll);
-
-      var concepts = makeElement(api, doc, "div", { className: "ch-concepts", "aria-label": "三个概念的区别" });
-      concepts.appendChild(makeElement(api, doc, "div", { className: "ch-concept" }, [
-        makeElement(api, doc, "strong", { text: "Hubble sphere" }),
-        makeElement(api, doc, "p", { text: "通常不是因果边界；D>c/H 的超光速退行不违反局域狭义相对论，因为这是整体膨胀的远距离速率。" })
-      ]));
-      concepts.appendChild(makeElement(api, doc, "div", { className: "ch-concept" }, [
-        makeElement(api, doc, "strong", { text: "粒子视界" }),
-        makeElement(api, doc, "p", { text: "由过去的 ∫₀ᵃ 决定：回答从大爆炸/模型起点到现在，哪些区域原则上已经能联系到我们。" })
-      ]));
-      concepts.appendChild(makeElement(api, doc, "div", { className: "ch-concept" }, [
-        makeElement(api, doc, "strong", { text: "事件视界" }),
-        makeElement(api, doc, "p", { text: "由未来的 ∫ₐ^∞ 决定：回答从现在发出的信号，未来是否仍有机会到达指定观察者。" })
-      ]));
-      stage.appendChild(concepts);
-      layout.appendChild(stage);
-      shell.appendChild(layout);
-      refs.status = makeElement(api, doc, "p", { className: "ch-status", "aria-live": "polite", "aria-atomic": "true" });
-      shell.appendChild(refs.status);
-      root.appendChild(shell);
-
-      function updateMetric(ref, metric, kind) {
-        ref.value.textContent = formatCurrent(metric, kind);
-        ref.node.setAttribute("data-status", metric.status);
-      }
-
-      function updateLedger(ledger) {
-        refs.aOutput.textContent = formatA(state.a);
-        refs.e.textContent = formatNumber(ledger.E, 4);
-        refs.e.removeAttribute("data-status");
-        refs.hubble.textContent = metricText(ledger.hubble, "distance");
-        refs.hubble.setAttribute("data-status", ledger.hubble.status);
-        refs.particleIntegral.textContent = metricText(ledger.particleIntegral, "integral");
-        refs.particleIntegral.setAttribute("data-status", ledger.particleIntegral.status);
-        refs.particle.textContent = metricText(ledger.particle, "horizon");
-        refs.particle.setAttribute("data-status", ledger.particle.status);
-        refs.eventIntegral.textContent = metricText(ledger.eventIntegral, "integral");
-        refs.eventIntegral.setAttribute("data-status", ledger.eventIntegral.status);
-        refs.event.textContent = metricText(ledger.event, "horizon");
-        refs.event.setAttribute("data-status", ledger.event.status);
-      }
-
-      function updateLegend(ledger) {
-        refs.legendParticle.lastChild.textContent = ledger.particle.status === "divergent"
-          ? "粒子视界 D_p · 发散"
-          : "粒子视界 D_p · 有限";
-        refs.legendEvent.lastChild.textContent = ledger.event.status === "divergent"
-          ? "事件视界 D_e · 发散 / 不存在"
-          : "事件视界 D_e · 有限";
-        refs.chartNote.textContent = ledger.event.status === "divergent"
-          ? "图中的 ∞ 是未来积分发散的语义标记，不是把 a'=∞ 截在某个有限数值；因此此模型没有有限事件视界。"
-          : ledger.particle.status === "divergent"
-            ? "当前粒子积分从 a'=0 发散；图中 ∞ 不是有限纵轴上限，事件视界仍由未来无穷积分给出。"
-            : "三条曲线都有限；Hubble sphere 只由瞬时 H(a) 定义，因果判断仍看两条光锥积分。";
-      }
-
-      function render() {
-        PRESETS.forEach(function (preset) {
-          preset.button.setAttribute("aria-pressed", preset.id === state.presetId ? "true" : "false");
-        });
-        var ledger = distanceLedger(state.a, state.params);
-        updateMetric(refs.metricHubble, ledger.hubble, "distance");
-        updateMetric(refs.metricParticle, ledger.particle, "horizon");
-        updateMetric(refs.metricEvent, ledger.event, "horizon");
-        updateLedger(ledger);
-        updateLegend(ledger);
-        refs.status.textContent =
-          "当前：" + formulaParams(state.params) + "；" + formatA(state.a) + "；" +
-          "D_H=" + metricText(ledger.hubble, "distance") + "，" +
-          "D_p=" + metricText(ledger.particle, "horizon") + "，" +
-          "D_e=" + metricText(ledger.event, "horizon") + "（单位 c/H₀）。";
-        drawChart(api, doc, refs.svg, state.params, state.a, ledger);
-      }
-
-      render();
-      if (typeof ResizeObserver !== "undefined") {
-        var observer = new ResizeObserver(function () {
-          var ledger = distanceLedger(state.a, state.params);
-          drawChart(api, doc, refs.svg, state.params, state.a, ledger);
-        });
-        observer.observe(chartFrame);
-      }
-    }
-
-    // Loading the module itself is a cheap, deterministic model check.  The
-    // same assertion is exported for CI or teaching-console tests.
-    assertAnalyticLimits();
-
-    return {
-      PRESETS: PRESETS,
-      normalizeParams: normalizeParams,
-      expansionE: expansionE,
-      particleComovingIntegral: particleComovingIntegral,
-      eventComovingIntegral: eventComovingIntegral,
-      distanceLedger: distanceLedger,
-      asymptoticLimits: asymptoticLimits,
-      assertAnalyticLimits: assertAnalyticLimits,
-      mount: mount
-    };
+  if(s.mode==="distance")return {config:s,scales:scales(s),current:distances(s,s.z,true),curve:unique(Array.from({length:301},(_,i)=>20*i/300).concat([s.z])).map(z=>distances(s,z))};
+  const root=Math.sqrt(s.emit),arrival=s.emit*(1+s.beta/2)**2,turn=s.beta>1?s.emit*((s.beta+2)/3)**2:null;
+  function point(a){const chi=2*(Math.sqrt(arrival)-Math.sqrt(a)),D=a*chi,DH=a**1.5;return {a,tau:2*a**1.5/3,chi,D,DH,velocity:D/DH-1};}
+  const curve=unique(Array.from({length:301},(_,i)=>s.emit+(arrival-s.emit)*i/300).concat([s.emit,arrival,...(turn===null?[]:[turn])])).map(point);
+  return {config:s,arrival,turn,current:point(s.emit),curve};
+ }
+ function fmt(x){
+  if(x===null||x===undefined)return "—";
+  if(typeof x!=="number")return String(x);
+  if(x===0)return "0";
+  return Math.abs(x)<1e-5||Math.abs(x)>=1e8?x.toExponential(8):Number(x.toPrecision(10)).toString();
+ }
+ const COLORS=["#268bd2","#cb6a16","#29966c","#9966bb"];
+ function plots(d){
+  const mode=d.config.mode;
+  function plot(title,x,y,keys,rows,xkey,logx=false,logy=false){
+   const series=keys.map(([key,label],i)=>({key,label,color:COLORS[i],line:true,points:rows.filter(r=>Number.isFinite(r[key])&&(!logy||r[key]>0)).map(r=>[logx?Math.log10(r[xkey]):r[xkey],logy?Math.log10(r[key]):r[key]])})).filter(s=>s.points.length);
+   const all=series.flatMap(s=>s.points),xs=all.map(p=>p[0]),ys=all.map(p=>p[1]);
+   let ymin=logy?Math.min(...ys):Math.min(0,...ys),ymax=Math.max(...ys);if(ymax===ymin)ymax=ymin+1;
+   const pad=(ymax-ymin)*.06;
+   const markers=mode==="background"?[{x:Math.log10(d.config.a),label:"当前 a="+Number(d.config.a.toPrecision(5))}]:mode==="distance"?[{x:d.config.z,label:"当前 z="+Number(d.config.z.toPrecision(5))}]:d.turn===null?[]:[{x:d.turn,label:"转折 a="+Number(d.turn.toPrecision(5))}];
+   return {title,x,y,xmin:Math.min(...xs),xmax:Math.max(...xs),ymin:!logy&&ymin===0?0:ymin-pad,ymax:keys[0][0]==="r"?1:ymax+pad,series,markers};
   }
-);
+  if(mode==="background")return [
+   plot("三种半径：斜率也有物理含义","log₁₀ a","log₁₀ [D / (c/H₀)]",[["DH","Hubble 半径"],["particle","粒子视界"],["event","事件视界"]],d.curve,"a",true,true),
+   plot("谁占据密度账本？","log₁₀ a","当时的密度分数",[["r","辐射"],["m","物质"],["l","Λ"]],d.curve,"a",true)
+  ];
+  if(mode==="distance")return [
+   plot("同一个红移对应三种距离","红移 z","距离 / (c/H₀)",[["DC","DC"],["DA","DA"],["DL","DL"]],d.curve,"z"),
+   plot("单独放大 DA：检查是否存在转折","红移 z","DA / (c/H₀)",[["DA","角直径距离"]],d.curve,"z"),
+   plot("往过去看了多久？","红移 z","H₀ × 回望时间",[["lookback","回望时间"]],d.curve,"z")
+  ];
+  return [
+   plot("纯物质模型：来光先远离，再到达","尺度因子 a","距离 / (c/H₀)",[["D","光子固有距离"],["DH","Hubble 半径"]],d.curve,"a"),
+   plot("朝我们传播的光，Ḋ 仍可为正","尺度因子 a","Ḋ / c = HD/c − 1",[["velocity","固有距离变化率"]],d.curve,"a")
+  ];
+ }
+ function ledgers(d){
+  const out=[],add=(key,title,headers,rows)=>out.push({key,title,headers,rows}),mode=d.config.mode,c=d.current;
+  if(mode==="background"){
+   add("summary","当前背景与单位",["量","数值","解释"],[
+    ["ΩΛ",d.config.omegaLambda,"1−Ωr−Ωm，未归一化"],["a",c.a,"今天 a₀=1"],["E",c.E,"H/H₀"],["q",c.q,"负值表示尺度因子加速"],
+    ["Hdot/H₀²",c.hdot,"背景导数"],["DH",c.DH,"c/H₀ 单位"],["Dp",c.particle,c.integrals.particle.status],["De",c.event,c.integrals.event.status],
+    ["H₀ t",c.age,c.integrals.age.status],["H₀(t−t₀)",c.elapsed,c.integrals.elapsed.status],
+    ["c/H₀ (Gpc)",d.scales.Gpc,"乘无量纲距离"],["1/H₀ (Gyr)",d.scales.Gyr,"乘无量纲时间"],
+    ["模型年龄 (Gyr)",c.age===null?null:c.age*d.scales.Gyr,"不是自动等于 Hubble 时间"]
+   ]);
+   add("curve","全部背景曲线节点",["a","E","DH","Dp","De","H₀t","H₀(t−t₀)","Ωr(a)","Ωm(a)","ΩΛ(a)","q"],d.curve.map(r=>[r.a,r.E,r.DH,r.particle,r.event,r.age,r.elapsed,r.r,r.m,r.l,r.q]));
+  }else if(mode==="distance"){
+   add("summary","当前红移距离",["量","无量纲值","物理值／含义"],[
+    ["z",c.z,"观测时 a₀=1"],["DC",c.DC,c.DC===null?null:c.DC*d.scales.Gpc+" Gpc"],
+    ["DA",c.DA,c.DA===null?null:c.DA*d.scales.Gpc+" Gpc"],["DL",c.DL,c.DL===null?null:c.DL*d.scales.Gpc+" Gpc"],
+    ["回望时间",c.lookback,c.lookback===null?null:c.lookback*d.scales.Gyr+" Gyr"],
+    ["DL−(1+z)²DA",c.DC===null?null:c.DL-(1+c.z)**2*c.DA,"浮点残差；不是观测检验"]
+   ]);
+   add("curve","全部红移曲线节点",["z","DC","DA","DL","H₀ × 回望时间"],d.curve.map(r=>[r.z,r.DC,r.DA,r.DL,r.lookback]));
+  }else{
+   add("summary","解析光子事件",["量","数值","含义"],[
+    ["Ωm",1,"本模式固定纯物质背景"],["a_emit",d.config.emit,"发射事件"],["β",d.config.beta,"D_emit/DH_emit"],
+    ["a_turn",d.turn,d.turn===null?"无未来转折（β≤1）":"最大固有距离事件"],["a_arrival",d.arrival,"到达原点事件"],
+    ["初始 Ḋ/c",c.velocity,"β−1"],["发射 τ",c.tau,"H₀t"],["到达 τ",d.curve[d.curve.length-1].tau,"H₀t"]
+   ]);
+   add("curve","完整解析光路径",["a","τ=H₀t","χ/(c/H₀)","D/(c/H₀)","DH/(c/H₀)","Ḋ/c"],d.curve.map(r=>[r.a,r.tau,r.chi,r.D,r.DH,r.velocity]));
+   return out;
+  }
+  add("diagnostics","全部节点的积分状态与误差估计",["节点","积分","状态","值","估计误差","函数调用","接受面板","未达标面板"],d.curve.flatMap(r=>Object.entries(r.integrals).map(([k,q])=>[r.a===undefined?r.z:r.a,k,q.status,q.value,q.error,q.evaluations,q.accepted,q.failed])));
+  add("current","当前积分诊断",["积分","状态","值","估计误差","说明"],Object.entries(c.integrals).map(([k,q])=>[k,q.status,q.value,q.error,q.message||"局部 atol×区间宽 + rtol×|细分估计|"]));
+  add("panels","当前积分全部细分面板（变量均为 u∈[0,1]）",["积分","左端","右端","f左","f1/4","f中","f3/4","f右","粗 Simpson","细 Simpson","估计误差","修正值","达标"],Object.entries(c.integrals).flatMap(([k,q])=>q.panels.map(p=>[k,p.lo,p.hi,p.fa,p.fl,p.fm,p.fr,p.fb,p.coarse,p.refined,p.error,p.value,p.converged])));
+  return out;
+ }
+
+ const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ function svg(q){
+  const left=100,width=750,height=250,top=85,bottom=335,x=v=>left+width*(v-q.xmin)/(q.xmax-q.xmin),y=v=>bottom-height*(v-q.ymin)/(q.ymax-q.ymin);
+  let s='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="425" role="img" aria-label="'+esc(q.title)+'"><title>'+esc(q.title)+'</title><text x="25" y="32" font-size="22">'+esc(q.title)+'</text>';
+  for(let i=0;i<5;i++){
+   const v=q.ymin+(q.ymax-q.ymin)*i/4;
+   s+='<path d="M'+left+' '+y(v)+'H'+(left+width)+'" stroke="currentColor" opacity=".18"/><text x="'+(left-12)+'" y="'+(y(v)+5)+'" text-anchor="end">'+fmt(Number(v.toPrecision(4)))+'</text>';
+  }
+  const ticks=q.xTicks||Array.from({length:5},(_,i)=>q.xmin+(q.xmax-q.xmin)*i/4);
+  for(const v of ticks)s+='<text x="'+x(v)+'" y="'+(bottom+28)+'" text-anchor="middle">'+fmt(Number(v.toPrecision(4)))+'</text>';
+  if(q.ymin<=0&&q.ymax>=0)s+='<line data-zero="true" x1="'+left+'" x2="'+(left+width)+'" y1="'+y(0)+'" y2="'+y(0)+'" stroke="currentColor" opacity=".7"/>';
+  s+='<text x="'+left+'" y="65">'+esc(q.y)+'</text><text x="'+(left+width/2)+'" y="'+(bottom+63)+'" text-anchor="middle">'+esc(q.x)+'</text>';
+  for(const series of q.series){
+   if(series.area)s+='<rect data-area="'+series.key+'" x="'+x(series.points[0][0])+'" y="'+y(series.points[0][1])+'" width="'+(x(series.points[1][0])-x(series.points[0][0]))+'" height="'+(y(0)-y(series.points[0][1]))+'" fill="'+series.color+'" opacity=".12"/>';
+   if(series.line)s+='<polyline data-series="'+series.key+'" points="'+series.points.map(p=>x(p[0])+','+y(p[1])).join(" ")+'" stroke="'+series.color+'" stroke-width="2" fill="none"/>';
+   series.points.forEach((p,i)=>{const open=series.endOpen&&i===series.points.length-1;s+='<circle data-series="'+series.key+'" data-index="'+i+'" data-open="'+!!open+'" cx="'+x(p[0])+'" cy="'+y(p[1])+'" r="'+(series.endOpen?3.5:series.line?1.8:3.5)+'" fill="'+(open?"var(--bg,#faf7ef)":series.color)+'" stroke="'+series.color+'"/>';});
+  }
+  for(const [i,m]of (q.markers||[]).entries()){
+   const px=x(m.x),right=px>700;
+   s+='<line data-marker="'+i+'" x1="'+px+'" x2="'+px+'" y1="'+top+'" y2="'+bottom+'" stroke="currentColor" stroke-dasharray="5 5" opacity=".65"/><text x="'+(px+(right?-4:4))+'" y="80" font-size="13" text-anchor="'+(right?'end':'start')+'">'+esc(m.label)+'</text>';
+  }
+  return s+"</svg>";
+ }
+
+ const STYLE=".frw131{color:var(--fg,#273646)}.frw131 .frw-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}.frw131 label{display:flex;flex-direction:column;gap:6px}.frw131 input,.frw131 select{font:inherit;padding:8px;max-width:100%;background:var(--bg,#fff);color:inherit;border:1px solid #8b98a0;border-radius:5px}.frw131 button{font:inherit;padding:8px 12px;margin:5px;cursor:pointer}.frw131 button[aria-pressed=true]{outline:3px solid #478aaa}.frw131 .frw-scroll{overflow:auto;max-width:100%;margin:16px 0}.frw131 .frw-scroll:focus{outline:3px solid #478aaa}.frw131 .frw-ledger{max-height:420px}.frw131 svg{width:900px!important;max-width:none!important;display:block;fill:currentColor;font:16px system-ui}.frw131 table{min-width:900px;border-collapse:collapse;font-variant-numeric:tabular-nums}.frw131 th,.frw131 td{padding:9px;border:1px solid #98a4ab;text-align:left;white-space:nowrap}.frw131 .frw-error{color:#c74b39}.frw131 [hidden]{display:none!important}.frw131 fieldset{margin:16px 0;padding:12px}.frw131 details{margin:16px 0}.frw131 summary{cursor:pointer;font-weight:600}.frw131 .frw-legend{font-size:.95em}.frw131 .frw-note{line-height:1.7}.frw131 [hidden]{display:none!important}.frw131 select{font:inherit;color:var(--fg,#282820);background:var(--bg,#faf7ef);padding:8px;max-width:100%}";
+ function mount(container){
+  const doc=container.ownerDocument;
+  if(!doc.getElementById("frw131-style")){const style=doc.createElement("style");style.id="frw131-style";style.textContent=STYLE;doc.head.appendChild(style);}
+  const field=(key,label,modes)=>'<label data-modes="'+modes+'">'+label+'<input data-key="'+key+'" type="number" step="any"></label>';
+  container.innerHTML='<div class="frw131"><h3>从背景到光：三种可核算的实验</h3><p>先预测，再揭示；错误预测也可继续。参数与预设变化保留预测。ΩΛ 明确等于 1−Ωr−Ωm，非零组分至少为 10⁻⁶。结果中的“—”须结合状态解释，不表示零。</p><div class="frw-presets">'+PRESETS.map(p=>'<button type="button" data-preset="'+p.id+'">'+p.label+'</button>').join("")+'</div><div class="frw-controls"><label>实验模式<select data-key="mode"><option value="background">平坦背景与视界</option><option value="distance">红移与观测距离</option><option value="photon">纯物质解析光子</option></select></label>'+
+   field("omegaR","今天 Ωr（辐射）","background distance")+field("omegaM","今天 Ωm（物质）","background distance")+field("H0","H₀（40–100 km/s/Mpc）","background distance")+field("a","a（0.0001–10）","background")+field("z","z（0–20）","distance")+field("emit","发射 a（0.01–1）","photon")+field("beta","β（0.1–4）","photon")+'</div>'+
+   QUESTIONS.map((q,i)=>'<fieldset data-question="'+i+'"><legend>'+(i+1)+'. '+q[0]+'</legend>'+q[1].map((v,j)=>'<button type="button" data-choice="'+j+'" aria-pressed="false">'+v+'</button>').join("")+'</fieldset>').join("")+
+   '<button type="button" data-action="reveal">揭示图与完整账本</button><button type="button" data-action="reset">重置预测</button><p class="frw-error" role="alert"></p><p role="status"></p><div class="frw-results" hidden></div></div>';
+  const fields=Array.from(container.querySelectorAll("[data-key]")),answers=Array(4).fill(null),result=container.querySelector(".frw-results"),reveal=container.querySelector("[data-action=reveal]"),feedback=container.querySelector("[role=status]"),error=container.querySelector("[role=alert]");
+  fields.forEach(e=>e.value=DEFAULTS[e.dataset.key]);
+  let revealed=false,valid=null;
+  function render(d){
+   result.innerHTML='<p>'+(d.config.mode==="background"?d.future:d.config.mode==="distance"?"平坦模型 DC=DM，DA=DC/(1+z)，DL=(1+z)DC。z=0 时四个积分距离／回望时间精确为0；不在此处计算零距离通量。":"本模式固定 Ωm=1。光沿局域入射零测地线传播；固有距离先增大不表示局域光速超过 c。")+'</p>'+
+    plots(d).map(q=>'<p>'+q.series.map(s=>esc(s.label)+'（'+({"#268bd2":"蓝","#cb6a16":"橙","#29966c":"绿","#9966bb":"紫"}[s.color])+'）').join("；")+'</p><div class="frw-scroll" role="region" tabindex="0" aria-label="'+esc(q.title)+'">'+svg(q)+'</div>').join("")+
+    ledgers(d).map(t=>'<details data-ledger="'+t.key+'"'+(t.key==="summary"?' open':"")+'><summary>'+esc(t.title)+'（'+t.rows.length+' 行）</summary><div class="frw-scroll frw-ledger" role="region" tabindex="0" aria-label="'+esc(t.title)+'"><table data-table="'+t.key+'"><thead><tr>'+t.headers.map(x=>'<th scope="col">'+esc(x)+'</th>').join("")+'</tr></thead><tbody>'+t.rows.map(r=>'<tr>'+r.map(x=>'<td>'+esc(fmt(x))+'</td>').join("")+'</tr>').join("")+'</tbody></table></div></details>').join("")+
+    '<p>finite：积分通过本次数值误差估计；divergent：由解析端点判别发散；undefined：模型未定义该年龄；unresolved：数值未达标。估计误差不是严格区间证书。背景曲线有401个对数网格节点，距离／光路径有301个线性节点，另加入当前状态与解析事件；线段只连接这些样本。全部节点、积分诊断与当前状态的每个细分面板都在账本中。图表可聚焦后用方向键横向滚动。</p>';
+  }
+  function update(){
+   const raw=Object.fromEntries(fields.map(e=>[e.dataset.key,e.value]));
+   container.querySelectorAll("[data-modes]").forEach(e=>e.hidden=!e.dataset.modes.split(" ").includes(raw.mode));
+   try{valid=config(raw);error.textContent="";}catch(e){valid=null;revealed=false;error.textContent=e.message;}
+   reveal.disabled=!valid||answers.some(x=>x===null);result.hidden=!revealed;
+   if(revealed&&valid)render(snapshot(valid));
+   feedback.textContent=revealed?answers.filter((x,i)=>x===QUESTIONS[i][2]).length+" / 4。"+QUESTIONS.map(q=>q[3]).join(" "):"";
+  }
+  fields.forEach(e=>e.addEventListener(e.tagName==="SELECT"?"change":"input",update));
+  container.querySelectorAll("[data-choice]").forEach(b=>b.addEventListener("click",()=>{
+   const i=Number(b.parentElement.dataset.question);answers[i]=Number(b.dataset.choice);b.parentElement.querySelectorAll("[data-choice]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));update();
+  }));
+  container.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{
+   const s=Object.assign({},DEFAULTS,PRESETS.find(p=>p.id===b.dataset.preset));fields.forEach(e=>e.value=s[e.dataset.key]);update();
+  }));
+  reveal.addEventListener("click",()=>{if(!reveal.disabled){revealed=true;update();}});
+  container.querySelector("[data-action=reset]").addEventListener("click",()=>{answers.fill(null);revealed=false;container.querySelectorAll("[data-choice]").forEach(b=>b.setAttribute("aria-pressed","false"));update();container.querySelector("[data-choice]").focus();});
+  update();
+ }
+ function selfTest(){
+  let checks=0;const ck=(b,m)=>{checks++;if(!b)throw Error(m);};
+  const near=(x,y)=>Math.abs(x-y)<1e-8;
+  const m=snapshot({omegaR:0,omegaM:1});ck(near(m.current.particle,2),"matter past");ck(m.current.integrals.event.status==="divergent","matter future");
+  const l=snapshot({omegaR:0,omegaM:0});ck(l.current.integrals.age.status==="undefined","de Sitter age");ck(near(l.current.event,1),"de Sitter event");
+  const p=snapshot({mode:"photon"});ck(p.arrival===1&&near(p.turn,4/9)&&p.current.velocity>0,"outside Hubble photon");
+  ck(snapshot({omegaR:.4,omegaM:.6}).future.startsWith("物质"),"mixed future");
+  ck(quadrature(x=>Math.exp(20*x),false,{depth:0}).status==="unresolved","depth not divergence");
+  ck(snapshot({mode:"distance",z:1e-14}).current.lookback>0,"tiny redshift retained");
+  return {status:"PASS",checks};
+ }
+ return {DEFAULTS,PRESETS,QUESTIONS,config,scales,expansion,quadrature,integrals,backgroundPoint,distances,snapshot,evaluate:snapshot,plots,ledgers,fmt,svg,mount,selfTest};
+});
