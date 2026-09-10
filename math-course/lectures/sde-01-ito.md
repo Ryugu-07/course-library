@@ -157,7 +157,7 @@ $$
 \boxed{
 df(t,X_t)=
 \left(f_t+a_t f_x+\tfrac12b_t^2 f_{xx}\right)(t,X_t)\,dt
-b_t f_x(t,X_t)\,dB_t.}
++b_t f_x(t,X_t)\,dB_t.}
 $$
 
 它是积分恒等式的简写，并不是对处处不可微的 $X_t$ 作经典求导。一般先局部化到系数、过程和导数受控的区间，再解除停时；公式本身不保证随机积分项有零期望。
@@ -352,7 +352,15 @@ $$
 \operatorname{Var}(X_T^{(h)})=(1+\sigma^2h)^n-1.
 $$
 
-真解方差为 $e^{\sigma^2T}-1$，有限 $h>0$ 时严格更大，因为 $\ln(1+z)<z$（$z>0$）。所以对 $\varphi(x)=x$ 弱误差为零，对 $\varphi(x)=x^2$ 却不为零，路径也没有因此精确。实验中的 64 条样本均值仍可偏离 1；那是抽样偏差。
+真解方差为 $e^{\sigma^2T}-1$。有限 $h>0$ 时，**EM 方差严格小于真解方差**：因为 $\ln(1+z)<z$（$z>0$），且 $nh=T$，
+
+$$
+n\ln(1+\sigma^2h)<\sigma^2T
+\quad\Longrightarrow\quad
+(1+\sigma^2h)^n-1<e^{\sigma^2T}-1.
+$$
+
+所以对 $\varphi(x)=x$ 弱误差为零，对 $\varphi(x)=x^2$ 却不为零，路径也没有因此精确。实验中的 64 条样本均值仍可偏离 1；那是抽样偏差。
 
 </details>
 

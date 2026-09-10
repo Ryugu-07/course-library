@@ -139,6 +139,13 @@ with localcontext()as ctx:
             pts=coords(n.get('d'))
             for j,((x,y),v)in enumerate(zip(pts,[0,.5,.25,1,.5])):near(x,100+125*j);near(y,640-120*v)
 source=(ROOT/'course-shared/labs/ito-sde.js').read_bytes()
+lecture=(ROOT/'math-course/lectures/sde-01-ito.md').read_text()
+# The display is delimited by $$ in Markdown. Check its additive stochastic
+# term explicitly: valid TeX alone does not detect a missing plus sign.
+core_formula=re.search(r'\\boxed\{\s*df\(t,X_t\)=(.*?)\$\$', lecture, re.S)
+ok(core_formula is not None and
+   re.search(r'\\,dt\s*\+\s*b_t f_x\(t,X_t\)\\,dB_t',core_formula.group(1)),
+   'core Ito formula must add drift and stochastic terms')
 for course in ['math-course','grad-math','ai-course']:ok((ROOT/course/'site/assets/learning/labs/ito-sde.js').read_bytes()==source,'mirror')
 guard=runpy.run_path(str(ROOT/'tools/build_public_site.py'))['check_packaged_images']
 with tempfile.TemporaryDirectory()as td:
