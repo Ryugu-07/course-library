@@ -56,214 +56,410 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-11 07:47</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：先问数据能辨识什么</a><ul>
-<li><a href="#inverse-uncertainty-learning-title">1. 具体谜题：观测拟合很好，源项却可以完全不同</a></li>
-<li><a href="#2">2. 先预测，再揭示</a></li>
-<li><a href="#3">3. 静态后备：同一数据的正则化账本</a></li>
-<li><a href="#4">4. 证据等级</a></li>
+<li><a href="#_1">学习层：先固定观测，再改变你的解释</a><ul>
+<li><a href="#inverse-uncertainty-learning-title">两个温度计都只读平均值，就分不清“左热右冷”与“左冷右热”</a></li>
 </ul>
 </li>
-<li><a href="#1">1. 正问题容易，逆问题为什么病态</a></li>
-<li><a href="#2-tikhonov">2. Tikhonov 正则化：把选择写出来</a></li>
-<li><a href="#3-map">3. 从 MAP 到后验协方差</a></li>
-<li><a href="#4-lambda">4. 如何选择 \(\lambda\) 而不假装它是自然常数</a></li>
-<li><a href="#5-posterior-predictive-check">5. Posterior predictive check：模型会不会生成这样的数据</a></li>
-<li><a href="#6">6. 失败边界与可复现审计</a></li>
-<li><a href="#_2">跨课程实验</a></li>
+<li><a href="#1">1. 两个源就能看见真正的不可辨识性</a></li>
+<li><a href="#2">2. 加入先验后，唯一答案从哪里来</a></li>
+<li><a href="#3-16">3. 16源模型：数据生成与推断假设分开</a></li>
+<li><a href="#4-tikhonov">4. 一般Tikhonov问题与非零先验均值</a></li>
+<li><a href="#5">5. 为什么后验协方差是同一个精度矩阵的逆</a></li>
+<li><a href="#6">6. 参数、无噪声响应、新读数：三种不同区间</a></li>
+<li><a href="#7">7. 求解方式也要能核对</a></li>
+<li><a href="#8">8. 条件后验方差不等于重复实验方差</a></li>
+<li><a href="#9-l">9. L曲线与选择正则化</a></li>
+<li><a href="#10-ppc">10. 成对PPC与真正留出的观测</a></li>
+<li><a href="#11">11. 四道迁移题</a></li>
+<li><a href="#12">12. 从课堂模型走向真实逆问题</a></li>
 </ul>
 </div>
 </details>
 <h1 id="v">计算物理 V · 逆问题与不确定度量化<a class="headerlink" href="#v" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Tarantola <em>Inverse Problem Theory</em> / Kaipio &amp; Somersalo <em>Statistical and Computational Inverse Problems</em> ｜ <strong>前置</strong>：exp-01（测量与不确定度）、线性代数（SVD/二次型）、概率与 Bayes 线
-<strong>本页问题</strong>：传感器看到的是被扩散核抹平的信号，为什么“把矩阵反过来乘”会制造尖峰和负温度？正则化不是偷偷替数据做决定，而是把不可辨识方向、物理先验和预测检验明确写进证据链。</p>
+<p><strong>本页问题</strong>：一组传感器读数可以拟合得很好，为什么隐藏的源仍可能重建得很差？怎样分清数据、先验和误差条各自告诉了我们什么？</p>
+<p>前置：<a href="exp-01-measurement-uncertainty.html">测量与不确定度</a>、线性代数的正交基与二次型、Gaussian分布和Bayes公式。先用两个源算清可辨识性，再进入16个源的实际平滑反演与独立预测。</p>
 </blockquote>
 <div data-learning-page></div>
 
 <section aria-labelledby="inverse-uncertainty-learning-title" class="learning-layer">
-<h2 id="_1">学习层：先问数据能辨识什么<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="inverse-uncertainty-learning-title">1. 具体谜题：观测拟合很好，源项却可以完全不同<a class="headerlink" href="#inverse-uncertainty-learning-title" title="Permanent link"></a></h3>
-<p>考虑一排测量扩散后的温度/浓度源。离散后，隐藏源项 <span class="arithmatex">\(x\in\mathbb R^{16}\)</span> 经过宽度为 <span class="arithmatex">\(0.14\)</span> 的归一化 Gaussian 核 <span class="arithmatex">\(K\)</span>，产生 16 个传感器读数：</p>
-<div class="arithmatex">\[
-y=Kx+\varepsilon,\qquad \varepsilon\sim\mathcal N(0,\sigma^2I).
-\]</div>
-<p>相邻源格点的差异会被扩散抹平，高频方向对应很小的奇异值。直接求逆会把观测噪声除以这些小数，输出剧烈振荡；加大平滑惩罚会抑制振荡，却可能把两个真实峰合成一个宽峰。问题不是寻找一条“最漂亮”的曲线，而是区分数据支持的部分和先验选择的部分。</p>
-<h3 id="2">2. 先预测，再揭示<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>打开实验台以前，先回答四个问题：</p>
-<ol>
-<li>直接求逆为什么会放大噪声：大奇异值方向消失，还是小奇异值方向被放大？</li>
-<li>增大 Tikhonov 强度 <span class="arithmatex">\(\lambda\)</span> 的代价是什么：解更平滑但可能有偏，还是拟合和粗糙度都不变？</li>
-<li>后验预测区间主要检查模型能否生成类似传感器观测，还是直接证明隐藏源项的真值？</li>
-<li>观测残差很小是否足以证明源项重建正确？</li>
-</ol>
-<h3 id="3">3. 静态后备：同一数据的正则化账本<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<div class="learning-lab" data-learning-lab="physics-inverse-uncertainty">
-<p><strong>无 JavaScript 时的静态读法。</strong>默认数据用 16 个源格点、16 个传感器、Gaussian 扩散核宽度 <span class="arithmatex">\(0.14\)</span>，固定噪声尺度 <span class="arithmatex">\(\sigma=0.05\)</span>。推断使用</p>
-<div class="arithmatex">\[
-\hat x_\lambda=\arg\min_x\left\{
-\frac{\|Kx-y\|_2^2}{\sigma^2}
- +\lambda\left(\|Dx\|_2^2+10^{-3}\|x\|_2^2\right)\right\},
-\]</div>
-<p>其中 <span class="arithmatex">\(D\)</span> 是一阶差分矩阵。默认 <span class="arithmatex">\(\lambda=0.03\)</span>、固定种子 <span class="arithmatex">\(20260827\)</span>，实验的后验均值给出：数据残差 RMS <span class="arithmatex">\(0.02315\)</span>，源项 RMSE <span class="arithmatex">\(0.35010\)</span>，相邻源差的 RMS <span class="arithmatex">\(0.58371\)</span>。95% 后验预测带覆盖 16/16 个观测；用<strong>成对的后验样本</strong>分别计算观测与复制数据的噪声标准化平方偏差，得到 <span class="arithmatex">\(p_{\rm PPC}=P(T_{\rm rep}\ge T_{\rm obs}\mid y)\approx0.675\)</span>。这不是拒绝模型的尾部信号，但覆盖率好看仍不等于隐藏源项已被证实。</p>
-<p>同一噪声尺度下改变 <span class="arithmatex">\(\lambda\)</span>，折衷表为：</p>
+<h2 id="_1">学习层：先固定观测，再改变你的解释<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="inverse-uncertainty-learning-title">两个温度计都只读平均值，就分不清“左热右冷”与“左冷右热”<a class="headerlink" href="#inverse-uncertainty-learning-title" title="Permanent link"></a></h3>
+<p>想象两个隐藏源的强度为 <span class="arithmatex">\((2,0)\)</span> 或 <span class="arithmatex">\((0,2)\)</span>。如果每个传感器都只看二者的平均，它们都会读到1。增加小数位、换一个线性求解器，都不能补上这项缺失的测量。</p>
+<p>如果传感器能看见一点点左右差别，问题从“完全不可辨识”变成“容易放大噪声”。正则化可以稳定答案，却也会把先验选择带进结果。必须把这两件事一起呈现。</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: right;"><span class="arithmatex">\(\lambda\)</span></th>
-<th style="text-align: right;">观测残差 RMS</th>
-<th style="text-align: right;">源粗糙度 RMS</th>
-<th>读法</th>
+<th>实验模式</th>
+<th>可以直接核对什么</th>
+<th>需要保留的区别</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: right;"><span class="arithmatex">\(10^{-4}\)</span></td>
-<td style="text-align: right;">0.01927</td>
-<td style="text-align: right;">13.6656</td>
-<td>几乎追噪声，尖峰很多</td>
+<td>两个源</td>
+<td>已知奇异方向与真正的零空间</td>
+<td>不可辨识与数值舍入</td>
 </tr>
 <tr>
-<td style="text-align: right;"><span class="arithmatex">\(10^{-3}\)</span></td>
-<td style="text-align: right;">0.02168</td>
-<td style="text-align: right;">3.3308</td>
-<td>开始压制高频</td>
+<td>16源反演</td>
+<td>源、观测、三种区间及成对后验复制</td>
+<td>参数区间与新观测预测</td>
 </tr>
 <tr>
-<td style="text-align: right;"><span class="arithmatex">\(10^{-2}\)</span></td>
-<td style="text-align: right;">0.02289</td>
-<td style="text-align: right;">0.8100</td>
-<td>拟合/平滑的过渡区</td>
-</tr>
-<tr>
-<td style="text-align: right;"><span class="arithmatex">\(3\times10^{-2}\)</span></td>
-<td style="text-align: right;">0.02315</td>
-<td style="text-align: right;">0.5837</td>
-<td>默认演示点</td>
-</tr>
-<tr>
-<td style="text-align: right;"><span class="arithmatex">\(10^{-1}\)</span></td>
-<td style="text-align: right;">0.02354</td>
-<td style="text-align: right;">0.4480</td>
-<td>更强平滑，偏差增加</td>
-</tr>
-<tr>
-<td style="text-align: right;"><span class="arithmatex">\(10^{2}\)</span></td>
-<td style="text-align: right;">0.05280</td>
-<td style="text-align: right;">0.0704</td>
-<td>近似过度平滑</td>
+<td>重复实验风险</td>
+<td>固定真源下的偏差²、抽样方差和MSE</td>
+<td>条件后验方差与重复实验误差</td>
 </tr>
 </tbody>
 </table>
-<p>后验协方差来自同一个正规矩阵：</p>
-<div class="arithmatex">\[
-\Sigma_\lambda=\sigma^2\left(K^TK+\lambda\sigma^2R\right)^{-1},
-\qquad R=D^TD+10^{-3}I.
-\]</div>
-<p>对新的传感器读数，预测方差为</p>
-<div class="arithmatex">\[
-\operatorname{Var}(y_{\mathrm{new},i}\mid y)
- =\sigma^2+K_i\Sigma_\lambda K_i^T.
-\]</div>
-<p>实验的源项图带出后验均值和区间，观测图带出 <span class="arithmatex">\(y\)</span>、<span class="arithmatex">\(K\hat x\)</span> 与 95% 预测带，底部 L 曲线显示残差和粗糙度怎样交换。没有 JavaScript 时，这些公式和表格仍然给出可复核的物理、统计和数值关系。</p>
+<div class="learning-lab" data-learning-lab="physics-inverse-uncertainty">
+<p><strong>无JavaScript也能核对。</strong> 默认16源模型的真实核宽度和假设核宽度均为0.14，数据噪声与假设噪声均为0.05，正则化强度为0.03，使用一阶差分加0.001倍单位矩阵的先验精度形状。固定seed为20260911，生成64对后验源与复制观测。</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th style="text-align: right;">默认数值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据残差范数</td>
+<td style="text-align: right;">0.134249178907</td>
+</tr>
+<tr>
+<td>完整R惩罚平方范数</td>
+<td style="text-align: right;">21.2967813687</td>
+</tr>
+<tr>
+<td>目标函数值</td>
+<td style="text-align: right;">7.84804025593</td>
+</tr>
+<tr>
+<td>本次源重建MSE</td>
+<td style="text-align: right;">0.724114146598</td>
+</tr>
+<tr>
+<td>重复实验平均偏差平方</td>
+<td style="text-align: right;">0.00146529709241</td>
+</tr>
+<tr>
+<td>重复实验平均抽样方差</td>
+<td style="text-align: right;">0.504871662329</td>
+</tr>
+<tr>
+<td>重复实验MSE</td>
+<td style="text-align: right;">0.506336959421</td>
+</tr>
+<tr>
+<td>平均条件后验方差</td>
+<td style="text-align: right;">5.56177922293</td>
+</tr>
+<tr>
+<td>训练观测落在预测区间内的个数/16</td>
+<td style="text-align: right;">16</td>
+</tr>
+<tr>
+<td>留出观测落在预测区间内的个数/15</td>
+<td style="text-align: right;">14</td>
+</tr>
+<tr>
+<td>复制偏差不小于观测偏差的次数/64</td>
+<td style="text-align: right;">32</td>
+</tr>
+<tr>
+<td>PPC经验比例</td>
+<td style="text-align: right;">0.5</td>
+</tr>
+<tr>
+<td>解析观测偏差期望</td>
+<td style="text-align: right;">0.957696104376</td>
+</tr>
+<tr>
+<td>理想复制偏差期望</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>实际均匀数调用数</td>
+<td style="text-align: right;">4158</td>
+</tr>
+<tr>
+<td>最终LCG状态</td>
+<td style="text-align: right;">976293493</td>
+</tr>
+</tbody>
+</table>
+<p>改变推断时假设的噪声、先验或正则化，已有观测不会跟着移动。表里的PPC比例是一次有限伪随机计算；即使某次所有复制都在同一侧，也不能断言理想概率恰为0或1。</p>
 </div>
-<h3 id="4">4. 证据等级<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<ul>
-<li>正规方程残差小，说明线性代数求解器完成了当前正则化问题。</li>
-<li>L 曲线和源项区间说明不同 <span class="arithmatex">\(\lambda\)</span> 对解的影响；它们不凭空创造分辨率。</li>
-<li>后验预测检查的是模型生成观测的能力；源项真值仍需要独立实验、物理约束或模拟基准。</li>
-<li>固定种子让后验抽样可重放，但不会减少模型误设、先验敏感性或测量系统误差。</li>
-</ul>
+<p><img alt="零空间、源重建、后验预测与重复实验风险的对照" src="assets/img/comp-05-inverse-ledgers.svg" /></p>
+<p>图中区间均为约95%的<strong>逐点</strong>Gaussian区间，不表示整条源曲线有95%的同时覆盖率。不同坐标的后验误差通常相关，完整协方差矩阵保留在实验账本中。</p>
 </section>
-<h2 id="1">1. 正问题容易，逆问题为什么病态<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>正问题从源项 <span class="arithmatex">\(x\)</span> 和物理规律预测观测 <span class="arithmatex">\(y\)</span>；逆问题从 <span class="arithmatex">\(y\)</span> 反推 <span class="arithmatex">\(x\)</span>。扩散、积分、辐射转移和有限孔径成像都具有平滑作用：不同的高频源项经过前向算子后变得相似。离散后写成 <span class="arithmatex">\(y=Kx+\varepsilon\)</span>，矩阵 <span class="arithmatex">\(K\)</span> 的小奇异值就是“数据几乎看不见”的方向。</p>
+<h2 id="1">1. 两个源就能看见真正的不可辨识性<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>考虑前向矩阵</p>
+<div class="arithmatex">\[
+K_\kappa=\frac12
+\begin{pmatrix}1+\kappa&amp;1-\kappa\\1-\kappa&amp;1+\kappa\end{pmatrix},
+\qquad 0\le\kappa\le1.
+\]</div>
+<p>取两个单位正交向量</p>
+<div class="arithmatex">\[
+q_+=\frac1{\sqrt2}(1,1)^T,\qquad
+q_-=\frac1{\sqrt2}(1,-1)^T.
+\]</div>
+<p>直接相乘得到 <span class="arithmatex">\(K_\kappa q_+=q_+\)</span>、<span class="arithmatex">\(K_\kappa q_-=\kappa q_-\)</span>。因此同向模式完整通过，反向模式只传输比例 <span class="arithmatex">\(\kappa\)</span>；两个奇异值就是1与 <span class="arithmatex">\(\kappa\)</span>。</p>
+<p>令 <span class="arithmatex">\(\theta_\pm=q_\pm^Tx\)</span>、<span class="arithmatex">\(z_\pm=q_\pm^Ty\)</span>。理想白噪声在正交变换后仍是同方差独立Gaussian，所以</p>
+<div class="arithmatex">\[
+z_+=\theta_++\epsilon_+,\qquad
+z_-=\kappa\theta_-+\epsilon_-.
+\]</div>
+<p>当 <span class="arithmatex">\(\kappa&gt;0\)</span>，直接反演的反向误差是 <span class="arithmatex">\(\epsilon_-/\kappa\)</span>。传输越弱，噪声增益越大。<span class="arithmatex">\(\kappa=0\)</span> 时，反向观测只剩噪声，根本不含 <span class="arithmatex">\(\theta_-\)</span> 的信息。</p>
+<p>这里的零空间是 <span class="arithmatex">\(\operatorname{span}\{q_-\}\)</span>。最小二乘解不唯一；伪逆给出的最小范数解只是在所有解中选择反向系数为0，并没有证明真实反向系数就是0。实验的65个无噪声源 <span class="arithmatex">\((1+c,1-c)\)</span> 在 <span class="arithmatex">\(\kappa=0\)</span> 时全部产生读数 <span class="arithmatex">\((1,1)\)</span>。</p>
+<h2 id="2">2. 加入先验后，唯一答案从哪里来<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>两源模式使用</p>
+<div class="arithmatex">\[
+x\sim\mathcal N(m_0,\lambda^{-1}I),
+\qquad
+y\mid x\sim\mathcal N(K_\kappa x,\sigma_{\rm fit}^2I),
+\qquad \lambda&gt;0.
+\]</div>
+<p>在任一奇异方向上，记传输为 <span class="arithmatex">\(a\)</span>、观测为 <span class="arithmatex">\(z\)</span>、先验均值为 <span class="arithmatex">\(\theta_0\)</span>，完成平方可得</p>
+<div class="arithmatex">\[
+v=\frac{\sigma_{\rm fit}^2}{a^2+\lambda\sigma_{\rm fit}^2},
+\qquad
+\mu=\frac{az+\lambda\sigma_{\rm fit}^2\theta_0}
+{a^2+\lambda\sigma_{\rm fit}^2}.
+\]</div>
+<p>均值对观测的增益与对真信号的分辨因子分别为</p>
+<div class="arithmatex">\[
+g=\frac a{a^2+\lambda\sigma_{\rm fit}^2},
+\qquad
+r=ag=\frac{a^2}{a^2+\lambda\sigma_{\rm fit}^2}.
+\]</div>
+<p>当 <span class="arithmatex">\(a=0\)</span>，</p>
+<div class="arithmatex">\[
+\mu=\theta_0,\qquad v=\frac1\lambda.
+\]</div>
+<p>数据在这个方向既没有移动均值，也没有压缩先验方差。实验允许单独改变“先验对比”，此时预测读数不变，后验源却跟着变。这正好显示：一个数学上唯一、数值上稳定的后验均值，仍可能在某些方向主要来自先验。</p>
+<h2 id="3-16">3. 16源模型：数据生成与推断假设分开<a class="headerlink" href="#3-16" title="Permanent link"></a></h2>
+<p>源网格位于 <span class="arithmatex">\(s_j=j/15\)</span>，训练传感器也取这16个位置。宽度为 <span class="arithmatex">\(w\)</span> 的前向平滑模型定义为</p>
+<div class="arithmatex">\[
+K_{ij}(w)=
+\frac{\exp[-(r_i-s_j)^2/(2w^2)]}
+{\sum_\ell\exp[-(r_i-s_\ell)^2/(2w^2)]}.
+\]</div>
+<p>每行和为1，所以常数源仍给出同一常数读数。它是有限传感器的归一化平滑模型，边缘处重新归一化；不是某个给定边界条件热方程的精确Green函数，也不是Gaussian过程的“协方差核”。</p>
+<p>模拟数据先由真实设置生成：</p>
+<div class="arithmatex">\[
+y=K_{\rm true}x_{\rm true}
++\sigma_{\rm data}z,\qquad z\sim\mathcal N(0,I).
+\]</div>
+<p>推断再采用自己的假设：</p>
+<div class="arithmatex">\[
+y\mid x\sim\mathcal N(K_{\rm fit}x,\sigma_{\rm fit}^2I).
+\]</div>
+<p>固定seed、真实核宽度与 <span class="arithmatex">\(\sigma_{\rm data}\)</span> 后，更改 <span class="arithmatex">\(\sigma_{\rm fit}\)</span>、假设核宽度或 <span class="arithmatex">\(\lambda\)</span> 都不改变已有数据。这样才能研究“低估噪声”或“写错仪器分辨率”的后果，而不是边改模型边重造实验。</p>
+<p>真实源采用固定的两峰测试函数。在真实实验中一般不知道 <span class="arithmatex">\(x_{\rm true}\)</span>，因此源MSE只在这个模拟基准中可计算，不能从训练残差中直接读出来。</p>
+<h2 id="4-tikhonov">4. 一般Tikhonov问题与非零先验均值<a class="headerlink" href="#4-tikhonov" title="Permanent link"></a></h2>
+<p>设先验精度形状为正定矩阵 <span class="arithmatex">\(R\)</span>，先验均值为 <span class="arithmatex">\(m_0\)</span>：</p>
+<div class="arithmatex">\[
+J(x)=\frac{\|Kx-y\|^2}{\sigma_{\rm fit}^2}
++\lambda(x-m_0)^TR(x-m_0).
+\]</div>
+<p>本页16源模式用</p>
+<div class="arithmatex">\[
+R=D^TD+10^{-3}I.
+\]</div>
+<p><span class="arithmatex">\(D\)</span> 可以是单位矩阵、一阶相邻差或二阶差。这里是固定网格上的差分惩罚，没有把它偷换成与网格无关的连续导数范数。小的正对角项使常数方向也有适当先验；零阶模式的 <span class="arithmatex">\(R\)</span> 实际为 <span class="arithmatex">\(1.001I\)</span>。</p>
 <p>令</p>
 <div class="arithmatex">\[
-K=U\,\operatorname{diag}(s_1,\ldots,s_r)V^T,
-\]</div>
-<p>并把噪声投影到左奇异向量上。形式上的最小二乘解含有</p>
-<div class="arithmatex">\[
-\hat x_{\mathrm{LS}}=\sum_j\frac{u_j^Ty}{s_j}v_j.
-\]</div>
-<p>当 <span class="arithmatex">\(s_j\)</span> 很小时，即使 <span class="arithmatex">\(u_j^T\varepsilon\)</span> 只有测量噪声量级，除以 <span class="arithmatex">\(s_j\)</span> 也会变成巨大振荡。这个放大是物理前向过程丢失可辨识度的结果，不是线性求解器“精度不够”。增加浮点位数只能延迟问题，不能恢复已经被扩散抹掉的信息。</p>
-<p>本页实验使用归一化 Gaussian 核：每个传感器看到附近源格点的加权平均。它是扩散/空间分辨率的最小模型，不等同于某一台具体仪器。真实热传导还会有时间尺度、边界、材料参数和系统误差；这些被省略的因素正是模型验证要追踪的边界。</p>
-<h2 id="2-tikhonov">2. Tikhonov 正则化：把选择写出来<a class="headerlink" href="#2-tikhonov" title="Permanent link"></a></h2>
-<p>如果只最小化 <span class="arithmatex">\(\|Kx-y\|_2^2\)</span>，病态方向会被自由地用来追噪声。一个最小而明确的修正是</p>
-<div class="arithmatex">\[
-J_\lambda(x)=\frac{1}{\sigma^2}\|Kx-y\|_2^2+\lambda x^TRx,
-\qquad R=D^TD+\eta I,\quad \eta&gt;0.
+P=\frac{K^TK}{\sigma_{\rm fit}^2}+\lambda R.
 \]</div>
 <p>一阶条件给出</p>
 <div class="arithmatex">\[
-\left(\frac{K^TK}{\sigma^2}+\lambda R\right)\hat x
- =\frac{K^Ty}{\sigma^2}.
+\mu=m_0+
+P^{-1}\frac{K^T(y-Km_0)}{\sigma_{\rm fit}^2}.
 \]</div>
-<p>乘上 <span class="arithmatex">\(\sigma^2\)</span> 后，程序实际解的是</p>
+<p>这只是数学表达式；实现不必显式形成逆矩阵再乘右端。<span class="arithmatex">\(D\)</span> 和 <span class="arithmatex">\(K\)</span> 一般也不能同时对角化，所以不能把两源的逐模式分式无条件套到任意平滑先验上。</p>
+<h2 id="5">5. 为什么后验协方差是同一个精度矩阵的逆<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>Gaussian先验为</p>
 <div class="arithmatex">\[
-\left(K^TK+\lambda\sigma^2R\right)\hat x=K^Ty.
+p(x)\propto
+\exp\!\left[-\frac\lambda2(x-m_0)^TR(x-m_0)\right].
 \]</div>
-<p>一阶差分 <span class="arithmatex">\(D\)</span> 惩罚相邻源格点的大跳变；小的 <span class="arithmatex">\(\eta I\)</span> 让 <span class="arithmatex">\(R\)</span> 严格正定，避免常数方向造成不适定。它并没有宣称物理源项必然平滑，而是把“我们愿意优先相信平滑解”量化为 <span class="arithmatex">\(\lambda\)</span>。</p>
-<p>若使用零阶 <span class="arithmatex">\(R=I\)</span>，会抑制幅度但不直接惩罚锯齿；若使用二阶差分，会偏好曲率小的解；若源项必须非负，普通 Gaussian Tikhonov 允许负值，应该改成非负最小二乘、截断正态先验或对数参数化。不同正则器代表不同的物理先验，不能只比较一张输出图的好看程度。</p>
-<h2 id="3-map">3. 从 MAP 到后验协方差<a class="headerlink" href="#3-map" title="Permanent link"></a></h2>
-<p>把测量噪声设为 Gaussian likelihood，把源项的先验写成</p>
+<p>与似然相乘并完成平方：</p>
 <div class="arithmatex">\[
-p(x)\propto\exp\left(-\frac12\lambda x^TRx\right).
+p(x\mid y)\propto
+\exp\!\left[-\frac12(x-\mu)^TP(x-\mu)\right],
+\qquad
+x\mid y\sim\mathcal N(\mu,\Sigma),\quad\Sigma=P^{-1}.
 \]</div>
-<p>那么后验的负对数（忽略常数）是</p>
+<p>在线性Gaussian条件下，均值恰好也是MAP。一般非线性或非Gaussian模型没有这个保证。线性Bayes推导也可参看 <a href="https://gaussianprocess.org/gpml/chapters/RW2.pdf">Rasmussen与Williams §2.1</a>。</p>
+<p>若改写成未除噪声方差的矩阵</p>
 <div class="arithmatex">\[
-\frac{1}{2\sigma^2}\|Kx-y\|_2^2+\frac12\lambda x^TRx.
+H=K^TK+\lambda\sigma_{\rm fit}^2R,
 \]</div>
-<p>它的最大后验估计正是 Tikhonov 解。在线性 Gaussian 情形，后验也仍然是 Gaussian，均值为 <span class="arithmatex">\(\hat x\)</span>，协方差为</p>
+<p>则 <span class="arithmatex">\(\Sigma=\sigma_{\rm fit}^2H^{-1}\)</span>，不能漏掉前面的噪声方差。缩放正规方程可以不改变均值，却会改变协方差的含义和单位。</p>
+<p>这里的 <span class="arithmatex">\(\Sigma\)</span> 条件于固定的 <span class="arithmatex">\(\lambda\)</span>、噪声和核宽度。若这些超参数也不确定，就还需要对它们积分；只画固定超参数区间通常没有包括全部模型不确定度。无限维函数空间中的Bayesian正则化还需考虑先验与离散化的一致性，可从 <a href="https://warwick.ac.uk/fac/sci/maths/research/events/2010-2011/non_symp_wksp/pdes/stuartnotes.pdf">Stuart讲义</a>继续学习。</p>
+<h2 id="6">6. 参数、无噪声响应、新读数：三种不同区间<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>参数第 <span class="arithmatex">\(j\)</span> 个分量的约95%逐点后验区间为</p>
 <div class="arithmatex">\[
-\Sigma_\lambda=\left(\frac{K^TK}{\sigma^2}+\lambda R\right)^{-1}
- =\sigma^2\left(K^TK+\lambda\sigma^2R\right)^{-1}.
+\mu_j\pm1.96\sqrt{\Sigma_{jj}}.
 \]</div>
-<p>这个 <span class="arithmatex">\(\sigma^2\)</span> 因子很容易漏掉：正规矩阵可以乘上常数而不改变均值，却会改变协方差的物理单位。后验标准差是参数不确定度的一部分，不是把残差除以自由度后随手贴上的误差棒。</p>
-<p>对于新的噪声传感器读数，先把源项不确定度传播过前向矩阵，再加新的测量噪声：</p>
+<p>将参数传播到传感器空间：</p>
 <div class="arithmatex">\[
-Kx\mid y\sim\mathcal N(K\hat x,K\Sigma K^T),
-\qquad y_{\mathrm{new}}\mid y\sim\mathcal N(K\hat x,K\Sigma K^T+\sigma^2I).
+Kx\mid y\sim\mathcal N(K\mu,K\Sigma K^T).
 \]</div>
-<p>因此带噪声的观测预测区间比同一传感器处的无噪声 <span class="arithmatex">\(Kx\)</span> 区间更宽，因为多了 <span class="arithmatex">\(\sigma^2I\)</span>。它回答的是“重复测量会落在哪里”，不能和源空间中 <span class="arithmatex">\(x\)</span> 的区间直接比较宽窄：二者单位、维度和前向算子都不同。若把后验参数区间误叫成观测预测区间，便会少算一次测量噪声。</p>
-<h2 id="4-lambda">4. 如何选择 <span class="arithmatex">\(\lambda\)</span> 而不假装它是自然常数<a class="headerlink" href="#4-lambda" title="Permanent link"></a></h2>
-<p>实验的 L 曲线把 <span class="arithmatex">\(\log\)</span> 残差与 <span class="arithmatex">\(\log\)</span> 粗糙度放在同一张表中。小 <span class="arithmatex">\(\lambda\)</span> 的解更努力贴合数据，也更容易利用病态方向追噪声；大 <span class="arithmatex">\(\lambda\)</span> 的解更平滑，却可能抹掉真实峰。拐角是启发式诊断，不是普遍最优定理。</p>
-<p>其他选择方式各有条件：</p>
-<ul>
-<li><strong>差异原则</strong>：若 <span class="arithmatex">\(\sigma\)</span> 已知，选择使 <span class="arithmatex">\(\|K\hat x-y\|^2\)</span> 与预期噪声量级相称的 <span class="arithmatex">\(\lambda\)</span>。系统误差存在时，单一白噪声尺度不够。</li>
-<li><strong>交叉验证/留出传感器</strong>：用没有参与拟合的观测评估预测，而不是只看训练残差。</li>
-<li><strong>广义交叉验证</strong>：在不显式留出的情况下估计线性平滑器的预测风险，但仍假定数据行可比较。</li>
-<li><strong>全 Bayesian 模型比较</strong>：把 <span class="arithmatex">\(\lambda\)</span> 也放入层次先验，用边际似然或后验预测比较；先验敏感性仍要报告。</li>
-</ul>
-<p>本页固定 <span class="arithmatex">\(\lambda\)</span> 画折衷表，目的是让选择的代价可见，而不是替读者做一个通用的自动选择器。真实工作应在物理可解释的验证集上决定：源项峰位、总热量、边界通量、未来测量预测和残差结构哪个更重要。</p>
-<h2 id="5-posterior-predictive-check">5. Posterior predictive check：模型会不会生成这样的数据<a class="headerlink" href="#5-posterior-predictive-check" title="Permanent link"></a></h2>
-<p>后验预测检查的步骤是：从 <span class="arithmatex">\(x^{(b)}\sim p(x\mid y)\)</span> 抽样，生成</p>
+<p>新测量还要加上独立的新噪声：</p>
 <div class="arithmatex">\[
-y^{\mathrm{rep},(b)}=Kx^{(b)}+\varepsilon^{(b)},
-\qquad \varepsilon^{(b)}\sim\mathcal N(0,\sigma^2I),
+y_{\rm new}\mid y\sim
+\mathcal N(K\mu,K\Sigma K^T+\sigma_{\rm fit}^2I).
 \]</div>
-<p>再比较真实 <span class="arithmatex">\(y\)</span> 与重复数据的统计量，例如均方残差、峰间距、总信号、边界传感器偏差或残差的空间相关。若观测总在预测带外，前向核、噪声尺度或先验可能不对；若观测比重复数据异常平滑，可能是噪声被高估，或者同一批数据被用于过度调参。PPC 是模型检验，不是“抽样带覆盖真值”的证明。</p>
-<p>实验用固定 seed 生成 80 对后验样本与复制数据，报告观测落在 95% 预测带中的个数，以及 <span class="arithmatex">\(T_{\rm rep}\ge T_{\rm obs}\)</span> 的经验比例。默认覆盖为 16/16、<span class="arithmatex">\(p_{\rm PPC}\approx0.675\)</span>；前者可能因预测带偏宽而显得完美，后者也只是针对所选 discrepancy 的检查，两者都不能结束审计。重复抽样的 Monte Carlo 误差还必须随 draw 数改变而检查；80 次足够做课堂诊断，不是精细尾部概率的高精度估计。</p>
-<h2 id="6">6. 失败边界与可复现审计<a class="headerlink" href="#6" title="Permanent link"></a></h2>
-<p><strong>模型边界：</strong></p>
-<ul>
-<li>线性前向关系失效时，Gaussian 后验通常只是局部近似；需要线性化误差、粒子方法或 MCMC。</li>
-<li>噪声有相关性、重尾或漂移时，<span class="arithmatex">\(\sigma^2I\)</span> 会给出过窄或错误形状的不确定度；应使用协方差矩阵、Student-<span class="arithmatex">\(t\)</span> likelihood 或显式系统误差。</li>
-<li>非负、守恒、单调性和 PDE 约束若是硬物理事实，不能只靠平滑惩罚暗示；要把它们放入可行域或参数化。</li>
-<li>传感器位置、核宽度和边界条件的不确定性也会传播到 <span class="arithmatex">\(x\)</span>；只对测量噪声做 Bayesian 处理会低估总误差。</li>
-</ul>
-<p><strong>审计清单：</strong>固定数据版本、单位、网格、前向核、噪声估计、先验/正则器、<span class="arithmatex">\(\lambda\)</span> 扫描范围、线性求解器、seed 和 posterior draw 数；同时保存正问题残差、参数区间、留出预测和 posterior predictive discrepancy。固定 seed 能复现一条随机路径，多个 seed 与独立观测才能检验稳定性。</p>
-<p><strong>迁移任务：</strong>把 Gaussian 扩散核换成一维热方程在时间 <span class="arithmatex">\(t\)</span> 的 Green 函数，未知量改成初始温度场。先从 Fourier 模式说明为什么高频因子 <span class="arithmatex">\(e^{-\kappa k^2t}\)</span> 会造成小奇异值，再比较一阶差分和二阶差分正则器。最后设计一个留出时刻的 posterior predictive check：如果训练时刻拟合很好而未来时刻预测偏离，应该优先怀疑正则化强度、边界条件、噪声协方差还是热传导模型？给出判断顺序，而不是只报一个更小的残差。</p>
-<hr />
-<p><em>计算物理五页的共同结论：离散化、采样、正则化和不确定度都只是证据链的一环；可信结果来自物理不变量、收敛/稳定性、统计相关性和独立预测检验同时通过。</em></p>
-<h2 id="_2">跨课程实验<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
-<p>本讲的热扩散迁移问题已有完整实验：<a href="project-01-heat-inverse.html">综合项目：从温度读数反推初态</a>。可比较初态重建、已有读数拟合与独立晚时刻预测，并单独检验扩散率写错的影响。</p>
-<p>从真实月资料检查源汇不可辨识，可做<a href="project-02-co2-measurements.html">NOAA CO₂真实数据项目</a>。使用有版本和质量说明的固定快照，保留独立复算与模型边界。</p>
+<p>因此同一传感器处，新读数区间比无噪声响应区间更宽。参数空间与观测空间则可能有不同单位与尺度，不能直接比较哪一种“总体更宽”。</p>
+<p>多个逐点95%区间也不是整个向量的95%同时区域。后验分量相关，整条曲线的覆盖概率不能由一个点的概率替代。实验保留完整协方差，并明确只把图线称作逐点界限。</p>
+<p>Gaussian模型允许负源强度。这对相对背景的扰动量可能合理；若未知量是必须非负的绝对浓度或绝对温度，应加入相应约束或换参数化，此时Gaussian后验公式往往不再直接成立。把负值在绘图时剪到0不是一种正确的约束推断。</p>
+<h2 id="7">7. 求解方式也要能核对<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>若 <span class="arithmatex">\(R=CC^T\)</span>，令 <span class="arithmatex">\(u=x-m_0\)</span>，正则化问题等价于</p>
+<div class="arithmatex">\[
+\min_u\left\|
+\underbrace{\begin{pmatrix}K/\sigma_{\rm fit}\\
+\sqrt\lambda C^T\end{pmatrix}}_{\mathcal A}u-
+\underbrace{\begin{pmatrix}(y-Km_0)/\sigma_{\rm fit}\\0\end{pmatrix}}_b
+\right\|^2.
+\]</div>
+<p>使用增广矩阵的薄QR分解 <span class="arithmatex">\(\mathcal A=QU\)</span>，其中 <span class="arithmatex">\(Q^TQ=I\)</span>、<span class="arithmatex">\(U\)</span> 为上三角矩阵：</p>
+<div class="arithmatex">\[
+Uu=Q^Tb,\qquad
+\Sigma=U^{-1}U^{-T}.
+\]</div>
+<p>实验用Householder反射执行QR，逐项保留增广矩阵、每个反射向量、<span class="arithmatex">\(Q^T\)</span>、<span class="arithmatex">\(U\)</span>、右端和协方差。由此可以核对</p>
+<div class="arithmatex">\[
+\mathcal A^T\mathcal A=P,\qquad U^TU=P.
+\]</div>
+<p>避免直接用正规方程求均值，是因为形成 <span class="arithmatex">\(\mathcal A^T\mathcal A\)</span> 会把条件数平方；在弱正则化边界，舍入误差可能因此放大。但数值方法改进仍不能修复真正的零空间或写错的前向模型。</p>
+<p>这些等式在程序中以浮点数核对，并不是严格区间证书。两源模式同时给出解析后验与QR结果，恰好可以用来区分数学参考与数值实现。</p>
+<h2 id="8">8. 条件后验方差不等于重复实验方差<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>令</p>
+<div class="arithmatex">\[
+G=\Sigma K^T/\sigma_{\rm fit}^2,\qquad
+\widehat x(y)=m_0+G(y-Km_0).
+\]</div>
+<p>现在固定真实源 <span class="arithmatex">\(x_\star\)</span>，反复生成新的理想数据</p>
+<div class="arithmatex">\[
+y=K_\star x_\star+\epsilon,\qquad
+\epsilon\sim\mathcal N(0,\sigma_{\rm data}^2I).
+\]</div>
+<p>估计量的期望与抽样协方差是</p>
+<div class="arithmatex">\[
+\mathbb E_y\widehat x
+=m_0+G(K_\star x_\star-Km_0),
+\qquad
+C_{\rm samp}=\sigma_{\rm data}^2GG^T.
+\]</div>
+<p>记偏差 <span class="arithmatex">\(b_x=\mathbb E_y\widehat x-x_\star\)</span>，平均每个源坐标的MSE为</p>
+<div class="arithmatex">\[
+\mathbb E_y\frac{\|\widehat x-x_\star\|^2}{n}
+=\frac{\|b_x\|^2+\operatorname{tr}C_{\rm samp}}n.
+\]</div>
+<p>这里的随机对象是<strong>反复生成的数据</strong>；Bayesian后验则是在已经观察到 <span class="arithmatex">\(y\)</span> 后，对未知源的条件分布。两者不应使用同一个“误差”标签。</p>
+<p>如果 <span class="arithmatex">\(\sigma_{\rm data}=0\)</span>，重复实验抽样方差为0，正则化和模型误设仍可造成偏差。如果 <span class="arithmatex">\(\lambda\)</span> 非常大，后验会紧贴 <span class="arithmatex">\(m_0\)</span> 且变窄；当 <span class="arithmatex">\(m_0\)</span> 错得很多时，源MSE却可能很大。实验的风险模式按公式求出这些量，没有把一次seed路径伪装成许多独立实验。</p>
+<h2 id="9-l">9. L曲线与选择正则化<a class="headerlink" href="#9-l" title="Permanent link"></a></h2>
+<p>实验在同一份数据上扫描 <span class="arithmatex">\(\lambda\)</span>，分别列出</p>
+<div class="arithmatex">\[
+\|K\mu-y\|,\qquad
+\|D(\mu-m_0)\|,\qquad
+\|\mu-m_0\|_R=
+\sqrt{(\mu-m_0)^TR(\mu-m_0)}.
+\]</div>
+<p>后两者不是同一个数：完整 <span class="arithmatex">\(R\)</span> 范数还包括小的幅度惩罚。图中的L曲线使用完整 <span class="arithmatex">\(R\)</span> 范数，差分半范数在表中另列。</p>
+<p>对同一目标函数、精确求解及 <span class="arithmatex">\(\lambda_2&gt;\lambda_1\)</span>，将两个最优性不等式相加，可得完整惩罚不随 <span class="arithmatex">\(\lambda\)</span> 增大而增大，数据残差不随之减小。但源真实MSE没有相同的单调保证；L曲线的拐角也不是普遍最优定理。</p>
+<p>实际选择可依据已知噪声尺度的差异原则、留出观测、交叉验证或包含超参数不确定度的完整Bayesian模型。每种方法仍要说明自己的假设。模拟中可以看到真源MSE，不意味着真实测量中也能用未知真值来调参。</p>
+<h2 id="10-ppc">10. 成对PPC与真正留出的观测<a class="headerlink" href="#10-ppc" title="Permanent link"></a></h2>
+<p>对第 <span class="arithmatex">\(b\)</span> 次后验源抽样 <span class="arithmatex">\(x^{(b)}\)</span>，先算 <span class="arithmatex">\(f^{(b)}=Kx^{(b)}\)</span>，再生成</p>
+<div class="arithmatex">\[
+y^{\rm rep,(b)}=f^{(b)}
++\sigma_{\rm fit}z^{(b)}.
+\]</div>
+<p>本页比较</p>
+<div class="arithmatex">\[
+T_{\rm obs}^{(b)}
+=\frac{\|y-f^{(b)}\|^2}{n\sigma_{\rm fit}^2},
+\qquad
+T_{\rm rep}^{(b)}
+=\frac{\|y^{\rm rep,(b)}-f^{(b)}\|^2}{n\sigma_{\rm fit}^2}.
+\]</div>
+<p>两个偏差必须使用<strong>同一个后验源</strong>。逐对事件的比例估计</p>
+<div class="arithmatex">\[
+p_{\rm PPC}=
+\Pr(T_{\rm rep}\ge T_{\rm obs}\mid y).
+\]</div>
+<p>它不是“模型正确的概率”，也不一般服从经典零假设下的均匀分布。<a href="https://mc-stan.org/docs/2_39/stan-users-guide/posterior-predictive-checks.html">Stan的PPC说明</a>强调了这种校准区别。模型可能拟合均值很好，却遗漏相关性或尾部；换不同的偏差统计量可能揭示不同问题。</p>
+<p>这个线性模型还给出可核对的解析均值：</p>
+<div class="arithmatex">\[
+\mathbb E[T_{\rm rep}\mid y]=1,\qquad
+\mathbb E[T_{\rm obs}\mid y]
+=\frac{\|y-K\mu\|^2+\operatorname{tr}(K\Sigma K^T)}
+{n\sigma_{\rm fit}^2}.
+\]</div>
+<p>有限次复制的均值不必恰好等于解析值；没有命中某事件，也不能证明其概率为0。实验保留所有后验源、复制读数和成对偏差。</p>
+<p>此外，本页在15个网格中点另生成一组带独立噪声的传感器读数。它们不参与拟合，预测使用对应的 <span class="arithmatex">\(K_{\rm hold}\)</span>。这与拿训练数据做PPC不同；但15个点的区间内个数仍只是一次检查，不能凭一次覆盖率认证整个前向模型。</p>
+<h2 id="11">11. 四道迁移题<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 令 <span class="arithmatex">\(\kappa=0\)</span>，保持数据和先验精度 <span class="arithmatex">\(\lambda\)</span> 不变，只把先验反向系数从0改成2。反向后验均值、方差和无噪声传感器预测怎样变化？</p>
+<details class="answer">
+<summary>答案：零空间中的变化来自先验</summary>
+<p>因为 <span class="arithmatex">\(a=0\)</span>，单模式公式给出 <span class="arithmatex">\(\mu_-=\theta_{0,-}\)</span>、<span class="arithmatex">\(v_-=1/\lambda\)</span>。后验反向均值从0变为2，方差不变。由于 <span class="arithmatex">\(Kq_-=0\)</span>，无噪声传感器预测不受这项变化影响。</p>
+<p>这并不矛盾：数据从未约束该方向。若实验控制的是物理两源对比 <span class="arithmatex">\(c_0\)</span>，其正交模式系数是 <span class="arithmatex">\(\sqrt2c_0\)</span>，不能把二者的数值直接混用。</p>
+</details>
+<p><strong>题二。</strong> 对单一坐标，设后验方差为4；某个传感器只读取该坐标的0.1倍，新测量噪声标准差为0.3。无噪声响应与新读数的方差各是多少？能直接说传感器“比参数准确”吗？</p>
+<details class="answer">
+<summary>答案：传播方差，再加一次新噪声</summary>
+<p>无噪声响应方差为 <span class="arithmatex">\(0.1^2\times4=0.04\)</span>，新读数方差为 <span class="arithmatex">\(0.04+0.3^2=0.13\)</span>。标准差分别为0.2与 <span class="arithmatex">\(\sqrt{0.13}\)</span>。</p>
+<p>两种传感器区间可在同一观测空间比较；参数标准差2与响应标准差0.2之间还包含0.1倍的单位或增益变换，不能据此说数据恢复了更多源信息。新噪声必须加一次，也不能重复加两次。</p>
+</details>
+<p><strong>题三。</strong> 在标量模型中取 <span class="arithmatex">\(K=1\)</span>、<span class="arithmatex">\(m_0=0\)</span>、<span class="arithmatex">\(\sigma_{\rm fit}=\sigma_{\rm data}=1\)</span>、真实值 <span class="arithmatex">\(x_\star=3\)</span>。求 <span class="arithmatex">\(\lambda=1\)</span> 时的估计量抽样方差、偏差、MSE和条件后验方差。</p>
+<details class="answer">
+<summary>答案：同一模型里也有两个不同的方差</summary>
+<p>此时 <span class="arithmatex">\(\Sigma=1/(1+\lambda)=1/2\)</span>，<span class="arithmatex">\(G=1/2\)</span>，所以 <span class="arithmatex">\(\widehat x=y/2\)</span>。固定真值重复数据时，</p>
+<div class="arithmatex">\[
+\mathbb E\widehat x=\frac32,\qquad
+b_x=-\frac32,\qquad
+\operatorname{Var}(\widehat x)=\frac14,
+\qquad
+\operatorname{MSE}=\frac94+\frac14=\frac52.
+\]</div>
+<p>条件后验方差是 <span class="arithmatex">\(1/2\)</span>，既不等于抽样方差 <span class="arithmatex">\(1/4\)</span>，也不等于MSE <span class="arithmatex">\(5/2\)</span>。两种推断语言针对不同的随机对象；给其中一个量改名字不会使它们相等。</p>
+</details>
+<p><strong>题四。</strong> 对 <span class="arithmatex">\(\lambda_2&gt;\lambda_1\)</span>，用最优性证明完整惩罚不增、数据残差不减。这个结论为何不保证真实源MSE也变小？</p>
+<details class="answer">
+<summary>答案：最优性只约束被优化的两个部分</summary>
+<p>设 <span class="arithmatex">\(f_i=\|K\mu_i-y\|^2/\sigma_{\rm fit}^2\)</span>、<span class="arithmatex">\(r_i=\|\mu_i-m_0\|_R^2\)</span>。两次最优性给出</p>
+<div class="arithmatex">\[
+f_1+\lambda_1r_1\le f_2+\lambda_1r_2,\qquad
+f_2+\lambda_2r_2\le f_1+\lambda_2r_1.
+\]</div>
+<p>相加得 <span class="arithmatex">\((\lambda_2-\lambda_1)(r_2-r_1)\le0\)</span>，故 <span class="arithmatex">\(r_2\le r_1\)</span>。第一个不等式又给出</p>
+<div class="arithmatex">\[
+f_2-f_1\ge\lambda_1(r_1-r_2)\ge0.
+\]</div>
+<p>真实MSE含未知真源、重复实验方差及正则化偏差，并不在这两个不等式中。强先验可能降低波动却增加偏差；前向核误设还会带来另一项误差。训练残差或惩罚单调变化，不能推出源MSE同样单调。</p>
+</details>
+<h2 id="12">12. 从课堂模型走向真实逆问题<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<p>实验使用固定的32位LCG与Box–Muller变换；每个正态数消耗两个严格位于0与1之间的均匀数，不对随机数作隐蔽截断。16源模式先生成16个训练噪声和15个留出噪声，再逐对生成16个后验标准正态与16个复制噪声。因此 <span class="arithmatex">\(B\)</span> 对复制共消耗</p>
+<div class="arithmatex">\[
+2(16+15+32B)
+\]</div>
+<p>个均匀数。完整整数状态和用途都入账。理想概率公式假设独立Gaussian随机数；固定LCG只提供可重放的有限实现，不证明独立性或物理模型成立。</p>
+<p>走向真实问题还要核对仪器校准、传感器位置、核宽度、相关或重尾噪声、边界条件、非负与守恒约束，以及超参数选择的不确定性。神经网络或更快的求解器可以改变计算成本，不能免除这些可辨识性与预测检验。</p>
+<p>可继续做<a href="project-01-heat-inverse.html">热扩散初态反演项目</a>，比较训练时刻拟合与独立晚时刻预测；也可用<a href="project-02-co2-measurements.html">NOAA CO₂数据项目</a>检查真实数据版本与源汇不可辨识。前沿方法越复杂，保留能独立核对的低维参考问题就越有价值。</p>
+<style>
+article:has(#inverse-uncertainty-learning-title) .katex { position: relative; }
+</style>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="comp-04-monte-carlo-lattice.html"><span class="pager-label">上一页</span>计算 IV · 格点模型与蒙特卡洛</a>
