@@ -326,6 +326,8 @@ def sync_learning_assets(md_names):
         shutil.copy(source, destination / "labs" / source.name)
     if "research-co2-observations" in names:
         shutil.copytree(SHARED / "projects" / "co2-observations", destination / "projects" / "co2-observations")
+    if "galaxy-rotation" in names:
+        shutil.copytree(SHARED / "projects" / "sparc-ngc3198", destination / "projects" / "sparc-ngc3198")
     if "heat-inverse-project" in names:
         shutil.copytree(SHARED / "projects" / "heat-inverse", destination / "projects" / "heat-inverse")
 
