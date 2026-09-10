@@ -34,7 +34,7 @@
   var STYLE_ID = "cl-markov-convergence-styles";
   var INSTANCE = 0;
   var EPS = 1e-10;
-  var DEFAULT = { presetId: "mixing", time: 4, initialIndex: 0 };
+  var DEFAULT = Object.freeze({ presetId: "mixing", time: 4, initialIndex: 0 });
 
   var PRESETS = [
     {
@@ -63,6 +63,18 @@
     }
   ];
 
+  PRESETS.push(
+    {id:"lazy-cycle",label:"非可逆，也能混合",matrix:[[.5,.5,0],[0,.5,.5],[.5,0,.5]],stationary:[1/3,1/3,1/3],family:"唯一平稳分布",note:"有自环的单向三循环；不可约非周期，却不满足细致平衡。"},
+    {id:"reversible-periodic",label:"可逆，却有周期",matrix:[[0,1],[1,0]],stationary:[.5,.5],family:"唯一平稳分布",note:"二状态互换；细致平衡成立，周期仍为2。"},
+    {id:"unique-absorbing",label:"可约，也能同极限",matrix:[[1,0],[1,0]],stationary:[1,0],family:"唯一平稳分布 δ₀",note:"只有一个闭吸收类；从任意初态一步到 δ₀。"}
+  );
+  PRESETS.forEach(function (p) {p.matrix.forEach(Object.freeze);Object.freeze(p.matrix);Object.freeze(p.stationary);Object.freeze(p);});
+  Object.freeze(PRESETS);
+  function integer(value,lo,hi,label) {
+    if(!Number.isInteger(value)||value<lo||value>hi)throw new RangeError(label+" must be an integer in ["+lo+","+hi+"]");
+    return value;
+  }
+
   var STYLE_TEXT = [
     ".mc-lab{--mc-blue:var(--cl-blue,#315f9d);--mc-gold:var(--cl-gold,#9b6a12);--mc-green:var(--cl-green,#39734d);--mc-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;}",
     ".mc-lab *,.mc-lab *::before,.mc-lab *::after{box-sizing:border-box;}",
@@ -75,6 +87,8 @@
     ".mc-lab .mc-table-wrap{max-width:100%;margin-top:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.mc-lab table{width:100%;min-width:760px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.mc-lab caption{padding:0 0 7px;text-align:left;color:var(--fg-soft);font-size:12px;}.mc-lab th,.mc-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}.mc-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750;}.mc-lab .mc-interpretation{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--mc-green);background:var(--bg);font-size:13px;line-height:1.7;overflow-wrap:anywhere;}",
     "@media(max-width:900px){.mc-lab .mc-layout{grid-template-columns:minmax(0,1fr);}}@media(max-width:760px){.mc-lab .mc-choice-grid{grid-template-columns:minmax(0,1fr);}.mc-lab .mc-preset-grid{grid-template-columns:minmax(0,1fr);}}@media(max-width:420px){.mc-lab .mc-stage-frame{padding:6px;}.mc-lab table{font-size:11.5px;}.mc-lab th,.mc-lab td{padding-left:5px;padding-right:5px;}}@media(prefers-reduced-motion:reduce){.mc-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important;}}"
   ].join("\n");
+
+  STYLE_TEXT += "\n.mc-lab .mc-layout{grid-template-columns:minmax(0,1fr)}.mc-lab .mc-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.mc-lab .mc-stage-frame{overflow:visible}.mc-lab .mc-scroll{max-width:100%;overflow-x:auto}.mc-lab .mc-svg{width:720px;min-width:720px;max-width:none}.mc-lab table{display:table!important;overflow:visible!important;max-width:none!important}.mc-lab .mc-average{fill:none;stroke:var(--mc-green);stroke-width:2.5;stroke-dasharray:7 4}.mc-lab .mc-bound{fill:none;stroke:var(--mc-gold);stroke-width:2;stroke-dasharray:3 4}.mc-lab .mc-scroll:focus-visible,.mc-lab .mc-table-wrap:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}@media(max-width:600px){.mc-lab .mc-controls{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){html:has(.mc-lab){scroll-behavior:auto!important}}";
 
   function finite(value) {
     return typeof value === "number" && isFinite(value);
@@ -136,7 +150,8 @@
   }
 
   function matrixPower(matrix, exponent) {
-    var power = Math.max(0, Math.floor(Number(exponent)));
+    validateMatrix(matrix);
+    var power = integer(exponent,0,4096,"exponent");
     var result = identity(matrix.length);
     var base = cloneMatrix(matrix);
     while (power > 0) {
@@ -166,12 +181,12 @@
   }
 
   function validateMatrix(matrix) {
-    if (!Array.isArray(matrix) || matrix.length === 0) throw new RangeError("matrix must be non-empty");
+    if (!Array.isArray(matrix) || matrix.length === 0 || matrix.length > 32) throw new RangeError("matrix must be non-empty");
     var size = matrix.length;
     matrix.forEach(function (row) {
       if (!Array.isArray(row) || row.length !== size) throw new RangeError("matrix must be square");
       row.forEach(function (value) {
-        if (!finite(value) || value < -EPS) throw new RangeError("matrix entries must be nonnegative");
+        if (!finite(value) || value < 0 || value > 1) throw new RangeError("matrix entries must be nonnegative");
       });
       if (!near(sum(row), 1, 1e-9)) throw new RangeError("matrix rows must sum to one");
     });
@@ -188,7 +203,7 @@
       while (queue.length) {
         var current = queue.shift();
         for (var next = 0; next < size; next += 1) {
-          if (!seen[next] && matrix[current][next] > EPS) {
+          if (!seen[next] && matrix[current][next] > 0) {
             seen[next] = true;
             queue.push(next);
           }
@@ -209,7 +224,7 @@
       var current = queue.shift();
       for (var index = 0; index < states.length; index += 1) {
         var next = states[index];
-        if (matrix[current][next] > EPS && distance[next] === undefined) {
+        if (matrix[current][next] > 0 && distance[next] === undefined) {
           distance[next] = distance[current] + 1;
           queue.push(next);
         }
@@ -218,7 +233,7 @@
     var period = 0;
     states.forEach(function (from) {
       states.forEach(function (to) {
-        if (matrix[from][to] > EPS && distance[to] !== undefined) {
+        if (matrix[from][to] > 0 && distance[to] !== undefined) {
           period = gcd(period, distance[from] + 1 - distance[to]);
         }
       });
@@ -248,10 +263,10 @@
       var closed = true;
       states.forEach(function (from) {
         for (var to = 0; to < size; to += 1) {
-          if (states.indexOf(to) === -1 && matrix[from][to] > EPS) closed = false;
+          if (states.indexOf(to) === -1 && matrix[from][to] > 0) closed = false;
         }
       });
-      return { states: states, closed: closed, period: closed ? periodOfClass(matrix, states) : 0 };
+      return { states: states, closed: closed, period: periodOfClass(matrix, states) };
     });
     var irreducible = classes.length === 1;
     return {
@@ -280,7 +295,7 @@
       var coefficientB = 1 - trace;
       var coefficientC = second + 1 - trace;
       var discriminant = coefficientB * coefficientB - 4 * coefficientC;
-      if (discriminant >= -EPS) {
+      if (discriminant >= 0) {
         var root = Math.sqrt(Math.max(0, discriminant));
         return [1, (-coefficientB + root) / 2, (-coefficientB - root) / 2];
       }
@@ -303,15 +318,7 @@
 
   function spectralInfo(matrix) {
     var eigenvalues = eigenvaluesOf(matrix);
-    var removedOne = false;
-    var nontrivial = [];
-    eigenvalues.forEach(function (value) {
-      if (!removedOne && typeof value === "number" && near(value, 1, 1e-8)) {
-        removedOne = true;
-      } else {
-        nontrivial.push(value);
-      }
-    });
+    var nontrivial = eigenvalues.slice(1); // eigenvaluesOf explicitly places the known root 1 first.
     var slem = 0;
     nontrivial.forEach(function (value) { slem = Math.max(slem, eigenAbsolute(value)); });
     return {
@@ -344,7 +351,9 @@
   }
 
   function isReversible(matrix, stationary, tolerance) {
-    var threshold = tolerance || 1e-9;
+    validateMatrix(matrix);
+    var threshold = tolerance === undefined ? 1e-9 : tolerance;
+    if(!finite(threshold)||threshold<0)throw new RangeError("tolerance must be finite and nonnegative");
     if (!Array.isArray(stationary) || stationary.length !== matrix.length) return false;
     if (!stationary.every(function (value) { return finite(value) && value >= 0; })) return false;
     if (Math.abs(sum(stationary) - 1) > threshold) return false;
@@ -353,24 +362,32 @@
   }
 
   function spectralCertificate(matrix, stationary, initialIndex, time, structure, spectrum) {
-    var info = structure || structureOf(matrix);
-    var spectral = spectrum || spectralInfo(matrix);
+    validateMatrix(matrix);
+    integer(initialIndex,0,matrix.length,"initialIndex"); integer(time,0,4096,"time");
+    var info = structureOf(matrix);
+    var spectral = spectralInfo(matrix);
     var validShape = Array.isArray(stationary) && stationary.length === matrix.length;
     var finiteNonnegative = validShape && stationary.every(function (value) { return finite(value) && value >= 0; });
     var normalized = finiteNonnegative && Math.abs(sum(stationary) - 1) <= 1e-9;
     var invariant = normalized && stationaryResidual(matrix, stationary) <= 1e-9;
     var reversible = invariant && isReversible(matrix, stationary);
-    var fullSupport = invariant && stationary.every(function (value) { return value > EPS; });
+    var fullSupport = invariant && stationary.every(function (value) { return value > 0; });
     var reason = "";
     if (!validShape) reason = "平稳向量维数不匹配，不能发概率证书。";
     else if (!finiteNonnegative) reason = "平稳向量必须由有限非负概率组成。";
     else if (!normalized) reason = "候选平稳向量没有归一化为概率分布。";
     else if (!invariant) reason = "候选概率不满足 pi P = pi。";
     else if (!reversible) reason = "细致平衡失败：不把 rho* 当作 TV 证书。";
-    else if (!info.irreducible) reason = "链可约：没有全局满支撑的唯一平稳证书。";
+    else if (!info.irreducible) reason = "本可逆谱证书要求不可约；当前链可约，需另行判断唯一性与收敛。";
     else if (!info.aperiodic) reason = "链有周期：rho*=1，不给逐步收敛证书。";
     else if (!fullSupport) reason = "平稳分布没有满支撑，当前 bound 的初始因子不适用。";
-    else if (spectral.rhoStar >= 1 - EPS) reason = "非平凡谱模不小于 1，不能给衰减证书。";
+    else if (spectral.rhoStar >= 1) reason = "非平凡谱模不小于 1，不能给衰减证书。";
+    // A small floating residual does not prove exact detailed balance.
+    // Publish a theorem-backed numerical bound only for the prescribed, algebraically verified model.
+    var known = PRESETS.some(function (p) {
+      return JSON.stringify(p.matrix) === JSON.stringify(matrix) && JSON.stringify(p.stationary) === JSON.stringify(stationary);
+    });
+    if(!reason && !known) reason="数值残差通过，但这不是已给出精确代数证明的预设；不据容差自动发定理证书。";
     if (reason) {
       return {
         available: false,
@@ -381,16 +398,16 @@
         reason: reason
       };
     }
-    var index = clamp(Math.round(Number(initialIndex)), 0, stationary.length - 1);
-    var factor = 0.5 * Math.sqrt(Math.max(0, 1 / stationary[index] - 1));
+    var index = initialIndex;
+    var factor = index === stationary.length ? 0 : 0.5 * Math.sqrt((1-stationary[index])/stationary[index]);
     return {
       available: true,
       reversible: true,
       rhoStar: spectral.rhoStar,
       absoluteGap: spectral.absoluteGap,
       initialFactor: factor,
-      bound: factor * Math.pow(spectral.rhoStar, Math.max(0, time)),
-      reason: "可逆 L2(pi) 收缩转成 TV 上界；不是任意非可逆链的结论。"
+      bound: factor * Math.pow(spectral.rhoStar, time),
+      reason: "预设的精确代数条件已核对；显示的是可逆 L2(pi) 理论上界的浮点求值，不是向外舍入的严格区间。"
     };
   }
 
@@ -404,32 +421,33 @@
     for (var index = 0; index < PRESETS.length; index += 1) {
       if (PRESETS[index].id === id) return PRESETS[index];
     }
-    return PRESETS[0];
+    throw new RangeError("unknown preset");
   }
 
   function compute(options) {
-    var settings = options || {};
-    var preset = presetById(settings.presetId || DEFAULT.presetId);
+    var settings = options === undefined ? {} : options;
+    if(!settings||typeof settings!=="object"||Array.isArray(settings))throw new TypeError("configuration must be an object");
+    var preset = presetById(settings.presetId === undefined ? DEFAULT.presetId : settings.presetId);
     var matrix = cloneMatrix(preset.matrix);
-    var time = clamp(Math.round(Number(settings.time === undefined ? DEFAULT.time : settings.time)), 0, 12);
-    var initialIndex = clamp(
-      Math.round(Number(settings.initialIndex === undefined ? DEFAULT.initialIndex : settings.initialIndex)),
-      0,
-      matrix.length - 1
-    );
-    var initial = delta(matrix.length, initialIndex);
+    var time = integer(settings.time === undefined ? DEFAULT.time : settings.time,0,12,"time");
+    var initialIndex = integer(settings.initialIndex === undefined ? DEFAULT.initialIndex : settings.initialIndex,0,matrix.length,"initialIndex");
+    var initial = initialIndex === matrix.length ? preset.stationary.slice() : delta(matrix.length,initialIndex);
     var power = matrixPower(matrix, time);
     var distribution = rowTimesMatrix(initial, power);
     var structure = structureOf(matrix);
     var spectrum = spectralInfo(matrix);
     var stationary = preset.stationary.slice();
     var trajectory = [];
+    var sums = matrix.map(function(){return 0;});
     for (var step = 0; step <= 12; step += 1) {
       var stepDistribution = rowTimesMatrix(initial, matrixPower(matrix, step));
+      stepDistribution.forEach(function(v,i){sums[i]+=v;});
+      var average=sums.map(function(v){return v/(step+1);});
       trajectory.push({
         time: step,
         distribution: stepDistribution,
-        tv: totalVariation(stepDistribution, stationary)
+        tv: totalVariation(stepDistribution, stationary),
+        average: average, averageTv: totalVariation(average,stationary)
       });
     }
     var certificate = spectralCertificate(
@@ -452,6 +470,8 @@
       structure: structure,
       spectrum: spectrum,
       trajectory: trajectory,
+      cesaro: trajectory[time].average,
+      cesaroTv: trajectory[time].averageTv,
       tv: totalVariation(distribution, stationary),
       stationaryResidual: stationaryResidual(matrix, stationary),
       detailedBalanceResidual: detailedBalanceResidual(matrix, stationary),
@@ -465,7 +485,8 @@
     if (value === null || value === undefined || !finite(value)) return "—";
     var places = digits === undefined ? 4 : digits;
     if (Math.abs(value) > 0 && Math.abs(value) < 0.0005) return value.toExponential(Math.min(places, 4));
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
+    var text=value.toFixed(places);
+    return text.indexOf(".")<0?text:text.replace(/0+$/, "").replace(/\.$/, "");
   }
 
   function formatVector(values) {
@@ -538,9 +559,10 @@
     choices.forEach(function (choice) {
       var button = element(doc, "button", {
         type: "button",
-        "aria-pressed": selected === choice.value ? "true" : "false"
+        "aria-pressed": selected === choice.value ? "true" : "false",
+        "data-option": label + "-" + choice.value
       }, [choice.label]);
-      button.addEventListener("click", function () { onSelect(choice.value); });
+      button.addEventListener("click", function () { onSelect(choice.value); var q=doc.querySelector('[data-option="' + label + '-' + choice.value + '"]'); if(q)q.focus({preventScroll:true}); });
       grid.appendChild(button);
     });
     fieldset.appendChild(grid);
@@ -572,14 +594,14 @@
     }, []);
     svg.appendChild(svgElement(doc, "title", { id: uid + "-title" }, ["Markov TV 曲线与分布对照"]));
     svg.appendChild(svgElement(doc, "desc", { id: uid + "-desc" }, [
-      "左侧为 t 从 0 到 12 的 TV 距离轨迹，右侧为当前分布和选定平稳分布的柱状比较。"
+      "蓝线为逐步分布TV，绿虚线为从0到t共t+1步的Cesàro平均TV；金点线仅在定理条件成立的预设显示谱上界。连线只辅助读离散时间点。右侧比较当前分布与π。"
     ]));
     var left = 48;
     var right = 355;
     var top = 42;
     var bottom = 250;
     var mapX = function (time) { return left + (right - left) * time / 12; };
-    var mapY = function (value) { return bottom - (bottom - top) * clamp(value, 0, 1); };
+    var mapY = function (value) { return bottom - (bottom - top) * value; };
     [0, 0.5, 1].forEach(function (value) {
       var y = mapY(value);
       svg.appendChild(svgElement(doc, "line", { x1: left, y1: y, x2: right, y2: y, class: "mc-grid" }, []));
@@ -589,6 +611,14 @@
     svg.appendChild(svgElement(doc, "line", { x1: left, y1: top, x2: left, y2: bottom, class: "mc-axis" }, []));
     svg.appendChild(svgElement(doc, "text", { x: left, y: 21, "font-size": 12, "font-weight": 700 }, ["TV(μ_t, π)"]));
     svg.appendChild(svgElement(doc, "text", { x: right, y: bottom + 25, "text-anchor": "end", "font-size": 11 }, ["t"]));
+    [0,3,6,9,12].forEach(function(t){svg.appendChild(svgElement(doc,"text",{x:mapX(t),y:bottom+19,"text-anchor":"middle","font-size":12},[String(t)]));});
+    var averagePath=data.trajectory.map(function(r,i){return(i?"L":"M")+mapX(r.time)+" "+mapY(r.averageTv);}).join(" ");
+    svg.appendChild(svgElement(doc,"path",{d:averagePath,class:"mc-average"},[]));
+    if(data.spectralCertificate.available){
+      var cert=data.spectralCertificate;
+      var boundPath=data.trajectory.map(function(r,i){return(i?"L":"M")+mapX(r.time)+" "+mapY(cert.initialFactor*Math.pow(cert.rhoStar,r.time));}).join(" ");
+      svg.appendChild(svgElement(doc,"path",{d:boundPath,class:"mc-bound"},[]));
+    }
     var path = data.trajectory.map(function (row, index) {
       return (index === 0 ? "M" : "L") + mapX(row.time) + " " + mapY(row.tv);
     }).join(" ");
@@ -598,6 +628,7 @@
         cx: mapX(row.time),
         cy: mapY(row.tv),
         r: row.time === data.time ? 5 : 3,
+        "data-time": row.time, "data-tv": row.tv,
         class: row.time === data.time ? "mc-current" : "mc-point"
       }, []));
     });
@@ -613,11 +644,12 @@
     var chartBottom = 250;
     var groupWidth = (chartRight - chartLeft) / Math.max(1, data.distribution.length);
     var barWidth = Math.min(25, groupWidth * 0.28);
-    var barY = function (value) { return chartBottom - (chartBottom - chartTop) * clamp(value, 0, 1); };
+    var barY = function (value) { return chartBottom - (chartBottom - chartTop) * value; };
     svg.appendChild(svgElement(doc, "text", { x: chartLeft, y: 21, "font-size": 12, "font-weight": 700 }, ["μ_t 与 π"]));
     svg.appendChild(svgElement(doc, "line", { x1: chartLeft, y1: chartBottom, x2: chartRight, y2: chartBottom, class: "mc-axis" }, []));
     [0, 0.5, 1].forEach(function (value) {
       var yGrid = barY(value);
+      svg.appendChild(svgElement(doc,"text",{x:chartLeft-8,y:yGrid+4,"text-anchor":"end","font-size":12},[format(value,1)]));
       svg.appendChild(svgElement(doc, "line", { x1: chartLeft, y1: yGrid, x2: chartRight, y2: yGrid, class: "mc-grid" }, []));
     });
     data.distribution.forEach(function (value, index) {
@@ -627,14 +659,14 @@
         y: barY(value),
         width: barWidth,
         height: chartBottom - barY(value),
-        class: "mc-bar-mu"
+        "data-state": index, "data-value": value, class: "mc-bar-mu"
       }, []));
       svg.appendChild(svgElement(doc, "rect", {
         x: center + 2,
         y: barY(data.stationary[index]),
         width: barWidth,
         height: chartBottom - barY(data.stationary[index]),
-        class: "mc-bar-pi"
+        "data-state": index, "data-value": data.stationary[index], class: "mc-bar-pi"
       }, []));
       svg.appendChild(svgElement(doc, "text", { x: center, y: chartBottom + 18, "text-anchor": "middle", "font-size": 11 }, ["状态 " + index]));
     });
@@ -679,13 +711,12 @@
         var button = element(doc, "button", {
           type: "button",
           "aria-pressed": prediction[key] === option.value ? "true" : "false",
-          disabled: revealed
+          "data-choice": key + "-" + option.value
         }, [option.label]);
         button.addEventListener("click", function () {
-          if (!revealed) {
-            prediction[key] = option.value;
-            renderGate();
-          }
+          prediction[key] = option.value; revealed=false;score=0;
+          renderGate();
+          shell.querySelector('[data-choice="' + key + '-' + option.value + '"]').focus({preventScroll:true});
         });
         grid.appendChild(button);
       });
@@ -698,7 +729,7 @@
       shell.appendChild(element(doc, "h3", {}, ["Markov 收敛审计：平稳、周期、可约分开"]));
       shell.appendChild(element(doc, "p", { className: "mc-note" }, [
         revealed
-          ? "预测已提交；可以切换链、初态和时间，逐项核对精确账本。"
+          ? "预测已提交；可以切换链、初态和时间，逐项核对理论与浮点数值账本。"
           : "先完成四项结构预测。提交前不显示矩阵幂、TV 曲线或谱数值。"
       ]));
       shell.appendChild(element(doc, "div", { className: "mc-prompt" }, [
@@ -718,7 +749,7 @@
         { value: "oscillate", label: "必然振荡" }
       ]);
       addPrediction(questions, "periodic", "3 · 不可约周期链可以？", [
-        { value: "yes-no", label: "有 π 但 TV 不趋 0" },
+        { value: "yes-no", label: "有 π，TV 仍可能不趋 0" },
         { value: "no-stationary", label: "无 π" },
         { value: "reducible", label: "因此可约" }
       ]);
@@ -747,6 +778,7 @@
         }, 0);
         revealed = true;
         renderGate();
+        shell.querySelector(".mc-revealed").focus({preventScroll:true});
         announce("预测已提交；结构、TV、细致平衡和谱账本已揭示。");
       });
       var reset = element(doc, "button", { type: "button" }, [revealed ? "重新预测" : "重置"]);
@@ -768,10 +800,10 @@
     }
 
     function buildRevealed() {
-      var panel = element(doc, "section", { className: "mc-revealed" }, [
+      var panel = element(doc, "section", { className: "mc-revealed", tabindex:"-1", "aria-label":"Markov 收敛结果与账本" }, [
         element(doc, "h4", {}, ["结果与透明账本"]),
         element(doc, "p", { className: "mc-note" }, [
-          "当前平稳分布是预设中的一个精确代表；可约链的完整平稳族会在结构栏单独标出。"
+          "预设平稳分布的代数关系见正文；残差与矩阵幂用浮点运算核对。图和账本可横向滚动，键盘聚焦区域后用左右方向键。可约链的平稳族另列。"
         ])
       ]);
       var layout = element(doc, "div", { className: "mc-layout" }, []);
@@ -788,8 +820,8 @@
       var preset = presetById(state.presetId);
       controls.appendChild(buttonGroup(
         doc,
-        "初始点质量",
-        preset.matrix.map(function (_, index) { return { value: index, label: "δ" + index }; }),
+        "初始分布",
+        preset.matrix.map(function (_, index) { return { value: index, label: "δ" + index }; }).concat([{value:preset.matrix.length,label:"所选 π"}]),
         state.initialIndex,
         function (value) { state.initialIndex = value; renderGate(); },
         "mc-option-grid"
@@ -831,9 +863,10 @@
           metric(doc, "结构", data.structure.irreducible ? (data.structure.aperiodic ? "不可约 / d=1" : "不可约 / d=" + data.structure.period) : "可约"),
           metric(doc, "πP−π 的 L1 残差", format(data.stationaryResidual, 10)),
           metric(doc, "细致平衡残差", format(data.detailedBalanceResidual, 10)),
-          metric(doc, "可逆性", data.reversible ? "通过" : "失败"),
+          metric(doc, "细致平衡数值核对", data.reversible ? "残差通过" : "残差不通过"),
           metric(doc, "ρ* / 绝对谱隙", format(data.spectrum.rhoStar, 5) + " / " + format(data.spectrum.absoluteGap, 5)),
           metric(doc, "TV(μ_t,π)", format(data.tv, 8)),
+          metric(doc, "TV(Cesàro 平均,π)",format(data.cesaroTv,8)),
           metric(doc, "谱 TV 证书", cert.available ? "可用" : "不适用")
         ]);
         stage.appendChild(metrics);
@@ -843,10 +876,11 @@
             element(doc, "span", {}, ["μ_" + data.time + " = " + formatVector(data.distribution)])
           ])
         ]);
-        frame.appendChild(drawSvg(doc, data, uid));
+        frame.appendChild(element(doc,"div",{className:"mc-scroll",role:"region",tabindex:"0","aria-label":"收敛图表，可横向滚动"},[drawSvg(doc,data,uid)]));
         frame.appendChild(element(doc, "div", { className: "mc-legend" }, [
           element(doc, "span", {}, [element(doc, "i", { className: "mc-swatch mc-swatch-blue" }, []), "TV 轨迹"]),
-          element(doc, "span", {}, [element(doc, "i", { className: "mc-swatch mc-swatch-gold" }, []), "平稳分布"]),
+          element(doc, "span", {}, ["绿虚线：Cesàro 平均 TV"]),
+          element(doc, "span", {}, [element(doc, "i", { className: "mc-swatch mc-swatch-gold" }, []), "金点线：谱上界；金柱：π"]),
           element(doc, "span", {}, [element(doc, "i", { className: "mc-swatch mc-swatch-red" }, []), "当前 t"])
         ]));
         stage.appendChild(frame);
@@ -854,25 +888,26 @@
           ? "TV ≤ " + format(cert.initialFactor, 5) + " × " + format(cert.rhoStar, 5) + "^t = " + format(cert.bound, 8) + "；这是可逆 L2(pi) 证书。"
           : cert.reason;
         var rows = [
+          ["P",formatMatrix(data.matrix),"原始一步矩阵；P⁰=I"],
           ["P^t", formatMatrix(data.power), "每行和 " + formatVector(data.rowSums)],
-          ["μ_t", formatVector(data.distribution), "从 δ" + data.initialIndex + " 出发"],
+          ["μ_t", formatVector(data.distribution), "初始分布 "+formatVector(data.initial)],
+          ["Cesàro 平均",formatVector(data.cesaro),"平均 μ₀,…,μ_t 共 "+(data.time+1)+" 项；TV="+format(data.cesaroTv,8)],
           ["π", formatVector(data.stationary), data.preset.family],
           ["结构", data.structure.classes.map(function (states) { return "{" + states.join(",") + "}"; }).join("；"), data.preset.note],
           ["特征值", data.spectrum.eigenvalues.map(formatEigen).join("，"), "ρ*=" + format(data.spectrum.rhoStar, 6)],
           ["细致平衡", format(data.detailedBalanceResidual, 10), data.reversible ? "π_i P_ij = π_j P_ji" : "不能用可逆链谱理论"],
           ["谱证书", cert.available ? format(cert.bound, 8) : "—", spectralText]
         ];
-        stage.appendChild(element(doc, "div", { className: "mc-table-wrap" }, [
+        stage.appendChild(element(doc, "div", { className: "mc-table-wrap", role:"region", tabindex:"0", "aria-label":"收敛账本，可横向滚动" }, [
           tableElement(doc, "Markov 逐项审计账本", ["检查", "读数", "解释"], rows)
         ]));
-        var interpretation;
-        if (data.preset.id === "mixing") {
-          interpretation = "当前链不可约且非周期，且确实可逆；本 toy 从 δ" + data.initialIndex + " 的 TV 还可精确对账。";
-        } else if (data.preset.id === "periodic") {
-          interpretation = "当前链有唯一 π，但 d=3 的循环模式不衰减；平稳残差为零不能替 TV 收敛。";
-        } else {
-          interpretation = "当前链有两个闭类；改变初始状态会改变长期闭类，代表 π 只是平稳族中的一个成员。";
-        }
+        var interpretation = data.preset.note + " 初态为 " + formatVector(data.initial) + "。";
+        if(data.initialIndex===data.matrix.length)interpretation+="从所选 π 出发，逐步分布和平均都保持 π；数值可能有舍入残差。";
+        else if(data.preset.id==="lazy-cycle")interpretation+="细致平衡失败不妨碍分布收敛；本页的可逆谱公式不适用，不能据此宣布不混合。";
+        else if(data.preset.id==="periodic"||data.preset.id==="reversible-periodic")interpretation+="点质量初态的逐步TV不衰减，Cesàro平均却趋π。";
+        else if(data.preset.id==="reducible")interpretation+="到所选 π 的TV不趋0，并不等于分布本身没有极限。";
+        else if(data.preset.id==="unique-absorbing")interpretation+="这里有唯一极限，但不可约条件不成立；充分条件不是必要条件。";
+        else interpretation+="蓝线是实际TV；金线是带初态因子的上界，并非两条相等的曲线。";
         stage.appendChild(element(doc, "p", { className: "mc-interpretation", "aria-live": "polite" }, [interpretation]));
       }
     }
@@ -883,6 +918,7 @@
       revealed = false;
       score = 0;
       renderGate();
+      shell.querySelector("[data-choice]").focus({preventScroll:true});
       announce("Markov 收敛实验已重置；请重新完成四项预测。");
     }
 
@@ -950,6 +986,20 @@
     assert(near(absorbingOne.distribution[1], 1, 1e-12), "absorbing one");
     var identityPower = matrixPower(PRESETS[0].matrix, 0);
     assert(near(identityPower[0][0], 1, 1e-12) && near(identityPower[1][1], 1, 1e-12), "P zero identity");
+    PRESETS.forEach(function(p) {
+      var r=compute({presetId:p.id,time:12,initialIndex:p.matrix.length});
+      assert(near(r.tv,0,1e-12)&&near(r.cesaroTv,0,1e-12),"stationary initial: "+p.id);
+    });
+    var lazy=compute({presetId:"lazy-cycle",time:12});
+    assert(lazy.structure.aperiodic&&!lazy.reversible&&lazy.tv<.001,"nonreversible mixing counterexample");
+    assert(!lazy.spectralCertificate.available,"no reversible bound for lazy directed cycle");
+    var revperiodic=compute({presetId:"reversible-periodic",time:3});
+    assert(revperiodic.reversible&&revperiodic.structure.period===2&&!revperiodic.spectralCertificate.available,"reversible is not aperiodic");
+    assert(revperiodic.cesaroTv===0&&revperiodic.tv===.5,"average and step differ");
+    var unique=compute({presetId:"unique-absorbing",time:1,initialIndex:1});
+    assert(!unique.structure.irreducible&&unique.tv===0,"reducible unique limit");
+    assert(format(0,0)==="0"&&format(10,0)==="10","integer labels keep zeros");
+    assert(structureOf([[0,1,0],[1e-300,0,1],[0,1,0]]).period===2,"positive tiny edge retained");
     return { checks: checks, presets: PRESETS.length };
   }
 
@@ -958,6 +1008,9 @@
   }
 
   return {
+    drawSvg: drawSvg,
+    format: format,
+    validateMatrix: validateMatrix,
     DEFAULT: DEFAULT,
     PRESETS: PRESETS,
     matrixPower: matrixPower,

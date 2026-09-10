@@ -46,152 +46,292 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 06:12</div>
+    <div class="build-time">构建于 2026-09-10 07:54</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#markov-convergence-learning-title">学习层：有平稳分布，不等于已经混合</a><ul>
-<li><a href="#1">1. 具体开场：三条链，三种长期故事</a></li>
-<li><a href="#2">2. 先预测，再打开账本</a></li>
-<li><a href="#3">3. 形式桥：四本账各自回答一个问题</a></li>
-<li><a href="#4-javascript">4. 静态后备：JavaScript 失效时仍可读的账本</a></li>
-<li><a href="#5">5. 边界与常见误读</a></li>
-<li><a href="#6">6. 迁移问题</a></li>
+<li><a href="#markov-convergence-learning-title">学习层：同一张矩阵，读四种证据</a><ul>
+<li><a href="#1">1. 先预测</a></li>
+<li><a href="#2">2. 静态后备：六条链把逻辑方向分开</a></li>
+<li><a href="#3">3. 四本账</a></li>
 </ul>
 </li>
-<li><a href="#1_1">1. 平稳分布：不变性方程的线性代数</a></li>
-<li><a href="#2_1">2. 何时才收敛</a></li>
-<li><a href="#3_1">3. 细致平衡、可逆性与安全的谱证书</a></li>
-<li><a href="#4-pagerankmcmc">4. PageRank、MCMC 与模型边界</a></li>
-<li><a href="#5_1">5. 练习</a></li>
+<li><a href="#1_1">1. 平稳分布为什么存在，何时唯一？</a><ul>
+<li><a href="#11">1.1 有限状态：用平均直接构造</a></li>
+<li><a href="#12">1.2 不可约给出正性与唯一性</a></li>
+</ul>
+</li>
+<li><a href="#2_1">2. 逐步分布、平均分布和样本平均</a><ul>
+<li><a href="#21">2.1 逐步分布收敛</a></li>
+<li><a href="#22-cesaro">2.2 周期与 Cesàro 平均</a></li>
+<li><a href="#23">2.3 一条轨迹的平均是第三个对象</a></li>
+</ul>
+</li>
+<li><a href="#3_1">3. 细致平衡：双向流量与时间反演</a></li>
+<li><a href="#4-tv">4. 从加权平方误差推到 TV 上界</a></li>
+<li><a href="#5-pagerank">5. PageRank：跳转的两种作用</a></li>
+<li><a href="#6-mcmc">6. MCMC：不变目标、混合误差与相关样本</a></li>
+<li><a href="#7">7. 练习与展开答案</a><ul>
+<li><a href="#1_2">练习 1：三循环的平均究竟差多少？</a></li>
+<li><a href="#2_2">练习 2：完整比较两个初态的谱因子</a></li>
+<li><a href="#3-pagerank">练习 3：稀疏跳转也能保证 PageRank 收敛吗？</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </details>
 <h1 id="iii-markov">随机过程 III · Markov 链（二）：平稳分布与收敛<a class="headerlink" href="#iii-markov" title="Permanent link"></a></h1>
 <blockquote>
-<p>上一页问“怎么走”，本页问“走到哪里以后还能保持什么”。平稳分布是一个不变性方程；收敛则是动力学命题，必须另外检查不可约性与非周期性。本页用三个有限链把这两个问题拆开，再把细致平衡和谱信息放回它们真正适用的范围。</p>
+<p>一个客人在几个房间之间移动。“每个时刻住在各房间的概率不变”“忘记了出发房间”“一条长轨迹的访问比例稳定”是三个不同问题。本页把它们分别写成方程，再解释哪些条件能把这些结论连接起来。</p>
 </blockquote>
 <div data-learning-page></div>
 
 <section aria-labelledby="markov-convergence-learning-title" class="learning-layer">
-<h2 id="markov-convergence-learning-title">学习层：有平稳分布，不等于已经混合<a class="headerlink" href="#markov-convergence-learning-title" title="Permanent link"></a></h2>
-<h3 id="1">1. 具体开场：三条链，三种长期故事<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>假设你观察一个只在有限个房间之间移动的客人。第一条链会逐步忘记起点；第二条链虽然有一个稳定的长期配额，却按固定节拍循环；第三条链一旦进入两个吸收房间之一，就再也不会离开。三条链都能写出 <span class="arithmatex">\(\pi P=\pi\)</span>，但只有第一条给出逐步分布的混合结论。</p>
-<h3 id="2">2. 先预测，再打开账本<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>交互实验先隐藏矩阵幂、TV 曲线、细致平衡和特征值。请先判断：</p>
+<h2 id="markov-convergence-learning-title">学习层：同一张矩阵，读四种证据<a class="headerlink" href="#markov-convergence-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 先预测<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>实验先隐藏数值。请判断：</p>
 <ol>
-<li><span class="arithmatex">\(\pi P=\pi\)</span> 直接证明的是平稳性，还是已经证明了从任意初态收敛？</li>
-<li>有限链不可约且非周期时，<span class="arithmatex">\(\mu_t=\mu_0P^t\)</span> 是否趋向唯一的 <span class="arithmatex">\(\pi\)</span>？</li>
-<li>不可约周期链能否有唯一平稳分布，却使 <span class="arithmatex">\(\operatorname{TV}(\mu_t,\pi)\)</span> 不趋于 <span class="arithmatex">\(0\)</span>？</li>
-<li>看到一个谱模 <span class="arithmatex">\(\rho_\star\)</span>，是否可以不检查可逆性就把 <span class="arithmatex">\(\rho_\star^t\)</span> 当成 TV 的通用证书？</li>
+<li>概率向量 <span class="arithmatex">\(\pi\)</span> 满足 <span class="arithmatex">\(\pi P=\pi\)</span>，证明了不变性，还是所有初态已经收敛？</li>
+<li>有限链不可约且非周期，是否从每个初态趋向唯一 <span class="arithmatex">\(\pi\)</span>？</li>
+<li>不可约周期链能否有唯一 <span class="arithmatex">\(\pi\)</span>，而某些初态的 TV 不趋于零？</li>
+<li>能否把任意有限链的非平凡特征值模直接代入本页的可逆 TV 上界？</li>
 </ol>
-<p>揭示后可以切换链、初始状态和时间。每次改变参数，账本会同时重算 <span class="arithmatex">\(P^t\)</span>、<span class="arithmatex">\(\mu_t\)</span>、平稳残差、细致平衡残差、TV 轨迹和谱栏。</p>
-<h3 id="3">3. 形式桥：四本账各自回答一个问题<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>本页使用行随机矩阵和行分布：</p>
-<div class="arithmatex">\[
-P^t,\qquad \mu_t=\mu_0P^t,\qquad
-\operatorname{TV}(\mu_t,\pi)=\frac12\sum_i|\mu_t(i)-\pi_i|,
-\]</div>
-<p>以及两个残差：</p>
-<div class="arithmatex">\[
-r_{\mathrm{stat}}=\|\pi P-\pi\|_1,\qquad
-r_{\mathrm{DB}}=\max_{i,j}|\pi_iP_{ij}-\pi_jP_{ji}|.
-\]</div>
-<p><span class="arithmatex">\(r_{\mathrm{stat}}=0\)</span> 是平稳方程的证书；<span class="arithmatex">\(r_{\mathrm{DB}}=0\)</span> 是相对于这个 <span class="arithmatex">\(\pi\)</span> 的细致平衡证书。它们都不是自动的混合证书。</p>
-<h3 id="4-javascript">4. 静态后备：JavaScript 失效时仍可读的账本<a class="headerlink" href="#4-javascript" title="Permanent link"></a></h3>
+<h3 id="2">2. 静态后备：六条链把逻辑方向分开<a class="headerlink" href="#2" title="Permanent link"></a></h3>
 <div class="learning-lab" data-learning-lab="markov-convergence">
-<p><strong>静态读法：</strong>以下从 <span class="arithmatex">\(\delta_0\)</span> 出发，<span class="arithmatex">\(\operatorname{TV}(\mu,\nu)=\frac12\sum_i|\mu_i-\nu_i|\)</span>。谱证书只在明确写出的可逆、不可约、非周期和满支撑条件下使用。</p>
+<p><strong>JavaScript 失效时的读法：</strong>统一使用行随机矩阵、行分布、从 <span class="arithmatex">\(0\)</span> 开始的状态编号。下表的逐步 TV 均从 <span class="arithmatex">\(\delta_0\)</span> 出发；实验还可选择每个 <span class="arithmatex">\(\delta_i\)</span> 或选定的 <span class="arithmatex">\(\pi\)</span>。</p>
 <table>
 <thead>
 <tr>
-<th>链</th>
-<th><span class="arithmatex">\(P\)</span> 与 <span class="arithmatex">\(\pi\)</span></th>
-<th>结构/细致平衡</th>
-<th>TV 与谱读法</th>
+<th>预设</th>
+<th>矩阵与平稳分布</th>
+<th>结构与细致平衡</th>
+<th>逐步分布的结论</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>不可约、非周期</td>
-<td><span class="arithmatex">\(P=\begin{pmatrix}0.8&amp;0.2\\0.3&amp;0.7\end{pmatrix}\)</span>，<span class="arithmatex">\(\pi=(0.6,0.4)\)</span></td>
-<td><span class="arithmatex">\(d=1\)</span>；<span class="arithmatex">\(0.6\cdot0.2=0.4\cdot0.3\)</span>，可逆；<span class="arithmatex">\(r_{\mathrm{stat}}=r_{\mathrm{DB}}=0\)</span></td>
-<td><span class="arithmatex">\(\mu_t=(0.6+0.4\cdot0.5^t,0.4-0.4\cdot0.5^t)\)</span>，故 <span class="arithmatex">\(\operatorname{TV}=0.4\cdot0.5^t\)</span>；<span class="arithmatex">\(\rho_\star=0.5\)</span>，可给出可逆谱上界</td>
+<td>可逆混合</td>
+<td><span class="arithmatex">\(P=\begin{pmatrix}.8&amp;.2\\.3&amp;.7\end{pmatrix}\)</span>，<span class="arithmatex">\(\pi=(.6,.4)\)</span></td>
+<td>不可约、<span class="arithmatex">\(d=1\)</span>；双向流均为 <span class="arithmatex">\(.12\)</span></td>
+<td>TV <span class="arithmatex">\(=.4\cdot2^{-t}\)</span>；可逆谱上界适用</td>
 </tr>
 <tr>
-<td>不可约、周期</td>
-<td><span class="arithmatex">\(P=\begin{pmatrix}0&amp;1&amp;0\\0&amp;0&amp;1\\1&amp;0&amp;0\end{pmatrix}\)</span>，<span class="arithmatex">\(\pi=(1/3,1/3,1/3)\)</span></td>
-<td><span class="arithmatex">\(d=3\)</span>；有唯一平稳分布但细致平衡失败；<span class="arithmatex">\(r_{\mathrm{stat}}=0\)</span></td>
-<td>特征值 <span class="arithmatex">\(1,e^{2\pi i/3},e^{-2\pi i/3}\)</span>，<span class="arithmatex">\(\rho_\star=1\)</span>；<span class="arithmatex">\(\delta_0P^t\)</span> 循环，TV 永远为 <span class="arithmatex">\(2/3\)</span>；不提供收敛证书</td>
+<td>单向三循环</td>
+<td><span class="arithmatex">\(C=\begin{pmatrix}0&amp;1&amp;0\\0&amp;0&amp;1\\1&amp;0&amp;0\end{pmatrix}\)</span>，<span class="arithmatex">\(\pi=(1/3,1/3,1/3)\)</span></td>
+<td>不可约、<span class="arithmatex">\(d=3\)</span>；细致平衡失败</td>
+<td>TV <span class="arithmatex">\(=2/3\)</span>，逐步不收敛；Cesàro 平均收敛</td>
 </tr>
 <tr>
-<td>可约、两个吸收类</td>
-<td><span class="arithmatex">\(P=\begin{pmatrix}1&amp;0&amp;0\\0&amp;1&amp;0\\0.5&amp;0.5&amp;0\end{pmatrix}\)</span>，选 <span class="arithmatex">\(\pi=(0.5,0.5,0)\)</span></td>
-<td>闭类 <span class="arithmatex">\(\{0\},\{1\}\)</span>；平稳族 <span class="arithmatex">\(\pi_a=(a,1-a,0)\)</span>；选定代表满足两种残差为 <span class="arithmatex">\(0\)</span>，但没有满支撑</td>
-<td>从 <span class="arithmatex">\(\delta_2\)</span> 一步到 <span class="arithmatex">\((0.5,0.5,0)\)</span>；从 <span class="arithmatex">\(\delta_0\)</span> 或 <span class="arithmatex">\(\delta_1\)</span> 留在不同闭类；<span class="arithmatex">\(\rho_\star=1\)</span>，不提供谱收敛证书</td>
+<td>两吸收类</td>
+<td><span class="arithmatex">\(R=\begin{pmatrix}1&amp;0&amp;0\\0&amp;1&amp;0\\1/2&amp;1/2&amp;0\end{pmatrix}\)</span>，<span class="arithmatex">\(\pi_a=(a,1-a,0)\)</span></td>
+<td>可约；所选 <span class="arithmatex">\(\pi_{1/2}\)</span> 满足细致平衡，但无满支撑</td>
+<td>从不同吸收态出发留在不同极限</td>
+</tr>
+<tr>
+<td>非可逆混合</td>
+<td><span class="arithmatex">\(L=(I+C)/2\)</span>，<span class="arithmatex">\(\pi=(1/3,1/3,1/3)\)</span></td>
+<td>不可约、<span class="arithmatex">\(d=1\)</span>；细致平衡失败</td>
+<td>仍趋向 <span class="arithmatex">\(\pi\)</span>；不能使用本页的可逆公式作证书</td>
+</tr>
+<tr>
+<td>可逆周期链</td>
+<td><span class="arithmatex">\(B=\begin{pmatrix}0&amp;1\\1&amp;0\end{pmatrix}\)</span>，<span class="arithmatex">\(\pi=(1/2,1/2)\)</span></td>
+<td>不可约、<span class="arithmatex">\(d=2\)</span>；细致平衡成立</td>
+<td>TV <span class="arithmatex">\(=1/2\)</span>；可逆并未消除周期</td>
+</tr>
+<tr>
+<td>唯一吸收类</td>
+<td><span class="arithmatex">\(A=\begin{pmatrix}1&amp;0\\1&amp;0\end{pmatrix}\)</span>，<span class="arithmatex">\(\pi=(1,0)\)</span></td>
+<td>可约；<span class="arithmatex">\(\pi\)</span> 无满支撑</td>
+<td>任意初态一步到 <span class="arithmatex">\(\pi\)</span>；不可约不是该结论的必要条件</td>
 </tr>
 </tbody>
 </table>
-<h3 id="5">5. 边界与常见误读<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<ul>
-<li><strong>平稳性不是收敛性。</strong>有限链总能找到至少一个平稳分布；唯一性和从任意初态的逐步收敛要看结构条件。</li>
-<li><strong>周期不是“没有平稳分布”。</strong>三循环的均匀分布是唯一平稳分布，但逐步分布只在状态间轮换；Cesàro 平均是另一个命题。</li>
-<li><strong>谱隙不是无条件的 TV 公式。</strong>非可逆矩阵可能有非正交特征向量和瞬态放大；本实验只在可逆、不可约、非周期、满支撑时给出标准 <span class="arithmatex">\(L^2(\pi)\)</span> 到 TV 的上界。</li>
-<li><strong>可约链要先拆闭类。</strong>一个初始分布看起来有极限，不代表全链有唯一极限；不同闭类的平稳组合可以同时存在。</li>
-<li><strong>残差的零点也有语义。</strong><span class="arithmatex">\(r_{\mathrm{stat}}=0\)</span> 只说明当前选定的 <span class="arithmatex">\(\pi\)</span> 解了方程，不能替它补上不可约、非周期或可逆假设。</li>
-</ul>
+<h3 id="3">3. 四本账<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<div class="arithmatex">\[
+\mu_t=\mu_0P^t,\quad
+\bar\mu_M=\frac1M\sum_{n=0}^{M-1}\mu_0P^n,\quad
+\operatorname{TV}(\mu,\nu)=\frac12\sum_i|\mu_i-\nu_i|.
+\]</div>
+<p>实验在当前 <span class="arithmatex">\(t\)</span> 显示 <strong><span class="arithmatex">\(M=t+1\)</span></strong> 项平均，即 <span class="arithmatex">\(\mu_0,\ldots,\mu_t\)</span>。蓝线是逐步分布的 TV，绿虚线是这个平均的 TV，金点线仅在已证明适用的预设中显示可逆谱上界。右侧柱形图比较 <span class="arithmatex">\(\mu_t\)</span> 与所选 <span class="arithmatex">\(\pi\)</span>。连线辅助读取整数时间，不是在两次跳转之间定义连续时间过程。</p>
+<p>另外列出</p>
+<div class="arithmatex">\[
+r_{\rm stat}=\|\pi P-\pi\|_1,\qquad
+r_{\rm DB}=\max_{i,j}|\pi_iP_{ij}-\pi_jP_{ji}|.
+\]</div>
+<p><strong>精确等式是数学条件，小数残差是数值检查。</strong> 预设的平稳性、结构与细致平衡在正文有独立代数论证；程序中的容差不能为任意输入矩阵自动证明这些条件。显示的上界也是理论公式的浮点求值，并非严格向外舍入的区间。可逆性失败不表示不能混合；到某个任选的平稳分布的 TV 不趋零，也不表示逐步分布没有另一个极限。</p>
 </div>
-<h3 id="6">6. 迁移问题<a class="headerlink" href="#6" title="Permanent link"></a></h3>
-<p>若你用 PageRank 的随机跳转破坏周期性，哪一项结构被人为补上？若用 Metropolis–Hastings 构造目标分布，为什么逐对细致平衡足以推出全局平稳性，却仍要检查不可约性和非周期性才可谈样本混合？</p>
-<details>
-<summary>迁移题参考答案</summary>
-<p>对有限状态 PageRank，先把悬挂节点补成合法的转移概率行，再设每步以概率 <span class="arithmatex">\(\alpha\in(0,1)\)</span> 跳转到分布 <span class="arithmatex">\(v\)</span>。若每个 <span class="arithmatex">\(v_j&gt;0\)</span>，则新矩阵 <span class="arithmatex">\(P_{ij}\ge\alpha v_j&gt;0\)</span>：任意两点一步可达，且每点有自环，因此同时得到不可约与非周期。若跳转只支撑部分状态，就不能宣称每个状态都有自环或全链不可约；这些性质需要重新检查。</p>
-<p>对 Metropolis–Hastings，逐对细致平衡 <span class="arithmatex">\(\pi_iP_{ij}=\pi_jP_{ji}\)</span> 对 <span class="arithmatex">\(i\)</span> 求和可得 <span class="arithmatex">\((\pi P)_j=\sum_i\pi_iP_{ij}=\sum_i\pi_jP_{ji}=\pi_j\)</span>，所以 <span class="arithmatex">\(\pi\)</span> 平稳。但这个代数等式没有说明状态是否彼此可达，也没有消除周期；不可约性决定能否从任意初态探索目标支撑，非周期性决定逐步分布是否真正收敛。因此“目标分布不变”与“样本已经混合”是两张证书。</p>
-</details>
 </section>
-<h2 id="1_1">1. 平稳分布：不变性方程的线性代数<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p>行向量 <span class="arithmatex">\(\pi\)</span> 满足 <span class="arithmatex">\(\pi_i\ge0\)</span>、<span class="arithmatex">\(\sum_i\pi_i=1\)</span> 且</p>
+<h2 id="1_1">1. 平稳分布为什么存在，何时唯一？<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>概率行向量 <span class="arithmatex">\(\pi\)</span> 满足 <span class="arithmatex">\(\pi_i\ge0\)</span>、<span class="arithmatex">\(\sum_i\pi_i=1\)</span>、<span class="arithmatex">\(\pi P=\pi\)</span>，才称平稳分布。只求出左特征向量还不够：零向量或未归一化向量不属于概率分布。</p>
+<p>若 <span class="arithmatex">\(X_0\sim\pi\)</span>，则每个时刻的边缘分布都是 <span class="arithmatex">\(\pi\)</span>。对时齐链，连同 Markov 路径概率公式，还能得到整个过程的<strong>严格平稳性</strong>：任意有限串的联合分布平移后不变。但相邻状态仍可能强相关，平稳不等于独立。</p>
+<h3 id="11">1.1 有限状态：用平均直接构造<a class="headerlink" href="#11" title="Permanent link"></a></h3>
+<p>从任意 <span class="arithmatex">\(\mu\)</span> 出发，令 <span class="arithmatex">\(\nu_M=M^{-1}\sum_{n=0}^{M-1}\mu P^n\)</span>。概率单纯形是紧的，可以取收敛子列；而</p>
 <div class="arithmatex">\[
-\pi P=\pi
+\nu_MP-\nu_M=\frac{\mu P^M-\mu}{M},\qquad
+\|\nu_MP-\nu_M\|_1\le\frac2M.
 \]</div>
-<p>时称为平稳分布。若 <span class="arithmatex">\(X_0\sim\pi\)</span>，则每个时刻 <span class="arithmatex">\(X_t\)</span> 都有同一分布；这是一条关于初始分布的保持定理，不是说任意初始分布已经等于 <span class="arithmatex">\(\pi\)</span>。</p>
-<p>因为 <span class="arithmatex">\(P\mathbf 1=\mathbf1\)</span>，<span class="arithmatex">\(1\)</span> 是右特征值；平稳分布是左特征值 <span class="arithmatex">\(1\)</span> 的非负归一化向量。有限状态空间总有平稳分布，但 Perron–Frobenius 给出的正性、简单性和唯一性要结合不可约性来读。实际求解是线性方程组 <span class="arithmatex">\(\pi(P-I)=0\)</span> 加上归一化约束。</p>
-<h2 id="2_1">2. 何时才收敛<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p><strong>有限链基本极限定理。</strong>若 <span class="arithmatex">\(P\)</span> 不可约且非周期，则存在唯一平稳分布 <span class="arithmatex">\(\pi\)</span>，并且对任意初始分布 <span class="arithmatex">\(\mu_0\)</span>，</p>
+<p>所以任一子列极限 <span class="arithmatex">\(\pi\)</span> 都满足 <span class="arithmatex">\(\pi P=\pi\)</span>。这证明有限链至少有一个平稳分布，没有提前假定逐步分布收敛。</p>
+<h3 id="12">1.2 不可约给出正性与唯一性<a class="headerlink" href="#12" title="Permanent link"></a></h3>
+<p>若 <span class="arithmatex">\(\pi_i&gt;0\)</span>，从 <span class="arithmatex">\(i\)</span> 可达 <span class="arithmatex">\(j\)</span>，则某个 <span class="arithmatex">\(n\)</span> 有
+<span class="arithmatex">\(\pi_j=(\pi P^n)_j\ge\pi_i(P^n)_{ij}&gt;0\)</span>。不可约使平稳分布每项都正。</p>
+<p>若 <span class="arithmatex">\(\sigma\)</span> 是另一平稳分布，设 <span class="arithmatex">\(r_j=\sigma_j/\pi_j\)</span>，则</p>
 <div class="arithmatex">\[
-\mu_0P^t\longrightarrow\pi.
+r_j=\sum_i\frac{\pi_iP_{ij}}{\pi_j}r_i.
 \]</div>
-<p>不可约保证状态属于同一个互通类，非周期排除单位圆上其他根导致的振荡。可约链要按互通类和闭类分析；周期链可以有唯一 <span class="arithmatex">\(\pi\)</span>，但只能保证适当的时间平均结论。</p>
-<p>对第一张二维链，非平凡特征值是 <span class="arithmatex">\(0.5\)</span>，所以从 <span class="arithmatex">\(\delta_0\)</span> 出发可以精确写出 <span class="arithmatex">\(\operatorname{TV}=0.4\cdot0.5^t\)</span>。这是该模型的对账，不是把任意有限链都简化成一个标量谱公式。</p>
-<h2 id="3_1">3. 细致平衡、可逆性与安全的谱证书<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p>若</p>
+<p>右侧是概率加权平均。取 <span class="arithmatex">\(r_j\)</span> 的最大值，所有正权重前驱也必须达到同一最大值；沿反向可达路径传播，不可约使所有 <span class="arithmatex">\(r_i\)</span> 相同。归一化迫使这个常数为 <span class="arithmatex">\(1\)</span>，所以 <span class="arithmatex">\(\sigma=\pi\)</span>。<strong>这一步不需要非周期。</strong></p>
+<p>可约有限链的平稳分布则是各闭不可约类平稳分布的凸组合，瞬过状态上的平稳质量为零。实验的 <span class="arithmatex">\(R\)</span> 有两个闭类，因此所有平稳分布为 <span class="arithmatex">\((a,1-a,0)\)</span>；实验的 <span class="arithmatex">\(A\)</span> 虽可约，却仅有一个闭类，平稳分布仍唯一。</p>
+<h2 id="2_1">2. 逐步分布、平均分布和样本平均<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<div aria-label="Markov收敛静态图，可横向滚动" class="markov-convergence-static" role="region" tabindex="0">
+<figure class="plot">
+<p><img alt="相同时间和TV尺度下的逐步分布、Cesàro平均与可逆谱上界" src="assets/img/stoch-03-markov-convergence.svg" /></p>
+<figcaption><span class="fig-id">图 2.1</span>三张图均从状态零出发。周期链的蓝线不衰减，绿线仍趋零；非可逆链也能混合。矩阵与实验相同，手机可横向滚动。</figcaption>
+</figure>
+</div>
+<style>
+.markov-convergence-static{max-width:100%;overflow-x:auto}.markov-convergence-static figure{width:1100px;max-width:none;margin:0}.markov-convergence-static img{width:1100px;max-width:none}.markov-convergence-static:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+
+<h3 id="21">2.1 逐步分布收敛<a class="headerlink" href="#21" title="Permanent link"></a></h3>
+<p><strong>有限链极限定理。</strong> 若不可约且非周期，则对任意初始分布 <span class="arithmatex">\(\mu_0\)</span>，</p>
+<div class="arithmatex">\[
+\operatorname{TV}(\mu_0P^n,\pi)\longrightarrow0.
+\]</div>
+<p>一个可理解的证明骨架是：有限不可约非周期链存在整数 <span class="arithmatex">\(r\)</span>，使 <span class="arithmatex">\(P^r\)</span> 的每项都正。设
+<span class="arithmatex">\(b_j=\min_i(P^r)_{ij}\)</span>、<span class="arithmatex">\(\varepsilon=\sum_jb_j&gt;0\)</span>。每一行至少共享概率质量 <span class="arithmatex">\(b\)</span>；扣去这份公共质量后，剩余部分的总质量为 <span class="arithmatex">\(1-\varepsilon\)</span>。于是</p>
+<div class="arithmatex">\[
+\operatorname{TV}(\mu P^r,\nu P^r)
+\le(1-\varepsilon)\operatorname{TV}(\mu,\nu).
+\]</div>
+<p>若 <span class="arithmatex">\(\varepsilon=1\)</span>，各行已经相同；否则归一化剩余部分即可得到一个随机矩阵。重复分块收缩，并用剩余步的 TV 不增性，得到对任意初态的收敛。这里“某个矩阵幂全正”依赖有限、不可约和非周期三项条件。</p>
+<p>不可约是上述定理的充分条件之一，不能反读成任何收敛链都不可约；<span class="arithmatex">\(A\)</span> 就是一步收敛的可约反例。非可逆也不妨碍此证明：<span class="arithmatex">\(L=(I+C)/2\)</span> 不满足细致平衡，却有自环且不可约，仍会混合。</p>
+<h3 id="22-cesaro">2.2 周期与 Cesàro 平均<a class="headerlink" href="#22-cesaro" title="Permanent link"></a></h3>
+<p>有限不可约链即使有周期，仍有</p>
+<div class="arithmatex">\[
+\bar\mu_M=\frac1M\sum_{n=0}^{M-1}\mu_0P^n\longrightarrow\pi.
+\]</div>
+<p>证明可继续用第 1 节：平均分布的每个子列极限都平稳，而平稳分布唯一，所以整个平均序列收敛。三循环从 <span class="arithmatex">\(\delta_0\)</span> 出发时，每三个时刻依次为 <span class="arithmatex">\(\delta_0,\delta_1,\delta_2\)</span>；整组三项平均恰为均匀分布，剩余不到三项的影响随 <span class="arithmatex">\(M\)</span> 增大而消失。</p>
+<p>但从 <span class="arithmatex">\(\pi\)</span> 出发，即使周期链也每步保持 <span class="arithmatex">\(\pi\)</span>。说“周期链不收敛”时，应明确是<strong>不能保证每个初态的逐步分布收敛到 <span class="arithmatex">\(\pi\)</span></strong>。</p>
+<h3 id="23">2.3 一条轨迹的平均是第三个对象<a class="headerlink" href="#23" title="Permanent link"></a></h3>
+<p>对有限不可约链及任意实函数 <span class="arithmatex">\(f\)</span>，遍历定理给出</p>
+<div class="arithmatex">\[
+\frac1M\sum_{n=0}^{M-1}f(X_n)\longrightarrow\sum_i\pi_if(i)
+\quad\text{几乎必然}.
+\]</div>
+<p>这也不需要非周期。左边是一条随机轨迹的样本平均；<span class="arithmatex">\(\bar\mu_M\)</span> 是一组<strong>分布向量</strong>的平均，两者不能直接画等号。实验精确传播小矩阵并计算后者，没有用一条模拟轨迹代替定理。</p>
+<h2 id="3_1">3. 细致平衡：双向流量与时间反演<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
+<p>若 <span class="arithmatex">\(\pi\)</span> 是概率分布并满足</p>
 <div class="arithmatex">\[
 \pi_iP_{ij}=\pi_jP_{ji}\quad\text{对所有 }i,j,
 \]</div>
-<p>则称 <span class="arithmatex">\(P\)</span> 关于 <span class="arithmatex">\(\pi\)</span> 满足细致平衡，链在平稳测度下可逆。对 <span class="arithmatex">\(j\)</span> 求和立即得到 <span class="arithmatex">\(\pi P=\pi\)</span>，所以细致平衡是更强的构造/验证条件。</p>
-<p>对有限、不可约、非周期且可逆的链，<span class="arithmatex">\(P\)</span> 在 <span class="arithmatex">\(L^2(\pi)\)</span> 中自伴，特征值为实数。令</p>
+<p>称关于 <span class="arithmatex">\(\pi\)</span> 满足细致平衡。固定 <span class="arithmatex">\(j\)</span>、对 <strong><span class="arithmatex">\(i\)</span> 求和</strong>：</p>
 <div class="arithmatex">\[
-\rho_\star=\max_{\lambda\ne1}|\lambda|&lt;1,
+(\pi P)_j=\sum_i\pi_iP_{ij}
+=\pi_j\sum_iP_{ji}=\pi_j.
 \]</div>
-<p>从状态 <span class="arithmatex">\(i\)</span> 的点质量出发，有一个标准的、带初始分布因子的 TV 上界：</p>
+<p>最后的和是第 <span class="arithmatex">\(j\)</span> 行的行和。细致平衡因此推出平稳性，反方向一般不成立。</p>
+<p>当 <span class="arithmatex">\(\pi_i&gt;0\)</span> 时，平稳链的反向转移律为
+<span class="arithmatex">\(P^*_{ij}=\pi_jP_{ji}/\pi_i\)</span>。细致平衡恰好是 <span class="arithmatex">\(P^*=P\)</span>；逐条路径相乘后，正向路径和反向路径具有相同概率，因此称<strong>可逆</strong>。若 <span class="arithmatex">\(\pi\)</span> 含零，只能在其正支撑上使用这个除法公式，不能声称全状态空间都有这个相似变换。</p>
+<p>实验的三组对照：</p>
+<ul>
+<li><span class="arithmatex">\(P\)</span> 的双向跨状态流量都是 <span class="arithmatex">\(.6\times.2=.4\times.3=.12\)</span>，可逆。</li>
+<li><span class="arithmatex">\(L\)</span> 在 <span class="arithmatex">\(0\to1\)</span> 有平稳流量 <span class="arithmatex">\(1/6\)</span>，反向 <span class="arithmatex">\(1\to0\)</span> 为 <span class="arithmatex">\(0\)</span>，不满足细致平衡，但仍混合。</li>
+<li><span class="arithmatex">\(B\)</span> 的双向流量均为 <span class="arithmatex">\(1/2\)</span>，可逆，却有周期 <span class="arithmatex">\(2\)</span>。可逆性并未排除负特征值 <span class="arithmatex">\(-1\)</span>。</li>
+</ul>
+<p>给链加“停留一半概率”，即 <span class="arithmatex">\(\widetilde P=(I+P)/2\)</span>，保持原平稳分布，并使所有状态有自环。若原链不可约，则新链非周期；它也保持原有可逆性，但不会把任意非可逆链自动变可逆。</p>
+<h2 id="4-tv">4. 从加权平方误差推到 TV 上界<a class="headerlink" href="#4-tv" title="Permanent link"></a></h2>
+<p>假设有限、不可约、非周期，且关于 <span class="arithmatex">\(\pi\)</span> 可逆。令
+<span class="arithmatex">\(D_\pi=\operatorname{diag}(\pi_i)\)</span>。细致平衡使</p>
 <div class="arithmatex">\[
-\operatorname{TV}(\delta_iP^t,\pi)
-\le \frac12\sqrt{\frac1{\pi_i}-1}\;\rho_\star^t.
+S=D_\pi^{1/2}PD_\pi^{-1/2}
 \]</div>
-<p>实验把它标成“可逆谱证书”，并保留适用条件；对非可逆链不把特征值模当作同样的 TV 结论。对于周期链或可约链，<span class="arithmatex">\(\rho_\star\)</span> 可能等于 <span class="arithmatex">\(1\)</span>，即使有谱数字也不给出本页的收敛保证。</p>
-<h2 id="4-pagerankmcmc">4. PageRank、MCMC 与模型边界<a class="headerlink" href="#4-pagerankmcmc" title="Permanent link"></a></h2>
-<p>PageRank 在跳转概率严格为正、跳转分布对每个节点都给正质量，并把悬挂节点行补成随机行时，才把不可约和非周期性设计进转移矩阵；之后才使用唯一平稳分布与幂迭代。MCMC 则常用细致平衡让目标分布成为平稳分布；样本质量还取决于不可约性、非周期性和混合速度。</p>
-<p>本页限于有限离散链。无限状态空间还要区分常返、正常返与零常返；非可逆链的谱分析还要考虑非正规性、伪谱和所选范数。交互实验的三个小矩阵是边界地图，不是对这些额外理论的替代。</p>
-<h2 id="5_1">5. 练习<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<ol>
-<li>对一个三循环求 <span class="arithmatex">\(\pi\)</span>，再直接写出为什么 <span class="arithmatex">\(\mu_t\)</span> 不收敛而 <span class="arithmatex">\(n^{-1}\sum_{t&lt;n}\mu_t\)</span> 收敛。</li>
-<li>验证第一张链的细致平衡，并比较精确 TV 曲线与可逆谱上界为什么一个可以相等、一个只保证不超过。</li>
-<li>对可约链写出所有 <span class="arithmatex">\(\pi_a\)</span>，分别从 <span class="arithmatex">\(\delta_0\)</span>、<span class="arithmatex">\(\delta_1\)</span>、<span class="arithmatex">\(\delta_2\)</span> 出发计算极限或一步后的分布。</li>
-</ol>
-<hr />
-<p><em>下一页：从离散跳进连续——布朗运动、鞅与随机分析。</em></p>
+<p>为实对称矩阵。因此 <span class="arithmatex">\(P\)</span> 在内积
+<span class="arithmatex">\(\langle f,g\rangle_\pi=\sum_i\pi_if_ig_i\)</span>
+下自伴，特征值为实数，并可用正交特征向量分解。设</p>
+<div class="arithmatex">\[
+\rho_\star=\max_{k\ge2}|\lambda_k|&lt;1.
+\]</div>
+<p>按重数除去一个特征值 <span class="arithmatex">\(1\)</span> 后取最大模；可约时可能还有其他 <span class="arithmatex">\(1\)</span>，周期时可能有 <span class="arithmatex">\(-1\)</span>。<strong>绝对谱隙</strong>是 <span class="arithmatex">\(1-\rho_\star\)</span>，不能对非懒惰链直接用 <span class="arithmatex">\(1-\lambda_2\)</span> 忽略负端。</p>
+<p>设密度偏差 <span class="arithmatex">\(g_t(i)=\mu_t(i)/\pi_i-1\)</span>。它在 <span class="arithmatex">\(\pi\)</span> 下均值为零；细致平衡给出 <span class="arithmatex">\(g_{t+1}=Pg_t\)</span>。于是</p>
+<div class="arithmatex">\[
+\|g_t\|_{L^2(\pi)}
+\le\rho_\star^t\|g_0\|_{L^2(\pi)},\qquad
+\operatorname{TV}(\mu_t,\pi)
+=\frac12\sum_i\pi_i|g_t(i)|
+\le\frac12\|g_t\|_{L^2(\pi)}.
+\]</div>
+<p>第二个不等式只是 Cauchy–Schwarz。合起来得到适用于任意初始分布的式子：</p>
+<div class="arithmatex">\[
+\operatorname{TV}(\mu_0P^t,\pi)
+\le\frac12
+\sqrt{\sum_i\frac{(\mu_0(i)-\pi_i)^2}{\pi_i}}\,
+\rho_\star^t.
+\]</div>
+<p>当 <span class="arithmatex">\(\mu_0=\delta_i\)</span>，根号内化简为 <span class="arithmatex">\(1/\pi_i-1\)</span>。当 <span class="arithmatex">\(\mu_0=\pi\)</span>，初始因子为零。实验第一条链从 <span class="arithmatex">\(\delta_0\)</span> 出发的精确 TV 是 <span class="arithmatex">\(.4\cdot2^{-t}\)</span>，而上界是
+<span class="arithmatex">\(\tfrac12\sqrt{2/3}\,2^{-t}\)</span>，系数约 <span class="arithmatex">\(.408248\)</span>。它们很接近，仍然不是同一条曲线。</p>
+<p>对 <span class="arithmatex">\(L\)</span>，非平凡特征值为 <span class="arithmatex">\(1/4\pm i\sqrt3/4\)</span>，模也都是 <span class="arithmatex">\(1/2\)</span>，但上面的<strong>自伴推导</strong>不能原封不动使用。可以另用奇异值、耦合或具体结构分析；“本证书不适用”不等于“不能证明收敛”。<a href="stoch-02-markov-1.html">上一页</a>的 Jordan 例子也说明，一般矩阵仅看特征值模会漏掉多项式因子。与此同时，任何随机矩阵在 TV 中都不扩大两概率分布的距离；不要把别的范数中的瞬态放大误读成 TV 必然增长。</p>
+<h2 id="5-pagerank">5. PageRank：跳转的两种作用<a class="headerlink" href="#5-pagerank" title="Permanent link"></a></h2>
+<p>先把悬挂节点（没有出链的页面）补成合法随机行，得到 <span class="arithmatex">\(Q\)</span>。定义</p>
+<div class="arithmatex">\[
+P=(1-\alpha)Q+\alpha\mathbf1v,\qquad
+0&lt;\alpha&lt;1,\quad v_i\ge0,\quad\sum_i v_i=1.
+\]</div>
+<p>这里 <span class="arithmatex">\(\alpha\)</span> 是<strong>跳转概率</strong>，有些文献把 <span class="arithmatex">\(1-\alpha\)</span> 称阻尼参数。对任意两分布，公共跳转项相消：</p>
+<div class="arithmatex">\[
+\operatorname{TV}(\mu P,\nu P)
+\le(1-\alpha)\operatorname{TV}(\mu,\nu).
+\]</div>
+<p>所以不论 <span class="arithmatex">\(v\)</span> 是否满支撑，都有唯一平稳分布，且从所有初态几何收敛。这是直接收缩结论，不必先宣称全链不可约。还可写为</p>
+<div class="arithmatex">\[
+\pi=\alpha v\bigl(I-(1-\alpha)Q\bigr)^{-1}
+=\alpha\sum_{n\ge0}(1-\alpha)^n vQ^n.
+\]</div>
+<p>若进一步 <span class="arithmatex">\(v_j&gt;0\)</span> 对所有节点成立，则 <span class="arithmatex">\(P_{ij}\ge\alpha v_j&gt;0\)</span>，得到全链不可约、非周期及平稳分布满支撑。若 <span class="arithmatex">\(v\)</span> 有零，<strong>这些结构结论可能失败，但上面的唯一性与收敛仍成立</strong>。</p>
+<p>例如 <span class="arithmatex">\(Q=I\)</span>、<span class="arithmatex">\(v=(1,0)\)</span>、<span class="arithmatex">\(\alpha=1/4\)</span>，<span class="arithmatex">\(P=\begin{pmatrix}1&amp;0\\1/4&amp;3/4\end{pmatrix}\)</span> 可约；从 <span class="arithmatex">\(\delta_1\)</span> 出发分布为 <span class="arithmatex">\((1-(3/4)^t,(3/4)^t)\)</span>，仍趋向唯一 <span class="arithmatex">\(\delta_0\)</span>。</p>
+<h2 id="6-mcmc">6. MCMC：不变目标、混合误差与相关样本<a class="headerlink" href="#6-mcmc" title="Permanent link"></a></h2>
+<p>在有限目标正支撑上，给定目标权重 <span class="arithmatex">\(w_i&gt;0\)</span>（无需知道归一化常数）与提议矩阵 <span class="arithmatex">\(q\)</span>。对 <span class="arithmatex">\(i\ne j\)</span>，若 <span class="arithmatex">\(q_{ij}&gt;0\)</span>，采用 Metropolis–Hastings 接受率</p>
+<div class="arithmatex">\[
+a(i,j)=\min\left(1,\frac{w_jq_{ji}}{w_iq_{ij}}\right),\quad
+P_{ij}=q_{ij}a(i,j),\quad
+P_{ii}=1-\sum_{j\ne i}P_{ij}.
+\]</div>
+<p>若 <span class="arithmatex">\(q_{ij}=0\)</span>，直接置 <span class="arithmatex">\(P_{ij}=0\)</span>，无需计算 <span class="arithmatex">\(0/0\)</span>。双向平稳流量均为
+<span class="arithmatex">\(Z^{-1}\min(w_iq_{ij},w_jq_{ji})\)</span>，所以目标 <span class="arithmatex">\(\pi_i=w_i/Z\)</span> 不变。</p>
+<p>提议可达不一定等于接受后的链可达：若有向提议没有反向边，该步可能总被拒绝。应检查最终 <span class="arithmatex">\(P\)</span> 在目标支撑上的不可约性。拒绝可以产生自环，但不保证每个模型都有拒绝；等权二状态确定互换会全部接受，仍是周期链。必要时明确加懒惰步骤。</p>
+<p>即使已经从 <span class="arithmatex">\(\pi\)</span> 开始，样本仍相关。以第一张二状态链、<span class="arithmatex">\(f(X_n)=\mathbf1_{\{X_n=1\}}\)</span> 为例，在平稳初态下，</p>
+<div class="arithmatex">\[
+\operatorname{Cov}(f(X_0),f(X_k))=.24\cdot(.5)^k,
+\]</div>
+<div class="arithmatex">\[
+\operatorname{Var}\!\left(\frac1M\sum_{n=0}^{M-1}f(X_n)\right)
+=\frac{.24}{M}\left[1+2\sum_{k=1}^{M-1}
+\left(1-\frac{k}{M}\right)(.5)^k\right].
+\]</div>
+<p>大 <span class="arithmatex">\(M\)</span> 时方括号趋于 <span class="arithmatex">\(3\)</span>，因此该观测量的有效样本量约为 <span class="arithmatex">\(M/3\)</span>，不是自动等于采样次数。此结论依赖当前链、观测量和平稳初态；有限样本相关性估计也有误差。丢弃一段 burn-in 不是混合完成的证明。</p>
+<h2 id="7">7. 练习与展开答案<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<h3 id="1_2">练习 1：三循环的平均究竟差多少？<a class="headerlink" href="#1_2" title="Permanent link"></a></h3>
+<p>从 <span class="arithmatex">\(\delta_0\)</span> 出发，写 <span class="arithmatex">\(M=3k+r\)</span>、<span class="arithmatex">\(r=0,1,2\)</span>，求前 <span class="arithmatex">\(M\)</span> 个分布的平均 TV。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>当 <span class="arithmatex">\(r=0\)</span>，三种状态各出现 <span class="arithmatex">\(k\)</span> 次，平均恰为 <span class="arithmatex">\(\pi\)</span>。当 <span class="arithmatex">\(r=1\)</span>，访问次数为 <span class="arithmatex">\((k+1,k,k)\)</span>；当 <span class="arithmatex">\(r=2\)</span>，为 <span class="arithmatex">\((k+1,k+1,k)\)</span>。减去均匀分布并取一半绝对值之和，两种非整除情形都得到 <span class="arithmatex">\(2/(3M)\)</span>。逐步 TV 始终为 <span class="arithmatex">\(2/3\)</span>，平均 TV 却以 <span class="arithmatex">\(1/M\)</span> 量级衰减。实验当前 <span class="arithmatex">\(t\)</span> 对应 <span class="arithmatex">\(M=t+1\)</span>，例如 <span class="arithmatex">\(t=2\)</span> 时平均已经恰为 <span class="arithmatex">\(\pi\)</span>。</p>
+</details>
+<h3 id="2_2">练习 2：完整比较两个初态的谱因子<a class="headerlink" href="#2_2" title="Permanent link"></a></h3>
+<p>对第一张链，从 <span class="arithmatex">\(\delta_0\)</span> 与 <span class="arithmatex">\(\delta_1\)</span> 出发分别求精确 TV 和可逆上界。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>从 <span class="arithmatex">\(\delta_0\)</span>，<span class="arithmatex">\(\mu_t=(.6+.4\,2^{-t},.4-.4\,2^{-t})\)</span>，TV 系数为 <span class="arithmatex">\(.4\)</span>，上界系数为 <span class="arithmatex">\(\tfrac12\sqrt{2/3}\)</span>。从 <span class="arithmatex">\(\delta_1\)</span>，<span class="arithmatex">\(\mu_t=(.6-.6\,2^{-t},.4+.6\,2^{-t})\)</span>，TV 系数为 <span class="arithmatex">\(.6\)</span>，上界系数为 <span class="arithmatex">\(\tfrac12\sqrt{3/2}\)</span>。两种上界都略大于精确值。当前 <span class="arithmatex">\(t=4\)</span> 时，精确 TV 分别为 <span class="arithmatex">\(.025\)</span> 与 <span class="arithmatex">\(.0375\)</span>；上界约 <span class="arithmatex">\(.0255155\)</span> 与 <span class="arithmatex">\(.0382733\)</span>。</p>
+</details>
+<h3 id="3-pagerank">练习 3：稀疏跳转也能保证 PageRank 收敛吗？<a class="headerlink" href="#3-pagerank" title="Permanent link"></a></h3>
+<p>对 <span class="arithmatex">\(Q=I\)</span>、<span class="arithmatex">\(v=(1,0)\)</span>、<span class="arithmatex">\(\alpha=1/4\)</span>，验证平稳分布、可约性及误差。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p><span class="arithmatex">\(P=\begin{pmatrix}1&amp;0\\1/4&amp;3/4\end{pmatrix}\)</span> 中状态 <span class="arithmatex">\(0\)</span> 吸收，从 <span class="arithmatex">\(0\)</span> 到不了 <span class="arithmatex">\(1\)</span>，所以可约。平稳方程的第二分量给 <span class="arithmatex">\(\pi_1=(3/4)\pi_1\)</span>，故 <span class="arithmatex">\(\pi=(1,0)\)</span> 唯一。从 <span class="arithmatex">\(\delta_1\)</span> 出发，仍留在 <span class="arithmatex">\(1\)</span> 的概率为 <span class="arithmatex">\((3/4)^t\)</span>，因此 TV 恰为 <span class="arithmatex">\((3/4)^t\)</span>，达到公共跳转收缩率。这反驳“跳转分布不满支撑就不能保证唯一性与收敛”的说法；失去保证的是全链不可约和满支撑。</p>
+</details>
+<p>参考与进阶：<a href="https://www.stat.berkeley.edu/~aldous/260-FMIE/Levin-Peres-Wilmer.pdf">Levin–Peres–Wilmer，Markov Chains and Mixing Times</a> 第 1、4、12 章；<a href="https://www.stat.berkeley.edu/users/aldous/RWG/Book_Ralph/Ch3.S1.html">Aldous–Fill 的可逆链说明</a>；<a href="https://www.math.cmu.edu/~gautam/c/2024-387/notes/08-mixing-times.html">PageRank 与收缩的课程讲义</a>。</p>
+<p>本页证明限于有限离散链。可数无限状态需要正常返等额外条件；连续状态 MCMC 还涉及不可约测度、Harris 常返与漂移条件，不能直接照搬有限矩阵结论。下一页：<a href="stoch-04-brownian.html">布朗运动与鞅</a>。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="stoch-02-markov-1.html"><span class="pager-label">上一页</span>随机过程 II · Markov 链（一）</a>

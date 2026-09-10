@@ -11,6 +11,10 @@ for(const seed of seeds){const rng=c.makeRng(seed);rngs.push({seed,values:Array.
 for(const lambda of [.1,.5,2,8,20])for(const horizon of [0,1,4,20])for(const repetitions of [2,40,180]){
  const config={lambda,horizon,repetitions,seed:seeds[cases.length%seeds.length]},result=c.simulate(config);cases.push(result);
 }
+for(const lambda of [.1,2,20])for(const horizon of [Number.MIN_VALUE,1e-320,1e-300])for(const repetitions of [2,1000]){
+ const r=c.simulate({lambda,horizon,repetitions,seed:1});
+ a(r.countMeanSE>0);cases.push(r);
+}
 class N{constructor(tag,attrs,children){this.tag=tag;this.attrs={};for(const[k,v]of Object.entries(attrs||{}))this.attrs[k==='className'?'class':k]=v;this.children=(Array.isArray(children)?children:children===undefined?[]:[children]).map(v=>typeof v==='string'?new N('#text',{text:v}):v);}}
 const api={svg:(tag,attrs,children)=>new N(tag,attrs,children)};
 for(const config of [c.DEFAULTS,{lambda:.5,horizon:1,repetitions:40,seed:0},{lambda:8,horizon:12,repetitions:180,seed:7},{lambda:.1,horizon:0,repetitions:2,seed:1}]){

@@ -160,7 +160,7 @@
       config: settings,
       histogram: histogram(fullCounts, settings.lambda * settings.horizon),
       u: u, v: v,
-      countMeanSE: Math.sqrt(settings.lambda * settings.horizon / settings.repetitions),
+      countMeanSE: Math.sqrt(settings.lambda) * Math.sqrt(settings.horizon) / Math.sqrt(settings.repetitions),
       waitMeanSE: 1 / (settings.lambda * Math.sqrt(settings.repetitions)),
       survivesV: survivesV,
       half: half,
