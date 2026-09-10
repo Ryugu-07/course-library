@@ -1,609 +1,151 @@
-(function (host) {
+(function(root,factory){
   "use strict";
-
-  var STYLE_ID = "cl-martingale-convergence-style";
-  var INSTANCE = 0;
-  var FIXED_SCALE = 1;
-  var MIN_B = 1;
-  var MAX_B = 12;
-  var MAX_N = 24;
-  var EPSILON = 1e-10;
-  var MODEL_A = {
-    id: "spike",
-    label: "模型 A：稀有尖峰鞅",
-    limit: "0（a.s.）",
-    l1: "否"
-  };
-  var MODEL_B = {
-    id: "absorbed-walk",
-    label: "模型 B：有界吸收走停",
-    limit: "±B 的随机边界值",
-    l1: "是"
-  };
-  var STYLE_TEXT = [
-    ".martingale-convergence-lab { --mc-blue: var(--cl-blue, #315f9d); --mc-green: var(--cl-green, #39734d); --mc-red: var(--cl-red, #9b3f3f); --mc-gold: var(--cl-gold, #9b6a12); --mc-muted: var(--fg-soft, #6b6557); --mc-border: var(--border, #d7d0c2); --mc-block: var(--block-bg, #f4f1e9); line-height: 1.5; min-width: 0; }",
-    "html[data-theme=\"dark\"] .martingale-convergence-lab { --mc-blue: #83c8ff; --mc-green: #72bd8b; --mc-red: #ef8a8a; --mc-gold: #e2b458; --mc-block: #252b32; }",
-    ".martingale-convergence-lab *, .martingale-convergence-lab *::before, .martingale-convergence-lab *::after { box-sizing: border-box; }",
-    ".martingale-convergence-lab h3, .martingale-convergence-lab h4, .martingale-convergence-lab p { margin-top: 0; }",
-    ".martingale-convergence-lab .mc-intro, .martingale-convergence-lab .mc-note, .martingale-convergence-lab .mc-feedback { color: var(--mc-muted); }",
-    ".martingale-convergence-lab .mc-prediction, .martingale-convergence-lab .mc-controls, .martingale-convergence-lab .mc-results { min-width: 0; }",
-    ".martingale-convergence-lab .mc-prediction { margin: 16px 0 0; padding: 14px; border: 1px solid var(--mc-border); border-radius: 6px; background: var(--mc-block); }",
-    ".martingale-convergence-lab .mc-prediction h4 { margin: 0 0 10px; color: var(--accent); }",
-    ".martingale-convergence-lab .mc-prediction-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }",
-    ".martingale-convergence-lab .mc-prediction-card { min-width: 0; margin: 0; padding: 10px; border: 1px solid var(--mc-border); border-radius: 5px; background: var(--bg); }",
-    ".martingale-convergence-lab .mc-prediction-card legend { max-width: 100%; padding: 0 5px; color: var(--fg); font-weight: 700; overflow-wrap: anywhere; }",
-    ".martingale-convergence-lab .mc-prediction-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }",
-    ".martingale-convergence-lab .mc-prediction-row label, .martingale-convergence-lab .mc-control label { display: grid; gap: 4px; min-width: 0; color: var(--mc-muted); font-size: .9em; }",
-    ".martingale-convergence-lab select, .martingale-convergence-lab input[type=range], .martingale-convergence-lab button { min-height: 44px; font: inherit; }",
-    ".martingale-convergence-lab select { width: 100%; min-width: 0; padding: 7px 8px; border: 1px solid var(--mc-border); border-radius: 5px; background: var(--bg); color: inherit; }",
-    ".martingale-convergence-lab input[type=range] { width: 100%; margin: 0; accent-color: var(--mc-blue); }",
-    ".martingale-convergence-lab button { min-width: 0; padding: 7px 10px; border: 1px solid var(--mc-border); border-radius: 5px; background: var(--bg); color: inherit; cursor: pointer; overflow-wrap: anywhere; }",
-    ".martingale-convergence-lab button:hover { border-color: var(--accent); }",
-    ".martingale-convergence-lab button:focus-visible, .martingale-convergence-lab select:focus-visible, .martingale-convergence-lab input:focus-visible { outline: 3px solid var(--cl-focus, #1769aa); outline-offset: 2px; }",
-    ".martingale-convergence-lab button[aria-pressed=\"true\"], .martingale-convergence-lab .mc-primary { border-color: var(--accent); background: var(--accent); color: var(--bg); font-weight: 700; }",
-    ".martingale-convergence-lab .mc-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }",
-    ".martingale-convergence-lab .mc-feedback { min-height: 1.5em; margin: 10px 0 0; }",
-    ".martingale-convergence-lab .mc-pass { color: var(--mc-green); font-weight: 700; }",
-    ".martingale-convergence-lab .mc-warn { color: var(--mc-red); font-weight: 700; }",
-    ".martingale-convergence-lab .mc-control-panel { margin-top: 16px; padding: 12px 14px; border-top: 2px solid var(--accent); border-bottom: 1px solid var(--mc-border); }",
-    ".martingale-convergence-lab .mc-control-panel h4 { margin: 0 0 9px; color: var(--accent); }",
-    ".martingale-convergence-lab .mc-model-buttons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }",
-    ".martingale-convergence-lab .mc-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; }",
-    ".martingale-convergence-lab .mc-control { min-width: 0; }",
-    ".martingale-convergence-lab .mc-control-label { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px; }",
-    ".martingale-convergence-lab .mc-control-label output { color: var(--fg); font-variant-numeric: tabular-nums; font-weight: 700; }",
-    ".martingale-convergence-lab .mc-disabled { opacity: .55; }",
-    ".martingale-convergence-lab .mc-results { margin-top: 16px; }",
-    ".martingale-convergence-lab .mc-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 8px; margin: 0 0 14px; }",
-    ".martingale-convergence-lab .mc-metric { min-width: 0; padding: 9px; border-top: 2px solid var(--mc-border); background: var(--mc-block); }",
-    ".martingale-convergence-lab .mc-metric span { display: block; color: var(--mc-muted); font-size: .82em; overflow-wrap: anywhere; }",
-    ".martingale-convergence-lab .mc-metric strong { display: block; margin-top: 3px; color: var(--fg); font-size: 1.02em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }",
-    ".martingale-convergence-lab .mc-ledger { min-width: 0; padding: 12px; border: 1px solid var(--mc-border); border-radius: 5px; background: var(--bg); }",
-    ".martingale-convergence-lab .mc-ledger h4 { margin: 0 0 4px; color: var(--accent); }",
-    ".martingale-convergence-lab .mc-ledger-note { margin: 0 0 10px; color: var(--mc-muted); font-size: .9em; }",
-    ".martingale-convergence-lab .mc-mass-row, .martingale-convergence-lab .mc-state-row { display: grid; align-items: center; gap: 8px; min-width: 0; margin: 8px 0; }",
-    ".martingale-convergence-lab .mc-mass-row { grid-template-columns: minmax(110px, .75fr) minmax(0, 1.45fr) minmax(90px, .55fr); }",
-    ".martingale-convergence-lab .mc-state-row { grid-template-columns: 48px minmax(0, 1fr) 92px; }",
-    ".martingale-convergence-lab .mc-mass-label, .martingale-convergence-lab .mc-state-label { color: var(--mc-muted); font-size: .88em; overflow-wrap: anywhere; }",
-    ".martingale-convergence-lab .mc-track { position: relative; height: 18px; min-width: 0; overflow: hidden; border: 1px solid var(--mc-border); border-radius: 4px; background: var(--mc-block); }",
-    ".martingale-convergence-lab .mc-fill { height: 100%; min-width: 0; border-radius: 3px; background: var(--mc-blue); }",
-    ".martingale-convergence-lab .mc-fill-zero { background: var(--mc-blue); }",
-    ".martingale-convergence-lab .mc-fill-spike { background: var(--mc-gold); }",
-    ".martingale-convergence-lab .mc-fill-negative { background: var(--mc-red); }",
-    ".martingale-convergence-lab .mc-fill-positive { background: var(--mc-green); }",
-    ".martingale-convergence-lab .mc-fill-transient { background: var(--mc-blue); }",
-    ".martingale-convergence-lab .mc-value { text-align: right; color: var(--fg); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }",
-    ".martingale-convergence-lab .mc-state-ledger { max-height: 510px; overflow-y: auto; padding-right: 3px; }",
-    ".martingale-convergence-lab .mc-state-boundary { font-weight: 700; }",
-    ".martingale-convergence-lab .mc-state-boundary .mc-state-label { color: var(--mc-gold); }",
-    ".martingale-convergence-lab .mc-disclosure { margin-top: 12px; padding: 10px; border-left: 3px solid var(--mc-gold); background: var(--mc-block); color: var(--mc-muted); overflow-wrap: anywhere; }",
-    ".martingale-convergence-lab .mc-disclosure strong { color: var(--fg); }",
-    "@media (max-width: 700px) { .martingale-convergence-lab .mc-prediction-grid, .martingale-convergence-lab .mc-controls { grid-template-columns: minmax(0, 1fr); } .martingale-convergence-lab .mc-prediction-row { grid-template-columns: minmax(0, 1fr); } .martingale-convergence-lab .mc-model-buttons { grid-template-columns: minmax(0, 1fr); } .martingale-convergence-lab .mc-mass-row { grid-template-columns: minmax(88px, .8fr) minmax(0, 1.2fr) minmax(76px, .7fr); gap: 6px; } .martingale-convergence-lab .mc-ledger { padding: 10px; } }",
-    "@media (prefers-reduced-motion: reduce) { .martingale-convergence-lab *, .martingale-convergence-lab *::before, .martingale-convergence-lab *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }"
-  ].join("\n");
-
-  function clamp(value, minimum, maximum) {
-    return Math.max(minimum, Math.min(maximum, value));
+  var api=factory();
+  if(typeof module==="object"&&module.exports)module.exports=api;
+  if(root&&root.CourseLearning)root.CourseLearning.register("martingale-convergence",api.mount);
+  if(typeof module==="object"&&module.exports&&typeof require==="function"&&require.main===module)console.log(JSON.stringify(api.selfTest()));
+})(typeof window!=="undefined"?window:null,function(){
+"use strict";
+var DEFAULTS=Object.freeze({model:"spike",n:8,B:5,K:1});
+var MODES=Object.freeze({spike:"模型 A：稀有尖峰","absorbed-walk":"模型 B：有限走廊"});
+var MODEL_A=Object.freeze({id:"spike",label:MODES.spike,limit:"0（a.s.）",l1:"否"});
+var MODEL_B=Object.freeze({id:"absorbed-walk",label:MODES["absorbed-walk"],limit:"随机边界 ±B",l1:"是"});
+var INSTANCE=0;
+function finite(x,lo,hi,integer,name){
+  if(typeof x!=="number"||!Number.isFinite(x)||x<lo||x>hi||(integer&&!Number.isInteger(x)))throw RangeError(name+" must be "+(integer?"an integer ":"")+"in ["+lo+", "+hi+"]");
+  return x;
+}
+function config(o){
+  if(!o||typeof o!=="object"||Array.isArray(o))throw TypeError("configuration required");
+  var c=Object.assign({},DEFAULTS,o);
+  if(typeof c.model!=="string"||!Object.hasOwn(MODES,c.model))throw RangeError("unknown model");
+  finite(c.n,0,1000,true,"n");finite(c.B,1,24,true,"B");finite(c.K,0,Number.MAX_VALUE,false,"K");return c;
+}
+function sum(xs){var s=0,c=0;xs.forEach(function(x){var y=x-c,t=s+y;c=(t-s)-y;s=t;});return s;}
+function modelA(n,K){
+  finite(n,0,1000,true,"n");if(K===undefined)K=1;finite(K,0,Number.MAX_VALUE,false,"K");
+  var h=Math.pow(2,n),p=Math.pow(2,-n),above=h>K;
+  return{id:"spike",n:n,scale:K,spikeHeight:h,spikeProbability:p,zeroProbability:1-p,expectation:1,limit:0,l1Gap:1,tailProbability:above?p:0,tailExpectation:above?1:0,ui:false};
+}
+function nextDistribution(p){
+  var q=Array(p.length).fill(0);q[0]=p[0];q[q.length-1]=p[p.length-1];
+  for(var j=1;j<p.length-1;j++){q[j-1]+=p[j]/2;q[j+1]+=p[j]/2;}return q;
+}
+function walkRecord(p,B,t,K){
+  var states=p.map(function(prob,i){var x=i-B;return{x:x,probability:prob,meanContribution:x*prob,absoluteContribution:Math.abs(x)*prob,secondContribution:x*x*prob,tailContribution:Math.abs(x)>K?Math.abs(x)*prob:0,l1Contribution:prob*((B-x)*(B+x)/B),conditionalPositive:(B+x)/(2*B)};});
+  return{t:t,states:states,distribution:p.slice(),negativeProbability:p[0],positiveProbability:p[2*B],absorbedMass:p[0]+p[2*B],transientMass:sum(p.slice(1,-1)),mean:sum(states.map(function(r){return r.meanContribution;})),absoluteMean:sum(states.map(function(r){return r.absoluteContribution;})),second:sum(states.map(function(r){return r.secondContribution;})),l1Gap:sum(states.map(function(r){return r.l1Contribution;})),tailExpectation:sum(states.map(function(r){return r.tailContribution;})),tailProbability:sum(states.map(function(r){return Math.abs(r.x)>K?r.probability:0;}))};
+}
+function walkDistribution(n,B){
+  finite(n,0,1000,true,"n");finite(B,1,24,true,"B");
+  var p=Array(2*B+1).fill(0);p[B]=1;for(var t=0;t<n;t++)p=nextDistribution(p);return p;
+}
+function modelB(n,B,K){
+  if(K===undefined)K=1;finite(K,0,Number.MAX_VALUE,false,"K");
+  var r=walkRecord(walkDistribution(n,B),B,n,K);
+  return Object.assign(r,{id:"absorbed-walk",n:n,B:B,scale:K,limitPositiveProbability:.5,limitNegativeProbability:.5,limitMean:0,ui:true});
+}
+function snapshot(o){
+  var c=config(o),rows=[],states,joint=[],prefix=0,final;
+  if(c.model==="spike"){
+    for(var t=0;t<=c.n;t++){var a=modelA(t,c.K);prefix=Math.max(prefix,a.tailExpectation);rows.push({t:t,mean:1,l1Gap:1,tailExpectation:a.tailExpectation,prefixTail:prefix,spikeHeight:a.spikeHeight,spikeProbability:a.spikeProbability,zeroProbability:a.zeroProbability});}
+    final=modelA(c.n,c.K);states=[{x:0,probability:final.zeroProbability,meanContribution:0,tailContribution:0},{x:final.spikeHeight,probability:final.spikeProbability,meanContribution:1,tailContribution:final.tailExpectation}];
+    return{config:c,rows:rows,states:states,joint:joint,final:final,prefixTail:prefix,wholeTailSup:1};
   }
-
-  function integerValue(value, minimum, name) {
-    var number = Number(value);
-    if (!Number.isFinite(number)) throw new Error(name + " must be finite");
-    return Math.max(minimum, Math.floor(number));
+  var p=Array(2*c.B+1).fill(0);p[c.B]=1;
+  for(var t=0;t<=c.n;t++){
+    var r=walkRecord(p,c.B,t,c.K);prefix=Math.max(prefix,r.tailExpectation);
+    rows.push({t:t,mean:r.mean,absoluteMean:r.absoluteMean,second:r.second,l1Gap:r.l1Gap,tailExpectation:r.tailExpectation,prefixTail:prefix,transientMass:r.transientMass,absorbedMass:r.absorbedMass});
+    if(t===c.n)final=r;else p=nextDistribution(p);
   }
-
-  function normaliseN(value) {
-    return integerValue(value, 0, "n");
+  states=final.states;
+  states.forEach(function(r){[-c.B,c.B].forEach(function(z){var conditional=z>0?r.conditionalPositive:1-r.conditionalPositive,probability=r.probability*conditional;joint.push({x:r.x,z:z,stateProbability:r.probability,conditionalProbability:r.probability===0?null:conditional,jointProbability:probability,terminalContribution:z*probability,distanceContribution:Math.abs(z-r.x)*probability});});});
+  return{config:c,rows:rows,states:states,joint:joint,final:final,prefixTail:prefix,wholeTailSup:c.K<c.B?c.B:0};
+}
+function crossing(path,a,b,w0){
+  if(!Array.isArray(path)||path.length<1||path.length>1001)throw TypeError("dense finite path required");
+  finite(a,-1e6,1e6,false,"a");finite(b,-1e6,1e6,false,"b");if(a>=b)throw RangeError("a < b required");if(w0===undefined)w0=0;finite(w0,-1e6,1e6,false,"initial capital");
+  for(var i=0;i<path.length;i++){if(!Object.hasOwn(path,i))throw TypeError("sparse path");finite(path[i],-1e6,1e6,false,"path");}
+  var holding=path[0]<=a,gain=0,U=0,rows=[{t:0,x:path[0],stake:0,increment:0,gain:0,capital:w0,upcrossings:0,lower:-Math.max(a-path[0],0),holding:holding}];
+  for(var t=1;t<path.length;t++){var H=holding?1:0,dx=path[t]-path[t-1];gain+=H*dx;
+    if(holding&&path[t]>=b){U++;holding=false;}else if(!holding&&path[t]<=a)holding=true;
+    rows.push({t:t,x:path[t],stake:H,increment:dx,gain:gain,capital:w0+gain,upcrossings:U,lower:(b-a)*U-Math.max(a-path[t],0),holding:holding});
+  }return{a:a,b:b,w0:w0,rows:rows};
+}
+function fmt(x){if(x===null)return"零概率状态，条件值未定义";if(x===0)return"0";if(Math.abs(x)<.0001||Math.abs(x)>=100000)return x.toExponential(6);if(Number.isInteger(x))return String(x);return x.toFixed(7).replace(/0+$/,"").replace(/\.$/,"");}
+function plots(s){
+  var c=s.config,first={title:"全部时刻：L¹ 距离与固定 K 的尾部期望",xlabel:"有限时刻 t",xs:s.rows.map(function(r){return r.t;}),pointsOnly:false,series:[
+    {key:"gap",label:"E|Xₜ−X∞|",values:s.rows.map(function(r){return r.l1Gap;}),color:"#3979b8",dash:""},
+    {key:"tail",label:"E[|Xₜ| 1{|Xₜ|>K}]",values:s.rows.map(function(r){return r.tailExpectation;}),color:"#af731a",dash:"7 4"}]},
+  second={title:"当前 n 的完整状态概率",xlabel:"状态值 x（真实数值间距）",xs:s.states.map(function(r){return r.x;}),pointsOnly:true,series:[{key:"probability",label:"P(Xₙ=x)，解析或有限递推",values:s.states.map(function(r){return r.probability;}),color:"#3979b8",dash:""}]};
+  return[first,second].map(function(d){var hi=0;d.series.forEach(function(v){v.values.forEach(function(x){hi=Math.max(hi,x);});});d.ymin=0;d.ymax=hi===0?1:hi*1.08;d.xmin=d.xs[0];d.xmax=d.xs[d.xs.length-1];return d;});
+}
+function selfTest(){
+  var checks=0;function check(b){checks++;if(!b)throw Error("self "+checks);}
+  check(modelA(0).spikeProbability===1);check(modelA(0).tailExpectation===0);check(modelA(1000,Math.pow(2,1000)).tailExpectation===0);
+  check(modelA(1000).expectation===1);check(modelB(2,2).distribution[0]===.25);check(modelB(1,1).l1Gap===0);
+  check(snapshot({n:2,B:2,model:"absorbed-walk"}).wholeTailSup===2);
+  var c=crossing([0,2,0,2,-1],0,2);check(c.rows[4].upcrossings===2);check(c.rows[4].gain===4);
+  return{status:"PASS",checks:checks,models:2};
+}
+function drawPlot(doc,d,id){var ns="http://www.w3.org/2000/svg";function e(tag,attrs,text){var n=doc.createElementNS(ns,tag);Object.keys(attrs||{}).forEach(function(k){n.setAttribute(k,String(attrs[k]));});if(text!==undefined)n.textContent=text;return n;}var svg=e("svg",{class:"mc-chart",viewBox:"0 0 900 390",role:"img","aria-labelledby":id+"-title "+id+"-desc"}),x=function(v){return d.xmax===d.xmin?125:125+740*(v-d.xmin)/(d.xmax-d.xmin);},y=function(v){return 290-230*(v-d.ymin)/(d.ymax-d.ymin);};
+svg.append(e("title",{id:id+"-title"},d.title),e("desc",{id:id+"-desc"},"完整数据，不抽稀、不裁切；所有数值在相邻账表中。横轴使用真实时间或位置。"),e("text",{x:125,y:29,"font-size":18},d.title));
+for(var j=0;j<=4;j++){var v=d.ymin+(d.ymax-d.ymin)*j/4,yy=y(v);svg.append(e("line",{x1:125,x2:865,y1:yy,y2:yy,stroke:"currentColor",opacity:.18}),e("text",{x:113,y:yy+5,"text-anchor":"end","font-size":13},fmt(v)));}
+var ticks=Array.from(new Set([d.xmin,Math.round(d.xmin+(d.xmax-d.xmin)/4),Math.round(d.xmin+(d.xmax-d.xmin)/2),Math.round(d.xmin+3*(d.xmax-d.xmin)/4),d.xmax]));ticks.forEach(function(v){svg.append(e("text",{x:x(v),y:320,"text-anchor":v===d.xmin?"start":v===d.xmax?"end":"middle","font-size":13},fmt(v)));});svg.append(e("text",{x:865,y:355,"text-anchor":"end","font-size":15},d.xlabel));
+d.series.forEach(function(s){if(!d.pointsOnly)svg.append(e("polyline",{"data-series":s.key,points:s.values.map(function(v,i){return x(d.xs[i])+","+y(v);}).join(" "),fill:"none",stroke:s.color,"stroke-width":2,"stroke-dasharray":s.dash}));s.values.forEach(function(v,i){svg.append(e("circle",{"data-series":s.key,"data-index":i,cx:x(d.xs[i]),cy:y(v),r:d.pointsOnly?3:1.8,fill:s.color}));});});return svg;}
+function inject(doc){if(doc.getElementById("mc-full-style"))return;var s=doc.createElement("style");s.id="mc-full-style";s.textContent=[
+ ".mc-lab{color:var(--fg);max-width:100%;min-width:0;line-height:1.65}.mc-lab *{box-sizing:border-box}.mc-lab [hidden]{display:none!important}.mc-lab button,.mc-lab input,.mc-lab select{font:inherit;max-width:100%;color:var(--fg);background:var(--bg);border:1px solid var(--border);border-radius:6px;min-height:44px;padding:8px}.mc-lab button{cursor:pointer}.mc-lab button[aria-pressed=true]{background:var(--accent);color:var(--bg)}.mc-lab button:disabled{opacity:.55;cursor:default}.mc-lab :focus-visible{outline:3px solid var(--accent);outline-offset:2px}",
+ ".mc-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:15px 0}.mc-controls label{display:grid;gap:5px}.mc-lab fieldset{min-width:0;margin:12px 0;padding:12px;border:1px solid var(--border)}.mc-choices,.mc-actions{display:flex;gap:8px;flex-wrap:wrap}.mc-choices>*{flex:1 1 180px}.mc-note{padding:10px 12px;border-left:3px solid var(--accent)}.mc-feedback{min-height:2em}",
+ ".mc-results h4{margin-top:24px}.mc-results figure{margin:15px 0}.mc-region{max-width:100%;overflow-x:auto;margin:12px 0}.mc-lab svg.mc-chart{display:block;width:900px!important;min-width:900px;max-width:none!important;height:auto;color:var(--fg)}.mc-chart text{fill:currentColor;font-family:inherit;letter-spacing:0}.mc-legend{display:flex;gap:15px;flex-wrap:wrap;font-size:13px}.mc-legend span{display:inline-flex;align-items:center;gap:5px}.mc-legend i{width:24px;border-top:3px solid}.mc-lab table{border-collapse:collapse;min-width:900px;font-size:13px}.mc-lab th,.mc-lab td{padding:8px;border:1px solid var(--border);white-space:nowrap;text-align:left}.mc-lab caption{padding:8px;font-weight:bold}.mc-results details{margin:16px 0}.mc-results summary{cursor:pointer;min-height:44px;padding:8px}@media(max-width:600px){.mc-controls{grid-template-columns:minmax(0,1fr)}}"
+ ].join("\n");doc.head.append(s);}
+function ledgers(s){
+  var c=s.config,f=s.final,list=[],summary;
+  if(c.model==="spike"){
+    summary=[["当前期望",1,"每个有限时刻都为 1"],["a.s. 极限",0,"由首次 T 的路径证明"],["到极限的 L¹ 距离",1,"不会随 n 消失"],["当前尾部概率",f.tailProbability,"严格 Xₙ>K"],["当前尾部期望",f.tailExpectation,"严格 Xₙ>K"],["有限前缀尾部最大值",s.prefixTail,"只取 0≤t≤n"],["全部时刻尾部上确界",s.wholeTailSup,"对任何有限 K 都是 1"],["全族 UI","否","有限前缀为 0 不能证明 UI"]];
+    list.push({key:"time",title:"从 0 到 n 的全部解析时刻",headers:["t","尖峰高度","尖峰概率","零点概率","期望","L¹ 距离","当前尾部期望","前缀尾部最大值"],rows:s.rows.map(function(r){return[r.t,r.spikeHeight,r.spikeProbability,r.zeroProbability,r.mean,r.l1Gap,r.tailExpectation,r.prefixTail];}),detail:true});
+    list.push({key:"states",title:"两个状态的概率与均值贡献",headers:["状态值","概率","均值贡献","尾部期望贡献"],rows:s.states.map(function(r){return[r.x,r.probability,r.meanContribution,r.tailContribution];}),detail:true});
+  }else{
+    summary=[["期望（解析）",0,"对称性；每期均为 0"],["均值求值残差",f.mean,"单列浮点求和残差"],["a.s. 极限","随机边界 −B 或 +B","各有 1/2 概率"],["到终点的 L¹ 距离",f.l1Gap,"按联合分布加权，不等于未吸收概率"],["未吸收概率",f.transientMass,"当前 n 的有限量"],["已吸收概率",f.absorbedMass,"两个冻结边界"],["当前尾部概率",f.tailProbability,"严格 |Xₙ|>K"],["当前尾部期望",f.tailExpectation,"严格 |Xₙ|>K"],["有限前缀尾部最大值",s.prefixTail,"只取 0≤t≤n"],["全部时刻尾部上确界",s.wholeTailSup,"K<B 为 B；K≥B 为 0"],["全族 UI","是","固定 B 后一致有界"]];
+    list.push({key:"time",title:"从 0 到 n 的全部有限递推",headers:["t","均值残差","绝对均值","二阶矩","L¹ 距离","未吸收概率","已吸收概率","尾部期望","前缀尾部最大值"],rows:s.rows.map(function(r){return[r.t,r.mean,r.absoluteMean,r.second,r.l1Gap,r.transientMass,r.absorbedMass,r.tailExpectation,r.prefixTail];}),detail:true});
+    list.push({key:"states",title:"所有当前状态与各项贡献",headers:["s","概率","均值贡献","绝对均值贡献","二阶矩贡献","L¹ 距离贡献","尾部期望贡献"],rows:s.states.map(function(r){return[r.x,r.probability,r.meanContribution,r.absoluteContribution,r.secondContribution,r.l1Contribution,r.tailContribution];}),detail:true});
+    list.push({key:"joint",title:"当前状态与未来终点的完整联合账",headers:["当前 s","终点 Z","当前状态概率","终点条件概率","联合概率","终值均值贡献","距离贡献"],rows:s.joint.map(function(r){return[r.x,r.z,r.stateProbability,r.conditionalProbability,r.jointProbability,r.terminalContribution,r.distanceContribution];}),detail:true});
   }
-
-  function normaliseB(value) {
-    return integerValue(value, 1, "B");
+  list.unshift({key:"summary",title:"当前值、有限前缀与无限族分开",headers:["项目","数值 / 结论","依据与范围"],rows:summary,detail:false});return list;
+}
+function mount(container){
+  if(!container||container.getAttribute("data-mc-mounted")==="true")return;
+  container.setAttribute("data-mc-mounted","true");var doc=container.ownerDocument;inject(doc);
+  var id="mc-full-"+(++INSTANCE),selected=[null,null,null,null],c=Object.assign({},DEFAULTS);
+  function numberControl(key,label,min,max,step){return'<label>'+label+'<input data-key="'+key+'" type="number" min="'+min+'" max="'+max+'" step="'+step+'" value="'+DEFAULTS[key]+'"></label>';}
+  container.innerHTML='<div class="mc-lab"><h3>鞅收敛：当前值、有限前缀和全族尾部</h3><div class="mc-controls"><label>模型<select data-key="model">'+Object.keys(MODES).map(function(k){return'<option value="'+k+'">'+MODES[k]+'</option>';}).join("")+'</select></label>'+numberControl("n","有限时刻 n（0–1000）",0,1000,1)+numberControl("B","固定边界半宽 B（1–24，仅模型 B 使用）",1,24,1)+numberControl("K","尾部阈值 K（有限非负数）",0,Number.MAX_VALUE,"any")+'</div><p class="mc-note">没有随机样本或 seed。极小非零概率用科学记数法列出；两图和全部表格使用完整有限数据。</p>'+
+  [["1. 尖峰鞅的 a.s. 极限是什么？",["0","1"]],["2. 尖峰鞅是否 L¹ 收敛到这个极限？",["是","否"]],["3. 有界吸收走停的极限是什么？",["恒为 0","随机边界 −B 或 +B"]],["4. 固定 B 的吸收走停是否 L¹ 收敛？",["是","否"]]].map(function(q,i){return'<fieldset data-question="'+i+'"><legend>'+q[0]+'</legend><div class="mc-choices">'+q[1].map(function(a,j){return'<button type="button" data-choice="'+j+'" aria-pressed="false">'+a+'</button>';}).join("")+'</div></fieldset>';}).join("")+
+  '<div class="mc-actions"><button type="button" data-action="submit" disabled>核对四项预测并揭示账本</button><button type="button" data-action="reset">重置实验</button></div><p class="mc-feedback" role="status" aria-live="polite"></p><div class="mc-results" hidden><h4 tabindex="-1">有限计算与无限时结论的边界</h4><div data-content></div></div></div>';
+  var lab=container.querySelector(".mc-lab"),results=lab.querySelector(".mc-results"),submit=lab.querySelector('[data-action="submit"]'),feedback=lab.querySelector(".mc-feedback"),content=lab.querySelector("[data-content]");
+  function read(){var o={};lab.querySelectorAll("[data-key]").forEach(function(e){var k=e.getAttribute("data-key");if(k==="model")o[k]=e.value;else{if(e.value.trim()==="")throw Error(k+" 不能为空");o[k]=Number(e.value);}});return config(o);}
+  function note(x){var p=doc.createElement("p");p.className="mc-note";p.textContent=x;content.append(p);}
+  function region(title){var r=doc.createElement("div");r.className="mc-region";r.setAttribute("role","region");r.tabIndex=0;r.setAttribute("aria-label",title+"，可左右滚动");return r;}
+  function table(d){
+    var r=region(d.title),t=doc.createElement("table");t.setAttribute("data-table",d.key);var caption=doc.createElement("caption");caption.textContent=d.title;t.append(caption);
+    var head=doc.createElement("thead"),tr=doc.createElement("tr");d.headers.forEach(function(x){var th=doc.createElement("th");th.scope="col";th.textContent=x;tr.append(th);});head.append(tr);t.append(head);
+    var body=doc.createElement("tbody");d.rows.forEach(function(row){var tr=doc.createElement("tr");row.forEach(function(x){var td=doc.createElement("td");td.textContent=typeof x==="number"||x===null?fmt(x):x;tr.append(td);});body.append(tr);});t.append(body);r.append(t);
+    if(d.detail){var details=doc.createElement("details"),title=doc.createElement("summary");title.textContent="展开 "+d.rows.length+" 行："+d.title;details.append(title,r);content.append(details);}else content.append(r);
   }
-
-  function modelA(valueN, scale) {
-    var n = normaliseN(valueN);
-    var K = scale === undefined ? FIXED_SCALE : Number(scale);
-    var spikeHeight = Math.pow(2, n);
-    var spikeProbability = Math.pow(0.5, n);
-    var aboveScale = spikeHeight > K;
-    return {
-      id: MODEL_A.id,
-      n: n,
-      scale: K,
-      spikeHeight: spikeHeight,
-      spikeProbability: spikeProbability,
-      zeroProbability: 1 - spikeProbability,
-      expectation: 1,
-      limit: 0,
-      l1Gap: 1,
-      tailProbability: aboveScale ? spikeProbability : 0,
-      tailExpectation: aboveScale ? 1 : 0,
-      ui: false
-    };
-  }
-
-  function walkDistribution(valueN, valueB) {
-    var n = normaliseN(valueN);
-    var B = normaliseB(valueB);
-    var size = 2 * B + 1;
-    var distribution = [];
-    var next;
-    var state;
-    var step;
-    var index;
-    for (index = 0; index < size; index += 1) distribution.push(0);
-    distribution[B] = 1;
-    for (step = 0; step < n; step += 1) {
-      next = [];
-      for (index = 0; index < size; index += 1) next.push(0);
-      for (index = 0; index < size; index += 1) {
-        state = index - B;
-        if (state === -B || state === B) {
-          next[index] += distribution[index];
-        } else {
-          next[index - 1] += distribution[index] / 2;
-          next[index + 1] += distribution[index] / 2;
-        }
-      }
-      distribution = next;
-    }
-    return distribution;
-  }
-
-  function modelB(valueN, valueB) {
-    var n = normaliseN(valueN);
-    var B = normaliseB(valueB);
-    var distribution = walkDistribution(n, B);
-    var negativeProbability = distribution[0];
-    var positiveProbability = distribution[2 * B];
-    var transientMass = 0;
-    var mean = 0;
-    var absoluteMean = 0;
-    var l1Gap = 0;
-    var state;
-    var probability;
-    for (state = -B; state <= B; state += 1) {
-      probability = distribution[state + B];
-      mean += state * probability;
-      absoluteMean += Math.abs(state) * probability;
-      if (state > -B && state < B) {
-        transientMass += probability;
-        l1Gap += probability * (B - (state * state) / B);
-      }
-    }
-    return {
-      id: MODEL_B.id,
-      n: n,
-      B: B,
-      distribution: distribution,
-      negativeProbability: negativeProbability,
-      positiveProbability: positiveProbability,
-      absorbedMass: negativeProbability + positiveProbability,
-      transientMass: transientMass,
-      mean: mean,
-      absoluteMean: absoluteMean,
-      limitPositiveProbability: 0.5,
-      limitNegativeProbability: 0.5,
-      limitMean: 0,
-      l1Gap: l1Gap,
-      ui: true
-    };
-  }
-
-  function formatNumber(api, value, digits) {
-    var normalised = Math.abs(value) < EPSILON ? 0 : value;
-    if (api && typeof api.format === "function") return api.format(normalised, digits);
-    if (!Number.isFinite(normalised)) return "-";
-    var text = normalised.toFixed(digits === undefined ? 4 : digits);
-    return text.indexOf(".") === -1 ? text : text.replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function makeElement(api, tag, attrs, children) {
-    return api.el(tag, attrs || {}, children);
-  }
-
-  function clear(node) {
-    while (node && node.firstChild) node.removeChild(node.firstChild);
-  }
-
-  function replaceChildren(node, children) {
-    clear(node);
-    (children || []).forEach(function (child) {
-      if (child !== undefined && child !== null) node.appendChild(child);
+  function render(){
+    var s=snapshot(c),ts=ledgers(s);content.replaceChildren();table(ts[0]);
+    note("固定 K 后，有限前缀只覆盖 0 到当前 n；全部时刻的上确界来自模型证明。判断 UI 必须最后让 K 趋向无穷，不能把某个有限 n 的零尾部当作结论。");
+    if(c.model==="spike")note("尖峰高度最高可到 2¹⁰⁰⁰，仍可在本实验数值范围表示。零点概率 1−2⁻ⁿ 可能舍入为 1，尖峰概率仍单独保留为非零数；图上的小点面积不是其概率，读纵坐标及表格。");
+    else note("联合账保留所有状态，包括零质量状态。零质量行的条件概率未定义，联合概率为零。L¹ 距离按全部联合概率加权；边界吸收后的质量继续保留。");
+    plots(s).forEach(function(d,i){var figure=doc.createElement("figure"),r=region(d.title);r.append(drawPlot(doc,d,id+"-"+i));figure.append(r);
+      var caption=doc.createElement("figcaption");caption.className="mc-legend";d.series.forEach(function(s){var span=doc.createElement("span"),line=doc.createElement("i");line.style.borderColor=s.color;if(s.dash)line.style.borderTopStyle="dashed";span.append(line,doc.createTextNode(s.label));caption.append(span);});figure.append(caption);content.append(figure);
     });
+    ts.slice(1).forEach(table);results.hidden=false;
   }
-
-  function installStyles(doc) {
-    if (doc.getElementById(STYLE_ID)) return;
-    var style = doc.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = STYLE_TEXT;
-    doc.head.appendChild(style);
-  }
-
-  function metric(api, label, value) {
-    return makeElement(api, "div", { className: "mc-metric" }, [
-      makeElement(api, "span", {}, [label]),
-      makeElement(api, "strong", {}, [value])
-    ]);
-  }
-
-  function massRow(api, label, probability, tone, ariaLabel) {
-    var fill = makeElement(api, "div", { className: "mc-fill " + tone });
-    fill.style.width = String(Math.max(0, Math.min(100, probability * 100))) + "%";
-    var track = makeElement(api, "div", { className: "mc-track", role: "img", "aria-label": ariaLabel }, [fill]);
-    return makeElement(api, "div", { className: "mc-mass-row" }, [
-      makeElement(api, "span", { className: "mc-mass-label" }, [label]),
-      track,
-      makeElement(api, "span", { className: "mc-value" }, [formatNumber(api, probability, 6)])
-    ]);
-  }
-
-  function stateRow(api, state, probability, B) {
-    var boundary = state === -B || state === B;
-    var tone = state === -B ? "mc-fill-negative" : (state === B ? "mc-fill-positive" : "mc-fill-transient");
-    var fill = makeElement(api, "div", { className: "mc-fill " + tone });
-    fill.style.width = String(Math.max(0, Math.min(100, probability * 100))) + "%";
-    var track = makeElement(api, "div", { className: "mc-track", role: "img", "aria-label": "状态 " + state + " 的概率 " + formatNumber(api, probability, 6) }, [fill]);
-    return makeElement(api, "div", { className: "mc-state-row" + (boundary ? " mc-state-boundary" : "") }, [
-      makeElement(api, "span", { className: "mc-state-label" }, [String(state)]),
-      track,
-      makeElement(api, "span", { className: "mc-value" }, [formatNumber(api, probability, 6)])
-    ]);
-  }
-
-  function spikeLedger(api, data) {
-    var ledger = makeElement(api, "section", { className: "mc-ledger", "aria-labelledby": "mc-spike-ledger-title" });
-    ledger.appendChild(makeElement(api, "h4", { id: "mc-spike-ledger-title" }, ["模型 A：固定尺度概率质量"]));
-    ledger.appendChild(makeElement(api, "p", { className: "mc-ledger-note" }, [
-      "K=" + formatNumber(api, data.scale, 0) + " 固定；条形只画概率，右侧数字是精确解析值。"
-    ]));
-    ledger.appendChild(massRow(api, "Xₙ = 0", data.zeroProbability, "mc-fill-zero", "X_n 等于零的概率"));
-    ledger.appendChild(massRow(api, "Xₙ = 2ⁿ", data.spikeProbability, "mc-fill-spike", "X_n 等于尖峰高度的概率"));
-    ledger.appendChild(makeElement(api, "div", { className: "mc-disclosure" }, [
-      makeElement(api, "strong", {}, ["尾部账："]),
-      " P(Xₙ>K)=" + formatNumber(api, data.tailProbability, 6) + "，E[Xₙ·1{Xₙ>K}]=" + formatNumber(api, data.tailExpectation, 6) + "。n 变大时，概率质量变稀，尾部期望并不变小。"
-    ]));
-    return ledger;
-  }
-
-  function walkLedger(api, data) {
-    var ledger = makeElement(api, "section", { className: "mc-ledger", "aria-labelledby": "mc-walk-ledger-title" });
-    var stateLedger = makeElement(api, "div", { className: "mc-state-ledger", "aria-label": "吸收走停的状态概率账本" });
-    var state;
-    ledger.appendChild(makeElement(api, "h4", { id: "mc-walk-ledger-title" }, ["模型 B：状态概率账本"]));
-    ledger.appendChild(makeElement(api, "p", { className: "mc-ledger-note" }, [
-      "每一行是确定性动态规划得到的 P(Xₙ=s)；红、绿两端是冻结的吸收状态。"
-    ]));
-    for (state = -data.B; state <= data.B; state += 1) {
-      stateLedger.appendChild(stateRow(api, state, data.distribution[state + data.B], data.B));
-    }
-    ledger.appendChild(stateLedger);
-    ledger.appendChild(makeElement(api, "div", { className: "mc-disclosure" }, [
-      makeElement(api, "strong", {}, ["L1 账："]),
-      " 未吸收质量=" + formatNumber(api, data.transientMass, 6) + "，精确 E|Xₙ-X∞|=" + formatNumber(api, data.l1Gap, 6) + "；有限 B 给出 |Xₙ|≤B，因此全族 UI。"
-    ]));
-    return ledger;
-  }
-
-  function makeRangeControl(api, id, labelText, min, max, step, value, onInput) {
-    var output = makeElement(api, "output", { id: id + "-output", className: "mc-output", "for": id }, [String(value)]);
-    var label = makeElement(api, "label", { className: "mc-control-label", htmlFor: id }, [
-      makeElement(api, "span", {}, [labelText]),
-      output
-    ]);
-    var input = makeElement(api, "input", {
-      id: id,
-      type: "range",
-      min: min,
-      max: max,
-      step: step,
-      value: value,
-      "aria-label": labelText
-    });
-    input.addEventListener("input", function () { onInput(Number(input.value)); });
-    return {
-      wrap: makeElement(api, "div", { className: "mc-control" }, [label, input]),
-      input: input,
-      output: output
-    };
-  }
-
-  function mount(root, api) {
-    var doc = root.ownerDocument;
-    var uid = "mc-" + (INSTANCE += 1);
-    var state = {
-      model: MODEL_A.id,
-      n: 8,
-      B: 5,
-      revealed: false,
-      prediction: {
-        aLimit: "",
-        aL1: "",
-        bLimit: "",
-        bL1: ""
-      }
-    };
-    var predictionSelects = {};
-    var modelButtons = [];
-    var results;
-    var feedback;
-    var controlPanel;
-    var nRange;
-    var bRange;
-    var checkButton;
-
-    function announce(message) {
-      if (api && typeof api.announce === "function") api.announce(root, message);
-    }
-
-    function predictionSelect(parent, key, labelText, options) {
-      var selectId = uid + "-" + key;
-      var select = makeElement(api, "select", { id: selectId, "aria-label": labelText });
-      options.forEach(function (option) {
-        select.appendChild(makeElement(api, "option", { value: option.value }, [option.label]));
-      });
-      select.addEventListener("change", function () {
-        state.prediction[key] = select.value;
-        render();
-      });
-      predictionSelects[key] = select;
-      parent.appendChild(makeElement(api, "label", { htmlFor: selectId }, [
-        makeElement(api, "span", {}, [labelText]),
-        select
-      ]));
-    }
-
-    function predictionCard(legendText, limitKey, limitOptions, l1Key) {
-      var card = makeElement(api, "fieldset", { className: "mc-prediction-card" }, [
-        makeElement(api, "legend", {}, [legendText])
-      ]);
-      var row = makeElement(api, "div", { className: "mc-prediction-row" });
-      predictionSelect(row, limitKey, "极限", limitOptions);
-      predictionSelect(row, l1Key, "L1 收敛", [
-        { value: "", label: "请选择" },
-        { value: "yes", label: "是" },
-        { value: "no", label: "否" }
-      ]);
-      card.appendChild(row);
-      return card;
-    }
-
-    function predictionComplete() {
-      return state.prediction.aLimit && state.prediction.aL1 && state.prediction.bLimit && state.prediction.bL1;
-    }
-
-    function predictionCorrect() {
-      return state.prediction.aLimit === "zero" && state.prediction.aL1 === "no" &&
-        state.prediction.bLimit === "boundary" && state.prediction.bL1 === "yes";
-    }
-
-    function currentData() {
-      return state.model === MODEL_A.id ? modelA(state.n, FIXED_SCALE) : modelB(state.n, state.B);
-    }
-
-    function renderPredictionControls() {
-      Object.keys(predictionSelects).forEach(function (key) {
-        predictionSelects[key].value = state.prediction[key];
-      });
-    }
-
-    function renderModelControls() {
-      modelButtons.forEach(function (item) {
-        item.button.setAttribute("aria-pressed", item.id === state.model ? "true" : "false");
-      });
-      nRange.input.value = String(state.n);
-      nRange.output.textContent = String(state.n);
-      bRange.input.value = String(state.B);
-      bRange.output.textContent = String(state.B);
-      bRange.input.disabled = state.model === MODEL_A.id;
-      bRange.input.setAttribute("aria-disabled", state.model === MODEL_A.id ? "true" : "false");
-      bRange.wrap.classList.toggle("mc-disabled", state.model === MODEL_A.id);
-    }
-
-    function renderResults() {
-      var data = currentData();
-      var metrics = makeElement(api, "div", { className: "mc-metrics" });
-      replaceChildren(results, []);
-      if (state.model === MODEL_A.id) {
-        metrics.appendChild(metric(api, "当前 n", String(data.n)));
-        metrics.appendChild(metric(api, "尖峰高度 2ⁿ", formatNumber(api, data.spikeHeight, 0)));
-        metrics.appendChild(metric(api, "E Xₙ", formatNumber(api, data.expectation, 3)));
-        metrics.appendChild(metric(api, "a.s. 极限", "0"));
-        metrics.appendChild(metric(api, "E|Xₙ-X∞|", formatNumber(api, data.l1Gap, 3)));
-        metrics.appendChild(metric(api, "UI", "否"));
-        results.appendChild(metrics);
-        results.appendChild(spikeLedger(api, data));
-        results.appendChild(makeElement(api, "p", { className: "mc-disclosure" }, [
-          "这是真实模型 A 的固定时刻账，不是路径抽样：P(Xₙ=2ⁿ)=2⁻ⁿ 且 E Xₙ=1。a.s. 的“最终出现 T”是无限路径论证，不能由这一个 n 的质量图单独推出。"
-        ]));
-      } else {
-        metrics.appendChild(metric(api, "当前 (n, B)", "(" + data.n + ", " + data.B + ")"));
-        metrics.appendChild(metric(api, "P(X∞=+B)", "1/2"));
-        metrics.appendChild(metric(api, "P(未吸收)", formatNumber(api, data.transientMass, 6)));
-        metrics.appendChild(metric(api, "E Xₙ", formatNumber(api, data.mean, 6)));
-        metrics.appendChild(metric(api, "E|Xₙ-X∞|", formatNumber(api, data.l1Gap, 6)));
-        metrics.appendChild(metric(api, "UI", "是：|Xₙ|≤B"));
-        results.appendChild(metrics);
-        results.appendChild(walkLedger(api, data));
-        results.appendChild(makeElement(api, "p", { className: "mc-disclosure" }, [
-          "状态质量由每一步的吸收动态规划精确递推；图上 n 越大，未吸收质量和 L1 距离越小。a.s. 吸收与 L1 极限仍由有限走廊的理论证明负责。"
-        ]));
-      }
-    }
-
-    function render() {
-      renderPredictionControls();
-      renderModelControls();
-      controlPanel.hidden = !state.revealed;
-      if (!state.revealed) {
-        results.hidden = true;
-        feedback.className = "mc-feedback";
-        feedback.textContent = predictionComplete() ? "四格已填，点击“揭示账本”。" : "先为两个模型各选极限与 L1 判断。";
-        return;
-      }
-      results.hidden = false;
-      feedback.className = "mc-feedback " + (predictionCorrect() ? "mc-pass" : "mc-warn");
-      feedback.textContent = predictionCorrect()
-        ? "四格预测正确。现在可以调 n、B 和模型，读精确账本。"
-        : "账本已揭示：对照模型 A 的尖峰尾账与模型 B 的吸收状态，修正预测。";
-      renderResults();
-    }
-
-    installStyles(doc);
-    root.classList.add("martingale-convergence-lab");
-
-    var shell = makeElement(api, "div", { className: "mc-shell", "aria-labelledby": uid + "-title" });
-    shell.appendChild(makeElement(api, "h3", { id: uid + "-title" }, ["鞅收敛实验：a.s.、L1 与 UI 的三本账"]));
-    shell.appendChild(makeElement(api, "p", { className: "mc-intro" }, [
-      "先预测两个完全可复算模型的极限与 L1 收敛；揭示后只显示精确概率递推，不使用随机样本。"
-    ]));
-
-    var predictionSection = makeElement(api, "section", { className: "mc-prediction", "aria-labelledby": uid + "-prediction-title" });
-    predictionSection.appendChild(makeElement(api, "h4", { id: uid + "-prediction-title" }, ["预测门：四格都要先回答"]));
-    var predictionGrid = makeElement(api, "div", { className: "mc-prediction-grid" });
-    predictionGrid.appendChild(predictionCard("模型 A：尖峰鞅", "aLimit", [
-      { value: "", label: "请选择" },
-      { value: "zero", label: "0" },
-      { value: "one", label: "1" },
-      { value: "other", label: "其他" }
-    ], "aL1"));
-    predictionGrid.appendChild(predictionCard("模型 B：吸收走停", "bLimit", [
-      { value: "", label: "请选择" },
-      { value: "zero", label: "0" },
-      { value: "boundary", label: "随机边界 ±B" },
-      { value: "other", label: "其他" }
-    ], "bL1"));
-    predictionSection.appendChild(predictionGrid);
-    feedback = makeElement(api, "p", { className: "mc-feedback", "aria-live": "polite" }, ["先为两个模型各选极限与 L1 判断。"]);
-    var actionRow = makeElement(api, "div", { className: "mc-actions" });
-    checkButton = makeElement(api, "button", { type: "button", className: "mc-primary" }, ["揭示账本"]);
-    var resetButton = makeElement(api, "button", { type: "button" }, ["重置"]);
-    checkButton.addEventListener("click", function () {
-      if (!predictionComplete()) {
-        feedback.className = "mc-feedback mc-warn";
-        feedback.textContent = "还缺判断：模型 A、B 都要填写极限和 L1。";
-        announce(feedback.textContent);
-        return;
-      }
-      state.revealed = true;
-      render();
-      announce("账本已揭示；当前显示确定性模型计算。");
-    });
-    resetButton.addEventListener("click", function () {
-      state.model = MODEL_A.id;
-      state.n = 8;
-      state.B = 5;
-      state.revealed = false;
-      state.prediction.aLimit = "";
-      state.prediction.aL1 = "";
-      state.prediction.bLimit = "";
-      state.prediction.bL1 = "";
-      render();
-      announce("已重置预测、模型和参数。");
-    });
-    actionRow.appendChild(checkButton);
-    actionRow.appendChild(resetButton);
-    predictionSection.appendChild(actionRow);
-    predictionSection.appendChild(feedback);
-    shell.appendChild(predictionSection);
-
-    controlPanel = makeElement(api, "section", { className: "mc-control-panel", "aria-labelledby": uid + "-control-title" });
-    controlPanel.appendChild(makeElement(api, "h4", { id: uid + "-control-title" }, ["揭示后的模型控制"]));
-    var modelButtonRow = makeElement(api, "div", { className: "mc-model-buttons", role: "group", "aria-label": "选择鞅模型" });
-    [MODEL_A, MODEL_B].forEach(function (model) {
-      var button = makeElement(api, "button", { type: "button", "aria-pressed": "false", "aria-label": model.label }, [model.label]);
-      button.addEventListener("click", function () {
-        state.model = model.id;
-        render();
-        announce("已切换到" + model.label + "。");
-      });
-      modelButtons.push({ id: model.id, button: button });
-      modelButtonRow.appendChild(button);
-    });
-    controlPanel.appendChild(modelButtonRow);
-    var controlGrid = makeElement(api, "div", { className: "mc-controls" });
-    nRange = makeRangeControl(api, uid + "-n", "有限时刻 n", 0, MAX_N, 1, state.n, function (value) {
-      state.n = clamp(Math.round(value), 0, MAX_N);
-      render();
-    });
-    bRange = makeRangeControl(api, uid + "-b", "边界半宽 B（模型 B）", MIN_B, MAX_B, 1, state.B, function (value) {
-      state.B = clamp(Math.round(value), MIN_B, MAX_B);
-      render();
-    });
-    controlGrid.appendChild(nRange.wrap);
-    controlGrid.appendChild(bRange.wrap);
-    controlPanel.appendChild(controlGrid);
-    shell.appendChild(controlPanel);
-
-    results = makeElement(api, "section", { className: "mc-results", "aria-label": "揭示后的精确账本", hidden: true });
-    shell.appendChild(results);
-    root.replaceChildren(shell);
-    render();
-  }
-
-  function selfTest() {
-    var checks = 0;
-    function assert(condition, message) {
-      checks += 1;
-      if (!condition) throw new Error(message);
-    }
-    function close(left, right, message) {
-      assert(Math.abs(left - right) < 1e-9, message + ": " + left + " vs " + right);
-    }
-
-    close(modelA(0).expectation, 1, "model A expectation at zero");
-    close(modelA(0).spikeProbability, 1, "model A initial spike mass");
-    close(modelA(1).spikeProbability, 0.5, "model A first spike mass");
-    close(modelA(8).zeroProbability + modelA(8).spikeProbability, 1, "model A total mass");
-    close(modelA(8).tailExpectation, 1, "model A fixed-scale tail expectation");
-    assert(modelA(8).ui === false, "model A is not UI");
-
-    var distribution = walkDistribution(2, 2);
-    close(distribution[0], 0.25, "walk distribution negative boundary");
-    close(distribution[2], 0.5, "walk distribution center");
-    close(distribution[4], 0.25, "walk distribution positive boundary");
-
-    close(modelB(0, 5).l1Gap, 5, "model B initial L1 gap");
-    close(modelB(1, 5).l1Gap, 4.8, "model B one-step L1 gap");
-    close(modelB(1, 1).l1Gap, 0, "B=1 absorbs in one step");
-    for (var B = 1; B <= 8; B += 1) {
-      var previousTransient = 1;
-      for (var n = 0; n <= 24; n += 1) {
-        var data = modelB(n, B);
-        var total = data.distribution.reduce(function (sum, probability) { return sum + probability; }, 0);
-        close(total, 1, "walk total mass B=" + B + " n=" + n);
-        close(data.mean, 0, "walk mean B=" + B + " n=" + n);
-        assert(data.transientMass <= previousTransient + 1e-9, "transient mass is monotone");
-        assert(data.l1Gap >= -1e-12, "L1 gap is nonnegative");
-        previousTransient = data.transientMass;
-      }
-      assert(modelB(1000, B).transientMass < 1e-8, "finite walk eventually absorbs for B=" + B);
-    }
-    assert(modelB(12, 5).ui === true, "model B is UI");
-    return { checks: checks, models: 2 };
-  }
-
-  var exported = {
-    MODEL_A: MODEL_A,
-    MODEL_B: MODEL_B,
-    modelA: modelA,
-    walkDistribution: walkDistribution,
-    modelB: modelB,
-    selfTest: selfTest
-  };
-
-  if (typeof module !== "undefined" && module.exports) module.exports = exported;
-  if (host && host.CourseLearning && typeof host.CourseLearning.register === "function") {
-    host.CourseLearning.register("martingale-convergence", mount);
-  }
-  if (typeof module !== "undefined" && module.exports && typeof require !== "undefined" && require.main === module) {
-    try {
-      var report = selfTest();
-      console.log("martingale-convergence self-test: PASS (" + report.checks + " checks, " + report.models + " models)");
-    } catch (error) {
-      console.error("martingale-convergence self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
-  }
-}(typeof window !== "undefined" ? window : null));
+  function validate(){try{c=read();return true;}catch(e){results.hidden=true;feedback.textContent="输入无效："+e.message;return false;}}
+  function complete(){return selected.every(function(x){return x!==null;});}
+  function state(){var ok=validate();submit.disabled=!ok||!complete()||!results.hidden;return ok;}
+  lab.querySelectorAll("[data-choice]").forEach(function(b){b.addEventListener("click",function(){var field=b.closest("[data-question]"),i=Number(field.getAttribute("data-question"));selected[i]=Number(b.getAttribute("data-choice"));field.querySelectorAll("[data-choice]").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false");});results.hidden=true;if(state())feedback.textContent=complete()?"四项已填，请点击核对。":"请完成四项预测。";});});
+  lab.querySelectorAll("[data-key]").forEach(function(e){e.addEventListener(e.tagName==="SELECT"?"change":"input",function(){var visible=!results.hidden;if(state()){if(visible){render();submit.disabled=true;}else feedback.textContent=complete()?"输入已恢复，请手动核对。":"请先完成四项预测。";}});});
+  submit.addEventListener("click",function(){if(!state()||!complete())return;render();submit.disabled=true;var correct=selected.filter(function(x,i){return x===[0,1,1,0][i];}).length;feedback.textContent="预测 "+correct+" / 4。请对照有限账与模型证明。";results.querySelector("h4").focus();});
+  lab.querySelector('[data-action="reset"]').addEventListener("click",function(){selected=[null,null,null,null];lab.querySelectorAll("[data-choice]").forEach(function(b){b.setAttribute("aria-pressed","false");});lab.querySelectorAll("[data-key]").forEach(function(e){e.value=String(DEFAULTS[e.getAttribute("data-key")]);});results.hidden=true;state();feedback.textContent="已复位，请重新预测。";lab.querySelector("[data-choice]").focus();});state();
+}
+return{DEFAULTS:DEFAULTS,MODES:MODES,MODEL_A:MODEL_A,MODEL_B:MODEL_B,config:config,modelA:modelA,modelB:modelB,walkDistribution:walkDistribution,snapshot:snapshot,crossing:crossing,plots:plots,ledgers:ledgers,fmt:fmt,selfTest:selfTest,mount:mount};
+});

@@ -52,239 +52,343 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-10 16:25</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#mt04-learning-title">学习层：同样每期公平，极限账本为什么不同？</a><ul>
-<li><a href="#1">1. 具体谜题：质量去了哪里？</a></li>
-<li><a href="#2-x_0">2. 最小模型：先约定 \(X_0\)，再谈极限</a></li>
-<li><a href="#3">3. 动手验证：揭示以后只读两本精确账</a></li>
-<li><a href="#4">4. 误区与边界：三种收敛不要混写</a></li>
-<li><a href="#5">5. 迁移：看到一个“期望不变”的序列先问什么？</a></li>
+<li><a href="#mt04-learning-title">学习层：同样每期公平，极限为什么不同？</a><ul>
+<li><a href="#1">1. 先预测：均值不变，是否意味着极限也是这个均值？</a></li>
+<li><a href="#2">2. 有界模型：终点仍然随机，但可以交换期望</a></li>
+<li><a href="#3">3. 把当前状态与未来终点放在同一本账里</a></li>
+<li><a href="#4">4. 实验：有限前缀不是全部时刻</a></li>
+<li><a href="#5">5. 本页要解决的三道门槛</a></li>
 </ul>
 </li>
-<li><a href="#1-doob">1. Doob 上穿不等式：先把方向对齐</a></li>
-<li><a href="#2-as-l1">2. 鞅收敛定理：a.s. 先到，\(L^1\) 要另买票</a></li>
-<li><a href="#3-doob">3. Doob 极大不等式：条件是非负下鞅</a></li>
-<li><a href="#4-azumahoeffding-mcdiarmid">4. Azuma–Hoeffding 与 McDiarmid：常数来自不同假设</a></li>
-<li><a href="#5_1">5. 例子、修正与资产盘点</a></li>
+<li><a href="#1_1">1. 上穿：用过去决定动作，才能取条件期望</a></li>
+<li><a href="#2_1">2. 从有限穿越次数到有限极限</a></li>
+<li><a href="#3-ui">3. UI、闭合鞅与“终值的逐步预测”</a></li>
+<li><a href="#4_1">4. 信息增加与信息减少</a></li>
+<li><a href="#5-doob">5. Doob 极大不等式：终点控制全程峰值</a></li>
+<li><a href="#6-azuma-mcdiarmid">6. Azuma 与 McDiarmid：先认清“宽度”</a></li>
+<li><a href="#7">7. 应用：随机极限、灭绝与学习误差</a></li>
+<li><a href="#8">8. 完整练习</a><ul>
+<li><a href="#a-ui">练习 A：有限前缀怎样掩盖非 UI？</a></li>
+<li><a href="#b">练习 B：从联合分布验证终值预测</a></li>
+<li><a href="#c">练习 C：上穿收益与初始资本</a></li>
+<li><a href="#d">练习 D：集中与泛化之间还差什么？</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </details>
 <h1 id="iv">测度概率 IV · 鞅收敛与应用<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Durrett <em>PTE</em> §4.2–4.7、§5.4 ｜ <strong>前置</strong>：mt-01–03
-这一页把“局部公平”推进到“极限账本”：上穿不等式给出鞅收敛，Doob 极大不等式控制全程峰值，Azuma–Hoeffding 把条件期望结构变成集中界。核心边界是：a.s. 收敛、<span class="arithmatex">\(L^1\)</span> 收敛和一致可积不是同一个断言。</p>
+<p><strong>对标</strong>：Durrett <em>PTE</em> §4.2、4.4、4.6–4.7 ｜ <strong>前置</strong>：<a href="mt-01-measure-expectation.html">测度与期望</a>、<a href="mt-03-conditional-martingale.html">条件期望与鞅</a>
+局部公平只比较相邻两期。要谈无限时间，还要分别回答：每条路径有没有极限？极限可不可积？能不能交换期望与极限？本页用两个完整模型区分这些问题，再证明上穿、UI、Doob 和集中不等式。</p>
 </blockquote>
 <div data-learning-page></div>
 
 <section aria-labelledby="mt04-learning-title" class="learning-layer">
-<h2 id="mt04-learning-title">学习层：同样每期公平，极限账本为什么不同？<a class="headerlink" href="#mt04-learning-title" title="Permanent link"></a></h2>
-<h3 id="1">1. 具体谜题：质量去了哪里？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>有两个从清楚的初值出发的鞅。模型 A 把全部期望压在越来越高、越来越稀有的尖峰上；模型 B 把公平随机游走关进有限走廊，最后停在边界。它们都满足有限时刻的条件公平，但极限交换期望的结果完全不同。</p>
-<p>先不要打开实验输出。对下面两行各自判断两件事：</p>
+<h2 id="mt04-learning-title">学习层：同样每期公平，极限为什么不同？<a class="headerlink" href="#mt04-learning-title" title="Permanent link"></a></h2>
+<h3 id="1">1. 先预测：均值不变，是否意味着极限也是这个均值？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>模型 A 从 <span class="arithmatex">\(X_0=1\)</span> 出发：每次公平硬币若为 H 就翻倍，第一次 T 后永远归零。模型 B 从 <span class="arithmatex">\(0\)</span> 出发作对称随机游走，到达 <span class="arithmatex">\(-B\)</span> 或 <span class="arithmatex">\(+B\)</span> 就停止。先为每个模型选择 a.s. 极限与 <span class="arithmatex">\(L^1\)</span> 收敛的判断，再揭示实验。</p>
+<p><strong>A 的悖论不是计算误差。</strong> 令 <span class="arithmatex">\(A_n=\{\text{前 }n\text{ 次全为 H}\}\)</span>，<span class="arithmatex">\(A_0=\Omega\)</span>。则</p>
+<div class="arithmatex">\[
+X_n=2^n\mathbf1_{A_n},\qquad
+P(X_n=2^n)=2^{-n},\qquad EX_n=1.
+\]</div>
+<p>已归零的路径下期仍为零；尚未归零的路径，下期条件均值是 <span class="arithmatex">\(\tfrac12 2^{n+1}=2^n\)</span>，所以这是非负鞅。事件“永远 H”的概率是 <span class="arithmatex">\(\lim_n2^{-n}=0\)</span>；其余每条路径在有限时刻后恒为零。因此 <span class="arithmatex">\(X_n\to0\)</span> a.s.，但 <span class="arithmatex">\(E|X_n-0|=1\)</span>。</p>
+<p><strong>越来越少不等于越来越不重要。</strong> 在任意固定有限阈值 <span class="arithmatex">\(K\ge0\)</span> 下，只要 <span class="arithmatex">\(2^n&gt;K\)</span>，就有</p>
+<div class="arithmatex">\[
+E[X_n\mathbf1_{\{X_n&gt;K\}}]=2^n2^{-n}=1.
+\]</div>
+<p>这说明 <span class="arithmatex">\(\sup_{n\ge0}E[X_n\mathbf1_{\{X_n&gt;K\}}]=1\)</span>，所以全族不是一致可积（UI）。</p>
+<h3 id="2">2. 有界模型：终点仍然随机，但可以交换期望<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(\xi_i\)</span> 独立且等概率为 <span class="arithmatex">\(\pm1\)</span>，<span class="arithmatex">\(S_n=\sum_{i=1}^n\xi_i\)</span>，<span class="arithmatex">\(S_0=0\)</span>，并定义</p>
+<div class="arithmatex">\[
+\tau_B=\inf\{n\ge0:|S_n|=B\},\qquad X_n=S_{n\wedge\tau_B},\qquad B\in\{1,2,\ldots\}.
+\]</div>
+<p>这是有界鞅，<span class="arithmatex">\(|X_n|\le B\)</span>。为什么最终一定吸收？从任何内部状态出发，接下来 <span class="arithmatex">\(2B\)</span> 步全向右的概率为 <span class="arithmatex">\(2^{-2B}\)</span>，此事件必已碰到边界。逐块条件化给出</p>
+<div class="arithmatex">\[
+P(\tau_B&gt;2Bm)\le(1-2^{-2B})^m\longrightarrow0.
+\]</div>
+<p>于是 <span class="arithmatex">\(X_n\to Z=S_{\tau_B}\in\{-B,B\}\)</span> a.s.。有界收敛给 <span class="arithmatex">\(E|X_n-Z|\to0\)</span> 与 <span class="arithmatex">\(EZ=0\)</span>，由 <span class="arithmatex">\(Z\)</span> 只有两种可能得两边概率各 <span class="arithmatex">\(1/2\)</span>。这里没有先假定无限停时可交换期望。</p>
+<h3 id="3">3. 把当前状态与未来终点放在同一本账里<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>从状态 <span class="arithmatex">\(s\)</span> 出发最终到 <span class="arithmatex">\(+B\)</span> 的概率 <span class="arithmatex">\(h(s)\)</span> 满足
+<span class="arithmatex">\(h(s)=\tfrac12[h(s-1)+h(s+1)]\)</span>，边界值为 <span class="arithmatex">\(0,1\)</span>；解是 <span class="arithmatex">\(h(s)=(B+s)/(2B)\)</span>。因此对任意正概率的当前状态，</p>
+<div class="arithmatex">\[
+E[Z\mid X_n=s]=s,\qquad
+E[|Z-s|\mid X_n=s]=B-\frac{s^2}{B}.
+\]</div>
+<p>例如 <span class="arithmatex">\(B=2,n=2\)</span>，当前状态 <span class="arithmatex">\(-2,0,2\)</span> 的概率为 <span class="arithmatex">\(1/4,1/2,1/4\)</span>。只有中央状态还可能改变；它以各 <span class="arithmatex">\(1/2\)</span> 概率去两个终点，每次距离都是 <span class="arithmatex">\(2\)</span>。所以总 <span class="arithmatex">\(L^1\)</span> 距离为 <span class="arithmatex">\((1/2)\times2=1\)</span>，而未吸收概率为 <span class="arithmatex">\(1/2\)</span>，两者不是同一个量。</p>
+<p>实验逐步传播全部 <span class="arithmatex">\(2B+1\)</span> 个状态，边界质量冻结；内部质量各分一半给相邻状态。完整联合表计算</p>
+<div class="arithmatex">\[
+P(X_n=s,Z=B)=p_n(s)\frac{B+s}{2B},\qquad
+P(X_n=s,Z=-B)=p_n(s)\frac{B-s}{2B}.
+\]</div>
+<p>对零概率状态，联合质量为零，条件概率栏标为未定义；不能做 <span class="arithmatex">\(0/0\)</span>。表中所用的延拓命中函数依然有意义，但不是在零概率事件上唯一确定的条件概率。</p>
+<style>.mc-static{max-width:100%;overflow-x:auto}.mc-static img{display:block;width:1100px;min-width:1100px;max-width:none!important}.mc-static:focus-visible{outline:3px solid var(--accent);outline-offset:2px}</style>
+<div aria-label="尖峰、吸收联合分布与上穿策略示意图，可左右滚动" class="mc-static" role="region" tabindex="0">
+<p><img alt="尖峰的概率与期望分开；有限走廊的当前状态和未来终点联合账；上穿策略先决定持仓再读下一步" src="assets/img/mt-04-martingale-convergence.svg" /></p>
+</div>
+<h3 id="4">4. 实验：有限前缀不是全部时刻<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="martingale-convergence">
+<p><strong>无 JavaScript 的读法。</strong> A 取 <span class="arithmatex">\(n=8,K=256\)</span>，当前尾部期望是 <span class="arithmatex">\(0\)</span>，截至第 8 步的尾部期望最大值也是 <span class="arithmatex">\(0\)</span>；但所有时刻的上确界是 <span class="arithmatex">\(1\)</span>，因为第 9 步就超过了 <span class="arithmatex">\(K\)</span>。这里严格使用 <span class="arithmatex">\(|X|&gt;K\)</span>，等于阈值不算入尾部。</p>
+<p>B 取 <span class="arithmatex">\(B=2,n=2,K=1\)</span>，当前尾部期望为 <span class="arithmatex">\(1\)</span>、<span class="arithmatex">\(L^1\)</span> 距离为 <span class="arithmatex">\(1\)</span>。固定 <span class="arithmatex">\(B\)</span> 后，所有时刻的尾部上确界在 <span class="arithmatex">\(K&lt;B\)</span> 时为 <span class="arithmatex">\(B\)</span>，在 <span class="arithmatex">\(K\ge B\)</span> 时为 <span class="arithmatex">\(0\)</span>：前者由终点绝对值趋于 <span class="arithmatex">\(B\)</span> 和上界 <span class="arithmatex">\(B\)</span> 得到，后者由一致有界性得到。所以让 <span class="arithmatex">\(K\to\infty\)</span> 时，B 的尾部统一消失。</p>
+</div>
+<p>调节 <span class="arithmatex">\(n=0,\ldots,1000\)</span>、<span class="arithmatex">\(B=1,\ldots,24\)</span> 和固定阈值 <span class="arithmatex">\(K\ge0\)</span>。两图画全部时刻及全部状态；尖峰状态轴保留真实数值间距，极小概率同时用科学记数法列出。表中分别列当前尾部、有限前缀最大值、由模型证明得到的全族上确界。A 的高度与概率分栏，避免把“很高”和“很可能”画成同一量。没有随机抽样；解析公式与有限概率递推以浮点数求值，有限快照不能替代无限时证明。</p>
+<h3 id="5">5. 本页要解决的三道门槛<a class="headerlink" href="#5" title="Permanent link"></a></h3>
 <table>
 <thead>
 <tr>
-<th>模型</th>
-<th>你要先预测的极限</th>
-<th>你要先预测的 <span class="arithmatex">\(L^1\)</span> 收敛</th>
+<th>问题</th>
+<th>一个足够条件</th>
+<th>不能由什么替代</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>A：<span class="arithmatex">\(X_n=2^n\mathbf 1\{H_1=\cdots=H_n\}\)</span></td>
-<td><span class="arithmatex">\(X_n\)</span> 的 a.s. 极限是 <span class="arithmatex">\(0\)</span>、<span class="arithmatex">\(1\)</span>，还是别的？</td>
-<td><span class="arithmatex">\(X_n\to X_\infty\)</span> 吗？</td>
+<td>路径是否收敛到有限值？</td>
+<td>鞅的 <span class="arithmatex">\(L^1\)</span> 一致有界</td>
+<td>仅有每期均值相同</td>
 </tr>
 <tr>
-<td>B：对称游走在 <span class="arithmatex">\(\{-B,+B\}\)</span> 吸收后的 <span class="arithmatex">\(X_n\)</span></td>
-<td>极限是 <span class="arithmatex">\(0\)</span>，还是随机边界值？</td>
-<td>是否 <span class="arithmatex">\(L^1\)</span> 收敛？</td>
+<td>能否得到 <span class="arithmatex">\(L^1\)</span> 收敛？</td>
+<td>上述鞅再加 UI</td>
+<td>仅有 a.s. 收敛或 <span class="arithmatex">\(L^1\)</span> 有界</td>
+</tr>
+<tr>
+<td>极限是否等于一个常数？</td>
+<td>还需模型的额外结构</td>
+<td>UI 本身；模型 B 的极限随机</td>
 </tr>
 </tbody>
 </table>
-<p>实验会先锁住这四个判断；只有点击“揭示账本”后，才显示固定时刻的概率质量和状态账本。显示的是精确有限时刻计算，不是用有限时域图冒充无限时定理。</p>
-<h3 id="2-x_0">2. 最小模型：先约定 <span class="arithmatex">\(X_0\)</span>，再谈极限<a class="headerlink" href="#2-x_0" title="Permanent link"></a></h3>
-<p>令 <span class="arithmatex">\(\xi_1,\xi_2,\ldots\)</span> 是独立公平硬币，<span class="arithmatex">\(\mathcal F_n=\sigma(\xi_1,\ldots,\xi_n)\)</span>。本页统一从 <span class="arithmatex">\(n=0\)</span> 计时：空事件“前 <span class="arithmatex">\(0\)</span> 次都是 H”成立，所以模型 A 的 <span class="arithmatex">\(X_0=1\)</span>；模型 B 从 <span class="arithmatex">\(S_0=0\)</span> 出发。</p>
-<p><strong>模型 A（稀有尖峰鞅）</strong>：令 <span class="arithmatex">\(A_n=\{\xi_1=\cdots=\xi_n=H\}\)</span>，并取</p>
-<div class="arithmatex">\[
-X_n=2^n\mathbf 1_{A_n},\qquad X_0=1.
-\]</div>
-<p>在 <span class="arithmatex">\(A_{n-1}\)</span> 上，下一步以 <span class="arithmatex">\(1/2\)</span> 的概率把 <span class="arithmatex">\(2^{n-1}\)</span> 变成 <span class="arithmatex">\(2^n\)</span>，否则归零；在 <span class="arithmatex">\(A_{n-1}^c\)</span> 上两边都为零。因此</p>
-<div class="arithmatex">\[
-E[X_n\mid\mathcal F_{n-1}]=X_{n-1},\qquad
-P(X_n=2^n)=2^{-n},\qquad E X_n=1.
-\]</div>
-<p>对几乎每条路径，总会在某一有限步第一次出现 T，之后永远为零，所以 <span class="arithmatex">\(X_n\to0\)</span> a.s.。但是</p>
-<div class="arithmatex">\[
-E|X_n-0|=1.
-\]</div>
-<p>质量没有消失，而是逃到了高度 <span class="arithmatex">\(2^n\)</span> 的概率 <span class="arithmatex">\(2^{-n}\)</span> 尖峰里。对任意固定 <span class="arithmatex">\(K\)</span>，当 <span class="arithmatex">\(2^n&gt;K\)</span> 时
-<span class="arithmatex">\(E[X_n\mathbf 1_{\{X_n&gt;K\}}]=1\)</span>，这正是非一致可积的尾部账。</p>
-<p><strong>模型 B（有界停走）</strong>：令</p>
-<div class="arithmatex">\[
-S_n=\sum_{i=1}^n\xi_i,\qquad
-\tau_B=\inf\{n\ge0:S_n\in\{-B,+B\}\},\qquad
-X_n=S_{n\wedge\tau_B}.
-\]</div>
-<p><span class="arithmatex">\(X_n\)</span> 是鞅且 <span class="arithmatex">\(|X_n|\le B\)</span>。有限状态游走最终到达边界，故 <span class="arithmatex">\(X_n\to X_\infty\in\{-B,+B\}\)</span> a.s.；从 <span class="arithmatex">\(0\)</span> 出发，<span class="arithmatex">\(P(X_\infty=+B)=P(X_\infty=-B)=1/2\)</span>。有界性直接给一致可积，因而 a.s. 收敛升级为 <span class="arithmatex">\(L^1\)</span> 收敛。</p>
-<h3 id="3">3. 动手验证：揭示以后只读两本精确账<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>打开实验后：</p>
-<ol>
-<li>先分别选定 A、B 的极限和 <span class="arithmatex">\(L^1\)</span> 判断；未填完四格不能揭示。</li>
-<li>揭示后切换模型，调节 <span class="arithmatex">\(n\)</span>；模型 B 还可调 <span class="arithmatex">\(B\)</span>。重置会回到同一组预测和参数。</li>
-<li>模型 A 读固定尺度 <span class="arithmatex">\(K=1\)</span> 的两点质量：零点质量趋近 <span class="arithmatex">\(1\)</span>，尖峰概率趋近 <span class="arithmatex">\(0\)</span>，但尖峰高度和尾部期望保持账面上的补偿。</li>
-<li>模型 B 读 <span class="arithmatex">\(-B,-B+1,\ldots,B\)</span> 的确定性状态质量。每一步把内部状态的质量各分一半，边界质量冻结；同时给出未吸收质量和精确的 <span class="arithmatex">\(E|X_n-X_\infty|\)</span>。</li>
-</ol>
-<p>模型 B 的动态规划是</p>
-<div class="arithmatex">\[
-p_{n+1}(s)=\tfrac12p_n(s-1)+\tfrac12p_n(s+1)
-\]</div>
-<p>对内部状态的转移，边界状态保持不动；这里的边界合并已经包含在状态账本里。对内部状态 <span class="arithmatex">\(s\)</span>，从该状态继续走到最终边界的条件平均距离为</p>
-<div class="arithmatex">\[
-E[|X_\infty-s|\mid X_n=s]=B-\frac{s^2}{B},
-\]</div>
-<p>所以实验用状态质量加权得到 <span class="arithmatex">\(E|X_n-X_\infty|\)</span>，没有 Monte Carlo 样本、种子或抽样误差。</p>
-<div class="learning-lab" data-learning-lab="martingale-convergence">
-<p><strong>无 JavaScript 时的静态读法：</strong>模型 A 取 <span class="arithmatex">\(n\)</span> 时，<span class="arithmatex">\(P(X_n=0)=1-2^{-n}\)</span>、<span class="arithmatex">\(P(X_n=2^n)=2^{-n}\)</span>、<span class="arithmatex">\(E X_n=1\)</span>、<span class="arithmatex">\(E|X_n-0|=1\)</span>。固定 <span class="arithmatex">\(K=1\)</span> 时，<span class="arithmatex">\(n\ge1\)</span> 有 <span class="arithmatex">\(E[X_n\mathbf1_{\{X_n&gt;K\}}]=1\)</span>，所以这列鞅不 UI，也不可能 <span class="arithmatex">\(L^1\)</span> 收敛到它的 a.s. 极限 <span class="arithmatex">\(0\)</span>。</p>
-<p>模型 B 取 <span class="arithmatex">\(B=5\)</span>、<span class="arithmatex">\(X_0=0\)</span> 时，边界吸收的状态质量由上述递推精确得到；<span class="arithmatex">\(P(X_\infty=+5)=P(X_\infty=-5)=1/2\)</span>，且 <span class="arithmatex">\(|X_n|\le5\)</span>，因此 UI、a.s. 收敛和 <span class="arithmatex">\(L^1\)</span> 收敛都成立。实验中的 <span class="arithmatex">\(n\)</span> 只是一个有限时刻快照；它不能单独证明 <span class="arithmatex">\(n\to\infty\)</span>，证明来自有限走廊吸收和有界收敛/UI 论证。</p>
 </div>
-<h3 id="4">4. 误区与边界：三种收敛不要混写<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<ul>
-<li>在鞅、上鞅或下鞅的收敛定理语境中，<span class="arithmatex">\(\sup_nE|X_n|&lt;\infty\)</span> 给出 a.s. 收敛；它只给出了极限存在，不自动给 <span class="arithmatex">\(E|X_n-X_\infty|\to0\)</span>。</li>
-<li>一致可积（UI）是尾部统一变小：<span class="arithmatex">\(\lim_{K\to\infty}\sup_nE[|X_n|\mathbf1_{\{|X_n|&gt;K\}}]=0\)</span>。对已有 a.s. 极限的鞅，UI 正是把期望送过极限、得到 <span class="arithmatex">\(L^1\)</span> 收敛的桥；模型 A 的固定尺度尾账正好破坏它。</li>
-<li>“每个有限 <span class="arithmatex">\(n\)</span> 的图趋向某个形状”不是无限时定理。实验只计算 <span class="arithmatex">\(p_n\)</span> 或模型 A 的解析质量；a.s. 事件、UI 和 <span class="arithmatex">\(L^1\)</span> 结论由定理和模型证明负责。</li>
-<li>上穿证明里策略的下注量必须由过去决定。若 <span class="arithmatex">\(H_m\in\mathcal F_{m-1}\)</span>，则 <span class="arithmatex">\(H_m\)</span> 可预测；它不能看见第 <span class="arithmatex">\(m\)</span> 次增量。初值约定是零初始财富 <span class="arithmatex">\(W_0=0\)</span>，<span class="arithmatex">\(W_n=(H\mathbin\cdot X)_n=\sum_{m=1}^nH_m(X_m-X_{m-1})\)</span>；若有资本 <span class="arithmatex">\(w_0\)</span>，总财富只是 <span class="arithmatex">\(w_0+(H\mathbin\cdot X)_n\)</span>。</li>
-</ul>
-<h3 id="5">5. 迁移：看到一个“期望不变”的序列先问什么？<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<p>先问它是不是鞅/上鞅，以及哪一套 crossing 方向适用；再问有没有 L1 界、统一确定性界或 UI。若是分支过程，<span class="arithmatex">\(Z_n/\mu^n\)</span>（<span class="arithmatex">\(\mu&gt;0\)</span>）是非负鞅，但“<span class="arithmatex">\(\mu\le1\)</span> 必灭绝”有退化临界例外：<span class="arithmatex">\(\mu=1\)</span> 且每个个体恰生一个后代时，<span class="arithmatex">\(Z_n\equiv Z_0\)</span>，不会灭绝。非退化的临界情形才是灭绝概率 <span class="arithmatex">\(1\)</span>。</p>
-<p>对学习理论也要保留量词：若损失落在 <span class="arithmatex">\([0,C]\)</span>，<span class="arithmatex">\(f(S)=\min_h\widehat R_S(h)\)</span> 换一个样本至多改变 <span class="arithmatex">\(C/n\)</span>，McDiarmid 控制的是<strong>训练误差这个数据函数</strong>围绕 <span class="arithmatex">\(Ef\)</span> 的波动；它不等于 <span class="arithmatex">\(R(\widehat h_S)-\widehat R_S(\widehat h_S)\)</span> 的泛化界。后者还要用有限类 union bound、VC/Rademacher 复杂度、稳定性等结构。训练误差集中与泛化必须分账。</p>
 </section>
-<h2 id="1-doob">1. Doob 上穿不等式：先把方向对齐<a class="headerlink" href="#1-doob" title="Permanent link"></a></h2>
-<p>取 <span class="arithmatex">\(a&lt;b\)</span>，令 <span class="arithmatex">\(U_n[a,b]\)</span> 从“当前在 <span class="arithmatex">\(\le a\)</span>”开始，走到 <span class="arithmatex">\(\ge b\)</span> 完成一次上穿。对可积<strong>上鞅</strong> <span class="arithmatex">\(X\)</span>，即</p>
+<h2 id="1_1">1. 上穿：用过去决定动作，才能取条件期望<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
+<p>取实数 <span class="arithmatex">\(a&lt;b\)</span>。从某个 <span class="arithmatex">\(X_j\le a\)</span> 开始，到后来第一次 <span class="arithmatex">\(X_k\ge b\)</span> 算一次完成的上穿，重复这一规则得到 <span class="arithmatex">\(U_n[a,b]\)</span>。若 <span class="arithmatex">\(X_0\le a\)</span>，可以从时刻 <span class="arithmatex">\(0\)</span> 开始；<span class="arithmatex">\(U_0=0\)</span>。</p>
+<p>持仓规则是：看到价格 <span class="arithmatex">\(\le a\)</span> 后持有一单位，看到价格 <span class="arithmatex">\(\ge b\)</span> 后清空，其他时刻保持原状态。第 <span class="arithmatex">\(m\)</span> 段是否持仓 <span class="arithmatex">\(H_m\in\{0,1\}\)</span> 已由时刻 <span class="arithmatex">\(m-1\)</span> 的信息决定。零初始资本的累计收益为</p>
 <div class="arithmatex">\[
-E[X_m\mid\mathcal F_{m-1}]\le X_{m-1},
+G_n=\sum_{m=1}^nH_m(X_m-X_{m-1}).
 \]</div>
-<p>有</p>
+<p>每次完成的穿越至少增加 <span class="arithmatex">\(b-a\)</span>；若最后还持仓，买入价不超过 <span class="arithmatex">\(a\)</span>，这段收益至少是 <span class="arithmatex">\(-(X_n-a)^-\)</span>。逐路径有</p>
 <div class="arithmatex">\[
-(b-a)E U_n[a,b]\le E[(X_n-a)^-],
-\qquad x^-:=\max\{-x,0\}.
+G_n\ge(b-a)U_n[a,b]-(X_n-a)^-,
+\qquad x^-=\max(-x,0).
 \]</div>
-<p>证明使用长仓—低买高卖策略：<span class="arithmatex">\(H_m\in\{0,1\}\)</span> 由 <span class="arithmatex">\(\mathcal F_{m-1}\)</span> 决定，在 <span class="arithmatex">\(X\le a\)</span> 后持仓，在 <span class="arithmatex">\(X\ge b\)</span> 后平仓。令</p>
+<p>若 <span class="arithmatex">\(X\)</span> 是可积<strong>上鞅</strong>，则 <span class="arithmatex">\(E[H_m(X_m-X_{m-1})]\le0\)</span>，因为 <span class="arithmatex">\(H_m\)</span> 非负、有界、可预测。因此</p>
 <div class="arithmatex">\[
-(H\mathbin\cdot X)_n=\sum_{m=1}^nH_m(X_m-X_{m-1}),\qquad W_0=0.
+(b-a)EU_n[a,b]\le E[(X_n-a)^-].
 \]</div>
-<p>每个完成的上穿至少赚 <span class="arithmatex">\(b-a\)</span>，未完成的最后一段最多亏 <span class="arithmatex">\((X_n-a)^-\)</span>，故</p>
+<p>有初始资本 <span class="arithmatex">\(w_0\)</span> 时总财富是 <span class="arithmatex">\(w_0+G_n\)</span>；上式控制收益，不把 <span class="arithmatex">\(w_0\)</span> 算作策略赚到的钱。若提前看见 <span class="arithmatex">\(\Delta X_m\)</span> 再选 <span class="arithmatex">\(H_m=\mathbf1_{\{\Delta X_m&gt;0\}}\)</span>，条件期望这一步就失效。</p>
+<p><strong>下鞅的两种正确版本。</strong> 对 <span class="arithmatex">\(-X\)</span> 用上式，得到下穿数 <span class="arithmatex">\(D_n[a,b]\)</span> 的界</p>
 <div class="arithmatex">\[
-(H\mathbin\cdot X)_n\ge(b-a)U_n[a,b]-(X_n-a)^-.
+(b-a)ED_n[a,b]\le E[(X_n-b)^+].
 \]</div>
-<p>上鞅的可预测非负策略收益仍是从零开始的上鞅，因而 <span class="arithmatex">\(E(H\mathbin\cdot X)_n\le0\)</span>，移项得式子。若把初始资本写成 <span class="arithmatex">\(w_0\)</span>，只需写 <span class="arithmatex">\(W_n=w_0+(H\mathbin\cdot X)_n\)</span>；上穿界控制的是收益部分，不应把 <span class="arithmatex">\(X_0\)</span> 默默漏掉。</p>
-<p><strong>下鞅方向不能偷换。</strong> 对可积<strong>下鞅</strong>，同一个长仓策略的期望收益是非负，不能由上面的路径下界推出同一个“上穿”上界。对 <span class="arithmatex">\(-X\)</span> 应用上鞅上穿式，得到下鞅的<strong>下穿</strong>界：若 <span class="arithmatex">\(D_n[a,b]\)</span> 从 <span class="arithmatex">\(\ge b\)</span> 到 <span class="arithmatex">\(\le a\)</span>，则</p>
+<p>下鞅也有真正的上穿界，但证明须多一步。令 <span class="arithmatex">\(Y_m=\max(X_m,a)\)</span>；凸性与单调性使 <span class="arithmatex">\(Y\)</span> 仍为下鞅，上穿次数不变。对 <span class="arithmatex">\(Y\)</span> 的同一策略，未完成的最后一段也不亏，所以 <span class="arithmatex">\((b-a)U_n\le(H\cdot Y)_n\)</span>。补策略 <span class="arithmatex">\(1-H\)</span> 的期望收益非负，而两者之和是 <span class="arithmatex">\(Y_n-Y_0\)</span>，故</p>
 <div class="arithmatex">\[
-(b-a)E D_n[a,b]\le E[(X_n-b)^+],
-\qquad x^+:=\max\{x,0\}.
+(b-a)EU_n[a,b]\le
+E[(X_n-a)^+]-E[(X_0-a)^+].
 \]</div>
-<p>鞅同时是上鞅和下鞅，所以两种方向都可用；不同教材把符号翻转后的版本也统称“上穿不等式”，必须先说明自己的 <span class="arithmatex">\(U/D\)</span> 与上下鞅约定。</p>
-<h2 id="2-as-l1">2. 鞅收敛定理：a.s. 先到，<span class="arithmatex">\(L^1\)</span> 要另买票<a class="headerlink" href="#2-as-l1" title="Permanent link"></a></h2>
-<p>若 <span class="arithmatex">\(X\)</span> 是鞅且</p>
+<p>这解释了为什么不同教材的“上穿不等式”看上去不同：上鞅版控制终点负部，下鞅版控制正部增量。不能只换名称而沿用原证明的方向。</p>
+<h2 id="2_1">2. 从有限穿越次数到有限极限<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
+<p>先证明更一般的版本：若 <span class="arithmatex">\(X\)</span> 是下鞅且 <span class="arithmatex">\(C=\sup_nEX_n^+&lt;\infty\)</span>，则 <span class="arithmatex">\(X_n\)</span> a.s. 收敛到一个 <span class="arithmatex">\(L^1\)</span> 随机变量。</p>
+<p>对每对有理数 <span class="arithmatex">\(a&lt;b\)</span>，上穿界给 <span class="arithmatex">\(EU_n[a,b]\le(C+|a|)/(b-a)\)</span>。因 <span class="arithmatex">\(U_n\)</span> 单调增加，MCT 得 <span class="arithmatex">\(EU_\infty&lt;\infty\)</span>，于是 <span class="arithmatex">\(U_\infty&lt;\infty\)</span> a.s.。可数多个有理区间可以同时取概率一事件。若一条路径的 <span class="arithmatex">\(\liminf\)</span> 小于 <span class="arithmatex">\(\limsup\)</span>，就能在两者中间挑有理 <span class="arithmatex">\(a&lt;b\)</span>，这条路径必有无穷多次上穿，矛盾。</p>
+<p>到这里得到的只是<strong>扩展实数极限</strong>，还需排除无穷大。下鞅有 <span class="arithmatex">\(EX_n\ge EX_0\)</span>，所以</p>
 <div class="arithmatex">\[
-\sup_n E|X_n|&lt;\infty,
+EX_n^-=EX_n^+-EX_n\le C-EX_0.
 \]</div>
-<p>对每个有理 <span class="arithmatex">\(a&lt;b\)</span> 使用上鞅和下鞅两套 crossing 界，得到每个区间的穿越次数有限 a.s.。取可数多个有理区间的交，<span class="arithmatex">\(X_n\)</span> a.s. 收敛到有限的 <span class="arithmatex">\(X_\infty\)</span>；Fatou 给出</p>
+<p>对正、负部分分别用 Fatou，极限的两部分期望都有限，因此极限是有限值且可积。对上鞅使用 <span class="arithmatex">\(-X\)</span> 即可。</p>
+<p>特别地，鞅若 <span class="arithmatex">\(\sup_nE|X_n|&lt;\infty\)</span> 就满足条件；非负上鞅满足 <span class="arithmatex">\(EX_n\le EX_0\)</span>，也必 a.s. 收敛。A 正是非负、<span class="arithmatex">\(L^1\)</span> 有界、极限可积，却没有 <span class="arithmatex">\(L^1\)</span> 收敛的反例。</p>
+<h2 id="3-ui">3. UI、闭合鞅与“终值的逐步预测”<a class="headerlink" href="#3-ui" title="Permanent link"></a></h2>
+<p>UI 的量词顺序是</p>
 <div class="arithmatex">\[
-E|X_\infty|\le\liminf_nE|X_n|&lt;\infty.
+\lim_{K\to\infty}\sup_{n\ge0}
+E[|X_n|\mathbf1_{\{|X_n|&gt;K\}}]=0.
 \]</div>
-<p>这一步只保证 a.s. 收敛和可积极限。<strong>L1 有界不是 UI，也不自动给 <span class="arithmatex">\(L^1\)</span> 收敛。</strong> UI 定义为</p>
+<p>对每个固定 <span class="arithmatex">\(n\)</span>，尾部都会消失；UI 要求能为全部 <span class="arithmatex">\(n\)</span> 选择同一个 <span class="arithmatex">\(K\)</span>。实验的“有限前缀最大值”只取 <span class="arithmatex">\(0\le t\le n\)</span>，因此不能证明 UI。</p>
+<p>对离散时间鞅，下列三项等价：</p>
+<ol>
+<li><span class="arithmatex">\(\{X_n\}\)</span> UI。</li>
+<li>存在 <span class="arithmatex">\(X_\infty\in L^1\)</span>，使 <span class="arithmatex">\(X_n\to X_\infty\)</span> in <span class="arithmatex">\(L^1\)</span>。</li>
+<li>存在一个固定的 <span class="arithmatex">\(Y\in L^1\)</span>，使 <span class="arithmatex">\(X_n=E[Y\mid\mathcal F_n]\)</span>。</li>
+</ol>
+<p><strong>为什么 1 推出 2？</strong> UI 给 <span class="arithmatex">\(L^1\)</span> 有界，上一节给 a.s. 极限；再用 <a href="mt-01-measure-expectation.html">Vitali 的 UI 收敛判据</a> 得 <span class="arithmatex">\(L^1\)</span> 收敛。反向的 <span class="arithmatex">\(L^1\)</span> 收敛序列 UI 也见该判据；对鞅还可沿下面两步得到。</p>
+<p><strong>为什么 2 推出 3，而且能取 <span class="arithmatex">\(Y=X_\infty\)</span>？</strong> 固定 <span class="arithmatex">\(n\)</span>，对所有 <span class="arithmatex">\(m\ge n\)</span>，鞅性给 <span class="arithmatex">\(X_n=E[X_m\mid\mathcal F_n]\)</span>。条件期望的 <span class="arithmatex">\(L^1\)</span> 收缩性于是给</p>
 <div class="arithmatex">\[
-\lim_{K\to\infty}\sup_nE\big[|X_n|\mathbf1_{\{|X_n|&gt;K\}}\big]=0.
+\left\|X_n-E[X_\infty\mid\mathcal F_n]\right\|_1
+\le\|X_m-X_\infty\|_1\longrightarrow0.
 \]</div>
-<p>若鞅有 a.s. 极限，则 UI 等价于 <span class="arithmatex">\(X_n\to X_\infty\)</span> in <span class="arithmatex">\(L^1\)</span>；此时 UI 鞅的闭合表示为</p>
+<p><strong>为什么一个固定 <span class="arithmatex">\(Y\)</span> 生成的所有条件期望都 UI？</strong> 令 <span class="arithmatex">\(Z=E[Y\mid\mathcal G]\)</span>、<span class="arithmatex">\(A=\{|Z|&gt;K\}\)</span>。把 <span class="arithmatex">\(|Y|\)</span> 按 <span class="arithmatex">\(K/2\)</span> 分开，得到
+<span class="arithmatex">\(|Z|\le K/2+E[|Y|\mathbf1_{\{|Y|&gt;K/2\}}\mid\mathcal G]\)</span>。在 <span class="arithmatex">\(A\)</span> 上，第一项小于 <span class="arithmatex">\(|Z|/2\)</span>，故</p>
 <div class="arithmatex">\[
-X_n=E[X_\infty\mid\mathcal F_n]
+E[|Z|\mathbf1_A]\le
+2E[|Y|\mathbf1_{\{|Y|&gt;K/2\}}]\longrightarrow0.
 \]</div>
-<p>模型 A 是“L1 有界但非 UI”的反例，模型 B 则由 <span class="arithmatex">\(|X_n|\le B\)</span> 直接 UI。相关但方向不同的 Lévy 向上定理从一个固定 <span class="arithmatex">\(Y\in L^1\)</span> 出发，说明 <span class="arithmatex">\(E[Y\mid\mathcal F_n]\to E[Y\mid\mathcal F_\infty]\)</span> in <span class="arithmatex">\(L^1\)</span>；当 <span class="arithmatex">\(Y\)</span> 对 <span class="arithmatex">\(\mathcal F_\infty\)</span> 可测时，右端才是 <span class="arithmatex">\(Y\)</span>。不要把“由终值生成鞅”和“从已有鞅识别终值”混成一句。</p>
-<p>非负上鞅自动 a.s. 收敛，因为 <span class="arithmatex">\(E X_n\le E X_0\)</span>；但这仍不等于 <span class="arithmatex">\(L^1\)</span> 收敛。若要使用“期望穿过极限”，要明确写出 UI、支配收敛或其他足够条件。</p>
-<h2 id="3-doob">3. Doob 极大不等式：条件是非负下鞅<a class="headerlink" href="#3-doob" title="Permanent link"></a></h2>
-<p>若 <span class="arithmatex">\(X_0,\ldots,X_n\)</span> 是<strong>非负下鞅</strong>（下鞅即条件期望向上），且 <span class="arithmatex">\(\lambda&gt;0\)</span>，则</p>
+<p>右侧不依赖 <span class="arithmatex">\(\mathcal G\)</span>。这就证明了 3 推出 1，也解释“闭合”：每一期都是对同一终值的预测。模型 B 有 <span class="arithmatex">\(X_n=E[Z\mid\mathcal F_n]\)</span>，模型 A 则不能由其终值 <span class="arithmatex">\(0\)</span> 闭合。</p>
+<h2 id="4_1">4. 信息增加与信息减少<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p><strong>Lévy 向上定理。</strong> 若 <span class="arithmatex">\(\mathcal F_n\uparrow\)</span>、<span class="arithmatex">\(\mathcal F_\infty=\sigma(\bigcup_n\mathcal F_n)\)</span>、<span class="arithmatex">\(Y\in L^1\)</span>，则</p>
 <div class="arithmatex">\[
-P\left(\max_{0\le k\le n}X_k\ge\lambda\right)\le\frac{E X_n}{\lambda}.
+E[Y\mid\mathcal F_n]\longrightarrow
+E[Y\mid\mathcal F_\infty]\quad\text{a.s. 且在 }L^1.
 \]</div>
-<p>令 <span class="arithmatex">\(\tau=\inf\{k\le n:X_k\ge\lambda\}\)</span>，在 <span class="arithmatex">\(\{\tau\le n\}\)</span> 上有 <span class="arithmatex">\(X_\tau\ge\lambda\)</span>，而下鞅的有界停时条件期望满足 <span class="arithmatex">\(E[X_n\mid\mathcal F_\tau]\ge X_\tau\)</span>，所以</p>
+<p>上一节已保证收敛。记极限为 <span class="arithmatex">\(Z\)</span>；对 <span class="arithmatex">\(A\in\mathcal F_m\)</span>，所有 <span class="arithmatex">\(n\ge m\)</span> 都有 <span class="arithmatex">\(E[Z_n\mathbf1_A]=E[Y\mathbf1_A]\)</span>，<span class="arithmatex">\(L^1\)</span> 极限保持该等式。并集 <span class="arithmatex">\(\bigcup_m\mathcal F_m\)</span> 是代数，<span class="arithmatex">\(\pi\)</span>–<span class="arithmatex">\(\lambda\)</span> 唯一性把等式推广到 <span class="arithmatex">\(\mathcal F_\infty\)</span>；<span class="arithmatex">\(Z\)</span> 对该域可测，于是识别出条件期望。只有当 <span class="arithmatex">\(Y\)</span> 对最终信息域可测时，极限才是 <span class="arithmatex">\(Y\)</span> 本身。</p>
+<p><strong>反向鞅定理。</strong> 若 <span class="arithmatex">\(\mathcal G_n\downarrow\)</span>、<span class="arithmatex">\(\mathcal G_\infty=\bigcap_n\mathcal G_n\)</span>，则</p>
 <div class="arithmatex">\[
-\lambda P(\tau\le n)
-\le E[X_\tau\mathbf1_{\{\tau\le n\}}]
-\le E[X_n\mathbf1_{\{\tau\le n\}}]
-\le E X_n.
+E[Y\mid\mathcal G_n]\longrightarrow
+E[Y\mid\mathcal G_\infty]\quad\text{a.s. 且在 }L^1.
 \]</div>
-<p>非负性是这一版把最后一项压成 <span class="arithmatex">\(E X_n\)</span> 的条件；非负鞅是它的特例。对任意带符号过程不能直接照抄。<span class="arithmatex">\(p&gt;1\)</span> 时还有 <span class="arithmatex">\(\|\max_{k\le n}X_k\|_p\le\frac p{p-1}\|X_n\|_p\)</span> 的 Doob <span class="arithmatex">\(L^p\)</span> 界。</p>
-<h2 id="4-azumahoeffding-mcdiarmid">4. Azuma–Hoeffding 与 McDiarmid：常数来自不同假设<a class="headerlink" href="#4-azumahoeffding-mcdiarmid" title="Permanent link"></a></h2>
-<p><strong>Azuma–Hoeffding</strong> 针对一个鞅 <span class="arithmatex">\(M_k\)</span>。若</p>
+<p>记 <span class="arithmatex">\(Z_n=E[Y\mid\mathcal G_n]\)</span>。对每个有限 <span class="arithmatex">\(N\)</span>，逆序列 <span class="arithmatex">\(Z_N,Z_{N-1},\ldots,Z_0\)</span> 配合递增的信息域是鞅；其上穿期望受 <span class="arithmatex">\(E[(Z_0-a)^+]/(b-a)\)</span> 一致控制。随着 <span class="arithmatex">\(N\)</span> 增大，整段逆序的最大完整上穿数不减；若原序列振荡，它的逆序片段会产生任意多的穿越，故同一有理区间论证给 a.s. 极限。固定 <span class="arithmatex">\(Y\)</span> 的条件期望全族 UI，进一步给 <span class="arithmatex">\(L^1\)</span> 极限。对每个固定 <span class="arithmatex">\(m\)</span>，所有 <span class="arithmatex">\(n\ge m\)</span> 的 <span class="arithmatex">\(Z_n\)</span> 都对 <span class="arithmatex">\(\mathcal G_m\)</span> 可测；取可测的极限版本后，它对交域可测。对 <span class="arithmatex">\(A\in\mathcal G_\infty\)</span> 传递积分等式，便确定了右端。</p>
+<p>两种方向都不是“信息无限多就全知”：极限只能保留对应极限信息域允许的信息。</p>
+<h2 id="5-doob">5. Doob 极大不等式：终点控制全程峰值<a class="headerlink" href="#5-doob" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(X_0,\ldots,X_n\)</span> 是非负下鞅，<span class="arithmatex">\(X_n^*=\max_{0\le k\le n}X_k\)</span>，<span class="arithmatex">\(\lambda&gt;0\)</span>。令 <span class="arithmatex">\(A_k\)</span> 是“第一次达到 <span class="arithmatex">\(\lambda\)</span> 恰在 <span class="arithmatex">\(k\)</span>”的事件。<span class="arithmatex">\(A_k\in\mathcal F_k\)</span> 且互不相交，由 <span class="arithmatex">\(E[X_n\mid\mathcal F_k]\ge X_k\)</span>，</p>
 <div class="arithmatex">\[
-\Delta_k=M_k-M_{k-1},\qquad |\Delta_k|\le c_k\quad\text{a.s.},
+\lambda P(X_n^*\ge\lambda)
+\le\sum_{k=0}^nE[X_k\mathbf1_{A_k}]
+\le E[X_n\mathbf1_{\{X_n^*\ge\lambda\}}]
+\le EX_n.
 \]</div>
-<p>则</p>
+<p>保留中间项比只记 <span class="arithmatex">\(EX_n/\lambda\)</span> 更有用。取 <span class="arithmatex">\(p&gt;1\)</span> 且 <span class="arithmatex">\(X_n\in L^p\)</span>，令 <span class="arithmatex">\(V=X_n^*\)</span>。先对截断 <span class="arithmatex">\(V\wedge R\)</span> 积分，利用层蛋糕表示与 Tonelli：</p>
+<div class="arithmatex">\[
+E(V\wedge R)^p
+\le\frac p{p-1}E[X_n(V\wedge R)^{p-1}]
+\le\frac p{p-1}\|X_n\|_p\|V\wedge R\|_p^{p-1}.
+\]</div>
+<p>第一步来自对 <span class="arithmatex">\(\lambda\in(0,R)\)</span> 积分 <span class="arithmatex">\(p\lambda^{p-2}E[X_n\mathbf1_{\{V\ge\lambda\}}]\)</span>；<span class="arithmatex">\(\int_0^{V\wedge R}\lambda^{p-2}d\lambda=(V\wedge R)^{p-1}/(p-1)\)</span>。若截断范数不为零即可约去，最后令 <span class="arithmatex">\(R\uparrow\infty\)</span>：</p>
+<div class="arithmatex">\[
+\|X_n^*\|_p\le\frac p{p-1}\|X_n\|_p.
+\]</div>
+<p>对任意鞅 <span class="arithmatex">\(M\)</span>，<span class="arithmatex">\(|M|\)</span> 是非负下鞅，故可控制 <span class="arithmatex">\(\max|M_k|\)</span>。<span class="arithmatex">\(p=1\)</span> 时上面积分在零点发散，不能代入常数；弱型概率界仍成立。</p>
+<h2 id="6-azuma-mcdiarmid">6. Azuma 与 McDiarmid：先认清“宽度”<a class="headerlink" href="#6-azuma-mcdiarmid" title="Permanent link"></a></h2>
+<p>下面的 <span class="arithmatex">\(c_i\)</span> 是确定常数，阈值 <span class="arithmatex">\(t&gt;0\)</span>。若所有 <span class="arithmatex">\(c_i=0\)</span>，偏差为零；其余情况才使用含 <span class="arithmatex">\(\sum c_i^2\)</span> 的分母。</p>
+<p><strong>条件 Hoeffding 引理的来源。</strong> 对均值零、位于长度 <span class="arithmatex">\(d\)</span> 区间的随机变量 <span class="arithmatex">\(D\)</span>，令 <span class="arithmatex">\(\psi(\theta)=\log Ee^{\theta D}\)</span>。指数倾斜后的分布仍在同一区间，且 <span class="arithmatex">\(\psi''(\theta)\)</span> 等于该分布的方差。任何区间内变量 <span class="arithmatex">\(V\)</span> 满足
+<span class="arithmatex">\(\operatorname{Var}(V)\le E[(V-(a+b)/2)^2]\le d^2/4\)</span>。因此 <span class="arithmatex">\(\psi(0)=\psi'(0)=0\)</span>，积分两次得 <span class="arithmatex">\(\psi(\theta)\le\theta^2d^2/8\)</span>，正负 <span class="arithmatex">\(\theta\)</span> 都适用。对给定过去的信息重复这个有界分布论证，得到条件版本。</p>
+<p>对鞅差 <span class="arithmatex">\(\Delta_i=M_i-M_{i-1}\)</span>，若 <span class="arithmatex">\(|\Delta_i|\le c_i\)</span>，其区间宽度是 <span class="arithmatex">\(2c_i\)</span>。条件化逐次迭代给</p>
+<div class="arithmatex">\[
+Ee^{\theta(M_n-M_0)}
+\le\exp\left(\frac{\theta^2}{2}\sum_{i=1}^nc_i^2\right).
+\]</div>
+<p>用 Markov 控制上尾，并取 <span class="arithmatex">\(\theta=t/\sum c_i^2\)</span>，再对负号使用同样方法并合并两尾：</p>
 <div class="arithmatex">\[
 P(|M_n-M_0|\ge t)
-\le2\exp\left(-\frac{t^2}{2\sum_{k=1}^nc_k^2}\right).
+\le2\exp\left(-\frac{t^2}{2\sum_{i=1}^nc_i^2}\right).
 \]</div>
-<p>这里的 <span class="arithmatex">\(c_k\)</span> 是<strong>鞅增量的绝对界</strong>；条件均值为零，条件 Hoeffding 引理给出 <span class="arithmatex">\(e^{\theta^2c_k^2/2}\)</span>，再迭代条件化和 Chernoff 优化。</p>
-<p><strong>McDiarmid</strong> 针对独立输入 <span class="arithmatex">\(Z_1,\ldots,Z_n\)</span> 与函数 <span class="arithmatex">\(f\)</span>。若只替换第 <span class="arithmatex">\(i\)</span> 个坐标时</p>
+<p>这就是 Azuma–Hoeffding。若只知条件均值零而没有增量界，不能照搬。</p>
+<p><strong>McDiarmid 的输入条件不同。</strong> 独立输入 <span class="arithmatex">\(Z_1,\ldots,Z_n\)</span>，可测可积的实值函数 <span class="arithmatex">\(f\)</span> 满足：仅替换第 <span class="arithmatex">\(i\)</span> 坐标，函数值改变至多 <span class="arithmatex">\(c_i\)</span>。构造 <span class="arithmatex">\(M_i=E[f\mid Z_1,\ldots,Z_i]\)</span>。固定过去，记
+<span class="arithmatex">\(g_i(z)=E[f(Z_1,\ldots,Z_{i-1},z,Z_{i+1},\ldots,Z_n)]\)</span>，这里只对未来积分。独立性保证对不同 <span class="arithmatex">\(z\)</span> 使用同一个未来分布，所以 <span class="arithmatex">\(|g_i(z)-g_i(z')|\le c_i\)</span>。于是 <span class="arithmatex">\(M_i-M_{i-1}\)</span> 的<strong>条件范围长度</strong>至多 <span class="arithmatex">\(c_i\)</span>，并不是 <span class="arithmatex">\(2c_i\)</span>。Hoeffding 引理与同一优化步骤给</p>
 <div class="arithmatex">\[
-|f(z_1,\ldots,z_i,\ldots,z_n)-f(z_1,\ldots,z_i',\ldots,z_n)|\le c_i,
+P(|f-Ef|\ge t)
+\le2\exp\left(-\frac{2t^2}{\sum_{i=1}^nc_i^2}\right).
 \]</div>
-<p>则</p>
+<p>这个推导不要求输入有密度；一般乘积概率空间用积分，有限空间用求和。输入相关时，共享同一个未来分布这一步可能失效。</p>
+<h2 id="7">7. 应用：随机极限、灭绝与学习误差<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p><strong>Pólya 坛子。</strong> 从 <span class="arithmatex">\(a\)</span> 个红球、<span class="arithmatex">\(b\)</span> 个蓝球开始，<span class="arithmatex">\(a,b\)</span> 为正整数。每次均匀抽一个球，放回并加一个同色球。若红球比例为 <span class="arithmatex">\(R_n\)</span>，下次加红球的条件概率就是 <span class="arithmatex">\(R_n\)</span>，直接算得 <span class="arithmatex">\(E[R_{n+1}\mid\mathcal F_n]=R_n\)</span>。比例位于 <span class="arithmatex">\([0,1]\)</span>，故 a.s.、<span class="arithmatex">\(L^1\)</span> 收敛；一般极限分布是 <span class="arithmatex">\(\operatorname{Beta}(a,b)\)</span>，只有 <span class="arithmatex">\(a=b=1\)</span> 才是均匀分布。</p>
+<p>均匀情形可以直接验算：前 <span class="arithmatex">\(n\)</span> 次恰有 <span class="arithmatex">\(k\)</span> 次红色的任意指定顺序，其概率为 <span class="arithmatex">\(k!(n-k)!/(n+1)!\)</span>。乘上 <span class="arithmatex">\(\binom nk\)</span>，得到红色次数在 <span class="arithmatex">\(0,\ldots,n\)</span> 上均匀。因此 <span class="arithmatex">\(R_n=(k+1)/(n+2)\)</span> 的分布趋向 <span class="arithmatex">\(U(0,1)\)</span>。这与有界鞅的随机极限一致，并不意味着每次坛子实验得到同一个比例。</p>
+<p><strong>分支过程。</strong> 后代数非负整数、有限均值 <span class="arithmatex">\(\mu&gt;0\)</span>，每个个体独立繁殖，且 <span class="arithmatex">\(Z_0=1\)</span>。<span class="arithmatex">\(W_n=Z_n/\mu^n\)</span> 是非负鞅，必 a.s. 收敛，但不能只凭这个结论断言 <span class="arithmatex">\(EW_\infty=1\)</span>。若 <span class="arithmatex">\(\mu&lt;1\)</span>，<span class="arithmatex">\(P(Z_n&gt;0)\le EZ_n=\mu^n\to0\)</span>，故最终灭绝。若 <span class="arithmatex">\(\mu=1\)</span> 且后代数不恒等于 <span class="arithmatex">\(1\)</span>，灭绝概率也为 <span class="arithmatex">\(1\)</span>；可用后代母函数 <span class="arithmatex">\(g\)</span> 的最小不动点刻画：严格凸性、<span class="arithmatex">\(g(1)=g'(1)=1\)</span> 给 <span class="arithmatex">\(g(s)&gt;s\)</span>（<span class="arithmatex">\(0\le s&lt;1\)</span>）。若后代数恒为 <span class="arithmatex">\(1\)</span>，则 <span class="arithmatex">\(Z_n\equiv1\)</span>，这是必须保留的退化例外。<span class="arithmatex">\(\mu=0\)</span> 时后代数为零 a.s.，下一代灭绝，不能写 <span class="arithmatex">\(Z_n/\mu^n\)</span>。</p>
+<p><strong>学习误差。</strong> i.i.d. 样本、损失在 <span class="arithmatex">\([0,C]\)</span> 时，固定假设的经验风险和 ERM 的最小训练风险都有单坐标敏感度 <span class="arithmatex">\(C/n\)</span>。McDiarmid 控制的是这两个数据函数各自围绕期望的波动。对数据选出的 <span class="arithmatex">\(\widehat h\)</span>，要控制 <span class="arithmatex">\(R(\widehat h)-\widehat R(\widehat h)\)</span>，还要建立对假设类的统一控制或稳定性；“训练误差很集中”不能单独证明泛化。</p>
+<h2 id="8">8. 完整练习<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<h3 id="a-ui">练习 A：有限前缀怎样掩盖非 UI？<a class="headerlink" href="#a-ui" title="Permanent link"></a></h3>
+<p>模型 A 取 <span class="arithmatex">\(n=8\)</span>。分别算 <span class="arithmatex">\(K=255\)</span> 与 <span class="arithmatex">\(K=256\)</span> 的当前尾部、有限前缀最大值和全族上确界。</p>
+<details class="answer">
+<summary>展开计算与量词</summary>
+<p>高度为 <span class="arithmatex">\(256\)</span>，概率为 <span class="arithmatex">\(1/256\)</span>。<span class="arithmatex">\(K=255\)</span> 时，当前尾部与前缀最大值都是 <span class="arithmatex">\(1\)</span>；<span class="arithmatex">\(K=256\)</span> 时，因为是严格大于，二者都是 <span class="arithmatex">\(0\)</span>。但对任意有限 <span class="arithmatex">\(K\)</span> 都有更大的 <span class="arithmatex">\(m\)</span> 使 <span class="arithmatex">\(2^m&gt;K\)</span>，所以全族上确界始终为 <span class="arithmatex">\(1\)</span>。两个极限次序不同：</p>
 <div class="arithmatex">\[
-P(|f-Ef|\ge t)\le2\exp\left(-\frac{2t^2}{\sum_{i=1}^nc_i^2}\right).
+\lim_{K\to\infty}\max_{0\le t\le n}
+E[X_t\mathbf1_{\{X_t&gt;K\}}]=0,\qquad
+\lim_{K\to\infty}\sup_{t\ge0}
+E[X_t\mathbf1_{\{X_t&gt;K\}}]=1.
 \]</div>
-<p>它通过独立输入的 Doob 鞅和“条件范围长度”使用 Hoeffding 引理，因此常数是 <span class="arithmatex">\(2\)</span>，不是把 Azuma 的 <span class="arithmatex">\(1/2\)</span> 机械改名。若损失在 <span class="arithmatex">\([0,C]\)</span>，经验风险的单样本敏感度为 <span class="arithmatex">\(C/n\)</span>，得到的是对应数据函数的集中；对数据依赖的 ERM 训练误差 <span class="arithmatex">\(\min_h\widehat R_S(h)\)</span> 也只说明它围绕自身期望集中。它不自动控制 <span class="arithmatex">\(R(\widehat h_S)-\widehat R_S(\widehat h_S)\)</span>；泛化需要额外的均匀性或复杂度工具。</p>
-<h2 id="5_1">5. 例子、修正与资产盘点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<p><strong>分支过程。</strong> 对 Galton–Watson 过程，<span class="arithmatex">\(Z_n/\mu^n\)</span> 在 <span class="arithmatex">\(\mu&gt;0\)</span> 时是非负鞅。<span class="arithmatex">\(\mu&lt;1\)</span> 时灭绝概率为 <span class="arithmatex">\(1\)</span>；<span class="arithmatex">\(\mu=1\)</span> 且后代分布不退化时也如此。但若 <span class="arithmatex">\(\mu=1\)</span> 且每个个体恰有一个后代，则 <span class="arithmatex">\(Z_n\equiv Z_0\)</span>，这是临界的退化例外，不能说“必灭绝”。<span class="arithmatex">\(\mu=0\)</span> 时归零是另一个需要单独处理的平凡情形。</p>
-<p><strong>Polya 坛子。</strong> 红球比例是有界鞅，故 a.s. 收敛；这不意味着每次实验的极限相同，极限分布仍可为 <span class="arithmatex">\(U(0,1)\)</span>。有界性在这里同时提供 UI，所以还能得到 <span class="arithmatex">\(L^1\)</span> 收敛。</p>
+</details>
+<h3 id="b">练习 B：从联合分布验证终值预测<a class="headerlink" href="#b" title="Permanent link"></a></h3>
+<p>取 <span class="arithmatex">\(B=2,n=2\)</span>，列出 <span class="arithmatex">\((X_n,Z)\)</span> 的非零联合质量，计算 <span class="arithmatex">\(E|X_n-Z|\)</span> 与每个当前状态下的终值条件均值。</p>
+<details class="answer">
+<summary>展开联合账</summary>
+<p>四个非零格子 <span class="arithmatex">\((-2,-2),(0,-2),(0,2),(2,2)\)</span> 的概率各 <span class="arithmatex">\(1/4\)</span>。所以</p>
+<div class="arithmatex">\[
+E|X_n-Z|=\tfrac14(0+2+2+0)=1.
+\]</div>
+<p>当前状态 <span class="arithmatex">\(-2,0,2\)</span> 下，终值条件均值分别是 <span class="arithmatex">\(-2,(-2+2)/2,2\)</span>，恰等于当前值。当前二阶矩是 <span class="arithmatex">\(2\)</span>，也核对了 <span class="arithmatex">\(E|X_n-Z|=(B^2-EX_n^2)/B=(4-2)/2=1\)</span>。未吸收概率是 <span class="arithmatex">\(1/2\)</span>，乘上内部状态的条件距离 <span class="arithmatex">\(2\)</span> 才得到总距离。</p>
+</details>
+<h3 id="c">练习 C：上穿收益与初始资本<a class="headerlink" href="#c" title="Permanent link"></a></h3>
+<p>对路径 <span class="arithmatex">\(0,2,0,2,-1\)</span>，取 <span class="arithmatex">\(a=0,b=2\)</span>。写出各步持仓、完成上穿数、收益与总财富（初始资本 <span class="arithmatex">\(w_0=7\)</span>）。</p>
+<details class="answer">
+<summary>展开可预测策略账</summary>
 <table>
 <thead>
 <tr>
-<th>资产</th>
-<th>出处</th>
-<th>下游</th>
+<th>时刻</th>
+<th>当前值</th>
+<th>本段持仓 <span class="arithmatex">\(H_m\)</span></th>
+<th>完成上穿数</th>
+<th>累计收益 <span class="arithmatex">\(G_m\)</span></th>
+<th>总财富</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><span class="arithmatex">\(\pi\)</span>–<span class="arithmatex">\(\lambda\)</span>、UI、Borel–Cantelli</td>
-<td>mt-01</td>
-<td>全站论证基建</td>
+<td>0</td>
+<td>0</td>
+<td>尚无增量</td>
+<td>0</td>
+<td>0</td>
+<td>7</td>
 </tr>
 <tr>
-<td>0–1 律、SLLN</td>
-<td>mt-02</td>
-<td>渐近统计、Monte Carlo</td>
+<td>1</td>
+<td>2</td>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>9</td>
 </tr>
 <tr>
-<td>条件期望 = 投影、OST</td>
-<td>mt-03</td>
-<td>停时、定价、预测审计</td>
+<td>2</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>2</td>
+<td>9</td>
 </tr>
 <tr>
-<td>鞅收敛、极大不等式、Azuma</td>
-<td>本页</td>
-<td>高维概率、统计学习、随机分析</td>
+<td>3</td>
+<td>2</td>
+<td>1</td>
+<td>2</td>
+<td>4</td>
+<td>11</td>
+</tr>
+<tr>
+<td>4</td>
+<td>−1</td>
+<td>0</td>
+<td>2</td>
+<td>4</td>
+<td>11</td>
 </tr>
 </tbody>
 </table>
-<p><strong>练习。</strong></p>
-<ol>
-<li>对模型 A 证明 <span class="arithmatex">\(X_n\)</span> 是鞅，并用固定 <span class="arithmatex">\(K\)</span> 写出非 UI 的尾部极限；不要把 <span class="arithmatex">\(E X_n=1\)</span> 当成 a.s. 极限的值。</li>
-<li>对模型 B 用吸收边界的差分方程求 <span class="arithmatex">\(P(X_\infty=+B)\)</span>，再用有界性说明 UI；解释为什么有限 <span class="arithmatex">\(n\)</span> 的状态图不能替代这个无限时间论证。</li>
-<li>用上鞅上穿式与下鞅下穿式分别写出方向；在 <span class="arithmatex">\(W_0=0\)</span> 和 <span class="arithmatex">\(W_0=w_0\)</span> 两种初值约定下重写可预测策略收益。</li>
-<li>对单个固定假设的经验风险与 ERM 的最小训练风险各写一个 McDiarmid 界，并指出它们为什么都还不是无条件的泛化定理。</li>
-</ol>
-<hr />
-<p><em>测度概率完卷。下一门：高维概率——把 Azuma 的“集中”推进到亚高斯范数、随机矩阵与 chaining；随机分析线则接手鞅与连续时间积分。</em></p>
+<p>第 4 步到达 <span class="arithmatex">\(-1\)</span> 后才重新决定持仓，并没有对刚发生的下降下注。此刻路径下界为 <span class="arithmatex">\(2\times2-(-1)^-=3\)</span>，确有 <span class="arithmatex">\(G_4=4\ge3\)</span>。这一条确定性路径可以验证代数不等式；要推出期望界，还必须对过程假设上鞅性。</p>
+</details>
+<h3 id="d">练习 D：集中与泛化之间还差什么？<a class="headerlink" href="#d" title="Permanent link"></a></h3>
+<p>取 <span class="arithmatex">\(n=1000,C=1,t=0.05\)</span>。对固定假设经验风险和可测的 ERM 最小训练风险，分别写集中界；有限假设类有 <span class="arithmatex">\(H\)</span> 个元素时，怎样得到选中假设的泛化界？</p>
+<details class="answer">
+<summary>展开常数与统一性</summary>
+<p>两者都有 <span class="arithmatex">\(\sum c_i^2=1/1000\)</span>，故各自对期望的双侧偏差概率至多</p>
+<div class="arithmatex">\[
+2e^{-2nt^2}=2e^{-5}\approx0.013476.
+\]</div>
+<p>固定假设有 <span class="arithmatex">\(E\widehat R(h)=R(h)\)</span>；数据选择的最小训练风险的期望一般不是选中假设的真实风险。有限类中，对每个固定 <span class="arithmatex">\(h\)</span> 分别用 Hoeffding，再用 union bound：</p>
+<div class="arithmatex">\[
+P\!\left(\sup_{h\in\mathcal H}|\widehat R(h)-R(h)|\ge t\right)
+\le2H e^{-2nt^2/C^2}.
+\]</div>
+<p>在这个统一事件的补集上，任何从该有限类中选出的 <span class="arithmatex">\(\widehat h\)</span> 都满足差距小于 <span class="arithmatex">\(t\)</span>。界大于 <span class="arithmatex">\(1\)</span> 时只剩平凡上界 <span class="arithmatex">\(1\)</span>；假设类无限时不能把 <span class="arithmatex">\(H\)</span> 换成一个未定义的“数量”。</p>
+</details>
+<p>下一步：<a href="hdp-01-subgaussian.html">高维概率</a>研究亚高斯、矩阵与复杂度；随机分析把这些离散时间工具带到连续过程。核对来源：<a href="https://sites.math.duke.edu/~rtd/PTE/PTE5_011119.pdf">Durrett 官方教材</a>、<a href="https://www.stat.cmu.edu/~cshalizi/sml/21/lectures/06/sidenotes-06.pdf">CMU 条件集中与有界差分讲义</a>。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="mt-03-conditional-martingale.html"><span class="pager-label">上一页</span>测度概率 III · 条件期望与鞅</a>
