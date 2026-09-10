@@ -52,172 +52,415 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 04:59</div>
+    <div class="build-time">构建于 2026-09-11 02:54</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：一个“跳跃的导数”怎样通过测试函数验收？</a><ul>
-<li><a href="#1">1. 先固定弱导数的验收协议</a></li>
-<li><a href="#2">2. 三项预测：先猜符号、点源与证据等级</a></li>
-<li><a href="#3-fallback">3. 静态 fallback：分部积分账本</a></li>
-<li><a href="#4">4. 定理假设与失效边界</a></li>
+<li><a href="#distributions-learning-title">学习层：改变测试函数，找出遗漏的项</a><ul>
+<li><a href="#_1">无脚本参考账本</a></li>
 </ul>
 </li>
-<li><a href="#1_1">1. 动机：经典求导的三处失灵</a></li>
-<li><a href="#2_1">2. 分布：定义与运算</a></li>
-<li><a href="#3">3. 名例三连（必会手算）</a></li>
-<li><a href="#4-lp">4. 弱导数：分布导数的 \(L^p\) 版</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#1">1 · 先用分部积分算出跳跃</a></li>
+<li><a href="#2">2 · 测试函数究竟要求什么</a></li>
+<li><a href="#3">3 · 普通函数、点质量与分布运算</a></li>
+<li><a href="#4">4 · 弱导数：求导后仍是可积函数</a></li>
+<li><a href="#5">5 · 逼近的方式必须写清</a></li>
+<li><a href="#6">6 · 从点源构造一维方程的解</a></li>
+<li><a href="#7">7 · 二维与三维基本解：符号由内球面决定</a></li>
+<li><a href="#8">8 · 练习：把符号、条件与反例一起写全</a></li>
 </ul>
 </div>
 </details>
 <h1 id="pde-i">现代 PDE I · 分布与弱导数<a class="headerlink" href="#pde-i" title="Permanent link"></a></h1>
-<blockquote>
-<p><strong>对标</strong>：Evans <em>PDE</em> §5.2 / Friedlander–Joshi 入门章 ｜ <strong>前置</strong>：本科泛函 I–III、实变 II–III、pde 两页
-现代 PDE 的第一步是<strong>放宽"解"的定义</strong>：经典解要求足够光滑，但物理与变分法给出的解常常不光滑（激波、尖角、点源）。出路：把求导从函数身上转嫁给<strong>测试函数</strong>——分布理论。δ"函数"从物理系的口头禅升格为严格对象。</p>
-</blockquote>
+<p>一个函数在跳点之外的导数都是零，为什么整体仍然留下一个点源？本页从这一个问题出发，把“求导”改写为可以检验的积分恒等式，再用它处理尖角、平滑近似和 Poisson 方程。前置：<a href="mt-01-measure-expectation.html">测度与积分</a>、本科的分部积分与线性泛函；后续是 <a href="pde2-02-sobolev.html">Sobolev 空间</a>。</p>
+<style>article:has(#distributions-learning-title) .katex { position: relative; }</style>
 <div data-learning-page></div>
 
-<section aria-labelledby="pde2-01-learning-title" class="learning-layer">
-<h2 id="_1">学习层：一个“跳跃的导数”怎样通过测试函数验收？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="1">1. 先固定弱导数的验收协议<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>取 <span class="arithmatex">\(\Omega=(-1,1)\)</span>，测试函数 <span class="arithmatex">\(\varphi\in C_c^\infty(\Omega)\)</span>。若 <span class="arithmatex">\(v\)</span> 是 <span class="arithmatex">\(u\)</span> 的弱导数，定义要求对每个测试函数都有</p>
-<div class="arithmatex">\[
-\int_{-1}^{1}u(x)\varphi'(x)\,dx
-=-\int_{-1}^{1}v(x)\varphi(x)\,dx.
-\]</div>
-<p>若 <span class="arithmatex">\(u\)</span> 在 <span class="arithmatex">\(c\)</span> 处有跳跃 <span class="arithmatex">\([u]_c=u(c+)-u(c-)\)</span>，分段分部积分会留下</p>
-<div class="arithmatex">\[
-Du=v_{\rm reg}+\sum_c [u]_c\,\delta_c,\qquad
-\int u\varphi'=-\int v_{\rm reg}\varphi-\sum_c[u]_c\varphi(c).
-\]</div>
-<p>这里的边界项不是“数值修正项”：它是分布导数本身的 delta 配对。紧支集让 <span class="arithmatex">\(x=\pm1\)</span> 的外边界项消失，但内部跳点必须逐一记账。</p>
-<h3 id="2">2. 三项预测：先猜符号、点源与证据等级<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<ol>
-<li>弱导数定义中，<span class="arithmatex">\(\int u\varphi'\)</span> 的右侧是 <span class="arithmatex">\(+\langle Du,\varphi\rangle\)</span> 还是 <span class="arithmatex">\(-\langle Du,\varphi\rangle\)</span>？</li>
-<li>Heaviside <span class="arithmatex">\(H=\mathbf 1_{x&gt;0}\)</span> 的导数是普通函数 <span class="arithmatex">\(0\)</span>，还是在 <span class="arithmatex">\(0\)</span> 处的 <span class="arithmatex">\(\delta_0\)</span>？</li>
-<li>一组固定网格上残差很小，能否单独证明对所有 <span class="arithmatex">\(\varphi\in C_c^\infty\)</span> 的分布恒等式？</li>
-</ol>
-<p>实验会比较 <span class="arithmatex">\(|x|\)</span>、<span class="arithmatex">\(H\)</span> 与 <span class="arithmatex">\(x+H\)</span>：第一者只有普通弱导数 <span class="arithmatex">\(\operatorname{sign}(x)\)</span>；第二者是纯跳跃，<span class="arithmatex">\(DH=\delta_0\)</span>；第三者把 <span class="arithmatex">\(1\)</span> 与 <span class="arithmatex">\(\delta_0\)</span> 同时放进公式。测试函数采用解析的紧支集 bump，网格只用于数值核对。</p>
-<h3 id="3-fallback">3. 静态 fallback：分部积分账本<a class="headerlink" href="#3-fallback" title="Permanent link"></a></h3>
-<p>对任意测试函数 <span class="arithmatex">\(\varphi\)</span>，三种模型的理论账本是</p>
+<section aria-labelledby="distributions-learning-title" class="learning-layer">
+<h2 id="distributions-learning-title">学习层：改变测试函数，找出遗漏的项<a class="headerlink" href="#distributions-learning-title" title="Permanent link"></a></h2>
+<p>把测试函数理解成一种带权测量：它规定在哪一小片区域看、怎样把不同位置的贡献相加。一次测量为零，可以是对象不存在，也可以是这次测量恰好不敏感。分布理论要求对所有允许的测试函数作出一致回答。</p>
 <table>
 <thead>
 <tr>
-<th><span class="arithmatex">\(u\)</span></th>
-<th>正则部分 <span class="arithmatex">\(v_{\rm reg}\)</span></th>
-<th>跳跃项</th>
-<th>分布导数</th>
+<th>实验</th>
+<th>先作的判断</th>
+<th>可以验证什么</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><span class="arithmatex">\(\lvert x\rvert\)</span></td>
-<td><span class="arithmatex">\(\operatorname{sign}(x)\)</span></td>
-<td>无</td>
-<td><span class="arithmatex">\(\operatorname{sign}(x)\)</span></td>
+<td>跳跃与尖角</td>
+<td>一阶、二阶各会出现什么点源？</td>
+<td>普通积分和点源配对是否一起闭合</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(H\)</span></td>
-<td><span class="arithmatex">\(0\)</span></td>
-<td><span class="arithmatex">\([H]_0\delta_0=\delta_0\)</span></td>
-<td><span class="arithmatex">\(\delta_0\)</span></td>
+<td>盒核逼近</td>
+<td>曲线越来越像，就在每种范数下都接近吗？</td>
+<td>配对、总面积误差、最大误差的区别</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(x+H\)</span></td>
-<td><span class="arithmatex">\(1\)</span></td>
-<td><span class="arithmatex">\(\delta_0\)</span></td>
-<td><span class="arithmatex">\(1+\delta_0\)</span></td>
+<td>Poisson 盒源</td>
+<td>找到一个解，是否已经确定唯一解？</td>
+<td>内部接口与外部条件分别约束什么</td>
 </tr>
 </tbody>
 </table>
-<p>例如 <span class="arithmatex">\(H\)</span> 的分部积分是 <span class="arithmatex">\(\int_0^1\varphi'(x)\,dx=-\varphi(0)\)</span>，所以</p>
-<div class="arithmatex">\[
-\int H\varphi'=-\langle\delta_0,\varphi\rangle.
-\]</div>
-<p>脚本中的有限 Simpson 账本逐项显示 <span class="arithmatex">\(\int u\varphi'\)</span>、正则部分 <span class="arithmatex">\(-\int v_{\rm reg}\varphi\)</span>、跳跃贡献 <span class="arithmatex">\(-\sum [u]_c\varphi(c)\)</span> 和漏掉跳跃项时的残差。<span class="arithmatex">\(\delta_0(\varphi)=\varphi(0)\)</span> 是精确的定义级配对；窄 box 的 <span class="arithmatex">\(\delta_\varepsilon\)</span> 只是一种确定的数值逼近。</p>
+<p>实验统一取开区间 Ω=(-2,2)。测试函数支集位于 [m−r,m+r]，|m|≤1、0.2≤r≤0.8，因此它与外边界始终有正距离。内部跳点仍然必须保留。</p>
 <div class="learning-lab" data-learning-lab="weak-derivative">
-<p><strong>无 JavaScript 时的静态读法：</strong>在 <span class="arithmatex">\([-1,1]\)</span> 上使用紧支集测试函数，分段积分在 <span class="arithmatex">\(0\)</span> 处拆开。对 <span class="arithmatex">\(H\)</span>，正则项为 0、跳跃项为 <span class="arithmatex">\(-\varphi(0)\)</span>；对 <span class="arithmatex">\(|x|\)</span>，跳跃项为 0、正则项为 <span class="arithmatex">\(-\int\operatorname{sign}(x)\varphi(x)\,dx\)</span>。若只用有限采样点近似这些积分，得到的是当前函数、测试函数和网格的证据，不是“对所有测试函数”的证明。</p>
+<h3 id="_1">无脚本参考账本<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>默认阶跃 H(x)；测试函数是中心0、半宽0.8、峰值1的偶 bump；每个实际分段使用128个 Simpson 子区间。盒核例取半宽0.1；Poisson 例取中心0、半宽0.7的单位盒源，不加仿射项。表中数值积分与解析配对分别标明。</p>
 <table>
 <thead>
 <tr>
-<th>模型</th>
-<th>弱导数账本</th>
-<th>漏掉跳跃项会怎样</th>
-<th>理论边界</th>
+<th>量</th>
+<th style="text-align: right;">数值</th>
+<th>类型</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><span class="arithmatex">\(\lvert x\rvert\)</span></td>
-<td><span class="arithmatex">\(\int u\varphi'=-\int\operatorname{sign}(x)\varphi\)</span></td>
-<td>无额外 delta 残差</td>
-<td>一阶弱导数是 <span class="arithmatex">\(L^p_{\rm loc}\)</span> 函数</td>
+<td>阶跃：φ(0)</td>
+<td style="text-align: right;">1</td>
+<td>解析测试值</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(H\)</span></td>
-<td><span class="arithmatex">\(\int u\varphi'=-\varphi(0)\)</span></td>
-<td>把 <span class="arithmatex">\(DH\)</span> 写成 0 会留下 <span class="arithmatex">\(\lvert\varphi(0)\rvert\)</span></td>
-<td><span class="arithmatex">\(DH=\delta_0\)</span>，不是普通函数</td>
+<td>阶跃：∫Hφ′</td>
+<td style="text-align: right;">-1</td>
+<td>有限 Simpson 积分</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(x+H\)</span></td>
-<td><span class="arithmatex">\(\int u\varphi'=-\int\varphi-\varphi(0)\)</span></td>
-<td>只保留 1 会漏掉点质量</td>
-<td><span class="arithmatex">\(D(x+H)=1+\delta_0\)</span></td>
+<td>阶跃：−δ₀(φ)</td>
+<td style="text-align: right;">-1</td>
+<td>解析配对</td>
+</tr>
+<tr>
+<td>阶跃：一阶有符号残差</td>
+<td style="text-align: right;">9.70223901e-13</td>
+<td>有限积分减解析值</td>
+</tr>
+<tr>
+<td>盒核：δε(φ)</td>
+<td style="text-align: right;">0.994767162</td>
+<td>有限 Simpson 积分</td>
+</tr>
+<tr>
+<td>盒核：Hε 的 L1 误差</td>
+<td style="text-align: right;">0.05</td>
+<td>解析 ε/2</td>
+</tr>
+<tr>
+<td>盒核：Hε 的 L2 误差</td>
+<td style="text-align: right;">0.129099445</td>
+<td>解析 √(ε/6)</td>
+</tr>
+<tr>
+<td>盒核：Hε 的 L∞ 误差</td>
+<td style="text-align: right;">0.5</td>
+<td>解析，不随 ε 缩小</td>
+</tr>
+<tr>
+<td>Poisson：−∫uφ″</td>
+<td style="text-align: right;">0.964185319</td>
+<td>有限 Simpson 积分</td>
+</tr>
+<tr>
+<td>Poisson：∫fφ</td>
+<td style="text-align: right;">0.964185317</td>
+<td>有限 Simpson 积分</td>
+</tr>
+<tr>
+<td>Poisson：右斜率减左斜率</td>
+<td style="text-align: right;">-1.4</td>
+<td>解析，等于总源质量的负值</td>
 </tr>
 </tbody>
 </table>
-<h3 id="4">4. 定理假设与失效边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<ul>
-<li><strong>测试函数条件</strong>：<span class="arithmatex">\(\varphi\)</span> 必须光滑且紧支集；若测试函数触及外边界，外边界项不能凭空删除，必须把边界条件写出来。</li>
-<li><strong>弱导数与分布导数要区分</strong>：<span class="arithmatex">\(|x|\)</span> 的一阶分布导数仍是局部可积函数，故它有一阶弱导数；二阶导数 <span class="arithmatex">\(2\delta_0\)</span> 是分布但不是 <span class="arithmatex">\(L^p_{\rm loc}\)</span> 函数，因而不是通常意义的二阶弱导数。</li>
-<li><strong>跳跃项的系数</strong>：对分段绝对连续函数，内部跳跃的系数是右值减左值；改变跳跃方向会改变 delta 的符号。</li>
-<li><strong>证据等级</strong>：脚本的 Simpson 残差、box delta 近似和有限 SVG 只审计选定模型/测试函数/网格；分布恒等式是对所有测试函数的定理级命题，不能由有限网格外推。</li>
-</ul>
+<p>有限积分残差是当前网格的诊断。正文的分段分部积分才说明恒等式为何对所有测试函数成立。</p>
 </div>
 </section>
-<h2 id="1_1">1. 动机：经典求导的三处失灵<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p>① 点源：单位点电荷的密度是什么函数？（没有——任何函数积分出不了"集中在一点的质量 1"）；② 激波：守恒律的解在有限时间形成间断，间断处经典导数不存在，但物理演化明明在继续；③ 变分法：能量泛函的极小元先天只有"积分意义的导数"（下一页 Sobolev 空间的成员）。三者共同指向：<strong>需要一种"函数不必逐点可导也能谈导数"的框架</strong>。</p>
-<h2 id="2_1">2. 分布：定义与运算<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p><strong>测试函数空间</strong> <span class="arithmatex">\(\mathcal{D}(\Omega) = C_c^\infty(\Omega)\)</span>（光滑 + 紧支集——"最好说话的函数"，磨光核保证存在，实变 III 稠密性的主角）。</p>
-<p><strong>定义（分布）</strong> <span class="arithmatex">\(\mathcal{D}'(\Omega)\)</span> = <span class="arithmatex">\(\mathcal{D}(\Omega)\)</span> 上的连续线性泛函（连续性按测试函数的一致收敛族语义【引用】细节）。写 <span class="arithmatex">\(\langle T, \varphi\rangle\)</span>。</p>
-<p><strong>两大来源</strong>：局部可积函数 <span class="arithmatex">\(f \mapsto T_f = \int f\varphi\)</span>（普通函数嵌入分布——"分布是函数的推广"由此严格）；测度 <span class="arithmatex">\(\mu \mapsto \int\varphi\,d\mu\)</span>，特例即 <strong>Dirac δ</strong>：</p>
+<figure>
+<img src="assets/img/pde2-01-distribution-pairings.svg" alt="阶跃与普通导数、移动测试函数的配对、盒核对阶跃的连续逼近，以及同一盒源的Poisson解" loading="lazy">
+<figcaption>跳点两侧分别连线；图中的有限峰和斜坡都是普通函数。δ 的身份由配对定义，不能由屏幕上的一根针代替。</figcaption>
+</figure>
+
+<h2 id="1">1 · 先用分部积分算出跳跃<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(H(x)=0\)</span> 当 <span class="arithmatex">\(x&lt;0\)</span>，<span class="arithmatex">\(H(x)=1\)</span> 当 <span class="arithmatex">\(x\ge0\)</span>。在零点的代表值可以改变，不影响下面任何 Lebesgue 积分。取光滑且紧支集的 <span class="arithmatex">\(\varphi\)</span>，则</p>
 <div class="arithmatex">\[
-\langle\delta_{x_0}, \varphi\rangle = \varphi(x_0)
+-\int_{\mathbb R}H(x)\varphi'(x)\,dx
+=-\int_0^\infty\varphi'(x)\,dx
+=\varphi(0).
 \]</div>
-<p>——"在 <span class="arithmatex">\(x_0\)</span> 处采样"这个泛函本身。它不是函数（若 <span class="arithmatex">\(\delta = T_f\)</span> 则 <span class="arithmatex">\(f\)</span> 在 <span class="arithmatex">\(x_0\)</span> 外 a.e. 为零 ⇒ 积分为零，与 <span class="arithmatex">\(\varphi(x_0) \neq 0\)</span> 矛盾<strong>【证明】</strong>），但作为分布身份完全合法。</p>
-<p><strong>分布导数（本页核心定义）</strong>：把分部积分公式当定义用——</p>
+<p>右侧只需要测试函数在零点的值。我们把这一作用记作 <span class="arithmatex">\(\langle\delta_0,\varphi\rangle=\varphi(0)\)</span>，于是 <span class="arithmatex">\(DH=\delta_0\)</span>。若只记住 <span class="arithmatex">\(H'=0\)</span> 几乎处处，就丢掉了穿过跳点的那一份变化。</p>
+<p>一般地，设 <span class="arithmatex">\(u\)</span> 在有限多个点 <span class="arithmatex">\(c_j\)</span> 处分段 <span class="arithmatex">\(C^1\)</span>，并且左右迹存在，各段普通导数局部可积。逐段积分时，相邻两段在 <span class="arithmatex">\(c_j\)</span> 的边界项分别带来 <span class="arithmatex">\(u(c_j-)\varphi(c_j)\)</span> 与 <span class="arithmatex">\(-u(c_j+)\varphi(c_j)\)</span>。因此</p>
 <div class="arithmatex">\[
-\langle T', \varphi\rangle := -\langle T, \varphi'\rangle
+\int u\varphi'
+=-\int v_{\rm reg}\varphi-\sum_j[u]_{c_j}\varphi(c_j),
+\qquad [u]_{c_j}=u(c_j+)-u(c_j-),
 \]</div>
-<p>（动机：<span class="arithmatex">\(f\)</span> 光滑时 <span class="arithmatex">\(\int f'\varphi = -\int f\varphi'\)</span>，边界项被紧支集杀死。）<strong>每个分布无穷可导</strong>——求导的重担全数转嫁给了 <span class="arithmatex">\(\varphi \in C^\infty\)</span>：这是整个理论的杠杆支点。</p>
-<h2 id="3">3. 名例三连（必会手算）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>例 A（阶跃函数）</strong> Heaviside <span class="arithmatex">\(H = \mathbb{1}_{x&gt;0}\)</span>：</p>
 <div class="arithmatex">\[
-\langle H', \varphi\rangle = -\int_0^\infty \varphi' = \varphi(0) = \langle\delta, \varphi\rangle \quad\Rightarrow\quad H' = \delta
+\boxed{Du=v_{\rm reg}+\sum_j[u]_{c_j}\delta_{c_j}.}
 \]</div>
-<p>——"跳一下的导数是个尖峰"，工程口诀的两行证明。</p>
-<p><strong>例 B（折角函数）</strong> <span class="arithmatex">\(f = |x|\)</span>：<span class="arithmatex">\(f' = \mathrm{sign}(x)\)</span>（同法），<span class="arithmatex">\(f'' = 2\delta\)</span>——折角处二阶导集中成点质量；<strong>凸函数的分布二阶导是非负测度</strong>（凸性的分布刻画，优化线呼应）。</p>
-<p><strong>例 C（对数的拉普拉斯）</strong> <span class="arithmatex">\(\mathbb{R}^2\)</span> 上 <span class="arithmatex">\(\Delta\big(\frac{1}{2\pi}\ln|x|\big) = \delta\)</span>；<span class="arithmatex">\(\mathbb{R}^3\)</span> 上 <span class="arithmatex">\(\Delta\big(\frac{-1}{4\pi|x|}\big) = \delta\)</span><strong>【骨架】</strong>（挖去小球 <span class="arithmatex">\(B_\varepsilon\)</span> 分部积分两次，体积项消失、球面边界项 <span class="arithmatex">\(\to \varphi(0)\)</span>——静电学"点电荷的势"的严格版）。由此定义<strong>基本解</strong>：<span class="arithmatex">\(\Delta E = \delta\)</span> ⇒ <span class="arithmatex">\(\Delta(E * f) = f\)</span>——<strong>卷积基本解解方程</strong>，热核方法（本科 pde-02）的统一原理。</p>
-<h2 id="4-lp">4. 弱导数：分布导数的 <span class="arithmatex">\(L^p\)</span> 版<a class="headerlink" href="#4-lp" title="Permanent link"></a></h2>
-<p><strong>定义</strong> <span class="arithmatex">\(u \in L^1_{loc}\)</span> 有弱导数 <span class="arithmatex">\(v = D^\alpha u\)</span>：<span class="arithmatex">\(v \in L^1_{loc}\)</span> 且 <span class="arithmatex">\(\int u\,D^\alpha\varphi = (-1)^{|\alpha|}\int v\,\varphi\)</span> 对一切测试函数成立。</p>
-<p>即：分布导数<strong>恰好还是个函数</strong>时称弱导数（例 B 的 <span class="arithmatex">\(|x|\)</span> 有一阶弱导数 <span class="arithmatex">\(\mathrm{sign}\)</span>，无二阶弱导数——<span class="arithmatex">\(\delta\)</span> 不是函数：<strong>弱导数存在与否是函数光滑度的分级线</strong>，下一页 Sobolev 空间按它建制）。</p>
-<p><strong>性质</strong>：唯一（a.e.）；线性；乘积法则对 <span class="arithmatex">\(C^1\)</span> 因子成立；<strong>磨光逼近</strong>：<span class="arithmatex">\(u_\varepsilon = \eta_\varepsilon * u\)</span> 光滑且 <span class="arithmatex">\(D(u_\varepsilon) = (Du)_\varepsilon\)</span>、在 <span class="arithmatex">\(L^p_{loc}\)</span> 收敛<strong>【骨架】</strong>（卷积求导换序 + 实变 III 逼近定理）——"弱导数 = 光滑函数导数的 <span class="arithmatex">\(L^p\)</span> 极限"，两种观点等价（下一页 <span class="arithmatex">\(H = W\)</span> 定理的雏形）。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（手算弱导数）</strong> <span class="arithmatex">\(u(x) = x\mathbb{1}_{x&gt;0}\)</span>（ReLU）：弱导数 <span class="arithmatex">\(= H(x)\)</span>（分部积分验证）；二阶分布导数 <span class="arithmatex">\(= \delta\)</span>，非函数。因此对 <span class="arithmatex">\(1\le p\le\infty\)</span>，</p>
+<p>同一结论也适用于各闭子区间上绝对连续、且上述迹和积分有意义的分段函数。外边界项因测试函数在边界附近恒为零而消失；内部边界项没有这个理由。</p>
+<p>实验选用一个可以同时包含斜率、尖角与跳跃的族：</p>
 <div class="arithmatex">\[
-u\in W^{1,p}_{\mathrm{loc}}(\mathbb R),\qquad
-u\in W^{1,p}((-R,R))\ \text{对每个 }R&lt;\infty,
+u(x)=sx+K|x-c|+JH(x-c),
 \]</div>
-<p>但 <span class="arithmatex">\(u\notin W^{2,p}_{\mathrm{loc}}(\mathbb R)\)</span>。在整条 <span class="arithmatex">\(\mathbb R\)</span> 上，ReLU 本身不属于有限 <span class="arithmatex">\(p\)</span> 的 <span class="arithmatex">\(L^p\)</span>，所以不能省略定义域而写 <span class="arithmatex">\(u\in W^{1,p}(\mathbb R)\)</span>。<strong>ReLU 网络的“导数”在分布意义下完全合法</strong>——ai 课里含糊带过的“ReLU 在 0 处导数”在此有正式户口（优化 I 次梯度之外的第二种严格化）。</p>
-<p><strong>例 2（分布收敛）</strong> <span class="arithmatex">\(f_n = \frac{n}{2}\mathbb{1}_{[-1/n, 1/n]} \to \delta\)</span>（分布意义）：<span class="arithmatex">\(\langle f_n, \varphi\rangle \to \varphi(0)\)</span>（连续性一行）——"越来越尖的针"的极限身份；同理磨光核 <span class="arithmatex">\(\eta_\varepsilon \to \delta\)</span>：<strong>δ 是一切近似单位元的极限</strong>（概率里的"退化分布"、信号里的"冲激响应"同源）。</p>
-<p><strong>例 3（求基本解的用法）</strong> 解 <span class="arithmatex">\(-u'' = f\)</span>（全直线）：一维基本解 <span class="arithmatex">\(E = -\frac12|x|\)</span>（例 B：<span class="arithmatex">\(E'' = -\delta\)</span>）⇒ <span class="arithmatex">\(u = E * f = -\frac12\int|x - y|f(y)dy\)</span>——验证两次弱求导即得。<strong>"解 = 基本解卷数据"三例合一（Laplace/热/波各有其 <span class="arithmatex">\(E\)</span>）。</strong><span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：把"有 <span class="arithmatex">\(k\)</span> 阶弱导数且 <span class="arithmatex">\(L^p\)</span> 可积"的函数组织成 Banach 空间——Sobolev 空间：嵌入定理、迹定理，现代 PDE 的主舞台。</em></p>
+<div class="arithmatex">\[
+Du=s+K\operatorname{sign}(x-c)+J\delta_c,
+\qquad D^2u=2K\delta_c+J\delta_c'.
+\]</div>
+<p>这里 <span class="arithmatex">\(\operatorname{sign}\)</span> 的跳幅是 <span class="arithmatex">\(2\)</span>，所以尖角系数 <span class="arithmatex">\(K\)</span> 在二阶产生 <span class="arithmatex">\(2K\delta_c\)</span>；跳跃项再次求导则产生 <span class="arithmatex">\(\delta_c'\)</span>，其配对是 <span class="arithmatex">\(-\varphi'(c)\)</span>，不是 <span class="arithmatex">\(\varphi'(c)\)</span>。</p>
+<h2 id="2">2 · 测试函数究竟要求什么<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>对开集 <span class="arithmatex">\(\Omega\subset\mathbb R^d\)</span>，定义</p>
+<div class="arithmatex">\[
+\mathcal D(\Omega)=C_c^\infty(\Omega).
+\]</div>
+<p>下标 <span class="arithmatex">\(c\)</span> 不仅说函数在远处为零，还要求其支集——非零集合的闭包——是完全包含在 <span class="arithmatex">\(\Omega\)</span> 内的紧集。例如支集恰为 <span class="arithmatex">\([-1,1]\)</span> 的 bump 属于 <span class="arithmatex">\(\mathcal D((-2,2))\)</span>，却不属于 <span class="arithmatex">\(\mathcal D((-1,1))\)</span>。</p>
+<p>测试函数序列 <span class="arithmatex">\(\varphi_n\to0\)</span> 的含义是：存在同一个紧集 <span class="arithmatex">\(K\Subset\Omega\)</span> 包含所有支集，而且对每个多重指标 <span class="arithmatex">\(\alpha\)</span>，</p>
+<div class="arithmatex">\[
+\sup_{x\in K}|D^\alpha\varphi_n(x)|\longrightarrow0.
+\]</div>
+<p>只看函数值趋于零还不够。导数也必须受控，否则把导数转交给测试函数后，“小输入”可能变成很大的变化。</p>
+<p>分布是 <span class="arithmatex">\(\mathcal D(\Omega)\)</span> 上的连续线性泛函，记作 <span class="arithmatex">\(T\in\mathcal D'(\Omega)\)</span>。一个具体可用的等价连续性条件是：对每个 <span class="arithmatex">\(K\Subset\Omega\)</span>，存在 <span class="arithmatex">\(C_K&lt;\infty\)</span> 与有限整数 <span class="arithmatex">\(m_K\)</span>，使支集位于 <span class="arithmatex">\(K\)</span> 的所有测试函数满足</p>
+<div class="arithmatex">\[
+|\langle T,\varphi\rangle|
+\le C_K\max_{|\alpha|\le m_K}\|D^\alpha\varphi\|_\infty.
+\]</div>
+<p>允许的阶数可以随紧集变化。这个条件排除了不连续的线性泛函；“线性”本身还不是分布的完整定义。测试函数的收敛、分布求导与光滑因子乘法的约定，可与 <a href="https://dlmf.nist.gov/1.16">NIST DLMF §1.16</a> 对照。</p>
+<p>实验实际使用</p>
+<div class="arithmatex">\[
+B(z)=
+\begin{cases}
+\exp\!\left(1-\dfrac1{1-z^2}\right),&amp;|z|&lt;1,\\
+0,&amp;|z|\ge1,
+\end{cases}
+\qquad z=\frac{x-m}{r}.
+\]</div>
+<p>三支测试分别为 <span class="arithmatex">\(B(z)\)</span>、<span class="arithmatex">\(B(z)(1+z/2)\)</span>、<span class="arithmatex">\(zB(z)\)</span>。指数衰减快过端点处产生的任何有限次有理幂，因此延拓后各阶导数都连续且在端点为零；峰值归一化 <span class="arithmatex">\(B(0)=1\)</span> 并不表示积分为1。</p>
+<p>令 <span class="arithmatex">\(p(z)=a+bz\)</span>、<span class="arithmatex">\(q=1-z^2\)</span>。内部用于复算的导数是</p>
+<div class="arithmatex">\[
+\varphi'= \frac{B}{r}\left(b-\frac{2zp}{q^2}\right),\qquad
+\varphi''=\frac{B}{r^2}
+\left(\frac{(6z^4-2)p}{q^4}-\frac{4bz}{q^2}\right).
+\]</div>
+<p>取奇测试并令 <span class="arithmatex">\(m=c\)</span>，得到 <span class="arithmatex">\(\varphi(c)=0\)</span>、<span class="arithmatex">\(\varphi'(c)=1/r\)</span>。此时 <span class="arithmatex">\(J\delta_c\)</span> 完全测不到，而 <span class="arithmatex">\(J\delta_c'\)</span> 的配对为 <span class="arithmatex">\(-J/r\)</span>。把测试中心移开，就能让先前消失的 <span class="arithmatex">\(\delta_c\)</span> 配对重新出现。</p>
+<h2 id="3">3 · 普通函数、点质量与分布运算<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>若 <span class="arithmatex">\(f\in L^1_{\rm loc}(\Omega)\)</span>，它定义</p>
+<div class="arithmatex">\[
+\langle T_f,\varphi\rangle=\int_\Omega f\varphi,\qquad
+|\langle T_f,\varphi\rangle|
+\le\|f\|_{L^1(K)}\|\varphi\|_\infty.
+\]</div>
+<p>局部有限的 Radon 测度同样通过积分定义分布。连续性要求只作用在紧支集上，所以不需要全空间的质量有限。普通函数相差一个零测集时定义同一分布。</p>
+<p>为什么 <span class="arithmatex">\(\delta_c\)</span> 不能由某个 <span class="arithmatex">\(L^1_{\rm loc}\)</span> 函数表示？假设 <span class="arithmatex">\(\delta_c=T_f\)</span>。选择 <span class="arithmatex">\(0\le\psi\le1\)</span>、<span class="arithmatex">\(\psi(0)=1\)</span> 的紧支集光滑函数，令 <span class="arithmatex">\(\psi_\varepsilon(x)=\psi((x-c)/\varepsilon)\)</span>，并把支集取在 <span class="arithmatex">\(\Omega\)</span> 内。则</p>
+<div class="arithmatex">\[
+\langle\delta_c,\psi_\varepsilon\rangle=1,\qquad
+\left|\int f\psi_\varepsilon\right|
+\le\int_{B_{C\varepsilon}(c)}|f(x)|\,dx\longrightarrow0.
+\]</div>
+<p>最后一步用的是可积函数积分的绝对连续性，矛盾。这里并没有声称 <span class="arithmatex">\(\psi_\varepsilon\to0\)</span> 于测试函数拓扑：它在 <span class="arithmatex">\(c\)</span> 的值一直是1，导数还会增大。</p>
+<p>分布导数直接定义为</p>
+<div class="arithmatex">\[
+\langle D^\alpha T,\varphi\rangle
+=(-1)^{|\alpha|}\langle T,D^\alpha\varphi\rangle.
+\]</div>
+<p>右侧仍是连续线性泛函，所以每个分布都能求任意阶分布导数；这不表示它能逐点求导，也不表示导数仍是普通函数。不同方向的分布导数可交换，因为测试函数的混合偏导可交换。</p>
+<p>光滑函数 <span class="arithmatex">\(a\)</span> 与分布的乘法定义为 <span class="arithmatex">\(\langle aT,\varphi\rangle=\langle T,a\varphi\rangle\)</span>，因为 <span class="arithmatex">\(a\varphi\)</span> 仍是测试函数。由一次展开可得</p>
+<div class="arithmatex">\[
+D(aT)=a\,DT+a'T,\qquad
+a\delta_c=a(c)\delta_c,\qquad
+\boxed{a\delta_c'=a(c)\delta_c'-a'(c)\delta_c.}
+\]</div>
+<p>例如 <span class="arithmatex">\(x\delta_0'=-\delta_0\)</span>。若 <span class="arithmatex">\(T\)</span> 是任意阶分布，一般要用 <span class="arithmatex">\(C^\infty\)</span> 因子；只有已经知道更低阶结构时，才可能降低乘数的正则性。不能把普通函数的乘法规则不加条件地套在两个分布上。盒核的平方就给出警示：</p>
+<div class="arithmatex">\[
+\delta_\varepsilon(x)=\frac1{2\varepsilon}\mathbf1_{|x-c|&lt;\varepsilon},
+\qquad
+\langle\delta_\varepsilon^2,\varphi\rangle
+=\frac1{2\varepsilon}\langle\delta_\varepsilon,\varphi\rangle.
+\]</div>
+<p>当 <span class="arithmatex">\(\varphi(c)&gt;0\)</span>，右侧发散。因此这种最直接的近似没有给出 <span class="arithmatex">\(\delta_c^2\)</span> 的分布极限；额外的正则化规则是额外结构，不能当成一般分布理论已有的乘法。</p>
+<h2 id="4">4 · 弱导数：求导后仍是可积函数<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(u,v\in L^1_{\rm loc}(\Omega)\)</span>。如果对所有测试函数都有</p>
+<div class="arithmatex">\[
+\int_\Omega u\,D^\alpha\varphi
+=(-1)^{|\alpha|}\int_\Omega v\varphi,
+\]</div>
+<p>就称 <span class="arithmatex">\(v\)</span> 为 <span class="arithmatex">\(u\)</span> 的弱导数 <span class="arithmatex">\(D^\alpha u\)</span>。这比“存在分布导数”多要求了导数能够由局部可积函数表示。本页采用这一常见约定。</p>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>一阶分布导数</th>
+<th>二阶分布导数</th>
+<th>弱导数的结论</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(H\)</span></td>
+<td><span class="arithmatex">\(\delta_0\)</span></td>
+<td><span class="arithmatex">\(\delta_0'\)</span></td>
+<td>无一阶 <span class="arithmatex">\(L^1_{\rm loc}\)</span> 弱导数</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\lvert x\rvert\)</span></td>
+<td><span class="arithmatex">\(\operatorname{sign}(x)\)</span></td>
+<td><span class="arithmatex">\(2\delta_0\)</span></td>
+<td>有一阶，无二阶 <span class="arithmatex">\(L^1_{\rm loc}\)</span> 弱导数</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\max(x,0)\)</span></td>
+<td><span class="arithmatex">\(H\)</span></td>
+<td><span class="arithmatex">\(\delta_0\)</span></td>
+<td>有一阶，无二阶 <span class="arithmatex">\(L^1_{\rm loc}\)</span> 弱导数</td>
+</tr>
+</tbody>
+</table>
+<p>ReLU 在每个有界区间属于 <span class="arithmatex">\(W^{1,p}\)</span>，<span class="arithmatex">\(1\le p\le\infty\)</span>；在整条实线上它本身不属于这些 <span class="arithmatex">\(L^p\)</span> 空间，包括 <span class="arithmatex">\(L^\infty\)</span>，所以不能省略定义域写成全局 <span class="arithmatex">\(W^{1,p}(\mathbb R)\)</span>。</p>
+<p>弱导数只在几乎处处意义下唯一。证明所用的基本事实是：若 <span class="arithmatex">\(g\in L^1_{\rm loc}\)</span> 对全部测试函数积分为零，则把测试取为任一点附近的磨光核，得到 <span class="arithmatex">\(g\)</span> 的局部磨光恒为零；在 Lebesgue 点令核半径趋零，就有 <span class="arithmatex">\(g=0\)</span> 几乎处处。将它用于两个候选弱导数之差即可。</p>
+<p>弱求导还具有有用的闭性：若 <span class="arithmatex">\(u_n\to u\)</span>、<span class="arithmatex">\(Du_n\to v\)</span> 都在 <span class="arithmatex">\(L^1_{\rm loc}\)</span> 收敛，那么对固定测试函数可在
+<span class="arithmatex">\(\int u_n\varphi'=-\int Du_n\varphi\)</span> 两侧取极限，得到 <span class="arithmatex">\(Du=v\)</span>。只让导数列收敛而不控制原函数列，不足以指定它属于哪个函数。</p>
+<p>对 <span class="arithmatex">\(u\in W^{1,1}_{\rm loc}\)</span> 与 <span class="arithmatex">\(a\in C^1\)</span>，乘积法则仍成立。可在每个相关紧集附近用光滑 <span class="arithmatex">\(a_n\)</span> 逼近 <span class="arithmatex">\(a\)</span> 及 <span class="arithmatex">\(a'\)</span>，先用光滑乘数公式，再利用上述积分极限；这与“任意分布都能乘任意 <span class="arithmatex">\(C^1\)</span> 函数”是不同命题。</p>
+<h2 id="5">5 · 逼近的方式必须写清<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>分布收敛 <span class="arithmatex">\(T_n\to T\)</span> 表示：对每一支固定测试函数 <span class="arithmatex">\(\varphi\)</span>，<span class="arithmatex">\(\langle T_n,\varphi\rangle\to\langle T,\varphi\rangle\)</span>。用盒核作变量替换：</p>
+<div class="arithmatex">\[
+\langle\delta_\varepsilon,\varphi\rangle
+=\frac12\int_{-1}^1\varphi(c+\varepsilon t)\,dt
+\longrightarrow\varphi(c).
+\]</div>
+<p>对称性消掉一阶 Taylor 项，并给出可直接证明的界</p>
+<div class="arithmatex">\[
+|\langle\delta_\varepsilon-\delta_c,\varphi\rangle|
+\le\frac{\varepsilon^2}{6}
+\sup_{|x-c|\le\varepsilon}|\varphi''(x)|.
+\]</div>
+<p>这不是对所有测试函数统一的绝对误差常数：右侧依赖这支测试的二阶导数。盒核导数的配对同时满足</p>
+<div class="arithmatex">\[
+\langle D\delta_\varepsilon,\varphi\rangle
+=-\frac{\varphi(c+\varepsilon)-\varphi(c-\varepsilon)}{2\varepsilon}
+\longrightarrow-\varphi'(c).
+\]</div>
+<p>实验把这个精确边界表达式与 <span class="arithmatex">\(-\int\delta_\varepsilon\varphi'\)</span> 的数值积分并列，方便分别辨认逼近误差与积分误差。</p>
+<p>盒核卷积阶跃给出</p>
+<div class="arithmatex">\[
+H_\varepsilon(x)=
+\begin{cases}
+0,&amp;x-c\le-\varepsilon,\\
+\dfrac{x-c+\varepsilon}{2\varepsilon},&amp;|x-c|&lt;\varepsilon,\\
+1,&amp;x-c\ge\varepsilon.
+\end{cases}
+\]</div>
+<p>它连续且分段线性，并不是 <span class="arithmatex">\(C^\infty\)</span>。对 <span class="arithmatex">\(1\le p&lt;\infty\)</span>，将左右两个三角形的误差分别积分：</p>
+<div class="arithmatex">\[
+\|H_\varepsilon-H(\cdot-c)\|_p^p
+=2\int_0^\varepsilon
+\left(\frac{\varepsilon-t}{2\varepsilon}\right)^pdt
+=\frac{\varepsilon}{2^{p-1}(p+1)}.
+\]</div>
+<p>因此 <span class="arithmatex">\(L^1\)</span> 误差为 <span class="arithmatex">\(\varepsilon/2\)</span>，<span class="arithmatex">\(L^2\)</span> 误差为 <span class="arithmatex">\(\sqrt{\varepsilon/6}\)</span>，都趋于零；但本质上确界误差一直为 <span class="arithmatex">\(1/2\)</span>。这不是单个点造成的：任意接近 <span class="arithmatex">\(1/2\)</span> 的偏差，都发生在跳点旁边正测度的小区间上。</p>
+<p>盒核本身的 <span class="arithmatex">\(L^1\)</span> 范数始终为1，<span class="arithmatex">\(L^2\)</span> 与 <span class="arithmatex">\(L^\infty\)</span> 范数分别为 <span class="arithmatex">\((2\varepsilon)^{-1/2}\)</span> 与 <span class="arithmatex">\((2\varepsilon)^{-1}\)</span>。它不能在 <span class="arithmatex">\(L^1\)</span> 中收敛到一个函数，否则该函数也应代表 <span class="arithmatex">\(\delta_c\)</span>，与前面的证明矛盾。</p>
+<p>真正的光滑磨光核可以取 <span class="arithmatex">\(\eta=B/\int B\)</span>，再令 <span class="arithmatex">\(\eta_\varepsilon(x)=\varepsilon^{-d}\eta(x/\varepsilon)\)</span>；在多维使用相应的径向 bump。若只在 <span class="arithmatex">\(\Omega\)</span> 内给定 <span class="arithmatex">\(u\)</span>，先限制到 <span class="arithmatex">\(\Omega_\varepsilon=\{x:\operatorname{dist}(x,\partial\Omega)&gt;\varepsilon\}\)</span>，才能直接写不涉及外部数据的卷积。对 <span class="arithmatex">\(u\in W^{1,p}_{\rm loc}\)</span>、<span class="arithmatex">\(1\le p&lt;\infty\)</span>，</p>
+<div class="arithmatex">\[
+u_\varepsilon=\eta_\varepsilon*u,\qquad
+D u_\varepsilon=\eta_\varepsilon*Du,\qquad
+u_\varepsilon\to u,\quad D u_\varepsilon\to Du
+\quad\text{于 }L^p_{\rm loc}.
+\]</div>
+<p>求导交换来自把核的 <span class="arithmatex">\(x\)</span> 导数改成负的 <span class="arithmatex">\(y\)</span> 导数，再使用弱导数定义；收敛来自局部 <span class="arithmatex">\(L^p\)</span> 的近似单位元性质。原域的边界条件不会由内部磨光自动保留。关于有限 <span class="arithmatex">\(p\)</span> 与局部定义域的准确范围，可参阅 <a href="https://www.math.ucdavis.edu/~hunter/pdes/pde_notes.pdf">Hunter《PDE》§1.9、§3.4</a>。</p>
+<p>不能把此结论直接扩展成 <span class="arithmatex">\(p=\infty\)</span> 的强范数收敛：取偶、非负、质量1的光滑核，平滑后的阶跃在跳点取值 <span class="arithmatex">\(1/2\)</span>，左右连续性使其 <span class="arithmatex">\(L^\infty\)</span> 误差至少为 <span class="arithmatex">\(1/2\)</span>。对 ReLU 而言，函数本身可局部一致逼近，但其导数 <span class="arithmatex">\(H\)</span> 仍有这个障碍。</p>
+<h2 id="6">6 · 从点源构造一维方程的解<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>既然 <span class="arithmatex">\(D^2|x|=2\delta_0\)</span>，算子 <span class="arithmatex">\(-D^2\)</span> 的一个基本解是</p>
+<div class="arithmatex">\[
+E(x)=-\frac12|x|,\qquad -D^2E=\delta_0.
+\]</div>
+<p>若 <span class="arithmatex">\(f\in L^1(\mathbb R)\)</span> 且有紧支集，则</p>
+<div class="arithmatex">\[
+u_p(x)=(E*f)(x)=-\frac12\int_{\mathbb R}|x-y|f(y)\,dy
+\]</div>
+<p>对每个有限 <span class="arithmatex">\(x\)</span> 都有定义。更一般的充分条件是 <span class="arithmatex">\(\int(1+|y|)|f(y)|\,dy&lt;\infty\)</span>。对任意测试函数，绝对可积性允许交换积分：</p>
+<div class="arithmatex">\[
+-\int u_p(x)\varphi''(x)\,dx
+=\int f(y)\left[-\int E(x-y)\varphi''(x)\,dx\right]dy
+=\int f(y)\varphi(y)\,dy.
+\]</div>
+<p>于是 <span class="arithmatex">\(-u_p''=f\)</span>。这个证明没有要求 <span class="arithmatex">\(f\)</span> 自己光滑。</p>
+<p>实验取单位盒源 <span class="arithmatex">\(f=\mathbf1_{[c-a,c+a)}\)</span>。令 <span class="arithmatex">\(z=x-c\)</span>，将积分在 <span class="arithmatex">\(y=x\)</span> 处分开，得到</p>
+<div class="arithmatex">\[
+u_p(x)=
+\begin{cases}
+-\dfrac{z^2+a^2}{2},&amp;|z|\le a,\\
+-a|z|,&amp;|z|\ge a,
+\end{cases}
+\qquad
+u_p'(x)=-\max(-a,\min(a,z)).
+\]</div>
+<p>在两个接口，函数值都是 <span class="arithmatex">\(-a^2\)</span>；左接口两侧斜率都是 <span class="arithmatex">\(a\)</span>，右接口两侧都是 <span class="arithmatex">\(-a\)</span>。所以 <span class="arithmatex">\(u_p'\)</span> 没有跳跃，<span class="arithmatex">\(u_p''\)</span> 不额外带 <span class="arithmatex">\(\delta\)</span>。总源质量与斜率变化也符合</p>
+<div class="arithmatex">\[
+\int_{\mathbb R}f=2a,\qquad
+u_p'(+\infty)-u_p'(-\infty)=-2a.
+\]</div>
+<p>所有 <span class="arithmatex">\(u_p+Ax+B\)</span> 都满足相同方程。反过来，在全直线上若两个分布解之差 <span class="arithmatex">\(w\)</span> 满足 <span class="arithmatex">\(w''=0\)</span>，它就一定是仿射函数：先证明 <span class="arithmatex">\(T'=0\)</span> 蕴含 <span class="arithmatex">\(T\)</span> 为常数分布。任取积分为零的测试 <span class="arithmatex">\(\varphi\)</span>，其原函数 <span class="arithmatex">\(\psi(x)=\int_{-\infty}^x\varphi(t)dt\)</span> 仍紧支集，故 <span class="arithmatex">\(\langle T,\varphi\rangle=-\langle T',\psi\rangle=0\)</span>。再用一支积分为1的测试分解任意 <span class="arithmatex">\(\varphi\)</span>，得到 <span class="arithmatex">\(T\)</span> 只依赖 <span class="arithmatex">\(\int\varphi\)</span>。两次应用便得 <span class="arithmatex">\(w=Ax+B\)</span>。</p>
+<h2 id="7">7 · 二维与三维基本解：符号由内球面决定<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>现在取算子 <span class="arithmatex">\(\Delta\)</span>，而不是上一节的 <span class="arithmatex">\(-\Delta\)</span>。对应的两个函数是</p>
+<div class="arithmatex">\[
+E_2(x)=\frac1{2\pi}\log|x|,\qquad
+E_3(x)=-\frac1{4\pi|x|}.
+\]</div>
+<p>它们在原点附近局部可积，并在原点外满足 <span class="arithmatex">\(\Delta E_d=0\)</span>。想计算分布拉普拉斯，取测试 <span class="arithmatex">\(\varphi\)</span>，选大球包含其支集，并挖去半径 <span class="arithmatex">\(\varepsilon\)</span> 的小球。在剩余区域上应用 Green 第二恒等式：</p>
+<div class="arithmatex">\[
+\int_{|x|&gt;\varepsilon}E_d\Delta\varphi\,dx
+=\int_{|x|=\varepsilon}
+\left(-E_d\,\partial_r\varphi+\varphi\,\partial_r E_d\right)dS.
+\]</div>
+<p>大球边界附近 <span class="arithmatex">\(\varphi\)</span> 及其导数为零。小球面是挖孔区域的内边界，其向外法向是 <span class="arithmatex">\(-\mathbf e_r\)</span>，这正是第一项负号与第二项正号的来源。</p>
+<p>第一项的绝对值在二维不超过常数乘 <span class="arithmatex">\(\varepsilon|\log\varepsilon|\)</span>，在三维不超过常数乘 <span class="arithmatex">\(\varepsilon\)</span>，都趋于零。第二项则是球面平均值，因为</p>
+<div class="arithmatex">\[
+\partial_rE_2=\frac1{2\pi r},\quad |\partial B_r|=2\pi r;
+\qquad
+\partial_rE_3=\frac1{4\pi r^2},\quad |\partial B_r|=4\pi r^2.
+\]</div>
+<p>于是第二项趋于 <span class="arithmatex">\(\varphi(0)\)</span>。恢复被挖去的小球体积分时，局部可积性保证其贡献趋零，最终得到</p>
+<div class="arithmatex">\[
+\boxed{\Delta E_2=\delta_0,\qquad \Delta E_3=\delta_0.}
+\]</div>
+<p>对于 <span class="arithmatex">\(-\Delta\)</span>，基本解的符号应整体反转。若 <span class="arithmatex">\(f\in C_c^\infty(\mathbb R^d)\)</span>，<span class="arithmatex">\(u=E_d*f\)</span> 便满足 <span class="arithmatex">\(\Delta u=f\)</span>；一般域的边界条件还需另行处理，自由空间基本解不等于已经满足该域边界条件的 Green 函数。</p>
+<h2 id="8">8 · 练习：把符号、条件与反例一起写全<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>练习1：求 D²|x−c|，并算 a(x)δc′；为什么不能把 a 直接换成 a(c)？</summary>
+<p>分段求一次导数得到 <span class="arithmatex">\(\operatorname{sign}(x-c)\)</span>。它在 <span class="arithmatex">\(c\)</span> 的跳幅为 <span class="arithmatex">\(1-(-1)=2\)</span>，所以
+<span class="arithmatex">\(D^2|x-c|=2\delta_c\)</span>。对光滑 <span class="arithmatex">\(a\)</span>，</p>
+<div class="arithmatex">\[
+\langle a\delta_c',\varphi\rangle
+=-(a\varphi)'(c)
+=-a(c)\varphi'(c)-a'(c)\varphi(c),
+\]</div>
+<p>即 <span class="arithmatex">\(a\delta_c'=a(c)\delta_c'-a'(c)\delta_c\)</span>。额外项来自求导也作用在乘数上。取 <span class="arithmatex">\(a(x)=x-c\)</span>，第一项为零，第二项为 <span class="arithmatex">\(-\delta_c\)</span>，因此把乘数直接换成点值会给出错误答案0。</p>
+</details>
+<details class="answer">
+<summary>练习2：奇测试在跳点的配对为零，是否证明 DH=0？怎样设计下一次测试？</summary>
+<p>令 <span class="arithmatex">\(\varphi(x)=zB(z)\)</span>、<span class="arithmatex">\(z=(x-c)/r\)</span>。其 <span class="arithmatex">\(\varphi(c)=0\)</span>，所以 <span class="arithmatex">\(\langle DH(\cdot-c),\varphi\rangle=0\)</span>。但换成偶测试 <span class="arithmatex">\(\psi(x)=B((x-c)/r)\)</span>，就有 <span class="arithmatex">\(\psi(c)=1\)</span>，因此配对为1。两支测试已经足以否定 <span class="arithmatex">\(DH=0\)</span>；证明 <span class="arithmatex">\(DH=\delta_c\)</span> 仍须对任意测试作分部积分。</p>
+<p>同时，第一支奇测试满足 <span class="arithmatex">\(\varphi'(c)=1/r\)</span>，故 <span class="arithmatex">\(\langle\delta_c',\varphi\rangle=-1/r\)</span>。同一支测试可以测不到 <span class="arithmatex">\(\delta_c\)</span>，却测得到它的导数。</p>
+</details>
+<details class="answer">
+<summary>练习3：ε 从0.1减到0.025，Hε 的三种误差怎样变化？盒核能在 L¹ 中趋于 δ 吗？</summary>
+<p>半宽缩小到四分之一，因此 <span class="arithmatex">\(L^1\)</span> 误差从 <span class="arithmatex">\(0.05\)</span> 变成 <span class="arithmatex">\(0.0125\)</span>，<span class="arithmatex">\(L^2\)</span> 误差从 <span class="arithmatex">\(\sqrt{0.1/6}\)</span> 变成其一半，<span class="arithmatex">\(L^\infty\)</span> 误差仍为 <span class="arithmatex">\(1/2\)</span>。这些范数是对误差函数计算的；不要与盒核本身的范数混淆。</p>
+<p>若盒核在 <span class="arithmatex">\(L^1\)</span> 中收敛到某个 <span class="arithmatex">\(g\)</span>，则对每个有界测试 <span class="arithmatex">\(\varphi\)</span>，
+<span class="arithmatex">\(|\int(\delta_\varepsilon-g)\varphi|\le\|\delta_\varepsilon-g\|_1\|\varphi\|_\infty\to0\)</span>。
+另一方面盒核分布收敛到 <span class="arithmatex">\(\delta_c\)</span>，于是 <span class="arithmatex">\(T_g=\delta_c\)</span>，与 <span class="arithmatex">\(\delta_c\)</span> 不是局部可积函数的证明矛盾。分布收敛成立，<span class="arithmatex">\(L^1\)</span> 函数空间内的收敛不成立。</p>
+</details>
+<details class="answer">
+<summary>练习4：单位盒源为什么不在源边缘额外产生 δ？加 Ax+B 后，又怎样验证同一个方程？</summary>
+<p>在 <span class="arithmatex">\(z=-a\)</span>，内部与外部函数值均为 <span class="arithmatex">\(-a^2\)</span>，导数均为 <span class="arithmatex">\(a\)</span>；在 <span class="arithmatex">\(z=a\)</span>，函数值均为 <span class="arithmatex">\(-a^2\)</span>，导数均为 <span class="arithmatex">\(-a\)</span>。一阶求导没有函数跳跃项，二阶求导没有导数跳跃项，故只有正则部分 <span class="arithmatex">\(u_p''=-f\)</span>。</p>
+<p>加仿射项后，对每支紧支集测试，</p>
+<div class="arithmatex">\[
+-\int(Ax+B)\varphi''(x)\,dx=0,
+\]</div>
+<p>因为两次分部积分的外边界项为零，且 <span class="arithmatex">\((Ax+B)''=0\)</span>。所以 <span class="arithmatex">\(-\int(u_p+Ax+B)\varphi''=\int f\varphi\)</span>。若要从这些解中选择一个，必须给出额外条件；仅展示一条画得平滑的曲线不够。</p>
+</details>
+<p>下一页将“函数与若干阶弱导数都具有可积性”组织成 <a href="pde2-02-sobolev.html">Sobolev 空间</a>，进一步讨论嵌入、迹与弱解。这里先保留最关键的习惯：写清定义域、测试函数、积分身份和所用的收敛方式。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="sc-04-girsanov.html"><span class="pager-label">上一页</span>随机分析 IV · Girsanov 与 Feynman–Kac</a>
