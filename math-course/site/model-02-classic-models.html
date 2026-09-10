@@ -46,114 +46,282 @@ try {
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 06:12</div>
+    <div class="build-time">构建于 2026-09-10 09:06</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：同一条曲线，先问它守住了什么</a><ul>
-<li><a href="#1">1. 具体实例：增长、传染、排队，哪个边界会先到？</a></li>
-<li><a href="#2">2. 先预测：选模型，再押注边界</a></li>
-<li><a href="#3">3. 最小模型：三种代表性骨架</a></li>
-<li><a href="#4">4. 正式桥：守恒、识别、适用域三栏同行</a></li>
-<li><a href="#5-toy">5. 误区与边界：toy 不是现实预测</a></li>
-<li><a href="#6">6. 迁移问题：增加一条机制，哪一栏必须重写？</a></li>
+<li><a href="#_1">学习层：曲线之前，先判断边界</a><ul>
+<li><a href="#1">1. 三个可以直接检查的问题</a></li>
+<li><a href="#2">2. 三种模型，三种检查</a></li>
+<li><a href="#3">3. 数值一致性不是现实验证</a></li>
 </ul>
 </li>
-<li><a href="#1-malthus-logistic">1. 人口模型：从 Malthus 到 Logistic</a></li>
-<li><a href="#2-sir">2. SIR 传染病模型（本页主菜）</a></li>
-<li><a href="#3-lotkavolterra-">3. Lotka–Volterra 捕食者-猎物</a></li>
-<li><a href="#4-mm1">4. 排队模型 M/M/1（随机过程的实战合成）</a></li>
-<li><a href="#5">5. 收官：全站地图的用法</a></li>
-<li><a href="#_2">典型例题</a></li>
+<li><a href="#1-logistic-s">1. Logistic：有界不等于所有曲线都呈 S 形</a><ul>
+<li><a href="#11">1.1 先读相线，再解方程</a></li>
+<li><a href="#12">1.2 容量是否可估计是另一个问题</a></li>
+</ul>
+</li>
+<li><a href="#2-sir">2. SIR：比例、阈值与全程约束</a><ul>
+<li><a href="#21">2.1 非负性与守恒</a></li>
+<li><a href="#22">2.2 再生数与感染种子</a></li>
+<li><a href="#23">2.3 全时段峰高不等于网格最大值</a></li>
+<li><a href="#24">2.4 最终规模的物理解</a></li>
+<li><a href="#25">2.5 参数识别与干预的边界</a></li>
+</ul>
+</li>
+<li><a href="#3-lotkavolterra">3. Lotka–Volterra：闭轨道需要哪些条件？</a><ul>
+<li><a href="#31">3.1 时间平均与共同捕捞率</a></li>
+</ul>
+</li>
+<li><a href="#4-mm1">4. M/M/1：先分清“系统”和“等待区”</a><ul>
+<li><a href="#41">4.1 平稳分布从哪里来？</a></li>
+<li><a href="#42">4.2 四个平均量必须分别命名</a></li>
+<li><a href="#43">4.3 接近临界负荷时</a></li>
+</ul>
+</li>
+<li><a href="#5">5. 一张条件对照图</a></li>
+<li><a href="#6">6. 练习与推导</a><ul>
+<li><a href="#1_1">练习 1：相同容量，为什么有一条曲线向下？</a></li>
+<li><a href="#2_1">练习 2：初始导数为零，是平台还是峰顶？</a></li>
+<li><a href="#3_1">练习 3：十分钟目标，是总逗留还是纯等待？</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </details>
-<h1 id="ii">建模 II · 经典模型谱（全站毕业典礼）<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<h1 id="ii">建模 II · 增长、传染、捕食与排队<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
 <blockquote>
-<p>四个传世模型，每个都是"简单假设 → 深刻结论"的典范，也各自调用全站三四页的工具。读法建议：先自己按建模循环推一遍假设，再看模型——<strong>经典模型的价值不在结论而在示范"如何用最少的假设抓住机制"</strong>。</p>
+<p>四种模型分别使用容量、流量、相互作用和随机到达。读每个公式时，都要问：状态是什么，参数有什么单位，哪个结论依赖哪个假设，以及图中显示的是有限时间数值还是长期定理。</p>
 </blockquote>
 <div data-learning-page></div>
 
 <section class="learning-layer">
-<h2 id="_1">学习层：同一条曲线，先问它守住了什么<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="1">1. 具体实例：增长、传染、排队，哪个边界会先到？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>把三个问题放到同一张预测桌上：一个产品的用户数会不会超过承载量，一个封闭人群的感染比例会不会先上升后回落，一个服务台的等待时间会不会在利用率接近 1 时失控。它们都能画出曲线，却不是同一种模型：一个有承载容量，一个有总人口守恒，一个只有在稳定条件下才有稳态队列。</p>
-<h3 id="2">2. 先预测：选模型，再押注边界<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>先选择增长、传染或排队模型，然后预测当前参数对应的行为：Logistic 会有界、SIR 会爆发还是消退、M/M/1 会稳定还是没有有限稳态。预测时同时写出你认为可观测的参数和不能由当前数据识别的参数；实验揭示后再对照守恒量、参数和适用域。</p>
-<h3 id="3">3. 最小模型：三种代表性骨架<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>增长用</p>
-<div class="arithmatex">\[
-N'=rN\left(1-\frac{N}{K}\right),
-\]</div>
-<p>传染用归一化的 SIR</p>
-<div class="arithmatex">\[
-s'=-\beta si,\qquad i'=\beta si-\gamma i,\qquad r'=\gamma i,
-\]</div>
-<p>排队用 M/M/1 的到达率 <span class="arithmatex">\(\lambda\)</span>、服务率 <span class="arithmatex">\(\mu\)</span>，利用率 <span class="arithmatex">\(\rho=\lambda/\mu\)</span>。这三个骨架分别把容量、封闭人群和流量稳定性放在结论中心。</p>
-<h3 id="4">4. 正式桥：守恒、识别、适用域三栏同行<a class="headerlink" href="#4" title="Permanent link"></a></h3>
+<h2 id="_1">学习层：曲线之前，先判断边界<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="1">1. 三个可以直接检查的问题<a class="headerlink" href="#1" title="Permanent link"></a></h3>
 <ul>
-<li><strong>守恒：</strong>Logistic 在 <span class="arithmatex">\(0\le N\le K\)</span> 内保持区间，但没有“总量守恒”；SIR 满足 <span class="arithmatex">\(s+i+r=1\)</span>；M/M/1 在稳态使用流量守恒 <span class="arithmatex">\(L=\lambda W\)</span>，并要求 <span class="arithmatex">\(\rho&lt;1\)</span>。</li>
-<li><strong>参数可识别性：</strong>增长早期的 <span class="arithmatex">\(r\)</span> 容易被看到而 <span class="arithmatex">\(K\)</span> 难以识别；SIR 的 <span class="arithmatex">\(\beta,\gamma\)</span> 需要时间分辨率和干预信息才能分开；队列的 <span class="arithmatex">\(\lambda,\mu\)</span> 通常要分别记录到达与服务时间。</li>
-<li><strong>适用域：</strong>每个方程都依赖假设。模型输出是该假设下的条件预测，不是现实自动承诺的事实。</li>
+<li>Logistic 初值高于容量时，仍然向上长吗？初值恰为零时，会自行产生人口吗？</li>
+<li>SIR 的有效再生数大于 <span class="arithmatex">\(1\)</span>，但没有任何初始感染时，确定性方程会产生疫情吗？</li>
+<li>M/M/1 的到达率等于服务率时，是否存在可归一化的平稳分布？“没有稳态”是否表示有限时刻的队列已经无限长？</li>
 </ul>
-<h3 id="5-toy">5. 误区与边界：toy 不是现实预测<a class="headerlink" href="#5-toy" title="Permanent link"></a></h3>
-<ul>
-<li>SIR 的充分混合、固定参数和封闭人口会被网络结构、出生死亡和干预打破。</li>
-<li>M/M/1 在 <span class="arithmatex">\(\rho\ge1\)</span> 时不能套用有限的 <span class="arithmatex">\(W=1/(\mu-\lambda)\)</span>；“满负荷更高效”在排队边界附近会反转。</li>
-<li>Logistic 的 <span class="arithmatex">\(K\)</span> 不是自然常数，早期数据可让多个 <span class="arithmatex">\(K\)</span> 都拟合得不错；外推必须报告敏感性。</li>
-<li>课堂 toy 用来暴露机制与边界，不能冒充真实预测；真实项目要重新定义数据、校准、验证和干预域。</li>
-</ul>
-<h3 id="6">6. 迁移问题：增加一条机制，哪一栏必须重写？<a class="headerlink" href="#6" title="Permanent link"></a></h3>
-<p>给 SIR 加潜伏期、给队列加多服务台、给增长加季节 forcing，方程变长只是表面变化；守恒量、参数识别和适用域会一起变化。先重新做预测和边界检查，再决定是否值得引入更复杂模型。</p>
+<p>先判断当前配置，再打开实验。参数改变后，图和账本按新配置更新；重新选择判断会隐藏结果。图和表保留原生宽度，手机可横向滚动，也可聚焦后按左右方向键。</p>
+<h3 id="2">2. 三种模型，三种检查<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>状态与单位</th>
+<th>首先检查</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Logistic</td>
+<td>人数 <span class="arithmatex">\(N\)</span>；<span class="arithmatex">\(r\)</span> 每日，<span class="arithmatex">\(K\)</span> 人</td>
+<td>初值、平衡与不变区间</td>
+</tr>
+<tr>
+<td>SIR</td>
+<td>比例 <span class="arithmatex">\(s,i,r\)</span>；<span class="arithmatex">\(\beta,\gamma\)</span> 每日</td>
+<td>非负性、人口和、初始增长条件</td>
+</tr>
+<tr>
+<td>M/M/1</td>
+<td>系统内顾客数；<span class="arithmatex">\(\lambda,\mu\)</span> 每小时</td>
+<td><span class="arithmatex">\(\lambda&lt;\mu\)</span>，以及是否包含服务中顾客</td>
+</tr>
+</tbody>
+</table>
+<p>本页 SIR 的 <span class="arithmatex">\(r\)</span> 是移出比例，不是 Logistic 的增长率；<span class="arithmatex">\(R_0\)</span> 是基本再生数，<span class="arithmatex">\(r_0\)</span> 则是初始移出比例。它们的符号接近，但含义不同。</p>
 <div class="learning-lab" data-learning-lab="classic-models">
-<p><strong>无 JavaScript 时的静态 fallback：</strong>默认展示 Logistic 增长：<span class="arithmatex">\(N_0=80\)</span>、<span class="arithmatex">\(K=600\)</span>、<span class="arithmatex">\(r=0.35\)</span> 时轨迹趋向 <span class="arithmatex">\(K\)</span>，但这只说明该 toy 在固定容量假设下有界。脚本开启后可切换到 SIR 与 M/M/1，调整参数并在预测门后查看 SVG、守恒/稳定性账本、参数可识别性与适用域；这些输出不能代替真实数据验证。</p>
+<p><strong>JavaScript 失效时的读法：</strong> 默认 Logistic 为 <span class="arithmatex">\(r=.35/\text{日}\)</span>、<span class="arithmatex">\(K=600\)</span> 人、<span class="arithmatex">\(N_0=80\)</span> 人，<span class="arithmatex">\(N(10)\approx501.55\)</span> 人，长期趋于 <span class="arithmatex">\(600\)</span>。默认 SIR 为 <span class="arithmatex">\(\beta=.6/\text{日},\gamma=.2/\text{日},i_0=.02,r_0=0\)</span>，所以 <span class="arithmatex">\(R_e(0)=2.94\)</span>，全时段解析感染峰高约 <span class="arithmatex">\(.307197\)</span>；最终 <span class="arithmatex">\(s_\infty\approx.058078\)</span>。默认队列为 <span class="arithmatex">\(\lambda=.8/\text{小时},\mu=1/\text{小时}\)</span>：系统人数 <span class="arithmatex">\(L=4\)</span>，纯排队人数 <span class="arithmatex">\(L_q=3.2\)</span>，总逗留 <span class="arithmatex">\(W=5\)</span> 小时，纯等待 <span class="arithmatex">\(W_q=4\)</span> 小时。数值单位必须随参数口径一起读。</p>
 </div>
+<h3 id="3">3. 数值一致性不是现实验证<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>SIR 实验采用 RK4，并比较步长上限 <span class="arithmatex">\(.01\)</span> 日与 <span class="arithmatex">\(.005\)</span> 日的结果。它还检查输出点的人口和与第一积分漂移；没有把负值裁成零或把比例重新归一化。这些是实现诊断，<strong>步长减半差不是自动成立的严格误差界</strong>，更不能验证现实人群满足充分混合假设。</p>
+<p>队列图只在 <span class="arithmatex">\(\rho&lt;1\)</span> 区域画稳态人数函数。临界或超载时，红标记表示实际负荷，稳态量显示为未定义。</p>
 </section>
-<h2 id="1-malthus-logistic">1. 人口模型：从 Malthus 到 Logistic<a class="headerlink" href="#1-malthus-logistic" title="Permanent link"></a></h2>
-<p><strong>Malthus（1798）</strong>：增长率正比于人口 <span class="arithmatex">\(N' = rN \Rightarrow N = N_0 e^{rt}\)</span>——短期准、长期爆（资源无限的假设破产）。<strong>修假设</strong>（建模循环第 6 步的示范）：增长率随拥挤衰减 <span class="arithmatex">\(r(1 - N/K)\)</span>：</p>
+<h2 id="1-logistic-s">1. Logistic：有界不等于所有曲线都呈 S 形<a class="headerlink" href="#1-logistic-s" title="Permanent link"></a></h2>
+<p>从增长率正比于人数出发，
+<span class="arithmatex">\(N'=rN\)</span> 给 <span class="arithmatex">\(N=N_0e^{rt}\)</span>。它假定人均净增长率固定；是否适合某段真实数据需要检验，不能先宣布所有短期增长都指数化。</p>
+<p>在 <span class="arithmatex">\(r&gt;0,K&gt;0\)</span> 下，若人均净增长随拥挤线性降低，就得到</p>
 <div class="arithmatex">\[
-N' = rN\Big(1 - \frac{N}{K}\Big) \quad\Rightarrow\quad N(t) = \frac{K}{1 + Ce^{-rt}}\ \text{（S 形曲线）}
+N'=rN\left(1-\frac NK\right).
 \]</div>
-<p>定性分析不解方程已知全局（ode-01 相线：<span class="arithmatex">\(N = K\)</span> 稳定平衡）；无量纲化后无参数（model-01 例 3）。<strong>S 曲线的普适性</strong>：技术扩散、市场渗透、菌落生长——"先指数后饱和"是资源受限增长的通用形状（产品渗透率预测的第一模型）。</p>
-<h2 id="2-sir">2. SIR 传染病模型（本页主菜）<a class="headerlink" href="#2-sir" title="Permanent link"></a></h2>
-<p><strong>假设</strong>：下面统一使用人口比例 <span class="arithmatex">\(s=S/N,i=I/N,r=R/N\)</span>，所以 <span class="arithmatex">\(s+i+r=1\)</span>；<span class="arithmatex">\(\beta\)</span> 是每名感染者的有效接触率，充分混合使感染通量为 <span class="arithmatex">\(\beta si\)</span>，康复通量为 <span class="arithmatex">\(\gamma i\)</span>：</p>
+<h3 id="11">1.1 先读相线，再解方程<a class="headerlink" href="#11" title="Permanent link"></a></h3>
+<p>平衡点为 <span class="arithmatex">\(0,K\)</span>。当 <span class="arithmatex">\(0&lt;N&lt;K\)</span> 时导数为正，当 <span class="arithmatex">\(N&gt;K\)</span> 时导数为负。右端局部 Lipschitz，解的唯一性保证轨迹不能穿过平衡解；所以正初值的解始终留在初值与 <span class="arithmatex">\(K\)</span> 之间。</p>
+<p>对 <span class="arithmatex">\(N_0&gt;0\)</span>，分离变量或令 <span class="arithmatex">\(u=1/N\)</span> 可得</p>
 <div class="arithmatex">\[
-s'=-\beta si,\qquad i'=\beta si-\gamma i,\qquad r'=\gamma i
+N(t)=\frac K{1+(K/N_0-1)e^{-rt}},\qquad t\ge0.
 \]</div>
-<p><strong>不解方程读出全部大局</strong>（ODE 定性分析的展销会）：</p>
+<p>分母在这个时间域内为正。由公式或单调有界性：</p>
 <ul>
-<li><strong>爆发判据</strong>：当 <span class="arithmatex">\(i&gt;0\)</span> 时，<span class="arithmatex">\(i'=i(\beta s-\gamma)&gt;0\iff s&gt;\gamma/\beta\)</span>；若 <span class="arithmatex">\(i=0\)</span>，则 <span class="arithmatex">\(i'=0\)</span>，无感染是一个不变状态。全易感基准下的<strong>基本再生数</strong>与时变有效再生数分别为</li>
+<li><span class="arithmatex">\(0&lt;N_0&lt;K\)</span>：单调上升，趋于 <span class="arithmatex">\(K\)</span>；</li>
+<li><span class="arithmatex">\(N_0&gt;K\)</span>：单调下降，趋于 <span class="arithmatex">\(K\)</span>；</li>
+<li><span class="arithmatex">\(N_0=K\)</span>：始终为 <span class="arithmatex">\(K\)</span>；</li>
+<li><span class="arithmatex">\(N_0=0\)</span>：始终为零，不能直接在含 <span class="arithmatex">\(1/N_0\)</span> 的公式中代入；</li>
+<li>若另取 <span class="arithmatex">\(r=0\)</span>：所有初值都是常数解。</li>
 </ul>
+<p>再求导得到</p>
 <div class="arithmatex">\[
-R_0=\frac{\beta}{\gamma},\qquad R_e(t)=R_0s(t).
+N''=rN'\left(1-\frac{2N}K\right).
 \]</div>
-<p>一个感染者进入全易感人群时平均制造 <span class="arithmatex">\(R_0\)</span> 个继发感染；实际初始增长条件是 <span class="arithmatex">\(R_e(0)=R_0s_0&gt;1\)</span>。因此即使 <span class="arithmatex">\(R_0&gt;1\)</span>，若初始易感比例已经足够低，感染仍会衰减。<span class="arithmatex">\(R_e(0)=1\)</span> 是一阶阈值边界；口罩、隔离与免疫分别通过 <span class="arithmatex">\(\beta\)</span> 或 <span class="arithmatex">\(s\)</span> 改变它。这个数是模型内参数，不是脱离假设的命运开关；</p>
-<ul>
-<li><strong>群体免疫阈值</strong>：在同质混合、疫苗完全阻断感染等理想条件下，使 <span class="arithmatex">\(R_e&lt;1\)</span> 需免疫比例 <span class="arithmatex">\(&gt;1-1/R_0\)</span>（<span class="arithmatex">\(R_0=3\Rightarrow67\%\)</span>）；现实中的异质接触和效力衰减会改写这个阈值；</li>
-<li><strong>感染人数何时转降？</strong> 在 <span class="arithmatex">\(\beta,\gamma&gt;0\)</span>、<span class="arithmatex">\(s_0&gt;0,i_0&gt;0\)</span> 的封闭 SIR 模型中，<span class="arithmatex">\(i\)</span> 在 <span class="arithmatex">\(s&lt;\gamma/\beta\)</span> 时下降；若初始已低于阈值，就从一开始下降。用比例记号除去时间得 <span class="arithmatex">\(di/ds=-1+\gamma/(\beta s)\)</span>，所以 <span class="arithmatex">\(i+s-(\gamma/\beta)\log s\)</span> 守恒。令 <span class="arithmatex">\(i_\infty=0\)</span>，得到 <span class="arithmatex">\(s_\infty-(\gamma/\beta)\log s_\infty=i_0+s_0-(\gamma/\beta)\log s_0\)</span>；最终仍有 <span class="arithmatex">\(s_\infty&gt;0\)</span> 的易感者。这里的 <span class="arithmatex">\(s,i\)</span> 都是比例，不能把人数 <span class="arithmatex">\(S,I\)</span> 直接代入同一式。</li>
-</ul>
-<p><strong>模型的谱系繁殖</strong>：加仓室（SEIR 潜伏期）、加网络（放弃充分混合——图上的传染）、加随机（小人群用 Markov 链，随机过程 II）——"从骨架模型逐层加真"的教科书路径。信息传播/爆款扩散同构套用（"病毒式传播"是数学同构不是修辞）。</p>
-<h2 id="3-lotkavolterra-">3. Lotka–Volterra 捕食者-猎物<a class="headerlink" href="#3-lotkavolterra-" title="Permanent link"></a></h2>
+<p>只有从 <span class="arithmatex">\(0&lt;N_0&lt;K/2\)</span> 出发的增长轨迹会在未来经过拐点，时间为
+<span class="arithmatex">\(t_*=\log(K/N_0-1)/r\)</span>。从 <span class="arithmatex">\(K/2&lt;N_0&lt;K\)</span> 出发，增长从一开始就向下凹；高于容量的轨迹则下降。资源限制并不强迫每条现实曲线遵循这个特定的二次方程。</p>
+<h3 id="12">1.2 容量是否可估计是另一个问题<a class="headerlink" href="#12" title="Permanent link"></a></h3>
+<p>当 <span class="arithmatex">\(N/K\)</span> 很小时，<span class="arithmatex">\(N'\approx rN\)</span>，容量对早期轨迹的影响较弱。有限噪声数据可能难以区分不同 <span class="arithmatex">\(K\)</span>，但这不是“拐点之前绝对不可识别”的定理。需要同时说明观测窗口、精度、初值和误差模型，参见<a href="model-01-methodology.html">建模方法论</a>。</p>
+<h2 id="2-sir">2. SIR：比例、阈值与全程约束<a class="headerlink" href="#2-sir" title="Permanent link"></a></h2>
+<p>在封闭、充分混合、参数固定、移出后不再感染的模型中，令 <span class="arithmatex">\(s,i,r\)</span> 分别表示易感、感染和移出比例，初值非负且和为 <span class="arithmatex">\(1\)</span>。模型为</p>
 <div class="arithmatex">\[
-x' = x(a - by), \qquad y' = y(-c + dx) \qquad (x \text{ 兔}, y \text{ 狐})
+s'=-\beta si,\qquad
+i'=\beta si-\gamma i,\qquad
+r'=\gamma i,\qquad \beta,\gamma&gt;0.
 \]</div>
-<p>结论（ode-03 已证）：闭轨道永恒振荡，且<strong>轨道平均恰为平衡点</strong> <span class="arithmatex">\((\bar x,\bar y)=(c/d,a/b)\)</span>。若对猎物和捕食者施加同一按比例捕捞率 <span class="arithmatex">\(h\)</span>，方程变为 <span class="arithmatex">\(x'=x[(a-h)-by],\ y'=y[-(c+h)+dx]\)</span>，于是新平衡（也即闭轨道上的时间平均）为 <span class="arithmatex">\((\bar x_h,\bar y_h)=((c+h)/d,(a-h)/b)\)</span>，其中 <span class="arithmatex">\(0&lt;h&lt;a\)</span>。猎物平均数量增加、捕食者平均数量减少，这才是 <strong>Volterra 原理</strong> 的精确方向；并不是“捕食者占比上升”。模型解释了一战期间捕捞减弱后，捕食性鱼类比例为何可能上升，但真实生态还受年龄结构、季节和多物种网络影响。</p>
-<h2 id="4-mm1">4. 排队模型 M/M/1（随机过程的实战合成）<a class="headerlink" href="#4-mm1" title="Permanent link"></a></h2>
-<p><strong>假设</strong>：顾客 Poisson 到达（率 <span class="arithmatex">\(\lambda\)</span>，随机过程 I）、服务时间独立同分布为指数（率 <span class="arithmatex">\(\mu\)</span>）、单服务台、先来先服务、无限等待空间且不拒绝到达——队长是<strong>生灭 Markov 链</strong>（随机过程 II/III）。在这些条件和稳态口径下，记 <span class="arithmatex">\(\rho = \lambda/\mu\)</span>（利用率）；只有 <span class="arithmatex">\(\rho &lt; 1\)</span> 时才存在几何平稳分布 <span class="arithmatex">\(\pi_n = (1-\rho)\rho^n\)</span>，并有：</p>
+<p>这里 <span class="arithmatex">\(\beta si\)</span> 是每单位时间的人口比例通量。若改用人数 <span class="arithmatex">\(S,I,R\)</span> 和固定总人数 <span class="arithmatex">\(N\)</span>，感染项应写成 <span class="arithmatex">\(\beta SI/N\)</span>，不能把比例方程原样代入人数。<a href="https://ocw.mit.edu/courses/1-022-introduction-to-network-models-fall-2018/fe3c864fd7d2d45ed7fe65e601d9c69e_MIT1_022F18_lec20.pdf">MIT：SIR 与充分混合模型</a></p>
+<h3 id="21">2.1 非负性与守恒<a class="headerlink" href="#21" title="Permanent link"></a></h3>
+<p>三式相加给 <span class="arithmatex">\((s+i+r)'=0\)</span>。在边界 <span class="arithmatex">\(s=0\)</span> 或 <span class="arithmatex">\(i=0\)</span>，相应变量的导数为零；在 <span class="arithmatex">\(r=0\)</span>，导数非负。也可直接写</p>
 <div class="arithmatex">\[
-\text{平均队长 } L = \frac{\rho}{1 - \rho}, \qquad \text{平均逗留时间 } W = \frac{L}{\lambda} = \frac{1}{\mu - \lambda}\ \text{（Little 公式）}
+s(t)=s_0\exp\left(-\beta\int_0^t i(u)\,du\right),\qquad
+i(t)=i_0\exp\left(\int_0^t[\beta s(u)-\gamma]\,du\right).
 \]</div>
-<p><strong>读曲线（运营直觉的数学来源）</strong>：这个无限缓冲 M/M/1 的 <span class="arithmatex">\(L(\rho)\)</span> 在 <span class="arithmatex">\(\rho \to 1\)</span> 时<strong>发散</strong>——利用率 80% 时队长 4，95% 时 19，说明高利用率会急剧放大等待。有限缓冲、丢弃、优先级、批服务或非指数服务要换模型，不能直接套这条几何分布。Little 公式 <span class="arithmatex">\(L=\lambda W\)</span> 的适用面更广，但也要求清楚定义稳态流量、在制数和逗留时间。</p>
-<h2 id="5">5. 收官：全站地图的用法<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p>四个模型的工具账单：Logistic（ode + 相线）、SIR（ODE 定性 + 守恒量 + 一行代数改变政策）、L–V（ode-03 + 首次积分）、M/M/1（Poisson + Markov 平稳分布）——<strong>建模是全站知识的"组装车间"</strong>。此外的现代谱系各有出口：优化建模（生产/调度/组合——优化线四页）、统计与数据建模（回归/时序——统计线）、模拟建模（Monte Carlo——概率 V/数值 IV）、以及机理与机器学习的混血（灰箱——两门 AI 姊妹课程的世界）。</p>
-<p><strong>本站至此全部建成。</strong>十七门课、一张互相引用的网——复习时任何一页都是入口，顺着 🔗 走，四年的数学是一个整体。</p>
-<h2 id="_2">典型例题<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
-<p><strong>例 1（SIR 政策算术）</strong> 某病 <span class="arithmatex">\(R_0 = 2.5\)</span>，疫苗有效率 90%，需接种比例？<span class="arithmatex">\(p \cdot 0.9 \geq 1 - \frac{1}{2.5} = 0.6 \Rightarrow p \geq 67\%\)</span>。（有效率折扣别忘——建模循环"解释"步的细节。）</p>
-<p><strong>例 2（M/M/1 容量决策）</strong> 客服 <span class="arithmatex">\(\lambda = 8\)</span>/时，<span class="arithmatex">\(\mu = 10\)</span>/时：<span class="arithmatex">\(\rho = 0.8,\ W = \frac{1}{10-8} = 0.5\)</span> 时（30 分钟！）。若要 <span class="arithmatex">\(W \leq 10\)</span> 分钟需 <span class="arithmatex">\(\mu \geq 14\)</span>——<strong>服务能力要按等待目标反解，不按"够用"正推</strong>。</p>
-<p><strong>例 3（Logistic 拟合预警）</strong> 用前期数据拟合 S 曲线预测市场饱和量 <span class="arithmatex">\(K\)</span>：拐点（<span class="arithmatex">\(N = K/2\)</span>）之前的数据对 <span class="arithmatex">\(K\)</span> 极不敏感（灵敏度分析！）——早期外推 <span class="arithmatex">\(K\)</span> 的置信区间宽到没用（统计 III 的区间 + model-01 的验证步合演）。<strong>知道模型何时"还不能说话"，与会解模型同样重要。</strong><span class="arithmatex">\(\blacksquare\)</span></p>
+<p>因此非负单纯形保持不变，解不会因为真实方程而产生负比例。数值程序若越界，不能简单裁剪后再宣称方程守恒。</p>
+<h3 id="22">2.2 再生数与感染种子<a class="headerlink" href="#22" title="Permanent link"></a></h3>
+<p>基本再生数和当前有效再生数为</p>
+<div class="arithmatex">\[
+R_0=\frac\beta\gamma,\qquad R_e(t)=R_0s(t).
+\]</div>
+<p>在模型假设下，全易感基准中平均感染持续时间为 <span class="arithmatex">\(1/\gamma\)</span>，有效接触率为 <span class="arithmatex">\(\beta\)</span>，乘积解释 <span class="arithmatex">\(R_0\)</span>。对于 <span class="arithmatex">\(i&gt;0\)</span>，
+<span class="arithmatex">\(i'&gt;0\iff\beta s&gt;\gamma\)</span>。如果 <span class="arithmatex">\(i_0=0\)</span>，则 <span class="arithmatex">\(i(t)=0\)</span>，即使 <span class="arithmatex">\(R_e(0)&gt;1\)</span> 也不会无中生有地出现感染。</p>
+<p>若 <span class="arithmatex">\(i_0&gt;0\)</span> 且 <span class="arithmatex">\(R_e(0)=1\)</span>，初始一阶导数为零，但
+<span class="arithmatex">\(i''(0)=\beta s'(0)i_0&lt;0\)</span>（此时 <span class="arithmatex">\(s_0&gt;0\)</span>）。所以之后开始下降；阈值等号不意味着长期保持平台。若初始 <span class="arithmatex">\(R_e(0)&lt;1\)</span>，由于 <span class="arithmatex">\(s\)</span> 不增，也不会稍后自己进入增长阶段。</p>
+<h3 id="23">2.3 全时段峰高不等于网格最大值<a class="headerlink" href="#23" title="Permanent link"></a></h3>
+<p>在 <span class="arithmatex">\(s&gt;0,i&gt;0\)</span> 的区间消去时间：</p>
+<div class="arithmatex">\[
+\frac{di}{ds}=-1+\frac{\gamma}{\beta s}.
+\]</div>
+<p>积分得到第一积分</p>
+<div class="arithmatex">\[
+H(s,i)=i+s-\frac\gamma\beta\log s
+=i_0+s_0-\frac\gamma\beta\log s_0.
+\]</div>
+<p>若 <span class="arithmatex">\(i_0&gt;0\)</span> 且 <span class="arithmatex">\(s_0&gt;\gamma/\beta\)</span>，峰值出现在 <span class="arithmatex">\(s_*=\gamma/\beta\)</span>，因此</p>
+<div class="arithmatex">\[
+i_{\max}=i_0+s_0-\frac\gamma\beta
+-\frac\gamma\beta\log\left(\frac{\beta s_0}{\gamma}\right).
+\]</div>
+<p>若一开始就在阈值以下或等号处，最大值是初值 <span class="arithmatex">\(i_0\)</span>。若没有感染种子，最大值是零。解析式给峰<strong>高</strong>，没有直接给峰<strong>时</strong>；短观察窗可能还没包含峰，离散网格也可能错过精确峰时。</p>
+<h3 id="24">2.4 最终规模的物理解<a class="headerlink" href="#24" title="Permanent link"></a></h3>
+<p>因为 <span class="arithmatex">\(r\)</span> 单调且不超过 <span class="arithmatex">\(1\)</span>，
+<span class="arithmatex">\(\int_0^\infty i(t)\,dt\le1/\gamma\)</span>。在单纯形上导数有界，因此非负的 <span class="arithmatex">\(i\)</span> 一致连续；若它不趋零，就会反复产生宽度和面积有正下界的脉冲，与可积性矛盾。故 <span class="arithmatex">\(i_\infty=0\)</span>。</p>
+<p>当 <span class="arithmatex">\(s_0&gt;0\)</span> 时，由 <span class="arithmatex">\(s'/s=-(\beta/\gamma)r'\)</span> 得到</p>
+<div class="arithmatex">\[
+s_\infty=s_0\exp[-R_0(1-r_0-s_\infty)].
+\]</div>
+<p>这同时说明 <span class="arithmatex">\(s_\infty&gt;0\)</span>。感染消退不要求所有易感者都感染过。方程可能有需区分的代数根，必须选择由初值轨迹达到的物理解：若 <span class="arithmatex">\(i_0=0\)</span>，保持 <span class="arithmatex">\(s_\infty=s_0\)</span>，不能选择另一个“疫情发生后”的根。</p>
+<p>对于 <span class="arithmatex">\(i_0&gt;0,s_0&gt;0\)</span>，实验令 <span class="arithmatex">\(w=\log(s_\infty/s_0)\)</span>，解</p>
+<div class="arithmatex">\[
+w+R_0[i_0+s_0(1-e^w)]=0,\qquad
+-R_0(s_0+i_0)&lt;w&lt;0.
+\]</div>
+<p>左端严格凹，左端点取负值而 <span class="arithmatex">\(w=0\)</span> 取正值，区间内有唯一的物理解，可作二分。<span class="arithmatex">\(s_0=0\)</span> 时直接有 <span class="arithmatex">\(s_\infty=0\)</span>，不使用对数关系。</p>
+<h3 id="25">2.5 参数识别与干预的边界<a class="headerlink" href="#25" title="Permanent link"></a></h3>
+<p>若能精确连续观测 <span class="arithmatex">\(s,i,r\)</span> 且 <span class="arithmatex">\(s,i&gt;0\)</span>，则
+<span class="arithmatex">\(\gamma=r'/i\)</span>、<span class="arithmatex">\(\beta=-s'/(si)\)</span>，并不需要干预数据才可能分开参数。实际只有噪声病例数、未知漏报和缺少仓室观测时，求导不稳定、参数混淆或延迟才会成为问题。应说明观测了什么，而不是无条件说参数不可识别。</p>
+<p>在均匀随机免疫、完全保护或明确的易感性折扣等理想机制下，阈值可以转换成对易感比例的限制。但“疫苗有效率”可能指阻断感染、减轻症状或防重症，不能不加定义就代入同一个比例公式。本页的练习是模型算术，不从简单仓室方程推出实际公共卫生决策。</p>
+<h2 id="3-lotkavolterra">3. Lotka–Volterra：闭轨道需要哪些条件？<a class="headerlink" href="#3-lotkavolterra" title="Permanent link"></a></h2>
+<p>对猎物 <span class="arithmatex">\(x\)</span> 与捕食者 <span class="arithmatex">\(y\)</span>，设</p>
+<div class="arithmatex">\[
+x'=x(a-by),\qquad y'=y(-c+dx),\qquad a,b,c,d&gt;0.
+\]</div>
+<p>从严格正初值出发保持正性，正平衡为
+<span class="arithmatex">\((x_*,y_*)=(c/d,a/b)\)</span>。函数</p>
+<div class="arithmatex">\[
+H(x,y)=dx-c\log x+by-a\log y
+\]</div>
+<p>沿轨迹的导数为
+<span class="arithmatex">\((d-c/x)x'+(b-a/y)y'=0\)</span>。它在正象限严格凸、仅在平衡点取最小值，靠近坐标轴或无穷远时趋于无穷。因此非平衡正初值所在的等值曲线是围住平衡点的紧闭曲线；向量场在其上不为零，轨迹周期运行。</p>
+<p>这不是说任意初值都有闭轨道：平衡初值静止，坐标轴上的解也不同。加入猎物承载量、季节项或其他物种后，第一积分通常不再守恒，不能继续沿用永恒闭轨道结论。进一步的相平面分析见<a href="ode-03-systems-stability.html">ODE 系统与稳定性</a>。</p>
+<h3 id="31">3.1 时间平均与共同捕捞率<a class="headerlink" href="#31" title="Permanent link"></a></h3>
+<p>设周期为 <span class="arithmatex">\(P\)</span>，对 <span class="arithmatex">\(\frac{d}{dt}\log x=a-by\)</span> 在一周期积分，左侧为零，得 <span class="arithmatex">\(\bar y=a/b\)</span>；同理 <span class="arithmatex">\(\bar x=c/d\)</span>。这是沿周期轨道的时间平均，不是每个时刻都在平衡点。</p>
+<p>若两种群都承受相同的按比例捕捞率 <span class="arithmatex">\(h\)</span>，模型变为</p>
+<div class="arithmatex">\[
+x'=x[(a-h)-by],\qquad
+y'=y[-(c+h)+dx].
+\]</div>
+<p>在 <span class="arithmatex">\(0&lt;h&lt;a\)</span> 且正初值的条件下，
+<span class="arithmatex">\(\bar x_h=(c+h)/d\)</span>、<span class="arithmatex">\(\bar y_h=(a-h)/b\)</span>。猎物时间平均增加，捕食者时间平均减少；这是该特定模型的 Volterra 效应。不能把“平均数之比”自动等同于“瞬时比例的时间平均”，也不能忽略捕捞机制或生态条件。</p>
+<h2 id="4-mm1">4. M/M/1：先分清“系统”和“等待区”<a class="headerlink" href="#4-mm1" title="Permanent link"></a></h2>
+<p>假设顾客按率 <span class="arithmatex">\(\lambda\)</span> 的 Poisson 过程到达，服务时间独立同分布为率 <span class="arithmatex">\(\mu&gt;0\)</span> 的指数分布，且与到达过程独立。系统只有一个服务台，先来先服务，等待空间无限，无拒绝和放弃。</p>
+<p>令 <span class="arithmatex">\(X_t\)</span> 为<strong>系统内总人数</strong>，包括正在服务的至多一人。它是连续时间生灭链：<span class="arithmatex">\(n\to n+1\)</span> 的率为 <span class="arithmatex">\(\lambda\)</span>，<span class="arithmatex">\(n\to n-1\)</span>（<span class="arithmatex">\(n&gt;0\)</span>）的率为 <span class="arithmatex">\(\mu\)</span>。这是转移<strong>率</strong>，不是离散时间每步转移概率。</p>
+<h3 id="41">4.1 平稳分布从哪里来？<a class="headerlink" href="#41" title="Permanent link"></a></h3>
+<p>局部平衡给
+<span class="arithmatex">\(\pi_n\lambda=\pi_{n+1}\mu\)</span>，故
+<span class="arithmatex">\(\pi_n=\pi_0\rho^n\)</span>，其中 <span class="arithmatex">\(\rho=\lambda/\mu\)</span>。要使总概率为 <span class="arithmatex">\(1\)</span>，需</p>
+<div class="arithmatex">\[
+\rho&lt;1,\qquad \pi_n=(1-\rho)\rho^n,\quad n\ge0.
+\]</div>
+<p>当 <span class="arithmatex">\(\lambda&gt;0,\lambda\ge\mu\)</span>，这个级数无法归一化，不存在平稳概率分布；不是把原式继续算成负数或负等待。有限初始人数下，任意有限时间的到达数几乎必然有限，因此“无稳态”也不等于“已经有无限多人”。</p>
+<p>若 <span class="arithmatex">\(\lambda=0\)</span>，空系统为吸收态，唯一平稳分布集中在 <span class="arithmatex">\(0\)</span>。此时没有真实到达者的等待样本；下文 <span class="arithmatex">\(W=1/\mu\)</span> 应理解为往空稳态系统放入一个假想顾客的逗留时间均值。</p>
+<h3 id="42">4.2 四个平均量必须分别命名<a class="headerlink" href="#42" title="Permanent link"></a></h3>
+<p>几何级数求导给
+<span class="arithmatex">\(L=\sum n(1-\rho)\rho^n=\rho/(1-\rho)\)</span>。平稳时服务台忙碌概率为 <span class="arithmatex">\(\rho\)</span>，于是</p>
+<div class="arithmatex">\[
+\begin{aligned}
+L&amp;=\frac{\lambda}{\mu-\lambda}
+&amp;&amp;\text{系统人数，含服务中顾客},\\
+L_q&amp;=L-\rho=\frac{\rho^2}{1-\rho}
+&amp;&amp;\text{纯等待人数},\\
+W&amp;=\frac1{\mu-\lambda}
+&amp;&amp;\text{总逗留时间},\\
+W_q&amp;=W-\frac1\mu=\frac{\rho}{\mu-\lambda}
+&amp;&amp;\text{服务开始前的等待时间}.
+\end{aligned}
+\]</div>
+<p>对 <span class="arithmatex">\(\lambda&gt;0\)</span>，Little 公式分别给 <span class="arithmatex">\(L=\lambda W\)</span>、<span class="arithmatex">\(L_q=\lambda W_q\)</span>。它的适用范围比 M/M/1 更广，但必须保持人数、时间、有效进入流量的统计口径一致，并满足相应稳定与平均量存在的条件。<a href="https://ocw.mit.edu/courses/2-854-introduction-to-manufacturing-systems-fall-2016/927056a1af54772a587fd84ad4951e71_MIT2_854F16_Mm1Queue.pdf">MIT：M/M/1 中系统与等待区的区别</a></p>
+<p>例如 <span class="arithmatex">\(\lambda=8/\text{小时},\mu=10/\text{小时}\)</span>，有 <span class="arithmatex">\(L=4\)</span>、<span class="arithmatex">\(L_q=3.2\)</span>、<span class="arithmatex">\(W=.5\)</span> 小时、<span class="arithmatex">\(W_q=.4\)</span> 小时。30 分钟是总逗留，24 分钟才是纯等待；服务均值为 6 分钟。</p>
+<h3 id="43">4.3 接近临界负荷时<a class="headerlink" href="#43" title="Permanent link"></a></h3>
+<p>固定服务率而令 <span class="arithmatex">\(\lambda\uparrow\mu\)</span>，系统平均人数和时间发散。这是<strong>一族稳定模型</strong>趋向临界的极限，不是在超载配置下仍存在一个均值为无穷的平稳分布。超载时 <span class="arithmatex">\(\rho\)</span> 仍可作为负荷比，但不能把大于 <span class="arithmatex">\(1\)</span> 的值称为忙碌概率。</p>
+<p>有限容量、顾客放弃、多个服务台、优先级或非指数服务，都需要改写模型。尤其有丢失时，Little 公式中的流量通常需要使用实际接纳流量，不能不加区分地用外部到达率。</p>
+<h2 id="5">5. 一张条件对照图<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<div aria-label="经典模型条件对照图，可横向滚动" class="classic-static" role="region" tabindex="0">
+<figure class="plot">
+<p><img alt="Logistic 的高低初值、SIR 感染种子边界和 M/M/1 系统与等待量的条件对照" src="assets/img/model-02-classic-boundaries.svg" /></p>
+<figcaption><span class="fig-id">图 5.1</span>每个结论都有自己的条件：同一个方程的初值会改变行为；稳态人数与纯排队人数也不是同一个量。图中不使用现实观测数据。</figcaption>
+</figure>
+</div>
+<style>
+.classic-static{max-width:100%;overflow-x:auto}.classic-static figure{width:1100px;max-width:none;margin:0}.classic-static img{width:1100px;max-width:none}.classic-static:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+</style>
+
+<h2 id="6">6. 练习与推导<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<h3 id="1_1">练习 1：相同容量，为什么有一条曲线向下？<a class="headerlink" href="#1_1" title="Permanent link"></a></h3>
+<p>取 <span class="arithmatex">\(K=600,r=.35/\text{日}\)</span>，分别从 <span class="arithmatex">\(N_0=80,1200,0\)</span> 出发。比较初始方向与长期极限。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>对 <span class="arithmatex">\(80\)</span>，<span class="arithmatex">\(N'(0)=.35\times80(1-80/600)&gt;0\)</span>，上升趋于 <span class="arithmatex">\(600\)</span>；对 <span class="arithmatex">\(1200\)</span>，<span class="arithmatex">\(N'(0)=-420\)</span> 人/日，下降趋于 <span class="arithmatex">\(600\)</span>；对 <span class="arithmatex">\(0\)</span>，解始终为零。正平衡吸引正初值，并不意味着零初值也会离开零。三种轨迹都保持非负，但形状不同。</p>
+</details>
+<h3 id="2_1">练习 2：初始导数为零，是平台还是峰顶？<a class="headerlink" href="#2_1" title="Permanent link"></a></h3>
+<p>SIR 取 <span class="arithmatex">\(\beta=1,\gamma=.5,s_0=.5,i_0=.2,r_0=.3\)</span>。计算 <span class="arithmatex">\(i'(0)\)</span>、<span class="arithmatex">\(i''(0)\)</span>，并与 <span class="arithmatex">\(i_0=0,s_0=1\)</span> 比较。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>第一组有 <span class="arithmatex">\(\beta s_0=\gamma\)</span>，所以 <span class="arithmatex">\(i'(0)=0\)</span>；
+<span class="arithmatex">\(s'(0)=-1\times.5\times.2=-.1\)</span>，
+<span class="arithmatex">\(i''(0)=\beta s'(0)i_0=-.02/\text{日}^2&lt;0\)</span>，随后下降，最大感染比例就是 <span class="arithmatex">\(.2\)</span>。
+第二组即使 <span class="arithmatex">\(R_0=2&gt;1\)</span>，因为没有感染种子，<span class="arithmatex">\(i(t)\)</span> 始终为零；阈值判断必须与初值一起使用。实验使用未显示舍入前的参数比较；不能因为屏幕把某个接近阈值的数显示成 <span class="arithmatex">\(1\)</span>，就断言数学上恰好相等。</p>
+</details>
+<h3 id="3_1">练习 3：十分钟目标，是总逗留还是纯等待？<a class="headerlink" href="#3_1" title="Permanent link"></a></h3>
+<p>队列到达率为 <span class="arithmatex">\(8/\text{小时}\)</span>，服务率可调整。分别求 <span class="arithmatex">\(W\le10\)</span> 分钟与 <span class="arithmatex">\(W_q\le10\)</span> 分钟所需的服务率。</p>
+<details class="answer">
+<summary>展开推导</summary>
+<p>10 分钟是 <span class="arithmatex">\(1/6\)</span> 小时。总逗留目标要求
+<span class="arithmatex">\(1/(\mu-8)\le1/6\)</span>，故 <span class="arithmatex">\(\mu\ge14/\text{小时}\)</span>。
+纯等待目标要求
+<span class="arithmatex">\(8/[\mu(\mu-8)]\le1/6\)</span>，在稳定条件 <span class="arithmatex">\(\mu&gt;8\)</span> 下等价于
+<span class="arithmatex">\(\mu^2-8\mu-48\ge0\)</span>，故 <span class="arithmatex">\(\mu\ge12/\text{小时}\)</span>。
+两个答案不同，原因是总逗留包含服务时间。这个反解只针对已声明的 M/M/1 假设。</p>
+</details>
+<p>四个模型是学习建模条件的起点。转向随机感染、网络扩散或更一般队列时，要重新说明状态、可观测量、转移规则、近似误差和验证数据；模型名称相似，不代表结论可以直接搬用。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="model-01-methodology.html"><span class="pager-label">上一页</span>建模 I · 方法论与量纲分析</a>
