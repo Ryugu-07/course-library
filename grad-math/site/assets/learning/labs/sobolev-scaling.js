@@ -1,484 +1,261 @@
-(function (root, factory) {
-  "use strict";
-
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("sobolev-scaling", exported.mount);
+(function(root,factory){
+ "use strict";const api=factory();
+ if(typeof module==="object"&&module.exports)module.exports=api;
+ if(root&&root.CourseLearning)root.CourseLearning.register("sobolev-scaling",api.mount);
+})(typeof window!=="undefined"?window:globalThis,function(){
+ "use strict";
+ const DEFAULTS=Object.freeze({mode:"hat",n:3,p:2,qkind:"critical",q:8,epsilon:.1,L:10,ell:1,A:1,b:0,ratio:.1});
+ const PRESETS=Object.freeze([
+  {id:"critical",label:"三维 H¹：临界 L⁶"},
+  {id:"sub",label:"低于临界指数",qkind:"sub"},
+  {id:"super",label:"高于临界指数",qkind:"super"},
+  {id:"two",label:"二维 W¹,¹⋅⁵",n:2,p:1.5},
+  {id:"moser",label:"p=n：峰值仍可增大",mode:"moser",n:2},
+  {id:"zero",label:"零迹正弦",mode:"poincare"},
+  {id:"constant",label:"非零常数：梯度看不到",mode:"poincare",A:0,b:1},
+  {id:"cancel",label:"减均值与零迹不同",mode:"poincare",b:-2/Math.PI},
+  {id:"trace",label:"边界层的迹",mode:"trace"}
+ ].map(Object.freeze));
+ const QUESTIONS=[
+  ["uε=ε⁻ᵃφ(x/ε) 的梯度 Lp 范数怎样缩放？",["ε^(n/p−a−1)","ε^(1−a−n/p)"],0,"导数额外带1/ε，体积换元贡献εⁿ。"],
+  ["p<n、梯度预算固定，q=p* 时缩小帽子会怎样？",["Lq范数保持，而峰值增大","峰值和Lq范数都保持"],0,"临界积分预算与逐点高度是不同量。"],
+  ["n=p≥2 时，固定梯度预算是否保证统一峰值上界？",["不能，Moser 族给出反例","能，直接把 p* 写成∞"],0,"临界情况需要不同于有限幂次的结论；一维W¹,¹另有特殊性。"],
+  ["函数在 L² 内趋于0，边界迹是否必定趋于0？",["不一定，窄边界层会付出很大的梯度代价","必定，边界也是函数的一部分"],0,"迹由Sobolev范数控制，单独L²没有这个能力。"]
+ ];
+ function number(v,k,lo,hi){
+  if((typeof v!=="number"&&typeof v!=="string")||(typeof v==="string"&&!v.trim()))throw Error(k+" 必须填写有限数值");
+  const x=Number(v);if(!Number.isFinite(x)||x<lo||x>hi)throw Error(k+" 必须在 "+lo+"–"+hi+" 内");return x;
+ }
+ function config(raw={}){
+  if(!raw||Array.isArray(raw)||typeof raw!=="object")throw Error("参数必须为对象");
+  const p=Object.assign({},DEFAULTS,raw),s={mode:p.mode};
+  if(!["hat","moser","poincare","trace"].includes(s.mode))throw Error("未知模式");
+  if(s.mode==="hat"||s.mode==="moser"){
+   s.n=number(p.n,"维数",2,6);if(!Number.isInteger(s.n))throw Error("维数必须是2–6的整数");
   }
-  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module) {
-    try {
-      var report = exported.selfTest();
-      console.log("sobolev-scaling self-test: PASS (" + report.checks + " checks, " + report.presets + " presets)");
-    } catch (error) {
-      console.error("sobolev-scaling self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
+  if(s.mode==="hat"){
+   s.p=number(p.p,"p",1,s.n-.1);s.qkind=p.qkind;
+   if(!["sub","critical","super","custom"].includes(s.qkind))throw Error("未知 q 选择");
+   if(s.qkind==="custom")s.q=number(p.q,"q",1,1000);
+   s.epsilon=number(p.epsilon,"帽支撑半径",1e-6,1);
   }
-})(typeof window !== "undefined" ? window : null, function () {
-  "use strict";
-
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "cl-sobolev-scaling-styles";
-  var SERIAL = 0;
-  var EPS = 1e-10;
-  var MIN_LOG_EPSILON = -2;
-
-  var PRESETS = [
-    { id: "h1-r3", label: "n=3, p=2", n: 3, p: 2, logEpsilon: -0.6, mode: "critical" },
-    { id: "fractional-r2", label: "n=2, p=1.5", n: 2, p: 1.5, logEpsilon: -0.8, mode: "subcritical" },
-    { id: "h1-r4", label: "n=4, p=2", n: 4, p: 2, logEpsilon: -1, mode: "critical" },
-    { id: "w13-r6", label: "n=6, p=3", n: 6, p: 3, logEpsilon: -1.3, mode: "supercritical" }
+  if(s.mode==="moser")s.L=number(p.L,"对数集中参数 L",1,40);
+  if(s.mode==="poincare"||s.mode==="trace")s.ell=number(p.ell,"区间长度",.2,10);
+  if(s.mode==="poincare"){s.A=number(p.A,"正弦振幅",-2,2);s.b=number(p.b,"常数偏置",-2,2);}
+  if(s.mode==="trace")s.ratio=number(p.ratio,"边界层宽度/区间长度",.01,1);
+  return s;
+ }
+ function omega(n){return [0,2,Math.PI,4*Math.PI/3,Math.PI**2/2,8*Math.PI**2/15,Math.PI**3/6][n];}
+ function factorial(n){let v=1;for(let j=2;j<=n;j++)v*=j;return v;}
+ function rational(x){
+  const b=new ArrayBuffer(8),v=new DataView(b);v.setFloat64(0,x);const bits=v.getBigUint64(0),m=(bits&((1n<<52n)-1n))+(1n<<52n),e=Number((bits>>52n)&2047n)-1075;
+  return e>=0?[m<<BigInt(e),1n]:[m,1n<<BigInt(-e)];
+ }
+ function exponent(n,p,q){
+  const [P,D]=rational(p),[Q,E]=rational(q),N=BigInt(n),num=P*Q-N*D*Q+N*E*P,den=P*Q;
+  return {value:Number(num)/Number(den),classification:num===0n?"critical":num>0n?"subcritical":"supercritical"};
+ }
+ function hat(s,epsilon=s.epsilon,qkind=s.qkind){
+  const n=s.n,p=s.p,w=omega(n),pStar=n*p/(n-p),q=qkind==="sub"?p:qkind==="critical"?pStar:qkind==="super"?pStar+2:s.q;
+  const ex=qkind==="critical"?{value:0,classification:"critical"}:exponent(n,p,q);
+  const betaTerms=Array.from({length:n},(_,j)=>({j:j+1,factor:q+j+1,log:Math.log(q+j+1)})),logBeta=Math.log(factorial(n-1))-betaTerms.reduce((a,b)=>a+b.log,0);
+  const logEpsilon=Math.log(epsilon),logAmplitude=(1-n/p)*logEpsilon-Math.log(w)/p,logVolume=Math.log(w)+n*logEpsilon;
+  const logCoefficient=-Math.log(w)/p+(Math.log(n*w)+logBeta)/q,logLq=logCoefficient+ex.value*logEpsilon,gradientLog=(p*(logAmplitude-logEpsilon)+logVolume)/p;
+  return {epsilon,n,p,q,qkind,pStar,omega:w,logBeta,beta:Math.exp(logBeta),betaTerms,exponent:ex.value,classification:ex.classification,logAmplitude,amplitude:Math.exp(logAmplitude),logVolume,volume:Math.exp(logVolume),logLq,lq:Math.exp(logLq),gradient:Math.exp(gradientLog),gradientLog,logCoefficient};
+ }
+ function moser(s,L=s.L){
+  const n=s.n,S=n*omega(n),x=n*L,terms=[];let term=1,total=1;
+  terms.push({j:0,term});
+  for(let j=1;j<n;j++){term*=x/j;total+=term;terms.push({j,term});}
+  const tail=Math.exp(-x)*total,lnPower=factorial(n)/(n**(n+1)*L)*(1-tail);
+  return {L,n,S,radius:Math.exp(-L),peak:L**(1-1/n)/S**(1/n),gradient:1,lnPower,lnNorm:lnPower**(1/n),tail,terms,corePower:Math.exp(-n*L)*L**(n-1)/n,alphaThreshold:n*S**(1/(n-1))};
+ }
+ // Positive series avoids subtracting nearly identical incomplete-gamma values.
+ function moment(k,h,n){
+  let term=1/(k+1),sum=term,j=0;
+  do{j++;term*=n*h/(k+j+1);sum+=term;}while(term>sum*2e-16&&j<100);
+  if(j===100)throw Error("正项矩级数未收敛");
+  return {value:Math.exp(-n*h)*h**(k+1)*sum,terms:j+1};
+ }
+ function shellIntegral(n,a,b){
+  const h=b-a,parts=[];let value=0;
+  for(let k=0;k<=n;k++){
+   const choose=factorial(n)/(factorial(k)*factorial(n-k)),m=moment(k,h,n),v=Math.exp(-n*a)*choose*a**(n-k)*m.value;
+   parts.push({k,choose,moment:m.value,terms:m.terms,contribution:v});value+=v;
+  }
+  return {value,parts};
+ }
+ function poincare(s,ell=s.ell){
+  const mean=s.b+2*s.A/Math.PI,variance=s.A*s.A*(.5-4/Math.PI**2),norm2=ell*(mean*mean+variance),gradient2=s.A*s.A*Math.PI**2/(2*ell),C=ell/Math.PI;
+  return {ell,mean,variance,norm2,norm:Math.sqrt(norm2),gradient2,gradient:Math.sqrt(gradient2),meanZeroNorm:Math.sqrt(ell*variance),traceLeft:s.b,traceRight:s.b,C,ratio:gradient2===0?null:Math.sqrt(norm2/gradient2),ratioStatus:gradient2===0?(norm2===0?"0/0 未定义":"分母0且函数非零"): "finite",zeroTrace:s.b===0,inequalityGap:ell*(s.b*s.b+4*s.A*s.b/Math.PI)};
+ }
+ function trace(s,ratio=s.ratio){
+  const epsilon=ratio*s.ell;return {ratio,epsilon,norm2:epsilon/3,norm:Math.sqrt(epsilon/3),gradient2:1/epsilon,gradient:1/Math.sqrt(epsilon),traceLeft:1,traceRight:0,w12:Math.sqrt(epsilon/3+1/epsilon)};
+ }
+ function grid(lo,hi,n=200,extra=[]){return Array.from(new Set([...Array.from({length:n+1},(_,i)=>i===n?hi:lo+(hi-lo)*i/n),...extra.filter(x=>x>=lo&&x<=hi)])).sort((a,b)=>a-b);}
+ function snapshot(raw={}){
+  const s=config(raw),d={config:s};
+  if(s.mode==="hat"){
+   d.current=hat(s);d.nodes=grid(-6,0,200,[Math.log10(s.epsilon)]).map(x=>({log10Epsilon:x,...hat(s,10**x)}));
+   d.comparisons=["sub","critical","super"].map(kind=>({kind,nodes:d.nodes.map(p=>hat(s,p.epsilon,kind))}));
+   if(s.qkind==="custom")d.comparisons.push({kind:"custom",nodes:d.nodes});
+  }else if(s.mode==="moser"){
+   d.current=moser(s);d.nodes=grid(1,40,200,[s.L]).map(L=>moser(s,L));const ts=grid(0,s.L,200);d.shells=[];
+   for(let i=0;i<ts.length-1;i++){
+    const a=ts[i],b=ts[i+1],q=shellIntegral(s.n,a,b);d.shells.push({i,a,b,rOuter:Math.exp(-a),rInner:Math.exp(-b),gradientPower:(b-a)/s.L,lnPower:q.value/s.L,parts:q.parts});
+   }
+   d.shellSum=d.shells.reduce((v,q)=>v+q.lnPower,0)+d.current.corePower;d.shellResidual=d.shellSum-d.current.lnPower;
+  }else if(s.mode==="poincare"){d.current=poincare(s);d.nodes=grid(.2,10,200,[s.ell]).map(ell=>poincare(s,ell));}
+  else{d.current=trace(s);d.nodes=grid(-2,0,200,[Math.log10(s.ratio)]).map(x=>({log10Ratio:x,...trace(s,10**x)}));}
+  return d;
+ }
+ function series(key,label,color,points,extra={}){return Object.assign({key,label,color,points,line:true},extra);}
+ function plot(title,x,y,ss,xmin,xmax,markers=[]){
+  const ys=ss.flatMap(s=>s.points.map(p=>p[1])),lo=Math.min(0,...ys),hi=Math.max(0,...ys),pad=(hi-lo||1)*.08;
+  return {title,x,y,xmin,xmax,ymin:lo-pad,ymax:hi+pad,series:ss,markers};
+ }
+ function plots(d){
+  const s=d.config,p=d.current,B="#268bd2",O="#cb6a16",G="#29966c",V="#9966bb";
+  if(s.mode==="hat")return [
+   plot("当前帽的支撑内放大图：边缘不会被漏采样","x/ε；实际支撑半径 ε="+fmt(s.epsilon),"u/A；实际峰值 A="+fmt(p.amplitude),[series("profile","归一化帽形",B,[[-1.2,0],[-1,0],[0,1],[1,0],[1.2,0]])],-1.2,1.2),
+   plot("同一梯度预算下比较三个临界位置","log₁₀ ε；向左收缩","log₁₀ ||uε||q",d.comparisons.map((q,i)=>series(q.kind,["q=p","q=p*","q=p*+2","自选q"][i],[B,G,O,V][i],q.nodes.map(p=>[Math.log10(p.epsilon),p.logLq/Math.LN10]))),-6,0,[{x:Math.log10(s.epsilon),label:"当前 ε"}])
   ];
-
-  var MODES = [
-    { id: "subcritical", label: "q=p（次临界）", color: "blue" },
-    { id: "critical", label: "q=p*（临界）", color: "green" },
-    { id: "supercritical", label: "q=p*+2（超临界）", color: "red" }
+  if(s.mode==="moser")return [
+   plot("临界集中：对数坐标分辨极窄的平台","t=log(1/r)；向右靠近原点","u",[
+    series("u","Moser 函数",B,grid(0,1.2*s.L,200,[s.L]).map(t=>[t,Math.min(t,s.L)/(p.S*s.L)**(1/s.n)]))
+   ],0,1.2*s.L,[{x:s.L,label:"平台开始；r=e⁻ᴸ"}]),
+   plot("梯度保持为1，峰值仍随集中参数增大","L=log(1/ε)","范数与峰值",[
+    series("peak","峰值",B,d.nodes.map(p=>[p.L,p.peak])),series("ln","Ln 范数",O,d.nodes.map(p=>[p.L,p.lnNorm])),series("gradient","梯度 Ln 范数",G,d.nodes.map(p=>[p.L,1]))
+   ],1,40,[{x:s.L,label:"当前 L"}])
   ];
-
-  var STYLE_TEXT = [
-    ".ss-lab{--ss-blue:var(--cl-blue,#315f9d);--ss-gold:var(--cl-gold,#95670d);--ss-green:var(--cl-green,#347247);--ss-red:var(--cl-red,#b13d32);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;}",
-    ".ss-lab *,.ss-lab *::before,.ss-lab *::after{box-sizing:border-box;}.ss-lab [hidden]{display:none!important;}",
-    ".ss-lab h3,.ss-lab h4{margin:0;color:var(--fg);letter-spacing:0;}.ss-lab h3{font-size:1.16rem;}.ss-lab h4{margin-top:16px;font-size:1rem;}",
-    ".ss-lab .ss-intro,.ss-lab .ss-note,.ss-lab .ss-feedback,.ss-lab .ss-interpretation{color:var(--fg-soft);font-size:13px;overflow-wrap:anywhere;}",
-    ".ss-lab fieldset{min-width:0;margin:0;padding:0;border:0;}.ss-lab legend{margin-bottom:8px;font-weight:750;}.ss-lab .ss-question{margin:12px 0 6px;font-size:13px;font-weight:700;}",
-    ".ss-lab .ss-choice-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}.ss-lab button{min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit;line-height:1.35;cursor:pointer;overflow-wrap:anywhere;}",
-    ".ss-lab button:hover{border-color:var(--accent);}.ss-lab button:focus-visible,.ss-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px;}.ss-lab button[aria-pressed=true],.ss-lab button.ss-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750;}.ss-lab button:disabled{opacity:.55;cursor:not-allowed;}",
-    ".ss-lab .ss-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;}.ss-lab .ss-actions>*{flex:1 1 160px;}.ss-lab .ss-feedback{min-height:2em;margin:8px 0;font-weight:700;}.ss-lab .ss-pass{color:var(--ss-green);}.ss-lab .ss-warn{color:var(--ss-red);}",
-    ".ss-lab .ss-revealed{margin-top:16px;padding-top:16px;border-top:1px solid var(--border);}.ss-lab .ss-layout{display:grid;grid-template-columns:minmax(220px,.68fr) minmax(0,1.32fr);gap:16px;align-items:start;min-width:0;}.ss-lab .ss-controls,.ss-lab .ss-stage{min-width:0;}.ss-lab .ss-controls{display:grid;gap:12px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}",
-    ".ss-lab .ss-presets,.ss-lab .ss-modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}.ss-lab .ss-modes{grid-template-columns:minmax(0,1fr);}.ss-lab .ss-presets button,.ss-lab .ss-modes button{font-size:12px;}",
-    ".ss-lab .ss-control{display:grid;gap:5px;}.ss-lab .ss-control label{font-size:13px;font-weight:700;color:var(--fg-soft);}.ss-lab .ss-control output{color:var(--accent);font-variant-numeric:tabular-nums;}.ss-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent);}.ss-lab .ss-scale{display:flex;justify-content:space-between;color:var(--fg-soft);font-size:11px;}",
-    ".ss-lab .ss-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}.ss-lab .ss-svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg);}.ss-lab .ss-svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.ss-lab .ss-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.7;}.ss-lab .ss-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.7;}.ss-lab .ss-profile{stroke:var(--ss-gold);stroke-width:3;fill:none;}.ss-lab .ss-reference{stroke:var(--fg-soft);stroke-width:2;stroke-dasharray:6 5;fill:none;}.ss-lab .ss-sub{stroke:var(--ss-blue);}.ss-lab .ss-critical{stroke:var(--ss-green);}.ss-lab .ss-super{stroke:var(--ss-red);}.ss-lab .ss-law{stroke-width:2.5;fill:none;}.ss-lab .ss-dot{stroke:var(--bg);stroke-width:2;}.ss-lab .ss-dot.ss-sub{fill:var(--ss-blue);}.ss-lab .ss-dot.ss-critical{fill:var(--ss-green);}.ss-lab .ss-dot.ss-super{fill:var(--ss-red);}.ss-lab .ss-label{font-size:11px;}.ss-lab .ss-title{font-size:12px;font-weight:800;text-anchor:middle;}",
-    ".ss-lab .ss-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(122px,1fr));gap:8px;margin:12px 0;}.ss-lab .ss-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.ss-lab .ss-metric:nth-child(1),.ss-lab .ss-metric:nth-child(4){border-color:var(--ss-blue);}.ss-lab .ss-metric:nth-child(2),.ss-lab .ss-metric:nth-child(5){border-color:var(--ss-green);}.ss-lab .ss-metric:nth-child(3),.ss-lab .ss-metric:nth-child(6){border-color:var(--ss-red);}.ss-lab .ss-metric span{display:block;color:var(--fg-soft);font-size:11.5px;}.ss-lab .ss-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
-    ".ss-lab .ss-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;}.ss-lab table{width:100%;min-width:650px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.ss-lab th,.ss-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;}.ss-lab th{color:var(--fg-soft);font-size:11.5px;}.ss-lab .ss-interpretation{margin-top:10px;padding:10px 12px;border-left:3px solid var(--ss-green);background:var(--bg);}",
-    "@media(max-width:1180px){.ss-lab .ss-layout{grid-template-columns:minmax(0,1fr);}}",
-    "@media(max-width:680px){.ss-lab .ss-choice-row{grid-template-columns:minmax(0,1fr);}.ss-lab .ss-presets{grid-template-columns:minmax(0,1fr);}}",
-    "@media(max-width:420px){.ss-lab .ss-frame{padding:4px;}.ss-lab table{font-size:11.5px;}.ss-lab th,.ss-lab td{padding-left:5px;padding-right:5px;}}",
-    "@media(prefers-reduced-motion:reduce){.ss-lab *{animation:none!important;transition:none!important;}}"
-  ].join("\n");
-
-  function finite(value) {
-    return typeof value === "number" && isFinite(value);
+  if(s.mode==="poincare")return [
+   plot("固定偏置与减均值：两种不同的约束","x/区间长度","u 与 u−平均值",[
+    series("u","u=b+A sin(πx/ℓ)",B,grid(0,1).map(t=>[t,s.b+s.A*(t===0||t===1?0:Math.sin(Math.PI*t))])),
+    series("centered","u−平均值",O,grid(0,1).map(t=>[t,s.A*((t===0||t===1?0:Math.sin(Math.PI*t))-2/Math.PI)]))
+   ],0,1),
+   plot("长度变大时，Poincaré 常数也变大","区间长度 ℓ","L2 范数与 C||u′||2",[
+    series("norm","||u||2",B,d.nodes.map(p=>[p.ell,p.norm])),series("bound","(ℓ/π)||u′||2",O,d.nodes.map(p=>[p.ell,p.C*p.gradient])),series("centered","||u−平均值||2",G,d.nodes.map(p=>[p.ell,p.meanZeroNorm]))
+   ],.2,10,[{x:s.ell,label:"当前长度"}])
+  ];
+  return [
+   plot("L² 质量可以消失，左端迹仍然等于1","x/区间长度；层宽比例="+fmt(s.ratio),"vε",[
+    series("layer","边界层",B,[[0,1],[s.ratio,0],...(s.ratio<1?[[1,0]]:[])])
+   ],0,1),
+   plot("保持边界值的代价：梯度范数发散","log₁₀(ε/ℓ)；向左变窄","log₁₀ 范数",[
+    series("norm","L2",B,d.nodes.map(p=>[p.log10Ratio,Math.log10(p.norm)])),
+    series("gradient","梯度 L2",O,d.nodes.map(p=>[p.log10Ratio,Math.log10(p.gradient)])),
+    series("trace","左端迹的绝对值",G,d.nodes.map(p=>[p.log10Ratio,0]))
+   ],-2,0,[{x:Math.log10(s.ratio),label:"当前比例"}])
+  ];
+ }
+ function fmt(x){
+  if(x===null||x===undefined)return "—";if(typeof x==="boolean")return x?"是":"否";if(typeof x!=="number")return String(x);
+  if(!Number.isFinite(x))throw Error("非有限计算值");if(x===0)return "0";
+  return Math.abs(x)<1e-4||Math.abs(x)>=1e6?x.toExponential(8):Number(x.toPrecision(10)).toString();
+ }
+ function ledgers(d){
+  const s=d.config,p=d.current;let summary,nodes,extra=[];
+  if(s.mode==="hat"){
+   summary=[["维数",s.n],["p",s.p.toString()],["当前q",p.q.toString()],["p*",p.pStar.toString()],["分类",p.classification],["ε指数",p.exponent],["球体积ωn",p.omega],["支撑体积",p.volume],["峰值",p.amplitude],["梯度范数",p.gradient],["Lq范数",p.lq],["Beta系数",p.beta],["log Beta",p.logBeta]];
+   const row=p=>[p.epsilon,p.q.toString(),p.exponent,p.volume,p.amplitude,p.gradient,p.lq,p.logAmplitude,p.logLq];
+   nodes={headers:["ε","q","指数","支撑体积","峰值","梯度范数","Lq","ln峰值","lnLq"],rows:d.nodes.map(row)};
+   extra.push({key:"beta",title:"整数维度下的 Beta 乘积",headers:["j","q+j","ln(q+j)"],rows:p.betaTerms.map(t=>[t.j,t.factor,t.log])});
+   for(const q of d.comparisons)extra.push({key:"compare-"+q.kind,title:"对照曲线 "+q.kind+" 的全部节点",...nodes,rows:q.nodes.map(row)});
+  }else if(s.mode==="moser"){
+   summary=[["维数n=p",s.n],["L",p.L],["平台半径",p.radius],["峰值",p.peak],["梯度Ln范数",p.gradient],["Ln范数",p.lnNorm],["Ln范数的n次方",p.lnPower],["平台的n次积分",p.corePower],["壳层＋平台积分",d.shellSum],["两种公式的差",d.shellResidual],["指数可积临界系数",p.alphaThreshold]];
+   nodes={headers:["L","平台半径","峰值","梯度Ln","Ln","Ln的n次方"],rows:d.nodes.map(p=>[p.L,p.radius,p.peak,p.gradient,p.lnNorm,p.lnPower])};
+   extra.push({key:"shells",title:"全部对数壳层：梯度与函数积分",headers:["i","t左","t右","外半径","内半径","梯度n次贡献","函数n次贡献"],rows:d.shells.map(t=>[t.i,t.a,t.b,t.rOuter,t.rInner,t.gradientPower,t.lnPower])});
+   extra.push({key:"moments",title:"每个壳层的正项矩分解",headers:["壳层","k","二项式系数","平移矩","级数项数","未除L的贡献"],rows:d.shells.flatMap(t=>t.parts.map(q=>[t.i,q.k,q.choose,q.moment,q.terms,q.contribution]))});
+   extra.push({key:"gamma",title:"整体积分中的有限和",headers:["j","(nL)^j/j!"],rows:p.terms.map(t=>[t.j,t.term])});
+  }else if(s.mode==="poincare"){
+   summary=[["均值",p.mean],["左端迹",p.traceLeft],["右端迹",p.traceRight],["是否满足零迹",p.zeroTrace],["L2范数",p.norm],["梯度L2",p.gradient],["减均值后L2",p.meanZeroNorm],["零迹最优常数ℓ/π",p.C],["范数比状态",p.ratioStatus],["范数比",p.ratio],["||u||²−C²||u′||²",p.inequalityGap]];
+   nodes={headers:["ℓ","L2","梯度L2","减均值L2","ℓ/π","实际范数比","差值"],rows:d.nodes.map(p=>[p.ell,p.norm,p.gradient,p.meanZeroNorm,p.C,p.ratio,p.inequalityGap])};
+  }else{
+   summary=[["边界层宽ε",p.epsilon],["L2范数",p.norm],["梯度L2",p.gradient],["W1,2范数",p.w12],["左端迹",p.traceLeft],["右端迹",p.traceRight]];
+   nodes={headers:["宽度比例","ε","L2","梯度L2","W1,2","左端迹","右端迹"],rows:d.nodes.map(p=>[p.ratio,p.epsilon,p.norm,p.gradient,p.w12,p.traceLeft,p.traceRight])};
   }
+  return [{key:"summary",title:"当前条件与范数账本",headers:["量","值"],rows:summary},{key:"nodes",title:"整条参数曲线的全部节点",...nodes},...extra];
+ }
 
-  function logGamma(z) {
-    var coefficients = [
-      0.9999999999998099,
-      676.5203681218851,
-      -1259.1392167224028,
-      771.3234287776531,
-      -176.6150291621406,
-      12.5073432786869,
-      -0.13857109526572,
-      0.00000998436957802,
-      0.000000150563273515
-    ];
-    var index;
-    var sum;
-    var shifted;
-    var t;
-    if (!finite(z) || z <= 0) throw new RangeError("logGamma requires z > 0");
-    if (z < 0.5) return Math.log(Math.PI) - Math.log(Math.sin(Math.PI * z)) - logGamma(1 - z);
-    shifted = z - 1;
-    sum = coefficients[0];
-    for (index = 1; index < coefficients.length; index += 1) sum += coefficients[index] / (shifted + index);
-    t = shifted + 7.5;
-    return 0.5 * Math.log(2 * Math.PI) + (shifted + 0.5) * Math.log(t) - t + Math.log(sum);
+ const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ function svg(q){
+  const left=100,width=750,height=250,top=85,bottom=335,x=v=>left+width*(v-q.xmin)/(q.xmax-q.xmin),y=v=>bottom-height*(v-q.ymin)/(q.ymax-q.ymin);
+  let s='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="425" role="img" aria-label="'+esc(q.title)+'"><title>'+esc(q.title)+'</title><text x="25" y="32" font-size="22">'+esc(q.title)+'</text>';
+  for(let i=0;i<5;i++){
+   const v=q.ymin+(q.ymax-q.ymin)*i/4;
+   s+='<path d="M'+left+' '+y(v)+'H'+(left+width)+'" stroke="currentColor" opacity=".18"/><text x="'+(left-12)+'" y="'+(y(v)+5)+'" text-anchor="end">'+fmt(Number(v.toPrecision(4)))+'</text>';
   }
-
-  function unitBallVolume(n) {
-    if (!finite(n) || n <= 0) throw new RangeError("n must be positive");
-    return Math.exp((n / 2) * Math.log(Math.PI) - logGamma(n / 2 + 1));
+  const ticks=q.xTicks||Array.from({length:5},(_,i)=>q.xmin+(q.xmax-q.xmin)*i/4);
+  for(const v of ticks)s+='<text x="'+x(v)+'" y="'+(bottom+28)+'" text-anchor="middle">'+fmt(Number(v.toPrecision(4)))+'</text>';
+  if(q.ymin<=0&&q.ymax>=0)s+='<line data-zero="true" x1="'+left+'" x2="'+(left+width)+'" y1="'+y(0)+'" y2="'+y(0)+'" stroke="currentColor" opacity=".7"/>';
+  s+='<text x="'+left+'" y="65">'+esc(q.y)+'</text><text x="'+(left+width/2)+'" y="'+(bottom+63)+'" text-anchor="middle">'+esc(q.x)+'</text>';
+  for(const series of q.series){
+   if(series.area)s+='<rect data-area="'+series.key+'" x="'+x(series.points[0][0])+'" y="'+y(series.points[0][1])+'" width="'+(x(series.points[1][0])-x(series.points[0][0]))+'" height="'+(y(0)-y(series.points[0][1]))+'" fill="'+series.color+'" opacity=".12"/>';
+   if(series.line)s+='<polyline data-series="'+series.key+'" points="'+series.points.map(p=>x(p[0])+','+y(p[1])).join(" ")+'" stroke="'+series.color+'" stroke-width="2" fill="none"/>';
+   series.points.forEach((p,i)=>{const open=series.endOpen&&i===series.points.length-1;s+='<circle data-series="'+series.key+'" data-index="'+i+'" data-open="'+!!open+'" cx="'+x(p[0])+'" cy="'+y(p[1])+'" r="'+(series.endOpen?3.5:series.line?1.8:3.5)+'" fill="'+(open?"var(--bg,#faf7ef)":series.color)+'" stroke="'+series.color+'"/>';});
   }
-
-  function criticalExponent(n, p) {
-    if (!finite(n) || !finite(p) || n <= p || p < 1) throw new RangeError("requires 1 <= p < n");
-    return (n * p) / (n - p);
+  for(const [i,m]of (q.markers||[]).entries()){
+   const px=x(m.x),right=px>700;
+   s+='<line data-marker="'+i+'" x1="'+px+'" x2="'+px+'" y1="'+top+'" y2="'+bottom+'" stroke="currentColor" stroke-dasharray="5 5" opacity=".65"/><text x="'+(px+(right?-4:4))+'" y="'+(80+25*q.markers.slice(0,i).filter(p=>Math.abs(px-x(p.x))<110).length)+'" font-size="13" text-anchor="'+(right?'end':'start')+'">'+esc(m.label)+'</text>';
   }
+  return s+"</svg>";
+ }
 
-  function qForMode(n, p, mode) {
-    var pStar = criticalExponent(n, p);
-    if (mode === "subcritical") return p;
-    if (mode === "critical") return pStar;
-    if (mode === "supercritical") return pStar + 2;
-    throw new RangeError("unknown q mode: " + mode);
+ const STYLE=".sobolev136{color:var(--fg,#273646)}.sobolev136 .sob-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}.sobolev136 label{display:flex;flex-direction:column;gap:6px}.sobolev136 input,.sobolev136 select{font:inherit;padding:8px;max-width:100%;background:var(--bg,#fff);color:inherit;border:1px solid #8b98a0;border-radius:5px}.sobolev136 button{font:inherit;padding:8px 12px;margin:5px;cursor:pointer}.sobolev136 button[aria-pressed=true]{outline:3px solid #478aaa}.sobolev136 .sob-scroll{overflow:auto;max-width:100%;margin:16px 0}.sobolev136 .sob-scroll:focus{outline:3px solid #478aaa}.sobolev136 .sob-ledger{max-height:420px}.sobolev136 svg{width:900px!important;max-width:none!important;display:block;fill:currentColor;font:16px system-ui}.sobolev136 table{display:table;overflow:visible;width:max-content;max-width:none;min-width:900px;border-collapse:collapse;font-variant-numeric:tabular-nums}.sobolev136 th,.sobolev136 td{padding:9px;border:1px solid #98a4ab;text-align:left;white-space:nowrap}.sobolev136 .sob-error{color:#c74b39}.sobolev136 [hidden]{display:none!important}.sobolev136 fieldset{margin:16px 0;padding:12px}.sobolev136 details{margin:16px 0}.sobolev136 summary{cursor:pointer;font-weight:600}.sobolev136 .sob-legend{font-size:.95em}.sobolev136 .sob-note{line-height:1.7}.sobolev136 [hidden]{display:none!important}.sobolev136 select{font:inherit;color:var(--fg,#282820);background:var(--bg,#faf7ef);padding:8px;max-width:100%}";
+ function mount(container){
+  const doc=container.ownerDocument;
+  if(!doc.getElementById("sobolev136-style")){const style=doc.createElement("style");style.id="sobolev136-style";style.textContent=STYLE;doc.head.appendChild(style);}
+  const field=(key,label,modes)=>'<label data-modes="'+modes+'">'+label+'<input data-key="'+key+'" type="number" step="any"></label>';
+  container.innerHTML='<div class="sobolev136"><h3>导数预算能控制哪些量？</h3><p>先预测，再揭示。帽函数比较临界幂次，Moser 族展示 n=p≥2 的集中，区间模型分别检查零迹、均值和边界层。</p><div class="sob-presets">'+PRESETS.map(p=>'<button type="button" data-preset="'+p.id+'">'+p.label+'</button>').join("")+'</div><div class="sob-controls"><label>实验模式<select data-key="mode"><option value="hat">帽函数与临界缩放</option><option value="moser">n=p：Moser 集中</option><option value="poincare">Poincaré 与常数自由度</option><option value="trace">边界层与迹</option></select></label>'+
+   field("n","维数 n（2–6整数）","hat moser")+field("p","p（1–n−0.1）","hat")+
+   '<label data-modes="hat">目标 q<select data-key="qkind"><option value="sub">q=p</option><option value="critical">q=p*（保留符号关系）</option><option value="super">q=p*+2</option><option value="custom">手动输入 q</option></select></label>'+
+   field("q","手动 q（1–1000）","hat")+field("epsilon","帽支撑半径 ε（10⁻⁶–1）","hat")+field("L","L=log(1/ε)（1–40）","moser")+
+   field("ell","区间长度 ℓ（0.2–10）","poincare trace")+field("A","正弦振幅 A（−2–2）","poincare")+field("b","常数偏置 b（−2–2）","poincare")+field("ratio","边界层宽 ε/ℓ（0.01–1）","trace")+'</div>'+
+   QUESTIONS.map((q,i)=>'<fieldset data-question="'+i+'"><legend>'+(i+1)+'. '+esc(q[0])+'</legend>'+q[1].map((v,j)=>'<button type="button" data-choice="'+j+'" aria-pressed="false">'+esc(v)+'</button>').join("")+'</fieldset>').join("")+
+   '<button type="button" data-action="reveal">揭示图与完整账本</button><button type="button" data-action="reset">重置预测</button><p class="sob-error" role="alert"></p><p role="status"></p><div class="sob-results" hidden></div></div>';
+  const fields=Array.from(container.querySelectorAll("[data-key]")),answers=Array(4).fill(null),result=container.querySelector(".sob-results"),reveal=container.querySelector("[data-action=reveal]"),feedback=container.querySelector("[role=status]"),error=container.querySelector("[role=alert]");
+  fields.forEach(e=>e.value=DEFAULTS[e.dataset.key]);
+  let revealed=false,valid=null;
+  function render(d){
+   const notes={hat:"帽的梯度范数解析值为1。图中第一幅按当前支撑放大，并以峰值归一化；实际半径、体积和峰值在坐标说明及账本中。q=p* 选项使用符号临界关系；手动输入按该数值计算，近临界小指数不会被任意阈值抹为0。缩放模型不证明一般嵌入，也不输出最优 Sobolev 常数。",moser:"Moser 族只用于 n=p≥2，不能套到一维 W¹,¹。平台半径 e⁻ᴸ 越来越小，峰值增大但梯度 Ln 范数保持1。图用 t=log(1/r) 分辨窄平台；Ln 的整体公式与全部200壳层的正项积分独立对照，差值为数值诊断。指数可积临界系数在正文中区分必要性反例与完整定理。",poincare:"u=b+A sin(πx/ℓ)。零迹要求 b=0；减均值通常不等于零迹。C=ℓ/π 是区间零迹的最优常数；无零迹时，本例可能碰巧满足不等式，也可能违反，不能由一次计算宣布一般定理。梯度为0时不会执行除零。",trace:"vε=(1−x/ε)+ 在区间[0,ℓ]上。左端迹保持1，而 L² 范数随 ε 缩小趋零；梯度范数却发散。迹不是给 L² 等价类任意补一个端点值，需由 Sobolev 结构定义。"};
+   result.innerHTML='<p>'+notes[d.config.mode]+'</p>'+
+    plots(d).map(q=>'<p>'+q.series.map(s=>esc(s.label)+'（'+({"#268bd2":"蓝","#cb6a16":"橙","#29966c":"绿","#9966bb":"紫"}[s.color])+'）').join("；")+'</p><div class="sob-scroll" role="region" tabindex="0" aria-label="'+esc(q.title)+'">'+svg(q)+'</div>').join("")+
+    ledgers(d).map(t=>'<details data-ledger="'+t.key+'"'+(t.key==="summary"?' open':"")+'><summary>'+esc(t.title)+'（'+t.rows.length+' 行）</summary><div class="sob-scroll sob-ledger" role="region" tabindex="0" aria-label="'+esc(t.title)+'"><table data-table="'+t.key+'"><thead><tr>'+t.headers.map(x=>'<th scope="col">'+esc(x)+'</th>').join("")+'</tr></thead><tbody>'+t.rows.map(r=>'<tr>'+r.map(x=>'<td>'+esc(fmt(x))+'</td>').join("")+'</tr>').join("")+'</tbody></table></div></details>').join("")+
+    '<p>所有参数曲线使用201个基础节点并加入当前参数，所有折点明确入图。当前帽的 Beta 因子使用整数维度的有限乘积；Moser 积分同时保留有限和、每个壳层、正项矩分解。有限图与账本核对具体函数族；正文的极限论证和定理条件不可省略。图表可聚焦后用方向键横向滚动。</p>';
   }
-
-  function compute(input) {
-    var n = Number(input.n);
-    var p = Number(input.p);
-    var q = Number(input.q);
-    var epsilon = Number(input.epsilon);
-    if (!finite(n) || !finite(p) || n <= p || p < 1) throw new RangeError("requires 1 <= p < n");
-    if (!finite(q) || q < 1) throw new RangeError("q must be at least 1");
-    if (!finite(epsilon) || epsilon <= 0 || epsilon > 1) throw new RangeError("epsilon must be in (0, 1]");
-    var omega = unitBallVolume(n);
-    var pStar = criticalExponent(n, p);
-    var amplitude = Math.pow(epsilon, 1 - n / p) * Math.pow(omega, -1 / p);
-    var supportVolume = omega * Math.pow(epsilon, n);
-    var logBeta = logGamma(n) + logGamma(q + 1) - logGamma(n + q + 1);
-    var logLq = Math.log(amplitude) + (Math.log(n * omega) + n * Math.log(epsilon) + logBeta) / q;
-    var lq = Math.exp(logLq);
-    var gradient = Math.pow(Math.pow(amplitude / epsilon, p) * supportVolume, 1 / p);
-    var exponent = 1 - n / p + n / q;
-    return {
-      n: n,
-      p: p,
-      q: q,
-      epsilon: epsilon,
-      omega: omega,
-      pStar: pStar,
-      amplitude: amplitude,
-      supportVolume: supportVolume,
-      gradientNorm: gradient,
-      lq: lq,
-      exponent: exponent,
-      betaFactor: Math.exp(logBeta),
-      classification: Math.abs(exponent) < 1e-9 ? "critical" : (exponent > 0 ? "subcritical" : "supercritical")
-    };
+  function update(){
+   const raw=Object.fromEntries(fields.map(e=>[e.dataset.key,e.value]));
+   container.querySelectorAll("[data-modes]").forEach(e=>e.hidden=!e.dataset.modes.split(" ").includes(raw.mode));
+   container.querySelector('[data-key="q"]').parentElement.hidden=raw.mode!=="hat"||raw.qkind!=="custom";
+   try{valid=config(raw);error.textContent="";}catch(e){valid=null;revealed=false;error.textContent=e.message;}
+   reveal.disabled=!valid||answers.some(x=>x===null);result.hidden=!revealed;
+   if(revealed&&valid)render(snapshot(valid));
+   feedback.textContent=revealed?answers.filter((x,i)=>x===QUESTIONS[i][2]).length+" / 4。"+QUESTIONS.map(q=>q[3]).join(" "):"";
   }
+  fields.forEach(e=>e.addEventListener(e.tagName==="SELECT"?"change":"input",update));
+  container.querySelectorAll("[data-choice]").forEach(b=>b.addEventListener("click",()=>{
+   const i=Number(b.closest("[data-question]").dataset.question);answers[i]=Number(b.dataset.choice);b.parentElement.querySelectorAll("[data-choice]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));update();
+  }));
+  container.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{
+   const s=Object.assign({},DEFAULTS,PRESETS.find(p=>p.id===b.dataset.preset));fields.forEach(e=>e.value=s[e.dataset.key]);update();
+  }));
+  reveal.addEventListener("click",()=>{if(!reveal.disabled){revealed=true;update();}});
+  container.querySelector("[data-action=reset]").addEventListener("click",()=>{answers.fill(null);revealed=false;container.querySelectorAll("[data-choice]").forEach(b=>b.setAttribute("aria-pressed","false"));update();container.querySelector("[data-choice]").focus();});
+  update();
+ }
 
-  function near(a, b, tolerance) {
-    return Math.abs(a - b) <= (tolerance || EPS) * Math.max(1, Math.abs(a), Math.abs(b));
-  }
 
-  function assert(condition, message) {
-    if (!condition) throw new Error(message);
-  }
 
-  function selfTest() {
-    var checks = 0;
-    PRESETS.forEach(function (preset) {
-      MODES.forEach(function (mode) {
-        var q = qForMode(preset.n, preset.p, mode.id);
-        var first = compute({ n: preset.n, p: preset.p, q: q, epsilon: 1 });
-        [0.5, 0.125, 0.03].forEach(function (epsilon) {
-          var current = compute({ n: preset.n, p: preset.p, q: q, epsilon: epsilon });
-          checks += 7;
-          assert(near(current.gradientNorm, 1, 1e-9), preset.id + " gradient normalization failed");
-          assert(finite(current.lq) && current.lq > 0, preset.id + " Lq is invalid");
-          assert(finite(current.amplitude) && current.amplitude > 0, preset.id + " amplitude is invalid");
-          assert(near(current.lq / first.lq, Math.pow(epsilon, current.exponent), 1e-9), preset.id + " Lq power law failed");
-          assert(near(current.supportVolume / first.supportVolume, Math.pow(epsilon, preset.n), 1e-9), preset.id + " support scaling failed");
-          assert(near(current.amplitude / first.amplitude, Math.pow(epsilon, 1 - preset.n / preset.p), 1e-9), preset.id + " amplitude scaling failed");
-          assert(mode.id !== "critical" || Math.abs(current.exponent) < 1e-9, preset.id + " critical exponent is not zero");
-        });
-      });
-    });
-    var reference = compute({ n: 3, p: 2, q: 6, epsilon: 0.125 });
-    checks += 4;
-    assert(near(reference.pStar, 6), "n=3 p=2 critical exponent should be 6");
-    assert(near(reference.lq, 0.296431202579, 1e-9), "n=3 p=2 critical L6 constant mismatch");
-    assert(near(reference.gradientNorm, 1, 1e-9), "reference gradient should be 1");
-    assert(near(reference.betaFactor, 1 / 252, 1e-9), "B(3,7) should be 1/252");
-    [
-      { n: 3, p: 3, q: 2, epsilon: 1 },
-      { n: 3, p: 2, q: 0.5, epsilon: 1 },
-      { n: 3, p: 2, q: 2, epsilon: 0 }
-    ].forEach(function (bad, index) {
-      var rejected = false;
-      try { compute(bad); } catch (error) { rejected = true; }
-      checks += 1;
-      assert(rejected, "invalid case " + index + " should be rejected");
-    });
-    return { checks: checks, presets: PRESETS.length };
-  }
 
-  function injectStyles(doc) {
-    if (doc.getElementById(STYLE_ID)) return;
-    var style = doc.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = STYLE_TEXT;
-    doc.head.appendChild(style);
-  }
 
-  function clear(node) {
-    while (node.firstChild) node.removeChild(node.firstChild);
-  }
-
-  function makeElement(doc, tag, attrs, children) {
-    var node = doc.createElement(tag);
-    Object.keys(attrs || {}).forEach(function (key) {
-      if (key === "className") node.className = attrs[key];
-      else node.setAttribute(key, attrs[key]);
-    });
-    if (!Array.isArray(children)) children = children === undefined ? [] : [children];
-    children.forEach(function (child) {
-      if (child === null || child === undefined) return;
-      node.appendChild(typeof child === "string" ? doc.createTextNode(child) : child);
-    });
-    return node;
-  }
-
-  function svgNode(doc, tag, attrs, text) {
-    var node = doc.createElementNS(SVG_NS, tag);
-    Object.keys(attrs || {}).forEach(function (key) { node.setAttribute(key, attrs[key]); });
-    if (text !== undefined) node.textContent = text;
-    return node;
-  }
-
-  function format(value, digits) {
-    if (!finite(value)) return "--";
-    var absolute = Math.abs(value);
-    if ((absolute > 0 && absolute < 0.001) || absolute >= 10000) return value.toExponential(digits === undefined ? 2 : digits);
-    var text = value.toFixed(digits === undefined ? 3 : digits);
-    if (text.indexOf(".") >= 0) text = text.replace(/0+$/, "").replace(/\.$/, "");
-    return text;
-  }
-
-  function metric(doc, label) {
-    var value = makeElement(doc, "strong", {}, "--");
-    return { node: makeElement(doc, "div", { className: "ss-metric" }, [makeElement(doc, "span", {}, label), value]), value: value };
-  }
-
-  function drawChart(doc, svg, state, current) {
-    clear(svg);
-    svg.appendChild(svgNode(doc, "desc", {}, "左图比较 epsilon=1 的参考帽与当前径向帽，纵轴采用 log10(1+u)；右图显示次临界、临界、超临界 Lq 范数随 epsilon 的对数幂律。"));
-    var left = { x: 42, y: 46, w: 258, h: 242 };
-    var right = { x: 350, y: 46, w: 242, h: 242 };
-    svg.appendChild(svgNode(doc, "text", { x: left.x + left.w / 2, y: 24, class: "ss-title" }, "径向截面：纵轴 log10(1+u)"));
-    svg.appendChild(svgNode(doc, "text", { x: right.x + right.w / 2, y: 24, class: "ss-title" }, "log10 ||u_epsilon||_q"));
-
-    function profilePath(epsilon, amplitude) {
-      var points = [];
-      var maxAmplitude = Math.pow(Math.pow(10, MIN_LOG_EPSILON), 1 - state.n / state.p) * Math.pow(unitBallVolume(state.n), -1 / state.p);
-      var yMax = Math.log10(1 + maxAmplitude);
-      var count = 100;
-      var index;
-      for (index = 0; index <= count; index += 1) {
-        var xValue = -1 + (2 * index) / count;
-        var u = Math.abs(xValue) <= epsilon ? amplitude * (1 - Math.abs(xValue) / epsilon) : 0;
-        var px = left.x + ((xValue + 1) / 2) * left.w;
-        var py = left.y + left.h - (Math.log10(1 + u) / yMax) * left.h;
-        points.push((index ? "L" : "M") + px.toFixed(2) + "," + py.toFixed(2));
-      }
-      return points.join(" ");
-    }
-
-    [0, 0.5, 1].forEach(function (fraction) {
-      var y = left.y + left.h * fraction;
-      svg.appendChild(svgNode(doc, "line", { x1: left.x, y1: y, x2: left.x + left.w, y2: y, class: "ss-grid" }));
-    });
-    svg.appendChild(svgNode(doc, "line", { x1: left.x, y1: left.y + left.h, x2: left.x + left.w, y2: left.y + left.h, class: "ss-axis" }));
-    svg.appendChild(svgNode(doc, "path", { d: profilePath(1, Math.pow(unitBallVolume(state.n), -1 / state.p)), class: "ss-reference" }));
-    svg.appendChild(svgNode(doc, "path", { d: profilePath(current.epsilon, current.amplitude), class: "ss-profile" }));
-    svg.appendChild(svgNode(doc, "text", { x: left.x, y: left.y + left.h + 19, class: "ss-label" }, "-1"));
-    svg.appendChild(svgNode(doc, "text", { x: left.x + left.w / 2, y: left.y + left.h + 19, class: "ss-label", "text-anchor": "middle" }, "r=0"));
-    svg.appendChild(svgNode(doc, "text", { x: left.x + left.w, y: left.y + left.h + 19, class: "ss-label", "text-anchor": "end" }, "1"));
-    svg.appendChild(svgNode(doc, "text", { x: left.x + 6, y: left.y + 16, class: "ss-label" }, "虚线 epsilon=1；金线当前"));
-
-    var lawSeries = MODES.map(function (mode) {
-      var q = qForMode(state.n, state.p, mode.id);
-      var points = [];
-      var values = [];
-      var index;
-      for (index = 0; index <= 40; index += 1) {
-        var logEpsilon = MIN_LOG_EPSILON + (0 - MIN_LOG_EPSILON) * index / 40;
-        var result = compute({ n: state.n, p: state.p, q: q, epsilon: Math.pow(10, logEpsilon) });
-        values.push(Math.log10(result.lq));
-        points.push({ x: logEpsilon, y: Math.log10(result.lq) });
-      }
-      return { mode: mode, q: q, points: points, values: values };
-    });
-    var allValues = [];
-    lawSeries.forEach(function (series) { allValues = allValues.concat(series.values); });
-    var yMin = Math.min.apply(null, allValues);
-    var yMax = Math.max.apply(null, allValues);
-    if (Math.abs(yMax - yMin) < 0.2) { yMin -= 0.1; yMax += 0.1; }
-    var padding = (yMax - yMin) * 0.08;
-    yMin -= padding; yMax += padding;
-    function mapX(value) { return right.x + ((value - MIN_LOG_EPSILON) / (0 - MIN_LOG_EPSILON)) * right.w; }
-    function mapY(value) { return right.y + right.h - ((value - yMin) / (yMax - yMin)) * right.h; }
-    [0, 0.5, 1].forEach(function (fraction) {
-      var y = right.y + right.h * fraction;
-      svg.appendChild(svgNode(doc, "line", { x1: right.x, y1: y, x2: right.x + right.w, y2: y, class: "ss-grid" }));
-    });
-    svg.appendChild(svgNode(doc, "line", { x1: right.x, y1: right.y + right.h, x2: right.x + right.w, y2: right.y + right.h, class: "ss-axis" }));
-    lawSeries.forEach(function (series) {
-      var d = series.points.map(function (point, index) { return (index ? "L" : "M") + mapX(point.x).toFixed(2) + "," + mapY(point.y).toFixed(2); }).join(" ");
-      var className = series.mode.id === "subcritical" ? "ss-sub" : (series.mode.id === "critical" ? "ss-critical" : "ss-super");
-      svg.appendChild(svgNode(doc, "path", { d: d, class: "ss-law " + className }));
-      var selected = compute({ n: state.n, p: state.p, q: series.q, epsilon: current.epsilon });
-      svg.appendChild(svgNode(doc, "circle", { cx: mapX(state.logEpsilon), cy: mapY(Math.log10(selected.lq)), r: series.mode.id === state.mode ? "5" : "3.5", class: "ss-dot " + className }));
-    });
-    svg.appendChild(svgNode(doc, "text", { x: right.x, y: right.y + right.h + 19, class: "ss-label" }, "-2"));
-    svg.appendChild(svgNode(doc, "text", { x: right.x + right.w, y: right.y + right.h + 19, class: "ss-label", "text-anchor": "end" }, "0 = log10 epsilon"));
-    svg.appendChild(svgNode(doc, "text", { x: right.x + 5, y: right.y + 15, class: "ss-label ss-sub" }, "蓝 q=p"));
-    svg.appendChild(svgNode(doc, "text", { x: right.x + 82, y: right.y + 15, class: "ss-label ss-critical" }, "绿 q=p*"));
-    svg.appendChild(svgNode(doc, "text", { x: right.x + 164, y: right.y + 15, class: "ss-label ss-super" }, "红 q>p*"));
-  }
-
-  function replaceRows(doc, body, rows) {
-    clear(body);
-    rows.forEach(function (values) {
-      var row = makeElement(doc, "tr");
-      values.forEach(function (value) { row.appendChild(makeElement(doc, "td", {}, String(value))); });
-      body.appendChild(row);
-    });
-  }
-
-  function copyPreset(preset) {
-    return { id: preset.id, n: preset.n, p: preset.p, logEpsilon: preset.logEpsilon, mode: preset.mode };
-  }
-
-  function mount(root, api) {
-    var doc = root.ownerDocument;
-    injectStyles(doc);
-    clear(root);
-    var uid = "ss-" + (SERIAL += 1);
-    var state = copyPreset(PRESETS[0]);
-    var answers = { peak: null, critical: null, supercritical: null };
-    var shell = makeElement(doc, "div", { className: "ss-lab" });
-    shell.appendChild(makeElement(doc, "h3", {}, "Sobolev 缩放：固定梯度预算"));
-    shell.appendChild(makeElement(doc, "p", { className: "ss-intro" }, "把帽函数的梯度 Lp 范数钉为 1，再缩小支撑。先预测峰值和三种 Lq 命运，揭示后用精确 Beta 因子核对。"));
-    var questions = [
-      { key: "peak", prompt: "1. 在 p<n 时缩小 epsilon，峰值会怎样？", expected: "grow", choices: [["shrink", "降低"], ["same", "不变"], ["grow", "升高"]] },
-      { key: "critical", prompt: "2. q=p* 时 Lq 范数随 epsilon 怎样？", expected: "same", choices: [["zero", "趋于 0"], ["same", "保持尺度"], ["infinity", "发散"]] },
-      { key: "supercritical", prompt: "3. q>p* 时 Lq 范数随 epsilon 怎样？", expected: "infinity", choices: [["zero", "趋于 0"], ["same", "保持尺度"], ["infinity", "发散"]] }
-    ];
-    var form = makeElement(doc, "form");
-    var fieldset = makeElement(doc, "fieldset");
-    fieldset.appendChild(makeElement(doc, "legend", {}, "预测门：三项都回答后才显示曲线"));
-    var choiceButtons = [];
-    questions.forEach(function (question) {
-      fieldset.appendChild(makeElement(doc, "p", { className: "ss-question" }, question.prompt));
-      var row = makeElement(doc, "div", { className: "ss-choice-row", role: "group", "aria-label": question.prompt });
-      question.choices.forEach(function (choice) {
-        var button = makeElement(doc, "button", { type: "button", "aria-pressed": "false" }, choice[1]);
-        button.addEventListener("click", function () {
-          answers[question.key] = choice[0];
-          choiceButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", answers[item.key] === item.value ? "true" : "false"); });
-        });
-        choiceButtons.push({ key: question.key, value: choice[0], node: button });
-        row.appendChild(button);
-      });
-      fieldset.appendChild(row);
-    });
-    form.appendChild(fieldset);
-    var submit = makeElement(doc, "button", { type: "submit", className: "ss-primary" }, "提交预测并揭示");
-    var resetPredictions = makeElement(doc, "button", { type: "button" }, "清空预测");
-    form.appendChild(makeElement(doc, "div", { className: "ss-actions" }, [submit, resetPredictions]));
-    var feedback = makeElement(doc, "p", { className: "ss-feedback", role: "status", "aria-live": "polite" }, "请完成三项预测。 ");
-    form.appendChild(feedback);
-    shell.appendChild(form);
-
-    var revealed = makeElement(doc, "section", { className: "ss-revealed", hidden: "hidden" });
-    var layout = makeElement(doc, "div", { className: "ss-layout" });
-    var controls = makeElement(doc, "div", { className: "ss-controls" });
-    controls.appendChild(makeElement(doc, "h4", {}, "维数与可积指数预设"));
-    var presetGroup = makeElement(doc, "div", { className: "ss-presets", role: "group", "aria-label": "Sobolev 维数预设" });
-    var presetButtons = [];
-    PRESETS.forEach(function (preset) {
-      var button = makeElement(doc, "button", { type: "button", "aria-pressed": "false" }, preset.label);
-      button.addEventListener("click", function () { state = copyPreset(preset); render(); });
-      presetButtons.push({ id: preset.id, node: button });
-      presetGroup.appendChild(button);
-    });
-    controls.appendChild(presetGroup);
-    controls.appendChild(makeElement(doc, "h4", {}, "选择要审计的 q"));
-    var modeGroup = makeElement(doc, "div", { className: "ss-modes", role: "group", "aria-label": "q 相对临界指数的位置" });
-    var modeButtons = [];
-    MODES.forEach(function (mode) {
-      var button = makeElement(doc, "button", { type: "button", "aria-pressed": "false" }, mode.label);
-      button.addEventListener("click", function () { state.mode = mode.id; state.id = "custom"; render(); });
-      modeButtons.push({ id: mode.id, node: button });
-      modeGroup.appendChild(button);
-    });
-    controls.appendChild(modeGroup);
-    var epsilonOutput = makeElement(doc, "output", { for: uid + "-epsilon" }, "");
-    var epsilonInput = makeElement(doc, "input", { id: uid + "-epsilon", type: "range", min: String(MIN_LOG_EPSILON), max: "0", step: "0.05", value: String(state.logEpsilon) });
-    controls.appendChild(makeElement(doc, "div", { className: "ss-control" }, [
-      makeElement(doc, "label", { for: uid + "-epsilon" }, ["支撑半径 epsilon：", epsilonOutput]),
-      epsilonInput,
-      makeElement(doc, "div", { className: "ss-scale" }, [makeElement(doc, "span", {}, "0.01"), makeElement(doc, "span", {}, "1")])
-    ]));
-    var relock = makeElement(doc, "button", { type: "button" }, "重新预测");
-    controls.appendChild(relock);
-    layout.appendChild(controls);
-
-    var stage = makeElement(doc, "div", { className: "ss-stage" });
-    var svg = svgNode(doc, "svg", { class: "ss-svg", width: "640", height: "330", viewBox: "0 0 640 330", role: "img", "aria-label": "Sobolev 径向帽与临界缩放图" });
-    stage.appendChild(makeElement(doc, "div", { className: "ss-frame" }, svg));
-    var metrics = [metric(doc, "临界指数 p*"), metric(doc, "梯度 ||Du||p"), metric(doc, "支撑体积"), metric(doc, "峰值 ||u||inf"), metric(doc, "当前 ||u||q"), metric(doc, "缩放指数 s(q)")];
-    stage.appendChild(makeElement(doc, "div", { className: "ss-metrics" }, metrics.map(function (item) { return item.node; })));
-    stage.appendChild(makeElement(doc, "h4", {}, "三种 q 的同尺度账本"));
-    var table = makeElement(doc, "table");
-    var head = makeElement(doc, "thead");
-    var headRow = makeElement(doc, "tr");
-    ["位置", "q", "s(q)", "当前 ||u||q", "epsilon -> 0", "定理读法"].forEach(function (label) { headRow.appendChild(makeElement(doc, "th", {}, label)); });
-    head.appendChild(headRow); table.appendChild(head);
-    var body = makeElement(doc, "tbody"); table.appendChild(body);
-    stage.appendChild(makeElement(doc, "div", { className: "ss-table-wrap" }, table));
-    var interpretation = makeElement(doc, "p", { className: "ss-interpretation", role: "status", "aria-live": "polite" }, "");
-    stage.appendChild(interpretation);
-    layout.appendChild(stage);
-    revealed.appendChild(layout);
-    shell.appendChild(revealed);
-    root.appendChild(shell);
-
-    function render() {
-      var epsilon = Math.pow(10, state.logEpsilon);
-      var q = qForMode(state.n, state.p, state.mode);
-      var current = compute({ n: state.n, p: state.p, q: q, epsilon: epsilon });
-      epsilonInput.value = String(state.logEpsilon);
-      epsilonOutput.textContent = format(epsilon, epsilon < 0.1 ? 3 : 2) + "（log10=" + format(state.logEpsilon, 2) + "）";
-      presetButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", item.id === state.id ? "true" : "false"); });
-      modeButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", item.id === state.mode ? "true" : "false"); });
-      metrics[0].value.textContent = format(current.pStar, 4);
-      metrics[1].value.textContent = format(current.gradientNorm, 8);
-      metrics[2].value.textContent = format(current.supportVolume, 4);
-      metrics[3].value.textContent = format(current.amplitude, 4);
-      metrics[4].value.textContent = format(current.lq, 6);
-      metrics[5].value.textContent = format(current.exponent, 6);
-      drawChart(doc, svg, state, current);
-      replaceRows(doc, body, MODES.map(function (mode) {
-        var modeQ = qForMode(state.n, state.p, mode.id);
-        var result = compute({ n: state.n, p: state.p, q: modeQ, epsilon: epsilon });
-        var limit = result.exponent > EPS ? "趋于 0" : (result.exponent < -EPS ? "发散" : "保持尺度");
-        var reading = mode.id === "critical" ? "尺度允许齐次嵌入" : (mode.id === "subcritical" ? "有界域上进入紧性区" : "统一梯度控制不可能");
-        return [mode.label, format(modeQ, 4), format(result.exponent, 6), format(result.lq, 6), limit, reading];
-      }));
-      var verdict = current.exponent > EPS ? "次临界：支撑收缩压过峰值增长，Lq 趋于 0。" : (current.exponent < -EPS ? "超临界：峰值增长压过支撑收缩，Lq 发散。" : "临界：两个效应正好抵消，Lq 保持尺度。 ");
-      interpretation.textContent = "n=" + state.n + "，p=" + format(state.p, 2) + "，q=" + format(q, 4) + "。梯度账本恒为 " + format(current.gradientNorm, 8) + "；" + verdict + " 这只解释临界标度，不提供 sharp 常数，也不替代嵌入定理的域与边界条件。";
-    }
-
-    form.addEventListener("submit", function (event) {
-      event.preventDefault();
-      if (questions.some(function (question) { return !answers[question.key]; })) {
-        feedback.className = "ss-feedback ss-warn";
-        feedback.textContent = "请先完成三项预测。";
-        return;
-      }
-      var correct = questions.filter(function (question) { return answers[question.key] === question.expected; }).length;
-      feedback.className = "ss-feedback " + (correct === questions.length ? "ss-pass" : "ss-warn");
-      feedback.textContent = "已记录：" + correct + "/" + questions.length + " 项与缩放账本一致。现在用指数 s(q) 核对。";
-      revealed.removeAttribute("hidden");
-      render();
-    });
-    resetPredictions.addEventListener("click", function () {
-      answers = { peak: null, critical: null, supercritical: null };
-      choiceButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", "false"); });
-      feedback.className = "ss-feedback"; feedback.textContent = "预测已清空。";
-    });
-    epsilonInput.addEventListener("input", function () { state.logEpsilon = Number(epsilonInput.value); state.id = "custom"; render(); });
-    relock.addEventListener("click", function () {
-      revealed.setAttribute("hidden", "hidden");
-      answers = { peak: null, critical: null, supercritical: null };
-      choiceButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", "false"); });
-      feedback.className = "ss-feedback"; feedback.textContent = "已重新上锁，请再做三项预测。";
-    });
-  }
-
-  return {
-    PRESETS: PRESETS,
-    MODES: MODES,
-    logGamma: logGamma,
-    unitBallVolume: unitBallVolume,
-    criticalExponent: criticalExponent,
-    qForMode: qForMode,
-    compute: compute,
-    selfTest: selfTest,
-    mount: mount
-  };
+ function selfTest(){
+  let checks=0;const ck=(v,m)=>{checks++;if(!v)throw Error(m);};
+  const h=snapshot().current;ck(h.pStar===6&&h.exponent===0,"symbolic critical");ck(Math.abs(h.beta-1/252)<1e-16,"integer Beta");ck(Math.abs(h.gradient-1)<1e-14,"gradient budget");
+  ck(exponent(3,2,6-Number.EPSILON*4).classification==="subcritical","near lower boundary");ck(exponent(3,2,6+Number.EPSILON*4).classification==="supercritical","near upper boundary");
+  const m=snapshot({mode:"moser",n:2});ck(Math.abs(m.current.alphaThreshold-4*Math.PI)<1e-13,"Moser coefficient");ck(Math.abs(m.shellResidual)<1e-13,"positive shells");
+  const z=snapshot({mode:"poincare"}).current;ck(z.zeroTrace&&Math.abs(z.ratio-z.C)<1e-14,"Dirichlet sine");ck(snapshot({mode:"poincare",A:0,b:1}).current.ratio===null,"zero denominator");
+  const t=snapshot({mode:"trace"}).current;ck(t.traceLeft===1&&t.traceRight===0,"trace");ck(Math.abs(t.norm2-.1/3)<1e-15,"boundary layer integral");
+  ck(fmt(1e-30)!=="0","small values");return {status:"PASS",checks};
+ }
+ return {DEFAULTS,PRESETS,QUESTIONS,config,omega,factorial,rational,exponent,hat,moser,moment,shellIntegral,poincare,trace,grid,snapshot,evaluate:snapshot,plots,ledgers,fmt,svg,mount,selfTest};
 });

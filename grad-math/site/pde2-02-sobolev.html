@@ -52,190 +52,484 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-11 03:32</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#sobolev-scaling-learning-title">学习层：固定梯度预算，\(p^*\) 为什么是临界指数？</a><ul>
-<li><a href="#1-sobolev">1. 先猜：尖峰能不能骗过 Sobolev 控制？</a></li>
-<li><a href="#2">2. 精确模型：四本账合起来只剩一个指数</a></li>
-<li><a href="#3-p">3. 误区与边界：同一个 \(p^*\) 不能替代所有嵌入定理</a></li>
-<li><a href="#4">4. 证明映射：实验每一行对应哪一步？</a></li>
-<li><a href="#5">5. 迁移问题：换测试族时，哪一笔账会改变？</a></li>
+<li><a href="#sobolev-scaling-learning-title">学习层：同一份导数预算，四种不同的检验</a><ul>
+<li><a href="#_1">无脚本参考账本</a></li>
 </ul>
 </li>
-<li><a href="#1">1. 定义与基本性质</a></li>
-<li><a href="#2-sobolev">2. Sobolev 嵌入定理（本页顶点）</a></li>
-<li><a href="#3-poincare">3. 迹与 Poincaré 不等式</a></li>
-<li><a href="#4_1">4. 练习与要点</a></li>
+<li><a href="#1">1 · 为什么把弱导数放进范数</a></li>
+<li><a href="#2">2 · 先算缩放，再问不等式能否成立</a></li>
+<li><a href="#3-sobolev">3 · 补上真正的 Sobolev 不等式证明</a></li>
+<li><a href="#4">4 · 临界维度：帽函数没发散，不代表所有函数都受控</a></li>
+<li><a href="#5">5 · 超临界连续性，与低于临界的紧性</a></li>
+<li><a href="#6">6 · 零迹与减均值：导数看不到的那部分</a></li>
+<li><a href="#7">7 · 迹从哪里来，为什么单独积分不够</a></li>
+<li><a href="#8">8 · 四道迁移练习</a><ul>
+<li><a href="#1_1">练习1：换一个光滑鼓包，临界指数会改变吗？</a></li>
+<li><a href="#2-sobolev">练习2：一个点奇性何时属于 Sobolev 空间？</a></li>
+<li><a href="#3">练习3：临界集中究竟否定了什么？</a></li>
+<li><a href="#4_1">练习4：把边界条件换掉，会发生什么？</a></li>
+</ul>
+</li>
+<li><a href="#9">9 · 实验如何复算，下一页会用到什么</a></li>
 </ul>
 </div>
 </details>
 <h1 id="pde-ii-sobolev">现代 PDE II · Sobolev 空间<a class="headerlink" href="#pde-ii-sobolev" title="Permanent link"></a></h1>
-<blockquote>
-<p><strong>对标</strong>：Evans <em>PDE</em> §5.1–5.7 ｜ <strong>前置</strong>：pde2-01、泛函 I–II、实变 III
-把"拥有 <span class="arithmatex">\(k\)</span> 阶弱导数"的函数组织成完备空间——<strong>Sobolev 空间</strong>：变分法与弱解理论的主场。核心问题只有一个：<strong>"导数可积"能兑换多少"函数本身的好性质"？</strong>答案是嵌入定理——现代分析最常引用的定理家族。</p>
-</blockquote>
+<p>控制一个函数的导数，需要付出多少积分预算？这份预算能约束函数的总量、最高峰，还是边界值？Sobolev 空间把这些问题放在同一个框架中，但每一种结论都有自己的条件。前置：<a href="pde2-01-distributions.html">分布与弱导数</a>、Hölder 不等式和 <span class="arithmatex">\(L^p\)</span> 完备性；后续：<a href="pde2-03-elliptic.html">二阶椭圆方程</a>。</p>
+<style>article:has(#sobolev-scaling-learning-title) .katex { position: relative; }</style>
 <div data-learning-page></div>
 
 <section aria-labelledby="sobolev-scaling-learning-title" class="learning-layer">
-<h2 id="sobolev-scaling-learning-title">学习层：固定梯度预算，\(p^*\) 为什么是临界指数？<a class="headerlink" href="#sobolev-scaling-learning-title" title="Permanent link"></a></h2>
-<h3 id="1-sobolev">1. 先猜：尖峰能不能骗过 Sobolev 控制？<a class="headerlink" href="#1-sobolev" title="Permanent link"></a></h3>
-<p>在 <span class="arithmatex">\(\mathbb R^n\)</span> 中给一个径向帽函数，并把一阶梯度预算精确钉为 <span class="arithmatex">\(\|Du_\varepsilon\|_{L^p}=1\)</span>。当 <span class="arithmatex">\(\varepsilon\)</span> 变小时，帽子变窄；但振幅会怎样，<span class="arithmatex">\(L^q\)</span> 范数又会怎样？这里的目标不是画一族“好看的函数”，而是逐项审计<strong>振幅、支撑体积、梯度预算和 <span class="arithmatex">\(L^q\)</span> 范数的缩放账本</strong>。</p>
-<p>先不要打开账本，写下四个预测：</p>
-<ol>
-<li>在 <span class="arithmatex">\(1\leq p&lt;n\)</span> 时，<span class="arithmatex">\(\varepsilon\downarrow0\)</span>，<span class="arithmatex">\(\|u_\varepsilon\|_\infty\)</span> 会增大、保持不变，还是减小？</li>
-<li>取 <span class="arithmatex">\(q=p^*=np/(n-p)\)</span>，<span class="arithmatex">\(\varepsilon\downarrow0\)</span> 时 <span class="arithmatex">\(\|u_\varepsilon\|_{L^q}\)</span> 会趋于 <span class="arithmatex">\(0\)</span>、保持同一尺度，还是发散？</li>
-<li>取 <span class="arithmatex">\(q&gt;p^*\)</span>，<span class="arithmatex">\(\varepsilon\downarrow0\)</span> 时 <span class="arithmatex">\(\|u_\varepsilon\|_{L^q}\)</span> 会趋于 <span class="arithmatex">\(0\)</span>、保持同一尺度，还是发散？</li>
-<li>在同一归一化预算下，<span class="arithmatex">\(\|Du_\varepsilon\|_{L^p}\)</span> 会随 <span class="arithmatex">\(\varepsilon\)</span> 改变，还是始终等于 <span class="arithmatex">\(1\)</span>？</li>
-</ol>
-<p>实验会先收下这四个预测；提交后才解锁连续的 <span class="arithmatex">\(\varepsilon\)</span>、<span class="arithmatex">\(q\)</span> 和有限维度预设。揭示之后，每一次调节都同时更新帽形图、对数账本、精确 Beta 因子和临界性判别。</p>
-<h3 id="2">2. 精确模型：四本账合起来只剩一个指数<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>实验只使用 <span class="arithmatex">\(1\leq p&lt;n\)</span>。记单位球体积</p>
-<div class="arithmatex">\[
-\omega_n=|B_1(0)|=\frac{\pi^{n/2}}{\Gamma(n/2+1)},
-\qquad
-u_\varepsilon(x)=A_\varepsilon\left(1-\frac{|x|}{\varepsilon}\right)_+,
-\]</div>
-<p>其中</p>
-<div class="arithmatex">\[
-A_\varepsilon=\varepsilon^{1-n/p}\omega_n^{-1/p}.
-\]</div>
-<p>几乎处处有 <span class="arithmatex">\(|Du_\varepsilon|=A_\varepsilon/\varepsilon\)</span>（<span class="arithmatex">\(|x|&lt;\varepsilon\)</span>），所以</p>
-<div class="arithmatex">\[
-\|Du_\varepsilon\|_p^p
-=\left(\frac{A_\varepsilon}{\varepsilon}\right)^p\omega_n\varepsilon^n
-=1.
-\]</div>
-<p>用极坐标和 <span class="arithmatex">\(B(a,b)=\Gamma(a)\Gamma(b)/\Gamma(a+b)\)</span>，对 <span class="arithmatex">\(q\geq1\)</span> 得到</p>
-<div class="arithmatex">\[
-\begin{aligned}
-|\operatorname{supp}u_\varepsilon|&amp;=\omega_n\varepsilon^n,\\
-\|u_\varepsilon\|_\infty&amp;=A_\varepsilon
-=\omega_n^{-1/p}\varepsilon^{1-n/p},\\
-\|u_\varepsilon\|_q^q
-&amp;=A_\varepsilon^q\,n\omega_n\varepsilon^n B(n,q+1),\\
-\|u_\varepsilon\|_q
-&amp;=\omega_n^{-1/p}\bigl[n\omega_n B(n,q+1)\bigr]^{1/q}
-\varepsilon^{\,1-n/p+n/q}.
-\end{aligned}
-\]</div>
-<p>因此真正决定极限的是</p>
-<div class="arithmatex">\[
-s(q)=1-\frac np+\frac nq.
-\]</div>
-<p>令 <span class="arithmatex">\(p^*=np/(n-p)\)</span>，则 <span class="arithmatex">\(s(q)=0\)</span> 恰好等价于 <span class="arithmatex">\(q=p^*\)</span>。于是当 <span class="arithmatex">\(\varepsilon\downarrow0\)</span> 时：</p>
-<div class="arithmatex">\[
-q&lt;p^*\Longrightarrow \|u_\varepsilon\|_q\to0,
-\qquad
-q=p^*\Longrightarrow \|u_\varepsilon\|_q\text{ 保持尺度},
-\qquad
-q&gt;p^*\Longrightarrow \|u_\varepsilon\|_q\to\infty.
-\]</div>
-<p>这只是尺度的必要性/障碍诊断，不给出 Sobolev 不等式的 sharp constant。帽函数是 <span class="arithmatex">\(W^{1,p}\)</span> 中的 Lipschitz 代表，不是 <span class="arithmatex">\(C^\infty\)</span> 函数；用尺度相称的卷积平滑可在 <span class="arithmatex">\(W^{1,p}\)</span> 中逼近它，并保留上述幂指数，但平滑过程本身不产生 sharp 常数。</p>
-<div class="learning-lab" data-learning-lab="sobolev-scaling">
-<p><strong>JavaScript 失效时的静态后备：</strong>取默认 <span class="arithmatex">\(n=3,p=2,\varepsilon=1\)</span>，于是 <span class="arithmatex">\(\omega_3=4\pi/3\)</span>、<span class="arithmatex">\(p^*=6\)</span>、<span class="arithmatex">\(A_1=\sqrt{3/(4\pi)}\)</span>，且 <span class="arithmatex">\(\|Du_1\|_2=1\)</span>、<span class="arithmatex">\(|\operatorname{supp}u_1|=4\pi/3\)</span>。对任意 <span class="arithmatex">\(q\geq1\)</span>，</p>
-<div class="arithmatex">\[
-\|u_\varepsilon\|_q
-=\left(\frac{3}{4\pi}\right)^{1/2}
-\bigl[4\pi B(3,q+1)\bigr]^{1/q}
-\varepsilon^{-1/2+3/q}.
-\]</div>
-<p>读三行即可复核临界性：<span class="arithmatex">\(q=2\)</span> 的指数是 <span class="arithmatex">\(1\)</span>，<span class="arithmatex">\(q=6\)</span> 的指数是 <span class="arithmatex">\(0\)</span>，<span class="arithmatex">\(q=8\)</span> 的指数是 <span class="arithmatex">\(-1/8\)</span>。同一预算下把 <span class="arithmatex">\(\varepsilon\)</span> 从 <span class="arithmatex">\(1\)</span> 缩到 <span class="arithmatex">\(1/4\)</span> 时，支撑体积变为原来的 <span class="arithmatex">\(1/64\)</span>，振幅变为原来的 <span class="arithmatex">\(2\)</span> 倍，而梯度 <span class="arithmatex">\(L^2\)</span> 范数仍为 <span class="arithmatex">\(1\)</span>。这张表是精确公式的静态读法，不是对一般函数的 sharp Sobolev 常数声明。</p>
+<h2 id="sobolev-scaling-learning-title">学习层：同一份导数预算，四种不同的检验<a class="headerlink" href="#sobolev-scaling-learning-title" title="Permanent link"></a></h2>
+<p>先回答四个预测，再打开图与账本。可以先完成帽函数一组，读到临界情况后再切换 Moser 集中；区间上的两个模型用于核对边界条件。</p>
 <table>
 <thead>
 <tr>
-<th>量</th>
-<th>精确账本</th>
-<th style="text-align: right;">默认例的 <span class="arithmatex">\(\varepsilon\)</span> 指数</th>
+<th>模型</th>
+<th>改变什么</th>
+<th>要分清的两件事</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>梯度预算</td>
-<td><span class="arithmatex">\(\|Du_\varepsilon\|_p=1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td>固定梯度的帽函数</td>
+<td>支撑半径与目标幂次</td>
+<td>积分范数受控，是否就意味着峰值受控</td>
 </tr>
 <tr>
-<td>支撑体积</td>
-<td><span class="arithmatex">\(\omega_n\varepsilon^n\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(n\)</span></td>
+<td>临界 Moser 族</td>
+<td>对数集中参数</td>
+<td>每个函数有界，是否意味着整族有统一上界</td>
 </tr>
 <tr>
-<td>峰值</td>
-<td><span class="arithmatex">\(\omega_n^{-1/p}\varepsilon^{1-n/p}\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1-n/p\)</span></td>
+<td>正弦加常数</td>
+<td>区间长度、偏置与振幅</td>
+<td>零边界值与减去均值是否相同</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(L^q\)</span> 范数</td>
-<td><span class="arithmatex">\(\omega_n^{-1/p}[n\omega_nB(n,q+1)]^{1/q}\varepsilon^{s(q)}\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(s(q)=1-n/p+n/q\)</span></td>
+<td>窄边界层</td>
+<td>层宽与区间长度</td>
+<td>内部积分很小，是否意味着边界值很小</td>
 </tr>
 </tbody>
 </table>
+<div class="learning-lab" data-learning-lab="sobolev-scaling">
+<h3 id="_1">无脚本参考账本<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>帽函数取 n=3、p=2、q=p*=6、ε=0.1；Moser 例取 n=2、L=10；正弦例取区间长度1、振幅1、偏置0；边界层宽0.1、区间长度1。下表均来自正文解析公式。</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th style="text-align: right;">解析公式的数值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>帽：梯度L2</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>帽：峰值</td>
+<td style="text-align: right;">1.54509681</td>
+</tr>
+<tr>
+<td>帽：临界L6</td>
+<td style="text-align: right;">0.296431203</td>
+</tr>
+<tr>
+<td>帽：支撑体积</td>
+<td style="text-align: right;">0.0041887902</td>
+</tr>
+<tr>
+<td>Moser：梯度L2</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>Moser：峰值</td>
+<td style="text-align: right;">1.26156626</td>
+</tr>
+<tr>
+<td>Moser：L2</td>
+<td style="text-align: right;">0.15811388</td>
+</tr>
+<tr>
+<td>Moser：指数临界系数4π</td>
+<td style="text-align: right;">12.5663706</td>
+</tr>
+<tr>
+<td>正弦：L2</td>
+<td style="text-align: right;">0.707106781</td>
+</tr>
+<tr>
+<td>正弦：梯度L2</td>
+<td style="text-align: right;">2.22144147</td>
+</tr>
+<tr>
+<td>正弦：最优常数1/π</td>
+<td style="text-align: right;">0.318309886</td>
+</tr>
+<tr>
+<td>边界层：L2</td>
+<td style="text-align: right;">0.182574186</td>
+</tr>
+<tr>
+<td>边界层：梯度L2</td>
+<td style="text-align: right;">3.16227766</td>
+</tr>
+<tr>
+<td>边界层：左端迹</td>
+<td style="text-align: right;">1</td>
+</tr>
+</tbody>
+</table>
+<p>帽的临界范数不随半径改变。Moser 族的峰值随 L 增大而没有统一上界。正弦达到区间零迹最优常数；边界层则展示单独 L² 控制的不足。</p>
 </div>
-<h3 id="3-p">3. 误区与边界：同一个 <span class="arithmatex">\(p^*\)</span> 不能替代所有嵌入定理<a class="headerlink" href="#3-p" title="Permanent link"></a></h3>
-<ul>
-<li><strong><span class="arithmatex">\(\mathbb R^n\)</span> 的齐次 GNS。</strong> 当 <span class="arithmatex">\(1\leq p&lt;n\)</span>，对 <span class="arithmatex">\(u\in C_c^\infty(\mathbb R^n)\)</span>（再以齐次范数完备化）有 <span class="arithmatex">\(\|u\|_{L^{p^*}}\leq C\|Du\|_{L^p}\)</span>。右侧只看梯度，是尺度不变的齐次陈述；一般 <span class="arithmatex">\(W^{1,p}\)</span> 范数还包含 <span class="arithmatex">\(\|u\|_{L^p}\)</span>，不能把两种语境混写。</li>
-<li><strong>有界 Lipschitz 域。</strong> 对 <span class="arithmatex">\(1\leq p&lt;n\)</span>，<span class="arithmatex">\(W^{1,p}(\Omega)\hookrightarrow L^q(\Omega)\)</span> 对 <span class="arithmatex">\(q\leq p^*\)</span> 成立，且 <span class="arithmatex">\(q&lt;p^*\)</span> 时紧；<span class="arithmatex">\(p=n\)</span> 时对每个有限 <span class="arithmatex">\(q\)</span> 有嵌入/紧嵌入但一般没有 <span class="arithmatex">\(L^\infty\)</span> 嵌入；<span class="arithmatex">\(p&gt;n\)</span> 时由 Morrey 得到 Hölder 连续代表，并且可在较低 Hölder 指数上得到紧嵌入。域的有界性和 Lipschitz 边界是这些版本的条件，不是装饰。</li>
-<li><strong>临界维度 <span class="arithmatex">\(p=n\)</span>。</strong> 此时 <span class="arithmatex">\(p^*\)</span> 不应写成一个有限目标指数。常用结论是所有有限 <span class="arithmatex">\(L^q\)</span>，以及带有有界域、零迹或归一化等条件的 Trudinger–Moser 型指数可积；齐次版本涉及 BMO 等临界空间。它不等于一般的 <span class="arithmatex">\(L^\infty\)</span> 控制。</li>
-<li><strong><span class="arithmatex">\(p&gt;n\)</span>。</strong> Morrey 的 Hölder 指数是 <span class="arithmatex">\(\alpha=1-n/p\)</span>，需要把域、局部版本或全局 <span class="arithmatex">\(W^{1,p}\)</span> 语境说清；这与 <span class="arithmatex">\(p&lt;n\)</span> 的“升可积性”不是同一结论。</li>
-<li><strong>Poincaré 的常数自由度。</strong> <span class="arithmatex">\(\|Du\|_p\)</span> 是半范数，常数函数是核。必须用零迹、零均值或其他钉住条件消掉常数自由度，并在有界（通常还要求连通）域上使用相应版本。</li>
-<li><strong>迹与零迹。</strong> 下面的迹句子是 <span class="arithmatex">\(k=1\)</span>、<span class="arithmatex">\(1\leq p&lt;\infty\)</span>、有界 Lipschitz 域的版本：<span class="arithmatex">\(T:W^{1,p}(\Omega)\to L^p(\partial\Omega)\)</span> 有界，<span class="arithmatex">\(W_0^{1,p}=\ker T\)</span>。更高阶 <span class="arithmatex">\(k\)</span> 需要相应的高阶迹数据与边界正则性，不能由这一行自动推出。</li>
-</ul>
-<h3 id="4">4. 证明映射：实验每一行对应哪一步？<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<ol>
-<li>极坐标把径向积分写成 <span class="arithmatex">\(n\omega_n\int_0^\varepsilon f(r)r^{n-1}dr\)</span>；换元 <span class="arithmatex">\(r=\varepsilon t\)</span> 产生支撑体积的 <span class="arithmatex">\(\varepsilon^n\)</span>。</li>
-<li>帽函数在球内的径向斜率是 <span class="arithmatex">\(A_\varepsilon/\varepsilon\)</span>；把它的 <span class="arithmatex">\(p\)</span> 次方与球体积相乘，正好得到梯度预算的三个幂次 <span class="arithmatex">\(A_\varepsilon^p\varepsilon^{-p}\varepsilon^n\)</span>。</li>
-<li><span class="arithmatex">\(L^q\)</span> 账本剩下的无量纲积分是 <span class="arithmatex">\(B(n,q+1)\)</span>；所有几何常数进入前面的系数，所有缩放信息集中到 <span class="arithmatex">\(s(q)\)</span>。</li>
-<li>将 <span class="arithmatex">\(s(q)=0\)</span> 解为 <span class="arithmatex">\(q=np/(n-p)\)</span>，这解释了“临界指数”为什么不是凭记忆指定的。真正的 GNS 证明还需要分析估计；本实验只映射尺度和反例机制，不证明定理，也不声称帽函数达到最优常数。</li>
-</ol>
-<h3 id="5">5. 迁移问题：换测试族时，哪一笔账会改变？<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<p>把帽函数换成 <span class="arithmatex">\(u_\varepsilon(x)=\varepsilon^{-a}\phi(x/\varepsilon)\)</span>，其中 <span class="arithmatex">\(\phi\)</span> 固定且光滑紧支撑。请先推导 <span class="arithmatex">\(\|Du_\varepsilon\|_p\)</span> 的指数 <span class="arithmatex">\(1-a-n/p\)</span>，再问：选择哪个 <span class="arithmatex">\(a\)</span> 才能固定梯度预算？在这个选择下，<span class="arithmatex">\(\|u_\varepsilon\|_q\)</span> 的指数是否仍为 <span class="arithmatex">\(1-n/p+n/q\)</span>？最后说明：当 <span class="arithmatex">\(p=n\)</span> 时为什么这套“解出有限 <span class="arithmatex">\(p^*\)</span>”的读法停止，当 <span class="arithmatex">\(p&gt;n\)</span> 时为什么 Morrey 连续性取代了同一类临界 <span class="arithmatex">\(L^q\)</span> 叙事；若把定义域改成有界 Lipschitz 域，哪些全空间缩放会被边界截断？</p>
 </section>
-<h2 id="1">1. 定义与基本性质<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>定义</strong>（<span class="arithmatex">\(1\leq p&lt;\infty\)</span>）<span class="arithmatex">\(W^{k,p}(\Omega) = \{u \in L^p : D^\alpha u \in L^p,\ |\alpha| \leq k\}\)</span>（弱导数，pde2-01），配范数</p>
+<figure>
+<img src="assets/img/pde2-02-sobolev-budgets.svg" alt="固定梯度帽函数的三条缩放曲线、Moser族的峰值和范数、区间正弦的Poincare预算，以及窄边界层的范数和迹" loading="lazy">
+<figcaption>每幅图的参数与坐标独立标明。对数坐标帮助看清集中；曲线中的有限范围不能替代正文的极限论证。</figcaption>
+</figure>
+
+<h2 id="1">1 · 为什么把弱导数放进范数<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>在开集 <span class="arithmatex">\(\Omega\subset\mathbb R^n\)</span> 上，对整数 <span class="arithmatex">\(k\ge0\)</span>、<span class="arithmatex">\(1\le p\le\infty\)</span>，定义</p>
 <div class="arithmatex">\[
-\|u\|_{W^{k,p}} = \Big(\sum_{|\alpha|\leq k}\|D^\alpha u\|_{L^p}^p\Big)^{1/p}
+W^{k,p}(\Omega)=
+\{u\in L^p(\Omega):D^\alpha u\in L^p(\Omega),\ |\alpha|\le k\}.
 \]</div>
-<p><strong>定理（完备性）</strong> <span class="arithmatex">\(W^{k,p}\)</span> 是 Banach 空间；<span class="arithmatex">\(p = 2\)</span> 时记 <span class="arithmatex">\(H^k = W^{k,2}\)</span>，是 <strong>Hilbert 空间</strong>。
-<strong>【证明】</strong> Cauchy 列的各阶弱导数各自在 <span class="arithmatex">\(L^p\)</span> 中 Cauchy（范数控制）⇒ 各有极限（实变 III 完备性）；弱导数定义中的积分等式对极限过关（Hölder 控制）⇒ 极限函数的弱导数恰是导数们的极限。<span class="arithmatex">\(\blacksquare\)</span>（"弱导数与极限交换"这份从容正是弱定义的回报——经典导数做不到。）</p>
-<p><strong><span class="arithmatex">\(H = W\)</span> 定理（Meyers–Serrin，<span class="arithmatex">\(1\leq p&lt;\infty\)</span>）【引用】</strong>：<span class="arithmatex">\(C^\infty(\Omega)\cap W^{k,p}(\Omega)\)</span> 在 <span class="arithmatex">\(W^{k,p}\)</span> 中稠密——Sobolev 函数可由光滑函数按 Sobolev 范数逼近（实变 III 的“完备化”叙事再现）。<strong>边界零值空间</strong> <span class="arithmatex">\(W_0^{k,p}\)</span> 定义为 <span class="arithmatex">\(C_c^\infty(\Omega)\)</span> 的闭包；只有在边界与阶数满足迹定理的条件时，才能把它进一步翻译成相应迹数据为零。对本页后文的有界 Lipschitz 域和 <span class="arithmatex">\(k=1\)</span>，这正是齐次 Dirichlet 边界条件的容身处。</p>
-<h2 id="2-sobolev">2. Sobolev 嵌入定理（本页顶点）<a class="headerlink" href="#2-sobolev" title="Permanent link"></a></h2>
-<p><strong>问题</strong>：<span class="arithmatex">\(u \in W^{1,p}(\mathbb{R}^n)\)</span>——一阶导数 <span class="arithmatex">\(L^p\)</span> 可积——<span class="arithmatex">\(u\)</span> 本身能好到什么程度？答案由 <span class="arithmatex">\(p\)</span> 与 <span class="arithmatex">\(n\)</span> 的赛跑决定：</p>
-<p><strong>定理（齐次 Gagliardo–Nirenberg–Sobolev，<span class="arithmatex">\(1\leq p&lt;n\)</span>，<span class="arithmatex">\(\mathbb R^n\)</span>）</strong> 对 <span class="arithmatex">\(u\in C_c^\infty(\mathbb R^n)\)</span>，并延拓到相应的齐次 Sobolev 空间，</p>
+<p>这里的导数是分布意义下、由 <span class="arithmatex">\(L^p\)</span> 函数表示的弱导数。它们几乎处处唯一；函数也按几乎处处相等分类。对有限 <span class="arithmatex">\(p\)</span>，采用</p>
 <div class="arithmatex">\[
-\|u\|_{L^{p^*}} \leq C\|Du\|_{L^p}, \qquad p^* = \frac{np}{n - p}
+\|u\|_{W^{k,p}}=
+\left(\sum_{|\alpha|\le k}\|D^\alpha u\|_p^p\right)^{1/p}.
 \]</div>
-<p>这是只由梯度控制的齐次陈述。若讨论一般的 <span class="arithmatex">\(W^{1,p}\)</span> 范数，控制量是 <span class="arithmatex">\(\|u\|_{L^p}+\|Du\|_{L^p}\)</span>；在全空间和有界域之间还要分别检查定义域与边界条件。指数 <span class="arithmatex">\(p^*&gt;p\)</span> 给出<strong>可积性升级</strong>。
-<strong>【骨架】</strong>（<span class="arithmatex">\(p = 1\)</span> 核心情形）：沿每个坐标轴 <span class="arithmatex">\(|u(x)| \leq \int|\partial_i u|\,dx_i\)</span>（微积分基本定理弱版），<span class="arithmatex">\(n\)</span> 个不等式相乘开 <span class="arithmatex">\(\frac{1}{n-1}\)</span> 次方、逐变量用广义 Hölder 积分——纯粹的"多轴 Fubini + Hölder 体操"；一般 <span class="arithmatex">\(p\)</span> 对 <span class="arithmatex">\(|u|^\gamma\)</span> 套用并选 <span class="arithmatex">\(\gamma\)</span> 配平指数。<span class="arithmatex">\(\blacksquare\)</span>
-（指数 <span class="arithmatex">\(p^*\)</span> 不用背：<strong>量纲分析</strong>——对 <span class="arithmatex">\(u(\lambda x)\)</span> 两边算标度，唯一能让不等式标度不变的指数就是 <span class="arithmatex">\(p^*\)</span>。本科建模页的量纲法在纯分析里执勤。）</p>
-<p><strong>定理（Morrey，<span class="arithmatex">\(p &gt; n\)</span>）</strong> 在合适的有界 Lipschitz 域（或局部版本）上，<span class="arithmatex">\(W^{1,p} \hookrightarrow C^{0,\alpha}\)</span>，<span class="arithmatex">\(\alpha = 1 - \frac np\)</span>：<strong>导数可积性够高 ⇒ 函数有 Hölder 连续代表</strong>。这不是 <span class="arithmatex">\(p&lt;n\)</span> 时的 <span class="arithmatex">\(L^{p^*}\)</span> 结论。
-<strong>【骨架】</strong> 球平均比较：<span class="arithmatex">\(|u(x) - u(y)|\)</span> 由 <span class="arithmatex">\(|Du|\)</span> 在双球上的积分平均控制（极坐标 + Hölder），<span class="arithmatex">\(p &gt; n\)</span> 恰使奇性积分收敛。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>分水岭读法</strong>（记这张图不记指数；<span class="arithmatex">\(p=n\)</span> 不提供一个有限的 <span class="arithmatex">\(p^*\)</span>）：</p>
+<p>对 <span class="arithmatex">\(p=\infty\)</span> 可取各阶导数本质上确界的最大值。讨论一阶几何估计时，下文的 <span class="arithmatex">\(|\nabla u|\)</span> 使用欧氏长度；这给出的范数与上述逐分量定义等价，但讨论最优常数时必须固定约定。</p>
+<p><strong>完备性是弱导数定义的直接回报。</strong> 若 <span class="arithmatex">\((u_j)\)</span> 在上述范数中 Cauchy，<span class="arithmatex">\(L^p\)</span> 的完备性给出 <span class="arithmatex">\(D^\alpha u_j\to v_\alpha\)</span> 于 <span class="arithmatex">\(L^p\)</span>，其中 <span class="arithmatex">\(v_0=u\)</span>。对每个 <span class="arithmatex">\(\varphi\in C_c^\infty(\Omega)\)</span>，</p>
 <div class="arithmatex">\[
-p &lt; n:\ \text{升可积性};\qquad p = n:\ \text{临界（有限 }L^q\text{/指数可积，非一般 }L^\infty\text{）};\qquad p &gt; n:\ \text{变连续}
+\int_\Omega u_jD^\alpha\varphi
+=(-1)^{|\alpha|}\int_\Omega D^\alpha u_j\,\varphi.
 \]</div>
-<p>一维（<span class="arithmatex">\(n = 1\)</span>）时 <span class="arithmatex">\(W^{1,1}\)</span> 已嵌入连续函数——绝对连续（实变 II 的 N–L 条件）原来是 Sobolev 嵌入的最低维特例；维数越高，"导数可积"越不值钱——<strong>维数灾难的分析学形态</strong>。</p>
-<p><strong>定理（Rellich–Kondrachov 紧嵌入）【引用】</strong> 在有界 Lipschitz 域上，若 <span class="arithmatex">\(1\leq p&lt;n\)</span>，则 <span class="arithmatex">\(W^{1,p}\hookrightarrow L^q\)</span>（<span class="arithmatex">\(q&lt;p^*\)</span>）是<strong>紧算子</strong>；若 <span class="arithmatex">\(p=n\)</span>，每个有限 <span class="arithmatex">\(q\)</span> 都是紧嵌入；若 <span class="arithmatex">\(p&gt;n\)</span>，则在 <span class="arithmatex">\(0\leq\beta&lt;1-n/p\)</span> 时有到 <span class="arithmatex">\(C^{0,\beta}\)</span> 的相应紧嵌入。这里的 <span class="arithmatex">\(p^*\)</span> 只属于 <span class="arithmatex">\(p&lt;n\)</span> 的分支。<strong>变分法的氧气</strong>：极小化序列凭它抽出收敛子列（泛函 I"无穷维闭球不紧"的困境，被"多一阶导数的控制"局部破解——紧性是花导数买来的）。</p>
-<h2 id="3-poincare">3. 迹与 Poincaré 不等式<a class="headerlink" href="#3-poincare" title="Permanent link"></a></h2>
-<p><strong>迹定理【引用】</strong>（<span class="arithmatex">\(k=1\)</span>、<span class="arithmatex">\(1\leq p&lt;\infty\)</span>）：有界 Lipschitz 域上存在有界线性算子 <span class="arithmatex">\(T: W^{1,p}(\Omega) \to L^p(\partial\Omega)\)</span> 延拓"取边界值"——<span class="arithmatex">\(L^p\)</span> 函数本无逐点边界值（边界零测！），<strong>一阶弱导数恰好买回"在边界上有意义"</strong>；<span class="arithmatex">\(W_0^{1,p} = \ker T\)</span>（§1 的定义与直觉对齐）。更高阶 <span class="arithmatex">\(k\)</span> 的迹还包括导数的边界数据，需另加假设。</p>
-<p><strong>定理（Poincaré 不等式）</strong> 有界 Lipschitz 域、<span class="arithmatex">\(1\leq p&lt;\infty\)</span>、<span class="arithmatex">\(u \in W_0^{1,p}\)</span>：</p>
+<p>Hölder 不等式控制两端的极限误差；<span class="arithmatex">\(p=\infty\)</span> 时配对的测试函数属于 <span class="arithmatex">\(L^1\)</span>。因此同一等式对 <span class="arithmatex">\(u,v_\alpha\)</span> 成立，<span class="arithmatex">\(D^\alpha u=v_\alpha\)</span>，且 <span class="arithmatex">\(u_j\to u\)</span> 于 Sobolev 范数。这证明 <span class="arithmatex">\(W^{k,p}\)</span> 是 Banach 空间。<span class="arithmatex">\(H^k=W^{k,2}\)</span> 的内积为各阶弱导数 <span class="arithmatex">\(L^2\)</span> 内积之和，所以它是 Hilbert 空间。</p>
+<p>对 <span class="arithmatex">\(1\le p&lt;\infty\)</span>，Meyers–Serrin 定理允许用 <span class="arithmatex">\(C^\infty(\Omega)\cap W^{k,p}(\Omega)\)</span> 强逼近任意 Sobolev 函数。证明需要在内部局部磨光，再用局部有限的单位分解拼接，并把各片误差安排成可求和数列。它没有要求逼近函数在边界附近为零。另一个空间</p>
 <div class="arithmatex">\[
-\|u\|_{L^p} \leq C(\Omega)\,\|Du\|_{L^p}
+W_0^{k,p}(\Omega)
+=\overline{C_c^\infty(\Omega)}^{\,W^{k,p}}
 \]</div>
-<p><strong>【证明（矩形域情形）】</strong> 一维基本定理 <span class="arithmatex">\(u(x) = \int_{a}^{x_1}\partial_1 u\)</span>（边界为零起步），Hölder 给 <span class="arithmatex">\(|u|^p \leq C\int|\partial_1 u|^p dx_1\)</span>，积掉其余变量。<span class="arithmatex">\(\blacksquare\)</span>
-<strong>地位</strong>：<strong>"钉住边界后，函数大小由导数完全控制"</strong>——下一页椭圆方程强制性（coercivity）的直接来源；若不取零迹，则通常改成 <span class="arithmatex">\(\|u-u_\Omega\|_{L^p}\leq C\|Du\|_{L^p}\)</span>（连通域）或加入均值/其他钉住条件。特征值语言里 <span class="arithmatex">\(C(\Omega)^{-2}\)</span> 联于 Laplace 首特征值（本科 pde-01 的 <span class="arithmatex">\(\lambda_1\)</span>）——最优常数是个谱问题。</p>
-<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（归属判断）</strong> 取 <span class="arithmatex">\(a&gt;0\)</span>、<span class="arithmatex">\(1\leq p&lt;n\)</span>，令 <span class="arithmatex">\(u = |x|^{-a}\)</span>（<span class="arithmatex">\(\mathbb{R}^n\)</span> 的单位球上）。此时 <span class="arithmatex">\(u \in W^{1,p} \iff a &lt; \frac{n-p}{p}\)</span>（极坐标积分两条：<span class="arithmatex">\(u\)</span> 与 <span class="arithmatex">\(|Du| \sim |x|^{-a-1}\)</span> 各自 <span class="arithmatex">\(L^p\)</span>）——<strong>奇点强度与维数、可积指数的三方讨价</strong>，Sobolev 直觉的标准砂纸。<span class="arithmatex">\(n = 3, p = 2\)</span>：<span class="arithmatex">\(a &lt; \frac12\)</span>——点奇性 <span class="arithmatex">\(|x|^{-1/3} \in H^1\)</span>：<strong><span class="arithmatex">\(H^1\)</span> 函数可以无界</strong>（<span class="arithmatex">\(p = 2 &lt; n = 3\)</span> 在分水岭左侧，只升可积不保连续——嵌入定理的反面教材）。</p>
-<p><strong>例 2（量纲法定指数）</strong> 验证 GNS 指数：<span class="arithmatex">\(u_\lambda(x) = u(\lambda x)\)</span>，<span class="arithmatex">\(\|u_\lambda\|_{L^q} = \lambda^{-n/q}\|u\|_{L^q}\)</span>，<span class="arithmatex">\(\|Du_\lambda\|_{L^p} = \lambda^{1 - n/p}\|Du\|_{L^p}\)</span>——两边标度相等 <span class="arithmatex">\(\iff q = p^*\)</span>。<strong>不变量分析替代记忆</strong>（全站第 N 次）。</p>
-<p><strong>例 3（Poincaré 失效面）</strong> 去掉"钉边界"（常数函数：<span class="arithmatex">\(Du = 0\)</span> 而 <span class="arithmatex">\(u \neq 0\)</span>）或"有界域"（长条上拉伸的鼓包）都使不等式失效——每个假设各挡一个反例：定理条件的"验尸报告"式理解法。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：地基完工，开始盖楼——二阶椭圆方程的弱解理论：Lax–Milgram、能量估计与正则性，现代 PDE 三页收官。</em></p>
-<p>后续练习：<a href="bridge-18-heat-distributions.html">热核正则化与随机分布</a>把单一测试函数推广到完整 Sobolev 范数，推导精确阈值与临界壳层，并区分有限频率图和无穷尾界。</p>
+<p>额外包含边界限制。不要把这两个稠密性陈述混为一谈，也不要把有限 <span class="arithmatex">\(p\)</span> 的强磨光结论直接移到 <span class="arithmatex">\(p=\infty\)</span>：例如 <span class="arithmatex">\(|x|\)</span> 的弱导数是阶跃式的符号函数，连续导数不可能在本质上确界范数下把这个跳跃逼近到任意小。</p>
+<h2 id="2">2 · 先算缩放，再问不等式能否成立<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>固定一个非零的 <span class="arithmatex">\(\phi\in C_c^\infty(\mathbb R^n)\)</span>，令</p>
+<div class="arithmatex">\[
+u_\varepsilon(x)=\varepsilon^{-a}\phi(x/\varepsilon).
+\]</div>
+<p>导数产生 <span class="arithmatex">\(1/\varepsilon\)</span>，积分换元 <span class="arithmatex">\(x=\varepsilon y\)</span> 产生 <span class="arithmatex">\(\varepsilon^n\)</span>。所以</p>
+<div class="arithmatex">\[
+\|u_\varepsilon\|_q
+=\varepsilon^{n/q-a}\|\phi\|_q,\qquad
+\|\nabla u_\varepsilon\|_p
+=\varepsilon^{n/p-a-1}\|\nabla\phi\|_p.
+\]</div>
+<p><strong>固定梯度预算必须取 <span class="arithmatex">\(a=n/p-1\)</span>。</strong> 此时目标范数的指数变成</p>
+<div class="arithmatex">\[
+s(q)=1-\frac np+\frac nq.
+\]</div>
+<p>当 <span class="arithmatex">\(1\le p&lt;n\)</span>，恰有一个有限指数使它等于零：</p>
+<div class="arithmatex">\[
+p^*=\frac{np}{n-p},\qquad
+\frac1{p^*}=\frac1p-\frac1n.
+\]</div>
+<p>这只是必要的尺度条件。它说明一个全空间、只含梯度、常数与尺度无关的不等式应该使用哪个指数；它还没有证明那个不等式。</p>
+<p>实验用可逐项积分的帽函数，把系数也保留下来。记 <span class="arithmatex">\(\omega_n=|B_1|=\pi^{n/2}/\Gamma(1+n/2)\)</span>，并取</p>
+<div class="arithmatex">\[
+u_\varepsilon(x)=A_\varepsilon(1-|x|/\varepsilon)_+,\qquad
+A_\varepsilon=\omega_n^{-1/p}\varepsilon^{1-n/p}.
+\]</div>
+<p>它是全空间的紧支集 Lipschitz 函数。球内除原点外，梯度的长度是 <span class="arithmatex">\(A_\varepsilon/\varepsilon\)</span>；球面上函数连续，所以弱一阶导数没有额外的面质量。于是</p>
+<div class="arithmatex">\[
+\|\nabla u_\varepsilon\|_p^p
+=(A_\varepsilon/\varepsilon)^p\omega_n\varepsilon^n=1,
+\qquad
+\|u_\varepsilon\|_\infty=A_\varepsilon.
+\]</div>
+<p>径向积分给出</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\|u_\varepsilon\|_q^q
+&amp;=n\omega_n A_\varepsilon^q
+\int_0^\varepsilon (1-r/\varepsilon)^q r^{n-1}\,dr\\
+&amp;=n\omega_n A_\varepsilon^q\varepsilon^n B(n,q+1),\\
+\|u_\varepsilon\|_q
+&amp;=\omega_n^{-1/p}[n\omega_n B(n,q+1)]^{1/q}\varepsilon^{s(q)}.
+\end{aligned}
+\]</div>
+<p>整数维度下，可由 Beta 积分递推或反复分部积分得到</p>
+<div class="arithmatex">\[
+B(n,q+1)=\frac{(n-1)!}{(q+1)(q+2)\cdots(q+n)}.
+\]</div>
+<p>因此无需相减两个很大的 Gamma 对数。默认三维例的 <span class="arithmatex">\(B(3,7)=1/252\)</span>。当半径趋零时，<span class="arithmatex">\(q&lt;p^*\)</span> 的范数趋零，<span class="arithmatex">\(q=p^*\)</span> 的范数保持为正，<span class="arithmatex">\(q&gt;p^*\)</span> 的范数发散；与此同时峰值一直增大。</p>
+<p>实验的帽形图使用 <span class="arithmatex">\(x/\varepsilon\)</span> 与 <span class="arithmatex">\(u/A_\varepsilon\)</span>，以免在固定像素网格上漏掉极窄支撑。实际半径、体积、峰值另列。符号选项“q=p*”保留严格临界关系；手动 q 按输入的机器数值判定，不用任意容差把微小指数抹成零。近临界两条曲线在有限图上几乎重合，仍可能有不同的极限。</p>
+<h2 id="3-sobolev">3 · 补上真正的 Sobolev 不等式证明<a class="headerlink" href="#3-sobolev" title="Permanent link"></a></h2>
+<p><strong>Gagliardo–Nirenberg–Sobolev 不等式：</strong>对 <span class="arithmatex">\(n\ge2\)</span>、<span class="arithmatex">\(1\le p&lt;n\)</span> 和 <span class="arithmatex">\(u\in C_c^\infty(\mathbb R^n)\)</span>，</p>
+<div class="arithmatex">\[
+\|u\|_{p^*}\le C(n,p)\|\nabla u\|_p.
+\]</div>
+<p>下面证明常数存在，不计算最优常数。首先对 <span class="arithmatex">\(p=1\)</span>，沿第 <span class="arithmatex">\(i\)</span> 个方向积分：</p>
+<div class="arithmatex">\[
+|u(x)|\le F_i(\widehat x_i),\qquad
+F_i(\widehat x_i)=\int_{\mathbb R}|\partial_i u(x_1,\ldots,t,\ldots,x_n)|\,dt.
+\]</div>
+<p>符号 <span class="arithmatex">\(\widehat x_i\)</span> 表示去掉第 <span class="arithmatex">\(i\)</span> 个坐标。把 <span class="arithmatex">\(n\)</span> 个估计相乘并开 <span class="arithmatex">\(1/(n-1)\)</span> 次方后，需要下面的乘积积分引理：</p>
+<div class="arithmatex">\[
+\int_{\mathbb R^n}\prod_{i=1}^n
+F_i(\widehat x_i)^{1/(n-1)}\,dx
+\le\prod_{i=1}^n
+\left(\int_{\mathbb R^{n-1}}F_i\right)^{1/(n-1)}.
+\]</div>
+<p><strong>引理的归纳步骤。</strong> <span class="arithmatex">\(n=2\)</span> 时左右两边相等，是 Fubini。对 <span class="arithmatex">\(n&gt;2\)</span>，先对 <span class="arithmatex">\(x_n\)</span> 用 <span class="arithmatex">\(n-1\)</span> 个同指数的 Hölder，令 <span class="arithmatex">\(G_i=\int F_i\,dx_n\)</span>（<span class="arithmatex">\(i&lt;n\)</span>），得到被积式
+<span class="arithmatex">\(F_n^{1/(n-1)}\prod_{i&lt;n}G_i^{1/(n-1)}\)</span>。再对其余 <span class="arithmatex">\(n-1\)</span> 个变量使用 Hölder，指数为 <span class="arithmatex">\(n-1\)</span> 与 <span class="arithmatex">\((n-1)/(n-2)\)</span>：</p>
+<div class="arithmatex">\[
+\int F_n^{1/(n-1)}\prod_{i&lt;n}G_i^{1/(n-1)}
+\le
+\left(\int F_n\right)^{1/(n-1)}
+\left(\int\prod_{i&lt;n}G_i^{1/(n-2)}\right)^{(n-2)/(n-1)}.
+\]</div>
+<p>对最后的积分用 <span class="arithmatex">\(n-1\)</span> 维归纳假设，再用 Fubini 得 <span class="arithmatex">\(\int G_i=\int F_i\)</span>，即完成证明。非负函数可先截断再用单调收敛处理无限积分。</p>
+<p>把引理代回，开 <span class="arithmatex">\((n-1)/n\)</span> 次方，得到</p>
+<div class="arithmatex">\[
+\|u\|_{n/(n-1)}
+\le\prod_i\|\partial_i u\|_1^{1/n}
+\le\frac1n\sum_i\|\partial_i u\|_1
+\le\|\nabla u\|_1.
+\]</div>
+<p>最后一步使用逐点 <span class="arithmatex">\(|\partial_i u|\le|\nabla u|\)</span>。这些估计同样适用于紧支集 <span class="arithmatex">\(C^1\)</span> 函数。</p>
+<p>现在取 <span class="arithmatex">\(1&lt;p&lt;n\)</span>，令</p>
+<div class="arithmatex">\[
+\gamma=\frac{p(n-1)}{n-p}&gt;1,\qquad p'=\frac p{p-1}.
+\]</div>
+<p>将刚才的 <span class="arithmatex">\(p=1\)</span> 结果用于 <span class="arithmatex">\(|u|^\gamma\)</span>。它是 <span class="arithmatex">\(C^1\)</span> 紧支集函数，链式法则仍成立；无需假称非整数幂在零点也光滑到任意阶。Hölder 给出</p>
+<div class="arithmatex">\[
+\|u\|_{\gamma n/(n-1)}^\gamma
+\le\gamma\int |u|^{\gamma-1}|\nabla u|
+\le\gamma\|u\|_{(\gamma-1)p'}^{\gamma-1}\|\nabla u\|_p.
+\]</div>
+<p>两处指数恰好相同：</p>
+<div class="arithmatex">\[
+\frac{\gamma n}{n-1}=(\gamma-1)p'=p^*.
+\]</div>
+<p>若 <span class="arithmatex">\(u\ne0\)</span>，约去正的 <span class="arithmatex">\(\|u\|_{p^*}^{\gamma-1}\)</span>；<span class="arithmatex">\(u=0\)</span> 时显然成立。于是得到所需不等式。通过紧支集光滑逼近可延拓到 <span class="arithmatex">\(W^{1,p}(\mathbb R^n)\)</span>；相应齐次空间也可用这个估计构造。一般有界域中允许非零常数，因而未经边界归一化不能把右侧只写成梯度。</p>
+<p>上述乘积积分方法、嵌入与迹的标准版本可对照 <a href="https://www.math.ucdavis.edu/~hunter/pdes/pde_notes.pdf">Hunter《PDE》§3.5–3.12</a>。这里把缩放的必要性和分析估计的充分性分开完成。</p>
+<h2 id="4">4 · 临界维度：帽函数没发散，不代表所有函数都受控<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>在 <span class="arithmatex">\(p=n\ge2\)</span> 时，固定梯度的普通帽函数高度不随半径变化。它因此无法检验是否存在统一 <span class="arithmatex">\(L^\infty\)</span> 上界。换成把变化分布到许多对数壳层的函数。</p>
+<p>记 <span class="arithmatex">\(S_{n-1}=n\omega_n\)</span> 为单位球面面积，在单位球上定义 <span class="arithmatex">\(L&gt;0\)</span>：</p>
+<div class="arithmatex">\[
+u_L(r)=S_{n-1}^{-1/n}
+\begin{cases}
+L^{1-1/n},&amp;0\le r\le e^{-L},\\
+\dfrac{\log(1/r)}{L^{1/n}},&amp;e^{-L}&lt;r&lt;1.
+\end{cases}
+\]</div>
+<p>边界值为零，球外延拓为零。对每个固定 <span class="arithmatex">\(L\)</span>，这是 Lipschitz 函数，属于 <span class="arithmatex">\(W_0^{1,n}(B_1)\)</span>。函数在平台边缘连续；弱一阶导数由分段普通导数给出。直接积分：</p>
+<div class="arithmatex">\[
+\|\nabla u_L\|_n^n
+=\frac1L\int_{e^{-L}}^1\frac{dr}{r}=1,\qquad
+\|u_L\|_\infty=S_{n-1}^{-1/n}L^{1-1/n}\longrightarrow\infty.
+\]</div>
+<p>令 <span class="arithmatex">\(t=\log(1/r)\)</span>，函数自身的积分为</p>
+<div class="arithmatex">\[
+\|u_L\|_n^n
+=\frac1L\left[
+\int_0^L t^ne^{-nt}\,dt+
+\frac{L^ne^{-nL}}n
+\right]
+=\frac{n!}{n^{n+1}L}
+\left[1-e^{-nL}\sum_{j=0}^{n-1}\frac{(nL)^j}{j!}\right].
+\]</div>
+<p>第二式来自一次分部积分消去平台项，再递推。特别地 <span class="arithmatex">\(\|u_L\|_n^n\le n!/(n^{n+1}L)\)</span>，所以整族 <span class="arithmatex">\(W^{1,n}\)</span> 范数有界而峰值没有统一上界。这才否定一般的 <span class="arithmatex">\(W^{1,n}\to L^\infty\)</span> 连续嵌入。</p>
+<p><strong>临界点仍有更细的控制。</strong> 对有界光滑域 <span class="arithmatex">\(\Omega\)</span>、<span class="arithmatex">\(n\ge2\)</span>、<span class="arithmatex">\(u\in W_0^{1,n}(\Omega)\)</span>，若 <span class="arithmatex">\(\|\nabla u\|_n\le1\)</span>，Moser–Trudinger 定理给出</p>
+<div class="arithmatex">\[
+\int_\Omega \exp\!\left(\alpha |u|^{n/(n-1)}\right)dx
+\le C_n|\Omega|,
+\qquad 0\le\alpha\le\alpha_n=nS_{n-1}^{1/(n-1)}.
+\]</div>
+<p>这是另一个定理，本页引用其上界而不以一条实验曲线充当证明。其规范化和最优系数见 <a href="https://web.math.princeton.edu/~chang/moser.pdf">Chang–Yang 的综述 §1</a>。二维时 <span class="arithmatex">\(\alpha_2=4\pi\)</span>。</p>
+<p>本页可以独立核对系数为什么不能更大：只积分 Moser 族的平台，就有</p>
+<div class="arithmatex">\[
+\int_{B_1}e^{\alpha |u_L|^{n/(n-1)}}dx
+\ge\omega_n\exp\!\left[
+\left(\alpha S_{n-1}^{-1/(n-1)}-n\right)L
+\right].
+\]</div>
+<p>当 <span class="arithmatex">\(\alpha&gt;\alpha_n\)</span>，右侧发散。这证明更大系数不可能有统一上界；它不证明临界系数处对所有函数的上界。</p>
+<p><strong>一维必须单独说。</strong> 在有限区间 <span class="arithmatex">\((0,\ell)\)</span> 上，<span class="arithmatex">\(W^{1,1}\)</span> 函数有绝对连续代表，</p>
+<div class="arithmatex">\[
+u(x)=u(y)+\int_y^x u'(t)\,dt,\qquad
+\|u\|_\infty\le\ell^{-1}\|u\|_1+\|u'\|_1.
+\]</div>
+<p>最后的估计可先对 <span class="arithmatex">\(y\)</span> 积分平均。因此一维临界 <span class="arithmatex">\(p=n=1\)</span> 确实有连续代表和 <span class="arithmatex">\(L^\infty\)</span> 控制；不要把高维集中反例套过来。</p>
+<h2 id="5">5 · 超临界连续性，与低于临界的紧性<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>对 <span class="arithmatex">\(n&lt;p&lt;\infty\)</span>，Morrey 估计的指数为 <span class="arithmatex">\(\alpha=1-n/p\)</span>。它作用于合适的连续代表，而不是任意修改过零测集后的逐点值。理解指数的一种方法，是把光滑函数的点值与球平均相减，沿径向积分后得到</p>
+<div class="arithmatex">\[
+|u(x)-u_{B_r(x)}|
+\le C_n\int_{B_r(x)}
+\frac{|\nabla u(z)|}{|x-z|^{n-1}}\,dz.
+\]</div>
+<p>Hölder 中的核积分是</p>
+<div class="arithmatex">\[
+\int_0^r \rho^{n-1-(n-1)p'}\,d\rho.
+\]</div>
+<p>它在原点收敛恰需 <span class="arithmatex">\(p&gt;n\)</span>，开 <span class="arithmatex">\(1/p'\)</span> 次方后带来 <span class="arithmatex">\(r^{1-n/p}\)</span>。取包含两点的可比大小球并比较平均值，就得到局部 Hölder 控制；用磨光极限选出连续代表。球平均比较的完整证明与域的延拓属于 Morrey 定理，不由这一个幂次检查单独完成。</p>
+<p>下表统一取<strong>有界 Lipschitz 域</strong>，控制量是完整 <span class="arithmatex">\(W^{1,p}\)</span> 范数，且 <span class="arithmatex">\(p&lt;\infty\)</span>。符号 <span class="arithmatex">\(C^{0,0}\)</span> 在表中只表示连续函数的一致范数。</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>连续嵌入</th>
+<th>可抽出强收敛子列的范围</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(1\le p&lt;n\)</span></td>
+<td><span class="arithmatex">\(L^q\)</span>，<span class="arithmatex">\(1\le q\le p^*\)</span></td>
+<td><span class="arithmatex">\(L^q\)</span>，<span class="arithmatex">\(1\le q&lt;p^*\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(p=n\ge2\)</span></td>
+<td>每个有限 <span class="arithmatex">\(L^q\)</span>，<span class="arithmatex">\(1\le q&lt;\infty\)</span></td>
+<td>每个有限 <span class="arithmatex">\(L^q\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(n&lt;p&lt;\infty\)</span></td>
+<td><span class="arithmatex">\(C^{0,\alpha}\)</span>，<span class="arithmatex">\(\alpha=1-n/p\)</span></td>
+<td><span class="arithmatex">\(C^{0,\beta}\)</span>，<span class="arithmatex">\(0\le\beta&lt;\alpha\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(n=p=1\)</span>，有限区间</td>
+<td>绝对连续代表，且有 <span class="arithmatex">\(L^\infty\)</span> 控制</td>
+<td>每个有限 <span class="arithmatex">\(L^q\)</span>；一般不紧嵌入一致范数</td>
+</tr>
+</tbody>
+</table>
+<p>Rellich–Kondrachov 的结论是“每个有界序列存在子列”，不是原序列必然收敛。其一个证明路线是在有界延拓区域上使用平移估计
+<span class="arithmatex">\(\|u(\cdot+h)-u\|_p\le |h|\|\nabla u\|_p\)</span>，用有限网格上的局部平均构造有限维近似，再通过插值提升到低于临界的 <span class="arithmatex">\(L^q\)</span>。这是需要紧性判据的定理；这里给出路线而不省略为“闭球自动紧”。</p>
+<p>为什么 <span class="arithmatex">\(q=p^*\)</span> 要排除？把第2节的帽函数放在域内部，令 <span class="arithmatex">\(\varepsilon\to0\)</span>，它在原点外逐点趋零，<span class="arithmatex">\(W^{1,p}\)</span> 有界，<span class="arithmatex">\(L^{p^*}\)</span> 范数却保持正值。若有强收敛子列，其极限只能几乎处处为零，与范数不变矛盾。在全空间上，固定鼓包不停平移还会逃向无穷远，所以仅有低于临界指数也不足以保证全空间紧性。</p>
+<p>一维 <span class="arithmatex">\(W^{1,1}\)</span> 的一致紧性同样会失败：高度1、宽度趋零的三角帽，其导数 <span class="arithmatex">\(L^1\)</span> 范数始终为2。它们不能一致收敛到零，尽管每个函数都连续。</p>
+<h2 id="6">6 · 零迹与减均值：导数看不到的那部分<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>常数 <span class="arithmatex">\(b\)</span> 的梯度为零。要从梯度控制整个函数，就必须消除这份自由度。零迹与零均值是两种常见条件，但它们不是同一个条件。</p>
+<p>实验在 <span class="arithmatex">\((0,\ell)\)</span> 上使用</p>
+<div class="arithmatex">\[
+u(x)=b+A\sin(\pi x/\ell),\qquad
+u_\Omega=b+\frac{2A}{\pi},\qquad u(0)=u(\ell)=b.
+\]</div>
+<p>正交积分给出</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\|u\|_2^2
+&amp;=\ell\left(b^2+\frac{4Ab}{\pi}+\frac{A^2}{2}\right)\\
+&amp;=\ell\left[\left(b+\frac{2A}{\pi}\right)^2+
+A^2\left(\frac12-\frac4{\pi^2}\right)\right],\\
+\|u'\|_2^2&amp;=\frac{A^2\pi^2}{2\ell},\\
+\|u-u_\Omega\|_2^2&amp;=\ell A^2\left(\frac12-\frac4{\pi^2}\right).
+\end{aligned}
+\]</div>
+<p>第二种写法是两个非负项之和，计算时避免大项相减。设 <span class="arithmatex">\(C=\ell/\pi\)</span>，则</p>
+<div class="arithmatex">\[
+\|u\|_2^2-C^2\|u'\|_2^2
+=\ell\left(b^2+\frac{4Ab}{\pi}\right).
+\]</div>
+<p><span class="arithmatex">\(b=0\)</span> 时差为零，正弦达到零迹 Poincaré 不等式的最优常数。<span class="arithmatex">\(b\ne0\)</span> 时，某些参数仍可能碰巧使差非正；那不能取消定理的边界条件。取 <span class="arithmatex">\(A=0,b=1\)</span> 就立即违反任何只含梯度的上界。此时范数比的分母为零，实验明确标成未定义，而不是显示一个伪造的有限数值。</p>
+<p><strong>区间最优常数的证明。</strong> 对 <span class="arithmatex">\(u\in H_0^1(0,\ell)\)</span>，展开正弦级数；Parseval 与弱导数的傅里叶恒等式给出</p>
+<div class="arithmatex">\[
+\|u\|_2^2=\frac\ell2\sum_{k\ge1}|a_k|^2,\qquad
+\|u'\|_2^2=\frac\ell2\sum_{k\ge1}
+\left(\frac{k\pi}{\ell}\right)^2|a_k|^2.
+\]</div>
+<p>逐项用 <span class="arithmatex">\(k^2\ge1\)</span>，得到 <span class="arithmatex">\(\|u\|_2\le(\ell/\pi)\|u'\|_2\)</span>。取第一正弦模态就取等，因此常数最优。可以先对光滑零迹函数证明导数恒等式，再由 <span class="arithmatex">\(H_0^1\)</span> 稠密性通过极限。</p>
+<p>若约束改成 <span class="arithmatex">\(\int_0^\ell u=0\)</span>，用余弦展开，常数模态消失，同样得到最优常数 <span class="arithmatex">\(\ell/\pi\)</span>；这次取等函数是 <span class="arithmatex">\(\cos(\pi x/\ell)\)</span>。实验中的“正弦减均值”满足均值条件，但通常不取等，也通常不满足零迹。</p>
+<p><strong>域的条件要精确。</strong> 零迹 Poincaré 在有界开集上可由零延拓到包含它的长方体证明，无需假设连通。对紧支集光滑函数从长方体一侧积分，再用 Hölder 与 Fubini：</p>
+<div class="arithmatex">\[
+\|u\|_p\le d\,\|\partial_1u\|_p\le d\,\|\nabla u\|_p,
+\]</div>
+<p>其中 <span class="arithmatex">\(d\)</span> 是该方向的边长。这是有效但通常非最优的常数，有限 <span class="arithmatex">\(p\)</span> 的零迹闭包使估计延续。零均值版本则需如有界连通 Lipschitz 域这样的条件；两个不连通分支上取不同常数、让总均值为零，仍可留下零梯度的非零函数。</p>
+<p>“无界域一定失败”也不对。固定宽度 <span class="arithmatex">\(d\)</span> 的无限条带，对零迹函数沿横向照样有 Poincaré 控制。相反，在 <span class="arithmatex">\(\mathbb R^n\)</span> 上令 <span class="arithmatex">\(u_R(x)=\phi(x/R)\)</span>，则</p>
+<div class="arithmatex">\[
+\frac{\|u_R\|_p}{\|\nabla u_R\|_p}
+=R\,\frac{\|\phi\|_p}{\|\nabla\phi\|_p}\longrightarrow\infty.
+\]</div>
+<p>这证明全空间不可能有统一常数；关键是允许函数在所有方向拉伸而没有边界约束，不能仅凭“无界”二字断言。</p>
+<h2 id="7">7 · 迹从哪里来，为什么单独积分不够<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>对有限区间上的 Sobolev 绝对连续代表，先用微积分基本定理，再对另一端点位置平均，得到</p>
+<div class="arithmatex">\[
+|u(0)|\le \ell^{-1}\int_0^\ell|u(y)|\,dy+
+\int_0^\ell|u'(t)|\,dt
+\le \ell^{-1/p}\|u\|_p+\ell^{1-1/p}\|u'\|_p.
+\]</div>
+<p>这解释了边界值为什么由 <strong>Sobolev 范数</strong> 连续控制。在有界 Lipschitz 域、<span class="arithmatex">\(k=1\)</span>、<span class="arithmatex">\(1\le p&lt;\infty\)</span> 的标准迹定理中，存在有界线性算子</p>
+<div class="arithmatex">\[
+T:W^{1,p}(\Omega)\longrightarrow L^p(\partial\Omega),
+\qquad W_0^{1,p}(\Omega)=\ker T.
+\]</div>
+<p>它延拓光滑函数的边界限制，由边界图上的一维估计、局部拼接和连续延拓构造。边界的体积测度为零，不能把 <span class="arithmatex">\(L^p(\Omega)\)</span> 等价类任意补上的边界值当成迹。上述目标 <span class="arithmatex">\(L^p(\partial\Omega)\)</span> 是方便使用的版本，不声称算子的像恰好是全部边界 <span class="arithmatex">\(L^p\)</span>。</p>
+<p>实验给出一个直接反例。对 <span class="arithmatex">\(0&lt;\varepsilon\le\ell\)</span>，</p>
+<div class="arithmatex">\[
+v_\varepsilon(x)=(1-x/\varepsilon)_+,\qquad
+v_\varepsilon(0)=1,\quad v_\varepsilon(\ell)=0,
+\]</div>
+<div class="arithmatex">\[
+\|v_\varepsilon\|_2^2=\frac{\varepsilon}{3}\to0,\qquad
+\|v_\varepsilon'\|_2^2=\frac1\varepsilon\to\infty.
+\]</div>
+<p>它在 <span class="arithmatex">\(L^2\)</span> 趋零，左端迹却不变；没有违反迹定理，因为它没有在 <span class="arithmatex">\(H^1\)</span> 趋零，甚至 <span class="arithmatex">\(H^1\)</span> 范数都不有界。</p>
+<p>更高阶的零迹不能只看 <span class="arithmatex">\(u\)</span>。例如区间上 <span class="arithmatex">\(u(x)=x(\ell-x)\)</span> 的函数值在两端为零，但 <span class="arithmatex">\(u'(0)=\ell\)</span>、<span class="arithmatex">\(u'(\ell)=-\ell\)</span>。它属于 <span class="arithmatex">\(W^{2,p}\)</span>，却不属于有限 <span class="arithmatex">\(p\)</span> 的 <span class="arithmatex">\(W_0^{2,p}\)</span>：若能由紧支集光滑函数在 <span class="arithmatex">\(W^{2,p}\)</span> 中逼近，其一阶导数就在 <span class="arithmatex">\(W^{1,p}\)</span> 中逼近，连续的端点迹会迫使两个导数迹也为零，矛盾。</p>
+<h2 id="8">8 · 四道迁移练习<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<h3 id="1_1">练习1：换一个光滑鼓包，临界指数会改变吗？<a class="headerlink" href="#1_1" title="Permanent link"></a></h3>
+<p>取固定非零 <span class="arithmatex">\(\phi\in C_c^\infty(B_1)\)</span>、<span class="arithmatex">\(n\ge2\)</span>、<span class="arithmatex">\(1\le p&lt;n\)</span>，令 <span class="arithmatex">\(u_\varepsilon=\varepsilon^{-a}\phi(x/\varepsilon)\)</span>。确定固定梯度的 <span class="arithmatex">\(a\)</span>；在域内缩放时，哪些目标范数发散？这是否证明了一般嵌入？</p>
+<p><details class="answer" markdown="1"><summary>展开完整答案：把导数和体积分别记账</summary></p>
+<p>梯度是 <span class="arithmatex">\(\varepsilon^{-a-1}(\nabla\phi)(x/\varepsilon)\)</span>。其 <span class="arithmatex">\(p\)</span> 次积分为 <span class="arithmatex">\(\varepsilon^{n-p(a+1)}\|\nabla\phi\|_p^p\)</span>，所以范数指数是 <span class="arithmatex">\(n/p-a-1\)</span>，取 <span class="arithmatex">\(a=n/p-1\)</span>。目标 <span class="arithmatex">\(L^q\)</span> 范数的指数为 <span class="arithmatex">\(n/q-a=1-n/p+n/q\)</span>。于是低于、等于、高于 <span class="arithmatex">\(p^*\)</span> 分别趋零、保持正值、发散。</p>
+<p>常数系数取决于 <span class="arithmatex">\(\phi\)</span>，幂指数不变。若把支撑放在域内一点并仅作足够小的缩放，边界不截断鼓包；若在边界附近随意缩放，则要另查支撑与边界条件。这个族排除过强的统一估计，也显示临界紧性失败；它没有证明所有函数满足临界上界。充分性来自第3节的分析估计。
+</details></p>
+<h3 id="2-sobolev">练习2：一个点奇性何时属于 Sobolev 空间？<a class="headerlink" href="#2-sobolev" title="Permanent link"></a></h3>
+<p>在 <span class="arithmatex">\(B_1\subset\mathbb R^n\)</span> 上取 <span class="arithmatex">\(u(x)=|x|^{-a}\)</span>，<span class="arithmatex">\(a&gt;0\)</span>、<span class="arithmatex">\(1\le p&lt;n\)</span>。不仅判断积分，还要证明候选导数确实是弱导数。检查 <span class="arithmatex">\(n=3,p=2,a=1/3\)</span>。</p>
+<p><details class="answer" markdown="1"><summary>展开完整答案：可积性与原点边界项</summary></p>
+<p>极坐标下，函数的 <span class="arithmatex">\(p\)</span> 次积分在零点附近与 <span class="arithmatex">\(\int_0^1r^{n-1-ap}\,dr\)</span> 相同类型，有限恰需 <span class="arithmatex">\(a&lt;n/p\)</span>。候选梯度为 <span class="arithmatex">\(-a|x|^{-a-2}x\)</span>，其 <span class="arithmatex">\(p\)</span> 次积分要求 <span class="arithmatex">\(a&lt;n/p-1\)</span>，后者更强，等号处有对数发散。</p>
+<p>充分性还需检查原点没有额外分布项。在挖去 <span class="arithmatex">\(B_\eta\)</span> 的区域分部积分，内球面项的绝对值至多为 <span class="arithmatex">\(C_\varphi\eta^{n-1-a}\)</span>。上述范围保证 <span class="arithmatex">\(a&lt;n/p-1\le n-1\)</span>，故它趋零；函数与候选导数的局部可积性允许恢复小球体积分。因此候选导数是弱导数。</p>
+<p>反之，若 <span class="arithmatex">\(u\in W^{1,p}\)</span>，在避开原点的开集上弱导数必须等于普通导数，由几乎处处唯一性迫使上述积分有限。所以
+<span class="arithmatex">\(u\in W^{1,p}(B_1)\)</span> 恰当且仅当 <span class="arithmatex">\(a&lt;n/p-1\)</span>。三维 <span class="arithmatex">\(a=1/3&lt;1/2\)</span>，故它属于 <span class="arithmatex">\(H^1\)</span>，但本质上无界。没有违反 <span class="arithmatex">\(H^1\hookrightarrow L^6\)</span>：<span class="arithmatex">\(6a=2&lt;3\)</span>，它的六次积分仍有限。
+</details></p>
+<h3 id="3">练习3：临界集中究竟否定了什么？<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<p>说明 Moser 族为何同时具有有界 Sobolev 范数和无统一峰值上界；只用平台部分证明 <span class="arithmatex">\(\alpha&gt;\alpha_n\)</span> 时指数积分不能统一受控。为什么一维不能照搬？</p>
+<details class="answer">
+<summary>展开完整答案：族的极限与定理的逻辑方向</summary>
+<p>梯度的 <span class="arithmatex">\(n\)</span> 次积分是 <span class="arithmatex">\(L^{-1}\int_{e^{-L}}^1dr/r=1\)</span>。第4节公式给出 <span class="arithmatex">\(\|u_L\|_n^n\le n!/(n^{n+1}L)\)</span>。因此在 <span class="arithmatex">\(L\ge1\)</span> 上 <span class="arithmatex">\(W^{1,n}\)</span> 范数统一有界。峰值却是 <span class="arithmatex">\(S_{n-1}^{-1/n}L^{1-1/n}\)</span>，当 <span class="arithmatex">\(n\ge2\)</span> 时发散。这否定统一 <span class="arithmatex">\(L^\infty\)</span> 估计；每个固定 <span class="arithmatex">\(L\)</span> 的函数仍然有界。</p>
+<p>平台体积为 <span class="arithmatex">\(\omega_ne^{-nL}\)</span>，平台上 <span class="arithmatex">\(|u_L|^{n/(n-1)}=S_{n-1}^{-1/(n-1)}L\)</span>。两者相乘给出第4节的指数下界。系数 <span class="arithmatex">\(\alpha&gt;\alpha_n\)</span> 时增长指数为正，故积分发散；在等号处这个下界只是常数，无法由此推得所有函数的统一上界。</p>
+<p>若 <span class="arithmatex">\(n=1\)</span>，峰值的 <span class="arithmatex">\(L\)</span> 指数变成0，这个集中机制失去发散能力；更根本地，有限区间上的绝对连续表示直接给出 <span class="arithmatex">\(\|u\|_\infty\le\ell^{-1}\|u\|_1+\|u'\|_1\)</span>。一维需要保留这一独立结论。</p>
+</details>
+<h3 id="4_1">练习4：把边界条件换掉，会发生什么？<a class="headerlink" href="#4_1" title="Permanent link"></a></h3>
+<p>取 <span class="arithmatex">\(u=b+A\sin(\pi x/\ell)\)</span>。说明 <span class="arithmatex">\(b=0\)</span>、<span class="arithmatex">\(b=-2A/\pi\)</span>、<span class="arithmatex">\(A=0,b=1\)</span> 各满足什么；再解释边界层为何不违反迹连续性。最后比较全空间与固定宽度无限条带。</p>
+<details class="answer">
+<summary>展开完整答案：每个条件挡住哪种自由度</summary>
+<p><span class="arithmatex">\(b=0\)</span> 时是零迹正弦，非零 <span class="arithmatex">\(A\)</span> 达到 <span class="arithmatex">\(\|u\|_2/\|u'\|_2=\ell/\pi\)</span>。<span class="arithmatex">\(b=-2A/\pi\)</span> 时均值为零，非零 <span class="arithmatex">\(A\)</span> 的两个端点值都非零，因此不属于零迹情形，但满足减均值的 Poincaré 估计。<span class="arithmatex">\(A=0,b=1\)</span> 时梯度为零而函数范数为 <span class="arithmatex">\(\sqrt\ell\)</span>，直接反驳对任意函数只用梯度控制的主张；不应对零梯度执行除法。</p>
+<p>边界层满足 <span class="arithmatex">\(\|v_\varepsilon\|_2=\sqrt{\varepsilon/3}\)</span>，左端迹为1，但 <span class="arithmatex">\(\|v_\varepsilon'\|_2=\varepsilon^{-1/2}\)</span>。迹定理的右侧含导数，它没有趋零，所以没有矛盾。</p>
+<p>全空间的膨胀鼓包使函数范数与梯度范数之比随 <span class="arithmatex">\(R\)</span> 增长，阻止统一 Poincaré 常数。固定宽度条带有横向零迹条件，沿横向从边界积分得到宽度所控制的估计；沿纵向再积分并不改变常数。因此不能把全空间反例推广为“所有无界域失败”。</p>
+</details>
+<h2 id="9">9 · 实验如何复算，下一页会用到什么<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>每条参数曲线使用201个基础节点，并加入当前参数；折点单独保留。帽函数的 Beta 系数使用有限乘积。Moser 族的整体积分使用有限和，另按 <span class="arithmatex">\(t=\log(1/r)\)</span> 分成200个壳层核对。对壳层 <span class="arithmatex">\([a,a+h]\)</span>，</p>
+<div class="arithmatex">\[
+\int_a^{a+h}t^ne^{-nt}\,dt
+=e^{-na}\sum_{k=0}^n {n\choose k}a^{n-k}I_k(h),
+\]</div>
+<div class="arithmatex">\[
+I_k(h)=\int_0^h v^ke^{-nv}\,dv
+=e^{-nh}h^{k+1}\sum_{j=0}^\infty
+\frac{k!(nh)^j}{(k+j+1)!}.
+\]</div>
+<p>后一式可展开 <span class="arithmatex">\(e^{n(h-v)}\)</span> 再逐项积分得到。它全为正项，避免两个接近的不完全 Gamma 值相减。实验限 <span class="arithmatex">\(2\le n\le6\)</span>、<span class="arithmatex">\(1\le L\le40\)</span>，壳宽至多0.2；级数按相对项阈值终止并检查迭代上限。账本保留各壳层、二项式项、矩值、项数与总和差。这是可复算的数值诊断，不是浮点误差的严格上界。</p>
+<p>帽函数实验另限 <span class="arithmatex">\(1\le p\le n-0.1\)</span>、<span class="arithmatex">\(10^{-6}\le\varepsilon\le1\)</span>，手动 <span class="arithmatex">\(1\le q\le1000\)</span>。这些是界面范围；数学结论的极限与适用域在正文单独给出。区间长度范围0.2–10，正弦振幅与偏置范围−2–2，边界层相对宽度0.01–1。</p>
+<p>下一页的弱椭圆方程会把 <span class="arithmatex">\(\int\nabla u\cdot\nabla v\)</span> 作为能量配对。选择 <span class="arithmatex">\(H_0^1\)</span> 并使用 Poincaré，才能让这份导数能量控制完整范数；紧嵌入则帮助极小化序列保留一个极限。进一步可读 <a href="bridge-18-heat-distributions.html">热核正则化与随机分布</a>，看频率壳层怎样重新表达同一类正则性预算。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="pde2-01-distributions.html"><span class="pager-label">上一页</span>现代 PDE I · 分布与弱导数</a>
