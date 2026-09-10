@@ -1,741 +1,168 @@
-(function (root, factory) {
-  "use strict";
+(function(root,factory){
+"use strict";var api=factory();if(typeof module==="object"&&module.exports)module.exports=api;
+if(root&&root.CourseLearning)root.CourseLearning.register("subgaussian-concentration",api.mount);
+if(typeof module==="object"&&module.exports&&typeof require==="function"&&require.main===module)console.log(JSON.stringify(api.selfTest()));
+})(typeof window!=="undefined"?window:null,function(){
+"use strict";
+var MODES=Object.freeze({models:"MGF、真实尾与独立性的作用",binomial:"稀有计数：精确尾与三种界",shell:"高维薄壳：独立坐标与相关反例"});
+var MODELS=Object.freeze({gaussian:"标准 Gaussian",rademacher:"Rademacher ±1",uniform:"Uniform[-1,1]",laplace:"单位方差 Laplace",heavy:"对称重尾 (1+t)⁻³"});
+var DEFAULTS=Object.freeze({mode:"models",model:"rademacher",dependence:"independent",n:32,threshold:12,events:5,lambda:1,singleThreshold:1.5,p:.01,count:5,dimension:32,deviation:2});
+var INSTANCE=0;
+function finite(v,lo,hi,name){if(typeof v!=="number"||!Number.isFinite(v)||v<lo||v>hi)throw RangeError(name+" must be finite in ["+lo+", "+hi+"]");return v;}
+function integer(v,lo,hi,name){finite(v,lo,hi,name);if(!Number.isInteger(v))throw RangeError(name+" must be integer");return v;}
+function config(o){if(!o||typeof o!=="object"||Array.isArray(o))throw TypeError("configuration required");var c=Object.assign({},DEFAULTS,o);if(typeof c.mode!=="string"||!Object.hasOwn(MODES,c.mode))throw RangeError("mode");if(typeof c.model!=="string"||!Object.hasOwn(MODELS,c.model))throw RangeError("model");if(c.dependence!=="independent"&&c.dependence!=="shared")throw RangeError("dependence");
+integer(c.n,1,512,"n");finite(c.threshold,0,512,"sum threshold");integer(c.events,1,10000,"events");finite(c.lambda,-20,20,"lambda");finite(c.singleThreshold,0,20,"single threshold");finite(c.p,0,1,"p");var canonical=Math.round(c.p*10000)/10000;if(Math.abs(c.p-canonical)>Number.EPSILON*Math.max(c.p,canonical))throw RangeError("p supports four decimal places");c.p=canonical;integer(c.count,0,c.n,"count");integer(c.dimension,2,512,"dimension");if(c.dimension%2)throw RangeError("dimension must be even");finite(c.deviation,0,20,"deviation");return c;}
+function sum(xs){var s=0,c=0;xs.forEach(function(v){var y=v-c,t=s+y;c=(t-s)-y;s=t;});return s;}
+function logAdd(a,b){if(a===-Infinity)return b;if(b===-Infinity)return a;var m=Math.max(a,b);return m+Math.log1p(Math.exp(Math.min(a,b)-m));}
+function logSum(xs){var m=Math.max.apply(null,xs);if(m===-Infinity)return m;return m+Math.log(sum(xs.map(function(x){return Math.exp(x-m);}))); }
+function logComplement(a){if(a===-Infinity)return 0;if(a===0)return-Infinity;if(!(a<0))throw RangeError("log probability must be nonpositive");return a<-Math.LN2?Math.log1p(-Math.exp(a)):Math.log(-Math.expm1(a));}
+function logGammaShape(a){if(a===.5)return .5*Math.log(Math.PI);var out=0;for(var k=1;k<a;k++)out+=Math.log(k);return out;}
+function gammaPair(a,x){
+if(x===0)return{lower:-Infinity,upper:0,iterations:0,method:"x=0"};
+var pref=-x+a*Math.log(x)-logGammaShape(a);
+if(x<a+1){var ap=a,term=1/a,total=term;for(var i=1;i<=10000;i++){ap++;term*=x/ap;total+=term;if(term<=total*Number.EPSILON){var lp=Math.min(0,pref+Math.log(total));return{lower:lp,upper:logComplement(lp),iterations:i,method:"lower series"};}}}
+else{var b=x+1-a,c=1e300,d=1/b,h=d;for(var j=1;j<=10000;j++){var an=-j*(j-a);b+=2;d=an*d+b;if(Math.abs(d)<1e-300)d=1e-300;c=b+an/c;if(Math.abs(c)<1e-300)c=1e-300;d=1/d;var change=d*c;h*=change;if(Math.abs(change-1)<=4*Number.EPSILON){var lq=Math.min(0,pref+Math.log(h));return{lower:logComplement(lq),upper:lq,iterations:j,method:"upper continued fraction"};}}}
+throw Error("gamma iteration did not converge");
+}
+function normalLogTwoTail(t){finite(t,0,512,"normal threshold");if(t===0)return 0;if(t<.1){var term=1,total=1;for(var k=1;k<=16;k++){term*=-(t*t)/(2*k)*(2*k-1)/(2*k+1);total+=term;}return Math.log1p(-t*Math.sqrt(2/Math.PI)*total);}return gammaPair(.5,t*t/2).upper;}
+function logMGF(model,lambda){
+if(typeof model!=="string"||!Object.hasOwn(MODELS,model))throw RangeError("model");finite(lambda,-20,20,"lambda");var a=Math.abs(lambda),z=a*a;
+if(a===0)return 0;if(model==="gaussian")return z/2;
+if(model==="rademacher")return a<.1?Math.log1p(2*Math.sinh(a/2)**2):a+Math.log1p(Math.exp(-2*a))-Math.LN2;
+if(model==="uniform")return a<.05?z/6-z*z/180+z*z*z/2835-z**4/37800:a+Math.log(-Math.expm1(-2*a))-Math.LN2-Math.log(a);
+if(model==="laplace")return z<2?-Math.log1p(-z/2):Infinity;
+return Infinity;
+}
+function proxyVariance(model){return model==="uniform"?1/3:model==="gaussian"||model==="rademacher"?1:null;}
+function singleLogTail(model,t){if(typeof model!=="string"||!Object.hasOwn(MODELS,model))throw RangeError("model");finite(t,0,512,"threshold");if(model==="gaussian")return normalLogTwoTail(t);if(model==="rademacher")return t<=1?0:-Infinity;if(model==="uniform")return t<1?Math.log1p(-t):-Infinity;if(model==="laplace")return-Math.SQRT2*t;return-3*Math.log1p(t);}
+function binomialRows(n,p){
+integer(n,1,512,"n");finite(p,0,1,"p");var logs=[],choose=0;
+for(var k=0;k<=n;k++){if(k>0)choose+=Math.log(n-k+1)-Math.log(k);var l=p===0?(k===0?0:-Infinity):p===1?(k===n?0:-Infinity):choose+k*Math.log(p)+(n-k)*Math.log1p(-p);logs.push(l);}
+// Normalize finite binary64 log masses; the normalizer is exposed, not hidden as an exact arithmetic claim.
+var norm=logSum(logs),rows=logs.map(function(l,k){return{k:k,logRaw:l,logMass:l-norm,mass:Math.exp(l-norm)};});
+var tail=-Infinity;for(var k=n;k>=0;k--){tail=logAdd(tail,rows[k].logMass);rows[k].logUpper=Math.min(0,tail);}
+var before=-Infinity;for(var k=0;k<=n;k++){var upper=rows[k].logUpper;rows[k].logLowerBefore=before>-Math.LN2?logComplement(upper):before;if(upper>-Math.LN2)rows[k].logUpper=logComplement(Math.min(0,before));before=logAdd(before,rows[k].logMass);}rows[0].logUpper=0;
+return{rows:rows,logNormalizer:norm};
+}
+function rademacherLogTail(n,t){integer(n,1,512,"n");finite(t,0,512,"threshold");if(t===0||(n%2===1&&t<=1))return 0;if(t>n)return-Infinity;var d=binomialRows(n,.5);return Math.min(0,logSum(d.rows.filter(function(r){return Math.abs(2*r.k-n)>=t;}).map(function(r){return r.logMass;})));}
+function models(o){
+var c=config(o),K2=proxyVariance(c.model),factor=c.dependence==="independent"?c.n:c.n*c.n,logBound=K2===null?null:Math.min(0,Math.LN2-c.threshold*c.threshold/(2*factor*K2)),logActual;
+if(c.dependence==="shared")logActual=singleLogTail(c.model,c.threshold/c.n);
+else if(c.model==="gaussian")logActual=normalLogTwoTail(c.threshold/Math.sqrt(c.n));
+else if(c.model==="rademacher")logActual=rademacherLogTail(c.n,c.threshold);
+else logActual=c.n===1?singleLogTail(c.model,c.threshold):null;
+var lambdas=Array.from({length:161},function(_,i){return-20+i/4;}).concat([c.lambda,-Math.SQRT2,Math.SQRT2,0]);
+var ts=Array.from({length:201},function(_,i){return i/10;}).concat([c.singleThreshold,1]);
+var all=Object.keys(MODELS).map(function(m){return{model:m,variance:m==="uniform"?1/3:1,proxy:proxyVariance(m),logMGF:logMGF(m,c.lambda),logTail:singleLogTail(m,c.singleThreshold)};});
+return{config:c,proxyVariance:K2,variance:c.model==="uniform"?1/3:1,sumVariance:factor*(c.model==="uniform"?1/3:1),sumLogActual:logActual,sumLogBound:logBound,unionLogBound:logBound===null?null:Math.min(0,Math.log(c.events)+logBound),wrongIndependentLogBound:c.dependence==="shared"&&K2!==null?Math.min(0,Math.LN2-c.threshold*c.threshold/(2*c.n*K2)):null,
+lambdaRows:Array.from(new Set(lambdas)).sort(function(a,b){return a-b;}).map(function(l){return{lambda:l,logMGF:logMGF(c.model,l),logEnvelope:K2===null?null:l*l*K2/2,logRangeEnvelope:c.model==="uniform"?l*l/2:null};}),
+tailRows:Array.from(new Set(ts)).sort(function(a,b){return a-b;}).map(function(t){return{t:t,logActual:singleLogTail(c.model,t),logBound:K2===null?null:Math.min(0,Math.LN2-t*t/(2*K2))};}),comparison:all,
+binomial:c.model==="rademacher"&&c.dependence==="independent"?binomialRows(c.n,.5):null};
+}
+function bernoulliKL(q,p){
+finite(q,0,1,"q");finite(p,0,1,"p");
+if(q===p)return 0;if(p===0||p===1)return Infinity;if(q===0)return-Math.log1p(-p);if(q===1)return-Math.log(p);
+var d=q-p;
+if(Math.abs(d)<.05*Math.min(p,1-p)){var xp=d/p,xq=-d/(1-p),ap=xp*xp,aq=xq*xq,total=0;for(var k=2;k<=40;k++){total+=(p*ap+(1-p)*aq)/(k*(k-1));ap*=-xp;aq*=-xq;}return total;}
+return q*Math.log1p(d/p)+(1-q)*Math.log1p(-d/(1-p));
+}
+function binomial(o){
+var c=config(o),d=binomialRows(c.n,c.p),a=Math.round(c.p*10000),variance=c.n*c.p*(1-c.p),M=Math.max(c.p,1-c.p);
+var rows=d.rows.map(function(r){var delta=c.n===0?0:(10000*r.k-c.n*a)/10000,q=r.k/c.n,hoeffding=delta<=0?0:-2*delta*delta/c.n,bernstein=delta<=0?0:variance===0?-Infinity:-delta*delta/(2*(variance+M*delta/3)),kl=delta<=0?0:-c.n*bernoulliKL(q,c.p);return Object.assign({},r,{mean:c.n*c.p,deviation:delta,logHoeffding:hoeffding,logBernstein:bernstein,logKL:kl,logUnion:Math.min(0,Math.log(c.events)+kl)});});
+return{config:c,rows:rows,sample:rows[c.count],variance:variance,boundM:M,logNormalizer:d.logNormalizer,mean:c.n*c.p};
+}
+function shellAt(n,t){
+var root=Math.sqrt(n),lo=Math.max(0,root-t),hi=root+t,l=gammaPair(n/2,lo*lo/2),u=gammaPair(n/2,hi*hi/2),logActual=t===0?0:Math.min(0,logAdd(l.lower,u.upper));
+var a=Math.max(0,1-t/root),b=1+t/root,sharedLow=a===0?-Infinity:gammaPair(.5,a*a/2).lower,sharedHigh=normalLogTwoTail(b),logShared=t===0?0:Math.min(0,logAdd(sharedLow,sharedHigh));
+return{t:t,lowerRadius:lo,upperRadius:hi,logLower:l.lower,logUpper:u.upper,logActual:logActual,logBound:Math.min(0,Math.LN2-t*t/2),logShared:logShared,logRademacher:t===0?0:-Infinity,lowerIterations:l.iterations,upperIterations:u.iterations};
+}
+function shell(o){
+var c=config(o),n=c.dimension,rs=Array.from({length:201},function(_,i){return (Math.sqrt(n)+8)*i/200;}).concat([Math.sqrt(n),Math.sqrt(n-1)]),ts=Array.from({length:201},function(_,i){return i/10;}).concat([c.deviation,Math.sqrt(n)]);
+return{config:c,sample:shellAt(n,c.deviation),root:Math.sqrt(n),radialMode:Math.sqrt(n-1),rows:Array.from(new Set(ts.filter(function(t){return t<=20;}))).sort(function(a,b){return a-b;}).map(function(t){return shellAt(n,t);}),
+radial:Array.from(new Set(rs)).sort(function(a,b){return a-b;}).map(function(r){var ld=r===0?-Infinity:(1-n/2)*Math.LN2-logGammaShape(n/2)+(n-1)*Math.log(r)-r*r/2;return{r:r,logDensity:ld,density:Math.exp(ld),logPointDensity:-n/2*Math.log(2*Math.PI)-r*r/2};})};
+}
+function snapshot(o){var c=config(o);return c.mode==="models"?models(c):c.mode==="binomial"?binomial(c):shell(c);}
+function fmt(x){if(x===null)return"此模型未计算 / 不适用";if(x===Infinity)return"∞（发散）";if(x===-Infinity)return"−∞（概率严格为 0）";if(typeof x!=="number"||!Number.isFinite(x))throw Error("invalid display");if(x===0)return"0";if(Math.abs(x)<.0001||Math.abs(x)>=100000)return x.toExponential(6);return String(Number(x.toPrecision(7)));}
+function prob(log){if(log===null)return"未计算";if(log===-Infinity)return"0（严格为 0）";var v=Math.exp(log);return v===0?"浮点下溢；请读 ln P":fmt(v);}
+function selfTest(){var n=0;function ck(v){n++;if(!v)throw Error("self "+n);}ck(logMGF("heavy",1e-15)===Infinity);ck(logMGF("heavy",0)===0);ck(normalLogTwoTail(40)<-800&&Number.isFinite(normalLogTwoTail(40)));ck(rademacherLogTail(4,3)===Math.log(.125));ck(rademacherLogTail(4,4+Number.EPSILON*4)===-Infinity);ck(binomial({}).rows.length===33);ck(Math.abs(shell({}).sample.logActual)<100);ck(shell({deviation:0}).sample.logActual===0);return{status:"PASS",checks:n};}
+function ledgers(s){
+var c=s.config,list=[],summary;
+function table(key,title,headers,rows){list.push({key:key,title:title,headers:headers,rows:rows,detail:true});}
+if(c.mode==="models"){
+summary=[["模型",MODELS[c.model],"全部模型已中心化"],["单变量 Var(X)",s.variance,"实际二阶中心矩"],["MGF 代理 K²",s.proxyVariance,"Uniform 使用最优 1/3；不是 ψ₂ 范数平方"],["依赖结构",c.dependence==="independent"?"独立同分布":"X₁=⋯=X_n，同一个随机量","后者 Var(S)=n² Var(X)"],["n",c.n,"和 S=X₁+⋯+X_n"],["Var(S)",s.sumVariance,"由实际依赖结构计算"],["和阈值 t",c.threshold,"事件 |S|≥t"],["和的模型尾",prob(s.sumLogActual),"只有明确已计算的解析模型才给数"],["ln P(|S|≥t)",s.sumLogActual,"有限负数与 −∞ 严格零分开"],["适用的 MGF 尾界",prob(s.sumLogBound),"按实际独立/共用结构选择 nK² 或 n²K²"],["ln 单事件界",s.sumLogBound,"概率上界截断为 1"],["m 事件 union bound",prob(s.unionLogBound),"只用概率可加性，不需要事件独立"],["错误代入独立公式",prob(s.wrongIndependentLogBound),"仅作反例；共享变量时不是有效证书"]];
+table("models","五种模型在当前 λ 和单变量阈值的对照",["模型","方差","MGF代理 K²","ln MGF(λ)","ln P(|X|≥t₀)","P(|X|≥t₀)"],s.comparison.map(function(r){return[MODELS[r.model],r.variance,r.proxy,r.logMGF,r.logTail,prob(r.logTail)];}));
+table("mgf","全部 λ 节点：函数值和两个常数口径",["λ","ln MGF","最优代理 K²λ²/2","Uniform 范围证书 λ²/2"],s.lambdaRows.map(function(r){return[r.lambda,r.logMGF,r.logEnvelope,r.logRangeEnvelope];}));
+table("tails","全部单变量阈值：真实尾与有效上界",["t₀","ln P","P","ln 界","概率界"],s.tailRows.map(function(r){return[r.t,r.logActual,prob(r.logActual),r.logBound,prob(r.logBound)];}));
+if(s.binomial)table("rademacher","Rademacher 和的全部二项式质量",["k（+1 的个数）","S=2k−n","ln 原质量","ln 归一化质量","概率质量","|S|≥t?"],s.binomial.rows.map(function(r){return[r.k,2*r.k-c.n,r.logRaw,r.logMass,prob(r.logMass),Math.abs(2*r.k-c.n)>=c.threshold?"计入":"不计入"];}));
+}else if(c.mode==="binomial"){
+var r=s.sample;summary=[["模型","B∼Bin(n,p)","独立 Bernoulli 之和；真实 p 是模型输入"],["n / p",c.n+" / "+c.p,"p 输入到小数点后四位"],["事件","B≥"+c.count,"整数计数，保留 ≥ 边界"],["均值 np",s.mean,"偏差 t=k−np"],["方差 np(1−p)",s.variance,"不能将估计方差无说明地代替真方差"],["中心变量的 |X| 上界 M",s.boundM,"max(p,1−p)"],["模型概率",prob(r.logUpper),"完整二项式尾，未用正态近似"],["ln 模型概率",r.logUpper,"下溢时仍保留对数"],["Hoeffding",prob(r.logHoeffding),"单侧；只使用范围宽 1"],["Bernstein",prob(r.logBernstein),"单侧；使用真方差与 M"],["优化 Chernoff/KL",prob(r.logKL),"单侧；使用完整 Bernoulli MGF"],["m 事件 KL union",prob(r.logUnion),"min(1,m×界)，不是精确并集概率"],["浮点 log 归一化量",s.logNormalizer,"原始 log 质量归一化的数值修正；不是误差证书"]];
+table("binomial","从 0 到 n 的全部质量、尾概率与上界",["k","t=k−np","ln 原质量","ln 归一化质量","ln P(B<k)","ln P(B≥k)","ln Hoeffding","ln Bernstein","ln KL","ln union"],s.rows.map(function(r){return[r.k,r.deviation,r.logRaw,r.logMass,r.logLowerBefore,r.logUpper,r.logHoeffding,r.logBernstein,r.logKL,r.logUnion];}));
+}else{
+var r=s.sample;summary=[["维数 d",c.dimension,"本精确算例只取偶数，2–512"],["独立 Gaussian 的 √d",s.root,"不是 E‖G‖ 的精确值"],["径向密度众数 √(d−1)",s.radialMode,"与原点处最高的向量点密度分开"],["壳厚 t",c.deviation,"事件 |‖X‖−√d|≥t"],["独立 Gaussian 精确概率",prob(r.logActual),"χ² 分布的下尾+上尾"],["ln 精确概率",r.logActual,"使用稳定不完全 Gamma 算法"],["Gaussian 有效尾界",prob(r.logBound),"min(1,2e^(−t²/2))"],["共用一个 Gaussian 的概率",prob(r.logShared),"X=(Z,…,Z)；每坐标方差 1，但不独立"],["Rademacher 向量概率",prob(r.logRademacher),"‖X‖恒等于√d；t=0的≥事件概率1"],["下 / 上半径",r.lowerRadius+" / "+r.upperRadius,"下半径截在0；不是删去下尾"],["下尾迭代次数",r.lowerIterations,"收敛停止是数值准则"],["上尾迭代次数",r.upperIterations,"不把有限迭代当严格实数证书"]];
+table("shell","全部壳厚：两个独立尾、相关反例和有效界",["t","下半径","上半径","ln 下尾","ln 上尾","ln 独立总尾","ln Gaussian界","ln 共用Z","ln Rademacher","下迭代","上迭代"],s.rows.map(function(r){return[r.t,r.lowerRadius,r.upperRadius,r.logLower,r.logUpper,r.logActual,r.logBound,r.logShared,r.logRademacher,r.lowerIterations,r.upperIterations];}));
+table("radial","全部半径：径向概率密度与向量点密度",["r","ln 径向密度","径向密度","ln 向量点密度"],s.radial.map(function(r){return[r.r,r.logDensity,r.density,r.logPointDensity];}));
+}
+list.unshift({key:"summary",title:MODES[c.mode],headers:["项目","数值 / 结论","条件与口径"],rows:summary,detail:false});return list;
+}
+function plots(s){
+var out=[],colors=["#3979b8","#b16b18","#398664"];
+function make(key,title,xlabel,xs,ss,zero){
+var lo=zero?0:Infinity,hi=-Infinity,series=ss.map(function(r,i){var values=r[2].map(function(v){return v===null||!Number.isFinite(v)?null:v;});values.forEach(function(v){if(v!==null){lo=Math.min(lo,v);hi=Math.max(hi,v);}});return{key:r[0],label:r[1],values:values,pointsOnly:!!r[3],color:colors[i],dash:i===1?"7 4":i===2?"3 4":""};});
+if(lo===Infinity||hi===-Infinity){lo=0;hi=1;}var span=hi-lo;if(span<1e-10*Math.max(1,Math.abs(hi))){span=Math.max(1,.1*Math.abs(hi));var mid=(lo+hi)/2;lo=mid-span/2;hi=mid+span/2;}
+out.push({key:key,title:title,xlabel:xlabel,xs:xs,series:series,xmin:xs[0],xmax:xs[xs.length-1],ymin:zero&&lo>=0?0:lo-.07*span,ymax:hi+.08*span});
+}
+if(s.config.mode==="models"){
+make("mgf","MGF 的对数：常数与定义域","λ；纵轴 ln E exp(λX)；∞ 节点见表",s.lambdaRows.map(function(r){return r.lambda;}),[["actual","模型 log MGF",s.lambdaRows.map(function(r){return r.logMGF;})],["proxy","最优 Gaussian 代理",s.lambdaRows.map(function(r){return r.logEnvelope;})],["range","Uniform 范围级代理",s.lambdaRows.map(function(r){return r.logRangeEnvelope;})]],true);
+make("tail","同一尺度下，真实尾概率并不相同","t₀；纵轴 P(|X|≥t₀)；离散模型只画点",s.tailRows.map(function(r){return r.t;}),[["actual","真实分布的数值尾",s.tailRows.map(function(r){return Math.exp(r.logActual);}),s.config.model==="rademacher"],["bound","适用的最优代理尾界",s.tailRows.map(function(r){return r.logBound===null?null:Math.exp(r.logBound);})]],true);
+}else if(s.config.mode==="binomial"){
+make("binomial-tail","完整离散计数：尾概率与三种单侧界","整数 k；纵轴 ln P(B≥k) 或 ln 上界",s.rows.map(function(r){return r.k;}),[["actual","完整二项式尾（离散点）",s.rows.map(function(r){return r.logUpper;}),true],["hoeffding","Hoeffding 范围界",s.rows.map(function(r){return r.logHoeffding;}),true],["bernstein","Bernstein 方差界",s.rows.map(function(r){return r.logBernstein;}),true],["kl","Chernoff/KL",s.rows.map(function(r){return r.logKL;}),true]],false);
+out[0].series[3].color="#8c5cb0";
+}else{
+make("radial","点密度最高处，不是径向概率最多处","r；纵轴径向密度 f_R(r)",s.radial.map(function(r){return r.r;}),[["density","独立 Gaussian 径向密度",s.radial.map(function(r){return r.density;})]],true);
+make("shell","薄壳集中需要检查坐标依赖","壳厚 t；纵轴 ln P(|‖X‖−√d|≥t)",s.rows.map(function(r){return r.t;}),[["actual","独立 Gaussian 精确分布数值",s.rows.map(function(r){return r.logActual;})],["bound","只对独立 Gaussian 适用的界",s.rows.map(function(r){return r.logBound;})],["shared","共用一个 Z 的相关反例",s.rows.map(function(r){return r.logShared;})]],false);
+}
+out.forEach(function(p){if(p.key==="binomial-tail"||p.key==="shell")p.ymax=0;if(p.key==="tail")p.ymax=1;});return out;
+}
+function inject(doc){if(doc.getElementById("sg-full-style"))return;var style=doc.createElement("style");style.id="sg-full-style";style.textContent=[
+".sg-lab{color:var(--fg);max-width:100%;min-width:0;line-height:1.65}.sg-lab *{box-sizing:border-box}.sg-lab [hidden]{display:none!important}.sg-lab button,.sg-lab input,.sg-lab select{font:inherit;max-width:100%;color:var(--fg);background:var(--bg);border:1px solid var(--border);border-radius:6px;min-height:44px;padding:8px}.sg-lab button{cursor:pointer}.sg-lab button[aria-pressed=true]{background:var(--accent);color:var(--bg)}.sg-lab button:disabled{opacity:.55;cursor:default}.sg-lab :focus-visible{outline:3px solid var(--accent);outline-offset:2px}",
+".sg-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:15px 0}.sg-controls label,.sg-mode{display:grid;gap:5px}.sg-lab fieldset{min-width:0;margin:12px 0;padding:12px;border:1px solid var(--border)}.sg-choices,.sg-actions{display:flex;gap:8px;flex-wrap:wrap}.sg-choices>*{flex:1 1 180px}.sg-note{padding:10px 12px;border-left:3px solid var(--accent)}.sg-feedback{min-height:2em}",
+".sg-results h4{margin-top:24px}.sg-results figure{margin:15px 0}.sg-region{max-width:100%;overflow-x:auto;margin:12px 0}.sg-lab svg.sg-chart{display:block;width:900px!important;min-width:900px;max-width:none!important;height:auto;color:var(--fg)}.sg-chart text{fill:currentColor;font-family:inherit;letter-spacing:0}.sg-legend{display:flex;gap:15px;flex-wrap:wrap;font-size:13px}.sg-legend span{display:inline-flex;align-items:center;gap:5px}.sg-legend i{width:24px;border-top:3px solid}.sg-lab table{border-collapse:collapse;min-width:900px;font-size:13px}.sg-lab th,.sg-lab td{padding:8px;border:1px solid var(--border);white-space:nowrap;text-align:left}.sg-lab caption{padding:8px;font-weight:bold}.sg-lab details{margin:16px 0}.sg-lab summary{cursor:pointer;min-height:44px;padding:8px}@media(max-width:600px){.sg-controls{grid-template-columns:minmax(0,1fr)}}"
+].join("\n");doc.head.append(style);}
+function drawPlot(doc,d,id){
+var ns="http://www.w3.org/2000/svg";function el(tag,attrs,text){var e=doc.createElementNS(ns,tag);Object.keys(attrs||{}).forEach(function(k){e.setAttribute(k,String(attrs[k]));});if(text!==undefined)e.textContent=text;return e;}
+var svg=el("svg",{class:"sg-chart",viewBox:"0 0 900 390",role:"img","data-plot":d.key,"aria-labelledby":id+"-title "+id+"-desc"}),x=function(v){return 120+740*(v-d.xmin)/(d.xmax-d.xmin);},y=function(v){return 290-230*(v-d.ymin)/(d.ymax-d.ymin);};
+svg.append(el("title",{id:id+"-title"},d.title),el("desc",{id:id+"-desc"},"轴上数值含义写在标签中。每个有限节点都保留；发散、不适用和负无穷值不伪造有限坐标，在表中逐项标明。离散计数只画点。"),el("text",{x:120,y:28,"font-size":18},d.title));
+for(var i=0;i<=4;i++){var v=d.ymin+(d.ymax-d.ymin)*i/4,xx=d.xmin+(d.xmax-d.xmin)*i/4;svg.append(el("line",{x1:120,x2:860,y1:y(v),y2:y(v),stroke:"currentColor",opacity:.18}),el("text",{x:108,y:y(v)+5,"text-anchor":"end","font-size":13},fmt(v)),el("text",{x:x(xx),y:320,"text-anchor":i===0?"start":i===4?"end":"middle","font-size":13},fmt(xx)));}
+svg.append(el("text",{x:860,y:355,"text-anchor":"end","font-size":14},d.xlabel));
+d.series.forEach(function(r){var chunks=[],part=[];r.values.forEach(function(v,i){if(v===null){if(part.length)chunks.push(part);part=[];return;}part.push([x(d.xs[i]),y(v)]);svg.append(el("circle",{"data-series":r.key,"data-index":i,cx:x(d.xs[i]),cy:y(v),r:r.pointsOnly?2.2:1.5,fill:r.color}));});if(part.length)chunks.push(part);if(!r.pointsOnly)chunks.forEach(function(a,j){svg.append(el("polyline",{"data-series":r.key,"data-chunk":j,points:a.map(function(v){return v.join(",");}).join(" "),fill:"none",stroke:r.color,"stroke-width":2,"stroke-dasharray":r.dash}));});});return svg;
+}
+function mount(container){
+if(!container||container.getAttribute("data-sg-mounted")==="true")return;container.setAttribute("data-sg-mounted","true");var doc=container.ownerDocument;inject(doc);var id="sg-full-"+(++INSTANCE),selected=[null,null,null,null,null],c=Object.assign({},DEFAULTS);
+function input(key,label,min,max,step){return'<label>'+label+'<input type="number" data-key="'+key+'" min="'+min+'" max="'+max+'" step="'+(step||"any")+'" value="'+DEFAULTS[key]+'"></label>';}
+function select(key,label,items){return'<label>'+label+'<select data-key="'+key+'">'+Object.keys(items).map(function(k){return'<option value="'+k+'"'+(DEFAULTS[key]===k?' selected':'')+'>'+items[k]+'</option>';}).join("")+'</select></label>';}
+function group(mode,title,controls){return'<details data-controls="'+mode+'"'+(mode==="models"||mode==="common"?" open":"")+'><summary>'+title+'</summary><div class="sg-controls">'+controls+'</div></details>';}
+container.innerHTML='<div class="sg-lab"><h3>从尾概率到样本量：常数、依赖与高维几何</h3>'+select("mode","实验场景",MODES)+
+group("common","和与计数的公共参数",input("n","变量数 / 试验数 n（1–512）",1,512,1)+input("events","同时保护的事件数 m（1–10000）",1,10000,1))+
+group("models","MGF 与独立性：参数",select("model","中心化分布",MODELS)+select("dependence","和的依赖结构",{independent:"独立同分布",shared:"所有 Xᵢ 共用同一个 X"})+input("threshold","和的绝对偏差阈值 t（0–512）",0,512)+input("lambda","MGF 参数 λ（−20–20）",-20,20)+input("singleThreshold","单变量绝对尾阈值 t₀（0–20）",0,20))+
+group("binomial","稀有计数：参数",input("p","成功概率 p（0–1，最多四位小数）",0,1,.0001)+input("count","上尾事件 B≥k 的整数 k（0–n）",0,512,1))+
+group("shell","高维薄壳：参数",input("dimension","偶数维度 d（2–512）",2,512,2)+input("deviation","绝对壳厚 t（0–20）",0,20))+
+'<p class="sg-note">模型尾概率是指定分布的数值计算；上界另列所需假设。ln P 为有限负数时，即使概率数值下溢，也不等于事件不可能。</p>'+
+[["1. 同样的 MGF 代理 K，真实尾概率必须相同吗？",["不必相同","必须相同"]],["2. 重尾模型在 λ=10⁻¹⁵ 时的 MGF？",["仍然发散","近零就等于 1"]],["3. X₁=⋯=X_n 时，和的方差怎样缩放？",["n² Var(X)","n Var(X)"]],["4. 稀有 Bernoulli 计数，Bernstein 永远比 Hoeffding 紧吗？",["需要比较偏差大小","永远更紧"]],["5. m 事件的 union bound 需要独立吗？",["不需要","需要"]]].map(function(q,i){return'<fieldset data-question="'+i+'"><legend>'+q[0]+'</legend><div class="sg-choices">'+q[1].map(function(a,j){return'<button type="button" data-choice="'+j+'" aria-pressed="false">'+a+'</button>';}).join("")+'</div></fieldset>';}).join("")+
+'<div class="sg-actions"><button type="button" data-action="submit" disabled>核对五项预测并揭示结果</button><button type="button" data-action="reset">重置实验</button></div><p class="sg-feedback" role="status" aria-live="polite"></p><div class="sg-results" hidden><h4 tabindex="-1">函数、概率与条件账本</h4><div data-content></div></div></div>';
+var lab=container.querySelector(".sg-lab"),results=lab.querySelector(".sg-results"),submit=lab.querySelector('[data-action="submit"]'),feedback=lab.querySelector(".sg-feedback"),content=lab.querySelector("[data-content]");
+function read(){var o={},bad=null;lab.querySelectorAll("[data-key]").forEach(function(e){var k=e.getAttribute("data-key");if(e.tagName==="SELECT")o[k]=e.value;else{if(e.value.trim()===""||!e.validity.valid)bad=bad||e;o[k]=Number(e.value);}});if(bad){bad.closest("details").open=true;throw Error(bad.parentElement.firstChild.textContent+"：保留输入，请修正");}if(o.count>o.n){lab.querySelector('[data-controls="binomial"]').open=true;lab.querySelector('[data-controls="common"]').open=true;throw Error("计数阈值 k 不能超过试验数 n");}return config(o);}
+function region(title){var r=doc.createElement("div");r.className="sg-region";r.setAttribute("role","region");r.tabIndex=0;r.setAttribute("aria-label",title+"，可左右滚动");return r;}
+function table(d){var r=region(d.title),t=doc.createElement("table"),caption=doc.createElement("caption"),head=doc.createElement("thead"),tr=doc.createElement("tr"),body=doc.createElement("tbody");t.setAttribute("data-table",d.key);caption.textContent=d.title;t.append(caption);d.headers.forEach(function(x){var th=doc.createElement("th");th.scope="col";th.textContent=x;tr.append(th);});head.append(tr);t.append(head);d.rows.forEach(function(row){var tr=doc.createElement("tr");row.forEach(function(x){var td=doc.createElement("td");td.textContent=typeof x==="number"||x===null?fmt(x):x;tr.append(td);});body.append(tr);});t.append(body);r.append(t);if(d.detail){var details=doc.createElement("details"),summary=doc.createElement("summary");summary.textContent="展开 "+d.rows.length+" 行："+d.title;details.append(summary,r);content.append(details);}else content.append(r);}
+function render(){var s=snapshot(c),tables=ledgers(s);content.replaceChildren();table(tables[0]);var note=doc.createElement("p");note.className="sg-note";
+note.textContent=c.mode==="models"?"五种模型各自有明确的 MGF 定义域。Uniform 的 1/3 是本模型最优代理方差，范围级证书仍为 1。独立 Uniform/Laplace/重尾和在 n>1 时未计算真实卷积，不能把空项猜成 0。MGF 的无穷值与不适用证书不画有限线；所有节点在表中保留。":c.mode==="binomial"?"所有 k=0,…,n 都保留，图只画离散点。k≤np 时三种上界均取 1。p=0 或 1 的确定性模型直接处理。二项式质量采用 log 算法并公开归一化量；这些比较依赖输入的真 p，不能拿它给未知 p 的数据直接认证。":"Gaussian 薄壳来自独立坐标的 χ² 分布。共用一个 Z 的向量每个坐标方差仍为 1，却不满足独立性。Rademacher 范数恒定，t>0 时概率严格为 0；这些 −∞ 不伪造为图上的有限负数。径向密度包含球面体积因素，不能与向量点密度混同。";
+content.append(note);plots(s).forEach(function(d,i){var figure=doc.createElement("figure"),r=region(d.title),caption=doc.createElement("figcaption");r.append(drawPlot(doc,d,id+"-"+i));caption.className="sg-legend";d.series.forEach(function(s){var span=doc.createElement("span"),line=doc.createElement("i");line.style.borderColor=s.color;if(s.dash)line.style.borderTopStyle="dashed";span.append(line,doc.createTextNode(s.label+(s.values.some(function(v){return v===null;})?"（非有限/不适用项见表）":"")));caption.append(span);});figure.append(r,caption);content.append(figure);});tables.slice(1).forEach(table);results.hidden=false;}
+function complete(){return selected.every(function(x){return x!==null;});}
+function state(){var ok=true;try{c=read();}catch(e){ok=false;results.hidden=true;feedback.textContent="输入无效："+e.message;}submit.disabled=!ok||!complete()||!results.hidden;return ok;}
+lab.querySelectorAll("[data-choice]").forEach(function(b){b.addEventListener("click",function(){var f=b.closest("[data-question]"),i=Number(f.getAttribute("data-question"));selected[i]=Number(b.getAttribute("data-choice"));f.querySelectorAll("[data-choice]").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false");});results.hidden=true;if(state())feedback.textContent=complete()?"五项已填，请点击核对。":"请完成五项预测。";});});
+lab.querySelectorAll("[data-key]").forEach(function(e){e.addEventListener(e.tagName==="SELECT"?"change":"input",function(){var visible=!results.hidden;if(e.getAttribute("data-key")==="mode")lab.querySelectorAll("[data-controls]").forEach(function(d){d.open=d.getAttribute("data-controls")==="common"||d.getAttribute("data-controls")===e.value;});if(state()){if(visible){render();submit.disabled=true;}else feedback.textContent=complete()?"输入已恢复，请手动核对。":"请先完成五项预测。";}});});
+submit.addEventListener("click",function(){if(!state()||!complete())return;render();submit.disabled=true;feedback.textContent="预测 "+selected.filter(function(x){return x===0;}).length+" / 5。请对照定义域、依赖结构和误差口径。";results.querySelector("h4").focus();});
+lab.querySelector('[data-action="reset"]').addEventListener("click",function(){selected=[null,null,null,null,null];lab.querySelectorAll("[data-choice]").forEach(function(b){b.setAttribute("aria-pressed","false");});lab.querySelectorAll("[data-key]").forEach(function(e){e.value=String(DEFAULTS[e.getAttribute("data-key")]);});lab.querySelectorAll("[data-controls]").forEach(function(d){d.open=["models","common"].includes(d.getAttribute("data-controls"));});results.hidden=true;state();feedback.textContent="已复位，请重新预测。";lab.querySelector("[data-choice]").focus();});state();
+}
 
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("subgaussian-concentration", exported.mount);
-  }
-  if (
-    typeof module === "object" &&
-    module.exports &&
-    typeof require === "function" &&
-    require.main === module
-  ) {
-    try {
-      var report = exported.selfTest();
-      console.log(
-        "subgaussian-concentration self-test: PASS (" +
-          report.checks +
-          " checks, " +
-          report.models +
-          " models)"
-      );
-    } catch (error) {
-      console.error("subgaussian-concentration self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
-  }
-})(
-  typeof window !== "undefined" ? window : typeof self !== "undefined" ? self : null,
-  function (host) {
-    "use strict";
-
-    var SVG_NS = "http://www.w3.org/2000/svg";
-    var STYLE_ID = "cl-subgaussian-concentration-style";
-    var INSTANCE = 0;
-    var SINGLE_THRESHOLD = 1.5;
-    var DEFAULTS = {
-      modelId: "rademacher",
-      n: 32,
-      threshold: 12,
-      events: 5
-    };
-
-    function finite(value) {
-      return typeof value === "number" && isFinite(value);
-    }
-
-    function clamp(value, min, max) {
-      return Math.max(min, Math.min(max, value));
-    }
-
-    function sinh(value) {
-      return (Math.exp(value) - Math.exp(-value)) / 2;
-    }
-
-    function erf(value) {
-      var sign = value < 0 ? -1 : 1;
-      var x = Math.abs(value);
-      var t = 1 / (1 + 0.3275911 * x);
-      var polynomial =
-        (((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t -
-          0.284496736) *
-          t +
-          0.254829592) *
-          t);
-      return sign * (1 - polynomial * Math.exp(-x * x));
-    }
-
-    function gaussianTail(t, standardDeviation) {
-      var threshold = Math.max(0, Number(t));
-      var sigma = Number(standardDeviation);
-      if (!finite(sigma) || sigma <= 0) throw new Error("standard deviation must be positive");
-      return Math.max(0, Math.min(1, 1 - erf(threshold / (sigma * Math.sqrt(2)))));
-    }
-
-    function binomialRademacherTail(n, threshold) {
-      var count = Math.floor(Number(n));
-      var target = Math.max(0, Number(threshold));
-      var probability = Math.pow(0.5, count);
-      var total = 0;
-      for (var k = 0; k <= count; k += 1) {
-        if (Math.abs(2 * k - count) + 1e-12 >= target) total += probability;
-        if (k < count) probability *= (count - k) / (k + 1);
-      }
-      return Math.max(0, Math.min(1, total));
-    }
-
-    var MODELS = [
-      {
-        id: "gaussian",
-        label: "Gaussian N(0,1)",
-        k: 1,
-        variance: 1,
-        range: null,
-        kind: "exact-mgf",
-        mgf: function (lambda) { return Math.exp(lambda * lambda / 2); },
-        tail: function (threshold) { return gaussianTail(threshold, 1); },
-        sumTail: function (n, threshold) { return gaussianTail(threshold, Math.sqrt(n)); },
-        theorem: "MGF 等式精确成立；和的真实尾也可由 Gaussian 闭式计算。",
-        evidence: "解析分布值，不是一次随机抽样。"
-      },
-      {
-        id: "rademacher",
-        label: "Rademacher ±1",
-        k: 1,
-        variance: 1,
-        range: 2,
-        kind: "bounded-mgf",
-        mgf: function (lambda) { return Math.cosh(lambda); },
-        tail: function (threshold) {
-          return Math.abs(Number(threshold)) <= 1 ? 1 : 0;
-        },
-        sumTail: function (n, threshold) { return binomialRademacherTail(n, threshold); },
-        theorem: "cosh(λ) ≤ exp(λ²/2)；独立和还可用二项式精确枚举。",
-        evidence: "离散模型的有限和账本是解析枚举。"
-      },
-      {
-        id: "uniform",
-        label: "有界 Uniform[-1,1]",
-        k: 1,
-        variance: 1 / 3,
-        range: 2,
-        kind: "bounded-mgf",
-        mgf: function (lambda) {
-          var value = Number(lambda);
-          return Math.abs(value) < 1e-12 ? 1 : sinh(value) / value;
-        },
-        tail: function (threshold) {
-          var value = Math.abs(Number(threshold));
-          return value <= 1 ? 1 - value : 0;
-        },
-        sumTail: null,
-        theorem: "范围为 2；Hoeffding 引理给 K=1 的安全证书，K 不等于标准差。",
-        evidence: "单变量尾是解析值；和的真实卷积不在本实验中冒充定理。"
-      },
-      {
-        id: "heavy-tail",
-        label: "对称重尾 (1+t)^−3",
-        k: null,
-        variance: 1,
-        range: null,
-        kind: "no-subgaussian",
-        mgf: function (lambda) { return Math.abs(Number(lambda)) < 1e-12 ? 1 : Infinity; },
-        tail: function (threshold) {
-          var value = Math.max(0, Number(threshold));
-          return Math.pow(1 + value, -3);
-        },
-        sumTail: null,
-        theorem: "有限二阶矩不提供指数矩；任何非零 λ 的 MGF 发散。",
-        evidence: "多项式尾解析值；不能套 Gaussian 型和界。"
-      }
-    ];
-
-    var STYLE_TEXT = [
-      ".sg-lab{--sg-blue:var(--cl-blue,#315f9d);--sg-gold:var(--cl-gold,#9b6a12);--sg-green:var(--cl-green,#39734d);--sg-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere;}",
-      ".sg-lab *,.sg-lab *::before,.sg-lab *::after{box-sizing:border-box;}.sg-lab [hidden]{display:none!important;}",
-      ".sg-lab h3,.sg-lab h4{margin:0;color:var(--fg);letter-spacing:0;}.sg-lab h3{font-size:1.18rem;}.sg-lab h4{margin-top:16px;font-size:1rem;}.sg-lab p{margin:.65em 0;}",
-      ".sg-lab .sg-note,.sg-lab .sg-feedback,.sg-lab .sg-boundary{color:var(--fg-soft);font-size:13px;line-height:1.7;}.sg-lab button,.sg-lab select,.sg-lab input{font:inherit;letter-spacing:0;}",
-      ".sg-lab button,.sg-lab select{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);cursor:pointer;line-height:1.35;overflow-wrap:anywhere;}.sg-lab input[type=range],.sg-lab input[type=number]{min-height:44px;}.sg-lab input[type=range]{display:block;width:100%;margin:0;accent-color:var(--accent);}.sg-lab input[type=number]{width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);}",
-      ".sg-lab button:hover{border-color:var(--accent);}.sg-lab button[aria-pressed=\"true\"],.sg-lab button.sg-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750;}.sg-lab button:focus-visible,.sg-lab select:focus-visible,.sg-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px;}",
-      ".sg-lab .sg-predict{margin:14px 0;padding:13px 14px;border-left:3px solid var(--sg-gold);background:var(--bg);}.sg-lab .sg-predict-title{display:block;margin-bottom:10px;font-size:13px;}.sg-lab .sg-question-list{display:grid;gap:12px;}.sg-lab .sg-question{min-width:0;margin:0;padding:0;border:0;}.sg-lab .sg-question legend{max-width:100%;margin-bottom:7px;color:var(--fg);font-size:12.5px;font-weight:700;overflow-wrap:anywhere;}.sg-lab .sg-choice-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}.sg-lab .sg-choice-row button{font-size:12px;}",
-      ".sg-lab .sg-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}.sg-lab .sg-actions>*{flex:1 1 155px;}.sg-lab .sg-feedback{min-height:2em;margin:8px 0 0;font-weight:700;}.sg-lab .sg-pass{color:var(--sg-green);}.sg-lab .sg-warn{color:var(--sg-red);}",
-      ".sg-lab .sg-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 16px;margin:14px 0;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}.sg-lab .sg-control{display:grid;gap:5px;min-width:0;}.sg-lab .sg-control label{color:var(--fg-soft);font-size:13px;font-weight:700;}.sg-lab .sg-control output{color:var(--accent);font-variant-numeric:tabular-nums;}",
-      ".sg-lab .sg-results{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.sg-lab .sg-interpretation{margin:12px 0;padding:11px 13px;border-left:3px solid var(--sg-green);background:var(--bg);font-size:13px;line-height:1.7;}.sg-lab .sg-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:12px 0;}.sg-lab .sg-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.sg-lab .sg-metric.sg-blue{border-top-color:var(--sg-blue);}.sg-lab .sg-metric.sg-gold{border-top-color:var(--sg-gold);}.sg-lab .sg-metric.sg-green{border-top-color:var(--sg-green);}.sg-lab .sg-metric.sg-red{border-top-color:var(--sg-red);}.sg-lab .sg-metric span{display:block;color:var(--fg-soft);font-size:11.5px;line-height:1.4;}.sg-lab .sg-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
-      ".sg-lab .sg-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:12px;}.sg-lab .sg-chart{min-width:0;}.sg-lab .sg-chart-frame{min-width:0;padding:7px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}.sg-lab svg{display:block;width:100%;height:auto;color:var(--fg);}.sg-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.sg-lab .sg-ledger{max-width:100%;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.sg-lab table{width:100%;min-width:920px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.sg-lab th,.sg-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}.sg-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750;}.sg-lab .sg-ok{color:var(--sg-green);}.sg-lab .sg-fail{color:var(--sg-red);}",
-      "@media(max-width:820px){.sg-lab .sg-controls,.sg-lab .sg-charts{grid-template-columns:repeat(2,minmax(0,1fr));}}",
-      "@media(max-width:560px){.sg-lab .sg-controls,.sg-lab .sg-charts{grid-template-columns:minmax(0,1fr);}.sg-lab .sg-choice-row{grid-template-columns:minmax(0,1fr);}.sg-lab .sg-predict{padding-left:11px;padding-right:11px;}.sg-lab th,.sg-lab td{padding-left:5px;padding-right:5px;}}",
-      "@media(prefers-reduced-motion:reduce){.sg-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important;}}"
-    ].join("\n");
-
-    function modelById(id) {
-      for (var i = 0; i < MODELS.length; i += 1) {
-        if (MODELS[i].id === id) return MODELS[i];
-      }
-      throw new Error("Unknown concentration model: " + id);
-    }
-
-    function positiveInteger(value, label, max) {
-      var number = Number(value);
-      if (!finite(number) || !Number.isInteger(number) || number < 1 || (max && number > max)) {
-        throw new Error(label + " must be a positive integer");
-      }
-      return number;
-    }
-
-    function nonnegative(value, label) {
-      var number = Number(value);
-      if (!finite(number) || number < 0) throw new Error(label + " must be nonnegative");
-      return number;
-    }
-
-    function mgf(modelId, lambda) {
-      return modelById(modelId).mgf(Number(lambda));
-    }
-
-    function tail(modelId, threshold) {
-      return modelById(modelId).tail(nonnegative(threshold, "threshold"));
-    }
-
-    function subgaussianBound(modelId, n, threshold) {
-      var selected = modelById(modelId);
-      if (selected.k === null) return null;
-      var count = positiveInteger(n, "n", 1000);
-      var value = nonnegative(threshold, "threshold");
-      return Math.min(1, 2 * Math.exp(-(value * value) / (2 * count * selected.k * selected.k)));
-    }
-
-    function hoeffdingBound(modelId, n, threshold) {
-      var selected = modelById(modelId);
-      if (selected.range === null) return null;
-      var count = positiveInteger(n, "n", 1000);
-      var value = nonnegative(threshold, "threshold");
-      return Math.min(1, 2 * Math.exp(-(2 * value * value) / (count * selected.range * selected.range)));
-    }
-
-    function unionBound(singleBound, events) {
-      if (singleBound === null) return null;
-      return Math.min(1, nonnegative(events, "events") * singleBound);
-    }
-
-    function linspace(start, end, count) {
-      var result = [];
-      for (var i = 0; i <= count; i += 1) {
-        result.push(start + (end - start) * i / count);
-      }
-      return result;
-    }
-
-    function analyze(options) {
-      var settings = options || {};
-      var modelId = settings.modelId || DEFAULTS.modelId;
-      var selected = modelById(modelId);
-      var n = positiveInteger(settings.n === undefined ? DEFAULTS.n : settings.n, "n", 1000);
-      var threshold = nonnegative(
-        settings.threshold === undefined ? DEFAULTS.threshold : settings.threshold,
-        "threshold"
-      );
-      var events = positiveInteger(
-        settings.events === undefined ? DEFAULTS.events : settings.events,
-        "events",
-        10000
-      );
-      var singleBound = selected.k === null
-        ? null
-        : subgaussianBound(modelId, 1, SINGLE_THRESHOLD);
-      var sumBound = subgaussianBound(modelId, n, threshold);
-      var sumActual = typeof selected.sumTail === "function"
-        ? selected.sumTail(n, threshold)
-        : null;
-      var lambdaRows = linspace(0, 2.5, 20).map(function (lambda) {
-        return {
-          lambda: lambda,
-          actual: selected.mgf(lambda),
-          bound: selected.k === null ? null : Math.exp(lambda * lambda * selected.k * selected.k / 2)
-        };
-      });
-      var tailRows = linspace(0, 4, 20).map(function (value) {
-        return {
-          threshold: value,
-          actual: selected.tail(value),
-          bound: selected.k === null ? null : Math.min(1, 2 * Math.exp(-(value * value) / (2 * selected.k * selected.k)))
-        };
-      });
-      return {
-        model: selected,
-        n: n,
-        threshold: threshold,
-        events: events,
-        singleThreshold: SINGLE_THRESHOLD,
-        singleTail: selected.tail(SINGLE_THRESHOLD),
-        singleBound: singleBound,
-        sumActual: sumActual,
-        sumBound: sumBound,
-        unionBound: unionBound(sumBound, events),
-        hoeffding: hoeffdingBound(modelId, n, threshold),
-        lambdaRows: lambdaRows,
-        tailRows: tailRows,
-        theorem: selected.theorem,
-        evidence: selected.evidence
-      };
-    }
-
-    function formatNumber(value, digits) {
-      if (value === Infinity) return "∞";
-      if (value === -Infinity) return "−∞";
-      if (!finite(value)) return "—";
-      var places = digits === undefined ? 3 : digits;
-      if (Math.abs(value) > 0 && Math.abs(value) < 0.001) return value.toExponential(places);
-      var text = value.toFixed(places);
-      return text.replace(/0+$/, "").replace(/\.$/, "");
-    }
-
-    function element(doc, tag, attrs, children) {
-      var node = doc.createElement(tag);
-      Object.keys(attrs || {}).forEach(function (key) {
-        var value = attrs[key];
-        if (value === undefined || value === null || value === false) return;
-        if (key === "className") node.setAttribute("class", value);
-        else if (key === "text") node.textContent = value;
-        else if (key.slice(0, 2) === "on" && typeof value === "function") {
-          node.addEventListener(key.slice(2).toLowerCase(), value);
-        } else if (value === true) node.setAttribute(key, "");
-        else node.setAttribute(key, String(value));
-      });
-      if (children !== undefined && children !== null) {
-        (Array.isArray(children) ? children : [children]).forEach(function (child) {
-          if (child === null || child === undefined) return;
-          node.appendChild(child.nodeType ? child : doc.createTextNode(String(child)));
-        });
-      }
-      return node;
-    }
-
-    function replaceChildren(node, children) {
-      while (node.firstChild) node.removeChild(node.firstChild);
-      (Array.isArray(children) ? children : [children]).forEach(function (child) {
-        if (child === null || child === undefined) return;
-        node.appendChild(child.nodeType ? child : node.ownerDocument.createTextNode(String(child)));
-      });
-    }
-
-    function svgNode(doc, tag, attrs, text) {
-      var node = doc.createElementNS(SVG_NS, tag);
-      Object.keys(attrs || {}).forEach(function (key) {
-        node.setAttribute(key, String(attrs[key]));
-      });
-      if (text !== undefined) node.textContent = text;
-      return node;
-    }
-
-    function pathFrom(rows, xKey, yKey, mapX, mapY, yMax) {
-      var commands = [];
-      var open = false;
-      rows.forEach(function (row) {
-        if (!finite(row[yKey])) {
-          open = false;
-          return;
-        }
-        var y = clamp(row[yKey], 0, yMax);
-        commands.push((open ? "L" : "M") + mapX(row[xKey]) + " " + mapY(y));
-        open = true;
-      });
-      return commands.join(" ");
-    }
-
-    function chartSvg(doc, data, mode, uid) {
-      var svg = svgNode(doc, "svg", {
-        viewBox: "0 0 520 300",
-        role: "img",
-        "aria-labelledby": uid + "-" + mode + "-title " + uid + "-" + mode + "-desc"
-      });
-      var title = mode === "mgf" ? "MGF 与亚高斯包络" : "尾概率与亚高斯尾界";
-      var desc = mode === "mgf"
-        ? "蓝线为模型 MGF，金线为 exp(lambda squared K squared over 2) 包络。"
-        : "蓝线为解析模型尾概率，金线为定理尾界；重尾模型没有金色证书线。";
-      svg.appendChild(svgNode(doc, "title", { id: uid + "-" + mode + "-title" }, title));
-      svg.appendChild(svgNode(doc, "desc", { id: uid + "-" + mode + "-desc" }, desc));
-      var margin = { left: 43, right: 14, top: 18, bottom: 31 };
-      var width = 520 - margin.left - margin.right;
-      var height = 300 - margin.top - margin.bottom;
-      var mapX = function (value) { return margin.left + value / 2.5 * width; };
-      var yMax = mode === "mgf" ? 25 : 1;
-      var mapY = function (value) { return margin.top + (yMax - value) / yMax * height; };
-      var rows = mode === "mgf"
-        ? data.lambdaRows.map(function (row) { return { x: row.lambda, actual: row.actual, bound: row.bound }; })
-        : data.tailRows.map(function (row) { return { x: row.threshold, actual: row.actual, bound: row.bound }; });
-      var group = svgNode(doc, "g", {});
-      [0, 0.5, 1].forEach(function (tick) {
-        var y = mapY(mode === "mgf" ? tick * yMax : tick);
-        group.appendChild(svgNode(doc, "line", {
-          x1: margin.left, y1: y, x2: margin.left + width, y2: y,
-          stroke: "var(--border)", "stroke-opacity": "0.45", "stroke-width": "1"
-        }));
-        group.appendChild(svgNode(doc, "text", {
-          x: margin.left - 6, y: y + 4, "text-anchor": "end", "font-size": "10"
-        }, formatNumber(mode === "mgf" ? tick * yMax : tick, mode === "mgf" ? 0 : 1)));
-      });
-      group.appendChild(svgNode(doc, "line", {
-        x1: margin.left, y1: margin.top + height, x2: margin.left + width, y2: margin.top + height,
-        stroke: "currentColor", "stroke-opacity": "0.65", "stroke-width": "1.1"
-      }));
-      group.appendChild(svgNode(doc, "path", {
-        d: pathFrom(rows, "x", "bound", mapX, mapY, yMax),
-        fill: "none",
-        stroke: "var(--sg-gold)",
-        "stroke-width": "2",
-        "stroke-dasharray": "6 4"
-      }));
-      group.appendChild(svgNode(doc, "path", {
-        d: pathFrom(rows, "x", "actual", mapX, mapY, yMax),
-        fill: "none",
-        stroke: "var(--sg-blue)",
-        "stroke-width": "2.4",
-        "stroke-linecap": "round"
-      }));
-      if (data.model.k === null && mode === "mgf") {
-        group.appendChild(svgNode(doc, "text", {
-          x: margin.left + width - 3, y: margin.top + 17, "text-anchor": "end", "font-size": "12"
-        }, "λ ≠ 0: MGF = ∞"));
-      }
-      group.appendChild(svgNode(doc, "text", {
-        x: margin.left + width - 3, y: margin.top + height + 23, "text-anchor": "end", "font-size": "11"
-      }, mode === "mgf" ? "λ" : "t"));
-      svg.appendChild(group);
-      return svg;
-    }
-
-    function metric(doc, label, value, color) {
-      return element(doc, "div", { className: "sg-metric " + (color || "") }, [
-        element(doc, "span", {}, label),
-        element(doc, "strong", {}, value)
-      ]);
-    }
-
-    function injectStyle(doc) {
-      if (doc.getElementById(STYLE_ID)) return;
-      var style = doc.createElement("style");
-      style.id = STYLE_ID;
-      style.textContent = STYLE_TEXT;
-      (doc.head || doc.documentElement).appendChild(style);
-    }
-
-    function choiceQuestion(doc, refs, key, legendText, choices) {
-      var fieldset = element(doc, "fieldset", { className: "sg-question" });
-      fieldset.appendChild(element(doc, "legend", {}, legendText));
-      var row = element(doc, "div", { className: "sg-choice-row" });
-      refs[key] = [];
-      choices.forEach(function (choice) {
-        var button = element(doc, "button", {
-          type: "button",
-          "aria-pressed": "false",
-          text: choice.label,
-          onclick: function () {
-            refs.state.predictions[key] = choice.value;
-            renderPrediction(refs);
-          }
-        });
-        refs[key].push({ value: choice.value, node: button });
-        row.appendChild(button);
-      });
-      fieldset.appendChild(row);
-      return fieldset;
-    }
-
-    function renderPrediction(refs) {
-      ["tails", "mgf", "union"].forEach(function (key) {
-        (refs[key] || []).forEach(function (item) {
-          item.node.setAttribute(
-            "aria-pressed",
-            refs.state.predictions[key] === item.value ? "true" : "false"
-          );
-        });
-      });
-      var answered = ["tails", "mgf", "union"].every(function (key) {
-        return refs.state.predictions[key] !== null;
-      });
-      refs.feedback.textContent = answered ? "三个预测已记录，可以揭示结果。" : "请先完成三个预测。";
-      refs.feedback.className = "sg-feedback";
-    }
-
-    function renderResults(refs) {
-      var state = refs.state;
-      var data = analyze({
-        modelId: state.modelId,
-        n: state.n,
-        threshold: state.threshold,
-        events: state.events
-      });
-      refs.modelSelect.value = state.modelId;
-      refs.nInput.value = String(state.n);
-      refs.nOutput.textContent = String(state.n);
-      refs.thresholdInput.value = String(state.threshold);
-      refs.thresholdOutput.textContent = formatNumber(state.threshold, 1);
-      refs.eventsInput.value = String(state.events);
-      refs.eventsOutput.textContent = String(state.events);
-      refs.summary.textContent =
-        "定理层： " +
-        data.theorem +
-        " 有限证据层： " +
-        data.evidence;
-      replaceChildren(refs.metrics, [
-        metric(refs.doc, "模型 K", data.model.k === null ? "不存在" : formatNumber(data.model.k, 2), data.model.k === null ? "sg-red" : "sg-blue"),
-        metric(refs.doc, "n / 阈值 t", data.n + " / " + formatNumber(data.threshold, 2), "sg-gold"),
-        metric(refs.doc, "单事件界", formatNumber(data.sumBound, 4), "sg-gold"),
-        metric(refs.doc, "m 事件 union", formatNumber(data.unionBound, 4), data.unionBound !== null && data.unionBound >= 1 ? "sg-red" : "sg-green"),
-        metric(refs.doc, "有限和模型值", formatNumber(data.sumActual, 4), data.sumActual === null ? "sg-red" : "sg-blue"),
-        metric(refs.doc, "Hoeffding", formatNumber(data.hoeffding, 4), data.hoeffding === null ? "sg-red" : "sg-green")
-      ]);
-      replaceChildren(refs.mgfChart, [
-        element(refs.doc, "h4", {}, "MGF 与 Gaussian 型包络"),
-        element(refs.doc, "div", { className: "sg-chart-frame" }, chartSvg(refs.doc, data, "mgf", refs.uid))
-      ]);
-      replaceChildren(refs.tailChart, [
-        element(refs.doc, "h4", {}, "单变量尾概率"),
-        element(refs.doc, "div", { className: "sg-chart-frame" }, chartSvg(refs.doc, data, "tail", refs.uid))
-      ]);
-      var rows = MODELS.map(function (model) {
-        var modelData = analyze({
-          modelId: model.id,
-          n: data.n,
-          threshold: data.threshold,
-          events: data.events
-        });
-        return element(refs.doc, "tr", {}, [
-          element(refs.doc, "th", { scope: "row" }, model.label),
-          element(refs.doc, "td", {}, model.k === null ? "—" : formatNumber(model.k, 2)),
-          element(refs.doc, "td", {}, formatNumber(model.mgf(1), 4)),
-          element(refs.doc, "td", {}, formatNumber(modelData.singleTail, 4)),
-          element(refs.doc, "td", {}, formatNumber(modelData.singleBound, 4)),
-          element(refs.doc, "td", {}, formatNumber(modelData.sumBound, 4)),
-          element(refs.doc, "td", {}, formatNumber(modelData.unionBound, 4)),
-          element(refs.doc, "td", { className: model.k === null ? "sg-fail" : "sg-ok" }, model.k === null ? "无亚高斯证书" : "MGF/范围证书")
-        ]);
-      });
-      replaceChildren(refs.ledgerBody, rows);
-      refs.boundary.textContent =
-        "注意量词：MGF/尾界是模型在所有参数上的定理陈述；当前图表只采样有限网格，和的模型值只对 Gaussian 与 Rademacher 做了精确闭式/枚举。union bound 只负责把单事件上界相加，不能把有限数值变成独立事件的乘法概率。";
-    }
-
-    function mount(root, api) {
-      if (!root || !root.ownerDocument) return;
-      var doc = root.ownerDocument;
-      injectStyle(doc);
-      var uid = "sg-" + (INSTANCE += 1);
-      var state = {
-        modelId: DEFAULTS.modelId,
-        n: DEFAULTS.n,
-        threshold: DEFAULTS.threshold,
-        events: DEFAULTS.events,
-        revealed: false,
-        predictions: { tails: null, mgf: null, union: null }
-      };
-      var refs = { doc: doc, uid: uid, state: state };
-      var shell = element(doc, "div", { className: "sg-shell" });
-      shell.appendChild(element(doc, "h3", {}, "亚高斯 MGF、尾界与 union bound"));
-      shell.appendChild(element(doc, "p", { className: "sg-note" }, "本实验不抽随机样本：模型值是解析读数，曲线与账本把定理上界和有限证据并排显示。"));
-
-      var prediction = element(doc, "section", {
-        className: "sg-predict",
-        "aria-labelledby": uid + "-predict-title"
-      });
-      prediction.appendChild(element(doc, "strong", { className: "sg-predict-title", id: uid + "-predict-title" }, "先预测，再揭示"));
-      var questionList = element(doc, "div", { className: "sg-question-list" });
-      questionList.appendChild(choiceQuestion(doc, refs, "tails", "1. Gaussian 与 Rademacher 的 K 相同，真实有限尾概率？", [
-        { value: "different", label: "可以不同" },
-        { value: "same", label: "必须相同" },
-        { value: "ordered", label: "固定反序" }
-      ]));
-      questionList.appendChild(choiceQuestion(doc, refs, "mgf", "2. 对称重尾的非零 λ MGF？", [
-        { value: "infinite", label: "发散" },
-        { value: "finite", label: "有限且等于 1" },
-        { value: "gaussian", label: "必是 e^(λ²/2)" }
-      ]));
-      questionList.appendChild(choiceQuestion(doc, refs, "union", "3. m 个事件的 union-bound 账本？", [
-        { value: "mp", label: "min(1, mp)" },
-        { value: "power", label: "p^m" },
-        { value: "divide", label: "p/m" }
-      ]));
-      prediction.appendChild(questionList);
-      var actions = element(doc, "div", { className: "sg-actions" });
-      var reveal = element(doc, "button", { type: "button", className: "sg-primary", text: "揭示并核对" });
-      var reset = element(doc, "button", { type: "button", text: "重置" });
-      actions.appendChild(reveal);
-      actions.appendChild(reset);
-      prediction.appendChild(actions);
-      refs.feedback = element(doc, "p", { className: "sg-feedback", "aria-live": "polite" }, "请先完成三个预测。");
-      prediction.appendChild(refs.feedback);
-      shell.appendChild(prediction);
-
-      var controls = element(doc, "section", { className: "sg-controls", hidden: true, "aria-label": "集中不等式参数" });
-      refs.controls = controls;
-      refs.modelSelect = element(doc, "select", { "aria-label": "选择分布模型" });
-      MODELS.forEach(function (model) {
-        refs.modelSelect.appendChild(element(doc, "option", { value: model.id }, model.label));
-      });
-      refs.nInput = element(doc, "input", { type: "range", min: "4", max: "80", step: "1", value: String(DEFAULTS.n), "aria-label": "独立变量个数 n" });
-      refs.nOutput = element(doc, "output", {}, String(DEFAULTS.n));
-      refs.thresholdInput = element(doc, "input", { type: "range", min: "1", max: "30", step: "0.5", value: String(DEFAULTS.threshold), "aria-label": "和的阈值 t" });
-      refs.thresholdOutput = element(doc, "output", {}, formatNumber(DEFAULTS.threshold, 1));
-      refs.eventsInput = element(doc, "input", { type: "number", min: "1", max: "20", step: "1", value: String(DEFAULTS.events), "aria-label": "同时事件数 m" });
-      refs.eventsOutput = element(doc, "output", {}, String(DEFAULTS.events));
-      controls.appendChild(element(doc, "div", { className: "sg-control" }, [element(doc, "label", {}, "模型"), refs.modelSelect]));
-      controls.appendChild(element(doc, "div", { className: "sg-control" }, [element(doc, "label", {}, ["n = ", refs.nOutput]), refs.nInput]));
-      controls.appendChild(element(doc, "div", { className: "sg-control" }, [element(doc, "label", {}, ["和阈值 t = ", refs.thresholdOutput]), refs.thresholdInput]));
-      controls.appendChild(element(doc, "div", { className: "sg-control" }, [element(doc, "label", {}, ["事件数 m = ", refs.eventsOutput]), refs.eventsInput]));
-      shell.appendChild(controls);
-
-      var results = element(doc, "section", { className: "sg-results", hidden: true, "aria-labelledby": uid + "-results-title" });
-      refs.results = results;
-      results.appendChild(element(doc, "h4", { id: uid + "-results-title" }, "揭示后的模型与证书账本"));
-      refs.summary = element(doc, "p", { className: "sg-interpretation", "aria-live": "polite" });
-      results.appendChild(refs.summary);
-      refs.metrics = element(doc, "div", { className: "sg-metrics" });
-      results.appendChild(refs.metrics);
-      var charts = element(doc, "div", { className: "sg-charts" });
-      refs.mgfChart = element(doc, "div", { className: "sg-chart" });
-      refs.tailChart = element(doc, "div", { className: "sg-chart" });
-      charts.appendChild(refs.mgfChart);
-      charts.appendChild(refs.tailChart);
-      results.appendChild(charts);
-      var ledger = element(doc, "div", { className: "sg-ledger" });
-      var table = element(doc, "table", { "aria-label": "亚高斯模型比较与 union-bound 账本" });
-      table.appendChild(element(doc, "caption", {}, "四类模型的 MGF、单变量尾、和尾界与多事件上界"));
-      table.appendChild(element(doc, "thead", {}, element(doc, "tr", {}, [
-        element(doc, "th", { scope: "col" }, "模型"),
-        element(doc, "th", { scope: "col" }, "K"),
-        element(doc, "th", { scope: "col" }, "MGF(1)"),
-        element(doc, "th", { scope: "col" }, "单尾 t=1.5"),
-        element(doc, "th", { scope: "col" }, "单尾界"),
-        element(doc, "th", { scope: "col" }, "和尾界"),
-        element(doc, "th", { scope: "col" }, "m 事件"),
-        element(doc, "th", { scope: "col" }, "证书")
-      ])));
-      refs.ledgerBody = element(doc, "tbody");
-      table.appendChild(refs.ledgerBody);
-      ledger.appendChild(table);
-      results.appendChild(ledger);
-      refs.boundary = element(doc, "p", { className: "sg-boundary" });
-      results.appendChild(refs.boundary);
-      shell.appendChild(results);
-      root.classList.add("sg-lab");
-      root.replaceChildren(shell);
-
-      function render() {
-        controls.hidden = !state.revealed;
-        results.hidden = !state.revealed;
-        renderPrediction(refs);
-        if (state.revealed) renderResults(refs);
-      }
-
-      reveal.addEventListener("click", function () {
-        var answers = { tails: "different", mgf: "infinite", union: "mp" };
-        var missing = ["tails", "mgf", "union"].filter(function (key) {
-          return state.predictions[key] === null;
-        });
-        if (missing.length) {
-          refs.feedback.textContent = "还缺少 " + missing.length + " 个预测。";
-          refs.feedback.className = "sg-feedback sg-warn";
-          return;
-        }
-        state.revealed = true;
-        render();
-        var hits = ["tails", "mgf", "union"].filter(function (key) {
-          return state.predictions[key] === answers[key];
-        }).length;
-        refs.feedback.textContent = "已揭示：" + hits + "/3 个预测命中；解析读数仍不等于新的定理。";
-        refs.feedback.className = "sg-feedback " + (hits === 3 ? "sg-pass" : "sg-warn");
-        if (api && typeof api.announce === "function") api.announce(root, refs.feedback.textContent);
-      });
-      reset.addEventListener("click", function () {
-        state = {
-          modelId: DEFAULTS.modelId,
-          n: DEFAULTS.n,
-          threshold: DEFAULTS.threshold,
-          events: DEFAULTS.events,
-          revealed: false,
-          predictions: { tails: null, mgf: null, union: null }
-        };
-        refs.state = state;
-        render();
-      });
-      refs.modelSelect.addEventListener("change", function () {
-        state.modelId = refs.modelSelect.value;
-        if (state.revealed) renderResults(refs);
-      });
-      refs.nInput.addEventListener("input", function () {
-        state.n = Number(refs.nInput.value);
-        if (state.revealed) renderResults(refs);
-      });
-      refs.thresholdInput.addEventListener("input", function () {
-        state.threshold = Number(refs.thresholdInput.value);
-        if (state.revealed) renderResults(refs);
-      });
-      refs.eventsInput.addEventListener("change", function () {
-        state.events = clamp(Math.round(Number(refs.eventsInput.value) || DEFAULTS.events), 1, 20);
-        if (state.revealed) renderResults(refs);
-      });
-      render();
-    }
-
-    function selfTest() {
-      var checks = 0;
-      function assert(condition, message) {
-        checks += 1;
-        if (!condition) throw new Error(message);
-      }
-      function close(actual, expected, tolerance, message) {
-        checks += 1;
-        if (!finite(actual) || Math.abs(actual - expected) > tolerance) {
-          throw new Error(message + ": " + actual + " vs " + expected);
-        }
-      }
-
-      assert(MODELS.length === 4, "model count");
-      close(mgf("gaussian", 1), Math.exp(0.5), 1e-12, "Gaussian MGF");
-      close(mgf("rademacher", 0), 1, 1e-12, "Rademacher MGF at zero");
-      assert(mgf("heavy-tail", 0.5) === Infinity, "heavy-tail MGF diverges");
-      assert(mgf("rademacher", 1) <= Math.exp(0.5), "Rademacher MGF envelope");
-      assert(mgf("uniform", 1) <= Math.exp(0.5), "uniform MGF envelope");
-      close(tail("rademacher", 1.5), 0, 1e-12, "Rademacher bounded tail");
-      close(tail("uniform", 1.5), 0, 1e-12, "uniform bounded tail");
-      close(tail("heavy-tail", 1.5), 0.064, 1e-12, "heavy tail value");
-      close(subgaussianBound("rademacher", 32, 12), 2 * Math.exp(-2.25), 1e-12, "Rademacher sum bound");
-      close(hoeffdingBound("uniform", 32, 12), 2 * Math.exp(-2.25), 1e-12, "Hoeffding range bound");
-      close(unionBound(0.2, 5), 1, 1e-12, "union cap");
-      close(binomialRademacherTail(4, 3), 0.125, 1e-12, "finite Rademacher enumeration");
-      var result = analyze({ modelId: "gaussian", n: 32, threshold: 12, events: 5 });
-      assert(result.sumActual !== null && result.sumBound !== null, "Gaussian finite and bound");
-      assert(result.unionBound >= result.sumBound, "union bound bookkeeping");
-      var heavy = analyze({ modelId: "heavy-tail", n: 32, threshold: 12, events: 5 });
-      assert(heavy.sumBound === null && heavy.unionBound === null, "heavy-tail has no subgaussian certificate");
-      assert(heavy.lambdaRows.some(function (row) { return row.actual === Infinity; }), "heavy MGF plot evidence");
-      var rejected = false;
-      try { analyze({ n: 0 }); } catch (error) { rejected = true; }
-      assert(rejected, "invalid n rejected");
-      rejected = false;
-      try { analyze({ n: 3.5 }); } catch (error) { rejected = true; }
-      assert(rejected, "fractional n rejected");
-      rejected = false;
-      try { analyze({ threshold: -1 }); } catch (error) { rejected = true; }
-      assert(rejected, "negative threshold rejected");
-      return { checks: checks, models: MODELS.length };
-    }
-
-    return {
-      DEFAULTS: DEFAULTS,
-      MODELS: MODELS,
-      gaussianTail: gaussianTail,
-      binomialRademacherTail: binomialRademacherTail,
-      mgf: mgf,
-      tail: tail,
-      subgaussianBound: subgaussianBound,
-      hoeffdingBound: hoeffdingBound,
-      unionBound: unionBound,
-      analyze: analyze,
-      mount: mount,
-      selfTest: selfTest
-    };
-  }
-);
+return{MODES:MODES,MODELS:MODELS,DEFAULTS:DEFAULTS,config:config,models:models,binomial:binomial,shell:shell,snapshot:snapshot,normalLogTwoTail:normalLogTwoTail,logMGF:logMGF,singleLogTail:singleLogTail,rademacherLogTail:rademacherLogTail,binomialRows:binomialRows,bernoulliKL:bernoulliKL,fmt:fmt,prob:prob,selfTest:selfTest,ledgers:ledgers,plots:plots,mount:mount};
+});

@@ -3,13 +3,12 @@ from _common import *
 rng=np.random.default_rng(5)
 
 def f_subgaussian():
-    t=np.linspace(0,3.5,300); fig,ax=plt.subplots(figsize=(6.4,3.8))
-    ax.semilogy(t,2*np.exp(-t**2/2),color=ACC,lw=2.2,label=r"sub-Gaussian bound $2e^{-t^2/2}$")
-    ax.semilogy(t,2*np.exp(-t),color=RED,lw=2,ls="--",label=r"sub-exponential $2e^{-t}$")
-    ax.semilogy(t,1/(1+t**2),color=GREEN,lw=2,ls=":",label=r"heavy tail $1/(1+t^2)$")
-    ax.set_xlabel(r"$t$"); ax.set_ylabel(r"$P(|X|>t)$"); ax.legend(frameon=False,fontsize=10)
-    ax.set_title(r"Tail decay: sub-Gaussian concentrates fastest",fontsize=12)
-    save(fig,"hdp-01-subgaussian-tail")
+    """Preserve the reviewed probability figure; do not regenerate proxy tails."""
+    from pathlib import Path
+    import xml.etree.ElementTree as ET
+    source = Path(__file__).resolve().parents[1] / "images" / "hdp-01-subgaussian-tail.svg"
+    ET.parse(source)
+    print(f"Preserved reviewed source SVG: {source.name}")
 
 def f_semicircle():
     N=800; A=rng.normal(0,1,(N,N)); A=(A+A.T)/np.sqrt(2*N); ev=np.linalg.eigvalsh(A)
