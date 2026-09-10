@@ -52,203 +52,367 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-10 14:28</div>
+    <div class="build-time">构建于 2026-09-10 23:26</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#hdp04-learning-title">学习层：一棵固定二叉树，三种“最大值”语言</a><ul>
-<li><a href="#1">1. 先预测：同一棵树上的三个数字不是同一个对象</a></li>
-<li><a href="#2">2. 两种理论账本与一条样本账本</a></li>
-<li><a href="#3">3. 可运行实验：看树、看逐级账、看量词</a></li>
-<li><a href="#4">4. 边界、反例与迁移</a></li>
+<li><a href="#hdp04-learning-title">先看共同祖先为什么重要</a><ul>
+<li><a href="#_1">一次样本、期望、高概率保证分别是什么</a></li>
+<li><a href="#_2">预测以后再揭示</a></li>
+<li><a href="#_3">能从实验查到什么</a></li>
 </ul>
 </li>
-<li><a href="#1_1">1. 问题与亚高斯过程</a></li>
-<li><a href="#2-chaining">2. 从一步网到 chaining</a></li>
-<li><a href="#3_1">3. 经验过程与一致大数定律</a></li>
-<li><a href="#4_1">4. 高维概率四页资产盘点</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#1">1. 每一层的最大值上界从哪里来</a><ul>
+<li><a href="#_4">有失败概率的版本必须另算</a></li>
+</ul>
+</li>
+<li><a href="#2">2. 距离不是看两个样本值相减</a><ul>
+<li><a href="#_5">这棵树的覆盖数可以精确算</a></li>
+</ul>
+</li>
+<li><a href="#3">3. 从树上的路径推广到多尺度网</a><ul>
+<li><a href="#_6">为什么求和变成积分</a></li>
+</ul>
+</li>
+<li><a href="#4">4. 接到经验过程：先对称化，再用随机度量</a></li>
+<li><a href="#5">5. 四道迁移题与完整解答</a></li>
+<li><a href="#6">6. 去往下一门课程时带走什么</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iv">高维概率 IV · 链式法与经验过程<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Vershynin <em>HDP</em> §7.1–8.3 ｜ <strong>前置</strong>：hdp-01–03
-收官页处理最一般的问题形态：<strong>随机过程在无穷参数集上的上确界</strong> <span class="arithmatex">\(E\sup_{t\in T} X_t\)</span>——统计学习的泛化误差、经验过程的偏差都长这个样子。从"一步 ε-网"升级为"多尺度 chaining"，顶点是 Dudley 熵积分。这页是高维概率通往统计学习理论（slt 线）的桥。</p>
+<p><strong>前置</strong>：<a href="hdp-01-subgaussian.html">亚高斯集中</a>、<a href="hdp-02-random-vectors.html">随机向量</a>、<a href="hdp-03-random-matrices.html">ε-网与随机矩阵</a>。</p>
+<p>上一页用有限方向控制整个球面。本页再问：如果许多候选对象彼此非常相似，能否在比较它们时少付一些代价？我们从一棵有共同祖先的随机树出发，算出它的距离、覆盖数和熵积分，再把这条思路接到经验过程与泛化误差上。</p>
 </blockquote>
 <div data-learning-page></div>
 
 <section aria-labelledby="hdp04-learning-title" class="learning-layer">
-<h2 id="hdp04-learning-title">学习层：一棵固定二叉树，三种“最大值”语言<a class="headerlink" href="#hdp04-learning-title" title="Permanent link"></a></h2>
-<h3 id="1">1. 先预测：同一棵树上的三个数字不是同一个对象<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>实验固定一棵深度 <span class="arithmatex">\(K\)</span> 的完整二叉树。每条第 <span class="arithmatex">\(k\)</span> 层边的增量为独立 <span class="arithmatex">\(g_e\sim N(0,1)\)</span> 乘上</p>
+<h2 id="hdp04-learning-title">先看共同祖先为什么重要<a class="headerlink" href="#hdp04-learning-title" title="Permanent link"></a></h2>
+<p>想象每条路线依次经过若干岔路。路线前半段相同时，它们共享已经累积的误差；不能把两个终点的数值当成独立样本。实验用完整二叉树表达这件事：每条边对应一次独立增量，第 <span class="arithmatex">\(k\)</span> 层的尺度为</p>
 <div class="arithmatex">\[
-\sigma_k=0.86\cdot0.42^{k-1},\qquad
-X_v=\sum_{e\in\operatorname{path}(\mathrm{root},v)}\sigma_{\operatorname{level}(e)}g_e.
-\]</div>
-<p>同一份 seed 同时生成所有边，所以叶节点之间通过共同祖先相关，且增量满足由路径差定义的亚高斯度量。先预测：</p>
-<ol>
-<li>对 <span class="arithmatex">\(|L|=2^K\)</span> 个叶子一次性做 union bound，和把每一层的最大增量逐级记账，哪一个期望上界更紧？</li>
-<li>固定 seed 的 <span class="arithmatex">\(\max_{v\in L}X_v\)</span> 是期望上界、定理等式，还是一条样本路径的观测值？</li>
-<li>Dudley / generic chaining 的自然量词是“每一条样本都等号成立”，还是 <span class="arithmatex">\(E\sup\)</span> 的上界语言？有限树上的图能否证明无限指标集的一般定理？</li>
-</ol>
-<p>揭示前隐藏三种最大值和每一级数字；改变树深度或 seed 后预测重新上锁。</p>
-<h3 id="2">2. 两种理论账本与一条样本账本<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>令 <span class="arithmatex">\(V=\sum_{k=1}^K\sigma_k^2\)</span>。把所有叶子当成一次性 <span class="arithmatex">\(V\)</span>-次高斯变量，单尺度 union-bound 语言给出</p>
-<div class="arithmatex">\[
-U_{\mathrm{single}}=\sqrt{2V\log|L|}.
-\]</div>
-<p>沿树按尺度接力，则第 <span class="arithmatex">\(k\)</span> 层有 <span class="arithmatex">\(2^k\)</span> 条边，逐级的高斯 max 项是</p>
-<div class="arithmatex">\[
-u_k=\sigma_k\sqrt{2\log(2^k)},\qquad
-U_{\mathrm{chain}}=\sum_{k=1}^K u_k.
-\]</div>
-<p>这是一个有限树上的多尺度 union-bound 账本，与 Dudley 熵积分 / generic chaining 的思想同向；它不是把常数、截断端点和一般度量空间的证明全部压缩成一个等式。对固定 seed，实验另外计算</p>
-<div class="arithmatex">\[
-M_{\mathrm{sample}}=\max_{v\in L}X_v,\qquad
-M_{\mathrm{chain}}=\sum_{k=1}^K\max_{e\text{ 在第 }k\text{ 层}}\Delta_e,
-\]</div>
-<p>其中 <span class="arithmatex">\(M_{\mathrm{sample}}\le M_{\mathrm{chain}}\)</span> 是这棵树上的样本级确定性不等式。它们都不能改名为 <span class="arithmatex">\(E\sup\)</span>。</p>
-<h3 id="3">3. 可运行实验：看树、看逐级账、看量词<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>选择固定 seed 预设或调整有限深度 <span class="arithmatex">\(K\)</span>。SVG 左侧画共享祖先与叶值，右侧并列单尺度上界、多尺度上界、固定 seed 样本最大值和样本级链上界；下方表格逐级列出 <span class="arithmatex">\(\sigma_k\)</span>、实际最大增量和理论贡献。</p>
-<div class="learning-lab" data-learning-lab="chaining-tree">
-<p><strong>JavaScript 失效时的静态 fallback：</strong>默认 <span class="arithmatex">\(K=5\)</span>、seed=<code>31031</code>、叶节点数 <span class="arithmatex">\(32\)</span>。尺度为 <span class="arithmatex">\(0.86,0.3612,0.151704,0.06371568,0.0267605856\)</span>。三本账可读为：</p>
-<table>
-<thead>
-<tr>
-<th>账本</th>
-<th style="text-align: right;">默认静态值</th>
-<th>正确量词</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>单尺度 <span class="arithmatex">\(U_{\rm single}=\sqrt{2V\log32}\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(2.494686\)</span></td>
-<td>期望上界语言</td>
-</tr>
-<tr>
-<td>多尺度 <span class="arithmatex">\(U_{\rm chain}=\sum_k\sigma_k\sqrt{2\log2^k}\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(2.143879\)</span></td>
-<td>有限树的多尺度期望上界账本</td>
-</tr>
-<tr>
-<td>固定 seed <span class="arithmatex">\(\max_vX_v\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.813619\)</span></td>
-<td>一次可复现样本的最大值</td>
-</tr>
-<tr>
-<td>样本级 <span class="arithmatex">\(\sum_k\max_e\Delta_e\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1.458464\)</span></td>
-<td>当前路径上的确定性链上界</td>
-</tr>
-</tbody>
-</table>
-<p>默认 seed 只决定这一次边增量；它不是“Dudley 对每条样本都给出等式”的证据。</p>
-</div>
-<h3 id="4">4. 边界、反例与迁移<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<ul>
-<li><strong>Dudley / generic chaining 是期望上界语言</strong>：<span class="arithmatex">\(E\sup\)</span>、高概率版本和一次样本的 <span class="arithmatex">\(\max X_v\)</span> 必须分栏；固定 seed 的最大值可以偶然高于或低于某个期望上界，不能由一次路径裁决定理。</li>
-<li><strong>有限树不是一般定理证明</strong>：这里的 <span class="arithmatex">\(2^K\)</span> 个叶子、固定几何尺度和 Gaussian 边增量是可计算教学模型；一般指标集需要覆盖数、度量、可测性和极限/积分条件。</li>
-<li><strong>单尺度不一定总输</strong>：本实验的快速衰减尺度让多尺度账本更紧；换尺度、常数或度量后应重新比较，不能把“chaining 更小”当成无条件口号。</li>
-<li><strong>迁移提示</strong>：把叶子换成函数类或数据集上的损失函数，写出 <span class="arithmatex">\(d(f,g)^2\)</span> 与覆盖数 <span class="arithmatex">\(N(\varepsilon)\)</span>；再说明哪一项对应统计学习里的经验过程，而不是把有限树的样本最大值直接当作泛化误差。</li>
-</ul>
-</section>
-<h2 id="1_1">1. 问题与亚高斯过程<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p><strong>对象</strong>：随机过程 <span class="arithmatex">\((X_t)_{t\in T}\)</span>，指标集 <span class="arithmatex">\(T\)</span> 带度量 <span class="arithmatex">\(d\)</span>；<strong>亚高斯增量条件</strong>：</p>
-<div class="arithmatex">\[
-\|X_t - X_s\|_{\psi_2} \leq d(t, s) \qquad (\text{近的参数, 差得少——概率版 Lipschitz})
-\]</div>
-<p>范例：高斯过程 <span class="arithmatex">\(X_t=\langle g,t\rangle\)</span>（<span class="arithmatex">\(g\)</span> 标准高斯向量，<span class="arithmatex">\(T\subseteq\mathbb R^n\)</span>，<span class="arithmatex">\(d\)</span> = 欧氏距离）；以及给定样本后的 Rademacher 过程 <span class="arithmatex">\(G_n^\epsilon(f)=n^{-1/2}\sum_i\epsilon_i f(Z_i)\)</span>，其条件增量度量是 <span class="arithmatex">\(L^2(P_n)\)</span>。未经尾部条件的原始经验过程不自动满足同一个亚高斯增量假设；第 3 节会先用对称化把它送到 Rademacher 过程，再调用 Dudley。</p>
-<p>目标：<span class="arithmatex">\(E\sup_{t\in T}X_t\)</span> 的上界——"这族随机量同时能有多大"。</p>
-<h2 id="2-chaining">2. 从一步网到 chaining<a class="headerlink" href="#2-chaining" title="Permanent link"></a></h2>
-<p><strong>一步网（hdp-03 的方法）</strong>的代价：粒度 <span class="arithmatex">\(\varepsilon\)</span> 的网给 <span class="arithmatex">\(E\sup \lesssim \sup_{\text{网点}} + \text{离散化误差}\)</span>——粗网省点数但误差大，细网反之，<strong>单一尺度必有牺牲</strong>。</p>
-<p><strong>Chaining 的思想</strong>【骨架级直觉】：<strong>多尺度接力</strong>。取一列越来越细的网 <span class="arithmatex">\(\mathcal{N}_k\)</span>（粒度 <span class="arithmatex">\(2^{-k}\)</span>），把任一点 <span class="arithmatex">\(t\)</span> 写成沿网的"链"：</p>
-<div class="arithmatex">\[
-X_t = X_{t_0} + \sum_{k\geq 1}\big(X_{t_k} - X_{t_{k-1}}\big), \qquad t_k = \text{在 } \mathcal{N}_k \text{ 中最近的点}
-\]</div>
-<p>每级增量的尺度 <span class="arithmatex">\(d(t_k, t_{k-1}) \leq 3\cdot2^{-k}\)</span> 很小（亚高斯尾很尖），每级的 union bound 只需付该级网点数 <span class="arithmatex">\(|\mathcal{N}_k|\)</span> 的对数——<strong>大跳靠粗网（点少）、细节靠细网（增量小）</strong>，各尺度各付各账。</p>
-<p><strong>定理（Dudley 熵积分，一种标准版本）</strong> 设 <span class="arithmatex">\((X_t)_{t\in T}\)</span> 是中心化、可分的实过程，<span class="arithmatex">\(d\)</span> 是有限直径的伪度量，并满足亚高斯增量尾界；固定锚点 <span class="arithmatex">\(t_0\in T\)</span>，则在相应上确界可测（或采用外期望）的条件下</p>
-<div class="arithmatex">\[
-E\sup_{t\in T}(X_t-X_{t_0})
-\;\leq\;
-C\int_0^{\operatorname{diam}(T,d)}
-\sqrt{\ln N(T,d,\varepsilon)}\,d\varepsilon.
-\]</div>
-<p>其中 <span class="arithmatex">\(N(T,d,\varepsilon)\)</span> 是覆盖数（ε-网最小点数）。若 <span class="arithmatex">\(EX_{t_0}=0\)</span>，左侧也等于 <span class="arithmatex">\(E\sup_tX_t\)</span>；若过程不中心化或要控制 <span class="arithmatex">\(E\sup_t|X_t|\)</span>，须另保留锚点项（或把 <span class="arithmatex">\(T\)</span> 对称化），不能让它凭空消失。</p>
-<p><strong>【骨架】</strong> 从 <span class="arithmatex">\(X_t-X_{t_0}\)</span> 开始沿链望远镜展开，逐级取期望最大值：第 <span class="arithmatex">\(k\)</span> 级贡献 <span class="arithmatex">\(\lesssim 2^{-k}\sqrt{\ln|\mathcal{N}_k|}\)</span>（亚高斯 max 界：<span class="arithmatex">\(m\)</span> 个 <span class="arithmatex">\(\psi_2\)</span> 范数 <span class="arithmatex">\(\leq\sigma\)</span> 的量，<span class="arithmatex">\(E\max\lesssim\sigma\sqrt{\ln m}\)</span>）；对 <span class="arithmatex">\(k\)</span> 求和即熵积分的离散化。可分性让上确界由可数稠密子集决定，覆盖尾项趋零/熵积分有限则允许链极限；非可分过程要指定可测版本或用外期望。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>读法</strong>：<strong>过程的最大值由"各尺度的复杂度 <span class="arithmatex">\(\sqrt{\ln N(\varepsilon)}\)</span> 沿尺度积分"控制</strong>——几何复杂度（覆盖数）到概率界（sup 期望）的通用换算器。一步网 = 只取积分的一个矩形；chaining 的改进即"积分优于单点求值"。（前沿注脚【引用】：Talagrand 泛函 <span class="arithmatex">\(\gamma_2\)</span> 把 Dudley 收紧为双向匹配的 majorizing measures 定理——高斯过程 sup 的完全刻画；知其存在即可。）</p>
-<h2 id="3_1">3. 经验过程与一致大数定律<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>统计学习的桥</strong>：记 <span class="arithmatex">\(P_nf=n^{-1}\sum_i f(Z_i)\)</span>。泛化误差的核心量是</p>
-<div class="arithmatex">\[
-E\sup_{f \in \mathcal{F}}\Big|\frac1n\sum_i f(Z_i) - Ef\Big|
-\]</div>
-<p>——<strong>函数类上的经验过程 sup</strong>。SLLN（mt-02）管单个 <span class="arithmatex">\(f\)</span>；学习需要<strong>一致</strong>版本。这里不能把随机的 <span class="arithmatex">\(L^2(P_n)\)</span> 覆盖数直接塞进原过程后跳过桥梁。先引入独立 Rademacher 符号 <span class="arithmatex">\(\epsilon_i\)</span>，条件于样本定义</p>
-<div class="arithmatex">\[
-G_n^\epsilon(f)=\frac1{\sqrt n}\sum_{i=1}^n\epsilon_i f(Z_i),
+\sigma_k=a\rho^{k-1},\qquad
+\Delta_e=\sigma_k g_e,\qquad g_e\sim N(0,1),
 \qquad
-d_n(f,g)=\left(P_n(f-g)^2\right)^{1/2}.
+X_v=\sum_{e\in\operatorname{path}(v)}\Delta_e.
 \]</div>
-<p>给定 <span class="arithmatex">\(Z_1,\ldots,Z_n\)</span>，这个过程对 <span class="arithmatex">\(d_n\)</span> 有亚高斯增量。对称化与条件 Dudley 依次给</p>
+<p>这里 <span class="arithmatex">\(a&gt;0\)</span> 是第一层标准差，<span class="arithmatex">\(\rho\in[0,1]\)</span> 控制后续尺度，深度为 <span class="arithmatex">\(K\)</span>，叶数为 <span class="arithmatex">\(2^K\)</span>。<span class="arithmatex">\(X\)</span>、<span class="arithmatex">\(a\)</span> 和下面的距离使用同一种任意单位；<span class="arithmatex">\(\rho\)</span> 无量纲。真实理论模型的全部 <span class="arithmatex">\(g_e\)</span> 独立，叶值则通过祖先相关。实验用固定种子的伪随机数近似这一构造。</p>
+<h3 id="_1">一次样本、期望、高概率保证分别是什么<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>令 <span class="arithmatex">\(M=\max_{v\text{ 为叶}}X_v\)</span>，每片叶的方差相同，记为 <span class="arithmatex">\(V=\sum_k\sigma_k^2\)</span>。我们将比较：</p>
 <div class="arithmatex">\[
-E^*\sup_{f\in\mathcal F}|(P_n-P)f|
-\le \frac{2}{\sqrt n}E_Z^*E_\epsilon
-\sup_{f\in\mathcal F}|G_n^\epsilon(f)|,
+\mathbb EM\le U_{\mathrm{single}}
+=\sqrt{2V K\log2},
+\qquad
+\mathbb EM\le U_{\mathrm{chain}}
+=\sum_{k=1}^K\sigma_k\sqrt{2k\log2}.
 \]</div>
-<p>以及在取 <span class="arithmatex">\(f_0\in\mathcal F\)</span> 并处理锚点后</p>
+<p>第二条界先在每层找最大增量，再累加。它依据的是逐样本确定不等式</p>
 <div class="arithmatex">\[
-E_\epsilon\sup_{f\in\mathcal F}|G_n^\epsilon(f)-G_n^\epsilon(f_0)|
-\lesssim
-\int_0^{\operatorname{diam}(\mathcal F,d_n)}
-\sqrt{\ln N(\mathcal F,d_n,\varepsilon)}\,d\varepsilon.
+M=\max_v\sum_{e\in\operatorname{path}(v)}\Delta_e
+\le\sum_{k=1}^K\max_{e\text{ 在第 }k\text{ 层}}\Delta_e.
 \]</div>
-<p><span class="arithmatex">\(E^*\)</span> 表示外期望，用来覆盖函数类不可数时上确界可能不自动可测的情形；若预先假设可数/可分且可测，可去掉星号。函数类的覆盖数增长由此决定一个<strong>充分的</strong>学习复杂度证书。VC 型覆盖界配合包络、可测性和对称化可导出典型 <span class="arithmatex">\(\sqrt{d/n}\)</span> 量级；“熵积分发散”只说明这条充分路线没有给出有限常数，不等价于不可学习或 ULLN 失败。</p>
-<h2 id="4_1">4. 高维概率四页资产盘点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p>每一层的最大边不一定拼成一条实际路线，因此这里通常损失了一些信息。尺度下降很快时，多尺度上界可能更紧；尺度全部相同时，单尺度上界可能更紧。<strong>不能只凭“用了 chaining”就判定一个具体上界一定更好。</strong></p>
+<figure class="plot">
+<p><img alt="共享祖先、带负值的样本账本与真实覆盖阶梯" src="assets/img/hdp-04-chaining-ledgers.svg" /></p>
+<figcaption><span class="fig-id">图 4.1</span>共同祖先决定理论协方差，而一次实现的正负由具体增量决定。覆盖阶梯的面积是几何积分，不是把通用定理常数悄悄设为 1 的期望值。</figcaption>
+</figure>
+<h3 id="_2">预测以后再揭示<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>先判断：多尺度界是否总更小？一次样本超过期望上界是否推翻定理？给全部叶值加一个共同随机常数是否改变距离？熵积分发散是否等于一致大数定律失败？</p>
+<div class="learning-lab" data-learning-lab="chaining-tree">
+<p><strong>无需 JavaScript 的默认账本。</strong>K=5，a=0.86，ρ=0.42，seed=31031，δ=0.05，参照叶索引0。数值由当前固定伪随机规则生成，和旧版使用不同生成器的种子序列不同。</p>
 <table>
 <thead>
 <tr>
-<th>工具</th>
-<th>控制的对象</th>
-<th>下游</th>
+<th>对象</th>
+<th>数值</th>
+<th>含义</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Chernoff/Hoeffding/Bernstein</td>
-<td>单个和</td>
-<td>一切</td>
+<td>叶数</td>
+<td>32</td>
+<td>完整二叉树深度5</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(\psi_2/\psi_1\)</span> 语言</td>
-<td>尾部的代数</td>
-<td>全线组织语言</td>
+<td>叶方差 V</td>
+<td>0.89785536</td>
+<td>总体高斯模型</td>
 </tr>
 <tr>
-<td>ε-网三件套</td>
-<td>球面 sup（矩阵谱）</td>
-<td>协方差/随机矩阵/压缩感知</td>
+<td>样本最大值</td>
+<td>2.46830667</td>
+<td>当前seed的一次观测</td>
 </tr>
 <tr>
-<td>Chaining/Dudley</td>
-<td>任意参数集 sup</td>
-<td>经验过程、slt 线、高斯过程回归</td>
+<td>样本链上界</td>
+<td>2.76001065</td>
+<td>当前所有层的最大增量之和</td>
+</tr>
+<tr>
+<td>单尺度期望上界</td>
+<td>2.49468618</td>
+<td>控制 E M</td>
+</tr>
+<tr>
+<td>多尺度期望上界</td>
+<td>2.14387859</td>
+<td>控制 E M</td>
+</tr>
+<tr>
+<td>单尺度高概率上界</td>
+<td>3.40630704</td>
+<td>P(M超过此值)≤0.05</td>
+</tr>
+<tr>
+<td>分层高概率上界</td>
+<td>4.71465641</td>
+<td>P(M超过此值)≤0.05</td>
+</tr>
+<tr>
+<td>几何熵积分 I</td>
+<td>1.40129565</td>
+<td>尚未乘 Dudley 的通用常数</td>
+</tr>
+<tr>
+<td>直径 D₀</td>
+<td>1.34004131</td>
+<td>不同第一层分支的距离</td>
+</tr>
+<tr>
+<td>负最大值预设</td>
+<td>−0.456708520</td>
+<td>K=1、seed=3，两片叶都为负</td>
 </tr>
 </tbody>
 </table>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（亚高斯 max 界亲算）</strong> <span class="arithmatex">\(m\)</span> 个 <span class="arithmatex">\(\|X_i\|_{\psi_2}\leq\sigma\)</span>：<span class="arithmatex">\(E\max X_i \leq C\sigma\sqrt{\ln m}\)</span>——用尾界积分 <span class="arithmatex">\(E\max \leq t_0 + \int_{t_0}^\infty m\,e^{-ct^2/\sigma^2}dt\)</span> 并取 <span class="arithmatex">\(t_0 = \sigma\sqrt{\ln m}/\sqrt c\)</span>。（chaining 每级用的正是这一行；也解释了"<span class="arithmatex">\(m\)</span> 个高斯的最大值 <span class="arithmatex">\(\approx \sigma\sqrt{2\ln m}\)</span>"——<a href="mt-01-measure-expectation.html#9a">测度概率 §9a</a> 的上界方向。）</p>
-<p><strong>例 2（Dudley 应用：Lipschitz 类）</strong> 必须先钉住常数方向。令</p>
+<p>默认样本最大值超过多尺度期望上界，这并不矛盾：平均值的上界不是每次实现都必须遵守的天花板。“两片叶都为负”预设展示负的样本最大值；图中有完整负轴，不会把它裁成0。</p>
+</div>
+<h3 id="_3">能从实验查到什么<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>全部父子连接、每条边的标准高斯读数、尺度、增量、父值和子值都可查。每片叶还有完整二进制地址与路径增量。最大叶路径用金色标出；树的屏幕坐标只编码拓扑，屏幕上的线长不代表概率距离。</p>
+<p>固定种子并增加 <span class="arithmatex">\(K\)</span> 时，原有层的增量保持不变。改变 <span class="arithmatex">\(\rho\)</span> 则复用同一组标准化随机读数，只改变它们的尺度。实验限定 <span class="arithmatex">\(K=1,\ldots,6\)</span>；<span class="arithmatex">\(\rho\)</span> 取 0 或 <span class="arithmatex">\(0.01\le\rho\le1\)</span>，以避免极小正尺度超出这里的浮点显示范围。seed 可取完整的32位无符号整数，包括0。</p>
+<p>算法使用模 <span class="arithmatex">\(2^{32}\)</span> 的线性同余发生器，乘数1664525、增量1013904223，均匀读数为 <span class="arithmatex">\((\mathrm{state}+1/2)/2^{32}\)</span>，再以 Box–Muller 变换得到伪高斯读数。这是可复算的有限样本；它不提供独立连续高斯分布的数学证明。</p>
+</section>
+<h2 id="1">1. 每一层的最大值上界从哪里来<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>先证明一个会反复使用的小工具。设 <span class="arithmatex">\(Y_1,\ldots,Y_m\)</span> 满足中心亚高斯矩母函数界</p>
 <div class="arithmatex">\[
-\mathcal F_d=\{f:[0,1]^d\to\mathbb R:\operatorname{Lip}(f)\le1,\ f(0)=0\}.
+\mathbb E e^{\lambda Y_i}\le e^{\lambda^2s^2/2}
+\quad\text{对所有实数 }\lambda.
 \]</div>
-<p>于是 <span class="arithmatex">\(|f(x)|\le\sqrt d\)</span> 给出有界包络；若不要求 <span class="arithmatex">\(f(0)=0\)</span> 或另给 <span class="arithmatex">\(\|f\|_\infty\)</span> 上界，任意加常数会使类无界。对 <span class="arithmatex">\(d=1\)</span>，sup 范数熵满足 <span class="arithmatex">\(\ln N(\varepsilon)\asymp\varepsilon^{-1}\)</span>，Dudley 积分有限并支持根号 <span class="arithmatex">\(n\)</span> 级控制。对一般 <span class="arithmatex">\(d\)</span>，<span class="arithmatex">\(\ln N(\varepsilon)\asymp\varepsilon^{-d}\)</span>，当 <span class="arithmatex">\(d\ge2\)</span> 时该积分在 0 端发散：这准确地诊断了<strong>这条未截断 Dudley 证书失效</strong>，不能据此宣布 ULLN 失败。事实上，固定有限 <span class="arithmatex">\(d\)</span> 时 <span class="arithmatex">\(\mathcal F_d\)</span> 由 Arzelà--Ascoli 在 sup 范数下全有界，结合有限网与单个函数 LLN 仍可证明它是 Glivenko--Cantelli 类；困难落在速率而非一致收敛的存在性。</p>
-<p><strong>可评分追问</strong>：对 <span class="arithmatex">\(d=3\)</span>，学生写“熵积分发散，所以存在 <span class="arithmatex">\(f_n\in\mathcal F_3\)</span> 使 <span class="arithmatex">\((P_n-P)f_n\)</span> 不收敛到 0”，错在何处？合格答案应同时指出：发散只否定当前充分上界；<span class="arithmatex">\(f(0)=0\)</span> 给出共同包络；sup 范数有限网加 LLN 仍推出 ULLN。</p>
-<p><strong>例 3（桥的体感）</strong> 有限类 <span class="arithmatex">\(|\mathcal{F}| = m\)</span>：覆盖数 <span class="arithmatex">\(\leq m\)</span> 恒定，Dudley 退化为 <span class="arithmatex">\(\sqrt{\ln m / n}\)</span>——恰是 ai 课 01 讲有限假设类泛化界。<strong>那页的 <span class="arithmatex">\(\ln|\mathcal{H}|\)</span>，在本页看来是熵积分最粗的一格矩形。</strong><span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>高维概率完卷。下一门：随机分析——布朗运动与 Itô 积分的严格版（本科 sde 三页的证明级重建）。</em></p>
+<p>不要求这些 <span class="arithmatex">\(Y_i\)</span> 彼此独立。对 <span class="arithmatex">\(\lambda&gt;0\)</span>，</p>
+<div class="arithmatex">\[
+e^{\lambda\max_iY_i}\le\sum_i e^{\lambda Y_i},
+\qquad
+e^{\lambda\mathbb E\max_iY_i}
+\le\mathbb Ee^{\lambda\max_iY_i}
+\le m e^{\lambda^2s^2/2}.
+\]</div>
+<p>中间一步是 Jensen 不等式。取对数后，</p>
+<div class="arithmatex">\[
+\mathbb E\max_iY_i\le\frac{\log m}{\lambda}+\frac{\lambda s^2}{2}.
+\]</div>
+<p>若 <span class="arithmatex">\(m&gt;1\)</span> 且 <span class="arithmatex">\(s&gt;0\)</span>，取 <span class="arithmatex">\(\lambda=\sqrt{2\log m}/s\)</span>，得 <span class="arithmatex">\(s\sqrt{2\log m}\)</span>。<span class="arithmatex">\(m=1\)</span> 时中心性直接给出期望为0；<span class="arithmatex">\(s=0\)</span> 时变量几乎处处为0。若控制绝对最大值，应对 <span class="arithmatex">\(\{Y_i,-Y_i\}\)</span> 使用此工具，得到 <span class="arithmatex">\(s\sqrt{2\log(2m)}\)</span>，不能漏掉绝对值带来的符号集合。</p>
+<p>这也解释了一个边界：若只给 <span class="arithmatex">\(\|Y_i\|_{\psi_2}\le s\)</span> 而不要求中心，<span class="arithmatex">\(m=1\)</span> 时不能断言 <span class="arithmatex">\(\mathbb E\max_iY_i\le Cs\sqrt{\log1}=0\)</span>；取正常数变量即可反驳。</p>
+<p>对树的所有叶值，<span class="arithmatex">\(s=\sqrt V\)</span>、<span class="arithmatex">\(m=2^K\)</span>，得单尺度界。对第 <span class="arithmatex">\(k\)</span> 层的 <span class="arithmatex">\(2^k\)</span> 条边，<span class="arithmatex">\(s=\sigma_k\)</span>，得该层贡献。再对逐样本链不等式取期望，就得到多尺度界。叶子相关不破坏这个证明，因为 max 工具本来就不要求它们独立。</p>
+<h3 id="_4">有失败概率的版本必须另算<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>对真实高斯变量有单侧尾界 <span class="arithmatex">\(\mathbb P\{Y&gt;x\}\le e^{-x^2/(2s^2)}\)</span>。因此</p>
+<div class="arithmatex">\[
+\mathbb P\!\left\{M&gt;
+\sqrt{2V\log(2^K/\delta)}\right\}\le\delta,
+\qquad0&lt;\delta&lt;1.
+\]</div>
+<p>逐层版本将失败预算分配为</p>
+<div class="arithmatex">\[
+\delta_k=\frac{\delta\,2^{-k}}{1-2^{-K}},
+\qquad \sum_{k=1}^K\delta_k=\delta,
+\qquad
+b_k=\sigma_k\sqrt{2\log(2^k/\delta_k)}.
+\]</div>
+<p>第 <span class="arithmatex">\(k\)</span> 层存在某条边超过 <span class="arithmatex">\(b_k\)</span> 的概率至多 <span class="arithmatex">\(\delta_k\)</span>。对层再取并集，就有 <span class="arithmatex">\(\mathbb P\{M&gt;\sum_kb_k\}\le\delta\)</span>。若 <span class="arithmatex">\(\sigma_k=0\)</span>，该层增量和阈值都为0，失败事件为空。这里给出的常数明确，但不保证最优。</p>
+<h2 id="2">2. 距离不是看两个样本值相减<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>若两片叶的二进制地址共有前 <span class="arithmatex">\(r\)</span> 位，它们共享前 <span class="arithmatex">\(r\)</span> 层的边。共同部分在 <span class="arithmatex">\(X_u-X_v\)</span> 中消去，其余两条路径的边独立，故</p>
+<div class="arithmatex">\[
+\operatorname{Cov}(X_u,X_v)=\sum_{k=1}^{r}\sigma_k^2,
+\qquad
+d(u,v)^2:=\mathbb E(X_u-X_v)^2
+=2\sum_{k=r+1}^{K}\sigma_k^2.
+\]</div>
+<p>令 <span class="arithmatex">\(D_r=(2\sum_{k=r+1}^{K}\sigma_k^2)^{1/2}\)</span>，并约定 <span class="arithmatex">\(D_K=0\)</span>。这就是树的 canonical 高斯伪度量。一条样本的 <span class="arithmatex">\(X_u-X_v\)</span> 可能比 <span class="arithmatex">\(d(u,v)\)</span> 大，也可能小；前者是实现，后者是分布的均方尺度。</p>
+<p>对高斯增量，矩母函数恰满足</p>
+<div class="arithmatex">\[
+\mathbb E e^{\lambda(X_u-X_v)}
+=e^{\lambda^2 d(u,v)^2/2}.
+\]</div>
+<p>因此本页把 <span class="arithmatex">\(d\)</span> 用作矩母函数的标准差代理。若使用前页的 Orlicz 定义，则 <span class="arithmatex">\(\|X_u-X_v\|_{\psi_2}=\sqrt{8/3}\,d(u,v)\)</span>，不要把两种尺度的归一化强行写成相等。</p>
+<h3 id="_5">这棵树的覆盖数可以精确算<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>覆盖球的中心限制在叶集合，使用闭球。当 <span class="arithmatex">\(D_r\le\varepsilon&lt;D_{r-1}\)</span> 时，同一个长度 <span class="arithmatex">\(r\)</span> 前缀下的所有叶子彼此距离至多 <span class="arithmatex">\(D_r\)</span>，一个球就够；不同前缀的叶子相距至少 <span class="arithmatex">\(D_{r-1}&gt;\varepsilon\)</span>，同一个以叶子为中心的球不能同时覆盖它们。因此</p>
+<div class="arithmatex">\[
+N(T,d,\varepsilon)=2^r
+\quad(D_r\le\varepsilon&lt;D_{r-1},\ r=1,\ldots,K),
+\qquad
+N(T,d,\varepsilon)=1\quad(\varepsilon\ge D_0).
+\]</div>
+<p>当 <span class="arithmatex">\(\rho=0\)</span>，第二层以后没有增量，同一第一层分支中的叶子距离为0。此时只有两个零距离等价类；零宽区间不贡献实际覆盖层。实验保留这些零宽账目，绘图时不假装它们有正面积。</p>
+<p>于是本页的熵积分没有数值积分误差，直接按阶梯计算：</p>
+<div class="arithmatex">\[
+I=\int_0^{D_0}\sqrt{\log N(T,d,\varepsilon)}\,d\varepsilon
+=\sum_{r=1}^K(D_{r-1}-D_r)\sqrt{r\log2}.
+\]</div>
+<p>这是一条几何恒等式。Dudley 定理说 <span class="arithmatex">\(\mathbb EM\le CI\)</span>，其通用常数 <span class="arithmatex">\(C\)</span> 在这里并未指定，所以不能把图中的 <span class="arithmatex">\(I\)</span> 直接标成数值为它本身的期望上界。</p>
+<h2 id="3">3. 从树上的路径推广到多尺度网<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>先在有限指标集 <span class="arithmatex">\(T\)</span> 上证明，避免把无限极限藏进图里。设 <span class="arithmatex">\(X_t\)</span> 中心，增量相对于伪度量 <span class="arithmatex">\(d\)</span> 满足上面的矩母函数界。令直径为 <span class="arithmatex">\(D&gt;0\)</span>，取尺度 <span class="arithmatex">\(\varepsilon_k=D2^{-k}\)</span> 及相应最小网 <span class="arithmatex">\(T_k\)</span>。最粗的 <span class="arithmatex">\(T_0=\{t_0\}\)</span>；足够细时可取全部零距离等价类的代表。</p>
+<p>为每个 <span class="arithmatex">\(t\)</span> 选最近网点 <span class="arithmatex">\(\pi_k(t)\)</span>。因为</p>
+<div class="arithmatex">\[
+d(\pi_k(t),\pi_{k-1}(t))
+\le d(\pi_k(t),t)+d(t,\pi_{k-1}(t))
+\le\varepsilon_k+\varepsilon_{k-1}=3\varepsilon_k,
+\]</div>
+<p>每次接力的增量尺度变小。望远镜求和给出</p>
+<div class="arithmatex">\[
+X_t-X_{t_0}
+=\sum_{k=1}^{J}\left(X_{\pi_k(t)}-X_{\pi_{k-1}(t)}\right).
+\]</div>
+<p>足够细时最后余项为0；伪度量距离为0的中心增量也几乎处处为0。关键的计数不是随口说“第 <span class="arithmatex">\(k\)</span> 层只有 <span class="arithmatex">\(|T_k|\)</span> 个点”：相邻两层投影构成的可能边对至多</p>
+<div class="arithmatex">\[
+|T_k|\,|T_{k-1}|\le |T_k|^2.
+\]</div>
+<p>上式使用覆盖数随精度变细而不减。对这些<strong>可能出现的边对</strong>用最大值工具，再对层求和，</p>
+<div class="arithmatex">\[
+\mathbb E\max_{t\in T}(X_t-X_{t_0})
+\le C\sum_{k=1}^{J}\varepsilon_k
+\sqrt{\log N(T,d,\varepsilon_k)}.
+\]</div>
+<p>并集只给一个上界；有些边对根本不会同时实现，不需要强行假设边对独立。</p>
+<h3 id="_6">为什么求和变成积分<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
+<p>当 <span class="arithmatex">\(\varepsilon\in[\varepsilon_k/2,\varepsilon_k]\)</span> 时，覆盖数单调性给出 <span class="arithmatex">\(N(T,d,\varepsilon)\ge N(T,d,\varepsilon_k)\)</span>。区间长度为 <span class="arithmatex">\(\varepsilon_k/2\)</span>，所以</p>
+<div class="arithmatex">\[
+\varepsilon_k\sqrt{\log N(T,d,\varepsilon_k)}
+\le2\int_{\varepsilon_k/2}^{\varepsilon_k}
+\sqrt{\log N(T,d,\varepsilon)}\,d\varepsilon.
+\]</div>
+<p>这些区间不重叠，求和得到有限集上的 Dudley 界。对无限集合，一个常用充分版本假设全有界、过程采用相对于 <span class="arithmatex">\(d\)</span> 的可分可测版本，增量满足统一亚高斯条件，且熵积分有限。用有限子集逼近、控制链尾并取极限，可得</p>
+<div class="arithmatex">\[
+\mathbb E\sup_{t\in T}(X_t-X_{t_0})
+\le C\int_0^D\sqrt{\log N(T,d,\varepsilon)}\,d\varepsilon.
+\]</div>
+<p>这里不能只因“参数有一个可数稠密集”就默认任意给定过程版本的所有样本路径都连续。可分版本与可测性是定理条件；缺少这些条件时要另处理可测版本或外期望。本页有限实验没有无限极限这一步。</p>
+<p>若 <span class="arithmatex">\(\mathbb EX_{t_0}=0\)</span>，非绝对上确界的期望中锚点可以消去。但对 <span class="arithmatex">\(\mathbb E\sup_t|X_t|\)</span>，应先写</p>
+<div class="arithmatex">\[
+\sup_t|X_t|\le |X_{t_0}|+\sup_t|X_t-X_{t_0}|.
+\]</div>
+<p>共同的随机平移不会改变所有增量，却会改变绝对大小，这正是锚点不能凭空消失的原因。</p>
+<p><strong>继续向前的边界。</strong>Dudley 是可用但未必最紧的上界。一般 chaining 优化整条网链的几何；对于中心高斯过程，Talagrand 的 <span class="arithmatex">\(\gamma_2\)</span> 泛函给出在通用常数意义下匹配的上下界。这里不证明该深层定理，也不把任意一棵二叉树的逐层 max 账本当成最优链。单尺度上界、Dudley 上界和 Sudakov 下界是不同对象，不能把“积分面积大于某个矩形面积”当成所有上界优劣的论证。</p>
+<h2 id="4">4. 接到经验过程：先对称化，再用随机度量<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(Z_1,\ldots,Z_n\)</span> 独立同分布，<span class="arithmatex">\(P_nf=n^{-1}\sum_i f(Z_i)\)</span>，<span class="arithmatex">\(Pf=\mathbb Ef(Z)\)</span>。先考虑有限可测函数类 <span class="arithmatex">\(\mathcal F\)</span>，并假设有可积包络，以保证以下期望存在。我们要控制</p>
+<div class="arithmatex">\[
+\mathbb E\sup_{f\in\mathcal F}|(P_n-P)f|.
+\]</div>
+<p>引入独立同分布的“影子样本” <span class="arithmatex">\(Z'_1,\ldots,Z'_n\)</span>。条件于原样本，Jensen 不等式给出</p>
+<div class="arithmatex">\[
+\mathbb E\sup_f|(P_n-P)f|
+\le\mathbb E\sup_f\left|\frac1n\sum_i(f(Z_i)-f(Z'_i))\right|.
+\]</div>
+<p>每对样本可以交换，所以差值向量的联合分布在乘上独立 Rademacher 符号 <span class="arithmatex">\(\epsilon_i\in\{-1,1\}\)</span> 后不变。再用三角不等式拆开两组样本，得到</p>
+<div class="arithmatex">\[
+\mathbb E\sup_f|(P_n-P)f|
+\le2\mathbb E_{Z,\epsilon}\sup_f\left|\frac1n\sum_i\epsilon_i f(Z_i)\right|.
+\]</div>
+<p>不是原经验过程凭空获得了随机样本度量，而是先经过这座桥。条件于 <span class="arithmatex">\(Z_1,\ldots,Z_n\)</span>，定义</p>
+<div class="arithmatex">\[
+G^\epsilon_n(f)=\frac1{\sqrt n}\sum_i\epsilon_i f(Z_i),
+\qquad
+d_n(f,g)^2=\frac1n\sum_i(f(Z_i)-g(Z_i))^2.
+\]</div>
+<p>对条件矩母函数逐项使用 <span class="arithmatex">\(\cosh x\le e^{x^2/2}\)</span>，</p>
+<div class="arithmatex">\[
+\mathbb E_\epsilon e^{\lambda(G_n^\epsilon(f)-G_n^\epsilon(g))}
+=\prod_i\cosh\frac{\lambda(f(Z_i)-g(Z_i))}{\sqrt n}
+\le e^{\lambda^2d_n(f,g)^2/2}.
+\]</div>
+<p>现在才可以用条件 Dudley。选定 <span class="arithmatex">\(f_0\)</span> 后，绝对增量版给出</p>
+<div class="arithmatex">\[
+\mathbb E\sup_f|(P_n-P)f|
+\le\frac2{\sqrt n}\mathbb E_Z
+\left[
+\mathbb E_\epsilon|G_n^\epsilon(f_0)|
++C\int_0^{\operatorname{diam}(\mathcal F,d_n)}
+\sqrt{\log N(\mathcal F,d_n,\varepsilon)}\,d\varepsilon
+\right].
+\]</div>
+<p>注意随机覆盖数与积分仍在 <span class="arithmatex">\(\mathbb E_Z\)</span> 内。对于一般不可数类，需另要求可分、可测性和适当包络；否则使用外期望，并不能无条件把星号或锚点去掉。</p>
+<p>若 <span class="arithmatex">\(|\mathcal F|=m\)</span> 且 <span class="arithmatex">\(|f|\le B\)</span>，可直接对有限条件 Rademacher 类使用绝对最大值工具，得到一个明确的充分界</p>
+<div class="arithmatex">\[
+\mathbb E\sup_{f\in\mathcal F}|(P_n-P)f|
+\le2B\sqrt{\frac{2\log(2m)}n}.
+\]</div>
+<p>维数或类大小只是复杂度的一部分，包络尺度、绝对值、样本量与置信语言也都需要保留。</p>
+<h2 id="5">5. 四道迁移题与完整解答<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<details class="exercise">
+<summary>1 · 为什么同尺度时逐层 max 可能更松？</summary>
+<p>令 <span class="arithmatex">\(\rho=1\)</span>，于是每层标准差均为 <span class="arithmatex">\(a\)</span>，<span class="arithmatex">\(V=Ka^2\)</span>。两种界分别为</p>
+<div class="arithmatex">\[
+U_{\mathrm{single}}=aK\sqrt{2\log2},
+\qquad
+U_{\mathrm{chain}}=a\sqrt{2\log2}\sum_{k=1}^K\sqrt k.
+\]</div>
+<p>当 <span class="arithmatex">\(K&gt;1\)</span> 时 <span class="arithmatex">\(\sum_k\sqrt k&gt;K\)</span>，所以逐层账本更大。反过来，若 <span class="arithmatex">\(\rho=0\)</span>，只有第一层有增量，叶子实际上只复制两个不同随机值。朴素单尺度界仍按 <span class="arithmatex">\(2^K\)</span> 计数，得到 <span class="arithmatex">\(a\sqrt{2K\log2}\)</span>；逐层界只剩 <span class="arithmatex">\(a\sqrt{2\log2}\)</span>。按零距离等价类先去重的单尺度界也能恢复这个改善，因此改善来自识别几何冗余，不是方法名字。</p>
+</details>
+<details class="exercise">
+<summary>2 · 三片叶的距离为什么满足超度量不等式？</summary>
+<p>设两两共同前缀长度为 <span class="arithmatex">\(r(u,v)\)</span>。若 <span class="arithmatex">\(u,v\)</span> 共享前 <span class="arithmatex">\(p\)</span> 位、<span class="arithmatex">\(v,w\)</span> 共享前 <span class="arithmatex">\(q\)</span> 位，那么 <span class="arithmatex">\(u,w\)</span> 至少共享前 <span class="arithmatex">\(\min(p,q)\)</span> 位。因此</p>
+<div class="arithmatex">\[
+r(u,w)\ge\min(r(u,v),r(v,w)).
+\]</div>
+<p>因为 <span class="arithmatex">\(D_r\)</span> 随 <span class="arithmatex">\(r\)</span> 不增，</p>
+<div class="arithmatex">\[
+d(u,w)\le\max\{d(u,v),d(v,w)\}.
+\]</div>
+<p>这比通常的三角不等式更强。它说明“同一个前缀簇”可以恰好成为闭球，也验证了覆盖数的前缀计数。若某层尺度为零，得到伪超度量，不同叶子的距离可以为零；先取商空间仍可使用同一论证。</p>
+</details>
+<details class="exercise">
+<summary>3 · 常数方向到底该不该固定？</summary>
+<p>对原经验过程，</p>
+<div class="arithmatex">\[
+(P_n-P)(f+c)=(P_n-P)f
+\]</div>
+<p>因为 <span class="arithmatex">\(P_n1=P1=1\)</span>。所以任意常数平移不会自动使原泛化误差发散。可是未中心的条件 Rademacher 过程满足</p>
+<div class="arithmatex">\[
+G_n^\epsilon(f+c)=G_n^\epsilon(f)
++\frac c{\sqrt n}\sum_i\epsilon_i.
+\]</div>
+<p>若 <span class="arithmatex">\(c\)</span> 任意大，它的绝对上确界通常无界，直接的对称化上界就失去信息。可以选定代表，例如 <span class="arithmatex">\(f(0)=0\)</span>，或先把常数方向作为等价类处理，再使用有限包络与覆盖数。</p>
+<p>类似地，取所有 <span class="arithmatex">\(X_t=Z\)</span>，则增量距离全为0，熵积分为0；中心 <span class="arithmatex">\(Z\)</span> 满足 <span class="arithmatex">\(\mathbb E\sup_tX_t=0\)</span>，但 <span class="arithmatex">\(\mathbb E\sup_t|X_t|=\mathbb E|Z|\)</span> 通常为正。这个例子同时检查中心性和绝对值锚点。</p>
+</details>
+<details class="exercise">
+<summary>4 · 熵积分发散，为什么仍能证明一致大数定律？</summary>
+<p>考虑</p>
+<div class="arithmatex">\[
+\mathcal F_d=\{f:[0,1]^d\to\mathbb R:
+\operatorname{Lip}(f)\le1,\ f(0)=0\}.
+\]</div>
+<p>以欧氏距离定义 Lipschitz 常数，则 <span class="arithmatex">\(|f(x)|\le\sqrt d\)</span>，全类有共同有界包络且等度连续。由 Arzelà–Ascoli，它在一致范数中全有界。对任意 <span class="arithmatex">\(\eta&gt;0\)</span>，取有限 <span class="arithmatex">\(\eta\)</span>-网 <span class="arithmatex">\(\{f_1,\ldots,f_m\}\)</span>；对每个 <span class="arithmatex">\(f\)</span> 找近邻 <span class="arithmatex">\(f_j\)</span>，有</p>
+<div class="arithmatex">\[
+|(P_n-P)f|
+\le |(P_n-P)f_j|+P_n|f-f_j|+P|f-f_j|
+\le |(P_n-P)f_j|+2\eta.
+\]</div>
+<p>有限个有界函数分别满足强大数定律，所以</p>
+<div class="arithmatex">\[
+\limsup_{n\to\infty}\sup_{f\in\mathcal F_d}|(P_n-P)f|
+\le2\eta\quad\text{几乎处处}.
+\]</div>
+<p>对可数序列 <span class="arithmatex">\(\eta=1,1/2,1/3,\ldots\)</span> 取共同概率1事件，再让 <span class="arithmatex">\(\eta\downarrow0\)</span>，便得到一致强大数定律。全有界给出的可数稠密函数集和经验泛函在一致范数下的连续性也保证了这里的上确界可测。</p>
+<p>这个类的一致范数熵具有 <span class="arithmatex">\(\log N(\varepsilon)\asymp_d\varepsilon^{-d}\)</span> 的小尺度量级，常数允许依赖固定维数。可以这样看两侧：</p>
+<p>上界取间距与 <span class="arithmatex">\(\varepsilon/\sqrt d\)</span> 同阶的格点，数量为 <span class="arithmatex">\(O_d(\varepsilon^{-d})\)</span>。把格点函数值按 <span class="arithmatex">\(\varepsilon\)</span> 量化，并沿格点邻接图的一棵生成树依次记录。原点值固定为0，Lipschitz 条件使每个新值相对于父值只有常数种选择，因此编码数至多 <span class="arithmatex">\(\exp(C_d\varepsilon^{-d})\)</span>。同编码函数在格点附近的误差至多常数倍 <span class="arithmatex">\(\varepsilon\)</span>；每个非空编码类取一个真实函数作代表，即得内部覆盖。</p>
+<p>下界在远离原点的区域放置 <span class="arithmatex">\(c_d\varepsilon^{-d}\)</span> 个互不相交、半径 <span class="arithmatex">\(4\varepsilon\)</span> 的小球。每个球上可独立选择是否放一个高度 <span class="arithmatex">\(4\varepsilon\)</span>、斜率1的锥形帐篷；取所有帐篷的最大值，仍然1-Lipschitz且原点为0。两种不同选择在某个球心相差 <span class="arithmatex">\(4\varepsilon\)</span>，不能同在一个半径 <span class="arithmatex">\(\varepsilon\)</span> 的一致范数球里，于是需要至少 <span class="arithmatex">\(2^{c_d\varepsilon^{-d}}\)</span> 个球。</p>
+<p>未截断 Dudley 积分因而类似 <span class="arithmatex">\(\int_0^1\varepsilon^{-d/2}d\varepsilon\)</span>：<span class="arithmatex">\(d=1\)</span> 有限，<span class="arithmatex">\(d\ge2\)</span> 发散。发散只说明这条特定的未截断充分上界没给出有限常数；上面的有限网证明仍然成立。至于收敛速率，需要截断、局部化或更精细工具。</p>
+</details>
+<h2 id="6">6. 去往下一门课程时带走什么<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>把一个上确界问题写成“索引对象—增量距离—各尺度覆盖数—量词明确的概率结论”。对于学习问题，再检查函数类包络、对称化和锚点。看到一个数值最大值时，先辨认它是一次样本、某个期望，还是带指定失败概率的上界；看到一个熵积分时，先检查下端是否可积、其常数是否已指定。</p>
+<p>本页多尺度网证明与一般版本可对照 Vershynin 的 <a href="https://www.math.uci.edu/~rvershyn/papers/HDP-book/HDP-2.pdf">High-Dimensional Probability 第二版 §8.1–8.2</a>；<a href="https://webapps.math.uci.edu/~rvershyn/papers/HDP-book/HDP-book.html">作者课程与书籍主页</a>提供公开版本。有限树的 canonical 距离、精确覆盖阶梯和两种显式失败概率预算均已在本页独立推导。下一步可进入统计学习理论，也可沿随机分析路线继续学习布朗运动与 Itô 积分。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="hdp-03-random-matrices.html"><span class="pager-label">上一页</span>高维概率 III · 随机矩阵与谱界</a>
