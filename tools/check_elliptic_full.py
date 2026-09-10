@@ -186,6 +186,31 @@ if len(sys.argv)==1:
  formulas=[(a or b).strip()for a,b in re.findall(r'\$\$(.*?)\$\$|(?<!\\)\$(?!\$)(.*?)(?<!\\)\$(?!\$)',src,re.S)]
  actual=[html.unescape(a or b).strip()for a,b in re.findall(r'<(?:span|div) class="arithmatex">(?:\\\((.*?)\\\)|\\\[(.*?)\\\])</(?:span|div)>',site,re.S)]
  ck(formulas==actual,'every formula preserved');ck(src.count('<details class="answer"')==4,'four complete answers')
+
+ from html.parser import HTMLParser
+ ck(not re.search(r'<p>\s*<details|</details>\s*</p>',site),'no paragraph-wrapped disclosure')
+ ck(all('<'not in v for v in formulas),'math uses TeX lt to avoid HTML token ambiguity')
+ class Disclosures(HTMLParser):
+  def __init__(self):
+   super().__init__();self.stack=[];self.answers=0;self.summaries=0
+  def handle_starttag(self,tag,attrs):
+   if tag=='details':
+    kind=dict(attrs).get('class')
+    ck(not self.stack,'disclosures must not nest')
+    ck(kind in ['answer','page-toc'],'known disclosure class')
+    self.stack.append([kind,0])
+    if kind=='answer':self.answers+=1
+   elif tag=='summary':
+    ck(bool(self.stack),'summary belongs to a disclosure')
+    self.stack[-1][1]+=1
+    if self.stack[-1][0]=='answer':self.summaries+=1
+  def handle_endtag(self,tag):
+   if tag=='details':
+    ck(bool(self.stack),'no orphan details closer')
+    ck(self.stack.pop()[1]==1,'one summary per disclosure')
+ parser=Disclosures();parser.feed(re.search(r'<article[^>]*>(.*?)</article>',site,re.S).group(1))
+ ck(not parser.stack and parser.answers==parser.summaries==4,'four balanced complete answers')
+
  ck((ROOT/'.github/workflows/course-audit.yml').read_text().count('python tools/check_elliptic_full.py')==1,'one CI invocation')
  for link in re.findall(r'(?:href|src)="([^"]+)"',site):
   target=link.split('#')[0].split('?')[0]
@@ -196,6 +221,7 @@ if len(sys.argv)==1:
  h=data['states'][0]['current'];f=next(d['current']for d in data['states']if d['config']==dict(mode='fem',K=8,grading=1));c=cref(1.5,.001)
  refs=[h['alpha'],h['beta'],h['h1Error']['lower'],h['h1Error']['upper'],h['residual']['lower'],h['residual']['upper'],h['tail']['uniform'],f['h1Error'],f['l2Error'],f['J'],f['energyGap'],c['l2'],c['gradient'],c['hessian']]
  ck(len(vals)==len(refs)==14,'all fallback rows')
+ ck(vals[2]<vals[3] and vals[4]<vals[5],'fallback displays distinct lower and upper bounds')
  for x,y in zip(vals,refs):close(x,y,'fallback numeric',rtol=6e-9)
  for p in ROOT.glob('*/site/assets/learning/labs/elliptic-coercivity.js'):ck(p.read_bytes()==JS.read_bytes(),'exact JS mirror')
  image=ROOT/'grad-math/images/pde2-03-elliptic-ledgers.svg';ck(image.read_bytes()==(ROOT/'grad-math/site/assets/img/pde2-03-elliptic-ledgers.svg').read_bytes(),'exact SVG mirror')
