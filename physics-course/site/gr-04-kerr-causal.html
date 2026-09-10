@@ -56,193 +56,405 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-10 22:18</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#kerr-causal-learning-title">学习层：视界、能层与共转不是同一条线</a><ul>
-<li><a href="#1">1. 先预测：哪些因果说法真的成立？</a></li>
-<li><a href="#2-kerr-delta-g_tt">2. Kerr 的两个半径：\(\Delta\) 和 \(g_{tt}\) 各自回答什么？</a></li>
-<li><a href="#3">3. 因果锥给出允许角速度</a></li>
-<li><a href="#4-fallbacka08">4. 静态 fallback：\(a=0.8\) 的外部数值</a></li>
-<li><a href="#5">5. 边界检查与迁移任务</a></li>
+<li><a href="#kerr-learning-title">学习层：同一次运动，三种读数</a><ul>
+<li><a href="#_1">先预测，再改参数</a></li>
 </ul>
 </li>
-<li><a href="#1-kerr">1. Kerr 解的几何骨架</a></li>
-<li><a href="#2">2. 视界为什么不能等同于坐标发散</a></li>
-<li><a href="#3-frame-dragging">3. 能层和 frame dragging</a></li>
-<li><a href="#4">4. 能量提取的因果账</a></li>
-<li><a href="#5_1">5. 内部边界：我们知道什么、没有算什么</a></li>
-<li><a href="#6">6. 三个检查题</a></li>
-<li><a href="#7">7. 小结：因果锥比口号更精确</a></li>
+<li><a href="#1">1. 先把单位与对称性说清楚</a></li>
+<li><a href="#2">2. 两种曲面：哪一种阻止静止，哪一种是视界？</a><ul>
+<li><a href="#21">2.1 真的把视界处的坏分母消掉</a></li>
+</ul>
+</li>
+<li><a href="#3">3. 从因果锥到当地速度计</a><ul>
+<li><a href="#31-zamo">3.1 ZAMO 的四速度与局部方位速度</a></li>
+<li><a href="#32">3.2 静止极限的类光曲线不一定是测地线</a></li>
+</ul>
+</li>
+<li><a href="#4">4. 当地能量为正，为何远方能量可以为负？</a><ul>
+<li><a href="#41-penrose">4.1 Penrose 过程还缺哪些条件？</a></li>
+</ul>
+</li>
+<li><a href="#5">5. 可抽取多少：面积与不可约质量</a><ul>
+<li><a href="#51">5.1 将可逆路径完整算出来</a></li>
+</ul>
+</li>
+<li><a href="#6">6. 内部因果结构：给数学结论注明范围</a></li>
+<li><a href="#7">7. 四道迁移题与完整解答</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iv-kerr">广义相对论 IV · Kerr 时空、能层与因果结构<a class="headerlink" href="#iv-kerr" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Carroll §6–7 / Wald §12 / Misner–Thorne–Wheeler §33 ｜ <strong>前置</strong>：gr-01、gr-02、gr-03、流形几何
-自转黑洞最容易被一句口号带偏：“视界把一切挡住，能层就是另一个视界。”本页用 Kerr 解的几个几何不变量和外部因果锥来拆开它们：<span class="arithmatex">\(\Delta=0\)</span> 给出视界位置，<span class="arithmatex">\(g_{tt}=0\)</span> 给出静止极限面，二者之间的能层迫使未来指向的世界线共转。Boyer–Lindquist 坐标在视界处的病态不是曲率奇点；而一旦越过外视界，本页的固定 <span class="arithmatex">\(r\)</span> 外部账本就不再足以描述全球因果演化。</p>
+<p><strong>前置</strong>：<a href="gr-01-equivalence.html">等效原理与局部标架</a>、<a href="gr-02-einstein-schwarzschild.html">Schwarzschild 的轨道与视界</a>、<a href="gr-03-blackholes-waves.html">黑洞热力学与引力波</a>。本页从度规出发，区分三种读数：坐标角速度、局部速度，以及由时间平移对称性定义的能量。</p>
+<p>一个粒子可以在坐标上与黑洞同向旋转，同时相对当地的零角动量观察者逆转。它甚至可以有负的 Killing 能量，而当地测得的能量仍为正。关键是每个量都要说明由谁、怎样定义。</p>
 </blockquote>
 <div data-learning-page></div>
 
-<section aria-labelledby="kerr-causal-learning-title" class="learning-layer">
-<h2 id="kerr-causal-learning-title">学习层：视界、能层与共转不是同一条线<a class="headerlink" href="#kerr-causal-learning-title" title="Permanent link"></a></h2>
-<h3 id="1">1. 先预测：哪些因果说法真的成立？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>使用几何单位 <span class="arithmatex">\(G=c=M=1\)</span>，自旋参数为 <span class="arithmatex">\(|a|&lt;1\)</span>。在打开实验前判断：</p>
+<section aria-labelledby="kerr-learning-title" class="learning-layer">
+<h2 id="kerr-learning-title">学习层：同一次运动，三种读数<a class="headerlink" href="#kerr-learning-title" title="Permanent link"></a></h2>
+<h3 id="_1">先预测，再改参数<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
 <ol>
-<li>赤道面外视界半径 <span class="arithmatex">\(r_+=1+\sqrt{1-a^2}\)</span> 与静止极限面的半径 <span class="arithmatex">\(r_{\rm ergo}=2\)</span> 是否总相同？</li>
-<li>在 <span class="arithmatex">\(r_+&lt;r&lt;2\)</span> 的能层里，固定 <span class="arithmatex">\(r,\theta,\phi\)</span> 的观察者能否保持静止？</li>
-<li>对正自旋 <span class="arithmatex">\(a&gt;0\)</span>，能层内所有未来指向的固定半径世界线是否必须有正的 <span class="arithmatex">\(d\phi/dt\)</span>？</li>
-<li>把 Boyer–Lindquist 坐标在 <span class="arithmatex">\(r=r_+\)</span> 的发散说成“那里有无限曲率”，是否正确？</li>
-<li>这个实验能否根据外部的 <span class="arithmatex">\(\Omega\)</span> 区间，直接讲完粒子穿过视界后的全球命运？</li>
+<li>负自旋黑洞能层中的负角速度，代表顺着黑洞转，还是逆着转？</li>
+<li>固定位置的轨道在静止极限面上为类光，是否就一定是自由光子的测地线？</li>
+<li>负 Killing 能量，是否意味着当地仪器会测得负能量？</li>
+<li>黑洞总共可释放的理想旋转能上界，是否等于每一次粒子分裂或喷流的效率？</li>
 </ol>
-<p>实验揭示后可调 <span class="arithmatex">\(a\)</span> 和外视界外的距离 <span class="arithmatex">\(r-r_+\)</span>。左图显示外视界、静止极限面和选定半径；右图显示该半径允许的因果角速度区间 <span class="arithmatex">\(\Omega_-&lt;d\phi/dt&lt;\Omega_+\)</span>。它计算的是赤道面外部的坐标账本，不能替代穿越视界的正则坐标分析。</p>
-<h3 id="2-kerr-delta-g_tt">2. Kerr 的两个半径：<span class="arithmatex">\(\Delta\)</span> 和 <span class="arithmatex">\(g_{tt}\)</span> 各自回答什么？<a class="headerlink" href="#2-kerr-delta-g_tt" title="Permanent link"></a></h3>
-<p>Kerr Boyer–Lindquist 坐标中的关键函数为</p>
-<div class="arithmatex">\[
-\Delta=r^2-2r+a^2,
-\qquad
-\Sigma=r^2+a^2\cos^2\theta.
-\]</div>
-<p><span class="arithmatex">\(\Delta=0\)</span> 的两个根是</p>
-<div class="arithmatex">\[
-r_\pm=1\pm\sqrt{1-a^2}.
-\]</div>
-<p>外根 <span class="arithmatex">\(r_+\)</span> 是事件视界在这套坐标描述中的位置。赤道面 <span class="arithmatex">\(\theta=\pi/2\)</span> 上，<span class="arithmatex">\(g_{tt}=-(1-2/r)\)</span>，所以 <span class="arithmatex">\(g_{tt}=0\)</span> 的外静止极限面为 <span class="arithmatex">\(r_{\rm ergo}=2\)</span>，与 <span class="arithmatex">\(a\)</span> 无关；一般纬度则为</p>
-<div class="arithmatex">\[
-r_{\rm ergo}(\theta)=1+\sqrt{1-a^2\cos^2\theta}.
-\]</div>
-<p>两者只有 <span class="arithmatex">\(a=0\)</span> 时在赤道面重合。<span class="arithmatex">\(r_+&lt;r&lt;2\)</span> 是能层，不是视界内部：它在外视界之外，但静止 Killing 矢量 <span class="arithmatex">\(\partial_t\)</span> 已经变成类空，不能代表一条固定空间位置的物质世界线。</p>
-<h3 id="3">3. 因果锥给出允许角速度<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>在赤道面固定 <span class="arithmatex">\(r\)</span> 的轨迹写成 <span class="arithmatex">\(d\phi=\Omega dt\)</span>。Kerr 度规的 <span class="arithmatex">\(t,\phi\)</span> 二维块要求世界线类时或类光：</p>
-<div class="arithmatex">\[
-g_{tt}+2g_{t\phi}\Omega+g_{\phi\phi}\Omega^2\le0.
-\]</div>
-<p>代入</p>
-<div class="arithmatex">\[
-g_{tt}=\frac2r-1,\qquad g_{t\phi}=-\frac{2a}{r},
-\qquad g_{\phi\phi}=r^2+a^2+\frac{2a^2}{r},
-\]</div>
-<p>得到两个光锥边界</p>
-<div class="arithmatex">\[
-\Omega_\pm=\frac{-g_{t\phi}\pm\sqrt{g_{t\phi}^2-g_{tt}g_{\phi\phi}}}{g_{\phi\phi}}.
-\]</div>
-<p>允许的未来指向固定半径世界线必须落在 <span class="arithmatex">\(\Omega_-\le\Omega\le\Omega_+\)</span> 内；严格类时取内部，等号是类光边界。在能层内，<span class="arithmatex">\(\Omega_-\)</span> 也会变成正数（对 <span class="arithmatex">\(a&gt;0\)</span>），所以任何观察者都被迫共转。区间的中点</p>
-<div class="arithmatex">\[
-\Omega_{\rm ZAMO}=-\frac{g_{t\phi}}{g_{\phi\phi}}
-\]</div>
-<p>是零角动量观察者（ZAMO）的坐标角速度：它是局部惯性系被拖曳的一个可计算标尺，但 <span class="arithmatex">\(d\phi/dt\)</span> 本身仍是坐标量，不等于远方观测者测得的局部速度。</p>
-<h3 id="4-fallbacka08">4. 静态 fallback：<span class="arithmatex">\(a=0.8\)</span> 的外部数值<a class="headerlink" href="#4-fallbacka08" title="Permanent link"></a></h3>
-<p>以下默认读数取 <span class="arithmatex">\(a=0.8\)</span>、<span class="arithmatex">\(r=r_++0.2=1.8\)</span>，仍在赤道面外视界之外。实验只在 <span class="arithmatex">\(r&gt;r_+\)</span> 上计算，不把 <span class="arithmatex">\(r\le r_+\)</span> 的点塞进外部角速度公式。</p>
+<p>实验有两组读数。第一组使用赤道面外部的 Kerr 度规，逐个计算允许角速度、局部 ZAMO 速度与粒子能量。第二组沿保持不可约质量不变的可逆理想路径，计算质量、角动量和面积。前者没有求完整粒子轨道，后者没有模拟实际抽取装置。</p>
 <div class="learning-lab" data-learning-lab="physics-kerr-causality">
-<p><strong>无 JavaScript 时的静态读法：</strong>在 <span class="arithmatex">\(a=0.8\)</span> 时</p>
-<div class="arithmatex">\[
-r_+=1+\sqrt{1-0.8^2}=1.6,
-\qquad r_{\rm ergo}=2,
-\qquad \Omega_H=\frac{a}{2r_+}=0.25.
-\]</div>
-<p>在选定半径 <span class="arithmatex">\(r=1.8\)</span>，赤道面度规分量约为 <span class="arithmatex">\(g_{tt}=0.11111\)</span>、<span class="arithmatex">\(g_{t\phi}=-0.88889\)</span>、<span class="arithmatex">\(g_{\phi\phi}=4.59111\)</span>。代入因果锥边界：</p>
+<p><strong>无 JavaScript 时可直接检查这组数值。</strong>下表采用 G=c=M初始=1，自旋a*=0.8；外部粒子在r=1.8，局部方位速度v=-0.8，静质量μ=1。</p>
 <table>
 <thead>
 <tr>
-<th>账本</th>
-<th>公式</th>
-<th style="text-align: right;">默认结果</th>
+<th>对象</th>
+<th>数值或关系</th>
+<th>怎样解释</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>外视界</td>
-<td><span class="arithmatex">\(r_+\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1.6\)</span></td>
+<td>外视界、赤道静止极限</td>
+<td>r+=1.6，rE=2</td>
+<td>能层位于外视界之外</td>
 </tr>
 <tr>
-<td>赤道面静止极限面</td>
-<td><span class="arithmatex">\(r_{\rm ergo}\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(2\)</span></td>
+<td>r=1.8允许的角速度</td>
+<td>0.0783555≤Ω≤0.308866</td>
+<td>等号是局部类光方向；物质轨道取严格内部</td>
 </tr>
 <tr>
-<td>选定位置</td>
-<td><span class="arithmatex">\(r_++0.2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1.8\)</span></td>
+<td>ZAMO角速度、lapse</td>
+<td>ω≈0.193611，α≈0.246956</td>
+<td>ω是坐标量，α连接参考系的固有时与坐标时间</td>
 </tr>
 <tr>
-<td>允许角速度下界</td>
-<td><span class="arithmatex">\(\Omega_-\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.0784\)</span></td>
+<td>粒子局部速度、当地能量</td>
+<td>v=-0.8，γ=5/3</td>
+<td>相对ZAMO逆转，当地能量为正</td>
 </tr>
 <tr>
-<td>允许角速度上界</td>
-<td><span class="arithmatex">\(\Omega_+\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.3088\)</span></td>
+<td>同一粒子的坐标角速度</td>
+<td>Ω≈0.101407&gt;0</td>
+<td>仍在能层中与正自旋同向转</td>
 </tr>
 <tr>
-<td>ZAMO 中心</td>
-<td><span class="arithmatex">\(\Omega_{\rm ZAMO}\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.1936\)</span></td>
+<td>同一粒子的远方能量与角动量</td>
+<td>E/μ≈-0.141536，L/μ≈-2.85692</td>
+<td>E与L由不同的Killing对称性定义</td>
 </tr>
 <tr>
-<td>两边都为正</td>
-<td><span class="arithmatex">\(\Omega_-&gt;0\)</span></td>
-<td style="text-align: right;">能层内必须共转</td>
+<td>负能量阈值</td>
+<td>v&lt;-0.595294</td>
+<td>此阈值只表示局部切向动量可具有负E，不保证完成逃逸/捕获过程</td>
+</tr>
+<tr>
+<td>初始面积、不可约质量</td>
+<td>A≈40.2124，Mirr≈0.894427</td>
+<td>单位分别是初始质量的长度尺度平方、初始质量</td>
+</tr>
+<tr>
+<td>可逆地把J从0.8减至0.4</td>
+<td>M≈0.921954，释放≈0.0780456</td>
+<td>面积保持不变，是连续理想路径</td>
+</tr>
+<tr>
+<td>可逆地抽尽旋转</td>
+<td>最多释放≈0.105573</td>
+<td>约10.56%的初始质量能；不是单次Penrose效率</td>
 </tr>
 </tbody>
 </table>
-<p>把选定半径移到 <span class="arithmatex">\(r=3\)</span>（仍在能层外），同一公式给出约 <span class="arithmatex">\(\Omega_-=-0.1366\)</span>、<span class="arithmatex">\(\Omega_+=0.2425\)</span>：反向角速度重新进入允许区。恰在 <span class="arithmatex">\(r=2\)</span> 的静止极限面，<span class="arithmatex">\(\Omega_-=0\)</span>，固定角位置的 Killing 轨道是零测线；所以实验把它单列为“边界”，不硬塞进能层内或能层外。把 <span class="arithmatex">\(r\)</span> 推近 <span class="arithmatex">\(r_+\)</span> 时，两个边界合并到视界角速度 <span class="arithmatex">\(\Omega_H=a/(2r_+)\)</span>；这是外部坐标账本的极限行为，不是把视界当成有摩擦的实体表面。</p>
-<p><strong>反例与迁移：</strong><span class="arithmatex">\(g_{tt}=0\)</span> 不是曲率发散，<span class="arithmatex">\(\Delta=0\)</span> 也不能仅凭 Boyer–Lindquist 分母叫作物理奇点。真正的 Kerr 环奇点由 <span class="arithmatex">\(\Sigma=0\)</span>，即 <span class="arithmatex">\(r=0,\theta=\pi/2\)</span> 的全局结构标出；外视界处的曲率不变量对非极端黑洞是有限的。更重要的是，本实验没有计算外视界内的完整测地线、因果延拓或奇点可达性，不能从图上过度推断“里面发生了什么”。</p>
 </div>
-<h3 id="5">5. 边界检查与迁移任务<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<ul>
-<li><span class="arithmatex">\(a=0\)</span> 时 Kerr 退回 Schwarzschild：<span class="arithmatex">\(r_+=r_{\rm ergo}=2\)</span>，能层宽度消失，允许角速度区间关于零对称。</li>
-<li><span class="arithmatex">\(|a|=1\)</span> 是极端极限，根结构和近视界标度需要单独小心；实验用 <span class="arithmatex">\(|a|&lt;1\)</span> 留出非极端外部区域。</li>
-<li>图上的 <span class="arithmatex">\(\Omega\)</span> 是 Boyer–Lindquist 坐标角速度。要报告局部测量的速度，必须给出观察者四速度和正交标架；不能把坐标斜率直接当速度计读数。</li>
-<li>外视界是全局定义的因果边界；局部的 <span class="arithmatex">\(g_{tt}=0\)</span> 只说明某个 Killing 向量的性质改变，不等于“光在这里停住”。</li>
-</ul>
-<p>迁移题：若远方观测者看到一个正自旋黑洞外的盘面物质向同一方向转动，先用 <span class="arithmatex">\(\Omega_\pm\)</span> 判断哪些角速度在能层内允许，再说明真实吸积盘还需要压力、磁场、粘滞和测地线/流体动力学；不能只由 frame dragging 的角锥图推出盘的完整亮度或效率。</p>
+<p>输入保留正负自旋。外部模式仅在外视界外计算；“精确静止极限”把位置直接设为赤道的 r=2，要求 |a*|≥0.01。手动位置若与边界近到浮点数不能可靠区分，会标为“数值未分辨”，不会悄悄判定在某一侧。表格保留全部径向、速度和纬度节点。</p>
 </section>
-<h2 id="1-kerr">1. Kerr 解的几何骨架<a class="headerlink" href="#1-kerr" title="Permanent link"></a></h2>
-<p>在 Boyer–Lindquist 坐标 <span class="arithmatex">\((t,r,\theta,\phi)\)</span> 中，Kerr 度规可压缩写成</p>
+<style>.kc-static{max-width:100%;overflow-x:auto}.kc-static img{display:block;width:1100px;min-width:1100px;max-width:none!important}.kc-static:focus-visible{outline:3px solid var(--accent)}</style>
+<div class="kc-static" role="region" tabindex="0" aria-label="Kerr曲面、角速度、能量与可逆路径，可左右滚动"><img src="assets/img/gr-04-kerr-ledgers.svg" alt="坐标静止面随纬度变化、全部外部因果角速度、局部正能量与Killing负能量，以及保持面积不变的可逆质量路径。" loading="lazy"></div>
+
+<h2 id="1">1. 先把单位与对称性说清楚<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>用物理质量 <span class="arithmatex">\(M_{\rm phys}\)</span> 定义长度 <span class="arithmatex">\(r_g=GM_{\rm phys}/c^2\)</span>、时间 <span class="arithmatex">\(t_g=GM_{\rm phys}/c^3\)</span>，并定义无量纲自旋</p>
+<div class="arithmatex">\[
+a_*=\frac{cJ_{\rm phys}}{GM_{\rm phys}^2}.
+\]</div>
+<p>本页外部实验用 <span class="arithmatex">\(r/r_g\)</span>、<span class="arithmatex">\(t/t_g\)</span> 作坐标，记作 <span class="arithmatex">\(r,t\)</span>；写度规时再把 <span class="arithmatex">\(a_*\)</span> 简记为 <span class="arithmatex">\(a\)</span>。因而使用 <span class="arithmatex">\(G=c=M=1\)</span>，且 <span class="arithmatex">\(|a|&lt;1\)</span>。恢复坐标角速度的单位时，应乘 <span class="arithmatex">\(c^3/(GM_{\rm phys})\)</span>；恢复面积时乘 <span class="arithmatex">\(r_g^2\)</span>。不要把无量纲自旋与带长度单位的 <span class="arithmatex">\(J/(Mc)\)</span> 混用。</p>
+<p>Kerr 是平稳、轴对称、渐近平坦的真空解。它不是任意旋转恒星的内外部解：物质、磁场、时变扰动以及额外多极结构，都需要各自的方程和边界条件。黑洞唯一性结论有维数、场方程、正则性和全局条件，不能用“只有两个参数”取代这些前提。</p>
+<p>在 Boyer–Lindquist 坐标中，定义</p>
+<div class="arithmatex">\[
+\Sigma=r^2+a^2\cos^2\theta,\qquad
+\Delta=r^2-2r+a^2.
+\]</div>
+<p>一种方便代入计算的写法是</p>
 <div class="arithmatex">\[
 \begin{aligned}
-ds^2={}&amp;-\left(1-\frac{2r}{\Sigma}\right)dt^2
--\frac{4ar\sin^2\theta}{\Sigma}dt\,d\phi
-+\frac{\Sigma}{\Delta}dr^2+\Sigma d\theta^2\\
-&amp;+\left(r^2+a^2+\frac{2a^2r\sin^2\theta}{\Sigma}\right)\sin^2\theta\,d\phi^2.
+ds^2={}&amp;-\frac{\Delta}{\Sigma}
+(dt-a\sin^2\theta\,d\phi)^2\\
+&amp;+\frac{\sin^2\theta}{\Sigma}
+\bigl[(r^2+a^2)d\phi-a\,dt\bigr]^2
++\frac{\Sigma}{\Delta}dr^2+\Sigma\,d\theta^2.
 \end{aligned}
 \]</div>
-<p>这里 <span class="arithmatex">\(M=1\)</span>，一般单位恢复时 <span class="arithmatex">\(r\)</span> 和 <span class="arithmatex">\(a\)</span> 以 <span class="arithmatex">\(GM/c^2\)</span> 归一，时间以 <span class="arithmatex">\(GM/c^3\)</span> 归一。<span class="arithmatex">\(a=J/M\)</span> 在几何单位中有长度量纲；本页用无量纲化后的 <span class="arithmatex">\(a/M\)</span> 并仍记作 <span class="arithmatex">\(a\)</span>。这项声明很重要，否则 <span class="arithmatex">\(a=0.8\)</span> 同时可能被误读成带单位的角动量或长度。</p>
-<p>Kerr 是真空 Einstein 方程的平稳、轴对称解。它不是任意自转物体的内部模型：要描述恒星或吸积盘的物质、磁场和时变扰动，必须另加应力能量张量、边界和演化方程。孤立黑洞外部在适当正则性和渐近平坦假设下由质量和角动量标记，是有条件的黑洞唯一性结论，不是“宇宙里所有旋转物体都只有两个数字”。</p>
-<h2 id="2">2. 视界为什么不能等同于坐标发散<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p>在这套坐标中 <span class="arithmatex">\(g_{rr}=\Sigma/\Delta\)</span>，因此 <span class="arithmatex">\(\Delta=0\)</span> 使某些分量发散。这个现象类似球坐标在极点的坏表现：要判断物理奇点，应检查曲率不变量，或换到穿越视界正则的坐标。对非极端 Kerr，外视界处的多项曲率不变量是有限的；<span class="arithmatex">\(\Sigma=0\)</span> 的环才是曲率真正发散的位置。</p>
-<p>事件视界的定义是：从该全局边界内发出的未来指向光线不能到达无穷远。这个定义不能被一句“逃逸速度超过 <span class="arithmatex">\(c\)</span>”替代，因为 Kerr 中时空有交叉项，且逃逸/捕获是全局因果问题。外部实验用 <span class="arithmatex">\(r&gt;r_+\)</span> 的坐标，只是在可控域内读因果锥；它没有证明或否定任何需要内部延拓的命题。</p>
-<p>在合适的 ingoing Kerr 坐标中，穿越外视界的自由落体可以是光滑的；“冻结在视界”的图像属于特定远方时间坐标和信号接收过程，不是局部不变量。局部自由落体的仪器记录与远方接收到的红移稀疏信号是不同观测问题。</p>
-<h2 id="3-frame-dragging">3. 能层和 frame dragging<a class="headerlink" href="#3-frame-dragging" title="Permanent link"></a></h2>
-<p>静止 Killing 向量 <span class="arithmatex">\(\xi=\partial_t\)</span> 的范数在赤道面为 <span class="arithmatex">\(g_{tt}=2/r-1\)</span>。在 <span class="arithmatex">\(r&gt;2\)</span> 它是类时，固定 <span class="arithmatex">\(r,\theta,\phi\)</span> 的理想静止世界线可以存在；在 <span class="arithmatex">\(r&lt;2\)</span> 它是类空，固定坐标角位置不再是类时运动。这个外静止极限面与视界之间的区域就是能层。</p>
-<p>“被迫共转”应按因果锥公式理解，而不是说黑洞表面拖着附近物质。对于 <span class="arithmatex">\(a&gt;0\)</span>，<span class="arithmatex">\(g_{t\phi}&lt;0\)</span> 把允许的 <span class="arithmatex">\(\Omega\)</span> 区间向正方向移动；能层内下界也为正。对于 <span class="arithmatex">\(a&lt;0\)</span>，整个图的方向反转。<span class="arithmatex">\(\Omega_{\rm ZAMO}\)</span> 是一个常用局部参考系角速度，但不同观察者有不同局部测量结果；共转是未来因果世界线的约束，不是一条有形的旋转边界。</p>
-<p>在视界上，生成视界的 Killing 组合为</p>
+<p>展开后得到熟悉的交叉项 <span class="arithmatex">\(-4ar\sin^2\theta\,dt\,d\phi/\Sigma\)</span>。因为线元中的混合项是 <span class="arithmatex">\(2g_{t\phi}dt\,d\phi\)</span>，<strong>度规分量是这个系数的一半</strong>。</p>
+<p>系数不依赖 <span class="arithmatex">\(t,\phi\)</span>，所以</p>
 <div class="arithmatex">\[
-\chi=\partial_t+\Omega_H\partial_\phi,
-\qquad
-\Omega_H=\frac{a}{2r_+}
+\xi=\partial_t,\qquad \psi=\partial_\phi
 \]</div>
-<p>（几何单位）。这是视界的角速度标尺；它来自视界生成元的几何性质，不应解释为某个材料表面的角速度。对远方观测者而言，坐标时间和局部固有时的关系还要经过红移和标架处理。</p>
-<h2 id="4">4. 能量提取的因果账<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p>Kerr 的轴对称 Killing 向量给出能量 <span class="arithmatex">\(E=-p_\mu\xi^\mu\)</span>，但在能层内 <span class="arithmatex">\(\xi\)</span> 变成类空，<span class="arithmatex">\(E\)</span> 不再像远方静止区域那样必为正。于是 Penrose 过程允许一个分支带负的 Killing 能量穿过视界，另一分支带走超过初始投入的远方能量，黑洞的质量和角动量随之下降。这个叙述需要满足特定分裂、轨道和捕获条件，不能说“能层自动产生免费能量”。</p>
-<p>真实天体物理中，更高效和更连续的抽取常通过电磁磁层、Blandford–Znajek 机制等描述；那需要磁流体和电磁场，不是本页的真空因果锥实验。实验页的任务是识别允许角速度、视界与能层的边界，不计算喷流功率。</p>
-<h2 id="5_1">5. 内部边界：我们知道什么、没有算什么<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<p>在 <span class="arithmatex">\(r_+\)</span> 以内，<span class="arithmatex">\(r\)</span> 和 <span class="arithmatex">\(t\)</span> 的坐标性质、因果锥倾斜和全局延拓都需要重新分析；内视界在理想 Kerr 解中还引出蓝移不稳定与扰动敏感性等问题。真实坍缩和吸积物质会破坏完美平稳、轴对称的理想化。故本页不把“外部固定 <span class="arithmatex">\(r\)</span> 世界线的 <span class="arithmatex">\(\Omega\)</span> 区间”延伸成内部导航图，也不声称每个理想 Kerr 内部结论都直接描述天体黑洞。</p>
-<p>这不是回避问题，而是区分数学对象：外部观测量、坐标图的延拓、局部曲率和全局事件视界各有自己的定义。若要研究穿越视界的观察者，应使用正则坐标、四速度归一化和测地线/流体方程；若要研究稳定性，应加入扰动与边界条件。</p>
-<h2 id="6">6. 三个检查题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
-<p><strong>例 1（自旋为零）</strong> <span class="arithmatex">\(a=0\)</span> 时 <span class="arithmatex">\(r_+=2\)</span>、<span class="arithmatex">\(r_{\rm ergo}=2\)</span>，<span class="arithmatex">\(g_{t\phi}=0\)</span>，所以能层消失且 <span class="arithmatex">\(\Omega_\pm\)</span> 关于零对称。这是 Kerr 公式回收 Schwarzschild 的内部一致性检查。</p>
-<p><strong>例 2（接近视界）</strong> <span class="arithmatex">\(a=0.8\)</span>、<span class="arithmatex">\(r=1.8\)</span> 时允许区约为 <span class="arithmatex">\([0.0784,0.3088]\)</span>，并不包含 <span class="arithmatex">\(\Omega=0\)</span>；移到 <span class="arithmatex">\(r=3\)</span> 后约为 <span class="arithmatex">\([-0.1366,0.2425]\)</span>，反向角速度可以存在。变化来自 <span class="arithmatex">\(g_{tt}\)</span> 和交叉项共同改变因果锥，不是视界表面突然施加摩擦。</p>
-<p><strong>例 3（极端边界）</strong> 当 <span class="arithmatex">\(|a|\to1\)</span>，<span class="arithmatex">\(r_+\to1\)</span>，外视界和静止极限面在赤道面仍有有限间隔，但极区的几何结构和近视界极限更微妙。不能拿一个 <span class="arithmatex">\(a=0.8\)</span> 的图把极端 Kerr 或内部结构全部代表掉。</p>
-<h2 id="7">7. 小结：因果锥比口号更精确<a class="headerlink" href="#7" title="Permanent link"></a></h2>
-<p><span class="arithmatex">\(\Delta=0\)</span> 定位 Kerr 视界，<span class="arithmatex">\(g_{tt}=0\)</span> 定位静止极限面，<span class="arithmatex">\(g_{t\phi}\)</span> 让外部因果锥发生 frame dragging。能层内的未来指向世界线被迫共转，但这里的 <span class="arithmatex">\(\Omega\)</span> 是坐标角速度；外视界处的 Boyer–Lindquist 发散是坐标问题，真正曲率奇点由 <span class="arithmatex">\(\Sigma=0\)</span> 的环给出。外部交互图能说明这些可检验的关系，却不能越过自己的坐标和模型边界替内部全球因果结构下结论。</p>
-<hr />
-<p><em>核心句：Kerr 的旋转效应不是“视界在转”，而是度规交叉项改变了外部未来因果锥；视界、能层和曲率奇点必须分开定义。</em></p>
+<p>分别是时间平移和轴向旋转的 Killing 向量。对四动量 <span class="arithmatex">\(p^\mu\)</span>，定义</p>
+<div class="arithmatex">\[
+E=-p_\mu\xi^\mu=-p_t,\qquad
+L=p_\mu\psi^\mu=p_\phi.
+\]</div>
+<p>沿自由测地线，<span class="arithmatex">\(p^\nu\nabla_\nu p^\mu=0\)</span> 与 Killing 方程共同给出这两个量守恒。例如</p>
+<div class="arithmatex">\[
+p^\nu\nabla_\nu(p_\mu\xi^\mu)
+=p^\nu p^\mu\nabla_{(\nu}\xi_{\mu)}=0.
+\]</div>
+<p>时间平移对应能量，轴对称对应角动量。若轨道由外力维持，仍可在每个点定义 <span class="arithmatex">\(E,L\)</span>，但它们是否随运动守恒要检查外力所做的功和力矩。<a href="https://www.damtp.cam.ac.uk/user/tong/gr/grhtml/S6.html">Kerr 的度规与两种对称性：Tong，§6.3.1</a></p>
+<h2 id="2">2. 两种曲面：哪一种阻止静止，哪一种是视界？<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(s=\sqrt{1-a^2}\)</span>，有</p>
+<div class="arithmatex">\[
+r_\pm=1\pm s,\qquad
+\Delta=(r-r_+)(r-r_-).
+\]</div>
+<p>在理想 Kerr 黑洞的外部延拓中，<span class="arithmatex">\(r_+\)</span> 是外视界，<span class="arithmatex">\(r_-\)</span> 是内视界。仅看坐标分母 <span class="arithmatex">\(\Delta\)</span> 并没有完成事件视界的全局定义，下面还要检查正则坐标和视界生成元。</p>
+<p>静止轨道的切向量是 <span class="arithmatex">\(\xi=\partial_t\)</span>，其范数</p>
+<div class="arithmatex">\[
+\xi^2=g_{tt}=-1+\frac{2r}{\Sigma}.
+\]</div>
+<p>它在外静止极限面上变成零：</p>
+<div class="arithmatex">\[
+r_E(\theta)=1+\sqrt{1-a^2\cos^2\theta}.
+\]</div>
+<p>赤道上 <span class="arithmatex">\(r_E=2\)</span>；两极上 <span class="arithmatex">\(r_E=r_+\)</span>。在两者之间的外部区域，<span class="arithmatex">\(\xi\)</span> 类空，固定 <span class="arithmatex">\(r,\theta,\phi\)</span> 的物质观察者不可能存在。这一能层的宽度依赖纬度，不是包在视界里面的另一层墙。</p>
+<p>静态机制图画的是坐标函数 <span class="arithmatex">\(r_E(\theta)\)</span> 与常数 <span class="arithmatex">\(r_+\)</span>。它不是 Kerr 空间切片的欧氏嵌入图，也不能用图上长度直接测固有距离。</p>
+<h3 id="21">2.1 真的把视界处的坏分母消掉<a class="headerlink" href="#21" title="Permanent link"></a></h3>
+<p>同时更换时间与方位坐标：</p>
+<div class="arithmatex">\[
+dv=dt+\frac{r^2+a^2}{\Delta}dr,\qquad
+d\widetilde\phi=d\phi+\frac{a}{\Delta}dr.
+\]</div>
+<p>令 <span class="arithmatex">\(\mathcal B=dv-a\sin^2\theta\,d\widetilde\phi\)</span>。原先第一个括号变为</p>
+<div class="arithmatex">\[
+dt-a\sin^2\theta\,d\phi=\mathcal B-\frac{\Sigma}{\Delta}dr,
+\]</div>
+<p>第二个括号中的两个 <span class="arithmatex">\(dr\)</span> 项则直接相消。于是原本带有 <span class="arithmatex">\(1/\Delta\)</span> 的 <span class="arithmatex">\(dr^2\)</span> 项消失，得到</p>
+<div class="arithmatex">\[
+\begin{aligned}
+ds^2={}&amp;-\frac{\Delta}{\Sigma}
+(dv-a\sin^2\theta\,d\widetilde\phi)^2\\
+&amp;+\frac{\sin^2\theta}{\Sigma}
+\bigl[(r^2+a^2)d\widetilde\phi-a\,dv\bigr]^2\\
+&amp;+2(dv-a\sin^2\theta\,d\widetilde\phi)\,dr
++\Sigma\,d\theta^2.
+\end{aligned}
+\]</div>
+<p>交叉项前的 <strong>2</strong> 来自展开平方，不能省略。新度规的行列式为</p>
+<div class="arithmatex">\[
+\det g=-\Sigma^2\sin^2\theta.
+\]</div>
+<p>因此在外视界的普通非轴点，<span class="arithmatex">\(\Sigma&gt;0\)</span> 且坐标系非退化；轴上的 <span class="arithmatex">\(\sin\theta=0\)</span> 仍是角坐标本身的问题，可换角坐标片处理。这直接展示了 Boyer–Lindquist 视界奇性可移除。它没有声称当地潮汐必然很小。</p>
+<p>在外视界上，生成元是</p>
+<div class="arithmatex">\[
+\chi=\xi+\Omega_H\psi,\qquad
+\Omega_H=\frac{a}{r_+^2+a^2}=\frac{a}{2r_+}.
+\]</div>
+<p>把它代入度规并用 <span class="arithmatex">\(\Delta(r_+)=0\)</span>，可核对 <span class="arithmatex">\(\chi^2=0\)</span>。<span class="arithmatex">\(\Omega_H\)</span> 是 Killing 视界生成元的角速度参数；它不需要一个有材料组成的旋转表面。<a href="https://www.damtp.cam.ac.uk/user/hsr1000/black_holes_lectures_2020.pdf">正则坐标、延拓与视界：Reall，Black Holes，第7章</a></p>
+<h2 id="3">3. 从因果锥到当地速度计<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>在赤道面外部，记</p>
+<div class="arithmatex">\[
+g_{tt}=\frac2r-1,\qquad
+g_{t\phi}=-\frac{2a}{r},\qquad
+B=g_{\phi\phi}=r^2+a^2+\frac{2a^2}{r}.
+\]</div>
+<p>为避免反复展开，利用恒等式</p>
+<div class="arithmatex">\[
+g_{t\phi}^2-g_{tt}B=\Delta.
+\]</div>
+<p>定义拖曳角速度与 lapse</p>
+<div class="arithmatex">\[
+\omega=-\frac{g_{t\phi}}B,\qquad
+\alpha=\sqrt{\frac{\Delta}{B}}.
+\]</div>
+<p>固定 <span class="arithmatex">\(r,\theta\)</span> 后，线元可完成平方：</p>
+<div class="arithmatex">\[
+ds^2=-\alpha^2dt^2+B(d\phi-\omega dt)^2.
+\]</div>
+<p>因此允许的坐标角速度为</p>
+<div class="arithmatex">\[
+\Omega_-=\omega-\frac{\alpha}{\sqrt B},\qquad
+\Omega_+=\omega+\frac{\alpha}{\sqrt B}.
+\]</div>
+<p>物质世界线取 <span class="arithmatex">\(\Omega_-&lt;\Omega&lt;\Omega_+\)</span>，端点只表示该点的类光切向方向。外部完整度规的径向与纬向项为正，所以即使允许 <span class="arithmatex">\(dr,d\theta\ne0\)</span>，也不能越出这个角速度区间；非零径向速度反而占用了部分因果余量。</p>
+<p>若 <span class="arithmatex">\(a&gt;0\)</span>，能层中两端均正；若 <span class="arithmatex">\(a&lt;0\)</span>，两端均负。两种情况都与黑洞同向。判断“反向”必须相对于自旋符号，不能只检验角速度是否小于零。</p>
+<h3 id="31-zamo">3.1 ZAMO 的四速度与局部方位速度<a class="headerlink" href="#31-zamo" title="Permanent link"></a></h3>
+<p>取参考观察者</p>
+<div class="arithmatex">\[
+n=\frac1\alpha(\partial_t+\omega\partial_\phi),\qquad
+e_{\hat\phi}=\frac1{\sqrt B}\partial_\phi.
+\]</div>
+<p>直接代入可验证</p>
+<div class="arithmatex">\[
+n\cdot n=-1,\qquad n\cdot e_{\hat\phi}=0,\qquad
+e_{\hat\phi}\cdot e_{\hat\phi}=1,\qquad n_\phi=0.
+\]</div>
+<p>最后一式说明它的轴向角动量为零，故称 ZAMO。它一般需要加速度维持固定半径，不是“所有自由落体观察者”的同义词。</p>
+<p>一个仅有方位局部速度 <span class="arithmatex">\(v\)</span> 的粒子可写成</p>
+<div class="arithmatex">\[
+u=\gamma(n+v e_{\hat\phi}),\qquad
+\gamma=\frac1{\sqrt{1-v^2}}.
+\]</div>
+<p>这里 <span class="arithmatex">\(v\)</span> 以光速为单位，是 ZAMO 测得的速度。展开坐标分量：</p>
+<div class="arithmatex">\[
+u^t=\frac\gamma\alpha,\qquad
+\Omega=\frac{u^\phi}{u^t}
+=\omega+\frac{\alpha}{\sqrt B}v.
+\]</div>
+<p>于是 <span class="arithmatex">\(|v|&lt;1\)</span> 正好对应因果角速度区间内部。<span class="arithmatex">\(\Omega\)</span> 和 <span class="arithmatex">\(v\)</span> 不是两个相互竞争的答案，而是两个明确参考系下的读数。</p>
+<h3 id="32">3.2 静止极限的类光曲线不一定是测地线<a class="headerlink" href="#32" title="Permanent link"></a></h3>
+<p>在赤道静止极限 <span class="arithmatex">\(r=2\)</span>，<span class="arithmatex">\(\xi^2=0\)</span>。但 Killing 恒等式还告诉我们</p>
+<div class="arithmatex">\[
+\nabla_\xi\xi=-\frac12\nabla(\xi^2).
+\]</div>
+<p>该点的径向分量是</p>
+<div class="arithmatex">\[
+(\nabla_\xi\xi)^r
+=-\frac12g^{rr}\partial_r g_{tt}
+=\frac{a^2}{16}.
+\]</div>
+<p>对于 <span class="arithmatex">\(a\ne0\)</span> 它不为零，且不与 <span class="arithmatex">\(\xi\)</span> 平行。因此这条保持空间坐标固定的类光曲线不是自由光子的测地线。因果锥端点描述允许的瞬时方向，轨道能否一直保持该方向还要满足测地线方程。</p>
+<p>实验的“精确静止极限”据此只标注类光边界，不把它叫作圆形光子轨道。</p>
+<h2 id="4">4. 当地能量为正，为何远方能量可以为负？<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>给粒子静质量 <span class="arithmatex">\(\mu\)</span>，由上一节四速度降指标得到</p>
+<div class="arithmatex">\[
+\frac L\mu=\gamma\sqrt B\,v,\qquad
+\frac E\mu=\gamma\left(\alpha+\omega\sqrt B\,v\right).
+\]</div>
+<p>当地能量则是</p>
+<div class="arithmatex">\[
+E_{\rm local}=-p\cdot n
+=\frac{E-\omega L}{\alpha}
+=\mu\gamma&gt;0.
+\]</div>
+<p>负的 <span class="arithmatex">\(E\)</span> 表示相对于时间平移 Killing 向量的守恒量为负。能层里这个向量类空，不再是当地物理观察者的四速度，所以 <span class="arithmatex">\(E\)</span> 没有当地能量那样的正定性。</p>
+<p>当 <span class="arithmatex">\(a&gt;0\)</span> 时，负能量要求</p>
+<div class="arithmatex">\[
+v&lt;-\frac{\alpha}{\omega\sqrt B}.
+\]</div>
+<p>当 <span class="arithmatex">\(a&lt;0\)</span> 时不等号反向。只有在能层中阈值才落入完整的物理速度区间 <span class="arithmatex">\((-1,1)\)</span>。实验为了避免无限 <span class="arithmatex">\(\gamma\)</span>，扫描 <span class="arithmatex">\(-0.99\le v\le0.99\)</span>；非常靠近静止极限时，这个有限扫描可能看不到负能量段，不能据此声称数学上不存在。</p>
+<p>默认 <span class="arithmatex">\(a=0.8,r=1.8,v=-0.8\)</span> 时，</p>
+<div class="arithmatex">\[
+\Omega\simeq0.101407,\quad
+\frac L\mu\simeq-2.856917,\quad
+\frac E\mu\simeq-0.141536,\quad
+\frac{E_{\rm local}}\mu=\frac53.
+\]</div>
+<p>它相对 ZAMO 逆转、相对坐标仍共转、当地能量为正。若同时把 <span class="arithmatex">\(a,v\)</span> 反号，<span class="arithmatex">\(L,\Omega\)</span> 反号，而 <span class="arithmatex">\(E\)</span> 与 <span class="arithmatex">\(\gamma\)</span> 不变；这是实验应通过的方向反演检查。</p>
+<h3 id="41-penrose">4.1 Penrose 过程还缺哪些条件？<a class="headerlink" href="#41-penrose" title="Permanent link"></a></h3>
+<p>在能层某点，粒子分裂要求局部四动量守恒：</p>
+<div class="arithmatex">\[
+p_0=p_1+p_2
+\quad\Longrightarrow\quad
+E_0=E_1+E_2,\qquad L_0=L_1+L_2.
+\]</div>
+<p>若安排一个分支以 <span class="arithmatex">\(E_1&lt;0\)</span> 被黑洞吸收，另一个分支逃逸，则 <span class="arithmatex">\(E_2=E_0+|E_1|\)</span>。多出的能量来自黑洞的旋转能，不能只画出一个负能量切向量就声称完成了过程：分裂的质量壳条件、可实现动量、捕获与逃逸轨道都要满足。</p>
+<p>穿过未来视界的未来因果动量还必须满足</p>
+<div class="arithmatex">\[
+-p\cdot\chi=E-\Omega_H L\ge0.
+\]</div>
+<p>对真正穿越的类时粒子，内积严格为负；等号可作为可逆理想极限。这个必要条件并不保证某个从外部给出的初始条件一定能到达视界。<a href="https://www.damtp.cam.ac.uk/user/hsr1000/black_holes_lectures_2020.pdf">Penrose 过程的局部守恒与视界不等式：Reall，§7.5</a></p>
+<h2 id="5">5. 可抽取多少：面积与不可约质量<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>这一节保留几何单位 <span class="arithmatex">\(G=c=1\)</span>，但恢复可变化的质量 <span class="arithmatex">\(M\)</span>，不再把演化中的质量每一步重新归一为 1。用初始质量作为固定单位，令初始 <span class="arithmatex">\(M_0=1,J_0=a_0\)</span>。</p>
+<p>视界截面的面积来自诱导二维度规。利用 <span class="arithmatex">\(\Delta(r_+)=0\)</span>，面积元为 <span class="arithmatex">\((r_+^2+a_{\rm length}^2)\sin\theta\,d\theta\,d\phi\)</span>，所以</p>
+<div class="arithmatex">\[
+A=4\pi(r_+^2+a_{\rm length}^2)
+=8\pi\left(M^2+\sqrt{M^4-J^2}\right).
+\]</div>
+<p>其中 <span class="arithmatex">\(a_{\rm length}=J/M\)</span>，与无量纲自旋 <span class="arithmatex">\(a_*=J/M^2\)</span> 区分。定义不可约质量</p>
+<div class="arithmatex">\[
+M_{\rm irr}=\sqrt{\frac A{16\pi}},\qquad
+M^2=M_{\rm irr}^2+\frac{J^2}{4M_{\rm irr}^2}.
+\]</div>
+<p>在经典面积不减的适用条件下，<span class="arithmatex">\(M_{\rm irr}\)</span> 不能下降。理想可逆路径令它不变，逐渐移除角动量，最终 <span class="arithmatex">\(J=0\)</span> 时只能降到 <span class="arithmatex">\(M=M_{\rm irr}\)</span>，故初始可抽取比例至多为</p>
+<div class="arithmatex">\[
+\frac{E_{\rm rot,max}}{M_0}
+=1-\sqrt{\frac{1+\sqrt{1-a_0^2}}2}.
+\]</div>
+<p>物理能量需再乘 <span class="arithmatex">\(M_{0,\rm phys}c^2\)</span>。在极端自旋的形式极限，比例趋于 <span class="arithmatex">\(1-1/\sqrt2\simeq29.29\%\)</span>；本实验只取 <span class="arithmatex">\(|a_*|\le0.9999\)</span>，不把数值端点称为精确极端解。这个比例是理想总储量上界，既不是单次 Penrose 分裂的效率，也不是实际吸积盘或喷流效率。</p>
+<h3 id="51">5.1 将可逆路径完整算出来<a class="headerlink" href="#51" title="Permanent link"></a></h3>
+<p>取 <span class="arithmatex">\(0\le f\le1\)</span> 表示已移除的初始角动量比例，</p>
+<div class="arithmatex">\[
+J(f)=J_0(1-f),\qquad
+M(f)=\sqrt{M_{\rm irr}^2+\frac{J(f)^2}{4M_{\rm irr}^2}}.
+\]</div>
+<p>于是</p>
+<div class="arithmatex">\[
+E_{\rm out}(f)=M_0-M(f),\qquad
+a_*(f)=\frac{J(f)}{M(f)^2}.
+\]</div>
+<p>实验使用等价的稳定表达式</p>
+<div class="arithmatex">\[
+E_{\rm out}(f)
+=\frac{J_0^2 f(2-f)}
+{4M_{\rm irr}^2\,[M_0+M(f)]},
+\]</div>
+<p>保留小自旋或很小 <span class="arithmatex">\(f\)</span> 时微小但非零的释放量，而不直接相减两个几乎相同的质量。</p>
+<p>若记 <span class="arithmatex">\(I=M_{\rm irr}^2\)</span>，对质量公式求偏导得到</p>
+<div class="arithmatex">\[
+\Omega_H=\left.\frac{\partial M}{\partial J}\right|_I
+=\frac{J}{4IM},\qquad
+\kappa=\frac{4I^2-J^2}{16I^2M}.
+\]</div>
+<p>同时 <span class="arithmatex">\(\partial M/\partial I=2\kappa\)</span>、<span class="arithmatex">\(dA=16\pi\,dI\)</span>，所以</p>
+<div class="arithmatex">\[
+dM=\frac{\kappa}{8\pi}dA+\Omega_H\,dJ,\qquad
+M=\frac{\kappa A}{4\pi}+2\Omega_H J.
+\]</div>
+<p>前一式是这里的黑洞力学第一定律，后一式是 Smarr 关系。可逆路径上 <span class="arithmatex">\(dA=0\)</span>，因此 <span class="arithmatex">\(dM=\Omega_H\,dJ\)</span>；它与上节的视界必要条件相容，但不保证某个实际装置能实现等号。</p>
+<h2 id="6">6. 内部因果结构：给数学结论注明范围<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>先进 Kerr 坐标在非极端外视界处光滑，因而“某个分量发散”不能阻止数学上的局部延拓。理想最大解析延拓还包含内 Cauchy 视界、不同区域以及 <span class="arithmatex">\(\Sigma=0\)</span> 的环形曲率奇性。Cauchy 视界的关键性质是：越过它以后，原来的初始数据不再唯一决定全部延拓区域。</p>
+<p>Kerr 不是球对称时空，不能随意删掉角坐标，便把一张二维图当作全部四维因果结构。一个明确做法是限制在对称轴的二维子流形，再说明所画的是哪一部分。真实坍缩、扰动和内视界稳定性则是进一步的问题；理想解析延拓不自动是天体黑洞内部的可靠路线图。<a href="https://www.damtp.cam.ac.uk/user/hsr1000/black_holes_lectures_2020.pdf">轴子流形与 Cauchy 视界的范围：Reall，第7章</a></p>
+<p>本页完整计算的是外部固定半径的切向因果锥、局部能量和理想可逆参数路径。进一步研究粒子轨道，需要加入径向、纬向测地线方程及 Carter 常数；研究电磁抽取则应转到<a href="ap-05-accretion.html">吸积与喷流</a>，把场与物质的动力学一起算。</p>
+<h2 id="7">7. 四道迁移题与完整解答<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<details class="exercise">
+<summary>练习1：把默认自旋与局部速度同时反号，哪些读数不变？</summary>
+<p><span class="arithmatex">\(r_\pm,\Delta,B,\alpha,\gamma\)</span> 只依赖自旋的平方或速度的平方，因此不变。<span class="arithmatex">\(\omega,\Omega_H\)</span> 与自旋同号，<span class="arithmatex">\(L/\mu=\gamma\sqrt B\,v\)</span> 随速度反号。代入 <span class="arithmatex">\(\Omega=\omega+\alpha v/\sqrt B\)</span> 得 <span class="arithmatex">\(\Omega\)</span> 反号，而 <span class="arithmatex">\(\omega v\)</span> 不变，所以 <span class="arithmatex">\(E/\mu\)</span> 不变。</p>
+<p>默认反演后 <span class="arithmatex">\(a=-0.8,v=0.8\)</span>，<span class="arithmatex">\(\Omega\simeq-0.101407\)</span>、<span class="arithmatex">\(L/\mu\simeq2.856917\)</span>、<span class="arithmatex">\(E/\mu\simeq-0.141536\)</span>。角速度为负仍是与负自旋黑洞同向。旧式“负号就是逆转”的判据在此失效。</p>
+</details>
+<details class="exercise">
+<summary>练习2：精确设r=2后，为什么不能说有一条静止的圆形光子测地线？</summary>
+<p><span class="arithmatex">\(g_{tt}=0\)</span> 只证明固定位置曲线的切向量 <span class="arithmatex">\(\xi\)</span> 类光。还应检查 <span class="arithmatex">\(\nabla_\xi\xi\)</span> 是否为 <span class="arithmatex">\(\xi\)</span> 的倍数。利用 Killing 恒等式和赤道 <span class="arithmatex">\(g^{rr}=\Delta/r^2\)</span> 得</p>
+<div class="arithmatex">\[
+(\nabla_\xi\xi)^r\big|_{r=2}=\frac{a^2}{16}.
+\]</div>
+<p>当 <span class="arithmatex">\(a=0.8\)</span> 时为 <span class="arithmatex">\(0.04\)</span>，但 <span class="arithmatex">\(\xi^r=0\)</span>。因此该加速度不可能只是参数化带来的沿切向项；它不是测地线。真正圆形光子轨道必须额外满足径向测地线条件。</p>
+</details>
+<details class="exercise">
+<summary>练习3：核对默认负能量粒子的当地能量，并检查视界吸收的必要条件。</summary>
+<p>使用 <span class="arithmatex">\(E/\mu\simeq-0.1415362883\)</span>、<span class="arithmatex">\(L/\mu\simeq-2.856917099\)</span>、<span class="arithmatex">\(\omega\simeq0.1936108422\)</span>、<span class="arithmatex">\(\alpha\simeq0.2469563024\)</span>，有</p>
+<div class="arithmatex">\[
+\frac{E-\omega L}{\mu\alpha}=\frac53&gt;0.
+\]</div>
+<p>因此当地能量为正。初始黑洞 <span class="arithmatex">\(\Omega_H=0.25\)</span>，代入得到</p>
+<div class="arithmatex">\[
+\frac{E-\Omega_H L}{\mu}\simeq0.572693&gt;0.
+\]</div>
+<p>它满足视界未来因果动量的必要不等式。这里选的是一个固定半径的局部切向量，尚未积分后续自由轨道，也没有检查某个分裂过程能否产生它；因此不能据此宣布完成了 Penrose 抽取。</p>
+</details>
+<details class="exercise">
+<summary>练习4：a0=0.8，保持面积不变，把J先减半再减到零。比较质量、自旋和能量。</summary>
+<p>初始 <span class="arithmatex">\(I=M_{\rm irr}^2=0.8\)</span>。减半时 <span class="arithmatex">\(J=0.4\)</span>，</p>
+<div class="arithmatex">\[
+M^2=0.8+\frac{0.4^2}{4(0.8)}=0.85,
+\quad M\simeq0.921954446,\quad
+a_*=\frac{0.4}{0.85}\simeq0.470588235.
+\]</div>
+<p>已释放 <span class="arithmatex">\(1-M\simeq0.0780455543\)</span>，面积仍为 <span class="arithmatex">\(16\pi I=12.8\pi\)</span>。角动量减半并没有使无量纲自旋恰好减半，因为分母中的质量也改变了。</p>
+<p>最后 <span class="arithmatex">\(J=0\)</span>、<span class="arithmatex">\(M=\sqrt{0.8}\simeq0.894427191\)</span>，总释放约 <span class="arithmatex">\(0.105572809\)</span>。不可逆过程会使面积增加，从而降低这一理想可抽取储量；不能把可逆路径当作真实装置的效率预测。</p>
+</details>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="gr-03-blackholes-waves.html"><span class="pager-label">上一页</span>广相 III · 黑洞、引力波与宇宙学度规</a>
