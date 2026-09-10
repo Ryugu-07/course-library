@@ -56,251 +56,426 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-11 05:44</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#hamilton">学习层：先问轨道是否仍像一个 Hamilton 系统</a><ul>
-<li><a href="#symplectic-learning-title">1. 具体谜题：一百万步以后，能量为什么还没有逃走？</a></li>
-<li><a href="#2">2. 先预测，再揭示</a></li>
-<li><a href="#3">3. 静态后备：先把一小步算清楚</a></li>
-<li><a href="#4">4. 读实验结果时不要把四句话混在一起</a></li>
+<li><a href="#symplectic-learning-title">学习层：一条好看的圆，能证明多少事情？</a><ul>
+<li><a href="#02">无脚本参考：默认步长真的就是0.2</a></li>
 </ul>
 </li>
-<li><a href="#1-hamilton">1. 从 Hamilton 方程到离散几何</a></li>
-<li><a href="#2-kick-drift-kick">2. 为什么 kick--drift--kick 是辛的</a></li>
-<li><a href="#3_1">3. 用简谐振子推导稳定边界</a></li>
-<li><a href="#4-shadow-hamiltonian">4. 能量有界振荡与 shadow Hamiltonian</a></li>
-<li><a href="#5-eulerrk4">5. 和 Euler、RK4 对照：局部精度不是长期可信度</a></li>
-<li><a href="#6">6. 一套可复现的动力学验证流程</a></li>
-<li><a href="#7">7. 失败边界与迁移题</a></li>
+<li><a href="#1-hamilton">1 · 连续 Hamilton 流保留什么</a></li>
+<li><a href="#2-verlet">2 · 从三次简单更新推导 Verlet</a></li>
+<li><a href="#3">3 · 谐振子的矩阵把稳定边界暴露出来</a></li>
+<li><a href="#4">4 · 精确离散不变量还不能给出精确相位</a></li>
+<li><a href="#5-eulerrk4">5 · 中点、Euler、RK4分别提供什么对照</a></li>
+<li><a href="#6">6 · 后向误差分析的定理条件在哪里</a></li>
+<li><a href="#7">7 · 双阱：不要把物理鞍点当成算法故障</a></li>
+<li><a href="#8">8 · 能量精确保住，也可以不是辛映射</a></li>
+<li><a href="#9">9 · 四维体积保持为何仍然不够</a></li>
+<li><a href="#10">10 · 怎样读完整轨迹、细化与回放</a></li>
+<li><a href="#11">11 · 四道迁移题与完整答案</a><ul>
+<li><a href="#1">练习1：为什么边界上的一条有界轨道不能证明稳定？</a></li>
+<li><a href="#2">练习2：离散不变量与原始能量分别控制什么？</a></li>
+<li><a href="#3_1">练习3：精确保能量、保持体积，能组合成辛性证明吗？</a></li>
+<li><a href="#4_1">练习4：双阱附近增长，应该核对什么？</a></li>
+</ul>
+</li>
+<li><a href="#12">12 · 范围与后续</a></li>
 </ul>
 </div>
 </details>
 <h1 id="ii">计算物理 II · 动力系统与辛积分<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
-<blockquote>
-<p><strong>对标</strong>：Hairer–Lubich–Wanner <em>Geometric Numerical Integration</em> / Leimkuhler–Reich <em>Simulating Hamiltonian Dynamics</em> ｜ <strong>前置</strong>：mech-03（哈密顿力学与相空间）、ode 线（稳定性与误差）
-<strong>本页问题</strong>：为什么一个单步误差更小的算法，跑很久以后反而可能给出更差的轨道？答案不是“多保留几位小数”，而是要让离散更新尊重 Hamilton 系统的几何结构。</p>
-</blockquote>
+<p>一个振子始终停留在正确的能量圆上，却可能在错误的时刻到达圆上的位置。另一个算法保持相空间面积，轨道却不断增长。判断长期模拟是否可信，需要把<strong>能量、相位、稳定性和辛结构</strong>分别说清楚。本页从可手算的谐振子出发，再进入双阱势能和两个几何反例。前置：<a href="mech-03-hamilton.html">哈密顿力学</a>、<a href="../../math-course/site/ode-03-systems-stability.html">常微分方程稳定性</a>。</p>
+<style>article:has(#symplectic-learning-title) .katex { position: relative; }</style>
 <div data-learning-page></div>
 
 <section aria-labelledby="symplectic-learning-title" class="learning-layer">
-<h2 id="hamilton">学习层：先问轨道是否仍像一个 Hamilton 系统<a class="headerlink" href="#hamilton" title="Permanent link"></a></h2>
-<h3 id="symplectic-learning-title">1. 具体谜题：一百万步以后，能量为什么还没有逃走？<a class="headerlink" href="#symplectic-learning-title" title="Permanent link"></a></h3>
-<p>取无量纲的一维谐振子</p>
-<div class="arithmatex">\[
-H(q,p)=\frac{p^2}{2}+\frac{q^2}{2},\qquad (q_0,p_0)=(1,0).
-\]</div>
-<p>它的精确轨道是相平面中的单位圆，能量 <span class="arithmatex">\(H=1/2\)</span>。数值积分却要不断把一张“新相点”推出来：如果每一次更新都把相空间面积稍微放大，有限误差会在长时间内堆积成假加热；如果面积结构被保留，轨道通常会在一个略微变形的能量壳附近振荡。</p>
-<h3 id="2">2. 先预测，再揭示<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>打开实验台以前，先回答四个问题：</p>
-<ol>
-<li>在合适步长下，Velocity Verlet 会使原始 <span class="arithmatex">\(H\)</span> 每一步都精确不变，还是让 <span class="arithmatex">\(H\)</span> 围绕真值有界振荡？</li>
-<li>对简谐振子，Verlet 的稳定边界是 <span class="arithmatex">\(|\omega h|=1\)</span>、<span class="arithmatex">\(2\)</span>，还是 <span class="arithmatex">\(\pi\)</span>？</li>
-<li>“辛”首先保留的是原 Hamilton 量，还是相空间的面积二形式？</li>
-<li>一个二阶方法把步长减半后，渐近终点误差大约变成原来的多少？</li>
-</ol>
-<h3 id="3">3. 静态后备：先把一小步算清楚<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<div class="learning-lab" data-learning-lab="physics-symplectic-integrator">
-<p><strong>无 JavaScript 时仍可读的数值账本。</strong>默认实验取 <span class="arithmatex">\(\omega=1\)</span>、<span class="arithmatex">\(h=0.2\)</span>、<span class="arithmatex">\((q_0,p_0)=(1,0)\)</span>，并把动量写成 <span class="arithmatex">\(p=\dot q\)</span>。Velocity Verlet 的 kick--drift--kick 更新为</p>
-<div class="arithmatex">\[
-\begin{aligned}
-p_{1/2}&amp;=p_0-\frac h2q_0=-0.1,\\
-q_1&amp;=q_0+hp_{1/2}=0.98,\\
-p_1&amp;=p_{1/2}-\frac h2q_1=-0.198.
-\end{aligned}
-\]</div>
-<p>因此</p>
-<div class="arithmatex">\[
-H_1=\tfrac12(0.98^2+0.198^2)=0.499802,
-\qquad \frac{H_1-H_0}{H_0}=-3.96\times10^{-4},
-\]</div>
-<p>其中 <span class="arithmatex">\(H_0=0.5\)</span>。这不是逐步精确守恒，却是一个很小且有结构的偏差。一步相空间面积因子为 <span class="arithmatex">\(1.000000\)</span>；它表达的是辛性，不是“能量永远等于 <span class="arithmatex">\(0.5\)</span>”。</p>
+<h2 id="symplectic-learning-title">学习层：一条好看的圆，能证明多少事情？<a class="headerlink" href="#symplectic-learning-title" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
-<th>检查</th>
-<th style="text-align: right;">默认参数下的解析/数值读法</th>
-<th>证据边界</th>
+<th>模型</th>
+<th>可以改变什么</th>
+<th>要分开的两件事</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>一步位置、动量</td>
-<td style="text-align: right;"><span class="arithmatex">\((q_1,p_1)=(0.980,-0.198)\)</span></td>
-<td>只检查一个更新</td>
+<td>谐振子</td>
+<td>方法、真实固定步长、步数、频率、初值</td>
+<td>能量保持与相位准确</td>
 </tr>
 <tr>
-<td>一步能量相对误差</td>
-<td style="text-align: right;"><span class="arithmatex">\(-0.000396\)</span></td>
-<td><span class="arithmatex">\(H\)</span> 不是逐步精确守恒量</td>
+<td>双阱</td>
+<td>方法、步长、初值</td>
+<td>物理鞍点的不稳定与数值放大</td>
 </tr>
 <tr>
-<td>一步相面积因子</td>
-<td style="text-align: right;"><span class="arithmatex">\(\det M=1\)</span></td>
-<td>对线性谐振子检查离散几何</td>
-</tr>
-<tr>
-<td>稳定条件</td>
-<td style="text-align: right;"><span class="arithmatex">\(\lvert\omega h\rvert&lt;2\)</span>；默认 <span class="arithmatex">\(0.2\)</span> 在内</td>
-<td>超出边界会增长，不是“精度稍差”</td>
-</tr>
-<tr>
-<td>步长收敛</td>
-<td style="text-align: right;">二阶误差 <span class="arithmatex">\(h\mapsto h/2\)</span> 约缩小为 <span class="arithmatex">\(1/4\)</span></td>
-<td>只在渐近区，且总时间固定</td>
+<td>几何反例</td>
+<td>状态依赖步长、四维伸缩</td>
+<td>能量或体积保持与辛性</td>
 </tr>
 </tbody>
 </table>
-<p>实验还把显式 Euler 和 RK4 放在同一总时间上：RK4 的短期相位误差通常更小，但它的更新不满足辛条件；Euler 则连简谐振子的线性稳定性都不具备。收敛表固定比较 <strong>4.25 个周期</strong>的终点，特意不用整数周期，以免周期端点的误差抵消制造虚假的“超收敛”。图上的相轨道、能量误差、收敛表和一步面积因子必须一起看，单一曲线不能替代结构验证。</p>
+<p>先作四个预测，再揭示每一步轨迹、阶段、回放和细化表。下面的 <span class="arithmatex">\(q,p,t,H\)</span> 均已无量纲化，质量取1，因此 <span class="arithmatex">\(p=\dot q\)</span>。这不是把有单位的动量随意换成速度；换回物理单位时要恢复选定的质量、长度和时间尺度。</p>
+<div class="learning-lab" data-learning-lab="physics-symplectic-integrator">
+<h3 id="02">无脚本参考：默认步长真的就是0.2<a class="headerlink" href="#02" title="Permanent link"></a></h3>
+<p>默认取谐振子 <span class="arithmatex">\(\omega=1\)</span>、<span class="arithmatex">\(h=0.2\)</span>、256步、<span class="arithmatex">\((q_0,p_0)=(1,0)\)</span>。一次 Velocity Verlet 更新为</p>
+<div class="arithmatex">\[
+p_{1/2}=-0.1,\qquad q_1=0.98,\qquad p_1=-0.198.
+\]</div>
+<p>所以 <span class="arithmatex">\(H_1=0.499802\)</span>，相对初值 <span class="arithmatex">\(H_0=0.5\)</span> 的变化为 <span class="arithmatex">\(-0.000396\)</span>。实验保持输入的步长不变，终时为 <span class="arithmatex">\(256\times0.2=51.2\)</span>；不会为了凑成整数周期偷偷改成另一个步长。</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th style="text-align: right;">默认模型的数值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>一步q</td>
+<td style="text-align: right;">0.98</td>
+</tr>
+<tr>
+<td>一步p</td>
+<td style="text-align: right;">-0.198</td>
+</tr>
+<tr>
+<td>一步H</td>
+<td style="text-align: right;">0.499802</td>
+</tr>
+<tr>
+<td>一步相对能量变化</td>
+<td style="text-align: right;">-0.000396</td>
+</tr>
+<tr>
+<td>一步离散二次不变量I</td>
+<td style="text-align: right;">0.495</td>
+</tr>
+<tr>
+<td>一步实际面积因子</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>离散旋转频率</td>
+<td style="text-align: right;">1.00167421162</td>
+</tr>
+<tr>
+<td>256步实际终时</td>
+<td style="text-align: right;">51.2</td>
+</tr>
+<tr>
+<td>终点归一化相点误差</td>
+<td style="text-align: right;">0.0833798167429</td>
+</tr>
+<tr>
+<td>全程最大能量绝对变化</td>
+<td style="text-align: right;">0.00499990844816</td>
+</tr>
+<tr>
+<td>负h回放后相点残差</td>
+<td style="text-align: right;">1.13636967036e-15</td>
+</tr>
+</tbody>
+</table>
+<p>细化研究是另一个受控比较：谐振子固定终时 <span class="arithmatex">\(T=8.5\pi/\omega\)</span>，双阱固定 <span class="arithmatex">\(T=8\)</span>，取8、16、32、64、128、256、512步，实际步长为 <span class="arithmatex">\(T/N\)</span>。表中明确列出两者，不能把“延长时间”和“细化同一个问题”混为一谈。</p>
 </div>
-<h3 id="4">4. 读实验结果时不要把四句话混在一起<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<ul>
-<li><strong>收敛</strong>问的是 <span class="arithmatex">\(h\to0\)</span> 时有限时间解是否逼近精确解；它是极限陈述。</li>
-<li><strong>稳定</strong>问的是固定 <span class="arithmatex">\(h\)</span> 下扰动是否被放大；它不等于高阶，也不等于守恒。</li>
-<li><strong>辛性</strong>问的是离散映射是否保留 <span class="arithmatex">\(dq\wedge dp\)</span>；它不承诺原始 <span class="arithmatex">\(H\)</span> 每一步不变。</li>
-<li><strong>可复现</strong>问的是同一初值、方法、步长和种子能否重放；它不把一个错误模型变成正确模型。</li>
-</ul>
-<p>实验的数值轨迹是有限证据：它能暴露能量漂移、相面积膨胀和步长边界，却不能单凭一张图证明所有势能、所有时间尺度都稳定。</p>
 </section>
-<h2 id="1-hamilton">1. 从 Hamilton 方程到离散几何<a class="headerlink" href="#1-hamilton" title="Permanent link"></a></h2>
-<p>Hamilton 系统用一对共轭变量 <span class="arithmatex">\((q,p)\)</span> 描述状态：<span class="arithmatex">\(q\)</span> 是坐标，<span class="arithmatex">\(p\)</span> 是动量。对可分离 Hamilton 量</p>
+<figure>
+<img src="assets/img/comp-02-symplectic-ledgers.svg" alt="相空间轨道与能量变化、临界步长的Jordan增长、状态依赖步长的局部面积变化" loading="lazy">
+<figcaption>圆形轨道说明状态落在哪个集合里；相位、局部面积和到达时间还需要各自的检查。相图横纵轴采用相同单位长度。</figcaption>
+</figure>
+
+<h2 id="1-hamilton">1 · 连续 Hamilton 流保留什么<a class="headerlink" href="#1-hamilton" title="Permanent link"></a></h2>
+<p>对共轭坐标 <span class="arithmatex">\(z=(q,p)\)</span> 和可分离 Hamilton 量</p>
 <div class="arithmatex">\[
 H(q,p)=T(p)+V(q),
 \]</div>
-<p>正则方程是</p>
+<p>正则方程为</p>
 <div class="arithmatex">\[
-\dot q=\frac{\partial H}{\partial p}=\nabla_pT(p),\qquad
-\dot p=-\frac{\partial H}{\partial q}=-\nabla_qV(q).
-\]</div>
-<p>把它写成 <span class="arithmatex">\(z=(q,p)\)</span> 的形式，<span class="arithmatex">\(\dot z=J\nabla H\)</span>，其中</p>
-<div class="arithmatex">\[
+\dot q=\nabla_pT,\qquad \dot p=-\nabla_qV,\qquad
+\dot z=J\nabla H,\qquad
 J=\begin{pmatrix}0&amp;I\\-I&amp;0\end{pmatrix}.
 \]</div>
-<p>连续 Hamilton 流 <span class="arithmatex">\(\Phi_t\)</span> 满足</p>
+<p>本页始终按 <span class="arithmatex">\((q,p)\)</span> 排列变量；有些教材按 <span class="arithmatex">\((p,q)\)</span> 排列，同时写 <span class="arithmatex">\(J^{-1}\nabla H\)</span>。必须连同排序检查符号。</p>
+<p>记流对初值的导数为 <span class="arithmatex">\(Y(t)=D\Phi_t(z_0)\)</span>。它满足变分方程
+<span class="arithmatex">\(\dot Y=JH''(\Phi_t)Y\)</span>。因为 Hessian 对称，</p>
 <div class="arithmatex">\[
-(D\Phi_t)^T J(D\Phi_t)=J.
+\frac d{dt}(Y^{\mathsf T}JY)=0,
+\qquad
+(D\Phi_t)^{\mathsf T}J(D\Phi_t)=J.
 \]</div>
-<p>这就是辛条件。二维时它等价于相平面面积保持：一小块初始面积经过流动后面积不变。Liouville 定理说的是这个几何事实，而不是“每个粒子的能量都相同”。若 <span class="arithmatex">\(H\)</span> 不显含时间，则另有 <span class="arithmatex">\(dH/dt=0\)</span>；这是另一条守恒律。离散算法要同时讨论这两者，不能用“辛”一词包办能量守恒。</p>
-<p>对线性一步法 <span class="arithmatex">\(z_{n+1}=Mz_n\)</span>，辛条件退化为 <span class="arithmatex">\(M^TJM=J\)</span>。对二维矩阵，这也就是 <span class="arithmatex">\(\det M=1\)</span>。实验中的“一步相面积因子”实际是在检查这个行列式：它会告诉我们映射有没有把相平面局部压缩或膨胀。</p>
-<h2 id="2-kick-drift-kick">2. 为什么 kick--drift--kick 是辛的<a class="headerlink" href="#2-kick-drift-kick" title="Permanent link"></a></h2>
-<p>把 Hamilton 量分成两部分：</p>
+<p>这就是辛条件，表示二形式 <span class="arithmatex">\(\sum_i dq_i\wedge dp_i\)</span> 被保持。把它取最高次外积，得到相空间体积保持，即 Liouville 性质。若 <span class="arithmatex">\(H\)</span> 不显含时间，还有</p>
 <div class="arithmatex">\[
-H_T=T(p),\qquad H_V=V(q).
+\frac{dH}{dt}=\nabla H^{\mathsf T}J\nabla H=0.
 \]</div>
-<p>只保留 <span class="arithmatex">\(T\)</span> 时，<span class="arithmatex">\(p\)</span> 不变而 <span class="arithmatex">\(q\)</span> 沿 <span class="arithmatex">\(\nabla_pT\)</span> 平移；只保留 <span class="arithmatex">\(V\)</span> 时，<span class="arithmatex">\(q\)</span> 不变而 <span class="arithmatex">\(p\)</span> 沿 <span class="arithmatex">\(-\nabla_qV\)</span> 平移：</p>
+<p>这是一条额外的第一积分；它与辛性有关，但不能互相替代。数值映射 <span class="arithmatex">\(\Psi_h\)</span> 是否辛，要检查
+<span class="arithmatex">\(D\Psi_h^{\mathsf T}J D\Psi_h=J\)</span>。相关推导见 <a href="https://unige.ch/~hairer/poly_geoint/week2.pdf">Hairer 几何数值积分第2讲</a>及 <a href="https://arxiv.org/pdf/1710.03946">Gauckler–Hairer–Lubich 第2节</a>。</p>
+<h2 id="2-verlet">2 · 从三次简单更新推导 Verlet<a class="headerlink" href="#2-verlet" title="Permanent link"></a></h2>
+<p>只沿动能 <span class="arithmatex">\(T(p)=p^2/2\)</span> 演化时，动量不变，位置平移；只沿势能演化时，位置不变，动量平移：</p>
 <div class="arithmatex">\[
-\begin{aligned}
-\varphi_T^h:(q,p)&amp;\mapsto(q+h\nabla_pT(p),p),\\
-\varphi_V^h:(q,p)&amp;\mapsto(q,p-h\nabla_qV(q)).
-\end{aligned}
+D_h(q,p)=(q+hp,p),\qquad
+K_h(q,p)=(q,p-hV'(q)).
 \]</div>
-<p>这两张子流都可以直接验证 <span class="arithmatex">\(D\varphi^T J D\varphi=J\)</span>，所以各自是辛映射。Velocity Verlet 是对称复合</p>
+<p>它们的 Jacobian 为</p>
 <div class="arithmatex">\[
-\Phi_h^{\mathrm{VV}}
-  =\varphi_V^{h/2}\circ\varphi_T^h\circ\varphi_V^{h/2}.
+DD_h=\begin{pmatrix}1&amp;h\\0&amp;1\end{pmatrix},\qquad
+DK_h=\begin{pmatrix}1&amp;0\\-hV''(q)&amp;1\end{pmatrix}.
 \]</div>
-<p>因为辛映射的复合仍然辛，算法结构不靠“误差碰巧抵消”来成立。对一维 <span class="arithmatex">\(T=p^2/2m\)</span>，<span class="arithmatex">\(V=V(q)\)</span>，它展开为</p>
+<p>两者都是辛映射，复合仍然辛。对称组合
+<span class="arithmatex">\(\Psi_h=K_{h/2}\circ D_h\circ K_{h/2}\)</span> 就是 Velocity Verlet：</p>
 <div class="arithmatex">\[
 \begin{aligned}
 p_{n+1/2}&amp;=p_n-\frac h2V'(q_n),\\
-q_{n+1}&amp;=q_n+h\frac{p_{n+1/2}}m,\\
+q_{n+1}&amp;=q_n+hp_{n+1/2},\\
 p_{n+1}&amp;=p_{n+1/2}-\frac h2V'(q_{n+1}).
 \end{aligned}
 \]</div>
-<p>交换 <span class="arithmatex">\(h\leftrightarrow-h\)</span> 后，三个子步按相反顺序回去，因此它还满足时间可逆性。这是第二个很有用的结构检查：正向走 <span class="arithmatex">\(N\)</span> 步、反向走 <span class="arithmatex">\(N\)</span> 步，误差应主要来自舍入和解算器误差，而不是产生不可逆的数值箭头。</p>
-<p>从 Baker--Campbell--Hausdorff 展开看，时间对称性使修正流生成元的偶次幂项消失：<span class="arithmatex">\(h^2\)</span> 的分裂缺陷不出现，首个误差项在 <span class="arithmatex">\(h^3\)</span>，随后是 <span class="arithmatex">\(h^5\)</span> 等奇次幂。因此局部截断误差为 <span class="arithmatex">\(O(h^3)\)</span>，固定时间的全局误差为 <span class="arithmatex">\(O(h^2)\)</span>。但是，“二阶”只谈逼近阶；“辛”谈映射属于哪一个几何群。两种标签回答不同问题。</p>
-<h2 id="3_1">3. 用简谐振子推导稳定边界<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p>对 <span class="arithmatex">\(V(q)=\omega^2q^2/2\)</span>，消去半步动量后，Verlet 的位置满足三项递推</p>
+<p>实验实际执行这三个阶段，并在各自的真实输入点计算 <span class="arithmatex">\(V'\)</span> 和 <span class="arithmatex">\(V''\)</span>。整步 Jacobian 是三个局部矩阵按同样顺序相乘；它不是从一张近似轨迹图上量出来的面积。</p>
+<p>由 <span class="arithmatex">\(K_{-h}=K_h^{-1}\)</span>、<span class="arithmatex">\(D_{-h}=D_h^{-1}\)</span> 及回文顺序，</p>
 <div class="arithmatex">\[
-q_{n+1}-2\left(1-\frac{(\omega h)^2}{2}\right)q_n+q_{n-1}=0.
+\Psi_{-h}\circ\Psi_h=\mathrm{id}.
 \]</div>
-<p>令 <span class="arithmatex">\(q_n=\lambda^n\)</span>，特征方程的根位于单位圆内或单位圆上所需条件是</p>
+<p>因此同一方法换成负步长能够回走。有限精度下，回放残差还会受舍入以及动力学敏感性影响，不能一概要求恰为零。一般可逆矩阵当然都有逆，但“存在一个逆映射”不等于“把同一数值方法的 <span class="arithmatex">\(h\)</span> 改为 <span class="arithmatex">\(-h\)</span> 就是逆”。</p>
+<p>对称性也解释二阶精度。准确说，形式上的 <span class="arithmatex">\(\log\Psi_h\)</span> 只含 <span class="arithmatex">\(h,h^3,h^5,\ldots\)</span>；<strong>除以 <span class="arithmatex">\(h\)</span> 后</strong>的修正向量场只含 <span class="arithmatex">\(1,h^2,h^4,\ldots\)</span>。局部误差为 <span class="arithmatex">\(O(h^3)\)</span>，固定时间的全局误差为 <span class="arithmatex">\(O(h^2)\)</span>。不要把“映射对数的奇次幂”说成“修正向量场的奇次幂”。</p>
+<h2 id="3">3 · 谐振子的矩阵把稳定边界暴露出来<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>取</p>
 <div class="arithmatex">\[
-\left|1-\frac{(\omega h)^2}{2}\right|\le1
-\quad\Longleftrightarrow\quad
-|\omega h|\le2.
+H=\frac12(p^2+\omega^2q^2),\qquad
+\begin{pmatrix}q(t)\\p(t)\end{pmatrix}
+=
+\begin{pmatrix}
+\cos\omega t&amp;\sin(\omega t)/\omega\\
+-\omega\sin\omega t&amp;\cos\omega t
+\end{pmatrix}
+\begin{pmatrix}q_0\\p_0\end{pmatrix}.
 \]</div>
-<p>严格等号处是临界情况，实际计算应留出余量；常用稳定区写成 <span class="arithmatex">\(|\omega h|&lt;2\)</span>。当 <span class="arithmatex">\(|\omega h|\)</span> 超过 2，根离开单位圆，任何舍入误差都会被指数放大。此时增加总精度、换一条漂亮的配色或只看最初几周期都不能挽救轨道。</p>
-<p>这条界限还揭示了“最快时间尺度”：若势能在某处曲率很大，局部小振动频率约为 <span class="arithmatex">\(\omega_{\mathrm{loc}}^2=V''(q)/m\)</span>，步长就必须解析最快的振动。对多自由度系统，应看最高频率而不是平均频率。刚性分子动力学因此常用约束算法、隐式方法或多时间尺度方法；把一个软模的步长照搬给硬模，会越过稳定边界。</p>
-<h2 id="4-shadow-hamiltonian">4. 能量有界振荡与 shadow Hamiltonian<a class="headerlink" href="#4-shadow-hamiltonian" title="Permanent link"></a></h2>
-<p>“辛积分器长期能量不漂移”需要更精确地说。对足够光滑、稳定、近可积的 Hamilton 系统，后向误差分析通常能构造一个修正的 shadow Hamiltonian</p>
+<p>令 <span class="arithmatex">\(z=\omega h\)</span>，Verlet 的实际一步矩阵为</p>
 <div class="arithmatex">\[
-\widetilde H=H+h^2H_2+h^4H_4+\cdots,
+M_V=
+\begin{pmatrix}
+1-z^2/2&amp;h\\
+-h\omega^2(1-z^2/4)&amp;1-z^2/2
+\end{pmatrix},
+\qquad \det M_V=1.
 \]</div>
-<p>使得数值轨道在很长时间内近似保持 <span class="arithmatex">\(\widetilde H\)</span>。因此原始 <span class="arithmatex">\(H\)</span> 会围绕一个 <span class="arithmatex">\(O(h^2)\)</span> 偏差振荡，而不是一般性单调漂移。这解释了实验里“绿色能量误差有界、但不为零”的形状。</p>
-<p>这不是无条件定理。混沌系统、长时间穿越分离轨道、非光滑碰撞、强耗散和外部驱动都会改变分析条件。若加入摩擦 <span class="arithmatex">\(-\gamma p\)</span>，系统不再是保守 Hamilton 流；若接入随机热浴，目标变成某个系综分布的正确采样，能量有意波动。此时仍可借用分裂思想，但不能继续把原来的相面积守恒当作物理目标。</p>
-<h2 id="5-eulerrk4">5. 和 Euler、RK4 对照：局部精度不是长期可信度<a class="headerlink" href="#5-eulerrk4" title="Permanent link"></a></h2>
-<p>显式 Euler 对谐振子的矩阵为</p>
+<p>特征方程为
+<span class="arithmatex">\(\lambda^2-2(1-z^2/2)\lambda+1=0\)</span>。
+当 <span class="arithmatex">\(0\lt z\lt2\)</span> 时，两根为不同的单位模共轭根，<span class="arithmatex">\(M_V^n\)</span> 对所有初值有界；当 <span class="arithmatex">\(z\gt2\)</span> 时，一根绝对值大于1，一般轨道指数增长。两种情况中行列式都是1，所以辛性不能替代稳定性。</p>
+<p><strong>边界 <span class="arithmatex">\(z=2\)</span> 要单独算。</strong> 此时</p>
 <div class="arithmatex">\[
-M_E=\begin{pmatrix}1&amp;h\\-\omega^2h&amp;1\end{pmatrix},
+M_V=-I+B,\qquad
+B=\begin{pmatrix}0&amp;h\\0&amp;0\end{pmatrix},\qquad B^2=0,
+\]</div>
+<p>从而</p>
+<div class="arithmatex">\[
+M_V^n=(-1)^n(I-nB),\qquad
+q_n=(-1)^n(q_0-nhp_0),\quad p_n=(-1)^np_0.
+\]</div>
+<p>即使两个根都为 <span class="arithmatex">\(-1\)</span>，非平凡 Jordan 块仍会产生线性增长。默认方向 <span class="arithmatex">\(p_0=0\)</span> 恰好使增长项消失，不能据此宣布边界稳定。实验提供 <span class="arithmatex">\(h=2,p_0=0.1\)</span> 与同一步长 <span class="arithmatex">\(p_0=0\)</span> 的对照。</p>
+<p>判断临界位置时，程序保留<strong>读入的浮点参数的精确乘积符号</strong>，不会先把邻近的 <span class="arithmatex">\(\omega h\)</span> 舍入成2，再把不同侧的状态合并。屏幕上的有限位小数仍只是近似读数。</p>
+<h2 id="4">4 · 精确离散不变量还不能给出精确相位<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(c=1-z^2/4\)</span>。直接乘矩阵可验证</p>
+<div class="arithmatex">\[
+M_V^{\mathsf T}
+\begin{pmatrix}\omega^2c&amp;0\\0&amp;1\end{pmatrix}
+M_V=
+\begin{pmatrix}\omega^2c&amp;0\\0&amp;1\end{pmatrix}.
+\]</div>
+<p>所以在精确算术下，Verlet <strong>恰好</strong>保持</p>
+<div class="arithmatex">\[
+I_h(q,p)=\frac12\bigl(p^2+\omega^2c q^2\bigr).
+\]</div>
+<p>在稳定区 <span class="arithmatex">\(c\gt0\)</span>，它的等值线是椭圆；原始能量满足</p>
+<div class="arithmatex">\[
+I_h\le H\le I_h/c.
+\]</div>
+<p>因此能量有界，但未必围绕初值上下对称。对 <span class="arithmatex">\(q_0=1,p_0=0\)</span>，有
+<span class="arithmatex">\(H_0c\le H_n\le H_0\)</span>。临近边界时 <span class="arithmatex">\(c\to0\)</span>，这条控制退化；边界二次型只剩 <span class="arithmatex">\(p^2/2\)</span>，不能限制 <span class="arithmatex">\(q\)</span>。越界后二次型不定，保持它也不能限制轨道幅度。</p>
+<p>稳定区内令</p>
+<div class="arithmatex">\[
+\vartheta=2\arcsin(z/2),\qquad
+\widetilde\omega=\frac{\vartheta}{h}
+=\omega+\frac{\omega^3h^2}{24}+O(h^4).
+\]</div>
+<p>离散轨道沿椭圆旋转的频率是 <span class="arithmatex">\(\widetilde\omega\)</span>。相位差随时间积累为
+<span class="arithmatex">\(t(\widetilde\omega-\omega)\)</span>；能量变化很小，也可能已经走到了错误的相位。</p>
+<p>还有一个容易遗漏的区别：<span class="arithmatex">\(I_h\)</span> 决定不变椭圆，却不直接以正确的时间参数生成一步 <span class="arithmatex">\(M_V\)</span>。其精确时间插值 Hamilton 量为</p>
+<div class="arithmatex">\[
+H_{\mathrm{mod}}=\frac{\vartheta}{\sin\vartheta}I_h,
+\qquad 0\lt z\lt2.
+\]</div>
+<p>乘数改变绕同一椭圆的速度，使时间 <span class="arithmatex">\(h\)</span> 的精确流恰为 <span class="arithmatex">\(M_V\)</span>。展开得</p>
+<div class="arithmatex">\[
+H_{\mathrm{mod}}
+=H+h^2\left(\frac{\omega^2p^2}{12}
+-\frac{\omega^4q^2}{24}\right)+O(h^4).
+\]</div>
+<p>这是本线性系统可显式求出的结果；不能据此声称任意非线性问题都有一个全局收敛、精确保住的无穷级数。</p>
+<h2 id="5-eulerrk4">5 · 中点、Euler、RK4分别提供什么对照<a class="headerlink" href="#5-eulerrk4" title="Permanent link"></a></h2>
+<p>写连续矩阵
+<span class="arithmatex">\(A=\begin{pmatrix}0&amp;1\\-\omega^2&amp;0\end{pmatrix}\)</span>。
+隐式中点法满足</p>
+<div class="arithmatex">\[
+(I-hA/2)z_{n+1}=(I+hA/2)z_n.
+\]</div>
+<p>这是一个实际的线性系统；本实验用它的解析逆得到一步矩阵</p>
+<div class="arithmatex">\[
+M_M=\frac1{1+z^2/4}
+\begin{pmatrix}1-z^2/4&amp;h\\-\omega^2h&amp;1-z^2/4\end{pmatrix}.
+\]</div>
+<p>它在谐振子上同时保持辛结构和原始二次能量，对任意有限步长都幂有界。但是数值频率为</p>
+<div class="arithmatex">\[
+\widetilde\omega_M=\frac2h\arctan(z/2)
+=\omega-\frac{\omega^3h^2}{12}+O(h^4),
+\]</div>
+<p>仍有相位误差。大步长“不会爆炸”不等于“解析了真实运动”。对一般非线性势能，中点法要解非线性方程，也不会一般精确保住非二次的 <span class="arithmatex">\(H\)</span>；本页没有把谐振子的显式矩阵套到双阱上。</p>
+<p>显式 Euler 则是 <span class="arithmatex">\(M_E=I+hA\)</span>，其面积和能量倍率都是</p>
+<div class="arithmatex">\[
+D_E=1+z^2\gt1.
+\]</div>
+<p>因此任意非零步长下，一般谐振轨道都会假加热。经典 RK4 的矩阵为
+<span class="arithmatex">\(I+hA+(hA)^2/2+(hA)^3/6+(hA)^4/24\)</span>。在归一化平面 <span class="arithmatex">\((q,p/\omega)\)</span> 中，写</p>
+<div class="arithmatex">\[
+a=1-z^2/2+z^4/24,\qquad b=z-z^3/6.
+\]</div>
+<p>它的能量倍率和行列式为</p>
+<div class="arithmatex">\[
+D_R=a^2+b^2
+=1-\frac{z^6}{72}+\frac{z^8}{576}.
+\]</div>
+<p>当 <span class="arithmatex">\(0\lt z\lt\sqrt8\)</span> 时，<span class="arithmatex">\(D_R\lt1\)</span>，在这个模型上能量单调衰减；超过该边界会增长。在精确实数边界 <span class="arithmatex">\(z=\sqrt8\)</span> 上，倍率恰为1，这只是特定线性问题、特定步长的特殊结果，不能把经典 RK4 称为一般辛方法。</p>
+<p>RK4 在小步长、固定终时下可有很好的四阶精度。选型要看任务需要的误差、时间跨度和结构，不能把“二阶辛”与“四阶非辛”变成不问问题的一句排名。</p>
+<h2 id="6">6 · 后向误差分析的定理条件在哪里<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>一般辛方法的形式修正向量场仍是 Hamilton 型；对称二阶方法对应</p>
+<div class="arithmatex">\[
+\widetilde H=H+h^2H_2+h^4H_4+\cdots.
+\]</div>
+<p>形式级数本身不保证收敛。典型的严格论证要求解析向量场、数值轨道留在固定紧集中、常步长足够小并解析最快尺度。将级数在合适阶数截断后，一步数值映射与修正流可相差指数小量；再将每一步能量误差作伸缩求和，得到很长时间上的 <span class="arithmatex">\(H\)</span> 近守恒。条件与结论见 <a href="https://arxiv.org/pdf/1710.03946">Gauckler–Hairer–Lubich 第2.3–2.4节</a>。</p>
+<p>能量近守恒的这一类结论不需要把所有系统都称为近可积；但动作变量、相位误差和不变环面的更强结论需要额外结构。混沌也不自动使能量近守恒失效，长期逐点轨道准确则是另一个问题。</p>
+<p>高频使相关常数变坏，只满足线性稳定不一定满足小步长分析所需的小量条件。非光滑碰撞、约束求解误差、摩擦、驱动和随机热浴要按各自模型重新分析。热浴中能量有意波动，不能把保守系统的能量目标直接照搬过去。</p>
+<h2 id="7">7 · 双阱：不要把物理鞍点当成算法故障<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>现在取</p>
+<div class="arithmatex">\[
+V(q)=\frac14q^4-\frac12q^2,\qquad
+\dot q=p,\qquad\dot p=q-q^3.
+\]</div>
+<p>平衡点为 <span class="arithmatex">\((0,0)\)</span> 和 <span class="arithmatex">\((\pm1,0)\)</span>。由于 <span class="arithmatex">\(V''(q)=3q^2-1\)</span>，</p>
+<div class="arithmatex">\[
+\begin{array}{c|c|c}
+\text{附近}&amp;\text{线性化方程}&amp;\text{连续行为}\\
+q=0&amp;\ddot\eta=\eta&amp; e^t,e^{-t}\text{的鞍点方向}\\
+q=\pm1&amp;\ddot\eta=-2\eta&amp;\text{频率}\sqrt2\text{的小振动}
+\end{array}
+\]</div>
+<p>鞍点处不能把负的 <span class="arithmatex">\(V''\)</span> 塞进“实振动频率”公式。Verlet 对 <span class="arithmatex">\(\ddot\eta=\eta\)</span> 的放大矩阵迹为 <span class="arithmatex">\(2+h^2\gt2\)</span>，有一根大于1，这与连续增长方向一致。离散增长率满足</p>
+<div class="arithmatex">\[
+\cosh(\mu_hh)=1+h^2/2,\qquad
+\mu_h=\frac2h\operatorname{arsinh}(h/2)\to1.
+\]</div>
+<p>正确检查是比较增长率及其步长收敛，而不是要求物理鞍点附近的所有扰动都不增长。井底线性化的 Verlet 条件为 <span class="arithmatex">\(h\sqrt2\lt2\)</span>；大幅运动会访问不同曲率区域，这不是整个双阱轨道的通用步长保证。</p>
+<p>实验真正用所选方法积分非线性方程。参考则分别用每宏步16和32个 RK4 子步，并保留两条完整轨道、各自能量变化和终点差。这些是数值参考，差值只是分辨率诊断，<strong>不是严格误差界</strong>。独立求解器用于课程验收，页面不会把它没有运行的解析解写进结果。</p>
+<p>这里还有一个可手验的零能量同宿解：</p>
+<div class="arithmatex">\[
+q(t)=\sqrt2\,\operatorname{sech}t,\qquad
+p(t)=-\sqrt2\,\operatorname{sech}t\,\tanh t,\qquad H=0.
+\]</div>
+<p>代入方程和能量即可验证。浮点表示的 <span class="arithmatex">\(\sqrt2\)</span> 与有限精度积分可能稍微偏离分离轨道；长时间后，这一点偏差能导致不同的井间行为。因此不要只看某个最终位置，忽略初值精度和分离轨道的敏感性。<span class="arithmatex">\(H_0=0\)</span> 时相对能量误差未定义，实验改为保留绝对变化。</p>
+<h2 id="8">8 · 能量精确保住，也可以不是辛映射<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>取频率1的谐振子精确流，但每个初值使用不同的演化时间：</p>
+<div class="arithmatex">\[
+h(q)=h_0(1+\varepsilon q),\qquad
+Q=q\cos h+p\sin h,\qquad
+P=p\cos h-q\sin h.
+\]</div>
+<p>对每个输入点，都有 <span class="arithmatex">\(Q^2+P^2=q^2+p^2\)</span>。令 <span class="arithmatex">\(g=h_0\varepsilon\)</span>，链式法则给</p>
+<div class="arithmatex">\[
+D\Psi=
+\begin{pmatrix}
+\cos h+gP&amp;\sin h\\
+-\sin h-gQ&amp;\cos h
+\end{pmatrix},
 \qquad
-\det M_E=1+(\omega h)^2&gt;1.
+\det D\Psi=1+gp.
 \]</div>
-<p>它每一步都膨胀相空间面积，故会把振幅逐渐推大；即使 <span class="arithmatex">\(h\)</span> 很小，长时间后也会看见假能量增长。RK4 的有限时间误差阶数更高，线性稳定区也更宽，但一般不满足 <span class="arithmatex">\(M^TJM=J\)</span>，所以“单次积分很准”不自动推出“跨越数十万周期仍保持相轨道结构”。</p>
-<p>选择算法应先列出物理任务：</p>
-<table>
-<thead>
-<tr>
-<th>任务</th>
-<th>首要证据</th>
-<th>合适的检查</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>短时间高精度事件</td>
-<td>终点误差、局部时间分辨率</td>
-<td>步长收敛、RK4/RK45 对照</td>
-</tr>
-<tr>
-<td>长时间保守轨道</td>
-<td>几何结构和能量长期行为</td>
-<td>辛条件、时间可逆、shadow-energy 形状</td>
-</tr>
-<tr>
-<td>正则系综采样</td>
-<td>分布与相关时间</td>
-<td>热化、自相关、有效样本数</td>
-</tr>
-<tr>
-<td>刚性或约束系统</td>
-<td>稳定和约束残差</td>
-<td>最高频率、约束漂移、隐式/投影残差</td>
-</tr>
-</tbody>
-</table>
-<p>因此不要把“RK4 的图在前十个周期更贴近解析圆”读成“RK4 总是更适合分子动力学”；也不要把“Verlet 是辛的”读成“任意大步长都安全”。实验将这三个方法的相图、能量误差和固定总时间收敛表并列，正是为了让结论的适用条件留在画面中。</p>
-<h2 id="6">6. 一套可复现的动力学验证流程<a class="headerlink" href="#6" title="Permanent link"></a></h2>
-<p>对一个新的保守力场，可以按下面的顺序建立证据链：</p>
-<ol>
-<li><strong>写连续模型。</strong>给出 <span class="arithmatex">\(H(q,p)\)</span>、单位、初值、边界和力的光滑性；先确认目标确实是保守 Hamilton 系统。</li>
-<li><strong>找最快尺度。</strong>由线性化 Hessian 或物理估算找出最高频率，给候选步长标注 <span class="arithmatex">\(h\omega_{\max}\)</span>。</li>
-<li><strong>做局部 sanity check。</strong>用一个已知的一步更新、时间反演和极限情形测试符号与单位。</li>
-<li><strong>做固定总时间的收敛。</strong>改变 <span class="arithmatex">\(h\)</span> 而保持物理总时间不变；记录终点、轨道量和能量误差，不要只增加步数却改变实验问题。</li>
-<li><strong>做结构诊断。</strong>检查 <span class="arithmatex">\(M^TJM-J\)</span> 或数值相面积、原始能量是否有界、约束残差是否增长。</li>
-<li><strong>改变初值和参数。</strong>稳定结论要覆盖不同能量、不同频率与不同轨道，而不是只给一个漂亮初值。</li>
-<li><strong>留存可重放信息。</strong>记录方法、步长、总时间、浮点精度、版本和随机种子；可复现是审计入口，不是物理验证的终点。</li>
-</ol>
-<p>实验默认的 <span class="arithmatex">\(h=0.2\)</span> 给出 <span class="arithmatex">\(H_1=0.499802\)</span>，而且一步面积因子为 1；读者可以把方法切到 Euler，观察面积因子变为 <span class="arithmatex">\(1.04\)</span>，再把步长切大到 <span class="arithmatex">\(2.1\)</span>，看到 Verlet 进入不稳定区。这样的对照比一句“辛方法更好”更接近研究中的判断过程。</p>
-<h2 id="7">7. 失败边界与迁移题<a class="headerlink" href="#7" title="Permanent link"></a></h2>
-<p><strong>容易错的三句话：</strong></p>
-<ul>
-<li>“能量不漂移，所以方法是辛的。”反例是某些非辛方法也能在一段有限时间里把能量画得很平；必须检查辛形式或等价的结构条件。</li>
-<li>“高阶一定胜过低阶。”高阶只比较渐近误差。在长时间保守模拟中，结构失真可能比短期截断误差更致命。</li>
-<li>“稳定就是正确。”稳定只说明误差不会立刻爆炸；模型力场写错、单位错、初值不物理时，稳定曲线依然可能是稳定的错误答案。</li>
-</ul>
-<p><strong>迁移任务：</strong>把谐振子的势能换成双阱</p>
+<p>因此它精确保能量，却一般不保面积，也就不是辛映射。实验在单位圆上记录257个点；<span class="arithmatex">\(h_0\le1,\varepsilon\le0.8\)</span> 保证这里的步长和局部面积因子均为正。</p>
+<p>这个例子并不表示自适应一定不准确：它甚至每一步都沿精确流走。问题是，比较的不同初值走了不同的时间，因此这个依状态停时的映射不再等同于一个共同固定时刻的 Hamilton 流。</p>
+<p>还要区分预先给定的步长序列。每个固定 <span class="arithmatex">\(h_n\)</span> 的 Verlet 映射仍是辛的，复合也辛；但不同步长对应不同修正能量，不能直接套用常步长的长期能量结论。例如 <span class="arithmatex">\(\omega=1\)</span> 时，<span class="arithmatex">\(h_1=1,h_2=1.9\)</span> 各自在单步稳定区内，交替两步的矩阵却满足</p>
 <div class="arithmatex">\[
-V(q)=\frac14q^4-\frac12q^2.
+\det(M_{1.9}M_1)=1,\qquad
+\operatorname{tr}(M_{1.9}M_1)=-2.41525.
 \]</div>
-<p>先在 <span class="arithmatex">\(q\approx0\)</span> 的不稳定平衡点和 <span class="arithmatex">\(q\approx1\)</span> 的稳定井底分别线性化，估算局部频率与步长上限。然后预测：同一个 <span class="arithmatex">\(h\)</span> 在两处是否同样安全？最后比较 Verlet 与 RK4 的能量轨迹，并说明双阱穿越、分离轨道和非线性频率改变以后，shadow Hamiltonian 的直观解释需要哪些额外条件。这个问题把“公式记忆”迁移成了真正的建模选择。</p>
-<hr />
-<p><em>下一页：当未知量不再是一条轨迹而是一个场，有限元用弱形式把局部守恒和边界条件装进一张稀疏矩阵。</em></p>
-<p>继续演化：<a href="bridge-16-tebd-errors.html">张量时间演化与误差</a>实际施加复数门、移动正交中心并截断；用三条轨迹区分时间分裂、压缩与浮点检查，给可证明的多步误差界。</p>
+<p>迹的绝对值大于2，所以反复运行这个两步组合会出现指数增长。每一步辛、每个步长单独稳定，都不等于它们的交替序列稳定。</p>
+<h2 id="9">9 · 四维体积保持为何仍然不够<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>二维矩阵满足 <span class="arithmatex">\(M^{\mathsf T}JM=(\det M)J\)</span>，因此二维保面积与辛性等价。四维则取坐标序
+<span class="arithmatex">\((q_1,q_2,p_1,p_2)\)</span>，考虑</p>
+<div class="arithmatex">\[
+M=\operatorname{diag}(a,a^{-1},1,1),\qquad a\gt0.
+\]</div>
+<p>它的行列式为1，但两组共轭面积分别变成</p>
+<div class="arithmatex">\[
+dQ_1\wedge dP_1=a\,dq_1\wedge dp_1,\qquad
+dQ_2\wedge dP_2=a^{-1}\,dq_2\wedge dp_2.
+\]</div>
+<p>体积相乘抵消，二形式的和却未被保持，除非 <span class="arithmatex">\(a=1\)</span>。矩阵残差的 Frobenius 范数为</p>
+<div class="arithmatex">\[
+\|M^{\mathsf T}JM-J\|_F
+=\sqrt{2(a-1)^2+2(a^{-1}-1)^2}.
+\]</div>
+<p>实验同时列出矩阵、两平面面积倍率、实际行列式和辛残差。相图按同一单位长度画两个椭圆，避免用拉伸画布把不同几何效果隐藏起来。</p>
+<h2 id="10">10 · 怎样读完整轨迹、细化与回放<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>本页的当前实验严格使用输入 <span class="arithmatex">\(h\)</span> 和整数步数。所有实际完成的步都出现在轨迹表；Verlet阶段、RK4四阶段或中点满足处另外列出。局部 Jacobian 用解析链式法则传播，既不是有限差分猜测，也不是从能量曲线倒推。</p>
+<p>谐振子相图的蓝线表示连续能量轨道的完整一圈；它不是只连几个粗时间点后冒称解析圆。橙线记录每个实际步，时间上的准确性则由解析相点距离单独检查。相图使用 <span class="arithmatex">\((q,p/\omega)\)</span> 和相同单位长度，连续能量轨道才表现为圆。</p>
+<p>细化表固定终时，并同时记录 <span class="arithmatex">\(q,p\)</span> 两个分量。相邻两次误差 <span class="arithmatex">\(E_N,E_{2N}\)</span> 的阶数估计为</p>
+<div class="arithmatex">\[
+r_N=\log_2(E_N/E_{2N}).
+\]</div>
+<p>它只在渐近区和误差高于数值参考分辨率时有意义。非整数周期可以避免某些抵消，不能排除一切抵消；因此不只看一个坐标。双阱误差是相对细数值参考的距离。图采用 <span class="arithmatex">\(\log_{10}(1+E_N)\)</span>，保留真零值；没有把零替换为一个任意正数来塞进对数图。</p>
+<p>轨迹超出规定显示范围时，计算明确停止：表中保留实际终时和首个失败步，后续不补假点。这个阈值是计算范围限制，不是物理爆炸时刻的估计。正向未完成时也不声称做完了全程反向回放。</p>
+<h2 id="11">11 · 四道迁移题与完整答案<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<h3 id="1">练习1：为什么边界上的一条有界轨道不能证明稳定？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
+<p>取 <span class="arithmatex">\(\omega=1,h=2\)</span>，比较 <span class="arithmatex">\((q_0,p_0)=(1,0)\)</span> 与 <span class="arithmatex">\((1,0.1)\)</span>。分别求32步后的相点，并解释一步行列式为何不能决定答案。</p>
+<details class="answer">
+<summary>展开完整答案：Jordan项与特殊初值</summary>
+<p>边界矩阵是 <span class="arithmatex">\(\begin{pmatrix}-1&amp;2\\0&amp;-1\end{pmatrix}\)</span>。由 <span class="arithmatex">\(B^2=0\)</span> 得
+<span class="arithmatex">\(q_n=(-1)^n(q_0-2np_0),p_n=(-1)^np_0\)</span>。
+第一组32步后为 <span class="arithmatex">\((1,0)\)</span>；第二组为 <span class="arithmatex">\((-5.4,0.1)\)</span>，其位置增长来自 Jordan 项。</p>
+<p>两组使用完全相同的辛矩阵，<span class="arithmatex">\(\det M=1\)</span>。辛性保持面积，允许一方向拉长、另一方向压缩或剪切；稳定性要求对所有初值的幂有界。<span class="arithmatex">\(p_0=0\)</span> 把增长项恰好消去，只是特殊方向，不能代表整个相空间。</p>
+</details>
+<h3 id="2">练习2：离散不变量与原始能量分别控制什么？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<p>在稳定区证明 <span class="arithmatex">\(I_h\le H\le I_h/c\)</span>，并说明为什么一个看起来接近原能量圆的椭圆，长时间仍可能偏离真实位置。</p>
+<details class="answer">
+<summary>展开完整答案：等值集合与沿集合的速度</summary>
+<p>因为 <span class="arithmatex">\(0\lt c\le1\)</span>，
+<span class="arithmatex">\(I_h=(p^2+c\omega^2q^2)/2\le H\)</span>；同时
+<span class="arithmatex">\(cH=(cp^2+c\omega^2q^2)/2\le I_h\)</span>，得到上界。精确不变的 <span class="arithmatex">\(I_h\)</span> 因而限制轨道，但在 <span class="arithmatex">\(c\to0\)</span> 时控制退化。</p>
+<p>数值旋转角是 <span class="arithmatex">\(\vartheta=2\arcsin(\omega h/2)\)</span>，真实角是 <span class="arithmatex">\(\omega h\)</span>。每一步的角差虽然为 <span class="arithmatex">\(O(h^3)\)</span>，累计到时间 <span class="arithmatex">\(t\)</span> 后为 <span class="arithmatex">\(O(th^2)\)</span>。能量相近只说明集合接近；到达集合中哪个位置还需要相位。<span class="arithmatex">\(I_h\)</span> 与 <span class="arithmatex">\((\vartheta/\sin\vartheta)I_h\)</span> 有同样的等值线，却生成不同速度的流。</p>
+</details>
+<h3 id="3_1">练习3：精确保能量、保持体积，能组合成辛性证明吗？<a class="headerlink" href="#3_1" title="Permanent link"></a></h3>
+<p>用中点谐振子、状态依赖精确步长和四维伸缩三个例子，分别说明哪些结论成立，哪些不能推出。</p>
+<details class="answer">
+<summary>展开完整答案：三个例子的逻辑方向</summary>
+<p>谐振子的隐式中点矩阵确实同时辛且精确保住二次 <span class="arithmatex">\(H\)</span>，但其频率 <span class="arithmatex">\(2\arctan(\omega h/2)/h\)</span> 不等于 <span class="arithmatex">\(\omega\)</span>，因此没有精确到时相位。它在这个模型上的好能量行为，不是一般非线性能量守恒定理。</p>
+<p>状态依赖的精确流保持每个点的能量，但 <span class="arithmatex">\(\det D\Psi=1+h_0\varepsilon p\)</span> 一般不为1；不同初值走不同时间，破坏的是这个停时映射的辛性。四维伸缩的总体积恰为1，但两个共轭面积倍率为 <span class="arithmatex">\(a,a^{-1}\)</span>，辛残差在 <span class="arithmatex">\(a\ne1\)</span> 时非零。因此要检查具体的 <span class="arithmatex">\(D\Psi^{\mathsf T}JD\Psi\)</span>，不能用别的守恒量代替。</p>
+</details>
+<h3 id="4_1">练习4：双阱附近增长，应该核对什么？<a class="headerlink" href="#4_1" title="Permanent link"></a></h3>
+<p>在鞍点和井底分别线性化，解释参考轨道、回放和固定终时细化各能验证什么。再判断交替步长1与1.9为什么可能失败。</p>
+<details class="answer">
+<summary>展开完整答案：物理增长率、参考分辨率与步长组合</summary>
+<p>鞍点 <span class="arithmatex">\(q=0\)</span> 附近是 <span class="arithmatex">\(\ddot\eta=\eta\)</span>，真实增长率为1。Verlet 的离散率
+<span class="arithmatex">\(\mu_h=2\operatorname{arsinh}(h/2)/h\)</span> 应随细化趋于1；要求它没有增长反而违反连续模型。井底 <span class="arithmatex">\(q=\pm1\)</span> 附近频率为 <span class="arithmatex">\(\sqrt2\)</span>，线性稳定条件 <span class="arithmatex">\(h\lt\sqrt2\)</span> 只约束这个局部小振动模型。</p>
+<p>16与32子步参考接近只能说明一次分辨率对照，不能成为严格误差界。负步长回放检查方法的时间对称与有限精度敏感性；固定终时细化检查逼近行为。它们都不能单独排除模型写错。分离轨道附近还需改变初值精度和参考方法。</p>
+<p>交替步长两步矩阵的行列式为1、迹为 <span class="arithmatex">\(-2.41525\)</span>。其特征方程
+<span class="arithmatex">\(\lambda^2+2.41525\lambda+1=0\)</span> 有一个根绝对值大于1；反复组合会增长。常步长对应的那个固定离散不变量不能同时约束两种不同步长。辛性在复合下保留，幂有界性没有这种自动继承。</p>
+</details>
+<h2 id="12">12 · 范围与后续<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<p>谐振子允许 <span class="arithmatex">\(h=0.001\)</span>–3、<span class="arithmatex">\(\omega=0.25\)</span>–3、1–2048步；双阱允许 <span class="arithmatex">\(h=0.001\)</span>–0.2、1–1024步。初值在−2至2之间，允许精确0，非零绝对值至少为 <span class="arithmatex">\(10^{-8}\)</span>。几何模式 <span class="arithmatex">\(h_0=0.02\)</span>–1、<span class="arithmatex">\(\varepsilon=0\)</span>–0.8、<span class="arithmatex">\(a=0.25\)</span>–4。无效输入保留原文并重新锁定结果，未使用字段不影响当前模型。</p>
+<p>复杂分子系统还需力场、约束、截断、系综与采样误差的专门验证。本页把时间积分层说清楚；空间离散接着看 <a href="comp-03-pde-fem.html">PDE与有限元</a>，统计估计接着看 <a href="comp-04-monte-carlo-lattice.html">蒙特卡洛与格点</a>。<a href="bridge-16-tebd-errors.html">张量时间演化与误差</a>进一步区分时间分裂、压缩和浮点误差，避免把所有偏差都归给同一个步长。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="comp-01-methods.html"><span class="pager-label">上一页</span>计算 I · 蒙卡与分子动力学</a>
