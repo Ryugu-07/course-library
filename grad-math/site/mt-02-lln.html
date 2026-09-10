@@ -52,129 +52,329 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-10 15:07</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：重尾、无均值与强依赖是三种不同的“不稳定”</a><ul>
-<li><a href="#lln-integrability-learning-title">1. 先预测：一般 i.i.d. SLLN 真正要哪一个矩？</a></li>
-<li><a href="#2">2. 静态后备：四个模型拆四个条件</a></li>
-<li><a href="#3-0-1">3. 0-1 律也不能越界</a></li>
+<li><a href="#1">1. 四种模型，四种不同的结论</a></li>
+<li><a href="#2">2. 从事件独立，到分组后的独立</a></li>
+<li><a href="#3-kolmogorov-01">3. Kolmogorov 0–1 律：只针对尾事件</a></li>
+<li><a href="#4">4. 四阶矩证明：先看清可求和从哪里来</a></li>
+<li><a href="#5">5. 一般一阶矩强大数律：把骨架补成证明</a><ul>
+<li><a href="#5a">5a. 先去掉罕见大值，最后再放回去</a></li>
+<li><a href="#5b">5b. 一阶矩怎样买到足够的方差控制</a></li>
+<li><a href="#5c">5c. 几何子列把不可求和的控制变成可求和</a></li>
+<li><a href="#5d">5d. 用非负性填上子列之间的空隙</a></li>
 </ul>
 </li>
-<li><a href="#1">1. 独立性的测度论定义</a></li>
-<li><a href="#2-kolmogorov-0-1">2. Kolmogorov 0-1 律</a></li>
-<li><a href="#3">3. 强大数定律</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#6">6. “条件精确”要说清收敛到什么</a></li>
+<li><a href="#7">7. 实验：每一个观测和截断都能查账</a><ul>
+<li><a href="#lln-integrability-learning-title">先判断方差、Cauchy 与共同随机性，再展开曲线</a></li>
+</ul>
+</li>
+<li><a href="#8">8. 配套工具：极大不等式需要中心化</a></li>
+<li><a href="#9">9. 三道完整练习</a></li>
+<li><a href="#10">10. 随手核对的条件表</a></li>
 </ul>
 </div>
 </details>
 <h1 id="ii">测度概率 II · 独立性与大数定律<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Durrett <em>PTE</em> §2.1–2.4 ｜ <strong>前置</strong>：mt-01、本科概率 V
-本页两座里程碑：<strong>Kolmogorov 0-1 律</strong>（尾事件没有中间地带）与<strong>强大数定律</strong>。SLLN 的四阶矩版本给全证——它是"BC 引理 + 截断思想"的教科书演出；一般 <span class="arithmatex">\(L^1\)</span> 版本给骨架并说明难点在哪。</p>
+<p><strong>对标</strong>：Durrett <em>Probability: Theory and Examples</em> §2.1–2.4。<strong>前置</strong>：<a href="mt-01-measure-expectation.html">测度、期望与收敛工具</a>、<a href="../../math-course/site/prob-05-limit-theorems.html">本科概率极限定理</a>。
+这页回答一个具体问题：不断增加观测，平均数为什么有时稳定、有时被大值反复推走、有时一直保留共同的随机性？先分清定理的条件，再分别证明尾事件的 0–1 律、四阶矩强大数律和一般一阶矩强大数律。</p>
 </blockquote>
 <div data-learning-page></div>
 
-<section aria-labelledby="lln-integrability-learning-title" class="learning-layer">
-<h2 id="_1">学习层：重尾、无均值与强依赖是三种不同的“不稳定”<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="lln-integrability-learning-title">1. 先预测：一般 i.i.d. SLLN 真正要哪一个矩？<a class="headerlink" href="#lln-integrability-learning-title" title="Permanent link"></a></h3>
-<p>实验并排回放四个模型：Bernoulli<span class="arithmatex">\((0.6)\)</span>、Pareto<span class="arithmatex">\((\alpha=1.5)\)</span>、标准 Cauchy，以及完全依赖序列 <span class="arithmatex">\(X_i=Z\in\{-1,1\}\)</span>。先判断：</p>
-<ol>
-<li>i.i.d. 强大数律是否必须要求有限方差？</li>
-<li>Cauchy 对称于 <span class="arithmatex">\(0\)</span>，样本均值是否应收敛到 <span class="arithmatex">\(0\)</span>？</li>
-<li>每个 <span class="arithmatex">\(X_i\)</span> 都可积且同分布，若它们完全相同，平均是否仍自动收敛到 <span class="arithmatex">\(EX_i\)</span>？</li>
-</ol>
-<p>提交后，实验用固定 seed 展示运行均值并逐项点亮“同分布、独立、<span class="arithmatex">\(L^1\)</span>、有限方差”四格证书。图只是条件后果的一条回放，不参与证明定理。</p>
-<h3 id="2">2. 静态后备：四个模型拆四个条件<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<div class="learning-lab" data-learning-lab="lln-integrability">
+<h2 id="1">1. 四种模型，四种不同的结论<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>记 <span class="arithmatex">\(S_n=X_1+\cdots+X_n\)</span>。“<span class="arithmatex">\(S_n/n\)</span> 几乎处处趋于 <span class="arithmatex">\(\mu\)</span>”是指：存在一个概率为 <span class="arithmatex">\(1\)</span> 的事件，在其中<strong>每一条无限路径</strong>上，所有足够晚的平均都靠近 <span class="arithmatex">\(\mu\)</span>。这比“某个很大的 <span class="arithmatex">\(n\)</span> 上，多数路径靠近 <span class="arithmatex">\(\mu\)</span>”更强，也不能由一条有限曲线证明。</p>
 <table>
 <thead>
 <tr>
-<th>模型</th>
-<th><span class="arithmatex">\(E\lvert X\rvert&lt;\infty\)</span></th>
-<th>方差有限</th>
-<th>独立</th>
-<th>i.i.d. <span class="arithmatex">\(L^1\)</span> SLLN</th>
+<th>理想模型</th>
+<th>一阶绝对矩</th>
+<th>方差</th>
+<th>依赖结构</th>
+<th>长期结论</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Bernoulli<span class="arithmatex">\((0.6)\)</span></td>
-<td>是</td>
-<td>是</td>
-<td>是</td>
-<td>发证，均值趋 <span class="arithmatex">\(0.6\)</span></td>
+<td><span class="arithmatex">\(0.6\)</span></td>
+<td><span class="arithmatex">\(0.24\)</span></td>
+<td>i.i.d.</td>
+<td>平均 a.s. 趋于 <span class="arithmatex">\(0.6\)</span></td>
 </tr>
 <tr>
-<td>Pareto<span class="arithmatex">\((\alpha=1.5)\)</span></td>
-<td>是，<span class="arithmatex">\(EX=3\)</span></td>
-<td>否</td>
-<td>是</td>
-<td>仍发证，有限方差不是必要条件</td>
+<td>Pareto<span class="arithmatex">\((\alpha=1.5)\)</span>，支集 <span class="arithmatex">\([1,\infty)\)</span></td>
+<td><span class="arithmatex">\(EX=3\)</span></td>
+<td><span class="arithmatex">\(+\infty\)</span></td>
+<td>i.i.d.</td>
+<td>平均仍 a.s. 趋于 <span class="arithmatex">\(3\)</span></td>
 </tr>
 <tr>
 <td>标准 Cauchy</td>
-<td>否，均值未定义</td>
-<td>否</td>
-<td>是</td>
-<td>不发证；<span class="arithmatex">\(S_n/n\)</span> 仍为 Cauchy</td>
+<td><span class="arithmatex">\(+\infty\)</span>，均值未定义</td>
+<td>未定义</td>
+<td>i.i.d.</td>
+<td>平均的分布始终是标准 Cauchy；不收敛到有限常数</td>
 </tr>
 <tr>
 <td><span class="arithmatex">\(X_i=Z\)</span>，<span class="arithmatex">\(P(Z=\pm1)=1/2\)</span></td>
-<td>是</td>
-<td>是</td>
-<td>否</td>
-<td>不发证；平均恒等于随机的 <span class="arithmatex">\(Z\)</span></td>
+<td><span class="arithmatex">\(1\)</span></td>
+<td><span class="arithmatex">\(1\)</span></td>
+<td>完全依赖</td>
+<td>平均恒为 <span class="arithmatex">\(Z\)</span>，极限是随机的，不是 <span class="arithmatex">\(EZ=0\)</span></td>
 </tr>
 </tbody>
 </table>
-<p>Pareto 回放会偶尔被巨大观测拉动。它说明<strong>收敛速度和有限样本稳定性</strong>可能很差，却不否定 <span class="arithmatex">\(E\lvert X\rvert&lt;\infty\)</span> 下的 a.s. 收敛。Cauchy 则连目标均值都没有；一条路径暂时靠近零不能创造期望。</p>
-<p>完全依赖例子更直接：</p>
+<p>这里“i.i.d.”指相互独立且同分布。有限方差是方便的充分条件，一般 i.i.d. 强大数律只需 <span class="arithmatex">\(E|X_1|&lt;\infty\)</span>。反过来，单个变量的可积性也不能消除所有观测共同携带的随机量 <span class="arithmatex">\(Z\)</span>。</p>
+<p>Pareto 的生存函数为 <span class="arithmatex">\(P(X&gt;x)=x^{-\alpha}\)</span>（<span class="arithmatex">\(x\ge1\)</span>）。直接积分给出</p>
 <div class="arithmatex">\[
-\frac1n\sum_{i=1}^nX_i=Z\quad\text{对每个 }n,
+EX^r=\frac{\alpha}{\alpha-r}\quad(0&lt;r&lt;\alpha),
+\qquad EX^r=+\infty\quad(r\ge\alpha).
 \]</div>
-<p>所以它不会收敛到 <span class="arithmatex">\(EZ=0\)</span>。可积性管单个变量的尾，独立性或其他遍历/弱依赖条件管平均能否洗掉共同随机性。</p>
-<h3 id="3-0-1">3. 0-1 律也不能越界<a class="headerlink" href="#3-0-1" title="Permanent link"></a></h3>
-<ul>
-<li>Kolmogorov 0-1 律只说<strong>独立序列的尾事件</strong>概率属于 <span class="arithmatex">\(\{0,1\}\)</span>，不告诉你该概率究竟是哪一个值，更不替代 SLLN 的矩条件证明。</li>
-<li>“收敛事件概率是 0 或 1”不等于“极限一定是常数”；还要结合尾可测性与适当的事件族或分布论证。</li>
-<li>四阶矩证明是一个方便的充分条件证明，不应被误读为 SLLN 需要四阶矩。一般 i.i.d. 结论的精确门槛是 <span class="arithmatex">\(L^1\)</span>。</li>
-<li>固定 seed 使重尾反例可重放；它不会让一次有限模拟足以验证或推翻几乎处处命题。</li>
-</ul>
+<p>所以 <span class="arithmatex">\(\alpha=1.5\)</span> 有均值、无有限方差；<span class="arithmatex">\(\alpha&gt;2\)</span> 才有有限方差。<span class="arithmatex">\(\alpha\le1\)</span> 时非负平均会趋于 <span class="arithmatex">\(+\infty\)</span>，不是在某个有限均值附近“收敛得慢”。</p>
+<h2 id="2">2. 从事件独立，到分组后的独立<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>一族 <span class="arithmatex">\(\sigma\)</span>-代数 <span class="arithmatex">\((\mathcal F_i)\)</span> 独立，是说：任取有限个<strong>不同指标</strong> <span class="arithmatex">\(i_1,\dots,i_m\)</span> 及 <span class="arithmatex">\(A_j\in\mathcal F_{i_j}\)</span>，</p>
+<div class="arithmatex">\[
+P(A_1\cap\cdots\cap A_m)=\prod_{j=1}^mP(A_j).
+\]</div>
+<p>随机变量独立指它们生成的 <span class="arithmatex">\(\sigma\)</span>-代数独立。只检验两两乘积分解叫<strong>两两独立</strong>，一般不能推出上式。例如独立的公平符号 <span class="arithmatex">\(U,V\)</span> 中，<span class="arithmatex">\(U,V,UV\)</span> 两两独立，但三者的乘积恒为 <span class="arithmatex">\(1\)</span>，不是相互独立。</p>
+<p><strong>π-系判据。</strong> 若每个 <span class="arithmatex">\(\mathcal P_i\)</span> 是含 <span class="arithmatex">\(\Omega\)</span> 的 π-系，且所有有限选择在这些 π-系上满足乘积分解，则 <span class="arithmatex">\(\sigma(\mathcal P_i)\)</span> 独立。</p>
+<p>证明时固定一个有限指标组，先固定其余坐标的事件。对第一个坐标，满足乘积分解的事件构成 λ-系：<span class="arithmatex">\(\Omega\)</span> 的等式来自其余坐标的乘积分解，补集用相减，不交可数并用可数可加性。<a href="mt-01-measure-expectation.html#8">π–λ 定理</a>把这一坐标升级到整个 <span class="arithmatex">\(\sigma\)</span>-代数。保持已经升级的坐标任意，再逐一升级剩下坐标，即得结论。含 <span class="arithmatex">\(\Omega\)</span> 的要求也可通过添加 <span class="arithmatex">\(\Omega\)</span> 实现，但须同时检查所有较小指标组的分解。</p>
+<p>对实随机变量，只需检验有限维分布函数</p>
+<div class="arithmatex">\[
+P(X_{i_1}\le t_1,\dots,X_{i_m}\le t_m)
+=\prod_{j=1}^mP(X_{i_j}\le t_j),
+\]</div>
+<p>因为半直线连同 <span class="arithmatex">\(\mathbb R\)</span> 生成 Borel 集。这个判据不要求概率密度存在。</p>
+<p><strong>分组封闭性。</strong> 相互独立的一族变量，取互不相交的指标组，组内可测加工后仍独立。例如 <span class="arithmatex">\(f(X_1,\dots,X_m)\)</span> 与 <span class="arithmatex">\(g(X_{m+1},X_{m+2},\dots)\)</span> 独立。先用有限柱事件验证两组的分解，再各用一次 π–λ 扩展；无限组也由柱事件生成。不能将有重叠指标的两组直接套入。</p>
+<h2 id="3-kolmogorov-01">3. Kolmogorov 0–1 律：只针对尾事件<a class="headerlink" href="#3-kolmogorov-01" title="Permanent link"></a></h2>
+<p>定义尾 <span class="arithmatex">\(\sigma\)</span>-代数</p>
+<div class="arithmatex">\[
+\mathcal T=\bigcap_{m\ge1}\sigma(X_m,X_{m+1},\dots).
+\]</div>
+<p>一个事件若属于 <span class="arithmatex">\(\mathcal T\)</span>，无论删掉多长的有限前缀，都能从剩余坐标判断它。实值变量的级数 <span class="arithmatex">\(\sum X_n\)</span> 是否收敛、平均 <span class="arithmatex">\(S_n/n\)</span> 是否收敛、<span class="arithmatex">\(\limsup S_n/n\le a\)</span>，都是尾事件。例如删掉前 <span class="arithmatex">\(m\)</span> 项对平均只改变 <span class="arithmatex">\(S_m/n\to0\)</span>。但“<span class="arithmatex">\(\sum X_n\)</span> 收敛后的和大于 <span class="arithmatex">\(0\)</span>”通常依赖前缀，不能混同于“是否收敛”。</p>
+<p><strong>定理。</strong> 若 <span class="arithmatex">\((X_n)\)</span> 相互独立，则每个 <span class="arithmatex">\(A\in\mathcal T\)</span> 满足 <span class="arithmatex">\(P(A)\in\{0,1\}\)</span>。</p>
+<p><strong>完整证明。</strong> 记 <span class="arithmatex">\(\mathcal F_n=\sigma(X_1,\dots,X_n)\)</span>。分组封闭性给出 <span class="arithmatex">\(\mathcal F_n\)</span> 与 <span class="arithmatex">\(\mathcal T\)</span> 独立。递增的 <span class="arithmatex">\(\mathcal F_n\)</span> 的并集是 π-系：任意两个成员都属于某个共同的 <span class="arithmatex">\(\mathcal F_N\)</span>。固定 <span class="arithmatex">\(A\in\mathcal T\)</span>，对这个 π-系应用 π–λ，得到 <span class="arithmatex">\(A\)</span> 与整个 <span class="arithmatex">\(\mathcal F_\infty=\sigma(X_1,X_2,\dots)\)</span> 独立。由于 <span class="arithmatex">\(A\)</span> 本身也属于 <span class="arithmatex">\(\mathcal F_\infty\)</span>，</p>
+<div class="arithmatex">\[
+P(A)=P(A\cap A)=P(A)^2.
+\]</div>
+<p>只有 <span class="arithmatex">\(0\)</span> 和 <span class="arithmatex">\(1\)</span> 满足这个等式。证明没有决定具体是哪一个值。</p>
+<p><strong>尾随机变量为什么是常数？</strong> 若实值 <span class="arithmatex">\(L\)</span> 对 <span class="arithmatex">\(\mathcal T\)</span> 可测，则每个有理数 <span class="arithmatex">\(q\)</span> 的事件 <span class="arithmatex">\(\{L\le q\}\)</span> 概率均为 <span class="arithmatex">\(0\)</span> 或 <span class="arithmatex">\(1\)</span>。分布函数单调，且实值性保证两端极限为 <span class="arithmatex">\(0,1\)</span>。令 <span class="arithmatex">\(c=\inf\{q\in\mathbb Q:P(L\le q)=1\}\)</span>；用趋向 <span class="arithmatex">\(c\)</span> 两侧的可数有理数及概率的连续性，得 <span class="arithmatex">\(P(L=c)=1\)</span>。扩展实值的尾函数还允许常数 <span class="arithmatex">\(\pm\infty\)</span>。</p>
+<p>必须检查<strong>极限值的尾可测性</strong>，不能只凭“收敛事件有概率 <span class="arithmatex">\(1\)</span>”就断言极限为常数。完全依赖例子的平均处处收敛到 <span class="arithmatex">\(Z\)</span>，但不满足这里的独立假设。甚至对独立变量，随机级数可以 a.s. 收敛到非常数的和，因为它的和并非尾函数。</p>
+<h2 id="4">4. 四阶矩证明：先看清可求和从哪里来<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(X_i\)</span> i.i.d.，<span class="arithmatex">\(EX_i=\mu\)</span> 且 <span class="arithmatex">\(EX_i^4&lt;\infty\)</span>。令 <span class="arithmatex">\(W_i=X_i-\mu\)</span>，<span class="arithmatex">\(R_n=\sum_{i=1}^nW_i\)</span>，<span class="arithmatex">\(m_r=EW_1^r\)</span>。展开四次方后，含有某个一次幂的项因独立和零均值消失；剩下单指标四次项，以及每一对指标的 <span class="arithmatex">\(6\)</span> 种排列：</p>
+<div class="arithmatex">\[
+ER_n^4=n m_4+6\binom n2m_2^2
+=n m_4+3n(n-1)m_2^2.
+\]</div>
+<p>因此对 <span class="arithmatex">\(\varepsilon&gt;0\)</span>，</p>
+<div class="arithmatex">\[
+P(|S_n/n-\mu|&gt;\varepsilon)
+\le \frac{m_4}{n^3\varepsilon^4}
+ \frac{3(n-1)m_2^2}{n^3\varepsilon^4}.
+\]</div>
+<p>右侧对 <span class="arithmatex">\(n\)</span> 可求和。BC-I 给每个固定 <span class="arithmatex">\(\varepsilon\)</span> 的越界只有有限次；再对 <span class="arithmatex">\(\varepsilon=1/k\)</span> 取可数交，得到 <span class="arithmatex">\(S_n/n\to\mu\)</span> a.s.</p>
+<p>二阶矩的直接 Chebyshev 界 <span class="arithmatex">\(m_2/(n\varepsilon^2)\)</span> 不可求和，说明<strong>这一条逐项套 BC 的证明走不通</strong>，不说明有限方差只能推出弱大数律。下一节会在更弱的一阶矩条件下完成强大数律。</p>
+<p>以 Bernoulli<span class="arithmatex">\((0.6)\)</span> 为例，<span class="arithmatex">\(m_2=0.24\)</span>，<span class="arithmatex">\(m_4=0.0672\)</span>，故</p>
+<div class="arithmatex">\[
+ER_n^4=0.1728n^2-0.1056n.
+\]</div>
+<p>当 <span class="arithmatex">\(\varepsilon=0.1\)</span>，<span class="arithmatex">\(n=100\)</span> 的四阶界为 <span class="arithmatex">\(0.171744\)</span>，<span class="arithmatex">\(n=1000\)</span> 时为 <span class="arithmatex">\(0.001726944\)</span>。这只是概率上界，既不是观测到的越界频率，也不等于精确二项分布尾概率。</p>
+<h2 id="5">5. 一般一阶矩强大数律：把骨架补成证明<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p><strong>定理。</strong> 若 <span class="arithmatex">\(X_i\)</span> 同分布、两两独立，且 <span class="arithmatex">\(E|X_1|&lt;\infty\)</span>，则</p>
+<div class="arithmatex">\[
+\frac1n\sum_{i=1}^nX_i\longrightarrow EX_1\qquad\text{a.s.}
+\]</div>
+<p>这涵盖通常的 i.i.d. 强大数律。下面的证明只用两两独立来相加方差；不要因此把上一节的 Kolmogorov 0–1 律也改成两两独立版本。</p>
+<h3 id="5a">5a. 先去掉罕见大值，最后再放回去<a class="headerlink" href="#5a" title="Permanent link"></a></h3>
+<p>分别对 <span class="arithmatex">\(X_i^+\)</span>、<span class="arithmatex">\(X_i^-\)</span> 证明即可，因此先设 <span class="arithmatex">\(X_i\ge0\)</span>，<span class="arithmatex">\(\mu=EX_1&lt;\infty\)</span>。令</p>
+<div class="arithmatex">\[
+Y_i=X_i\mathbf1_{\{X_i\le i\}},\qquad T_n=\sum_{i=1}^nY_i.
+\]</div>
+<p>同分布和尾积分公式给出</p>
+<div class="arithmatex">\[
+\sum_{i=1}^\infty P(X_i\ne Y_i)
+=\sum_{i=1}^\infty P(X_1&gt;i)
+\le\int_0^\infty P(X_1&gt;t)\,dt=\mu.
+\]</div>
+<p>BC-I 表明 a.s. 只有有限项被改动。于是 <span class="arithmatex">\(S_n-T_n\)</span> 在每条这样的路径上最终等于某个有限随机常数，除以 <span class="arithmatex">\(n\)</span> 后趋于零。注意截断是<strong>第 <span class="arithmatex">\(i\)</span> 项用阈值 <span class="arithmatex">\(i\)</span></strong>，不是随最终样本数 <span class="arithmatex">\(n\)</span> 把所有过去数据重新截一次。</p>
+<h3 id="5b">5b. 一阶矩怎样买到足够的方差控制<a class="headerlink" href="#5b" title="Permanent link"></a></h3>
+<p>记 <span class="arithmatex">\(v_i=\operatorname{Var}(Y_i)\)</span>。对于固定 <span class="arithmatex">\(x\ge0\)</span>，有</p>
+<div class="arithmatex">\[
+x^2\sum_{i\ge1:\,i\ge x}\frac1{i^2}\le 2x.
+\]</div>
+<p>当 <span class="arithmatex">\(0\le x\le1\)</span>，利用 <span class="arithmatex">\(\sum_{i\ge1}i^{-2}\le2\)</span> 及 <span class="arithmatex">\(x^2\le x\)</span>；当 <span class="arithmatex">\(x&gt;1\)</span>，令 <span class="arithmatex">\(m=\lceil x\rceil\ge2\)</span>，则和不超过 <span class="arithmatex">\(\int_{m-1}^{\infty}t^{-2}dt=1/(m-1)\le2/x\)</span>。这包括整数端点 <span class="arithmatex">\(x=m\)</span>。</p>
+<p>对非负项用 Tonelli 交换求和与期望，</p>
+<div class="arithmatex">\[
+\sum_{i=1}^\infty\frac{v_i}{i^2}
+\le E\!\left[X_1^2\sum_{i\ge X_1}\frac1{i^2}\right]
+\le 2EX_1&lt;\infty.
+\]</div>
+<p>各 <span class="arithmatex">\(Y_i\)</span> 不再同分布，却仍两两独立，所以 <span class="arithmatex">\(\operatorname{Var}(T_n)=\sum_{i\le n}v_i\)</span>。</p>
+<h3 id="5c">5c. 几何子列把不可求和的控制变成可求和<a class="headerlink" href="#5c" title="Permanent link"></a></h3>
+<p>固定 <span class="arithmatex">\(a&gt;1\)</span>，令 <span class="arithmatex">\(n_k=\lfloor a^k\rfloor\)</span>（早期重复值不影响最终的极限）。因为 <span class="arithmatex">\(\lfloor a^k\rfloor\ge a^k/2\)</span>，</p>
+<div class="arithmatex">\[
+\sum_{k:n_k\ge i}\frac1{n_k^2}
+\le 4\sum_{k:a^k\ge i}a^{-2k}
+\le \frac{4}{1-a^{-2}}\frac1{i^2}.
+\]</div>
+<p>于是</p>
+<div class="arithmatex">\[
+\sum_{k=1}^\infty
+P\!\left(\frac{|T_{n_k}-ET_{n_k}|}{n_k}&gt;\varepsilon\right)
+\le\frac1{\varepsilon^2}
+\sum_{i=1}^\infty v_i\sum_{k:n_k\ge i}n_k^{-2}&lt;\infty.
+\]</div>
+<p>BC-I 加可数阈值 <span class="arithmatex">\(\varepsilon=1/j\)</span> 给出中心化子列 a.s. 趋零。同时 <span class="arithmatex">\(EY_i=E[X_1\mathbf1_{\{X_1\le i\}}]\to\mu\)</span>，Cesàro 平均给 <span class="arithmatex">\(ET_n/n\to\mu\)</span>，因此 <span class="arithmatex">\(T_{n_k}/n_k\to\mu\)</span> a.s.</p>
+<h3 id="5d">5d. 用非负性填上子列之间的空隙<a class="headerlink" href="#5d" title="Permanent link"></a></h3>
+<p>当 <span class="arithmatex">\(n_k\le n&lt;n_{k+1}\)</span>，<span class="arithmatex">\(T_n\)</span> 的单调性给</p>
+<div class="arithmatex">\[
+\frac{T_{n_k}}{n_{k+1}}\le \frac{T_n}{n}
+\le \frac{T_{n_{k+1}}}{n_k}.
+\]</div>
+<p>由于 <span class="arithmatex">\(n_{k+1}/n_k\to a\)</span>，得</p>
+<div class="arithmatex">\[
+\frac{\mu}{a}\le\liminf_n T_n/n
+\le\limsup_n T_n/n\le a\mu.
+\]</div>
+<p>依次对 <span class="arithmatex">\(a=1+1/j\)</span> 取概率为 <span class="arithmatex">\(1\)</span> 的事件的<strong>可数交</strong>，再令 <span class="arithmatex">\(j\to\infty\)</span>，上下界都趋于 <span class="arithmatex">\(\mu\)</span>。放回 5a 的有限项差，最后对正负部分分别相减，证明结束。这里的夹逼作用在非负部分，不能直接用于有正有负的部分和。</p>
+<h2 id="6">6. “条件精确”要说清收敛到什么<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>对于 i.i.d. 实值变量，若 <span class="arithmatex">\(E|X_1|=\infty\)</span>，则</p>
+<div class="arithmatex">\[
+P\!\left(\lim_n S_n/n\text{ 存在且为有限实数}\right)=0.
+\]</div>
+<p>证明：尾积分发散意味着 <span class="arithmatex">\(\sum_nP(|X_1|&gt;n)=\infty\)</span>；独立性与 BC-II 给 <span class="arithmatex">\(|X_n|&gt;n\)</span> 无限次发生，概率为 <span class="arithmatex">\(1\)</span>。但若平均在某条路径上趋于有限的 <span class="arithmatex">\(L\)</span>，</p>
+<div class="arithmatex">\[
+\frac{X_n}{n}
+=\frac{S_n}{n}-\frac{n-1}{n}\frac{S_{n-1}}{n-1}
+\longrightarrow L-L=0,
+\]</div>
+<p>产生矛盾。这个必要性论证针对 i.i.d.，不能擅自推广到任意同分布依赖序列。</p>
+<p>“没有有限极限”仍允许趋于 <span class="arithmatex">\(+\infty\)</span>。若 <span class="arithmatex">\(X_i\ge0\)</span> 且 <span class="arithmatex">\(EX_1=\infty\)</span>，固定整数 <span class="arithmatex">\(M\)</span>，对有界的 <span class="arithmatex">\(X_i\wedge M\)</span> 用强大数律，得到</p>
+<div class="arithmatex">\[
+\liminf_n S_n/n\ge E(X_1\wedge M).
+\]</div>
+<p>对所有正整数 <span class="arithmatex">\(M\)</span> 取可数交，MCT 令右侧趋于 <span class="arithmatex">\(+\infty\)</span>，便得 <span class="arithmatex">\(S_n/n\to+\infty\)</span> a.s. 若 <span class="arithmatex">\(EX_1^+=\infty\)</span>、<span class="arithmatex">\(EX_1^-&lt;\infty\)</span>，拆正负部分同样得 <span class="arithmatex">\(+\infty\)</span>；反向得 <span class="arithmatex">\(-\infty\)</span>。正负两部分都无限时，原期望未定义，不能相减成某个“均值”。</p>
+<p>标准 Cauchy 的特征函数是 <span class="arithmatex">\(\phi(t)=e^{-|t|}\)</span>，所以独立平均的特征函数</p>
+<div class="arithmatex">\[
+E e^{itS_n/n}=\phi(t/n)^n=e^{-|t|}.
+\]</div>
+<p>每个 <span class="arithmatex">\(n\)</span> 都有 <span class="arithmatex">\(P(|S_n/n|&gt;1)=1/2\)</span>，故不依概率趋零。只知道每个 <span class="arithmatex">\(n\)</span> 的边际分布相同，<strong>本身不足以排除收敛到某个随机极限</strong>；这里不可能有有限 a.s. 极限，要用上面的必要性证明。无限重尾与完全依赖是两种不同的失败机制。</p>
+<h2 id="7">7. 实验：每一个观测和截断都能查账<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<section aria-labelledby="lln-integrability-learning-title" class="learning-layer">
+<h3 id="lln-integrability-learning-title">先判断方差、Cauchy 与共同随机性，再展开曲线<a class="headerlink" href="#lln-integrability-learning-title" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="lln-integrability">
+<p>默认 <span class="arithmatex">\(n=1000\)</span>、seed <span class="arithmatex">\(=13\)</span>，Pareto 的默认 <span class="arithmatex">\(\alpha=1.5\)</span>。可改 <span class="arithmatex">\(\alpha\)</span>，对照 <span class="arithmatex">\(\alpha\le1\)</span>、<span class="arithmatex">\(1&lt;\alpha\le2\)</span> 与 <span class="arithmatex">\(\alpha&gt;2\)</span> 的不同结论。第一张图画每一步原始平均、截断平均与截断期望的平均；第二张图画每个原始观测与截断值。<strong>不抽稀、不裁掉极端值</strong>，纵轴按完整数据缩放，所以较小波动可能压在一起；完整表格保留全部数值。</p>
+<p>实验对每项定义 <span class="arithmatex">\(Y_i=X_i\mathbf1_{\{|X_i|\le i\}}\)</span>。对于 Pareto，<span class="arithmatex">\(i\ge1\)</span> 时</p>
+<div class="arithmatex">\[
+E Y_i=\alpha\int_1^i x^{-\alpha}\,dx,\qquad
+E Y_i^2=\alpha\int_1^i x^{1-\alpha}\,dx.
+\]</div>
+<p>当幂指数使分母为零时用对数值，不把 <span class="arithmatex">\(\alpha=1,2\)</span> 当成数值异常。例如 <span class="arithmatex">\(\alpha=1.5,i=4\)</span>，</p>
+<div class="arithmatex">\[
+EY_4=3(1-4^{-1/2})=1.5,\quad
+EY_4^2=3(\sqrt4-1)=3,\quad
+\operatorname{Var}(Y_4)=0.75.
+\]</div>
+<p>这不是 <span class="arithmatex">\(E(X\wedge4)\)</span>；后者还包含被封顶的尾部贡献 <span class="arithmatex">\(4P(X&gt;4)=0.5\)</span>，因而为 <span class="arithmatex">\(2\)</span>。截断方式须与证明一致。</p>
+<p>没有 JavaScript 时，也可手算路径 <span class="arithmatex">\(1,8,2,5\)</span>：逐项阈值 <span class="arithmatex">\(1,2,3,4\)</span> 给截断值 <span class="arithmatex">\(1,0,2,0\)</span>；原始平均为 <span class="arithmatex">\(1,4.5,11/3,4\)</span>，截断平均为 <span class="arithmatex">\(1,1/2,1,3/4\)</span>。这组数是教学例子，不声称来自默认 seed。</p>
+<p>模型表给的是<strong>理想概率分布</strong>的条件与期望；固定 seed 回放用有限精度伪随机数，既不产生真正独立的无限序列，也无法保留无限远的尾部。表中的理论均值、方差和尾概率从分布公式求得，不从回放反推。对完全依赖模型，逐项方差仍能计算，但不能把它们相加当作部分和方差。</p>
 </div>
 </section>
-<h2 id="1">1. 独立性的测度论定义<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>σ-代数族 <span class="arithmatex">\(\{\mathcal{F}_i\}\)</span> 独立：任取有限个、各取一事件，概率乘积分解。随机变量独立 = 各自生成的 σ-代数独立。</p>
-<p><strong>定理（π-系判据）</strong> 若各 <span class="arithmatex">\(\mathcal{P}_i\)</span> 是 π-系且在其上乘积分解成立，则 <span class="arithmatex">\(\sigma(\mathcal{P}_i)\)</span> 独立。
-<strong>【骨架】</strong> 固定其余，对一个坐标用 π–λ（mt-01）升级到 σ-代数，逐坐标轮换。<span class="arithmatex">\(\blacksquare\)</span>
-<strong>收益</strong>：验证独立只需查分布函数分解（矩形是 π-系）——本科"密度乘积分解"判据的正式执照；且<strong>独立性对"分组再加工"封闭</strong>：<span class="arithmatex">\(f(X_1,\dots,X_m) \perp g(X_{m+1},\dots)\)</span>（各自σ-代数的包含关系）。</p>
-<h2 id="2-kolmogorov-0-1">2. Kolmogorov 0-1 律<a class="headerlink" href="#2-kolmogorov-0-1" title="Permanent link"></a></h2>
-<p><strong>尾 σ-代数</strong> <span class="arithmatex">\(\mathcal{T} = \bigcap_n \sigma(X_n, X_{n+1}, \dots)\)</span>——"不依赖任何有限前缀"的事件（级数 <span class="arithmatex">\(\sum X_n\)</span> 收敛与否、<span class="arithmatex">\(\limsup \frac{S_n}{n}\)</span> 的值域事件、BC 的 i.o. 事件……）。</p>
-<p><strong>定理</strong> <span class="arithmatex">\(\{X_n\}\)</span> 独立 ⇒ 尾事件概率非 0 即 1。
-<strong>【证明】</strong> 记 <span class="arithmatex">\(\mathcal{F}_n = \sigma(X_1,\dots,X_n)\)</span>。① <span class="arithmatex">\(\mathcal{F}_n \perp \sigma(X_{n+1},\dots) \supseteq \mathcal{T}\)</span>，故每个 <span class="arithmatex">\(\mathcal{F}_n \perp \mathcal{T}\)</span>；② 于是 π-系 <span class="arithmatex">\(\bigcup_n \mathcal{F}_n \perp \mathcal{T}\)</span>，π-系判据升级到 <span class="arithmatex">\(\sigma(\bigcup\mathcal{F}_n) = \sigma(X_1, X_2, \dots) \perp \mathcal{T}\)</span>；③ 但 <span class="arithmatex">\(\mathcal{T} \subseteq \sigma(X_1, X_2,\dots)\)</span>——<strong><span class="arithmatex">\(\mathcal{T}\)</span> 与自己独立</strong>：<span class="arithmatex">\(A \in \mathcal{T}\)</span> 给 <span class="arithmatex">\(P(A) = P(A \cap A) = P(A)^2\)</span> ⇒ <span class="arithmatex">\(P(A) \in \{0, 1\}\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>读法</strong>：独立序列的长期行为<strong>没有"半概率"事件</strong>——"<span class="arithmatex">\(\frac{S_n}{n}\)</span> 收敛"这类命题要么必然要么不可能（所以 SLLN 只需证"概率正"就自动升级为"概率 1"——0-1 律是大数定律的哲学背书）。"与自己独立"那步是全书最俏皮的三行。</p>
-<h2 id="3">3. 强大数定律<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>定理（SLLN，四阶矩版）</strong> <span class="arithmatex">\(X_i\)</span> i.i.d.，<span class="arithmatex">\(EX_1 = \mu\)</span>，<span class="arithmatex">\(EX_1^4 &lt; \infty\)</span>，则 <span class="arithmatex">\(\frac{S_n}{n} \to \mu\)</span> a.s.
-<strong>【证明】</strong> 不妨 <span class="arithmatex">\(\mu = 0\)</span>。展开 <span class="arithmatex">\(E S_n^4\)</span>：独立零均值使含单独一次幂的项全灭，仅存 <span class="arithmatex">\(n\)</span> 个 <span class="arithmatex">\(EX_i^4\)</span> 与 <span class="arithmatex">\(3n(n-1)\)</span> 个 <span class="arithmatex">\(E X_i^2 X_j^2 = (EX^2)^2\)</span> 项：</p>
+<style>.li-static{max-width:100%;overflow-x:auto}.li-static img{display:block;width:1100px;min-width:1100px;max-width:none}.li-static:focus-visible{outline:3px solid var(--accent);outline-offset:2px}</style>
+<div class="li-static" tabindex="0" role="region" aria-label="截断与几何子列证明图，可左右滚动"><img src="assets/img/mt-02-lln.svg" alt="原始路径1、8、2、5与逐项截断1、0、2、0；非负部分和在几何子列间的上下界；Bernoulli四阶矩概率界。" loading="lazy"></div>
+
+<h2 id="8">8. 配套工具：极大不等式需要中心化<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p><strong>Kolmogorov 极大不等式。</strong> 独立、零均值、有限方差的 <span class="arithmatex">\(W_i\)</span>，记 <span class="arithmatex">\(R_k=\sum_{i\le k}W_i\)</span>。对 <span class="arithmatex">\(x&gt;0\)</span>，</p>
 <div class="arithmatex">\[
-E S_n^4 = n\,EX^4 + 3n(n-1)(EX^2)^2 \leq C n^2
+P\!\left(\max_{k\le n}|R_k|\ge x\right)
+\le \frac{ER_n^2}{x^2}
+=\frac{\sum_{i\le n}\operatorname{Var}(W_i)}{x^2}.
 \]</div>
-<p>Markov（四次方版）：<span class="arithmatex">\(P\big(|S_n/n| &gt; \varepsilon\big) \leq \frac{ES_n^4}{n^4\varepsilon^4} \leq \frac{C}{n^2\varepsilon^4}\)</span>——<strong>可和</strong>！BC-I 给 <span class="arithmatex">\(|S_n/n| &gt; \varepsilon\)</span> 只发生有限次（每个 <span class="arithmatex">\(\varepsilon\)</span>），沿 <span class="arithmatex">\(\varepsilon = 1/k\)</span> 取交即 a.s. 收敛。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>方法论读出</strong>（比定理本身更值钱）：二阶矩给 <span class="arithmatex">\(1/n\)</span> 衰减（不可和，只够弱大数）；<strong>抬到四阶矩换来 <span class="arithmatex">\(1/n^2\)</span> 可和性</strong>——"提高矩的阶数买 BC 的门票"是 a.s. 论证的标准交易；这也正是下门课（高维概率）"矩条件 ⇄ 尾部衰减"哲学的第一课。</p>
-<p><strong>定理（Kolmogorov SLLN，最优版）</strong> i.i.d. + <span class="arithmatex">\(E|X_1| &lt; \infty\)</span> 即可（且 <span class="arithmatex">\(E|X| = \infty\)</span> 时必发散——条件精确）。
-<strong>【骨架】</strong>（Etemadi 路线）① 正负部分拆，不妨 <span class="arithmatex">\(X \geq 0\)</span>；② <strong>截断</strong> <span class="arithmatex">\(Y_n = X_n\mathbb{1}_{X_n \leq n}\)</span>：<span class="arithmatex">\(\sum P(X_n \neq Y_n) = \sum P(X &gt; n) \leq E X &lt; \infty\)</span>，BC-I 说两序列 a.s. 终同；③ 方差求和技巧 <span class="arithmatex">\(\sum \frac{\mathrm{Var}(Y_n)}{n^2} &lt; \infty\)</span>（关键估计：<span class="arithmatex">\(\sum_{n \geq x} n^{-2} \leq C/x\)</span> 与 Fubini 交换）；④ 沿几何子列 <span class="arithmatex">\(n_k = \lfloor\alpha^k\rfloor\)</span> 用 Chebyshev + BC-I 证子列收敛，再用非负性 + 单调性把子列间隙夹住；<span class="arithmatex">\(\alpha \downarrow 1\)</span> 收尾。<span class="arithmatex">\(\blacksquare\)</span>
-难点自白：③④ 的簿记是本页最重的技术活——骨架四步是可复述的，全文见 Durrett §2.4。</p>
-<p><strong>配套武器【引用】</strong>：Kolmogorov 极大不等式（<span class="arithmatex">\(P(\max_{k\leq n}|S_k| &gt; x) \leq \mathrm{Var}(S_n)/x^2\)</span>——Chebyshev 的"全程版"，mt-04 将由 Doob 不等式统一收编）；三级数定理（独立和 a.s. 收敛的充要三条件）。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>例 1（0-1 律速判）</strong> i.i.d. 非退化序列，"<span class="arithmatex">\(X_n &gt; 0\)</span> i.o."：尾事件 + BC-II（<span class="arithmatex">\(\sum P(X_n &gt; 0) = \infty\)</span>）⇒ 概率 1。"收敛半径 <span class="arithmatex">\(\limsup |X_n|^{1/n}\)</span> 是常数 a.s."——尾函数 + 0-1 律推论（尾可测函数 a.s. 为常数）。</p>
-<p><strong>例 2（矩条件的必要性体感）</strong> Cauchy 分布（<span class="arithmatex">\(E|X| = \infty\)</span>）：<span class="arithmatex">\(\frac{S_n}{n}\)</span> <strong>仍是标准 Cauchy</strong>（特征函数一行：<span class="arithmatex">\((e^{-|t|/n})^n = e^{-|t|}\)</span>）——永不收敛、永不集中：SLLN 的 <span class="arithmatex">\(L^1\)</span> 条件不是技术洁癖。</p>
-<p><strong>例 3（蒙特卡洛的理论执照）</strong> <span class="arithmatex">\(\hat\theta_n = \frac1n\sum g(X_i)\)</span>（<span class="arithmatex">\(E|g| &lt; \infty\)</span>）a.s. 收敛于 <span class="arithmatex">\(Eg\)</span>——SLLN 就是一切 MC 方法（本科数值 IV、你的模拟实验）的"终极正确性"声明；速率则要回到 CLT/集中不等式（下门课）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：全书的心脏——条件期望的测度论定义与鞅：过滤、停时、可选停止定理。</em></p>
+<p>令 <span class="arithmatex">\(A_k\)</span> 表示首次达到 <span class="arithmatex">\(|R_k|\ge x\)</span> 的时刻是 <span class="arithmatex">\(k\)</span>。这些事件不交，且 <span class="arithmatex">\(A_k,R_k\)</span> 只依赖前 <span class="arithmatex">\(k\)</span> 项。未来增量独立且均值为零，因此</p>
+<div class="arithmatex">\[
+E[\mathbf1_{A_k}R_n^2]
+=E[\mathbf1_{A_k}R_k^2]
++E[\mathbf1_{A_k}(R_n-R_k)^2]
+\ge x^2P(A_k).
+\]</div>
+<p>求和即得。没有中心化时，不能用仅含方差的右侧控制有漂移的部分和。它控制的是截至 <span class="arithmatex">\(n\)</span> 的<strong>整段路径</strong>；<a href="mt-04-martingale-convergence.html">鞅收敛与极大不等式</a>中的 Doob 不等式提供更一般的框架。</p>
+<p><strong>三级数定理（引用，后续工具）。</strong> 对独立实值 <span class="arithmatex">\(X_n\)</span>，固定 <span class="arithmatex">\(c&gt;0\)</span>，令 <span class="arithmatex">\(Z_n=X_n\mathbf1_{\{|X_n|\le c\}}\)</span>。级数 <span class="arithmatex">\(\sum X_n\)</span> a.s. 收敛，当且仅当 <span class="arithmatex">\(\sum P(|X_n|&gt;c)&lt;\infty\)</span>、数值级数 <span class="arithmatex">\(\sum EZ_n\)</span> 收敛、<span class="arithmatex">\(\sum\operatorname{Var}(Z_n)&lt;\infty\)</span>。条件对某个 <span class="arithmatex">\(c&gt;0\)</span> 成立即足够，收敛时对每个 <span class="arithmatex">\(c&gt;0\)</span> 都成立。这里研究的是级数本身，不是除以 <span class="arithmatex">\(n\)</span> 的平均。</p>
+<h2 id="9">9. 三道完整练习<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p><strong>A · 尾事件与收敛半径。</strong> i.i.d. 的 <span class="arithmatex">\(X_n\)</span>，设 <span class="arithmatex">\(p=P(X_1&gt;0)\)</span>，求 <span class="arithmatex">\(P(X_n&gt;0\text{ i.o.})\)</span>。再说明随机幂级数 <span class="arithmatex">\(\sum_{n\ge0}X_nz^n\)</span> 的收敛半径为何是确定的扩展非负常数。</p>
+<details class="answer">
+<summary>先完成 A，再核对</summary>
+<p>若 <span class="arithmatex">\(p=0\)</span>，可数并给“曾经出现正值”概率为 <span class="arithmatex">\(0\)</span>，所以 i.o. 概率为 <span class="arithmatex">\(0\)</span>。若 <span class="arithmatex">\(p&gt;0\)</span>，<span class="arithmatex">\(\sum_n p=\infty\)</span>，BC-II 给 i.o. 概率为 <span class="arithmatex">\(1\)</span>。“分布非退化”不保证 <span class="arithmatex">\(p&gt;0\)</span>，例如在 <span class="arithmatex">\(-2,-1\)</span> 上各取一半。</p>
+<p><a href="https://complexanalysis.org/web/sec_power-series.html">Cauchy–Hadamard 公式</a>为</p>
+<div class="arithmatex">\[
+R=\frac1{\limsup_{n\to\infty}|X_n|^{1/n}},
+\qquad 1/0=\infty,\quad1/\infty=0.
+\]</div>
+<p>根上极限不受有限前缀影响，是扩展非负尾函数；0–1 律的可数阈值论证使它 a.s. 为常数，倒数 <span class="arithmatex">\(R\)</span> 也如此。根上极限本身不是收敛半径。</p>
+</details>
+<p><strong>B · 两两独立与平均。</strong> 独立公平符号 <span class="arithmatex">\(U,V\)</span>，列出 <span class="arithmatex">\((U,V,UV)\)</span> 的四种等概率结果，验证两两独立但非相互独立。再解释本页一般强大数律为什么能使用两两独立，而四阶展开不能直接照搬。</p>
+<details class="answer">
+<summary>先完成 B，再核对</summary>
+<p>四行是 <span class="arithmatex">\((1,1,1)\)</span>、<span class="arithmatex">\((1,-1,-1)\)</span>、<span class="arithmatex">\((-1,1,-1)\)</span>、<span class="arithmatex">\((-1,-1,1)\)</span>，各概率 <span class="arithmatex">\(1/4\)</span>。任取两列，四个符号组合都恰出现一次，所以独立；三列乘积恒为 <span class="arithmatex">\(1\)</span>，例如全为 <span class="arithmatex">\(-1\)</span> 的概率为 <span class="arithmatex">\(0\)</span>，不是 <span class="arithmatex">\((1/2)^3\)</span>。</p>
+<p>一般证明中，截断保留两两独立，已足以使方差中的协方差全为零。四阶展开会遇到涉及三或四个不同变量的乘积，不能仅靠两两独立把它们分解。本例是有限结构示意，不把三个变量无限重复后冒充两两独立序列。</p>
+</details>
+<p><strong>C · 蒙特卡洛何时有均值，何时有常规误差条？</strong> 用 i.i.d. Pareto<span class="arithmatex">\((1.5)\)</span> 样本估计 <span class="arithmatex">\(\theta_\beta=EX^\beta\)</span>，分别讨论 <span class="arithmatex">\(\beta=0.5,1,1.5\)</span>。</p>
+<details class="answer">
+<summary>先完成 C，再核对</summary>
+<p>当 <span class="arithmatex">\(\beta=0.5\)</span>，<span class="arithmatex">\(\theta_\beta=1.5\)</span>，二阶矩 <span class="arithmatex">\(EX=3\)</span>，所以 <span class="arithmatex">\(\operatorname{Var}(X^{0.5})=3-1.5^2=0.75\)</span>；SLLN 与有限方差的经典 CLT 都适用，渐近标准误为 <span class="arithmatex">\(\sqrt{0.75/n}\)</span>。</p>
+<p>当 <span class="arithmatex">\(\beta=1\)</span>，均值 <span class="arithmatex">\(3\)</span> 有限，SLLN 仍适用，但方差无限；不能使用把总体方差当成有限数的通常 <span class="arithmatex">\(\sigma/\sqrt n\)</span> 误差条。</p>
+<p>当 <span class="arithmatex">\(\beta=1.5\)</span>，非负目标的期望为 <span class="arithmatex">\(+\infty\)</span>，样本平均 a.s. 趋于 <span class="arithmatex">\(+\infty\)</span>。不存在要估计的有限 <span class="arithmatex">\(\theta_\beta\)</span>。对一般可测 <span class="arithmatex">\(g\)</span>，i.i.d. 蒙特卡洛的 SLLN 条件是 <span class="arithmatex">\(E|g(X)|&lt;\infty\)</span>；MCMC 等依赖采样还须另核对遍历条件。</p>
+</details>
+<h2 id="10">10. 随手核对的条件表<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>本页使用的条件</th>
+<th>得到什么</th>
+<th>没有承诺什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Kolmogorov 0–1</td>
+<td>相互独立，事件尾可测</td>
+<td>概率是 <span class="arithmatex">\(0\)</span> 或 <span class="arithmatex">\(1\)</span></td>
+<td>不决定具体是哪一个</td>
+</tr>
+<tr>
+<td>四阶矩路线</td>
+<td>i.i.d.，有限四阶矩</td>
+<td>可求和越界界，a.s. 收敛</td>
+<td>四阶矩并非必要</td>
+</tr>
+<tr>
+<td>一般强大数律</td>
+<td>两两独立、同分布、<span class="arithmatex">\(L^1\)</span></td>
+<td>平均 a.s. 趋于期望</td>
+<td>不自动给有限样本速率</td>
+</tr>
+<tr>
+<td>有限极限的必要性</td>
+<td>i.i.d.，<span class="arithmatex">\(E\lvert X\rvert=\infty\)</span></td>
+<td>a.s. 无有限平均极限</td>
+<td>不排除趋于 <span class="arithmatex">\(\pm\infty\)</span></td>
+</tr>
+<tr>
+<td>Kolmogorov 极大界</td>
+<td>独立、中心化、有限方差</td>
+<td>一段路径的越界概率界</td>
+<td>不能忽略漂移</td>
+</tr>
+</tbody>
+</table>
+<p>延伸核对：<a href="https://sites.math.duke.edu/~rtd/PTE/pte.html">Durrett 的作者课程页与第五版书稿</a>，第 2 章的独立性、Borel–Cantelli、强大数律和随机级数。证明中的截断、Tonelli、MCT 及可数阈值应与<a href="mt-01-measure-expectation.html">上一页</a>配合使用。接下来读<a href="mt-03-conditional-martingale.html">条件期望</a>，把无条件平均推广为给定信息后的预测。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="mt-01-measure-expectation.html"><span class="pager-label">上一页</span>测度概率 I · 测度论语言与期望</a>
