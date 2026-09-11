@@ -52,144 +52,413 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-11 08:39</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：奇异值很稳，不代表奇异向量也稳</a><ul>
-<li><a href="#svd-learning-title">1. 先预测：Weyl、gap 与低秩残差各管哪一笔账？</a></li>
-<li><a href="#2">2. 静态后备：把数值稳定性与方向敏感性分开</a></li>
-<li><a href="#3">3. 原始残差不是自动的“小后向误差”</a></li>
+<li><a href="#_1">学习层：先说清楚“小”的究竟是哪一种误差</a><ul>
+<li><a href="#svd-stability-learning-title">两个方向的测量灵敏度相差一亿倍，同样的读数误差不会产生同样的答案误差</a></li>
 </ul>
 </li>
-<li><a href="#1-svd">1. SVD：数值世界的中心分解</a></li>
-<li><a href="#2_1">2. 后向稳定性：误差分析的正确提问</a></li>
-<li><a href="#3-householder-qr">3. Householder QR：稳定算法的典范</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#1-svd">1. SVD把矩阵的作用拆成正交变换与非负伸缩</a></li>
+<li><a href="#2">2. 实对称矩阵也不能把特征值直接当作奇异值</a></li>
+<li><a href="#3">3. 奇异值的稳定性不需要谱隙</a></li>
+<li><a href="#4">4. 向量为什么需要间隙，重根为什么要谈子空间</a></li>
+<li><a href="#5">5. 最佳低秩逼近：哪一种尾部范数对应哪一种误差</a></li>
+<li><a href="#6-qr">6. 亲自执行QR，而不只记住“它比较稳定”</a></li>
+<li><a href="#7">7. 四种算法，必须面对同一个实际输入</a></li>
+<li><a href="#8-qr">8. QR后向稳定，不意味着一般最小二乘只有κ倍敏感性</a></li>
+<li><a href="#9">9. 方程的最小相对后向误差可以直接构造</a></li>
+<li><a href="#10">10. 截断、岭正则化和数值秩不是同一种选择</a></li>
+<li><a href="#11">11. 四道迁移题与完整答案</a></li>
+<li><a href="#12">12. 把误差账本带进下一次真实计算</a></li>
 </ul>
 </div>
 </details>
-<h1 id="i-svdqr">数值线代 I · SVD、QR 与后向稳定性<a class="headerlink" href="#i-svdqr" title="Permanent link"></a></h1>
+<h1 id="i-svdqr">数值线代 I · SVD、QR与后向稳定性<a class="headerlink" href="#i-svdqr" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Trefethen &amp; Bau <em>NLA</em> Lectures 1–19 ｜ <strong>前置</strong>：本科高代 V–VI、数值 I–II
-研究生数值线代的纲领（Trefethen 的开篇宣言）：<strong>一切算法围绕矩阵分解组织，一切误差分析围绕"后向稳定 + 条件数"组织</strong>。本页立起这两根柱子：SVD 作为"最诚实的分解"、Householder QR 作为稳定算法的典范、以及后向误差分析的正式语言。</p>
+<p><strong>本页问题</strong>：一个程序把残差算得很小，为什么答案仍可能错得很大？另一个程序给出不同的奇异向量，又为什么可能完全正确？</p>
+<p>前置：矩阵乘法、正交投影、向量与矩阵范数、浮点舍入。先跟着两个坐标的伸缩算清楚，再对同一个小矩阵实际执行四种最小二乘方法。</p>
 </blockquote>
 <div data-learning-page></div>
 
-<section aria-labelledby="svd-learning-title" class="learning-layer">
-<h2 id="_1">学习层：奇异值很稳，不代表奇异向量也稳<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="svd-learning-title">1. 先预测：Weyl、gap 与低秩残差各管哪一笔账？<a class="headerlink" href="#svd-learning-title" title="Permanent link"></a></h3>
-<p>实验固定一个对称正定的 <span class="arithmatex">\(2\times2\)</span> toy：</p>
-<div class="arithmatex">\[
-A=\begin{pmatrix}\sigma_1&amp;0\\0&amp;\sigma_2\end{pmatrix},\qquad
-E=\begin{pmatrix}0&amp;\eta\\\eta&amp;0\end{pmatrix},\qquad
-\sigma_1&gt;\sigma_2&gt;0.
-\]</div>
-<p>先判断四件事：奇异值位移是否总受 <span class="arithmatex">\(\|E\|_2\)</span> 控制；同样大小的 <span class="arithmatex">\(\|E\|_2\)</span> 在小谱隙下是否能明显旋转奇异向量；rank-1 截断残差是否等于下一奇异值；以及 gap 证书何时失效。提交前隐藏参数、图表和结果，揭示后才打开可调账本。</p>
-<h3 id="2">2. 静态后备：把数值稳定性与方向敏感性分开<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<div class="learning-lab" data-learning-lab="svd-perturbation">
-<p><strong>JavaScript 失效时的静态读法：</strong>奇异值的 Weyl 不等式是</p>
-<div class="arithmatex">\[
-|\sigma_i(A+E)-\sigma_i(A)|\le \|E\|_2.
-\]</div>
-<p>它不含 gap，因此即使 <span class="arithmatex">\(\sigma_1-\sigma_2\)</span> 很小，奇异值仍然有这个范数级稳定性。相反，奇异向量需要分离条件：Wedin 或 Davis–Kahan 型结论的共同形状是“扰动范数除以有效谱隙”，而不是只看 <span class="arithmatex">\(\|E\|_2\)</span>。在本对称 toy 中可以直接算出顶右奇异向量的旋转角</p>
-<div class="arithmatex">\[
-\theta=\frac12\arctan\frac{2\eta}{\sigma_1-\sigma_2}.
-\]</div>
-<p>若 <span class="arithmatex">\(\mathrm{gap}=\sigma_1-\sigma_2\)</span> 且 <span class="arithmatex">\(\mathrm{gap}-\|E\|_2&gt;0\)</span>，一个保守的分离证书是</p>
-<div class="arithmatex">\[
-\sin\theta\le
-\min\!\left(1,\frac{\|E\|_2}{\mathrm{gap}-\|E\|_2}\right).
-\]</div>
-<p>这是本 toy 的 gap 证书形状；当分母不为正时，实验明确显示“证书失效”，而不是把它叫作向量收敛或稳定。对一般矩阵要按 Wedin 的左右奇异子空间分离量和相应残差形式重新核对，不能把这个 <span class="arithmatex">\(2\times2\)</span> 公式外推成无条件定理。</p>
+<section aria-labelledby="svd-stability-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先说清楚“小”的究竟是哪一种误差<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="svd-stability-learning-title">两个方向的测量灵敏度相差一亿倍，同样的读数误差不会产生同样的答案误差<a class="headerlink" href="#svd-stability-learning-title" title="Permanent link"></a></h3>
+<p>设仪器读取 <span class="arithmatex">\(y_1=x_1\)</span>，却只读取 <span class="arithmatex">\(y_2=10^{-8}x_2\)</span>。第二个读数偏移 <span class="arithmatex">\(10^{-8}\)</span>，就可以对应源变量偏移1。把残差写成很多个零，并没有改变这种分辨能力。</p>
+<p>SVD找到这些不同的伸缩方向；QR帮助我们在计算中保留信息；后向误差则追问：这个候选答案究竟精确解决了哪个附近的输入问题？它们相互联系，却不是同一个判断。</p>
 <table>
 <thead>
 <tr>
-<th>预设</th>
-<th><span class="arithmatex">\((\sigma_1,\sigma_2,\eta)\)</span></th>
-<th style="text-align: right;">Weyl 最大位移</th>
-<th style="text-align: right;">gap / 角度</th>
-<th style="text-align: right;">rank-1 残差</th>
+<th>实验</th>
+<th>亲自改变什么</th>
+<th>分开观察什么</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>大 gap</td>
-<td><span class="arithmatex">\((3,1,0.05)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(\approx0.00125\le0.05\)</span></td>
-<td style="text-align: right;">gap <span class="arithmatex">\(=2\)</span>，<span class="arithmatex">\(\theta\approx1.43^\circ\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(\|A+E-A_1\|_2=\sigma_2(A+E)\approx0.99875\)</span></td>
+<td>SVD与低秩</td>
+<td>间隙和非对角扰动，包含不定矩阵与重根</td>
+<td>特征值的符号、奇异值、单根方向和低秩残差</td>
 </tr>
 <tr>
-<td>小 gap</td>
-<td><span class="arithmatex">\((3,2.95,0.05)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(\approx0.03090\le0.05\)</span></td>
-<td style="text-align: right;">gap <span class="arithmatex">\(=0.05\)</span>，<span class="arithmatex">\(\theta\approx31.72^\circ\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(\sigma_2(A+E)\approx2.91910\)</span></td>
+<td>QR与最小二乘</td>
+<td>小尺度、正交残差和列空间扰动</td>
+<td>算法前向误差、正交性、重建误差与最优拟合残差</td>
 </tr>
 <tr>
-<td>证书边界</td>
-<td><span class="arithmatex">\((3,2.9,0.15)\)</span></td>
-<td style="text-align: right;">仍 <span class="arithmatex">\(\le0.15\)</span></td>
-<td style="text-align: right;">gap <span class="arithmatex">\(-\|E\|_2&lt;0\)</span>，角度证书无效</td>
-<td style="text-align: right;">仍由下一奇异值精确核对</td>
+<td>后向误差</td>
+<td>候选解的偏移方向与共同缩放</td>
+<td>原始残差、归一化后向误差和前向误差</td>
 </tr>
 </tbody>
 </table>
-<p>Eckart–Young 在这张账上是另一件事：</p>
-<div class="arithmatex">\[
-\|A+E-(A+E)_1\|_2=\sigma_2(A+E),\qquad
-\|A+E-(A+E)_1\|_F=\sigma_2(A+E)
-\]</div>
-<p>（因为这里是 <span class="arithmatex">\(2\times2\)</span> 且只剩一个尾项）。所以“奇异值对输入扰动稳定”“奇异向量对小 gap 敏感”“低秩逼近残差由尾部奇异值定价”必须分成三行，不可用一个残差图替代。</p>
-<h3 id="3">3. 原始残差不是自动的“小后向误差”<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>对线性方程 <span class="arithmatex">\(\widehat x\)</span> 的原始残差 <span class="arithmatex">\(r=b-A\widehat x\)</span>，<span class="arithmatex">\(\|r\|_2\)</span> 仍带着问题的量纲和尺度；允许同时扰动 <span class="arithmatex">\(A,b\)</span> 的范数向相对后向误差记为</p>
-<div class="arithmatex">\[
-\eta_{A,b}=\frac{\|r\|_2}{\|A\|_2\|\widehat x\|_2+\|b\|_2}.
-\]</div>
-<p>因此“小原始残差”只有在报告 <span class="arithmatex">\(\|A\|_2\|\widehat x\|_2+\|b\|_2\)</span> 的归一化后，才可以称为小的相对后向误差。若只允许 <span class="arithmatex">\(b\)</span> 扰动，分母才取 <span class="arithmatex">\(\|b\|_2\)</span>。前向误差还要经过条件数、方向和问题尺度转换；本实验的 SVD 残差 <span class="arithmatex">\(\sigma_2(A+E)\)</span> 是低秩逼近误差，不要把它改名成线性方程求解的后向误差。</p>
+<div class="learning-lab" data-learning-lab="svd-perturbation">
+<p><strong>无JavaScript也能核对。</strong> 默认SVD实验从对角元3和1开始，在两个非对角位置各加0.05；表内同时列出另外两种模式的指定参考：QR取δ=0.0001、ρ=ε=0；后向误差例取δ=0.00000001、弱方向偏移1、共同缩放1。</p>
+<table>
+<thead>
+<tr>
+<th>量</th>
+<th style="text-align: right;">参考数值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>大特征值λ+</td>
+<td style="text-align: right;">3.00124921973</td>
+</tr>
+<tr>
+<td>小特征值λ−</td>
+<td style="text-align: right;">0.998750780275</td>
+</tr>
+<tr>
+<td>奇异值σ1</td>
+<td style="text-align: right;">3.00124921973</td>
+</tr>
+<tr>
+<td>奇异值σ2</td>
+<td style="text-align: right;">0.998750780275</td>
+</tr>
+<tr>
+<td>相对于唯一基准方向的夹角（弧度）</td>
+<td style="text-align: right;">0.024979197861</td>
+</tr>
+<tr>
+<td>sinθ的分离条件上界</td>
+<td style="text-align: right;">0.025641025641</td>
+</tr>
+<tr>
+<td>秩1的谱范数尾项</td>
+<td style="text-align: right;">0.998750780275</td>
+</tr>
+<tr>
+<td>秩0的Frobenius尾项</td>
+<td style="text-align: right;">3.16306813079</td>
+</tr>
+<tr>
+<td>QR问题κ₂(A)</td>
+<td style="text-align: right;">17320.5081046</td>
+</tr>
+<tr>
+<td>经典GS相对实际输入的前向误差</td>
+<td style="text-align: right;">3.20273176316e-09</td>
+</tr>
+<tr>
+<td>改良GS相对实际输入的前向误差</td>
+<td style="text-align: right;">5.54729366578e-09</td>
+</tr>
+<tr>
+<td>Householder相对实际输入的前向误差</td>
+<td style="text-align: right;">7.47513527992e-16</td>
+</tr>
+<tr>
+<td>正规方程相对实际输入的前向误差</td>
+<td style="text-align: right;">1.81298660735e-16</td>
+</tr>
+<tr>
+<td>经典GS正交缺陷</td>
+<td style="text-align: right;">3.2027314666e-09</td>
+</tr>
+<tr>
+<td>改良GS正交缺陷</td>
+<td style="text-align: right;">4.52934760803e-13</td>
+</tr>
+<tr>
+<td>Householder正交缺陷</td>
+<td style="text-align: right;">1.84611094788e-15</td>
+</tr>
+<tr>
+<td>指定候选解的相对后向误差</td>
+<td style="text-align: right;">3.09016994375e-09</td>
+</tr>
+<tr>
+<td>指定候选解的相对前向误差</td>
+<td style="text-align: right;">0.707106781187</td>
+</tr>
+</tbody>
+</table>
+<p>负特征值不会变成负奇异值。表内的QR结果来自实际运算；有理参考针对已经形成的浮点输入，理想数据的答案另列。后向误差实验直接指定候选解，不能据此断言某个求解器实际产生了它。</p>
 </div>
+<p><img alt="奇异值、方向、QR正交性和归一化误差的对照" src="assets/img/nla-01-stability-ledgers.svg" /></p>
+<p>图点和完整表格一一对应。方向图使用标注的局部η窗口，并在基准间隙附近增加采样，让小间隙的变化能看清；Weyl图与扫描表保留整个−4到4范围。对数图仅绘制严格正的量；真实0与算法失败分别保留在表格中，不用一个很小的正数替代它们。</p>
 </section>
-<h2 id="1-svd">1. SVD：数值世界的中心分解<a class="headerlink" href="#1-svd" title="Permanent link"></a></h2>
-<figure class="plot">
-<p><img alt="SVD 低秩逼近误差随秩衰减" src="assets/img/nla-01-svd-lowrank.svg" /></p>
-<figcaption><span class="fig-id">图 1.1</span>SVD 低秩逼近误差 \(\sqrt{\sum_{i&gt;k}\sigma_i^2}\)（Eckart–Young）：奇异值衰减越快，低秩压缩越准。</figcaption>
-</figure>
-<p><span class="arithmatex">\(A = U\Sigma V^\top\)</span>（本科高代 VI 已证存在）。数值视角下它的三重身份：</p>
-<ul>
-<li><strong>几何真相</strong>：任何矩阵 = 旋转 × 拉伸 × 旋转——条件数 <span class="arithmatex">\(\kappa_2 = \sigma_1/\sigma_n\)</span>（数值 I 的定义在此显出几何脸：最大与最小拉伸比）；</li>
-<li><strong>最佳低秩逼近（Eckart–Young）【证明】</strong>：<span class="arithmatex">\(\min_{\mathrm{rank}(B)\leq k}\|A - B\|_2 = \sigma_{k+1}\)</span>，达于截断 SVD <span class="arithmatex">\(A_k\)</span>。<em>证</em>：上界显然（<span class="arithmatex">\(\|A - A_k\| = \sigma_{k+1}\)</span>）；下界——任取秩 <span class="arithmatex">\(\leq k\)</span> 的 <span class="arithmatex">\(B\)</span>，<span class="arithmatex">\(\ker B\)</span> 维数 <span class="arithmatex">\(\geq n - k\)</span>，与 <span class="arithmatex">\(V\)</span> 的前 <span class="arithmatex">\(k+1\)</span> 列张成空间必相交于非零 <span class="arithmatex">\(w\)</span>：<span class="arithmatex">\(\|(A - B)w\| = \|Aw\| \geq \sigma_{k+1}\|w\|\)</span>。<span class="arithmatex">\(\blacksquare\)</span>（PCA/压缩/推荐系统低秩近似的最优性执照——高代 VI 预告的兑付。）</li>
-<li><strong>数值秩</strong>：浮点世界没有"恰好为零"的奇异值——秩的实用定义是 <span class="arithmatex">\(\#\{\sigma_i &gt; \mathrm{tol}\}\)</span>：<strong>秩是个带公差的工程量</strong>（数值 I 哲学的深化）。</li>
-</ul>
-<h2 id="2_1">2. 后向稳定性：误差分析的正确提问<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p><strong>定义</strong> 算法 <span class="arithmatex">\(\tilde f\)</span> 计算 <span class="arithmatex">\(f\)</span> 是<strong>后向稳定</strong>：对每个输入 <span class="arithmatex">\(x\)</span>，存在小扰动 <span class="arithmatex">\(\|\Delta x\| = O(\varepsilon_{\text{mach}})\|x\|\)</span> 使</p>
+<h2 id="1-svd">1. SVD把矩阵的作用拆成正交变换与非负伸缩<a class="headerlink" href="#1-svd" title="Permanent link"></a></h2>
+<p>对实矩阵 <span class="arithmatex">\(A\in\mathbb R^{m\times n}\)</span>，完整SVD写成</p>
 <div class="arithmatex">\[
-\tilde f(x) = f(x + \Delta x)
+A=U\Sigma V^T,\qquad U^TU=I_m,\quad V^TV=I_n.
 \]</div>
-<p>——"<strong>给出的是附近某个问题的精确答案</strong>"。前向误差由此分解（数值 I 的公式获得正式地位）：</p>
+<p><span class="arithmatex">\(\Sigma\)</span> 是矩形对角矩阵，其非零对角元按
+<span class="arithmatex">\(\sigma_1\ge\cdots\ge\sigma_r&gt;0\)</span> 排列，其余为0。先由 <span class="arithmatex">\(V^T\)</span> 换到输入的正交坐标，沿这些坐标伸缩，再由 <span class="arithmatex">\(U\)</span> 换到输出坐标。正交变换既可以含旋转，也可以含反射；不是所有正交矩阵都是旋转矩阵。</p>
+<p>每个对应方向满足</p>
 <div class="arithmatex">\[
-\text{前向误差} \;\lesssim\; \kappa(x)\cdot\text{后向误差}
+Av_i=\sigma_i u_i.
 \]</div>
-<p><strong>读法（分工宣言）</strong>：算法只对后向误差负责（把它压到机器精度），条件数是问题自带的病情——<strong>"稳定的算法 + 病态的问题 = 精确解错题"是无法避免的宿命，但责任在问题不在算法</strong>。此语言下的判决先例：内积、Householder QR、回代求解三角系统皆后向稳定【引用 Higham】；<strong>经典 Gram–Schmidt 不稳定</strong>（正交性损失 <span class="arithmatex">\(\sim\kappa^2\varepsilon\)</span>；改良版 MGS 半救、Householder 全救——见下）；正规方程法 <span class="arithmatex">\(A^\top Ax = A^\top b\)</span> 把条件数<strong>平方</strong>（<span class="arithmatex">\(\kappa(A^\top A) = \kappa(A)^2\)</span>）——最小二乘的第一戒律。</p>
-<h2 id="3-householder-qr">3. Householder QR：稳定算法的典范<a class="headerlink" href="#3-householder-qr" title="Permanent link"></a></h2>
-<p><strong>Householder 反射</strong>：<span class="arithmatex">\(H = I - 2vv^\top/(v^\top v)\)</span>——关于超平面的镜像（正交对称阵）。选 <span class="arithmatex">\(v = x \pm \|x\|e_1\)</span> 使 <span class="arithmatex">\(Hx = \mp\|x\|e_1\)</span>：<strong>一次反射清零一整列的下方</strong>（符号取与 <span class="arithmatex">\(x_1\)</span> 同号者避免相消——数值 I 的病例在细节处站岗）。逐列反射 <span class="arithmatex">\(H_{n-1}\cdots H_1 A = R\)</span> ⇒ <span class="arithmatex">\(A = QR\)</span>。</p>
-<p><strong>为什么稳定【机理级】</strong>：全程只乘<strong>正交矩阵</strong>——正交变换保 2-范数（<span class="arithmatex">\(\kappa_2(Q) = 1\)</span>），<strong>误差被搬运而不被放大</strong>；对比消元法靠选主元"祈祷"增长因子不爆。"能用正交变换就用正交变换"是数值线代的第一美德（Givens 旋转是稀疏场景的替补【引用】）。</p>
-<p><strong>最小二乘的标准作业</strong>：<span class="arithmatex">\(\min\|Ax - b\|_2\)</span> ⇒ QR 后解 <span class="arithmatex">\(Rx = Q^\top b\)</span>——后向稳定且条件数不平方；病态到 <span class="arithmatex">\(\kappa\)</span> 巨大时上 SVD（截断小奇异值 = 正则化：与岭回归殊途同归【引用】，统计 V/优化线的老朋友以数值身份三会）。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>例 1（Eckart–Young 实感）</strong> 秩 50 的 <span class="arithmatex">\(1000\times1000\)</span> 图像矩阵：存 SVD 前 50 项 = 原存储的 10%，误差 <span class="arithmatex">\(\sigma_{51}\)</span>——"图像压缩几行代码"背后的最优性定理；同时是"embedding 矩阵低秩近似"的定价公式。</p>
-<p><strong>例 2（正规方程 vs QR 数值实验设计）</strong> 取 <span class="arithmatex">\(\kappa(A) = 10^6\)</span> 的病态最小二乘：正规方程有效精度 <span class="arithmatex">\(\sim 10^{-16}\times10^{12} = 10^{-4}\)</span>，QR <span class="arithmatex">\(\sim 10^{-10}\)</span>——<strong>六位数字的差距</strong>来自"条件数是否被平方"一个决定。sklearn 的 <code>lstsq</code> 走 SVD/QR 而非正规方程，原因在此。</p>
-<p><strong>例 3（后向语言的翻译练习）</strong> "解 <span class="arithmatex">\(Ax = b\)</span> 得到的 <span class="arithmatex">\(\tilde x\)</span> 原始残差 <span class="arithmatex">\(\|A\tilde x - b\|\)</span> 很小"——这是一个未归一化的残差陈述，不应直接叫“小后向误差”。相对后向误差应写为</p>
+<p>奇异值是长度比例，始终非负。对满列秩矩阵，最小二乘的矩阵条件数为</p>
 <div class="arithmatex">\[
-\eta_{A,b}=\frac{\|A\tilde x-b\|}{\|A\|\,\|\tilde x\|+\|b\|}.
+\kappa_2(A)=\frac{\sigma_1}{\sigma_n}.
 \]</div>
-<p>这是允许同时扰动 <span class="arithmatex">\(A,b\)</span> 的范数向相对后向误差；若题目只允许右端 <span class="arithmatex">\(b\)</span> 扰动，则使用 <span class="arithmatex">\(\|A\tilde x-b\|/\|b\|\)</span>。</p>
-<p>它说明 <span class="arithmatex">\(\tilde x\)</span> 精确解决了某个邻近输入问题；残差小仍不等于前向误差小，后者还差条件数和扰动方向。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：特征值怎么算——幂法的理论、QR 迭代的机理与收敛，以及"为什么特征值必须迭代"。</em></p>
-<p>用QR与独立SVD比较真实数据拟合，可做<a href="project-01-co2-trends.html">NOAA CO₂真实数据项目</a>。使用有版本和质量说明的固定快照，保留独立复算与模型边界。</p>
+<p>若最小奇异值为0，线性映射有真正的零空间。精确秩仍是数学概念；工程计算还会根据数据误差、单位和使用目的选择阈值，定义某一种数值秩。数值秩带阈值，不等于“浮点数中不可能出现精确零”。</p>
+<h2 id="2">2. 实对称矩阵也不能把特征值直接当作奇异值<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>实验使用</p>
+<div class="arithmatex">\[
+B=\begin{pmatrix}3&amp;\eta\\ \eta&amp;b\end{pmatrix},
+\qquad 0.5\le b\le3,\quad -4\le\eta\le4.
+\]</div>
+<p>它的特征值为</p>
+<div class="arithmatex">\[
+\lambda_\pm=\frac{3+b}{2}
+\pm\sqrt{\left(\frac{3-b}{2}\right)^2+\eta^2}.
+\]</div>
+<p>由于迹 <span class="arithmatex">\(3+b&gt;0\)</span>，<span class="arithmatex">\(\lambda_+&gt;0\)</span> 且
+<span class="arithmatex">\(\lambda_+\ge|\lambda_-|\)</span>。所以奇异值为
+<span class="arithmatex">\(\lambda_+\)</span> 与 <span class="arithmatex">\(|\lambda_-|\)</span>。</p>
+<p>若 <span class="arithmatex">\(\lambda_-\lt0\)</span>，对应右奇异向量仍可取单位特征向量 <span class="arithmatex">\(v_-\)</span>，左奇异向量则取 <span class="arithmatex">\(-v_-\)</span>，从而</p>
+<div class="arithmatex">\[
+Bv_-=\lambda_-v_-=|\lambda_-|(-v_-).
+\]</div>
+<p>方向反转由左右向量的关系承担。实验允许跨过正定边界，明确显示有符号的特征值与非负奇异值。计算小特征值时采用</p>
+<div class="arithmatex">\[
+\lambda_-=\frac{3b-\eta^2}{\lambda_+},
+\]</div>
+<p>避免用两个接近的大数直接相减。不过行列式本身接近0时仍会有舍入误差；这不是严格区间算法。预设 <span class="arithmatex">\(b=3,\eta=3\)</span> 可直接核对精确秩一矩阵。</p>
+<h2 id="3">3. 奇异值的稳定性不需要谱隙<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>对同形矩阵 <span class="arithmatex">\(A\)</span> 与扰动 <span class="arithmatex">\(E\)</span>，有</p>
+<div class="arithmatex">\[
+|\sigma_i(A+E)-\sigma_i(A)|\le\|E\|_2.
+\]</div>
+<p>一种读法是：对每个单位向量，三角不等式给出
+<span class="arithmatex">\(\|(A+E)v\|\le\|Av\|+\|E\|_2\)</span>；把它代入奇异值的最小最大刻画，就得到一个方向的不等式，再交换 <span class="arithmatex">\(A\)</span> 与 <span class="arithmatex">\(A+E\)</span> 得到另一方向。</p>
+<p>这里控制的是<strong>绝对位移</strong>。如果真实奇异值很小，即使绝对误差达到机器精度乘 <span class="arithmatex">\(\|A\|\)</span> 的尺度，它的相对误差仍可能很大。<a href="https://www.netlib.org/lapack/lug/node97.html">LAPACK的SVD误差说明</a>也将一般稠密矩阵的绝对精度与某些特殊双对角算法的高相对精度区分开来。</p>
+<p>实验中 <span class="arithmatex">\(E\)</span> 的非零项为 <span class="arithmatex">\(E_{12}=E_{21}=\eta\)</span>，所以 <span class="arithmatex">\(\|E\|_2=|\eta|\)</span>。完整扫描同时展示实际奇异值位移与这个上界，不只比较三个挑选过的例子。</p>
+<h2 id="4">4. 向量为什么需要间隙，重根为什么要谈子空间<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>先设 <span class="arithmatex">\(b\lt3\)</span>，因此基准矩阵 <span class="arithmatex">\(\operatorname{diag}(3,b)\)</span> 的顶方向唯一到正负号。选择与第一坐标夹角不超过直角的扰动后顶方向，有</p>
+<div class="arithmatex">\[
+\theta=\frac12\operatorname{atan2}(2\eta,3-b).
+\]</div>
+<p>实验报告无符号夹角 <span class="arithmatex">\(|\theta|\)</span>。当间隙 <span class="arithmatex">\(g=3-b\)</span> 很小时，同样的 <span class="arithmatex">\(\eta\)</span> 可以带来明显旋转，而奇异值仍满足上一节的界。</p>
+<p>令顶单位向量为 <span class="arithmatex">\((c,s)^T\)</span>。从特征方程第二行得到</p>
+<div class="arithmatex">\[
+(\lambda_+-b)s=\eta c.
+\]</div>
+<p>在本例中 <span class="arithmatex">\(\lambda_+\ge3\)</span>，故可直接得到
+<span class="arithmatex">\(|s|\le|\eta|/g\)</span>。实验另列一个更保守的分离式上界：当 <span class="arithmatex">\(g-|\eta|&gt;0\)</span> 时，</p>
+<div class="arithmatex">\[
+\sin|\theta|\le
+\min\left(1,\frac{|\eta|}{g-|\eta|}\right).
+\]</div>
+<p>条件不成立时，这项证书留空；不能把“这个上界不可用”理解为“实际角度不存在”。它是本例的可核查界，一般左右奇异子空间需要相应的分离条件与残差分析。</p>
+<p>若 <span class="arithmatex">\(b=3\)</span>，基准矩阵是 <span class="arithmatex">\(3I\)</span>，任何单位方向都可选作第一奇异向量。此时“相对那个唯一基准顶向量的夹角”没有定义，实验不会填一个假的0。完整二维子空间却始终清楚。一般情形下，一簇接近的奇异值可以对应稳定的子空间，即使簇内每一根基向量都很敏感；判断子空间要看它与簇外谱的分离。</p>
+<h2 id="5">5. 最佳低秩逼近：哪一种尾部范数对应哪一种误差<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>保留前 <span class="arithmatex">\(k\)</span> 个奇异方向：</p>
+<div class="arithmatex">\[
+A_k=\sum_{i=1}^k\sigma_i u_iv_i^T.
+\]</div>
+<p>则</p>
+<div class="arithmatex">\[
+\|A-A_k\|_2=\sigma_{k+1},\qquad
+\|A-A_k\|_F=\sqrt{\sum_{i&gt;k}\sigma_i^2}.
+\]</div>
+<p>谱范数只看最坏的剩余方向；Frobenius范数汇总全部剩余方向。它们分别是秩不超过 <span class="arithmatex">\(k\)</span> 的矩阵在对应范数下可达到的最小误差。秩一近似 <span class="arithmatex">\(2\times2\)</span> 矩阵时只剩一个尾项，所以两者恰好相等；不能把这项巧合推广到任意矩阵。</p>
+<p>对 <span class="arithmatex">\(1000\times1000\)</span> 矩阵保存50项SVD，一般需要
+<span class="arithmatex">\(50(1000+1000+1)=100050\)</span> 个标量，约为原始一百万个数的10.005%；实际文件还可能有格式与索引开销。如果原矩阵精确秩就是50，截断误差为0；若只是近似低秩，才由第51及之后的奇异值决定误差。</p>
+<p>最佳矩阵逼近不自动保证下游分类或物理预测最好，因为后者可能采用不同的损失、权重或约束。</p>
+<h2 id="6-qr">6. 亲自执行QR，而不只记住“它比较稳定”<a class="headerlink" href="#6-qr" title="Permanent link"></a></h2>
+<p>对满列秩 <span class="arithmatex">\(A\in\mathbb R^{m\times n}\)</span>，<span class="arithmatex">\(m\ge n\)</span>，薄QR分解为</p>
+<div class="arithmatex">\[
+A=QR,\qquad Q^TQ=I_n,
+\]</div>
+<p>其中 <span class="arithmatex">\(R\)</span> 为可逆上三角矩阵。将 <span class="arithmatex">\(b\)</span> 分成列空间与其正交补两部分：</p>
+<div class="arithmatex">\[
+\|Ax-b\|^2
+=\|Rx-Q^Tb\|^2+\|(I-QQ^T)b\|^2.
+\]</div>
+<p>所以最优解满足 <span class="arithmatex">\(Rx=Q^Tb\)</span>。第二项与 <span class="arithmatex">\(x\)</span> 无关；稳定求解不会把本来不在列空间里的数据强行变成可精确拟合的数据。</p>
+<p>经典Gram–Schmidt在消去第 <span class="arithmatex">\(j\)</span> 列时，先用原始列计算各个投影系数；改良版每次使用已经减去前面投影的剩余列。精确算术下二者等价，浮点算术中的舍入路径不同。</p>
+<p>Householder方法构造</p>
+<div class="arithmatex">\[
+H=I-2vv^T,\qquad \|v\|_2=1.
+\]</div>
+<p>对待消去列片段 <span class="arithmatex">\(z\)</span>，选择
+<span class="arithmatex">\(\alpha=-\operatorname{sign}(z_1)\|z\|\)</span>，取
+<span class="arithmatex">\(v=(z-\alpha e_1)/\|z-\alpha e_1\|\)</span>；<span class="arithmatex">\(z_1=0\)</span> 时选定一个一致符号。这样避免首分量出现不必要的相消，并有 <span class="arithmatex">\(Hz=\alpha e_1\)</span>。</p>
+<p>正交变换保持范数，有利于控制误差传播，但浮点计算出的反射仍有局部误差。严格后向稳定性结论还需逐步舍入分析和维数因子；不能只凭“精确的正交矩阵条件数为1”就声称计算完全不产生误差。</p>
+<h2 id="7">7. 四种算法，必须面对同一个实际输入<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>实验采用Läuchli型矩阵</p>
+<div class="arithmatex">\[
+A_\delta=
+\begin{pmatrix}
+1&amp;1&amp;1\\
+\delta&amp;0&amp;0\\
+0&amp;\delta&amp;0\\
+0&amp;0&amp;\delta
+\end{pmatrix},
+\qquad \delta&gt;0.
+\]</div>
+<p>由</p>
+<div class="arithmatex">\[
+A_\delta^TA_\delta=\mathbf1\mathbf1^T+\delta^2I
+\]</div>
+<p>可知其奇异值为 <span class="arithmatex">\(\sqrt{3+\delta^2},\delta,\delta\)</span>。真实矩阵始终满列秩；当 <span class="arithmatex">\(\delta^2\)</span> 比1附近的浮点间距更小时，形成正规矩阵可能把重要差别舍掉。</p>
+<p>构造理想右端</p>
+<div class="arithmatex">\[
+b=A_\delta\mathbf1+\rho n+\varepsilon w,
+\quad
+n=\frac{(-\delta,1,1,1)^T}{\sqrt{3+\delta^2}},
+\quad
+w=\frac{(0,1,-1,0)^T}{\sqrt2}.
+\]</div>
+<p><span class="arithmatex">\(A_\delta^Tn=0\)</span>，所以 <span class="arithmatex">\(\rho\)</span> 控制理想最优残差；<span class="arithmatex">\(w\)</span> 位于列空间，<span class="arithmatex">\(\varepsilon\)</span> 沿弱方向改变答案。理想数据的最小二乘解为</p>
+<div class="arithmatex">\[
+x_{\rm ideal}
+=\left(1+\frac{\varepsilon}{\sqrt2\delta},
+1-\frac{\varepsilon}{\sqrt2\delta},1\right)^T.
+\]</div>
+<p>程序在形成 <span class="arithmatex">\(b\)</span> 时也会舍入。为避免将这项误差错算给求解器，实验将实际binary64的 <span class="arithmatex">\(\delta,b\)</span> 精确解释为有理数，再使用闭式</p>
+<div class="arithmatex">\[
+\bar b=\frac{b_1+b_2+b_3}{3},\qquad
+c=\frac{b_0+\delta\bar b}{3+\delta^2},
+\qquad
+(x_{\rm ref})_j=\frac{b_j-\bar b}{\delta}+c
+\quad(j=1,2,3).
+\]</div>
+<p>分子、分母完整列出；最终图表转换回浮点数显示，所以不声称图上的小数就是完整精确分数。四个实际算法都与同一个实际输入的有理参考比较，理想模型解另列。</p>
+<p>经典GS、改良GS、Householder QR与正规方程Cholesky均实际运行。正规矩阵出现非正主元时，实验明确报告失败，不暗中加正则化，也不据此把原始 <span class="arithmatex">\(A_\delta\)</span> 判成秩亏。</p>
+<h2 id="8-qr">8. QR后向稳定，不意味着一般最小二乘只有κ倍敏感性<a class="headerlink" href="#8-qr" title="Permanent link"></a></h2>
+<p>算法的后向稳定性问的是：计算结果是否精确最小化某个邻近问题</p>
+<div class="arithmatex">\[
+\|(A+E)\widehat x-(b+f)\|_2,
+\]</div>
+<p>且 <span class="arithmatex">\(\|E\|/\|A\|\)</span>、<span class="arithmatex">\(\|f\|/\|b\|\)</span> 在机器精度乘适当维数因子的尺度上。它没有要求原问题的最优残差为0。</p>
+<p>更容易忽略的是，最小二乘问题本身对 <span class="arithmatex">\(A\)</span> 的敏感性还与最优残差有关。令 <span class="arithmatex">\(r=b-Ax\)</span>，精确最优性是 <span class="arithmatex">\(A^Tr=0\)</span>。一阶扰动得到</p>
+<div class="arithmatex">\[
+\Delta x
+\approx A^\dagger(f-Ex)
++(A^TA)^{-1}E^Tr.
+\]</div>
+<p>最后一项含逆正规矩阵。若 <span class="arithmatex">\(r\)</span> 不小，问题的敏感性本来就可能带有条件数平方的贡献，不能把它全部归罪于“算法求了正规方程”。<a href="https://www.netlib.org/lapack/lug/node83.html">LAPACK的最小二乘误差说明</a>以残差与数据的夹角表述这一差别。</p>
+<p>QR避免显式形成正规矩阵所引入的额外信息损失，仍不能消除输入问题的内在敏感性。因此“条件数一百万，QR必然有某个固定有效位数”不是普遍保证；输入方向、残差、维数和实际实现都要交代。</p>
+<p>实验将四个量分别报告：<span class="arithmatex">\(\|QR-A\|_F/\|A\|_F\)</span>、<span class="arithmatex">\(\|Q^TQ-I\|_F\)</span>、最小二乘拟合残差以及相对参考解的前向误差。它们可以帮助发现问题，但有限几个数值例子不能证明一个算法对所有输入后向稳定。</p>
+<h2 id="9">9. 方程的最小相对后向误差可以直接构造<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>现在讨论可逆方阵的方程 <span class="arithmatex">\(Ax=b\)</span>，给定候选 <span class="arithmatex">\(\widehat x\)</span>，令</p>
+<div class="arithmatex">\[
+r=b-A\widehat x.
+\]</div>
+<p>如果允许同时扰动 <span class="arithmatex">\(A,b\)</span>，并用相同相对幅度衡量二者，则最小后向误差是</p>
+<div class="arithmatex">\[
+\eta_{A,b}
+=\frac{\|r\|_2}{\|A\|_2\|\widehat x\|_2+\|b\|_2}.
+\]</div>
+<p>若只允许改右端，则为
+<span class="arithmatex">\(\eta_b=\|r\|_2/\|b\|_2\)</span>。分母不同，因为允许改变的输入不同。这里假定相应分母非零；本实验的输入满足这一条件。</p>
+<p>当 <span class="arithmatex">\(r\ne0\)</span>、<span class="arithmatex">\(\widehat x\ne0\)</span>，令
+<span class="arithmatex">\(u=r/\|r\|\)</span>、<span class="arithmatex">\(v=\widehat x/\|\widehat x\|\)</span>，取</p>
+<div class="arithmatex">\[
+\Delta A=\eta_{A,b}\|A\|\,uv^T,\qquad
+\Delta b=-\eta_{A,b}\|b\|\,u.
+\]</div>
+<p>便有
+<span class="arithmatex">\((A+\Delta A)\widehat x=b+\Delta b\)</span>，
+且两个相对扰动范数都等于 <span class="arithmatex">\(\eta_{A,b}\)</span>。实验逐项展示这个构造及其浮点核对残差，而不只给出一个后向误差数字。</p>
+<p>若 <span class="arithmatex">\(\kappa_2(A)\eta_{A,b}\lt1\)</span>，一个一般上界为</p>
+<div class="arithmatex">\[
+\frac{\|\widehat x-x\|}{\|x\|}
+\le
+\frac{2\kappa_2(A)\eta_{A,b}}
+{1-\kappa_2(A)\eta_{A,b}}.
+\]</div>
+<p>它可能很宽。条件不成立时，此上界留空，并不表示真实前向误差无限大。方程的这套残差公式也不能直接当作一般超定最小二乘算法的最小后向误差公式。</p>
+<h2 id="10">10. 截断、岭正则化和数值秩不是同一种选择<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>在SVD坐标中，直接最小二乘使用增益 <span class="arithmatex">\(1/\sigma_i\)</span>。截断SVD把阈值以下方向的增益置零，其余仍取 <span class="arithmatex">\(1/\sigma_i\)</span>；岭正则化</p>
+<div class="arithmatex">\[
+\min_x\|Ax-b\|^2+\alpha\|x\|^2,\qquad \alpha&gt;0
+\]</div>
+<p>则使用连续增益</p>
+<div class="arithmatex">\[
+g_i=\frac{\sigma_i}{\sigma_i^2+\alpha}.
+\]</div>
+<p>两者都可以减少小奇异值的噪声放大，但它们的滤波形状、偏差和参数解释不同。换成一般的平滑惩罚矩阵时，惩罚与 <span class="arithmatex">\(A^TA\)</span> 也未必能同时对角化。</p>
+<p>在<a href="../../physics-course/site/comp-05-inverse-uncertainty.html">物理逆问题实验</a>里，可以继续区分数据分辨率、先验、参数后验区间与固定真值的重复实验风险。求解器更稳定，不等于模型假设更正确。</p>
+<h2 id="11">11. 四道迁移题与完整答案<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p><strong>题一。</strong> 对 <span class="arithmatex">\(B=\begin{pmatrix}3&amp;2\\2&amp;1\end{pmatrix}\)</span>，求特征值、奇异值与最佳秩一近似的谱范数误差。为什么不能把小特征值直接画成奇异值？</p>
+<details class="answer">
+<summary>答案：把方向符号留给奇异向量</summary>
+<p>特征多项式为 <span class="arithmatex">\(\lambda^2-4\lambda-1\)</span>，所以特征值为 <span class="arithmatex">\(2+\sqrt5\)</span> 与 <span class="arithmatex">\(2-\sqrt5\)</span>。第二个为负；两个奇异值是</p>
+<div class="arithmatex">\[
+\sigma_1=2+\sqrt5,\qquad \sigma_2=\sqrt5-2.
+\]</div>
+<p>设 <span class="arithmatex">\(v_-\)</span> 是负特征值的单位特征向量，则左奇异向量取 <span class="arithmatex">\(u_-=-v_-\)</span>，从而 <span class="arithmatex">\(Bv_-=(\sqrt5-2)u_-\)</span>。最佳秩一近似的谱范数误差为 <span class="arithmatex">\(\sqrt5-2\)</span>，也是此处的Frobenius误差，因为仅剩一个尾项。</p>
+</details>
+<p><strong>题二。</strong> 对任意秩不超过 <span class="arithmatex">\(k\)</span> 的 <span class="arithmatex">\(C\)</span>，证明
+<span class="arithmatex">\(\|A-C\|_2\ge\sigma_{k+1}\)</span>。如果 <span class="arithmatex">\(\sigma_k=\sigma_{k+1}\)</span>，最佳逼近是否一定唯一？</p>
+<details class="answer">
+<summary>答案：核空间里总有一个保不住的方向</summary>
+<p>设 <span class="arithmatex">\(S=\operatorname{span}(v_1,\ldots,v_{k+1})\)</span>。由于
+<span class="arithmatex">\(\dim S=k+1\)</span>、<span class="arithmatex">\(\dim\ker C\ge n-k\)</span>，
+二者在 <span class="arithmatex">\(\mathbb R^n\)</span> 中必有非零交点。取交点上的单位向量 <span class="arithmatex">\(w\)</span>，则</p>
+<div class="arithmatex">\[
+\|(A-C)w\|=\|Aw\|\ge\sigma_{k+1}.
+\]</div>
+<p>因此算子范数至少为 <span class="arithmatex">\(\sigma_{k+1}\)</span>，而截断SVD达到这个值。等奇异值可以使最优解不唯一：对 <span class="arithmatex">\(A=I_2\)</span>、<span class="arithmatex">\(k=1\)</span>，任取单位向量 <span class="arithmatex">\(v\)</span>，矩阵 <span class="arithmatex">\(vv^T\)</span> 都给出谱残差与Frobenius残差1。算法挑选某个 <span class="arithmatex">\(v\)</span>，没有为它创造数学上的唯一性。</p>
+</details>
+<p><strong>题三。</strong> 证明上一节的 <span class="arithmatex">\(\eta_{A,b}\)</span> 真的是允许同时相对扰动 <span class="arithmatex">\(A,b\)</span> 的最小值，而不仅是一个可行值。共同缩放 <span class="arithmatex">\(A,b\)</span> 后它如何变化？</p>
+<details class="answer">
+<summary>答案：先证下界，再构造达到它的扰动</summary>
+<p>若 <span class="arithmatex">\((A+\Delta A)\widehat x=b+\Delta b\)</span>，则
+<span class="arithmatex">\(r=\Delta A\widehat x-\Delta b\)</span>。设
+<span class="arithmatex">\(\|\Delta A\|\le t\|A\|\)</span>、<span class="arithmatex">\(\|\Delta b\|\le t\|b\|\)</span>，三角不等式给出</p>
+<div class="arithmatex">\[
+\|r\|\le t(\|A\|\|\widehat x\|+\|b\|),
+\]</div>
+<p>所以 <span class="arithmatex">\(t\ge\eta_{A,b}\)</span>。第9节的秩一构造达到这个下界，故它就是最小值；<span class="arithmatex">\(r=0\)</span> 时取零扰动。</p>
+<p>将 <span class="arithmatex">\(A,b\)</span> 同时乘非零标量 <span class="arithmatex">\(c\)</span>，残差范数与分母都乘 <span class="arithmatex">\(|c|\)</span>，所以 <span class="arithmatex">\(\eta_{A,b}\)</span> 不变。候选解和真实解也不变；原始残差却可以因为单位选择而变得很大或很小。</p>
+</details>
+<p><strong>题四。</strong> 从最小二乘最优性推导第8节的一阶扰动式。哪个项说明非零残差为什么需要额外小心？</p>
+<details class="answer">
+<summary>答案：矩阵改变还会旋转可拟合的列空间</summary>
+<p>设 <span class="arithmatex">\(A\)</span> 满列秩，<span class="arithmatex">\(r=b-Ax\)</span> 且 <span class="arithmatex">\(A^Tr=0\)</span>。扰动后的最优性为</p>
+<div class="arithmatex">\[
+(A+E)^T[(b+f)-(A+E)(x+\Delta x)]=0.
+\]</div>
+<p>只保留一阶项，去掉 <span class="arithmatex">\(A^Tr\)</span>，得到</p>
+<div class="arithmatex">\[
+A^TA\,\Delta x=A^Tf-A^TEx+E^Tr.
+\]</div>
+<p>乘以可逆的 <span class="arithmatex">\(A^TA\)</span> 的逆，即</p>
+<div class="arithmatex">\[
+\Delta x\approx A^\dagger(f-Ex)+(A^TA)^{-1}E^Tr.
+\]</div>
+<p><span class="arithmatex">\(E\)</span> 不仅改变已有列空间中的伸缩，还会改变列空间方向；原来的正交残差于是可以进入可拟合方向。最后一项在 <span class="arithmatex">\(r=0\)</span> 时消失，在非零残差和病态矩阵下可能被放大。这是问题的敏感性，一阶式还要求扰动足够小并保持满列秩，不能用于跨越秩变化的有限扰动。</p>
+</details>
+<h2 id="12">12. 把误差账本带进下一次真实计算<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<p>先固定实际输入和问题：解方程、做最小二乘，还是求低秩近似？再写清允许改变的输入、范数、缩放与阈值。用已知解的小矩阵和独立参考检查实现，然后分别查看前向误差、后向证据、正交性与数据拟合残差；不要用其中一列替代其余各列。</p>
+<p>遇到非常小的奇异值时，先判断它代表真实零空间、数据不足、单位缩放，还是算法丢失了信息。截断或正则化是一项需要解释的建模选择，不应隐藏在“程序终于返回了一个数”的背后。</p>
+<p>下一页<a href="nla-02-eigen.html">特征值计算</a>将进入迭代方法；也可以在<a href="project-01-co2-trends.html">NOAA CO₂数据项目</a>比较QR与独立SVD对固定真实数据的拟合。真实测量的模型误差和外推误差仍需单独验证。</p>
+<style>
+article:has(#svd-stability-learning-title) .katex { position: relative; }
+</style>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="cvx-04-interior-point.html"><span class="pager-label">上一页</span>凸优化 IV · 内点法与 SDP</a>

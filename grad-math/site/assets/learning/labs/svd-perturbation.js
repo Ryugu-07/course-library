@@ -1,529 +1,366 @@
-(function (root, factory) {
-  "use strict";
-
-  var exported = factory(root);
-
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("svd-perturbation", exported.mount);
+(function(root,factory){const api=factory();if(typeof module==="object"&&module.exports)module.exports=api;if(root&&root.CourseLearning)root.CourseLearning.register("svd-perturbation",api.mount);})(typeof window!=="undefined"?window:globalThis,function(){
+function sum(xs){let z=0,c=0;for(const x of xs){const y=x-c,t=z+y;c=(t-z)-y;z=t;}return z;}
+const dot=(a,b)=>sum(a.map((x,i)=>x*b[i]));
+const transpose=A=>A[0].map((_,j)=>A.map(r=>r[j]));
+const matvec=(A,v)=>A.map(r=>dot(r,v));
+const matmul=(A,B)=>{const bt=transpose(B);return A.map(r=>bt.map(c=>dot(r,c)));};
+const eye=n=>Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>+(i===j)));
+function cholesky(A){
+ const n=A.length,L=Array.from({length:n},()=>Array(n).fill(0));
+ for(let i=0;i<n;i++)for(let j=0;j<=i;j++){
+  const v=A[i][j]-sum(Array.from({length:j},(_,k)=>L[i][k]*L[j][k]));
+  if(i===j){if(!(v>0)||!Number.isFinite(v))throw Error("精度矩阵Cholesky失效，不能伪造正方差");L[i][j]=Math.sqrt(v);}
+  else L[i][j]=v/L[j][j];
+ }return L;
+}
+function forward(L,b){const x=[];for(let i=0;i<b.length;i++)x[i]=(b[i]-sum(x.map((v,j)=>L[i][j]*v)))/L[i][i];return x;}
+function backward(L,b){const x=Array(b.length).fill(0);for(let i=b.length-1;i>=0;i--)x[i]=(b[i]-sum(x.slice(i+1).map((v,j)=>L[i+1+j][i]*v)))/L[i][i];return x;}
+const solve=(L,b)=>backward(L,forward(L,b));
+function householder(A){
+ const m=A.length,n=A[0].length,U=A.map(r=>r.slice()),Qt=eye(m),steps=[];
+ for(let k=0;k<n;k++){
+  const v=U.slice(k).map(r=>r[k]),norm=Math.hypot(...v);
+  if(!(norm>0)||!Number.isFinite(norm))throw Error("增广矩阵QR秩失效");
+  const alpha=v[0]>=0?-norm:norm;v[0]-=alpha;const vnorm=Math.hypot(...v);for(let i=0;i<v.length;i++)v[i]/=vnorm;
+  for(let j=k;j<n;j++){const projection=2*sum(v.map((x,i)=>x*U[k+i][j]));for(let i=0;i<v.length;i++)U[k+i][j]-=projection*v[i];}
+  for(let j=0;j<m;j++){const projection=2*sum(v.map((x,i)=>x*Qt[k+i][j]));for(let i=0;i<v.length;i++)Qt[k+i][j]-=projection*v[i];}
+  // Exact structural zeros are consequences of the reflector, not a rank cutoff.
+  U[k][k]=alpha;for(let i=k+1;i<m;i++)U[i][k]=0;
+  steps.push({k,norm,alpha,vector:v.slice()});
+ }
+ for(let i=0;i<n;i++)if(U[i][i]<0){U[i]=U[i].map(x=>-x);Qt[i]=Qt[i].map(x=>-x);}
+ return{upper:U.slice(0,n),Qt:Qt.slice(0,n),steps};
+}
+"use strict";
+const DEFAULTS={mode:"spectral",second:1,eta:.05,delta:.0001,rho:0,noise:0,error:1,direction:"weak",scaleExponent:0};
+function num(v,key,lo,hi,integer=false){
+ if(typeof v!=="number"&&typeof v!=="string")throw Error(key+" 必须是数值");
+ if(typeof v==="string"&&!v.trim())throw Error(key+" 不能为空");
+ const x=Number(v);if(!Number.isFinite(x)||x<lo||x>hi||(integer&&!Number.isInteger(x)))throw Error(key+" 超出范围");
+ if(x===0&&typeof v==="string"&&/[1-9]/.test(v.split(/[eE]/)[0]))throw Error(key+" 非零输入下溢");return x;
+}
+function config(raw={}){
+ if(!raw||typeof raw!=="object"||Array.isArray(raw))throw Error("参数必须是对象");
+ const s=Object.assign({},DEFAULTS,raw);
+ if(!["spectral","qr","backward"].includes(s.mode))throw Error("未知模式");
+ if(s.mode==="spectral"){s.second=num(s.second,"第二对角元",.5,3);s.eta=num(s.eta,"非对角扰动",-4,4);}
+ else{
+  s.delta=num(s.delta,"δ",1e-10,s.mode==="qr"?.3:1);
+  if(s.mode==="qr"){s.rho=num(s.rho,"正交残差幅度",0,1);s.noise=num(s.noise,"列空间扰动",0,1e-4);}
+  else{s.error=num(s.error,"候选解偏移",-.9,10);s.scaleExponent=num(s.scaleExponent,"缩放指数",-12,12,true);if(!["weak","strong"].includes(s.direction))throw Error("未知偏移方向");}
+ }return s;
+}
+const norm=x=>Math.hypot(...x),fro=A=>norm(A.flat()),sub=(a,b)=>a.map((x,i)=>x-b[i]);
+const msub=(A,B)=>A.map((r,i)=>sub(r,B[i]));
+const outer=(a,b)=>a.map(x=>b.map(y=>x*y));
+function gridCurrent(grid,current){
+ const i=grid.findIndex(x=>Math.abs(x-current)<=8*Number.EPSILON*Math.max(Math.abs(x),Math.abs(current)));
+ if(i<0)grid.push(current);else grid[i]=current;return grid.sort((a,b)=>a-b);
+}
+function spectralPoint(second,eta){
+ const a=3,b=second,gap=a-b,r=Math.hypot(gap/2,eta),large=(a+b)/2+r,small=(a*b-eta*eta)/large;
+ const repeated=r===0,angle=repeated?null:.5*Math.atan2(2*eta,gap),chosen=angle===null?0:angle,v=[Math.cos(chosen),Math.sin(chosen)],w=[-v[1],v[0]];
+ const A=[[a,eta],[eta,b]],V=transpose([v,w]),singular=[large,Math.abs(small)],U=transpose([v,w.map(x=>(small<0?-1:1)*x)]);
+ const rankOne=outer(v,v).map(row=>row.map(x=>x*large)),tail=msub(A,rankOne);
+ const shift=Math.max(Math.abs(singular[0]-a),Math.abs(singular[1]-b)),gapLower=gap-Math.abs(eta);
+ const baseUnique=gap>0,rotation=baseUnique?Math.abs(chosen):null;
+ return{A,V,U,large,small,singular,repeated,angle:rotation,chosenAngle:chosen,topUnique:!repeated,baseUnique,gap,gapLower,
+  normE:Math.abs(eta),shift,certificate:baseUnique&&gapLower>0?Math.min(1,Math.abs(eta)/gapLower):null,rankOne,tail,
+  truncations:[{rank:0,matrix:[[0,0],[0,0]],spectral:large,frobenius:Math.hypot(large,small)},
+   {rank:1,matrix:rankOne,spectral:Math.abs(small),frobenius:Math.abs(small)},
+   {rank:2,matrix:A.map(r=>r.slice()),spectral:0,frobenius:0}],
+  circle:Array.from({length:129},(_,i)=>{const theta=2*Math.PI*i/128,x=[Math.cos(theta),Math.sin(theta)];return{i,theta,input:x,output:matvec(A,x)};})};
+}
+function spectralModel(s){
+ const p=spectralPoint(s.second,s.eta);let etas=Array.from({length:81},(_,i)=>-4+i/10);
+ if(p.gap>0)for(let i=-16;i<=16;i++)etas=gridCurrent(etas,p.gap*i/16);
+ const window=Math.max(.1,Math.min(4,2*p.gap));
+ for(const edge of [-window,window])etas=gridCurrent(etas,edge);
+ etas=gridCurrent(etas,s.eta);
+ p.study=etas.map(eta=>{const v=spectralPoint(s.second,eta);return{eta,large:v.large,small:v.small,sigma1:v.singular[0],sigma2:v.singular[1],shift:v.shift,normE:v.normE,angle:v.angle,certificate:v.certificate};});
+ return p;
+}
+// Exact rational arithmetic is used only for a closed-form reference on the
+// actual binary64 inputs. It does not participate in the tested algorithms.
+const gcd=(a,b)=>{a=a<0n?-a:a;b=b<0n?-b:b;while(b){const t=a%b;a=b;b=t;}return a;};
+function fraction(n,d=1n){if(!d)throw Error("零分母");if(d<0n){n=-n;d=-d;}const g=gcd(n,d);return[n/g,d/g];}
+const fadd=(a,b)=>fraction(a[0]*b[1]+b[0]*a[1],a[1]*b[1]);
+const fneg=a=>[-a[0],a[1]],fsub=(a,b)=>fadd(a,fneg(b));
+const fmul=(a,b)=>fraction(a[0]*b[0],a[1]*b[1]),fdiv=(a,b)=>fraction(a[0]*b[1],a[1]*b[0]);
+function fnumber(x){
+ if(!Number.isFinite(x))throw Error("有理参考只接受有限数");if(x===0)return[0n,1n];
+ const b=new ArrayBuffer(8),v=new DataView(b);v.setFloat64(0,x,false);const bits=v.getBigUint64(0,false),sign=bits>>63n?-1n:1n,e=Number((bits>>52n)&2047n),mantissa=bits&((1n<<52n)-1n);
+ const n=sign*(e===0?mantissa:(1n<<52n)+mantissa),power=e===0?-1074:e-1075;
+ return power>=0?fraction(n<<BigInt(power)):fraction(n,1n<<BigInt(-power));
+}
+function ffloat(a){
+ if(a[0]===0n)return 0;const sign=a[0]<0n?-1:1,n=a[0]<0n?-a[0]:a[0],d=a[1],ns=Math.max(0,n.toString(2).length-54),ds=Math.max(0,d.toString(2).length-54);
+ return sign*(Number(n>>BigInt(ns))/Number(d>>BigInt(ds)))*2**(ns-ds);
+}
+function lauchliReference(delta,b){
+ const d=fnumber(delta),bb=b.map(fnumber),three=[3n,1n],bar=fdiv(fadd(fadd(bb[1],bb[2]),bb[3]),three),common=fdiv(fadd(bb[0],fmul(d,bar)),fadd(three,fmul(d,d)));
+ const fractions=bb.slice(1).map(x=>fadd(fdiv(fsub(x,bar),d),common));
+ return{x:fractions.map(ffloat),fractions:fractions.map(a=>a.map(String))};
+}
+function gramSchmidt(A,modified){
+ const m=A.length,n=A[0].length,columns=transpose(A),qs=[],R=eye(n).map(row=>row.map(()=>0)),steps=[];
+ for(let j=0;j<n;j++){
+  let v=columns[j].slice();const original=v.slice();
+  for(let i=0;i<j;i++){
+   // Deliberately ordinary binary64 dot products in both textbook variants.
+   const rhs=modified?v:original,r=qs[i].reduce((z,x,k)=>z+x*rhs[k],0);R[i][j]=r;
+   v=v.map((x,k)=>x-r*qs[i][k]);steps.push({j,i,coefficient:r,work:v.slice()});
   }
-  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module) {
-    try {
-      var report = exported.selfTest();
-      console.log("svd-perturbation self-test: PASS (" + report.checks + " checks, " + report.presets + " presets)");
-    } catch (error) {
-      console.error("svd-perturbation self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
-  }
-})(typeof window !== "undefined" ? window : null, function (host) {
-  "use strict";
-
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "cl-svd-perturbation-styles";
-  var INSTANCE = 0;
-  var EPS = 1e-10;
-
-  var PRESETS = [
-    { id: "large-gap", label: "大 gap：值稳、向量稳", sigma1: 3, sigma2: 1, eta: 0.05 },
-    { id: "small-gap", label: "小 gap：值仍稳、向量敏感", sigma1: 3, sigma2: 2.95, eta: 0.05 },
-    { id: "gap-fails", label: "扰动不小于 gap：证书失效", sigma1: 3, sigma2: 2.9, eta: 0.15 }
+  const length=norm(v);if(!(length>0))return{status:"zero-column",Q:transpose(qs),R,steps,x:null};
+  R[j][j]=length;qs.push(v.map(x=>x/length));
+  steps.push({j,i:j,coefficient:length,work:qs[j].slice()});
+ }return{status:"ok",Q:transpose(qs),R,steps};
+}
+function normalEquations(A,b){
+ const P=matmul(transpose(A),A),rhs=matvec(transpose(A),b),L=eye(3).map(r=>r.map(()=>0)),steps=[];
+ for(let i=0;i<3;i++)for(let j=0;j<=i;j++){
+  const pivot=P[i][j]-sum(Array.from({length:j},(_,k)=>L[i][k]*L[j][k]));
+  steps.push({i,j,pivot});
+  if(i===j){if(!(pivot>0))return{status:"nonpositive-pivot",P,rhs,L,steps,x:null};L[i][j]=Math.sqrt(pivot);}
+  else L[i][j]=pivot/L[j][j];
+ }
+ return{status:"ok",P,rhs,L,steps,x:solve(L,rhs)};
+}
+function qrPoint(delta,rho,noise){
+ const A=[[1,1,1],[delta,0,0],[0,delta,0],[0,0,delta]],clean=matvec(A,[1,1,1]),nullVector=[-delta,1,1,1].map(x=>x/Math.hypot(delta,Math.sqrt(3))),weakVector=[0,1/Math.SQRT2,-1/Math.SQRT2,0];
+ const b=clean.map((x,i)=>x+rho*nullVector[i]+noise*weakVector[i]),ref=lauchliReference(delta,b),ideal=[1+noise/(Math.SQRT2*delta),1-noise/(Math.SQRT2*delta),1];
+ const hh=householder(A),methods=[
+  {id:"cgs",...gramSchmidt(A,false)},{id:"mgs",...gramSchmidt(A,true)},
+  {id:"householder",status:"ok",Q:transpose(hh.Qt),R:hh.upper,steps:hh.steps},
+  {id:"normal",...normalEquations(A,b)}];
+ for(const z of methods){
+  if(z.Q){
+   z.QtQ=matmul(transpose(z.Q),z.Q);z.QR=matmul(z.Q,z.R);z.orthogonality=fro(msub(z.QtQ,eye(3)));z.reconstruction=fro(msub(z.QR,A))/fro(A);
+   if(z.status==="ok"){z.projected=matvec(transpose(z.Q),b);z.x=backward(transpose(z.R),z.projected);}
+  }else{z.orthogonality=null;z.reconstruction=null;}
+  if(z.x){
+   z.fitted=matvec(A,z.x);z.residual=sub(b,z.fitted);z.normalResidual=matvec(transpose(A),z.residual);
+   z.forward=norm(sub(z.x,ref.x))/norm(ref.x);z.modelForward=norm(sub(z.x,ideal))/norm(ideal);
+   z.residualNorm=norm(z.residual);z.stationarity=norm(z.normalResidual);
+  }else{z.forward=null;z.modelForward=null;z.residualNorm=null;z.stationarity=null;}
+ }
+ const fitted=matvec(A,ref.x),residual=sub(b,fitted),bnorm=norm(b),sigmaMax=Math.hypot(Math.sqrt(3),delta),condition=sigmaMax/delta;
+ return{A,b,clean,nullVector,weakVector,ref,ideal,methods,singular:[sigmaMax,delta,delta],condition,fitted,residual,
+  referenceResidual:norm(residual),dataFormation: norm(sub(ref.x,ideal))/norm(ideal),
+  sinTheta:norm(residual)/bnorm,tanTheta:norm(residual)/norm(fitted)};
+}
+function qrModel(s){
+ const p=qrPoint(s.delta,s.rho,s.noise),deltas=gridCurrent([...Array.from({length:38},(_,i)=>10**(-10+i/4)),.3],s.delta);
+ p.study=deltas.map(delta=>{const v=qrPoint(delta,s.rho,s.noise);return{delta,condition:v.condition,dataFormation:v.dataFormation,referenceResidual:v.referenceResidual,
+  methods:v.methods.map(z=>({id:z.id,status:z.status,forward:z.forward,modelForward:z.modelForward,orthogonality:z.orthogonality,reconstruction:z.reconstruction,residualNorm:z.residualNorm,stationarity:z.stationarity}))};});
+ return p;
+}
+function backwardPoint(s,exponent=s.scaleExponent){
+ const scale=10**exponent,A=[[scale,0],[0,scale*s.delta]],truth=[1,1],b=matvec(A,truth),x=truth.slice();x[s.direction==="weak"?1:0]+=s.error;
+ const r=sub(b,matvec(A,x)),rn=norm(r),an=scale,bn=norm(b),xn=norm(x),eta=rn/(an*xn+bn),u=rn?r.map(t=>t/rn):[0,0],vv=x.map(t=>t/xn),
+  dA=outer(u,vv).map(row=>row.map(t=>eta*an*t)),db=u.map(t=>-eta*bn*t),changed= A.map((row,i)=>row.map((t,j)=>t+dA[i][j])),changedB=b.map((t,i)=>t+db[i]);
+ const condition=1/s.delta,q=condition*eta;
+ return{scale,A,truth,b,x,r,rawResidual:rn,eta,bOnly:rn/bn,forward:norm(sub(x,truth))/norm(truth),condition,
+  dA,db,changed,changedB,certificateResidual:sub(matvec(changed,x),changedB),matrixRelative:fro(dA)/an,rhsRelative:norm(db)/bn,bound:q<1?2*q/(1-q):null};
+}
+function backwardModel(s){const p=backwardPoint(s);p.study=Array.from({length:25},(_,i)=>{const v=backwardPoint(s,i-12);return{exponent:i-12,rawResidual:v.rawResidual,eta:v.eta,forward:v.forward,bOnly:v.bOnly};});return p;}
+function snapshot(raw={}){const s=config(raw);return{config:s,result:s.mode==="spectral"?spectralModel(s):s.mode==="qr"?qrModel(s):backwardModel(s)};}
+const PRESETS=[
+ {id:"default",label:"大间隙：值与方向分开"},
+ {id:"small-gap",label:"小间隙：方向明显旋转",second:2.95},
+ {id:"indefinite",label:"负特征值不是负奇异值",eta:2},
+ {id:"rank-one",label:"精确秩一的边界",second:3,eta:3},
+ {id:"repeated",label:"重奇异值：不指定唯一方向",second:3,eta:0},
+ {id:"qr",label:"亲自算四种最小二乘",mode:"qr"},
+ {id:"ill-conditioned",label:"正规矩阵丢失小方向",mode:"qr",delta:1e-10},
+ {id:"nonzero-residual",label:"QR稳定也有非零残差",mode:"qr",delta:1e-8,rho:1},
+ {id:"data-perturbation",label:"小数据扰动进入弱方向",mode:"qr",delta:1e-6,noise:1e-4},
+ {id:"backward",label:"小残差却有大前向误差",mode:"backward",delta:1e-8},
+ {id:"scaled",label:"只缩放单位，原始残差改变",mode:"backward",delta:1e-8,scaleExponent:12},
+ {id:"strong",label:"同样偏移，改到强方向",mode:"backward",delta:1e-8,direction:"strong"}
+];
+const QUESTIONS=[
+ ["实对称矩阵出现负特征值，其奇异值是否也可以为负？",["不可以；奇异值取相应特征值的绝对值","可以，奇异值保留伸缩方向的正负"],0,"方向反转由左右奇异向量承担，奇异值始终非负。"],
+ ["两个奇异值完全相等时，对应的单独奇异向量是否唯一？",["不唯一，应该说明所比较的子空间","唯一，稳定算法会找出数学上唯一的那根向量"],0,"不同正交基可以张成同一子空间；算法选择一种基不等于证明该基唯一。"],
+ ["最小二乘的最优残差非零，就说明QR算法不稳定吗？",["不能，数据可能本来就不在列空间","是，稳定算法必须把残差变成零"],0,"最优拟合残差与算法在输入上的后向误差是不同对象。"],
+ ["把A和b同时乘一百万，相对后向误差会乘一百万吗？",["不会，分子和归一化尺度一起变化","会，残差变大就说明算法更不稳定"],0,"原始残差有尺度；相对后向误差先除以明确的输入尺度。"]
+];
+function fmt(x){
+ if(x===null||x===undefined)return"—";if(typeof x==="boolean")return x?"是":"否";if(typeof x!=="number")return String(x);
+ if(!Number.isFinite(x))throw Error("不能显示非有限结果");if(Number.isInteger(x))return String(x);
+ return Math.abs(x)<1e-4||Math.abs(x)>=1e6?x.toExponential(8):String(Number(x.toPrecision(10)));
+}
+const series=(key,label,color,points,line=true)=>({key,label,color,points,line});
+function plot(title,x,y,ss,xmin,xmax,square=false){
+ const ys=ss.flatMap(s=>s.points.map(p=>p[1])),lo=Math.min(0,...ys),hi=Math.max(0,...ys),pad=(hi-lo||1)*.08;
+ return{title,x,y,series:ss,xmin,xmax:xmax>xmin?xmax:xmin+1,ymin:square?xmin:lo-pad,ymax:square?xmax:hi+pad,square,markers:[]};
+}
+const B="#268bd2",O="#cb6a16",G="#29966c",R="#b44a72",V="#9966bb";
+const names={cgs:"经典GS",mgs:"改良GS",householder:"Householder",normal:"正规方程"},colors={cgs:R,mgs:O,householder:B,normal:V};
+function plots(d){
+ const s=d.config,p=d.result;
+ if(s.mode==="spectral"){
+  const radius=Math.max(1,p.large)*1.08,angleWindow=Math.max(.1,Math.min(4,2*p.gap)),angleStudy=p.study.filter(v=>Math.abs(v.eta)<=angleWindow);
+  return[
+   plot("单位圆经实际矩阵映射；横纵单位相同","第一坐标","第二坐标",[
+    series("circle","输入单位圆",G,p.circle.map(v=>v.input)),series("image","矩阵作用后的椭圆",B,p.circle.map(v=>v.output))],-radius,radius,true),
+   plot("特征值有符号；奇异值记录非负伸缩","索引0、1","特征值／奇异值",[
+    series("eigen","两条特征值",O,[[0,p.large],[1,p.small]],false),series("singular","按大小排列的奇异值",B,p.singular.map((x,i)=>[i,x]),false)],0,1),
+   plot("所有扰动扫描点：Weyl控制值，间隙控制方向","非对角扰动η","奇异值最大位移与扰动范数",[
+    series("shift","最大奇异值位移",B,p.study.map(v=>[v.eta,v.shift])),series("bound","||E||₂=|η|",R,p.study.map(v=>[v.eta,v.normE]))],-4,4),
+   plot("秩0、1、2：实际截断重建的两种残差","保留的秩k","矩阵残差范数",[
+    series("spectral","谱范数尾项",O,p.truncations.map(v=>[v.rank,v.spectral])),series("frobenius","Frobenius全部尾项",B,p.truncations.map(v=>[v.rank,v.frobenius]))],0,2),
+   plot(p.baseUnique?"局部η窗口：方向变化与分离上界":"基准重根：没有唯一方向角","非对角扰动η（完整范围另见扫描表）","sin(与基准顶方向的夹角)",[
+    series("angle","窗口内全部实际sinθ",B,angleStudy.filter(v=>v.angle!==null).map(v=>[v.eta,Math.sin(v.angle)])),
+    series("certificate","窗口内分离条件成立的上界",R,angleStudy.filter(v=>v.certificate!==null).map(v=>[v.eta,v.certificate]),false)],-angleWindow,angleWindow)
   ];
-  var DEFAULT = { presetId: "large-gap", sigma1: 3, sigma2: 1, eta: 0.05 };
-
-  var STYLE_TEXT = [
-    ".svd-lab{--svd-blue:var(--cl-blue,#315f9d);--svd-gold:var(--cl-gold,#9b6a12);--svd-green:var(--cl-green,#39734d);--svd-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;}",
-    ".svd-lab *,.svd-lab *::before,.svd-lab *::after{box-sizing:border-box;}.svd-lab [hidden]{display:none!important;}",
-    ".svd-lab h3,.svd-lab h4{margin:0;color:var(--fg);}.svd-lab h3{font-size:1.18rem;}.svd-lab h4{margin-top:16px;font-size:1rem;}",
-    ".svd-lab button,.svd-lab input{font:inherit;}.svd-lab button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);line-height:1.35;cursor:pointer;overflow-wrap:anywhere;}.svd-lab button:hover{border-color:var(--accent);}.svd-lab button[aria-pressed='true'],.svd-lab button.svd-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:700;}.svd-lab button:disabled{cursor:not-allowed;opacity:.55;}.svd-lab button:focus-visible,.svd-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px;}",
-    ".svd-lab .svd-note,.svd-lab .svd-feedback{color:var(--fg-soft);font-size:13px;line-height:1.65;overflow-wrap:anywhere;}.svd-lab .svd-prompt{margin:14px 0;padding:12px 14px;border-left:3px solid var(--svd-gold);background:var(--bg);}.svd-lab fieldset{min-width:0;margin:0;padding:0;border:0;}.svd-lab legend{margin-bottom:8px;color:var(--fg-soft);font-size:13px;font-weight:750;}.svd-lab .svd-question-list{display:grid;gap:12px;}.svd-lab .svd-question{min-width:0;padding:10px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);}.svd-lab .svd-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}.svd-lab .svd-choice-grid button{font-size:12px;}.svd-lab .svd-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}.svd-lab .svd-actions>*{flex:1 1 170px;}.svd-lab .svd-feedback{min-height:2em;margin:8px 0 0;font-weight:700;}.svd-lab .svd-pass{color:var(--svd-green);}.svd-lab .svd-warn{color:var(--svd-red);}",
-    ".svd-lab .svd-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.svd-lab .svd-layout{display:grid;grid-template-columns:minmax(210px,.72fr) minmax(0,1.28fr);gap:16px;align-items:start;min-width:0;}.svd-lab .svd-controls,.svd-lab .svd-stage{min-width:0;}.svd-lab .svd-controls{display:grid;gap:12px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}.svd-lab .svd-control{display:grid;gap:5px;min-width:0;}.svd-lab .svd-control label,.svd-lab .svd-control-title{color:var(--fg-soft);font-size:13px;font-weight:700;}.svd-lab .svd-control output{color:var(--accent);font-variant-numeric:tabular-nums;}.svd-lab .svd-control input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent);}.svd-lab .svd-scale{display:flex;justify-content:space-between;gap:8px;color:var(--fg-soft);font-size:11px;}.svd-lab .svd-preset-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}.svd-lab .svd-preset-grid button{font-size:12px;}",
-    ".svd-lab .svd-stage-frame{min-width:0;padding:9px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}.svd-lab .svd-stage-title{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin:0 0 8px;color:var(--fg-soft);font-size:13px;}.svd-lab .svd-svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg);}.svd-lab .svd-svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.svd-lab .svd-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.68;}.svd-lab .svd-axis{stroke:currentColor;stroke-width:1.2;stroke-opacity:.72;}.svd-lab .svd-base-vector{stroke:var(--svd-blue);stroke-width:4;}.svd-lab .svd-perturbed-vector{stroke:var(--svd-red);stroke-width:4;}.svd-lab .svd-angle-arc{fill:none;stroke:var(--svd-gold);stroke-width:2;stroke-dasharray:5 4;}.svd-lab .svd-bar-base{fill:var(--svd-blue);}.svd-lab .svd-bar-perturbed{fill:var(--svd-red);}.svd-lab .svd-bar-residual{fill:var(--svd-gold);}",
-    ".svd-lab .svd-legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin:8px 0 0;color:var(--fg-soft);font-size:12px;}.svd-lab .svd-legend span{display:inline-flex;align-items:center;gap:5px;}.svd-lab .svd-swatch{display:inline-block;width:18px;height:3px;background:currentColor;}.svd-lab .svd-swatch-blue{color:var(--svd-blue);}.svd-lab .svd-swatch-red{color:var(--svd-red);}.svd-lab .svd-swatch-gold{color:var(--svd-gold);}.svd-lab .svd-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(122px,1fr));gap:8px;margin:12px 0;}.svd-lab .svd-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.svd-lab .svd-metric:nth-child(1),.svd-lab .svd-metric:nth-child(4){border-top-color:var(--svd-blue);}.svd-lab .svd-metric:nth-child(2),.svd-lab .svd-metric:nth-child(5){border-top-color:var(--svd-gold);}.svd-lab .svd-metric:nth-child(3),.svd-lab .svd-metric:nth-child(6){border-top-color:var(--svd-red);}.svd-lab .svd-metric span{display:block;color:var(--fg-soft);font-size:11.5px;line-height:1.4;}.svd-lab .svd-metric strong{display:block;margin-top:3px;color:var(--fg);font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
-    ".svd-lab .svd-table-wrap{max-width:100%;margin-top:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.svd-lab table{width:100%;min-width:680px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.svd-lab th,.svd-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}.svd-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750;}.svd-lab .svd-interpretation{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--svd-green);background:var(--bg);font-size:13px;line-height:1.7;overflow-wrap:anywhere;}",
-    "@media(max-width:900px){.svd-lab .svd-layout{grid-template-columns:minmax(0,1fr);}}@media(max-width:760px){.svd-lab .svd-choice-grid{grid-template-columns:minmax(0,1fr);}.svd-lab .svd-preset-grid{grid-template-columns:minmax(0,1fr);}}@media(max-width:420px){.svd-lab .svd-stage-frame{padding:6px;}.svd-lab table{font-size:11.5px;}.svd-lab th,.svd-lab td{padding-left:5px;padding-right:5px;}}@media(prefers-reduced-motion:reduce){.svd-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important;}}"
-  ].join("\n");
-
-  function finite(value) {
-    return typeof value === "number" && isFinite(value);
+ }
+ if(s.mode==="qr"){
+  const scans=(field)=>Object.keys(names).map(id=>series(id,names[id],colors[id],p.study.flatMap(v=>{const z=v.methods.find(z=>z.id===id);return z[field]!==null&&z[field]>0?[[Math.log10(v.delta),Math.log10(z[field])]]:[];}),false));
+  return[
+   plot("每个算法的候选解，与实际浮点输入的有理参考","解坐标","解值",[
+    series("reference","实际输入的有理参考",G,p.ref.x.map((v,i)=>[i,v])),
+    ...p.methods.filter(v=>v.x).map(v=>series(v.id,names[v.id],colors[v.id],v.x.map((x,i)=>[i,x]),false))],0,2),
+   plot("算法前向误差：相对于同一实际输入的精确解","log₁₀ δ","log₁₀ 相对前向误差",scans("forward"),-10,Math.log10(.3)),
+   plot("QᵀQ−I的Frobenius范数；正规方程没有Q","log₁₀ δ","log₁₀ 正交性缺陷",scans("orthogonality").filter(v=>v.key!=="normal"),-10,Math.log10(.3)),
+   plot("QR重建残差与正交性分开看","log₁₀ δ","log₁₀ ||QR−A||F / ||A||F",scans("reconstruction").filter(v=>v.key!=="normal"),-10,Math.log10(.3)),
+   plot("数据形成舍入，与算法误差是另一项","log₁₀ δ","log₁₀ 实际输入解与理想数据解的相对差",[
+    series("formation","输入形成误差",O,p.study.filter(v=>v.dataFormation>0).map(v=>[Math.log10(v.delta),Math.log10(v.dataFormation)]),false)],-10,Math.log10(.3))
+  ];
+ }
+ return[
+  plot("同一个候选解：偏移发生在哪个方向","坐标","真实解／候选解",[
+   series("truth","真实解",G,p.truth.map((v,i)=>[i,v])),series("candidate","候选解",O,p.x.map((v,i)=>[i,v]))],0,1),
+  plot("只改单位：原始残差的大小跟着改变","十进制缩放指数","log₁₀ 原始残差（0不取对数）",[
+   series("raw","||b−Ax̂||₂",O,p.study.filter(v=>v.rawResidual>0).map(v=>[v.exponent,Math.log10(v.rawResidual)]))],-12,12),
+  plot("相对误差经过归一化，不随共同缩放改变","十进制缩放指数","无量纲相对误差",[
+   series("backward","允许A,b变化的后向误差",B,p.study.map(v=>[v.exponent,v.eta])),
+   series("forward","候选解的前向误差",R,p.study.map(v=>[v.exponent,v.forward])),
+   series("rhs-only","只允许b变化的后向误差",G,p.study.map(v=>[v.exponent,v.bOnly]))],-12,12),
+  plot("达到最小后向误差的显式输入扰动","对象0：A；对象1：b","相对扰动范数",[
+   series("achieved","实际构造",B,[[0,p.matrixRelative],[1,p.rhsRelative]],false),
+   series("minimal","最小值η",O,[[0,p.eta],[1,p.eta]])],0,1)
+ ];
+}
+function ledgers(d){
+ const s=d.config,p=d.result,t=(key,title,headers,rows)=>({key,title,headers,rows}),matrices=(objects)=>Object.entries(objects).flatMap(([name,A])=>A.flatMap((row,i)=>row.map((v,j)=>[name,i,j,v]))),col=x=>x.map(v=>[v]);
+ if(s.mode==="spectral")return[
+  t("summary","特征值、奇异值与唯一性",[ "量","值"],[["第二对角元",s.second],["η",s.eta],["大特征值",p.large],["小特征值",p.small],["σ1",p.singular[0]],["σ2",p.singular[1]],["基准顶方向唯一",p.baseUnique],["扰动后顶方向唯一",p.topUnique],["本次选择基的角度",p.chosenAngle],["与唯一基准方向的夹角",p.angle],["Weyl最大位移",p.shift],["||E||₂",p.normE],["gap",p.gap],["gap−||E||₂",p.gapLower],["sinθ上界",p.certificate]]),
+  t("matrices","SVD、截断和实际残差的全部项",["矩阵","i","j","数值"],matrices({A:p.A,U:p.U,V:p.V,rankOne:p.rankOne,tail:p.tail})),
+  t("circle","129个单位圆点与真实矩阵作用",["i","θ","输入x","输入y","输出x","输出y"],p.circle.map(v=>[v.i,v.theta,...v.input,...v.output])),
+  t("ranks","每个秩的全部重建元素与尾部范数",["秩","谱残差","Frobenius残差","a00","a01","a10","a11"],p.truncations.map(v=>[v.rank,v.spectral,v.frobenius,...v.matrix.flat()])),
+  t("study","完整η扫描，没有隐藏不定或重根状态",["η","λ+","λ−","σ1","σ2","最大位移","||E||₂","夹角","sinθ上界"],p.study.map(v=>[v.eta,v.large,v.small,v.sigma1,v.sigma2,v.shift,v.normE,v.angle,v.certificate]))
+ ];
+ if(s.mode==="qr"){
+  const mats={A:p.A,b:col(p.b),clean:col(p.clean),nullVector:col(p.nullVector),weakVector:col(p.weakVector)};
+  p.methods.forEach(z=>{for(const k of ["Q","R","QtQ","QR","P","L"])if(z[k])mats[z.id+"."+k]=z[k];for(const k of ["rhs","projected","x","fitted","residual","normalResidual"])if(z[k])mats[z.id+"."+k]=col(z[k]);});
+  return[
+   t("summary","问题条件、数据形成与最优残差",["量","值"],[["δ",s.delta],["正交残差参数ρ",s.rho],["列空间扰动ε",s.noise],["σmax",p.singular[0]],["σmin（重数2）",s.delta],["κ₂(A)",p.condition],["κ₂(AᵀA)数学值",p.condition**2],["有理参考最优残差",p.referenceResidual],["数据形成相对影响",p.dataFormation],["sinθ",p.sinTheta],["tanθ",p.tanTheta]]),
+   t("methods","所有算法的实际误差；失败不填假数",["算法","状态","前向误差(实际输入)","相对理想数据解","原始残差","||Aᵀr||","正交缺陷","QR相对重建误差"],p.methods.map(z=>[names[z.id],z.status,z.forward,z.modelForward,z.residualNorm,z.stationarity,z.orthogonality,z.reconstruction])),
+   t("reference","实际binary64输入的有理解与理想数据解",["i","参考分子","参考分母","参考浮点显示","理想数据解","实际输入解之差"],p.ref.x.map((v,i)=>[i,...p.ref.fractions[i],v,p.ideal[i],v-p.ideal[i]])),
+   t("matrices","四种实际算法的全部矩阵与向量",["对象","i","j","数值"],matrices(mats)),
+   t("gs-steps","Gram–Schmidt每步投影与全部剩余向量",["算法","列j","投影/归一i","系数","分量k","剩余向量或归一列"],p.methods.filter(z=>z.id==="cgs"||z.id==="mgs").flatMap(z=>z.steps.flatMap(v=>v.work.map((x,k)=>[names[z.id],v.j,v.i,v.coefficient,k,x])))),
+   t("reflectors","Householder全部单位反射向量",["k","局部分量","列范数","目标对角","向量分量"],p.methods.find(z=>z.id==="householder").steps.flatMap(v=>v.vector.map((x,i)=>[v.k,i,v.norm,v.alpha,x]))),
+   t("pivots","正规矩阵Cholesky实际主元",["i","j","消去后的值"],p.methods.find(z=>z.id==="normal").steps.map(v=>[v.i,v.j,v.pivot])),
+   t("study","全部δ扫描及每种算法的输出",["δ","κ₂","数据形成误差","参考残差","算法","状态","前向误差","理想模型差","正交缺陷","QR重建差","原始残差","||Aᵀr||"],p.study.flatMap(v=>v.methods.map(z=>[v.delta,v.condition,v.dataFormation,v.referenceResidual,names[z.id],z.status,z.forward,z.modelForward,z.orthogonality,z.reconstruction,z.residualNorm,z.stationarity])))
+  ];
+ }
+ return[
+  t("summary","原始残差与两种相对后向误差",["量","值"],[["δ",s.delta],["候选偏移",s.error],["方向",s.direction],["共同缩放",p.scale],["κ₂",p.condition],["原始残差",p.rawResidual],["相对前向误差",p.forward],["允许A,b的最小后向误差η",p.eta],["只允许b的后向误差",p.bOnly],["构造ΔA的相对范数",p.matrixRelative],["构造Δb的相对范数",p.rhsRelative],["2κη/(1−κη)，条件成立时",p.bound]]),
+  t("matrices","显式达到下界的扰动与解",["对象","i","j","数值"],matrices({A:p.A,b:col(p.b),truth:col(p.truth),candidate:col(p.x),residual:col(p.r),deltaA:p.dA,deltaB:col(p.db),changedA:p.changed,changedB:col(p.changedB),certificateResidual:col(p.certificateResidual)})),
+  t("study","全部25个共同缩放",["指数","原始残差","相对后向误差η","相对前向误差","只允许b的后向误差"],p.study.map(v=>[v.exponent,v.rawResidual,v.eta,v.forward,v.bOnly]))
+ ];
+}
+ const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const tick=v=>v===0?"0":Math.abs(v)<1e-3||Math.abs(v)>=1e4?v.toExponential(2):String(Number(v.toPrecision(4)));
+ function svg(q){
+  const left=q.square?325:100,width=q.square?250:750,height=250,top=85,bottom=335,x=v=>left+width*(v-q.xmin)/(q.xmax-q.xmin),y=v=>bottom-height*(v-q.ymin)/(q.ymax-q.ymin);
+  let s='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="425" role="img" aria-label="'+esc(q.title)+'"><title>'+esc(q.title)+'</title><text x="25" y="32" font-size="22">'+esc(q.title)+'</text>';
+  for(let i=0;i<(q.square?3:5);i++){
+   const v=q.ymin+(q.ymax-q.ymin)*i/(q.square?2:4);
+   s+='<path d="M'+left+' '+y(v)+'H'+(left+width)+'" stroke="currentColor" opacity=".18"/><text x="'+(left-12)+'" y="'+(y(v)+5)+'" text-anchor="end">'+tick(v)+'</text>';
   }
-
-  function near(left, right, tolerance) {
-    var scale = Math.max(1, Math.abs(left), Math.abs(right));
-    return Math.abs(left - right) <= (tolerance || EPS) * scale;
+  const ticks=q.xTicks||Array.from({length:5},(_,i)=>q.xmin+(q.xmax-q.xmin)*i/4);
+  for(const v of ticks)s+='<text x="'+x(v)+'" y="'+(bottom+28)+'" text-anchor="middle">'+tick(v)+'</text>';
+  if(q.ymin<=0&&q.ymax>=0)s+='<line data-zero="true" x1="'+left+'" x2="'+(left+width)+'" y1="'+y(0)+'" y2="'+y(0)+'" stroke="currentColor" opacity=".7"/>';
+  s+='<text x="'+left+'" y="65">'+esc(q.y)+'</text><text x="'+(left+width/2)+'" y="'+(bottom+63)+'" text-anchor="middle">'+esc(q.x)+'</text>';
+  for(const series of q.series){
+   if(series.area)s+='<rect data-area="'+series.key+'" x="'+x(series.points[0][0])+'" y="'+y(series.points[0][1])+'" width="'+(x(series.points[1][0])-x(series.points[0][0]))+'" height="'+(y(0)-y(series.points[0][1]))+'" fill="'+series.color+'" opacity=".12"/>';
+   if(series.line)s+='<polyline data-series="'+series.key+'" points="'+series.points.map(p=>x(p[0])+','+y(p[1])).join(" ")+'" stroke="'+series.color+'" stroke-width="2" fill="none"/>';
+   series.points.forEach((p,i)=>{const open=series.endOpen&&i===series.points.length-1;s+='<circle data-series="'+series.key+'" data-index="'+i+'" data-open="'+!!open+'" cx="'+x(p[0])+'" cy="'+y(p[1])+'" r="'+(series.endOpen?3.5:series.line?1.8:3.5)+'" fill="'+(open?"var(--bg,#faf7ef)":series.color)+'" stroke="'+series.color+'"/>';});
   }
-
-  function clamp(value, minimum, maximum) {
-    return Math.max(minimum, Math.min(maximum, value));
+  for(const [i,m]of (q.markers||[]).entries()){
+   const px=x(m.x),right=px>700;
+   s+='<line data-marker="'+i+'" x1="'+px+'" x2="'+px+'" y1="'+top+'" y2="'+bottom+'" stroke="currentColor" stroke-dasharray="5 5" opacity=".65"/><text x="'+(px+(right?-4:4))+'" y="'+(80+25*q.markers.slice(0,i).filter(p=>Math.abs(px-x(p.x))<110).length)+'" font-size="13" text-anchor="'+(right?'end':'start')+'">'+esc(m.label)+'</text>';
   }
+  return s+"</svg>";
+ }
 
-  function presetById(id) {
-    for (var index = 0; index < PRESETS.length; index += 1) {
-      if (PRESETS[index].id === id) return PRESETS[index];
-    }
-    return PRESETS[0];
+ const STYLE=".svd143{color:var(--fg,#273646)}.svd143 .svd-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}.svd143 label{display:flex;flex-direction:column;gap:6px}.svd143 input,.svd143 select{font:inherit;padding:8px;max-width:100%;background:var(--bg,#fff);color:inherit;border:1px solid #8b98a0;border-radius:5px}.svd143 button{font:inherit;padding:8px 12px;margin:5px;cursor:pointer}.svd143 button[aria-pressed=true]{outline:3px solid #478aaa}.svd143 .svd-scroll{overflow:auto;max-width:100%;margin:16px 0}.svd143 .svd-scroll:focus{outline:3px solid #478aaa}.svd143 .svd-ledger{max-height:420px}.svd143 svg{width:900px!important;max-width:none!important;display:block;fill:currentColor;font:16px system-ui}.svd143 table{display:table;overflow:visible;width:max-content;max-width:none;min-width:900px;border-collapse:collapse;font-variant-numeric:tabular-nums}.svd143 th,.svd143 td{padding:9px;border:1px solid #98a4ab;text-align:left;white-space:nowrap}.svd143 .svd-error{color:#c74b39}.svd143 [hidden]{display:none!important}.svd143 fieldset{margin:16px 0;padding:12px}.svd143 details{margin:16px 0}.svd143 summary{cursor:pointer;font-weight:600}.svd143 .svd-legend{font-size:.95em}.svd143 .svd-note{line-height:1.7}.svd143 [hidden]{display:none!important}.svd143 select{font:inherit;color:var(--fg,#282820);background:var(--bg,#faf7ef);padding:8px;max-width:100%}";
+ function mount(container){
+  const doc=container.ownerDocument;
+  if(!doc.getElementById("svd143-style")){const style=doc.createElement("style");style.id="svd143-style";style.textContent=STYLE;doc.head.appendChild(style);}
+  const field=(key,label,modes)=>'<label data-modes="'+modes+'">'+label+'<input data-key="'+key+'" type="number" step="any"></label>';
+  container.innerHTML='<div class="svd143"><h3>同一矩阵，哪些误差可以互相推出？</h3><p>先区分伸缩、方向、拟合残差与算法误差，再执行实际矩阵运算。</p><div class="svd-presets">'+PRESETS.map(p=>'<button type="button" data-preset="'+p.id+'">'+esc(p.label)+'</button>').join("")+'</div><div class="svd-controls"><label>模型<select data-key="mode"><option value="spectral">SVD、间隙与低秩逼近</option><option value="qr">实际QR与最小二乘</option><option value="backward">后向误差与单位缩放</option></select></label>'+
+   field("second","第二对角元（0.5–3）","spectral")+field("eta","非对角扰动η（−4–4）","spectral")+
+   field("delta","δ（QR：10⁻¹⁰–0.3；方程：10⁻¹⁰–1）","qr backward")+
+   field("rho","理想正交残差ρ（0–1）","qr")+field("noise","列空间扰动ε（0–10⁻⁴）","qr")+
+   field("error","候选解偏移（−0.9–10）","backward")+field("scaleExponent","共同缩放10的指数（−12–12整数）","backward")+
+   '<label data-modes="backward">候选偏移方向<select data-key="direction"><option value="weak">弱方向：第二坐标</option><option value="strong">强方向：第一坐标</option></select></label></div>'+
+   QUESTIONS.map((q,i)=>'<fieldset data-question="'+i+'"><legend>'+(i+1)+'. '+esc(q[0])+'</legend>'+q[1].map((v,j)=>'<button type="button" data-choice="'+j+'" aria-pressed="false">'+esc(v)+'</button>').join("")+'</fieldset>').join("")+
+   '<button type="button" data-action="reveal">揭示图与完整账本</button><button type="button" data-action="reset">重置预测</button><p class="svd-error" role="alert"></p><p role="status"></p><div class="svd-results" hidden></div></div>';
+  const fields=Array.from(container.querySelectorAll("[data-key]")),answers=Array(4).fill(null),result=container.querySelector(".svd-results"),reveal=container.querySelector("[data-action=reveal]"),feedback=container.querySelector("[role=status]"),error=container.querySelector("[role=alert]");
+  fields.forEach(e=>e.value=DEFAULTS[e.dataset.key]);
+  let revealed=false,valid=null;
+  function render(d){
+   const notes={spectral:"矩阵始终实对称，但可以不定。奇异值由特征值绝对值给出；不能把负特征值画成负奇异值。重奇异值时算法仍能选取一组基，却没有数学上唯一的单根方向。角度相对于基准唯一顶方向定义；基准重根时留空。",qr:"四种方法实际计算同一4×3矩阵和右端。参考解由实际binary64输入的精确有理数闭式求得，最终显示转回浮点数；另列理想数据解，避免把生成数据时的舍入误差算到求解器头上。正规矩阵失去正主元时明确失败，不偷偷正则化。",backward:"本模式直接给定候选解，不伪装成某算法的输出。明确允许A与b同时变化，并显式构造达到最小相对后向误差的扰动；只允许b变化的量另列。原始残差随共同缩放变化，相对量保持不变到浮点舍入。"};
+   result.innerHTML='<p>'+notes[d.config.mode]+'</p>'+
+    plots(d).map(q=>'<p>'+q.series.filter((s,i,ss)=>ss.findIndex(t=>t.label===s.label&&t.color===s.color)===i).map(s=>esc(s.label)+'（'+({"#268bd2":"蓝","#cb6a16":"橙","#29966c":"绿","#9966bb":"紫","#b44a72":"玫红"}[s.color])+'）').join("；")+'</p><div class="svd-scroll" role="region" tabindex="0" aria-label="'+esc(q.title)+'">'+svg(q)+'</div>').join("")+
+    ledgers(d).map(t=>'<details data-ledger="'+t.key+'"'+(t.key==="summary"?' open':"")+'><summary>'+esc(t.title)+'（'+t.rows.length+' 行）</summary><div class="svd-scroll svd-ledger" role="region" tabindex="0" aria-label="'+esc(t.title)+'"><table data-table="'+t.key+'"><thead><tr>'+t.headers.map(x=>'<th scope="col">'+esc(x)+'</th>').join("")+'</tr></thead><tbody>'+t.rows.map(r=>'<tr>'+r.map(x=>'<td>'+esc(fmt(x))+'</td>').join("")+'</tr>').join("")+'</tbody></table></div></details>').join("")+
+    '<p>“—”表示未定义或算法失败，不是0。对数图只绘制严格正的量，真实0与失败仍在全表中分别保留，没有加绘图下限。QR重建残差、正交性缺陷、最小二乘拟合残差和前向误差各有独立列；小残差不是所有这些性质的共同证书。有限浮点核对不能替代理论证明或严格区间界。</p>';
   }
-
-  function presetState(preset) {
-    return { presetId: preset.id, sigma1: preset.sigma1, sigma2: preset.sigma2, eta: preset.eta };
+  function update(){
+   const raw=Object.fromEntries(fields.map(e=>[e.dataset.key,e.value]));
+   container.querySelectorAll("[data-modes]").forEach(e=>e.hidden=!e.dataset.modes.split(" ").includes(raw.mode));
+   try{valid=config(raw);error.textContent="";}catch(e){valid=null;revealed=false;error.textContent=e.message;}
+   reveal.disabled=!valid||answers.some(x=>x===null);result.hidden=!revealed;
+   if(revealed&&valid)render(snapshot(valid));
+   feedback.textContent=revealed?answers.filter((x,i)=>x===QUESTIONS[i][2]).length+" / 4。"+QUESTIONS.map(q=>q[3]).join(" "):"";
   }
+  fields.forEach(e=>e.addEventListener(e.tagName==="SELECT"?"change":"input",update));
+  container.querySelectorAll("[data-choice]").forEach(b=>b.addEventListener("click",()=>{
+   const i=Number(b.closest("[data-question]").dataset.question);answers[i]=Number(b.dataset.choice);b.parentElement.querySelectorAll("[data-choice]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));update();
+  }));
+  container.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{
+   const s=Object.assign({},DEFAULTS,PRESETS.find(p=>p.id===b.dataset.preset));fields.forEach(e=>e.value=s[e.dataset.key]);update();
+  }));
+  reveal.addEventListener("click",()=>{if(!reveal.disabled){revealed=true;update();}});
+  container.querySelector("[data-action=reset]").addEventListener("click",()=>{answers.fill(null);revealed=false;container.querySelectorAll("[data-choice]").forEach(b=>b.setAttribute("aria-pressed","false"));update();container.querySelector("[data-choice]").focus();});
+  update();
+ }
 
-  function symmetricSpectrum(a, b, d) {
-    var middle = (a + d) / 2;
-    var halfGap = (a - d) / 2;
-    var radius = Math.sqrt(halfGap * halfGap + b * b);
-    return {
-      largest: middle + radius,
-      smallest: middle - radius,
-      angle: 0.5 * Math.atan2(2 * b, a - d)
-    };
-  }
 
-  function frobenius(matrix) {
-    var sum = 0;
-    matrix.forEach(function (row) {
-      row.forEach(function (value) { sum += value * value; });
-    });
-    return Math.sqrt(sum);
-  }
 
-  function spectralNormSymmetric2(matrix) {
-    var spectrum = symmetricSpectrum(matrix[0][0], matrix[0][1], matrix[1][1]);
-    return Math.max(Math.abs(spectrum.largest), Math.abs(spectrum.smallest));
-  }
 
-  function subtractMatrices(left, right) {
-    return left.map(function (row, rowIndex) {
-      return row.map(function (value, columnIndex) {
-        return value - right[rowIndex][columnIndex];
-      });
-    });
-  }
 
-  function outer(vector, scale) {
-    return [
-      [scale * vector[0] * vector[0], scale * vector[0] * vector[1]],
-      [scale * vector[1] * vector[0], scale * vector[1] * vector[1]]
-    ];
-  }
 
-  function compute(spec) {
-    var options = spec || {};
-    var preset = presetById(options.presetId || DEFAULT.presetId);
-    var sigma1 = options.sigma1 === undefined ? preset.sigma1 : Number(options.sigma1);
-    var sigma2 = options.sigma2 === undefined ? preset.sigma2 : Number(options.sigma2);
-    var eta = options.eta === undefined ? preset.eta : Number(options.eta);
-    if (!finite(sigma1) || !finite(sigma2) || sigma1 <= sigma2 || sigma2 <= 0) throw new RangeError("require sigma1 > sigma2 > 0");
-    if (!finite(eta) || eta < 0) throw new RangeError("eta must be nonnegative");
 
-    var baseline = [[sigma1, 0], [0, sigma2]];
-    var perturbation = [[0, eta], [eta, 0]];
-    var perturbed = [[sigma1, eta], [eta, sigma2]];
-    var spectrum = symmetricSpectrum(sigma1, eta, sigma2);
-    var topVector = [Math.cos(spectrum.angle), Math.sin(spectrum.angle)];
-    var rankOne = outer(topVector, spectrum.largest);
-    var residual = subtractMatrices(perturbed, rankOne);
-    var normE = Math.abs(eta);
-    var gap = sigma1 - sigma2;
-    var gapLower = gap - normE;
-    var maxSingularShift = Math.max(Math.abs(spectrum.largest - sigma1), Math.abs(spectrum.smallest - sigma2));
-    var certificateRaw = gapLower > 0 ? normE / gapLower : Infinity;
-    return {
-      label: options.presetId === "custom" ? "自定义" : preset.label,
-      preset: preset,
-      sigma1: sigma1,
-      sigma2: sigma2,
-      eta: eta,
-      baseline: baseline,
-      perturbation: perturbation,
-      perturbed: perturbed,
-      normE: normE,
-      singularValuesBefore: [sigma1, sigma2],
-      singularValuesAfter: [spectrum.largest, spectrum.smallest],
-      maxSingularShift: maxSingularShift,
-      weylMargin: normE - maxSingularShift,
-      gap: gap,
-      gapLower: gapLower,
-      angle: spectrum.angle,
-      angleDeg: spectrum.angle * 180 / Math.PI,
-      sinAngle: Math.abs(Math.sin(spectrum.angle)),
-      topVector: topVector,
-      rankOne: rankOne,
-      residual: residual,
-      lowRankSpectral: spectralNormSymmetric2(residual),
-      lowRankFrobenius: frobenius(residual),
-      residualSpectralIdentity: Math.abs(spectralNormSymmetric2(residual) - spectrum.smallest),
-      residualFrobeniusIdentity: Math.abs(frobenius(residual) - spectrum.smallest),
-      gapCertificate: gapLower > 0 ? Math.min(1, certificateRaw) : null,
-      gapCertificateRaw: certificateRaw,
-      gapCertificateValid: gapLower > 0
-    };
-  }
 
-  function format(value, digits) {
-    if (value === Infinity) return "∞";
-    if (value === -Infinity) return "-∞";
-    if (!finite(value)) return "—";
-    var places = digits === undefined ? 4 : digits;
-    if (Math.abs(value) < 0.0005 && value !== 0) return value.toExponential(Math.min(places, 4));
-    var text = value.toFixed(places);
-    return text.indexOf(".") === -1 ? text : text.replace(/0+$/, "").replace(/\.$/, "");
-  }
 
-  function setAttributes(node, attrs) {
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", String(value));
-      else if (key === "htmlFor") node.setAttribute("for", String(value));
-      else if (key === "text") node.textContent = String(value);
-      else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, String(value));
-    });
-    return node;
-  }
 
-  function appendChildren(node, children) {
-    var list = Array.isArray(children) ? children : [children];
-    list.forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child && child.nodeType ? child : node.ownerDocument.createTextNode(String(child)));
-    });
-    return node;
-  }
 
-  function element(doc, tag, attrs, children) {
-    return appendChildren(setAttributes(doc.createElement(tag), attrs || {}), children || []);
-  }
 
-  function svgElement(doc, tag, attrs, children) {
-    return appendChildren(setAttributes(doc.createElementNS(SVG_NS, tag), attrs || {}), children || []);
-  }
-
-  function clear(node) {
-    while (node && node.firstChild) node.removeChild(node.firstChild);
-  }
-
-  function installStyles(doc) {
-    if (!doc || !doc.head || doc.getElementById(STYLE_ID)) return;
-    var style = doc.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = STYLE_TEXT;
-    doc.head.appendChild(style);
-  }
-
-  function metric(doc, label) {
-    var value = element(doc, "strong", {}, ["—"]);
-    return { node: element(doc, "div", { className: "svd-metric" }, [element(doc, "span", {}, [label]), value]), value: value };
-  }
-
-  function table(doc, label, headers) {
-    return element(doc, "table", { "aria-label": label }, [
-      element(doc, "thead", {}, [element(doc, "tr", {}, headers.map(function (header) { return element(doc, "th", { scope: "col" }, [header]); }))]),
-      element(doc, "tbody", {}, [])
-    ]);
-  }
-
-  function replaceRows(target, rows) {
-    var body = target.querySelector("tbody");
-    clear(body);
-    rows.forEach(function (row) {
-      body.appendChild(element(target.ownerDocument, "tr", {}, row.map(function (value) {
-        return element(target.ownerDocument, "td", {}, [value]);
-      })));
-    });
-  }
-
-  function drawSvg(doc, svg, data, uid) {
-    clear(svg);
-    svg.setAttribute("aria-labelledby", uid + "-svg-title " + uid + "-svg-desc");
-    svg.appendChild(svgElement(doc, "title", { id: uid + "-svg-title" }, ["SVD 扰动的奇异向量旋转与奇异值条形图"]));
-    svg.appendChild(svgElement(doc, "desc", { id: uid + "-svg-desc" }, ["左侧比较未扰动和扰动后的顶右奇异向量；右侧比较两个奇异值与 rank-1 残差。"]));
-
-    var centerX = 145;
-    var centerY = 164;
-    var radius = 94;
-    svg.appendChild(svgElement(doc, "text", { x: 38, y: 25, "font-size": 12, "font-weight": 700 }, ["右奇异向量：gap 越小，角度越敏感"]));
-    svg.appendChild(svgElement(doc, "circle", { cx: centerX, cy: centerY, r: radius, fill: "none", class: "svd-grid" }, []));
-    svg.appendChild(svgElement(doc, "line", { x1: centerX - radius, y1: centerY, x2: centerX + radius, y2: centerY, class: "svd-axis" }, []));
-    svg.appendChild(svgElement(doc, "line", { x1: centerX, y1: centerY - radius, x2: centerX, y2: centerY + radius, class: "svd-axis" }, []));
-    svg.appendChild(svgElement(doc, "line", { x1: centerX, y1: centerY, x2: centerX + radius, y2: centerY, class: "svd-base-vector" }, []));
-    svg.appendChild(svgElement(doc, "line", { x1: centerX, y1: centerY, x2: centerX + radius * Math.cos(data.angle), y2: centerY - radius * Math.sin(data.angle), class: "svd-perturbed-vector" }, []));
-    var arcEndX = centerX + 42 * Math.cos(data.angle);
-    var arcEndY = centerY - 42 * Math.sin(data.angle);
-    svg.appendChild(svgElement(doc, "path", { d: "M " + (centerX + 42) + " " + centerY + " A 42 42 0 0 0 " + arcEndX + " " + arcEndY, class: "svd-angle-arc" }, []));
-    svg.appendChild(svgElement(doc, "text", { x: centerX + 48, y: centerY - 10, "font-size": 11 }, ["θ=" + format(data.angleDeg, 2) + "°"]));
-    svg.appendChild(svgElement(doc, "text", { x: centerX + radius + 5, y: centerY + 4, "font-size": 11 }, ["v₁(A)"]));
-    svg.appendChild(svgElement(doc, "text", { x: centerX + radius * Math.cos(data.angle) + 5, y: centerY - radius * Math.sin(data.angle) - 5, "font-size": 11 }, ["v₁(A+E)"]));
-
-    var chartLeft = 360;
-    var chartRight = 674;
-    var chartTop = 48;
-    var chartBottom = 250;
-    var values = [data.sigma1, data.singularValuesAfter[0], data.sigma2, data.singularValuesAfter[1]];
-    var maximum = Math.max(1, Math.max.apply(null, values) * 1.18);
-    var mapY = function (value) { return chartBottom - (chartBottom - chartTop) * value / maximum; };
-    svg.appendChild(svgElement(doc, "text", { x: chartLeft, y: 25, "font-size": 12, "font-weight": 700 }, ["奇异值稳定性与 rank-1 残差"]));
-    svg.appendChild(svgElement(doc, "line", { x1: chartLeft, y1: chartBottom, x2: chartRight, y2: chartBottom, class: "svd-axis" }, []));
-    [0, maximum / 2, maximum].forEach(function (value) {
-      var y = mapY(value);
-      svg.appendChild(svgElement(doc, "line", { x1: chartLeft, y1: y, x2: chartRight, y2: y, class: "svd-grid" }, []));
-      svg.appendChild(svgElement(doc, "text", { x: chartLeft - 8, y: y + 4, "text-anchor": "end", "font-size": 10 }, [format(value, 1)]));
-    });
-    var labels = ["σ₁ A", "σ₁ A+E", "σ₂ A", "σ₂ A+E"];
-    var classes = ["svd-bar-base", "svd-bar-perturbed", "svd-bar-residual", "svd-bar-perturbed"];
-    var group = (chartRight - chartLeft) / values.length;
-    values.forEach(function (value, index) {
-      var x = chartLeft + group * index + group * 0.2;
-      var width = group * 0.6;
-      svg.appendChild(svgElement(doc, "rect", { x: x, y: mapY(value), width: width, height: chartBottom - mapY(value), class: classes[index] }, []));
-      svg.appendChild(svgElement(doc, "text", { x: x + width / 2, y: chartBottom + 17, "text-anchor": "middle", "font-size": 10 }, [labels[index]]));
-      svg.appendChild(svgElement(doc, "text", { x: x + width / 2, y: mapY(value) - 6, "text-anchor": "middle", "font-size": 10 }, [format(value, 3)]));
-    });
-  }
-
-  function mount(root, api) {
-    if (!root || !root.ownerDocument || !root.appendChild) return;
-    var doc = root.ownerDocument;
-    installStyles(doc);
-    INSTANCE += 1;
-    var uid = "cl-svd-" + INSTANCE;
-    var shell = element(doc, "div", { className: "svd-lab" }, []);
-    var state = presetState(presetById(DEFAULT.presetId));
-    var prediction = { values: null, vectors: null, residual: null, certificate: null };
-    var revealed = false;
-    var score = 0;
-    var refs = {};
-    root.replaceChildren(shell);
-
-    function announce(message) {
-      if (api && typeof api.announce === "function") api.announce(root, message);
-    }
-
-    function complete() {
-      return Object.keys(prediction).every(function (key) { return prediction[key] !== null; });
-    }
-
-    function addQuestion(container, key, prompt, options) {
-      var fieldset = element(doc, "fieldset", { className: "svd-question" }, [element(doc, "legend", {}, [prompt])]);
-      var row = element(doc, "div", { className: "svd-choice-grid", role: "group", "aria-label": prompt }, []);
-      options.forEach(function (option) {
-        var button = element(doc, "button", { type: "button", "aria-pressed": prediction[key] === option.value ? "true" : "false", disabled: revealed }, [option.label]);
-        button.addEventListener("click", function () {
-          if (revealed) return;
-          prediction[key] = option.value;
-          renderShell();
-        });
-        row.appendChild(button);
-      });
-      fieldset.appendChild(row);
-      container.appendChild(fieldset);
-    }
-
-    function buildPrediction() {
-      shell.appendChild(element(doc, "h3", {}, ["SVD 扰动台：奇异值稳定，奇异向量未必稳定"]));
-      shell.appendChild(element(doc, "p", { className: "svd-note" }, [revealed ? "预测已提交；现在可以连续改变 σ₂ 和 ||E||₂，观察 Weyl、gap 证书与低秩残差。" : "这是一个对称正定 2×2 toy：先预测，再打开确定的矩阵账本。"]));
-      shell.appendChild(element(doc, "div", { className: "svd-prompt" }, [revealed ? "同一个 ||E||₂ 可以给出很小的奇异值变化，却在小 gap 下造成很大的向量旋转。" : "预测门：把“谱值的 Lipschitz 稳定性”和“方向的 gap 敏感性”分开。"]));
-      var questions = element(doc, "div", { className: "svd-question-list" }, []);
-      addQuestion(questions, "values", "1 · Weyl 对奇异值给出的正确读法是？", [
-        { value: "bound", label: "|Δσᵢ|≤||E||₂" }, { value: "gap", label: "必须除以 gap" }, { value: "exact", label: "每次正好等于 ||E||₂" }
-      ]);
-      addQuestion(questions, "vectors", "2 · gap 变小时，同样大小的扰动对奇异向量会怎样？", [
-        { value: "sensitive", label: "可能明显旋转" }, { value: "fixed", label: "仍完全不动" }, { value: "zero", label: "奇异值变成 0" }
-      ]);
-      addQuestion(questions, "residual", "3 · rank-1 截断 SVD 的 2-范数残差在本 toy 中等于？", [
-        { value: "next", label: "σ₂(A+E)" }, { value: "top", label: "σ₁(A+E)" }, { value: "perturbation", label: "||E||₂" }
-      ]);
-      addQuestion(questions, "certificate", "4 · 使用 ||E||₂/(gap−||E||₂) 的角度证书，首先要什么？", [
-        { value: "positive", label: "gap−||E||₂>0" }, { value: "none", label: "不需要 gap" }, { value: "rank", label: "A 必须满秩三次" }
-      ]);
-      shell.appendChild(questions);
-      var actions = element(doc, "div", { className: "svd-actions" }, []);
-      var check = element(doc, "button", { type: "button", className: "svd-primary", disabled: revealed || !complete() }, [revealed ? "已提交，账本已揭示" : "提交预测并揭示"]);
-      check.addEventListener("click", function () {
-        if (!complete()) return;
-        var answers = { values: "bound", vectors: "sensitive", residual: "next", certificate: "positive" };
-        score = Object.keys(answers).reduce(function (total, key) { return total + (prediction[key] === answers[key] ? 1 : 0); }, 0);
-        revealed = true;
-        renderShell();
-        announce("预测已提交，Weyl、gap 和低秩残差账本已揭示。");
-      });
-      var reset = element(doc, "button", { type: "button" }, [revealed ? "重新预测" : "重置"]);
-      reset.addEventListener("click", resetToGate);
-      actions.appendChild(check);
-      actions.appendChild(reset);
-      shell.appendChild(actions);
-      var feedback = !complete() ? "请为四个判断各选一项。" : revealed ? "预测已提交，" + score + "/4 命中。" : "四项预测已记录，点击提交后才会显示数值。";
-      shell.appendChild(element(doc, "p", { className: "svd-feedback " + (revealed ? (score === 4 ? "svd-pass" : "svd-warn") : ""), "aria-live": "polite" }, [feedback]));
-    }
-
-    function addRange(container, key, label, minimum, maximum, step, formatter) {
-      var id = uid + "-" + key;
-      var output = element(doc, "output", { for: id }, [""]);
-      var input = element(doc, "input", { id: id, type: "range", min: String(minimum), max: String(maximum), step: String(step), value: String(state[key]), "aria-label": label }, []);
-      input.addEventListener("input", function () {
-        state[key] = clamp(Number(input.value), minimum, maximum);
-        state.presetId = "custom";
-        renderResults();
-      });
-      container.appendChild(element(doc, "div", { className: "svd-control" }, [
-        element(doc, "label", { htmlFor: id }, [label + " = ", output]), input,
-        element(doc, "div", { className: "svd-scale" }, [element(doc, "span", {}, [formatter(minimum)]), element(doc, "span", {}, [formatter((minimum + maximum) / 2)]), element(doc, "span", {}, [formatter(maximum)])])
-      ]));
-      return { input: input, output: output };
-    }
-
-    function buildControls() {
-      var controls = element(doc, "section", { className: "svd-controls", "aria-labelledby": uid + "-controls" }, [element(doc, "h4", { id: uid + "-controls" }, ["揭示后的参数"])]);
-      refs.sigma2 = addRange(controls, "sigma2", "第二奇异值 σ₂", 0.5, 2.99, 0.01, function (value) { return format(value, 2); });
-      refs.eta = addRange(controls, "eta", "扰动 ||E||₂", 0, 0.2, 0.005, function (value) { return format(value, 3); });
-      var presetSet = element(doc, "fieldset", {}, [element(doc, "legend", {}, ["教学预设"])]);
-      var presetGrid = element(doc, "div", { className: "svd-preset-grid" }, []);
-      PRESETS.forEach(function (preset) {
-        var button = element(doc, "button", { type: "button", "aria-pressed": preset.id === state.presetId ? "true" : "false" }, [preset.label]);
-        button.addEventListener("click", function () {
-          state = presetState(preset);
-          renderResults();
-          announce("已切换到" + preset.label + "。");
-        });
-        presetGrid.appendChild(button);
-      });
-      presetSet.appendChild(presetGrid);
-      controls.appendChild(presetSet);
-      controls.appendChild(element(doc, "p", { className: "svd-note" }, ["这里的 A=diag(σ₁,σ₂)，E 的非零项为 E₁₂=E₂₁=η；正定对称 toy 让右奇异向量等同于特征向量，方便把 gap 证书逐项算清。"]));
-      var reset = element(doc, "button", { type: "button" }, ["重新预测"]);
-      reset.addEventListener("click", resetToGate);
-      controls.appendChild(reset);
-      return controls;
-    }
-
-    function buildStage() {
-      var stage = element(doc, "section", { className: "svd-stage", "aria-labelledby": uid + "-stage" }, []);
-      refs.svg = svgElement(doc, "svg", { class: "svd-svg", width: "700", height: "300", viewBox: "0 0 700 300", role: "img" }, []);
-      stage.appendChild(element(doc, "div", { className: "svd-stage-frame" }, [
-        element(doc, "div", { className: "svd-stage-title" }, [element(doc, "span", { id: uid + "-stage" }, ["向量旋转与奇异值条形图"]), element(doc, "span", {}, ["蓝：A；红：A+E；金：rank-1 残差"])]),
-        refs.svg,
-        element(doc, "div", { className: "svd-legend" }, [element(doc, "span", {}, [element(doc, "i", { className: "svd-swatch svd-swatch-blue" }, []), "基准 A"]), element(doc, "span", {}, [element(doc, "i", { className: "svd-swatch svd-swatch-red" }, []), "扰动 A+E"]), element(doc, "span", {}, [element(doc, "i", { className: "svd-swatch svd-swatch-gold" }, []), "低秩残差"])])
-      ]));
-      refs.metrics = [metric(doc, "||E||₂"), metric(doc, "max |Δσᵢ|"), metric(doc, "gap"), metric(doc, "向量角 θ"), metric(doc, "sin θ"), metric(doc, "rank-1 残差")];
-      stage.appendChild(element(doc, "div", { className: "svd-metrics" }, refs.metrics.map(function (item) { return item.node; })));
-      stage.appendChild(element(doc, "h4", {}, ["Weyl 与 gap 证书账本"]));
-      refs.spectrumTable = table(doc, "Weyl 奇异值与 gap 账本", ["账本项", "数值", "证书 / 读法"]);
-      stage.appendChild(element(doc, "div", { className: "svd-table-wrap" }, [refs.spectrumTable]));
-      stage.appendChild(element(doc, "h4", {}, ["低秩逼近残差账本"]));
-      refs.residualTable = table(doc, "截断 SVD 残差账本", ["对象", "数值", "核对"]);
-      stage.appendChild(element(doc, "div", { className: "svd-table-wrap" }, [refs.residualTable]));
-      refs.interpretation = element(doc, "p", { className: "svd-interpretation", "aria-live": "polite" }, [""]);
-      stage.appendChild(refs.interpretation);
-      return stage;
-    }
-
-    function renderResults() {
-      if (!revealed) return;
-      var data = compute(state);
-      refs.sigma2.input.value = String(data.sigma2);
-      refs.sigma2.output.textContent = format(data.sigma2, 3);
-      refs.eta.input.value = String(data.eta);
-      refs.eta.output.textContent = format(data.eta, 3);
-      refs.metrics[0].value.textContent = format(data.normE, 5);
-      refs.metrics[1].value.textContent = format(data.maxSingularShift, 5);
-      refs.metrics[2].value.textContent = format(data.gap, 5);
-      refs.metrics[3].value.textContent = format(data.angleDeg, 3) + "°";
-      refs.metrics[4].value.textContent = format(data.sinAngle, 6);
-      refs.metrics[5].value.textContent = format(data.lowRankSpectral, 5);
-      drawSvg(doc, refs.svg, data, uid);
-      var after = data.singularValuesAfter;
-      replaceRows(refs.spectrumTable, [
-        ["A 与 E", "A=diag(" + format(data.sigma1, 3) + "," + format(data.sigma2, 3) + ")；||E||₂=" + format(data.normE, 5), "||E||₂ 是本 toy 的精确扰动范数"],
-        ["奇异值", "σ(A)=" + data.singularValuesBefore.map(function (value) { return format(value, 5); }).join(", ") + "；σ(A+E)=" + after.map(function (value) { return format(value, 5); }).join(", "), "对称正定时就是两条特征值"],
-        ["Weyl 最大位移", format(data.maxSingularShift, 8), "≤||E||₂；余量=" + format(data.weylMargin, 8)],
-        ["gap", format(data.gap, 8), "σ₁(A)−σ₂(A)，方向稳定性的分母尺度"],
-        ["扰动后分离下界", format(data.gapLower, 8), "Weyl 给出的 gap−||E||₂；必须为正才是有信息的证书"],
-        ["角度证书", data.gapCertificateValid ? "sin θ≤min(1," + format(data.gapCertificateRaw, 6) + ")" : "无：gap−||E||₂≤0", "小 gap 时证书变宽，不能把 Weyl 当成向量稳定"],
-        ["实际向量角", format(data.angleDeg, 6) + "°；sin θ=" + format(data.sinAngle, 8), "同样的 ||E||₂，gap 越小角度越大"]
-      ]);
-      replaceRows(refs.residualTable, [
-        ["rank-1 近似", "A₁=σ₁(A+E)v₁v₁ᵀ", "v₁ 是扰动后顶右奇异向量"],
-        ["2-范数残差", format(data.lowRankSpectral, 8), "||A+E−A₁||₂=σ₂(A+E)；差=" + format(data.residualSpectralIdentity, 3)],
-        ["Frobenius 残差", format(data.lowRankFrobenius, 8), "2×2 rank-1 时也等于 σ₂；差=" + format(data.residualFrobeniusIdentity, 3)],
-        ["Weyl 与低秩分工", "值的位移 ≤||E||₂；残差=下一奇异值", "稳定性结论与压缩误差结论是两笔不同账"]
-      ]);
-      var certificateText = data.gapCertificateValid ? "gap−||E||₂ 为正，角度证书可用但可能很宽。" : "gap−||E||₂ 不为正，角度证书失效；这不否定 Weyl，只说明方向分离不足。";
-      refs.interpretation.textContent = data.label + "：奇异值最大位移 " + format(data.maxSingularShift, 5) + " ≤ ||E||₂=" + format(data.normE, 5) + "；" + certificateText + " rank-1 残差仍精确等于 σ₂(A+E)=" + format(after[1], 5) + "。";
-    }
-
-    function buildRevealed() {
-      var panel = element(doc, "section", { className: "svd-revealed" }, [element(doc, "h4", {}, ["结果与透明账本"]), element(doc, "p", { className: "svd-note" }, ["拖动 σ₂ 改变 gap，拖动 ||E||₂ 改变扰动；每次都同时更新 Weyl 位移、向量角度、分离证书和截断残差。"])]);
-      panel.appendChild(element(doc, "div", { className: "svd-layout" }, [buildControls(), buildStage()]));
-      shell.appendChild(panel);
-      renderResults();
-    }
-
-    function renderShell() {
-      refs = {};
-      shell.replaceChildren();
-      buildPrediction();
-      if (revealed) buildRevealed();
-    }
-
-    function resetToGate() {
-      state = presetState(presetById(DEFAULT.presetId));
-      prediction = { values: null, vectors: null, residual: null, certificate: null };
-      revealed = false;
-      score = 0;
-      renderShell();
-      announce("已重置；请重新完成 SVD 扰动预测。");
-    }
-
-    renderShell();
-  }
-
-  function selfTest() {
-    var checks = 0;
-    function assert(condition, message) {
-      checks += 1;
-      if (!condition) throw new Error(message);
-    }
-
-    var large = compute(presetState(PRESETS[0]));
-    assert(near(large.normE, 0.05, 1e-12), "large perturbation norm");
-    assert(large.maxSingularShift <= large.normE + 1e-12, "Weyl large gap");
-    assert(large.gapCertificateValid, "large gap certificate valid");
-    assert(large.residualSpectralIdentity < 1e-12, "large spectral residual equals sigma2");
-    assert(large.residualFrobeniusIdentity < 1e-12, "large Frobenius residual equals sigma2");
-
-    var small = compute(presetState(PRESETS[1]));
-    assert(small.maxSingularShift <= small.normE + 1e-12, "Weyl small gap");
-    assert(small.angleDeg > large.angleDeg * 10, "small gap rotates vector more");
-    assert(small.sinAngle > large.sinAngle, "small gap sine angle");
-    assert(small.gapLower <= 0, "small preset reaches certificate boundary");
-
-    var failed = compute(presetState(PRESETS[2]));
-    assert(!failed.gapCertificateValid, "failed gap certificate is marked invalid");
-    assert(failed.gapCertificate === null, "invalid certificate is null");
-    assert(failed.maxSingularShift <= failed.normE + 1e-12, "Weyl survives failed gap");
-
-    var custom = compute({ presetId: "custom", sigma1: 4, sigma2: 1, eta: 0 });
-    assert(near(custom.singularValuesAfter[0], 4, 1e-12) && near(custom.singularValuesAfter[1], 1, 1e-12), "zero perturbation spectrum");
-    assert(near(custom.angle, 0, 1e-12), "zero perturbation vector angle");
-    assert(near(custom.lowRankSpectral, 1, 1e-12), "zero perturbation rank one residual");
-
-    PRESETS.forEach(function (preset) {
-      var data = compute(presetState(preset));
-      assert(finite(data.singularValuesAfter[0]) && finite(data.singularValuesAfter[1]), preset.id + " finite spectrum");
-      assert(data.singularValuesAfter[0] >= data.singularValuesAfter[1] && data.singularValuesAfter[1] > 0, preset.id + " ordered positive spectrum");
-      assert(data.lowRankSpectral >= 0 && data.lowRankFrobenius >= 0, preset.id + " residual nonnegative");
-      assert(data.residualSpectralIdentity < 1e-12, preset.id + " spectral residual identity");
-    });
-    return { checks: checks, presets: PRESETS.length };
-  }
-
-  return {
-    DEFAULT: DEFAULT,
-    PRESETS: PRESETS,
-    compute: compute,
-    symmetricSpectrum: symmetricSpectrum,
-    mount: mount,
-    selfTest: selfTest
-  };
+function selfTest(){
+ let checks=0;const ck=(v,m)=>{checks++;if(!v)throw Error(m);};
+ const a=snapshot({eta:2}).result;ck(a.small<0&&a.singular[1]>0,"negative eigenvalue is not singular value");
+ ck(snapshot({second:3,eta:0}).result.angle===null,"repeated base direction undefined");
+ ck(snapshot({second:3,eta:3}).result.singular[1]===0,"actual exact rank-one boundary");
+ const b=qrPoint(1e-10,0,0);ck(b.methods.find(x=>x.id==="normal").status==="nonpositive-pivot","actual normal matrix failure");
+ ck(b.methods.find(x=>x.id==="householder").status==="ok","QR retains actual small directions");
+ const c=snapshot({mode:"backward",delta:1e-8}).result;ck(c.forward>.7&&c.eta<1e-8,"small backward large forward");
+ const e=snapshot({mode:"backward",delta:1e-8,scaleExponent:12}).result;ck(Math.abs(c.eta-e.eta)<1e-20,"common scaling");
+ ck(fmt(1000)==="1000","integer formatting");
+ return{status:"PASS",checks};
+}
+return{DEFAULTS,PRESETS,QUESTIONS,num,config,sum,dot,transpose,matvec,matmul,eye,norm,fro,sub,msub,outer,householder,gramSchmidt,normalEquations,lauchliReference,spectralPoint,spectralModel,qrPoint,qrModel,backwardPoint,backwardModel,snapshot,plots,ledgers,fmt,svg,mount,selfTest};
 });
