@@ -1,6 +1,6 @@
 # 第 22 讲 · MiniMax H3：把参考素材编排成一条声画镜头
 
-> **资料核验：2026-08-20。** MiniMax 于 2026-07-31 正式发布 H3；ComfyUI 随后提供开放权重的原生 T2V、I2V 与 R2V 模板。本讲不是一张“新模型参数表”，而是一次工作流升级：从“写提示词生成视频”，走向“给每份图片、视频和声音分配明确职责，再生成同步声画”。模型、模板与许可仍在快速变化，安装前请回看文末的一手来源。
+> **资料核验：2026-09-11；机器环境与旧文件体积保留各自快照日期。** MiniMax 于 2026-07-31 正式发布 H3；ComfyUI 随后提供开放权重的原生 T2V、I2V 与 R2V 模板。本讲不是一张“新模型参数表”，而是一次工作流升级：从“写提示词生成视频”，走向“给每份图片、视频和声音分配明确职责，再生成同步声画”。模型、模板与许可仍在快速变化，安装前请回看文末的一手来源。
 
 <figure class="diagram h3-routing" markdown="1">
 ![MiniMax H3 把文字、身份图、动作视频与声音参考按角色编排为同步声画输出](assets/img/22-h3-context-routing.svg)
@@ -14,7 +14,7 @@
 - **输入**可以混合文本、图片、视频和音频；
 - **关系**由自然语言说明，例如“图 1 只提供人物身份，视频 1 只提供运镜，音频 1 只提供音色”；
 - **输出**是带原生双声道的音视频，语音、音效与音乐不是事后简单叠上去的三条独立轨道；
-- **模式**不再只是一串彼此隔离的 T2V/I2V 按钮，但 ComfyUI 仍用三个模板给初学者提供清楚入口。
+- **模式**不再只是一串彼此隔离的 T2V/I2V 按钮，本讲以T2V、I2V、R2V三个基础模板作为学习入口。2026-09-11的官方总览还列出Multiframe Reference与Fun ControlNet Union，共五类示例；这些示例也不是模型全部可用模式。
 
 MiniMax 官方发布页给出的能力上限是最长约 15 秒、最高 2K；当前 ComfyUI 本地开放权重教程却建议先在 **768 px 短边、最大约 768×1344、边长为 32 的倍数**这一原生画布上工作。模板以 24 fps 输出，时长输入会落到模型的 **$17k+5$ 帧网格**，所以界面中的任意秒数不一定对应任意帧数。两句话并不矛盾：官方发布还描述了基模参与的 in-context regeneration；本地模板的稳定起点并不是直接把 Resolution Selector 拉到“2K”。课程实验以下面的本地模板约束为准。
 
@@ -53,9 +53,11 @@ ComfyUI/
 | video VAE | 视频像素与视频 latent 之间编码/解码 | 解码报错、显存峰值或画面异常 |
 | audio VAE | 音频波形与音频 latent 之间编码/解码 | 无法得到正常音轨或音频解码失败 |
 
-上述四个文件约占 **42.5 GB 磁盘**；若还要保留同量化的 `ref2va`，再加约 21 GB。磁盘占用不是峰值显存，但它已经说明 H3 不是“16GB 卡下载一个 checkpoint 就舒服跑”的级别：扩散主干单文件就超过显存，文本编码器也几乎占满整卡，运行时必然依赖阶段性加载、CPU 内存卸载和较小的时空 latent。
+2026-09-11的[官方原生模板文档](https://docs.comfy.org/tutorials/video/minimax/minimax-h3-native)还将Turbo LoRA列入模板模型扫描：T2V/I2V对应<code style="overflow-wrap:anywhere">minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16</code>，R2V对应<code style="overflow-wrap:anywhere">minimax_h3_ref2v_turbo_4step_v0.1_comfyui_bf16</code>，放在models/loras/。Turbo推理可选择不开启，但模板依赖预检仍可能要求该文件；不能因为基础生成分四类文件，就忽略当前模板弹窗中的额外依赖。R2V权重和Turbo LoRA也不能与T2V/I2V互换。
 
-仓库的 `nvfp4_awq` 文本编码器并不要求 Blackwell GPU；模型卡建议在可用 PyTorch CUDA 13.0 的环境优先试 `int8_convrot` diffusion model，否则才考虑 `fp8_scaled`。这台 Win 机在 2026-07-10 的快照是 PyTorch 2.11/cu130，格式条件看起来匹配，但当时的 ComfyUI 仍是 0.22.0，低于 H3 教程要求的 0.30.0。**截至 2026-08-20，课程推荐把官方稳定版 v0.33.1 与对应 H3 模板作为安装目标**；先升级并让模板完成依赖预检，再谈模型文件。
+按上述历史文件体积，四个基础文件约占 **42.5 GB 磁盘**（不含Turbo LoRA等新增模板依赖）；若还要保留同量化的 `ref2va`，再加约 21 GB。磁盘占用不是峰值显存，但它已经说明 H3 不是“16GB 卡下载一个 checkpoint 就舒服跑”的级别：扩散主干单文件就超过显存，文本编码器也几乎占满整卡，运行时必然依赖阶段性加载、CPU 内存卸载和较小的时空 latent。
+
+仓库的 `nvfp4_awq` 文本编码器并不要求 Blackwell GPU；模型卡建议在可用 PyTorch CUDA 13.0 的环境优先试 `int8_convrot` diffusion model，否则才考虑 `fp8_scaled`。这台 Win 机在 2026-07-10 的快照是 PyTorch 2.11/cu130，格式条件看起来匹配，但当时的 ComfyUI 仍是 0.22.0，低于 H3 教程要求的 0.30.0。**v0.33.1是2026-08-20的课程安装快照，并非2026-09-11的最新版承诺**。现在安装时应从[官方发布页](https://github.com/Comfy-Org/ComfyUI/releases)选择当前稳定版，并让对应模板完成依赖预检。
 
 ## 4. 这台 4060 Ti 16GB 应该怎样开始
 
@@ -67,7 +69,7 @@ ComfyUI/
 
 ### 路线 B：本地只装 `fl2va`，先跑最小镜头
 
-1. 备份 `user/`、自定义节点列表和当前工作流，再把 ComfyUI 更新到当前稳定版（课程快照为 **v0.33.1**）；0.30.0 只是教程最低门槛，不应把“刚过最低版本”当作完整兼容证书。不要在旧 0.22 环境里手抄新节点。
+1. 备份 `user/`、自定义节点列表和当前工作流，再把 ComfyUI 更新到当前稳定版（**v0.33.1仅是2026-08-20的历史快照**）；0.30.0 只是教程最低门槛，不应把“刚过最低版本”当作完整兼容证书。不要在旧 0.22 环境里手抄新节点。
 2. 在 Template Library → Video 搜索 **MiniMax H3 T2V**，让模板弹窗给出当前配套文件；先只装 T2V/I2V 共用的 `fl2va` 组合。
 3. 使用模板自带的 preview megapixels、短时长、单镜头。固定 seed，只改提示词；先证明端到端声画能输出，再增加像素与帧数。
 4. 同时记录磁盘读取、系统内存、峰值显存、首轮加载时间与第二轮生成时间。若系统内存持续顶满或反复在 CPU/GPU 间搬运导致迭代不可接受，就停止堆优化插件，转云端或更大显存机器。
@@ -125,7 +127,7 @@ R2V 当前文档列出的上限是 9 张参考图、3 段参考视频和 3 段�
 - **多模态统一不等于约束必然满足。** 身份、动作、镜头和语音可能竞争；参考越多，冲突和错误寻址的空间越大。
 - **首尾帧是边界条件，不是完整运动轨迹。** 中间怎样走仍由模型生成；复杂接触、手部遮挡和快速旋转仍可能崩坏。
 - **原生音频不等于事实正确或口型绝对同步。** 对白、拟音、音乐和空间声场都应逐项验收，重要成片仍可能需要剪辑与混音。
-- **开放权重不等于无条件商用。** 仓库使用 MiniMax H3 Community License Agreement；发布或商业部署前阅读当前许可证，不凭“能下载”推断用途。
+- **开放权重不等于无条件商用。** 模型卡仍列MiniMax H3 Community License Agreement；2026-09-11的[ComfyUI官方说明](https://docs.comfy.org/tutorials/video/minimax/minimax-h3)将本地生成内容的商用许可与Comfy Cloud已包含的商用权利分开说明。具体用途与授权以当前许可证和服务条款为准，不凭“能下载”推断用途。
 - 只使用自己或获得明确许可的人脸、动作与声音。未经同意克隆真人身份或音色，会把一个技术练习变成肖像、人格与欺诈风险。
 - H3 页面与模板刚发布不久。节点名、量化文件、硬件建议、价格和许可都属于时效信息；发现课程与官方页面不一致时，以当前一手文档为准并更新本页快照。
 
@@ -139,8 +141,9 @@ R2V 当前文档列出的上限是 9 张参考图、3 段参考视频和 3 段�
 
 ## 一手资料
 
-- [MiniMax H3 官方发布页（2026-07-31）](https://www.minimaxi.com/blog/minimax-h3)
-- [ComfyUI 官方 H3 教程与原生模板](https://docs.comfy.org/tutorials/video/minimax/minimax-h3)
+- [MiniMax H3 官方发布页（2026-07-31）](https://www.minimax.io/blog/minimax-h3)
+- [ComfyUI 官方 H3 总览](https://docs.comfy.org/tutorials/video/minimax/minimax-h3)
+- [ComfyUI 官方 H3 原生模板、Turbo依赖与参考限制](https://docs.comfy.org/tutorials/video/minimax/minimax-h3-native)
 - [Comfy-Org/MiniMax-H3 模型文件、体积与许可](https://huggingface.co/Comfy-Org/MiniMax-H3)
 - [ComfyUI 官方 workflow templates](https://github.com/Comfy-Org/workflow_templates)
 

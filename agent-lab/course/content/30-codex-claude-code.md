@@ -26,6 +26,8 @@ mini-swe-agent v2 刻意走另一端：agent 类约百行 Python，只提供 Bas
 
 ### DeepSeek Harness：把每一层做成插件接缝
 
+**2026-09-11专项复核。** 官方README仍将项目标为developer preview，架构仍以Cordis插件、profile/bundle和持久事件日志为基础。以下架构说明经再次核对；这一日期不代表本章其他产品也已重新做过版本核验。
+
 DeepSeek Harness（`dsh`）是 DeepSeek AI 在 2026 年公开的 MIT 许可 agent harness。官方截至本快照明确标为 **developer preview**，并警告会有破坏性兼容变更，因此本课只学习其架构，不把命令和配置当长期稳定 API。
 
 它基于 Cordis，把模型适配器、工具注册表、session log、agent loop 等都作为插件；profile 由有序 bundle 层叠形成，基础层再组合持久化、沙箱、审批、设置、凭据和 telemetry。最值得迁移的不是“插件越多越好”，而是三条设计纪律：

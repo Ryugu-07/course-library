@@ -118,6 +118,8 @@ $$
 
 截至 **2026-08-20 的课程快照**，编程智能体更容易观察到这类闭环：读代码库、改文件、跑测试、看报错、再改。它适合教学是因为测试提供了相对客观的验证信号，但不能据此断言所有 agent 都已适合生产。SWE-agent/mini-swe-agent 展示了专用工具与极简 Bash 循环的两种研究取舍；DeepSeek Harness 展示了“所有组件均可插件化”的开放实现；Codex、Claude Code、Qwen Code 等产品或项目则各有自己的宿主与权限表面。名称和能力会继续变化，真正应追踪的是上下文、执行、验证与安全责任。
 
+**DeepSeek Harness专项复核（2026-09-11）**：官方README仍标为developer preview；插件化、持久session事件与工具执行流程的架构说明仍成立。此处只更新该项目的来源核对记录，不把其他产品的旧快照一并改成新日期。[README](https://github.com/deepseek-ai/deepseek-harness) · [架构](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/architecture.md)
+
 ## 2. MCP：工具调用的 USB-C
 
 ### 2.1 痛点：M × N 的胶水地狱
