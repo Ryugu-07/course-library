@@ -52,128 +52,281 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-11 21:49</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：一个作用如何把群的内部结构“照”出来？</a><ul>
-<li><a href="#alg2-groups-learning-title">1. 具体谜题：同一个有限群，换三种镜头</a></li>
-<li><a href="#2-sylow">2. 正式桥：轨道、类方程与 Sylow 账本</a></li>
-<li><a href="#3">3. 动手核对：把“约束”与“实际枚举”分开</a></li>
-<li><a href="#4">4. 假设、失败边界与可解性的入口</a></li>
+<li><a href="#_1">学习层：同一个群，换一种作用就换一种问题</a></li>
+<li><a href="#1">1. 轨道—稳定子：不是两个独立的计数技巧</a></li>
+<li><a href="#2">2. 共轭、正规化子与商群的条件</a></li>
+<li><a href="#3-pcauchy">3. p群与Cauchy：先学会数固定点</a></li>
+<li><a href="#4-sylowp">4. Sylow存在性：寻找一个“不被p整除”的轨道</a></li>
+<li><a href="#5">5. 包含、共轭与计数：三步使用两种作用</a></li>
+<li><a href="#6">6. 如何精确枚举子群，而不遍历所有子集</a></li>
+<li><a href="#7">7. 导出列：一步步消除不交换的部分</a></li>
+<li><a href="#8">8. 可解性如何沿子群、商群与扩张传递</a></li>
+<li><a href="#9-s3s4">9. S₃与S₄：把一条可解列真正算出来</a></li>
+<li><a href="#10-a5">10. A₅为什么停止：五个共轭类足以证明单性</a></li>
+<li><a href="#11">11. 四道练习：把条件用完，而不是猜一个候选</a><ul>
+<li><a href="#15">练习一：15阶群为什么一定循环</a></li>
+<li><a href="#4030">练习二：40阶与30阶群的非单性</a></li>
+<li><a href="#s3">练习三：S₃的两个陪集作用</a></li>
+<li><a href="#a4sylow">练习四：A₄的Sylow作用为什么有一个固定点</a></li>
 </ul>
 </li>
-<li><a href="#1">1. 群作用的计数学</a></li>
-<li><a href="#2-sylow_1">2. Sylow 定理</a></li>
-<li><a href="#3-galois">3. 可解群（Galois 的定制零件）</a></li>
-<li><a href="#4_1">4. 练习与要点</a></li>
+<li><a href="#12">12. 下一步：哪些工具已准备好，哪些还没有</a></li>
 </ul>
 </div>
 </details>
-<h1 id="i-sylow">代数进阶 I · 群作用、Sylow 定理与可解群<a class="headerlink" href="#i-sylow" title="Permanent link"></a></h1>
+<h1 id="ii-sylow">抽象代数 II · 群作用、Sylow定理与可解性<a class="headerlink" href="#ii-sylow" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Dummit &amp; Foote §4 / Artin §6–7 ｜ <strong>前置</strong>：本科抽代 I
-研究生群论的主线是<strong>结构分析</strong>：有限群的内部由什么零件构成？三件武器：<strong>群作用的计数</strong>（类方程——本科 Burnside 的深化）、<strong>Sylow 定理</strong>（素数幂子群必然存在——有限群论的第一大定理）、<strong>可解群</strong>（为 Galois 理论定制的结构概念，下两页的钥匙）。</p>
+<p><strong>前置</strong>：群、子群、同态、陪集、正规子群，以及置换的循环表示。本讲把“对称操作作用在什么对象上”作为主线：从轨道计数建立Sylow定理，再用导出列判断可解性，为下一讲<a href="alg2-02-galois.html">Galois理论</a>准备群论工具。</p>
 </blockquote>
-<div data-learning-page></div>
-
-<section aria-labelledby="alg2-groups-learning-title" class="learning-layer">
-<h2 id="_1">学习层：一个作用如何把群的内部结构“照”出来？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="alg2-groups-learning-title">1. 具体谜题：同一个有限群，换三种镜头<a class="headerlink" href="#alg2-groups-learning-title" title="Permanent link"></a></h3>
-<p>把 <span class="arithmatex">\(S_3\)</span> 作用在三个顶点上，轨道应该有多大？把它改成共轭作用，恒等元、对换和三轮换会分成几类？再看 <span class="arithmatex">\(A_4\)</span> 的阶 <span class="arithmatex">\(12\)</span>：Sylow 三子群的个数能不能是 <span class="arithmatex">\(1,2,4,\)</span> 或 <span class="arithmatex">\(6\)</span>？</p>
-<p>实验台只枚举三个小群，但先完成三项预测：</p>
-<ol>
-<li><span class="arithmatex">\(S_3\)</span> 作用在 <span class="arithmatex">\(\{1,2,3\}\)</span> 上时，点 <span class="arithmatex">\(1\)</span> 的轨道大小与稳定子大小分别是多少？</li>
-<li><span class="arithmatex">\(S_3\)</span> 的共轭类大小应组成哪一个类方程？中心 <span class="arithmatex">\(Z(S_3)\)</span> 是否非平凡？</li>
-<li>对 <span class="arithmatex">\(A_4\)</span>，<span class="arithmatex">\(n_3\mid4\)</span> 且 <span class="arithmatex">\(n_3\equiv1\pmod3\)</span>；你预测实际的 Sylow 3-子群个数是多少，它是否正规？</li>
-</ol>
-<p>先写下“由定理必然满足的约束”，再让精确枚举填入实际个数。约束本身不是完整结构分类；实验的例子也不能冒充 Sylow 定理的证明。</p>
-<h3 id="2-sylow">2. 正式桥：轨道、类方程与 Sylow 账本<a class="headerlink" href="#2-sylow" title="Permanent link"></a></h3>
-<p>若有限群 <span class="arithmatex">\(G\)</span> 作用于集合 <span class="arithmatex">\(X\)</span>，则</p>
-<div class="arithmatex">\[
-|Gx|=[G:G_x]=\frac{|G|}{|G_x|}.
-\]</div>
-<p>这是<strong>定理级轨道-稳定子公式</strong>，假设是一个真正的群作用；实验台只用自然置换作用和共轭作用来计算它。对自身共轭作用，轨道是共轭类，单点轨道恰好来自中心：</p>
-<div class="arithmatex">\[
-|G|=|Z(G)|+\sum_i[G:C_G(x_i)].
-\]</div>
-<p>这就是类方程。对 <span class="arithmatex">\(p\)</span>-群，非中心共轭类大小被 <span class="arithmatex">\(p\)</span> 整除，所以 <span class="arithmatex">\(|Z(G)|\equiv0\pmod p\)</span>；这个模 <span class="arithmatex">\(p\)</span> 推理是一般定理，不是某一次表格求和的偶然。</p>
-<p>若 <span class="arithmatex">\(|G|=p^a m\)</span> 且 <span class="arithmatex">\(p\nmid m\)</span>，Sylow 定理给出一个阶 <span class="arithmatex">\(p^a\)</span> 子群，并且</p>
-<div class="arithmatex">\[
-n_p\mid m,\qquad n_p\equiv1\pmod p,
-\]</div>
-<p>以及所有 Sylow <span class="arithmatex">\(p\)</span>-子群相互共轭。实验台把所有子集逐项检查为子群，再数出实际的 <span class="arithmatex">\(n_p\)</span>；它提供的是有限模型的<strong>精确枚举证据</strong>，而不是存在性与共轭性的普遍证明。</p>
-<h3 id="3">3. 动手核对：把“约束”与“实际枚举”分开<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>先选择群，再揭晓预测答案；展开后的 SVG 显示一个自然轨道或共轭类分层，表格同时列出轨道-稳定子乘积、类方程、Sylow 约束和精确子群数。切换预设不会引入随机数，因此重置会回到同一个初始账本。</p>
+<div class="sylow-course">
+<style>.sylow-course .learning-lab{margin-left:0;margin-right:0;width:100%}.sylow-course .fallback-scroll{overflow:auto;max-width:100%}.sylow-course .fallback-scroll td{overflow-wrap:anywhere}.sylow-course .fallback-scroll td:last-child{white-space:nowrap;font-variant-numeric:tabular-nums;font-size:.8em}</style>
+<noscript>
+<style>.sylow-course span.arithmatex{overflow-wrap:anywhere;white-space:normal}</style>
+</noscript>
+<div data-learning-page="data-learning-page"></div>
+<section class="learning-layer">
+<h2 id="_1">学习层：同一个群，换一种作用就换一种问题<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>正方形可以旋转、反射。盯着一个顶点，问它能到哪里，得到轨道；问哪些操作让它不动，得到稳定子。现在把“一个顶点”换成“一个子群”，让对称操作通过共轭移动它，就会遇到正规化子和Sylow子群计数。</p>
+<p>这两次计数使用的是同一条规则：<strong>到达多少种位置 × 每个位置有多少种到达方式 = 操作总数</strong>。但“固定一个点”与“固定所有点”不同，“保持一个子群不变”与“和其中每个元素交换”也不同。实验把这些集合完整列出，不只显示一个总数。</p>
 <div class="learning-lab" data-learning-lab="sylow-actions">
-<p><strong>JavaScript 失效时的静态读法：</strong>每行的“实际枚举”只针对该有限群；“Sylow 约束”才是定理给出的普遍必要条件。</p>
+<p><strong>无脚本读法。</strong> 先比较固定记录中的轨道、稳定子与导出列，再下载完整乘法表、子群生成词、共轭像及商群证书。S₄的导出列能降到平凡群；A₅停在自身；S₅先降到A₅再停下。这里的计算验证这几个有限模型，任意有限群的定理仍由下面的证明负责。</p>
+<figure class="plot">
+<p><a href="assets/img/alg2-01-sylow-ledgers.svg"><img alt="群作用、Sylow固定点、S₄导出列与A₅共轭类" src="assets/img/alg2-01-sylow-ledgers.svg" /></a></p>
+<figcaption>图1.1：四个固定对照。可打开原图检查编号、各类大小与导出列的实际阶数。</figcaption>
+</figure>
+<div class="fallback-scroll">
+<p>固定运行：2026-09-11，Node 24.14.0 / darwin arm64。<a href="assets/learning/projects/sylow-actions/run-snapshot.json">下载四份完整乘法表、子群列表、生成词与作用证书</a>。S₃用H=〈(12)〉的左陪集，全群作用；A₄用首个Sylow 3子群作为作用者，共轭作用在全部Sylow 3子群上；S₄与A₅保留完整导出列及所有子群。具体置换编号、生成元与所选点写在每份参数中。</p>
 <table>
 <thead>
 <tr>
-<th>群与作用</th>
-<th>轨道-稳定子</th>
-<th>共轭类 / 类方程</th>
-<th>Sylow 约束与精确枚举</th>
+<th>固定参数下的量</th>
+<th style="text-align: right;">参考值</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><span class="arithmatex">\(S_3\)</span> 作用于 <span class="arithmatex">\(\{1,2,3\}\)</span></td>
-<td>(</td>
-<td>Orb(1)</td>
-<td>=3,</td>
+<td>S₃群阶</td>
+<td style="text-align: right;">6</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(A_4\)</span> 作用于四个顶点</td>
-<td>(</td>
-<td>Orb(1)</td>
-<td>=4,</td>
+<td>S₃所选H的阶</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(D_4\)</span> 作用于正方形顶点</td>
-<td>顶点轨道大小 <span class="arithmatex">\(4\)</span>，稳定子大小 <span class="arithmatex">\(2\)</span>，<span class="arithmatex">\(8=4\cdot2\)</span></td>
-<td><span class="arithmatex">\(1,1,2,2,2\)</span>，<span class="arithmatex">\(8=1+1+2+2+2\)</span></td>
-<td>只有 <span class="arithmatex">\(p=2\)</span>：<span class="arithmatex">\(n_2\mid1, n_2\equiv1\pmod2\)</span>，实际 <span class="arithmatex">\(n_2=1\)</span></td>
+<td>S₃左陪集数量</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td>S₃所选点稳定子的阶</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td>S₃陪集作用核的阶</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>S₃所选H是否能定义商群</td>
+<td style="text-align: right;">否</td>
+</tr>
+<tr>
+<td>A₄实验作用者的阶</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td>A₄实验各轨道大小</td>
+<td style="text-align: right;">1,3</td>
+</tr>
+<tr>
+<td>A₄实验全部固定点数</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>A₄实际Sylow 3子群数</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td>S₄导出列各群阶</td>
+<td style="text-align: right;">24,12,4,1</td>
+</tr>
+<tr>
+<td>S₄是否可解</td>
+<td style="text-align: right;">是</td>
+</tr>
+<tr>
+<td>S₄导出长度</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td>S₄全部子群数</td>
+<td style="text-align: right;">30</td>
+</tr>
+<tr>
+<td>S₄正规子群数（含平凡及全群）</td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td>A₅各共轭类大小</td>
+<td style="text-align: right;">1,20,15,12,12</td>
+</tr>
+<tr>
+<td>A₅是否为单群</td>
+<td style="text-align: right;">是</td>
+</tr>
+<tr>
+<td>A₅导出列末项阶</td>
+<td style="text-align: right;">60</td>
+</tr>
+<tr>
+<td>A₅是否可解</td>
+<td style="text-align: right;">否</td>
+</tr>
+<tr>
+<td>A₅全部子群数</td>
+<td style="text-align: right;">59</td>
+</tr>
+<tr>
+<td>A₅正规子群数（含平凡及全群）</td>
+<td style="text-align: right;">2</td>
 </tr>
 </tbody>
 </table>
-<p>这张表把三层陈述分开：轨道-稳定子和类方程是作用产生的恒等式；Sylow 条件是定理约束；“实际有几个子群”是本次有限枚举的数据。</p>
+<p>作用核的阶为1表示核平凡。A₅的导出列停在非平凡的60阶群，因此不可解；它没有漏算后续步骤。子群总数来自完整闭包枚举，Sylow计数条件本身不给出所有子群数。</p>
 </div>
-<h3 id="4">4. 假设、失败边界与可解性的入口<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<ul>
-<li><strong>作用的假设</strong>：轨道-稳定子要求每个群元素给出可组合的双射；类方程特指共轭作用，不能把任意外部作用的轨道直接叫共轭类。</li>
-<li><strong>Sylow 的假设</strong>：本页讨论有限群与素数 <span class="arithmatex">\(p\)</span>；若只知道 <span class="arithmatex">\(n_p\mid m\)</span> 和同余条件，通常还不能唯一确定群，更不能自动证明某个子群正规。</li>
-<li><strong>枚举的边界</strong>：有限子集搜索能精确验证 <span class="arithmatex">\(S_3,A_4,D_4\)</span> 的小规模事实，但“搜索通过”不是对任意有限群的证明；复杂度也会随群阶指数增长。</li>
-<li><strong>中心与可解性边界</strong>：类方程能给出中心和正规性线索，却不单独替代可解列、导出列或 <span class="arithmatex">\(A_5\)</span> 的正规子群证明。下一页的 Galois 对应还需要正规扩张等额外假设。</li>
-</ul>
+</div>
+<p>先选群，再选作用与作用者。作用者可用全群，也可用输入生成元生成的子群H。自然作用的“点标签”从1开始；实验的群元素、子群与作用点编号从0开始，完整对照表给出实际置换。陪集作用对任意H都有意义，陪集上的群乘法则要求H正规。</p>
 </section>
-<h2 id="1">1. 群作用的计数学<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>轨道-稳定子</strong>（本科抽代 I）<span class="arithmatex">\(|G| = |\mathrm{Orb}(x)||\mathrm{Stab}(x)|\)</span> 的两大特化：</p>
-<p><strong>类方程</strong>：<span class="arithmatex">\(G\)</span> 对自身共轭作用，轨道 = 共轭类：</p>
-<div class="arithmatex">\[
-|G| = |Z(G)| + \sum_{\text{非中心类}}[G : C_G(x_i)]
-\]</div>
-<p>（中心 = 单点轨道；<span class="arithmatex">\(C_G\)</span> = 中心化子。）<strong>第一滴血【证明】</strong>：<span class="arithmatex">\(p\)</span>-群（阶 <span class="arithmatex">\(= p^n\)</span>）中心非平凡——类方程模 <span class="arithmatex">\(p\)</span>：左边 <span class="arithmatex">\(\equiv 0\)</span>、非中心项都被 <span class="arithmatex">\(p\)</span> 整除 ⇒ <span class="arithmatex">\(|Z| \equiv 0 \pmod p\)</span>，而 <span class="arithmatex">\(|Z| \geq 1\)</span>。<span class="arithmatex">\(\blacksquare\)</span>（推论：<span class="arithmatex">\(p^2\)</span> 阶群必交换【骨架：<span class="arithmatex">\(G/Z\)</span> 循环 ⇒ <span class="arithmatex">\(G\)</span> 交换的标准引理】。）</p>
-<p><strong>Cauchy 定理【骨架】</strong>：<span class="arithmatex">\(p \mid |G|\)</span> ⇒ 存在 <span class="arithmatex">\(p\)</span> 阶元。<em>妙证（McKay）</em>：集合 <span class="arithmatex">\(\{(g_1,\dots,g_p): \prod g_i = e\}\)</span> 大小 <span class="arithmatex">\(|G|^{p-1}\)</span>，<span class="arithmatex">\(\mathbb{Z}_p\)</span> 轮换作用于其上——不动点 = <span class="arithmatex">\(g^p = e\)</span> 的常值组；轨道大小 1 或 <span class="arithmatex">\(p\)</span> ⇒ 不动点数 <span class="arithmatex">\(\equiv |G|^{p-1} \equiv 0 \pmod p\)</span>，而 <span class="arithmatex">\((e,\dots,e)\)</span> 是一个 ⇒ 还有别的。<span class="arithmatex">\(\blacksquare\)</span>（群作用计数的教科书级妙用。）</p>
-<h2 id="2-sylow_1">2. Sylow 定理<a class="headerlink" href="#2-sylow_1" title="Permanent link"></a></h2>
-<p><span class="arithmatex">\(|G| = p^a m\)</span>（<span class="arithmatex">\(p \nmid m\)</span>）；<strong>Sylow <span class="arithmatex">\(p\)</span>-子群</strong> = 阶 <span class="arithmatex">\(p^a\)</span> 的子群。</p>
-<p><strong>定理（Sylow 三连）</strong> ① 存在；② 任何 <span class="arithmatex">\(p\)</span>-子群含于某 Sylow <span class="arithmatex">\(p\)</span>-子群，且 Sylow <span class="arithmatex">\(p\)</span>-子群两两共轭；③ 个数 <span class="arithmatex">\(n_p \equiv 1 \pmod p\)</span> 且 <span class="arithmatex">\(n_p \mid m\)</span>。
-<strong>【骨架（作用三连证）】</strong> ①：<span class="arithmatex">\(G\)</span> 作用于"大小 <span class="arithmatex">\(p^a\)</span> 的子集族"（大小 <span class="arithmatex">\(\binom{p^am}{p^a} \not\equiv 0 \bmod p\)</span>——Kummer/Lucas 的组合数论），必有轨道大小与 <span class="arithmatex">\(p\)</span> 互素，因此其稳定子的阶含完整的 <span class="arithmatex">\(p^a\)</span> 因子；再配合对群阶的归纳，从这个真子群中取出阶 <span class="arithmatex">\(p^a\)</span> 的子群。②③：让已有的 <span class="arithmatex">\(p\)</span>-子群作用于 Sylow 子群的共轭族/陪集空间，逐次数不动点模 <span class="arithmatex">\(p\)</span>。这里略去归纳细节，不能把“稳定子阶可被 <span class="arithmatex">\(p^a\)</span> 整除”直接当成已经构造出 Sylow 子群。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>用法（判非单群的流水线）</strong>：<span class="arithmatex">\(n_p = 1 \iff\)</span> Sylow <span class="arithmatex">\(p\)</span>-子群正规。例：<span class="arithmatex">\(|G| = 15\)</span>——<span class="arithmatex">\(n_3 \mid 5, \equiv1(3) \Rightarrow n_3 = 1\)</span>；<span class="arithmatex">\(n_5 = 1\)</span> 同理 ⇒ 两个正规子群、交平凡、乘积全群 ⇒ <span class="arithmatex">\(G \cong \mathbb{Z}_3\times\mathbb{Z}_5 \cong \mathbb{Z}_{15}\)</span>——<strong>15 阶群只有一个</strong>。"用算术锁死结构"是 Sylow 的日常。</p>
-<h2 id="3-galois">3. 可解群（Galois 的定制零件）<a class="headerlink" href="#3-galois" title="Permanent link"></a></h2>
-<p><strong>定义</strong> <span class="arithmatex">\(G\)</span> 可解：存在正规列 <span class="arithmatex">\(\{e\} = G_0 \trianglelefteq G_1 \trianglelefteq \cdots \trianglelefteq G_n = G\)</span>，每层商 <span class="arithmatex">\(G_{i+1}/G_i\)</span> <strong>交换</strong>。（"可以逐层拆成交换积木"。）等价刻画：导出列 <span class="arithmatex">\(G^{(k)} = [G^{(k-1)}, G^{(k-1)}]\)</span>（换位子群迭代）终达 <span class="arithmatex">\(\{e\}\)</span>。</p>
-<p><strong>性质包【骨架】</strong>：子群、商群、扩张（<span class="arithmatex">\(N\)</span> 与 <span class="arithmatex">\(G/N\)</span> 可解 ⇒ <span class="arithmatex">\(G\)</span> 可解）都保持可解性——三条都是"正规列的拼接手术"。<span class="arithmatex">\(p\)</span>-群可解（中心非平凡 + 归纳——§1 第一滴血的结构性回报）；<strong>Burnside <span class="arithmatex">\(p^aq^b\)</span> 定理</strong>【立牌】：两素数阶群必可解（表示论证明）。</p>
-<p><strong>关键反例（下两页的主角）</strong>：<strong><span class="arithmatex">\(A_5\)</span> 是最小非交换单群（阶 60），故不可解</strong>。
-<strong>【骨架】</strong> 单性：<span class="arithmatex">\(A_5\)</span> 的共轭类大小 <span class="arithmatex">\(1, 15, 20, 12, 12\)</span>——正规子群 = 若干共轭类之并且含 <span class="arithmatex">\(e\)</span>、阶整除 60：枚举组合 <span class="arithmatex">\(1 + \{15,20,12,12\}\)</span> 的子集和，无一整除 60（除 1 与 60）⇒ 无非平凡正规子群。<span class="arithmatex">\(\blacksquare\)</span>（<strong>类方程当筛子</strong>——§1 的武器第三次开火。）<span class="arithmatex">\(S_5 \supseteq A_5\)</span> 不可解随之（子群保可解的逆否）。</p>
-<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（Sylow 实战）</strong> 证明 40 阶群非单：<span class="arithmatex">\(n_5 \mid 8, \equiv 1(5) \Rightarrow n_5 = 1\)</span>——一行毙命。再试 30 阶（需要 <span class="arithmatex">\(n_3, n_5\)</span> 联合数元素个数的经典论证——数元素法的入门题）。</p>
-<p><strong>例 2（可解性判定）</strong> <span class="arithmatex">\(S_4\)</span> 可解：正规列 <span class="arithmatex">\(\{e\} \trianglelefteq V_4 \trianglelefteq A_4 \trianglelefteq S_4\)</span>，商依次 <span class="arithmatex">\(V_4, \mathbb{Z}_3, \mathbb{Z}_2\)</span> 全交换 ✓——<strong>四次方程有求根公式的群论原因</strong>（下两页兑现这句话）。</p>
-<p><strong>例 3（类方程亲算）</strong> 写出 <span class="arithmatex">\(S_3\)</span> 的类方程 <span class="arithmatex">\(6 = 1 + 2 + 3\)</span>（恒等/三轮换/对换）；验证 <span class="arithmatex">\(Z(S_3) = \{e\}\)</span> 与各中心化子的阶——最小非交换群上把 §1 的机器盘熟。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：Galois 理论主定理——域扩张与群的完美对应：本科抽代 II"山顶眺望"的正式攻顶。</em></p>
+<h2 id="1">1. 轨道—稳定子：不是两个独立的计数技巧<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>左作用是满足 <span class="arithmatex">\(e\cdot x=x\)</span>、<span class="arithmatex">\((gh)\cdot x=g\cdot(h\cdot x)\)</span> 的规则。记</p>
+<div class="arithmatex">\[Gx=\{g\cdot x:g\in G\},\qquad G_x=\{g:g\cdot x=x\}.\]</div>
+<p>稳定子是子群：恒等元固定x；两个固定x的操作复合仍固定x；由g固定x可得其逆也固定x。映射</p>
+<div class="arithmatex">\[G/G_x\longrightarrow Gx,\qquad gG_x\longmapsto g\cdot x\]</div>
+<p>是双射。若 <span class="arithmatex">\(gG_x=hG_x\)</span>，则 <span class="arithmatex">\(h^{-1}g\in G_x\)</span>，所以两者给同一点；反过来也成立。这同时证明良定义与单射；满射来自轨道的定义。有限时便有</p>
+<div class="arithmatex">\[|G|=|Gx|\,|G_x|.\]</div>
+<p>更具体地，若 <span class="arithmatex">\(t\cdot x=y\)</span>，所有把x送到y的元素恰为左陪集 <span class="arithmatex">\(tG_x\)</span>。因此每个位置的到达方式确实一样多。对于正方形的八阶对称群，某顶点的轨道有4点、稳定子有2元素；多出来的第二种方式是经过该顶点与对角顶点轴的反射。</p>
+<p><strong>作用核</strong>是 <span class="arithmatex">\(\ker\rho=\bigcap_xG_x\)</span>，其中 <span class="arithmatex">\(\rho:G\to\operatorname{Sym}(X)\)</span>。它是正规子群，因为核总在共轭下不变。核平凡叫忠实作用；所有稳定子平凡叫自由作用；只有一个轨道叫传递作用。三个概念不能互换：S₃在三个点上的自然作用忠实且传递，却不自由，因为一个点的稳定子有两个元素。</p>
+<p>还可以数集合 <span class="arithmatex">\(\{(g,x):g\cdot x=x\}\)</span>。按g数得 <span class="arithmatex">\(\sum_g|X^g|\)</span>；按轨道数时，一个轨道贡献 <span class="arithmatex">\(|Gx|\,|G_x|=|G|\)</span>。所以</p>
+<div class="arithmatex">\[\#(X/G)=\frac1{|G|}\sum_{g\in G}|X^g|.\]</div>
+<p>这就是Burnside轨道计数公式。实验同时保留每个元素的固定点表与分子，不把平均值当成无需解释的按钮输出。</p>
+<h2 id="2">2. 共轭、正规化子与商群的条件<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>取作用 <span class="arithmatex">\(g\cdot x=gxg^{-1}\)</span>，元素x的稳定子就是中心化子</p>
+<div class="arithmatex">\[C_G(x)=\{g:gx=xg\}.\]</div>
+<p>因此共轭类大小为 <span class="arithmatex">\([G:C_G(x)]\)</span>。单点共轭类恰好组成中心 <span class="arithmatex">\(Z(G)\)</span>；将其余共轭类选代表元得到类方程</p>
+<div class="arithmatex">\[|G|=|Z(G)|+\sum_i[G:C_G(x_i)].\]</div>
+<p>现在让G共轭作用于子群集合。H的稳定子变为</p>
+<div class="arithmatex">\[N_G(H)=\{g:gHg^{-1}=H\}.\]</div>
+<p>它要求集合H保持不变，可以在H内部交换元素；<span class="arithmatex">\(C_G(H)=\bigcap_{h\in H}C_G(h)\)</span> 要求逐个元素不动。总有 <span class="arithmatex">\(C_G(H)\le N_G(H)\)</span>，通常不相等。H的不同共轭子群个数为 <span class="arithmatex">\([G:N_G(H)]\)</span>；H正规恰好对应这个轨道只有一个成员。</p>
+<p>左陪集 <span class="arithmatex">\(G/H\)</span> 总有左乘作用 <span class="arithmatex">\(g\cdot(xH)=(gx)H\)</span>。它的核是 <span class="arithmatex">\(\bigcap_g gHg^{-1}\)</span>，也称H在G中的核：若t固定每个xH，则 <span class="arithmatex">\(x^{-1}tx\in H\)</span>；反之亦然。</p>
+<p>若还要定义乘法 <span class="arithmatex">\((xH)(yH)=xyH\)</span>，就必须检查代表元改变。H正规时，<span class="arithmatex">\(h_1y=yh_2\)</span> 对某个 <span class="arithmatex">\(h_2\in H\)</span> 成立，于是 <span class="arithmatex">\((xh_1)(yh_3)\in xyH\)</span>，故良定义。反过来，若投影是群同态，其核H必正规。因此非正规H仍有陪集作用，却不能照搬这条公式变成商群。实验会给出一个共轭离开H的具体见证。</p>
+<h2 id="3-pcauchy">3. p群与Cauchy：先学会数固定点<a class="headerlink" href="#3-pcauchy" title="Permanent link"></a></h2>
+<p>设有限p群P作用在有限集合X上。每条轨道大小整除 <span class="arithmatex">\(|P|\)</span>，故为p的幂；非单点轨道的大小都被p整除。于是</p>
+<div class="arithmatex">\[|X|\equiv |X^P|\pmod p.\]</div>
+<p>应用于P对自身的共轭作用，得到 <span class="arithmatex">\(|P|\equiv|Z(P)|\pmod p\)</span>。非平凡p群的中心含恒等元且大小被p整除，所以至少有p个元素。</p>
+<p><strong>Cauchy定理。</strong> 若素数p整除有限群G的阶，则G有p阶元素。考虑</p>
+<div class="arithmatex">\[T=\{(g_1,\ldots,g_p):g_1\cdots g_p=e\}.\]</div>
+<p>前p−1个元素任选，末项唯一，故 <span class="arithmatex">\(|T|=|G|^{p-1}\)</span> 被p整除。循环移动各坐标保持T不变：原乘积为e时，移动后的乘积是 <span class="arithmatex">\(g_1^{-1}(g_1\cdots g_p)g_1=e\)</span>。因此循环群Cₚ作用在T上。固定元正是 <span class="arithmatex">\((g,\ldots,g)\)</span> 且 <span class="arithmatex">\(g^p=e\)</span>。这类元个数被p整除，已有恒等元解，所以还有非恒等元解，其阶只能是p。</p>
+<p>再看 <span class="arithmatex">\(|G|=p^2\)</span>。中心大小为p或p²。若为p，<span class="arithmatex">\(G/Z(G)\)</span> 的阶为p，因而循环。一般地，若 <span class="arithmatex">\(G/Z(G)=\langle gZ(G)\rangle\)</span>，任意两元素都能写成 <span class="arithmatex">\(g^iz\)</span>、<span class="arithmatex">\(g^jw\)</span>，其中z、w居中，故相互交换。这迫使G阿贝尔，反而中心应是全群。因此p²阶群必阿贝尔。</p>
+<p>中心非平凡不意味着群已经阿贝尔：八阶二面体群与四元数群的中心都只有两个元素。</p>
+<h2 id="4-sylowp">4. Sylow存在性：寻找一个“不被p整除”的轨道<a class="headerlink" href="#4-sylowp" title="Permanent link"></a></h2>
+<p>写 <span class="arithmatex">\(|G|=p^am\)</span>，其中 <span class="arithmatex">\(p\nmid m\)</span>。Sylow p子群是阶恰为 <span class="arithmatex">\(p^a\)</span> 的子群。让G通过左乘作用于所有具有 <span class="arithmatex">\(p^a\)</span> 个元素的子集，记该集合为X。</p>
+<p>为什么X的大小不被p整除？在模p多项式环里，二项式系数 <span class="arithmatex">\(\binom pj\)</span> 在 <span class="arithmatex">\(0\lt j\lt p\)</span> 时被p整除，所以 <span class="arithmatex">\((1+t)^p=1+t^p\)</span>。迭代a次可得</p>
+<div class="arithmatex">\[ (1+t)^{p^am}\equiv (1+t^{p^a})^m\pmod p.\]</div>
+<p>比较 <span class="arithmatex">\(t^{p^a}\)</span> 系数便得</p>
+<div class="arithmatex">\[|X|=\binom{p^am}{p^a}\equiv m\not\equiv0\pmod p.\]</div>
+<p>因此至少有一条G轨道的大小不被p整除，取其中一个子集A，其稳定子记H。轨道—稳定子公式迫使 <span class="arithmatex">\(|H|\)</span> 含有全部因子 <span class="arithmatex">\(p^a\)</span>。另一方面，H通过左乘作用在A上，而且是自由作用：<span class="arithmatex">\(ha=a\)</span> 可消去a得到h=e。因此A分解成每条大小为 <span class="arithmatex">\(|H|\)</span> 的H轨道，故 <span class="arithmatex">\(|H|\mid |A|=p^a\)</span>。两边合起来只能有 <span class="arithmatex">\(|H|=p^a\)</span>，存在性得证。</p>
+<p>这段证明中的A起初只是一个子集；最后构造出来的子群是它的<strong>稳定子H</strong>，没有预先假定A本身对乘法封闭。找到一个阶符合要求的子集远远不够。</p>
+<h2 id="5">5. 包含、共轭与计数：三步使用两种作用<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>先固定一个Sylow p子群Q，让任意p子群P作用于左陪集集合 <span class="arithmatex">\(G/Q\)</span>。集合大小m不被p整除，由固定点同余必有一个固定陪集gQ。于是 <span class="arithmatex">\(g^{-1}Pg\le Q\)</span>，等价于 <span class="arithmatex">\(P\le gQg^{-1}\)</span>。这证明每个p子群都包含在某个Sylow p子群中。</p>
+<p>若P自身也是Sylow p子群，包含两端阶相等，因而相等。所以所有Sylow p子群互相共轭。记它们的数目为 <span class="arithmatex">\(n_p\)</span>。通过G的共轭作用立即得到</p>
+<div class="arithmatex">\[n_p=[G:N_G(P)]\mid[G:P]=m.\]</div>
+<p>还要证明 <span class="arithmatex">\(n_p\equiv1\pmod p\)</span>。让P共轭作用于Sylow p子群集合。P本身当然固定。若另一个Q也固定，则P正规化Q，因此PQ是子群：乘积与逆封闭可由P把Q共轭回Q直接验证。其阶</p>
+<div class="arithmatex">\[|PQ|=\frac{|P||Q|}{|P\cap Q|}\]</div>
+<p>是p的幂，不可能超过群阶中的最大p幂。因P、Q都已有阶 <span class="arithmatex">\(p^a\)</span>，只能P=Q。因此固定点恰有一个，固定点同余给出结论。</p>
+<p>最后，<span class="arithmatex">\(n_p=1\)</span> 当且仅当Sylow p子群正规。注意：整除和同余筛出的是候选数目；候选中可能还有别的数字，需要别的群结构论证排除。实验的“候选”来自这两个必要条件，“实际”来自全部子群的精确枚举。</p>
+<h2 id="6">6. 如何精确枚举子群，而不遍历所有子集<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>从恒等元子群开始。对已经找到的H，逐个加入尚不在H中的元素g，计算 <span class="arithmatex">\(\langle H,g\rangle\)</span>；新结果尚未出现就加入待处理队列。有限群只有有限多个子群，因此算法终止。它为什么不会漏？任何子群K都由其有限个元素生成，按某种顺序逐个加入，就形成一条从平凡子群到K的路径，每一步都在这套枚举中。</p>
+<p>计算生成元闭包时，反复右乘生成元即可。在有限群中，生成元的逆等于它的某个非负次幂，因此不另外加入逆也不会漏；停止时所得集合包含恒等元、对生成元乘法封闭，并已包含所有生成词。记录中为每个元素保留一个实际生成词。</p>
+<p>还可以少算一些重复：同一右陪集Hg里的元素 <span class="arithmatex">\(h g\)</span> 与g给出相同的 <span class="arithmatex">\(\langle H,g\rangle\)</span>。所以每个这样的陪集取一个代表元即可；记录保留“从哪个H、加入哪个g、到哪个子群”的每条扩展边。展示的子群格另取包含关系的覆盖边：中间没有第三个子群时才画边。</p>
+<p>所有实验模型用有限置换忠实表示，乘法约定 <span class="arithmatex">\((\sigma\tau)(i)=\sigma(\tau(i))\)</span>。D₄指正方形的八个对称；Q₈以左正则作用表示；V₄和C₁₅也使用正则表示。置换标签说明的是本次表示，不应把Q₈的八个位置误认成正方形顶点。S₅虽然有120个元素，这个算法仍只枚举实际子群和必要的生成闭包，没有扫描全部 <span class="arithmatex">\(2^{120}\)</span> 个子集。</p>
+<h2 id="7">7. 导出列：一步步消除不交换的部分<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>约定交换子 <span class="arithmatex">\([x,y]=xyx^{-1}y^{-1}\)</span>，并令</p>
+<div class="arithmatex">\[G'=\langle[x,y]:x,y\in G\rangle,\qquad G^{(0)}=G,\quad G^{(j+1)}=(G^{(j)})'.\]</div>
+<p>这里必须取“生成的子群”；不能假定所有单个交换子本身已经对乘法封闭。任意自同构把交换子变为交换子，所以G′是特征子群，特别是正规子群。在 <span class="arithmatex">\(G/G'\)</span> 中，任意两个像的交换子都为恒等元，商群因此阿贝尔。若 <span class="arithmatex">\(G/N\)</span> 阿贝尔，所有交换子都落在N中，故 <span class="arithmatex">\(G'\le N\)</span>。这说明G′正是使商变为阿贝尔所必须消去的最小正规子群。</p>
+<p>若存在r使 <span class="arithmatex">\(G^{(r)}=\{e\}\)</span>，称G可解。它与存在有限次正规列、各相邻商阿贝尔等价。一个方向直接用导出列。反方向，设</p>
+<div class="arithmatex">\[G=G_0\triangleright G_1\triangleright\cdots\triangleright G_r=\{e\},\qquad G_i/G_{i+1}\text{阿贝尔}.\]</div>
+<p>由商阿贝尔可得 <span class="arithmatex">\(G_i'\le G_{i+1}\)</span>。归纳得到 <span class="arithmatex">\(G^{(i)}\le G_i\)</span>，因此第r步为平凡群。列中只需下一项在上一项中正规，不必一开始就假定每项都在G中正规。</p>
+<p>对于有限群，导出列若还没有稳定，每一步的阶都会严格下降，因此可以一直计算到平凡群或某个非平凡稳定子群。若 <span class="arithmatex">\(K'=K\ne\{e\}\)</span>，K称完美群；以后永远留在K。这就是实验“不再下降”的判据，并非到了某个任意的迭代次数就宣布不可解。</p>
+<h2 id="8">8. 可解性如何沿子群、商群与扩张传递<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>若 <span class="arithmatex">\(H\le G\)</span>，交换子定义直接给 <span class="arithmatex">\(H^{(j)}\le G^{(j)}\)</span>，故可解群的子群可解。对满同态 <span class="arithmatex">\(\pi:G\to Q\)</span>，每个Q中交换子都能提升为G中交换子的像，所以 <span class="arithmatex">\(\pi(G^{(j)})=Q^{(j)}\)</span>；可解群的商群也可解。</p>
+<p>若 <span class="arithmatex">\(N\triangleleft G\)</span>，N与 <span class="arithmatex">\(G/N\)</span> 都可解，设其导出长度分别至多r、s。由于 <span class="arithmatex">\(\pi(G^{(s)})=(G/N)^{(s)}=1\)</span>，有 <span class="arithmatex">\(G^{(s)}\le N\)</span>，再取r次导出可得</p>
+<div class="arithmatex">\[G^{(s+r)}\le N^{(r)}=1.\]</div>
+<p>所以可解群的扩张可解，并且长度至多相加。有限p群必可解也由此得到：对群阶归纳，非平凡中心是阿贝尔正规子群，商群仍是更小的p群；应用扩张结论。若中心已经是全群，直接结束。</p>
+<p>这和“群阶只含几个素因子”并非同一件事。Burnside的两素数阶定理进一步断言 <span class="arithmatex">\(p^aq^b\)</span> 阶有限群可解，但它需要本讲之外的方法；本讲的Sylow计数没有单独证明这个一般结论。遇到含两种素因子的例子，不应把实验输出误写成这一定理的证明。</p>
+<h2 id="9-s3s4">9. S₃与S₄：把一条可解列真正算出来<a class="headerlink" href="#9-s3s4" title="Permanent link"></a></h2>
+<p>置换的符号同态给出 <span class="arithmatex">\(S_n'\le A_n\)</span>。另一方面，两个有一个共同字母的换位的交换子是三循环，例如</p>
+<div class="arithmatex">\[[(12),(23)]=(132).\]</div>
+<p>三循环生成Aₙ：偶置换可把换位两两配对；同一换位配对得恒等元；有一个共同字母的乘积是三循环；四字母互不相同的情形可写成</p>
+<div class="arithmatex">\[ (ab)(cd)=(acb)(acd).\]</div>
+<p>因此当 <span class="arithmatex">\(n\ge3\)</span> 时 <span class="arithmatex">\(S_n'=A_n\)</span>。特别地，S₃的导出列为 <span class="arithmatex">\(S_3\supset A_3\supset1\)</span>，阶数为6、3、1。</p>
+<p>对S₄，令</p>
+<div class="arithmatex">\[V_4=\{e,(12)(34),(13)(24),(14)(23)\}.\]</div>
+<p>任意两个不同的非恒等元相乘是第三个，故这是阿贝尔子群。共轭只重新命名字母，因此在S₄中正规。商 <span class="arithmatex">\(A_4/V_4\)</span> 的阶为3，因而阿贝尔，所以 <span class="arithmatex">\(A_4'\le V_4\)</span>。再计算</p>
+<div class="arithmatex">\[[(123),(124)]=(12)(34).\]</div>
+<p>此元素在A₄内的共轭包含其余两个双换位，因此整个V₄都在A₄′里，得到 <span class="arithmatex">\(A_4'=V_4\)</span>。最后V₄阿贝尔，所以</p>
+<div class="arithmatex">\[S_4\supset A_4\supset V_4\supset1,\]</div>
+<p>阶数依次为24、12、4、1。相邻商为C₂、C₃、V₄，都阿贝尔。这是一条可解列，末项商V₄并不单；“可解列”与“合成列”不能混称。若细化到合成列，还要把V₄再分成两个C₂因子。</p>
+<h2 id="10-a5">10. A₅为什么停止：五个共轭类足以证明单性<a class="headerlink" href="#10-a5" title="Permanent link"></a></h2>
+<p>A₅的元素按循环类型分为恒等元、三循环、两个互不相交的换位之积、五循环。总数分别为1、20、15、24；没有其他偶循环类型。对每类还要确认在A₅中的共轭类是否分裂。</p>
+<p>三循环例如(123)的中心化子在S₅中由其三个幂与剩余两点的交换组成，共6个元素；只有前3个是偶置换。因此它在A₅中的共轭类大小为 <span class="arithmatex">\(60/3=20\)</span>。</p>
+<p>双换位例如(12)(34)的中心化子必须固定点5，且可以交换两个二点轨道，并在各轨道内部交换，共 <span class="arithmatex">\(2\cdot2\cdot2=8\)</span> 个元素，其中有奇置换(12)，所以恰半数为偶置换。其A₅共轭类大小为 <span class="arithmatex">\(60/4=15\)</span>。</p>
+<p>五循环c的中心化子只有它的5个幂：与c交换的置换由它把一个点送到哪里唯一决定，且每种选择恰是一个c的幂。这5个幂都是偶置换，因此每个A₅共轭类有 <span class="arithmatex">\(60/5=12\)</span> 个元素。24个五循环恰分成两个这样的类。类方程是</p>
+<div class="arithmatex">\[60=1+20+15+12+12.\]</div>
+<p>正规子群必须是共轭类的并并含恒等元，其阶也必须整除60。把1与非恒等类的大小作子集和，可能值为</p>
+<div class="arithmatex">\[1,13,16,21,25,28,33,36,40,45,48,60.\]</div>
+<p>其中整除60的只有1与60。因此A₅没有非平凡真正规子群，即A₅是单群。它又不是阿贝尔群，例如上节两个三循环并不交换。于是A₅′是非平凡正规子群，只能等于A₅本身。其导出列停在阶60，故不可解。</p>
+<p>结合上一节 <span class="arithmatex">\(S_5'=A_5\)</span>，S₅的导出列是 <span class="arithmatex">\(S_5\supset A_5=A_5'=\cdots\)</span>，同样不可解。这个有限计算与证明为五次方程的障碍提供群论入口；仍需下一讲建立“根式可解”与“Galois群可解”的对应，不能只见到一个五次多项式就断言它的群一定是S₅。</p>
+<h2 id="11">11. 四道练习：把条件用完，而不是猜一个候选<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<h3 id="15">练习一：15阶群为什么一定循环<a class="headerlink" href="#15" title="Permanent link"></a></h3>
+<p>先求两个Sylow计数，再解释“两个正规子群”如何变成一个循环群。</p>
+<details class="answer">
+<summary>展开完整解答</summary>
+<p>Sylow条件给 <span class="arithmatex">\(n_5\mid3\)</span> 且 <span class="arithmatex">\(n_5\equiv1\pmod5\)</span>，只能 <span class="arithmatex">\(n_5=1\)</span>；同理 <span class="arithmatex">\(n_3\mid5\)</span> 且 <span class="arithmatex">\(n_3\equiv1\pmod3\)</span>，只能 <span class="arithmatex">\(n_3=1\)</span>。记唯一子群为P、Q，阶分别为5、3，二者正规。</p>
+<p>交集的阶同时整除3和5，所以 <span class="arithmatex">\(P\cap Q=1\)</span>。对 <span class="arithmatex">\(p\in P,q\in Q\)</span>，正规性使 <span class="arithmatex">\([p,q]\)</span> 同时落在P和Q中，故两者交换。乘法映射 <span class="arithmatex">\(P\times Q\to G\)</span> 因此是同态，核平凡，源与目标都15阶，所以是同构。P、Q各为素数阶循环群，取生成元p、q。若 <span class="arithmatex">\((pq)^k=1\)</span>，则 <span class="arithmatex">\(p^k=q^{-k}\in P\cap Q\)</span>，于是3和5都整除k，故pq的阶为15，G循环。</p>
+</details>
+<h3 id="4030">练习二：40阶与30阶群的非单性<a class="headerlink" href="#4030" title="Permanent link"></a></h3>
+<p>40阶群用一个计数就够；30阶群要先排除两种Sylow计数同时取大值。</p>
+<details class="answer">
+<summary>展开完整解答</summary>
+<p>40阶时 <span class="arithmatex">\(n_5\mid8\)</span> 且 <span class="arithmatex">\(n_5\equiv1\pmod5\)</span>，候选1、2、4、8中只有1满足同余。唯一5阶子群是非平凡真正规子群，所以群不单。</p>
+<p>30阶时 <span class="arithmatex">\(n_5\in\{1,6\}\)</span>、<span class="arithmatex">\(n_3\in\{1,10\}\)</span>。假设两者都不为1。不同的素数阶子群只交于恒等元，且3阶与5阶非恒等元素不能重合。因此6个5阶子群贡献24个非恒等元，10个3阶子群贡献20个非恒等元，加恒等元已达45个，超过30，矛盾。至少一种Sylow子群唯一，给出非平凡真正规子群。</p>
+<p>不能在一般p幂阶Sylow子群之间照搬这一步：不同的p²阶子群可能有非平凡交集。本题能直接相加，是因为使用的是素数阶子群。</p>
+</details>
+<h3 id="s3">练习三：S₃的两个陪集作用<a class="headerlink" href="#s3" title="Permanent link"></a></h3>
+<p>分别取 <span class="arithmatex">\(H=\langle(12)\rangle\)</span> 与 <span class="arithmatex">\(K=A_3\)</span>。求陪集数量、作用核，并判断能否按代表元乘法定义商群。</p>
+<details class="answer">
+<summary>展开完整解答</summary>
+<p>H有2个元素，左陪集有3个。三个共轭子群分别由(12)、(13)、(23)生成，只交于恒等元；作用核是所有共轭的交，所以平凡。这个三点传递作用忠实，H却不是正规子群。例如 <span class="arithmatex">\((123)(12)(123)^{-1}=(23)\notin H\)</span>，故不存在所述商群乘法。</p>
+<p>K有3个元素且正规，所以左陪集有2个，作用核恰为K。这个作用不忠实于S₃，但诱导S₃/K在两个点上的忠实作用。商群有两个元素，为C₂；其两个陪集是偶置换与奇置换，乘法对应符号相乘。此例也说明传递作用不必忠实。</p>
+</details>
+<h3 id="a4sylow">练习四：A₄的Sylow作用为什么有一个固定点<a class="headerlink" href="#a4sylow" title="Permanent link"></a></h3>
+<p>让一个Sylow 3子群P通过共轭作用在A₄的全部Sylow 3子群上。求轨道大小，并与全群的作用比较。</p>
+<details class="answer">
+<summary>展开完整解答</summary>
+<p>A₄有8个三循环，每个3阶子群含两个非恒等元，故有4个Sylow 3子群。P作为作用者，其轨道大小只能是1或3。P自身固定；若另一个Q也固定，P正规化Q，PQ便成为一个3群子群。若P与Q不同，它们交集平凡，PQ将有9个元素，不可能整除12。因此仅P固定，另外3个子群构成一个轨道，轨道分解为1+3。</p>
+<p>改用A₄全群作用，Sylow共轭性给出一个大小4的轨道。P的稳定子即正规化子，大小为 <span class="arithmatex">\(12/4=3\)</span>，所以 <span class="arithmatex">\(N_{A_4}(P)=P\)</span>。同时P是循环群，此处中心化子也为P；但它们在一般子群上不必相等。</p>
+</details>
+<h2 id="12">12. 下一步：哪些工具已准备好，哪些还没有<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<p>现在可以从一个群作用提取轨道、稳定子与作用核；用类方程和Sylow定理约束子群；用完整导出列证明一个有限群可解或不可解。实验还可以检验同一个H在不同作用中的表现，例如H的陪集作用核与共轭作用核通常并不相同。</p>
+<p>接到Galois理论时，群会作用于多项式根，子群对应固定域。这里的正规子群与商群条件会转化为中间域扩张的条件；可解列会连接到分层的根式扩张。有限群实验没有实现域扩张、分裂域或自动识别任意多项式的Galois群，这些内容在<a href="alg2-02-galois.html">下一讲</a>展开。</p>
+<p>更远的方向包括有限群表示、群上算法与形式化证明。要进一步学习它们，先确认自己能解释一次乘法、一个生成词、一个共轭见证与一个商群投影；仅记住S₅不可解还不够。本讲没有尝试给任意有限群分类，也没有把几个预设的枚举范围称为分类定理。</p>
+<p>参考入口：<a href="https://www.jmilne.org/math/CourseNotes/GT.pdf">J. S. Milne《Group Theory》</a>，重点查阅第4章群作用、第5章Sylow定理、第6章可解群。符号与定理编号可能随版本变化；本页采用右侧置换先作用、交换子为xyx⁻¹y⁻¹的约定。</p>
+</div>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="at-03-homology.html"><span class="pager-label">上一页</span>代数拓扑 III · 同调</a>
