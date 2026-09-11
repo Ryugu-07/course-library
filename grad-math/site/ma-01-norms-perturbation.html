@@ -52,161 +52,435 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-11 12:44</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：为什么稳定系统也会先放大？</a><ul>
-<li><a href="#1">1. 具体谜题：两个系统有同一对特征值，谁会先“爆一下”？</a></li>
-<li><a href="#2">2. 最小模型：一个幂零方向把信息剪切到另一坐标</a></li>
-<li><a href="#3">3. 确定性实验：每一步都要能对账</a></li>
-<li><a href="#4">4. 术语边界：五个相近的量不是一回事</a></li>
-<li><a href="#5-resolvent">5. 伪谱的诚实读法：resolvent 是桥，不是同义词</a></li>
-<li><a href="#6-jordan">6. 回到定理：谱半径负责长期，Jordan 项负责过程</a></li>
-<li><a href="#7-jordan">7. 迁移问题：把 Jordan 极限带到不同特征值</a></li>
+<li><a href="#_1">学习层：先确定你在问哪个时刻、哪个方向</a><ul>
+<li><a href="#ma-norm-learning-title">同谱不等于同样的有限时间表现</a></li>
 </ul>
 </li>
-<li><a href="#1_1">1. 矩阵范数与谱半径</a></li>
-<li><a href="#2-weyl-daviskahan">2. 对称谱的扰动：Weyl 与 Davis–Kahan</a></li>
-<li><a href="#3-gershgorin">3. Gershgorin 圆盘（谱的免费定位）</a></li>
-<li><a href="#4_1">4. 练习与要点</a></li>
+<li><a href="#1">1. 范数测伸缩，谱半径测特征方向</a></li>
+<li><a href="#2-jordan">2. Jordan块怎样制造瞬态</a></li>
+<li><a href="#3-gelfand">3. Gelfand公式为什么只负责渐近速率</a></li>
+<li><a href="#4">4. 能不能换一种长度，让范数接近谱半径？</a></li>
+<li><a href="#5-neumann">5. Neumann和：有限恒等式与无限收敛要分开</a></li>
+<li><a href="#6">6. 伪谱：把某个数变成特征值，需要改多少矩阵？</a></li>
+<li><a href="#7-weyl">7. Weyl：对称特征值的绝对变化有界</a></li>
+<li><a href="#8">8. 单个方向的稳定性：分母究竟是哪一道谱隙？</a></li>
+<li><a href="#9">9. 将精确扰动定理带进浮点实验</a></li>
+<li><a href="#10-gershgorin">10. Gershgorin：不用先求根，也能圈出谱</a></li>
+<li><a href="#11">11. 四道迁移题与完整答案</a><ul>
+<li><a href="#_2">题一：谱半径为零，为什么矩阵范数不能也选成零？</a></li>
+<li><a href="#neumann">题二：逆矩阵存在，Neumann和为什么还会失败？</a></li>
+<li><a href="#45">题三：特征值完全相同，主方向能否转45度？</a></li>
+<li><a href="#_3">题四：从三行数字准确数出正、负特征值</a></li>
+</ul>
+</li>
+<li><a href="#12">12. 继续使用这些证据</a></li>
 </ul>
 </div>
 </details>
-<h1 id="i">矩阵分析 I · 范数、谱半径与扰动理论<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<h1 id="i">矩阵分析 I · 范数、谱半径与扰动证据<a class="headerlink" href="#i" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Horn &amp; Johnson <em>MA</em> §5.6–5.8、§6.3、Weyl 定理 ｜ <strong>前置</strong>：本科高代 V–VI、泛函 I、数值 I
-矩阵分析 = 矩阵的"分析学"：极限、范数、扰动。本页三大件：<strong>Gelfand 公式</strong>（谱半径是渐近行为的裁判，但不承诺有限时刻单调）、<strong>Weyl 扰动定理</strong>（对称谱的完美稳定性）、<strong>Gershgorin 圆盘</strong>（谱的免费定位器）——全站多次引用的"谱半径决定长期行为"在此获得总证明。</p>
+<p><strong>本页问题</strong>：一个最终会衰减的系统，为什么能先把误差放大几十倍？特征值几乎没变，为什么主方向却转了很大的角度？</p>
+<p>前置：<a href="nla-01-svd-stability.html">数值表示、SVD与后向误差</a>、<a href="nla-02-eigen.html">特征值迭代</a>、<a href="nla-03-krylov.html">Krylov方法与真实残差</a>。这些问题需要不同的量来回答，本页逐个建立它们之间的联系。</p>
 </blockquote>
 <div data-learning-page></div>
 
-<section class="learning-layer">
-<h2 id="_1">学习层：为什么稳定系统也会先放大？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="1">1. 具体谜题：两个系统有同一对特征值，谁会先“爆一下”？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>考虑离散系统 <span class="arithmatex">\(x_{j+1}=Ax_j\)</span>，并固定</p>
+<section aria-labelledby="ma-norm-learning-title" class="learning-layer">
+<h2 id="_1">学习层：先确定你在问哪个时刻、哪个方向<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="ma-norm-learning-title">同谱不等于同样的有限时间表现<a class="headerlink" href="#ma-norm-learning-title" title="Permanent link"></a></h3>
+<p>把初始向量想成一次很小的扰动。矩阵反复作用后，它可能很快缩小，也可能先沿另一方向被放大，再慢慢衰减。“最终衰减”只回答足够久之后的问题，没有承诺中途安全。</p>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>该读的量</th>
+<th>不能直接推出什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>很久以后会不会归零？</td>
+<td>谱半径与Gelfand极限</td>
+<td>每一步的长度都下降</td>
+</tr>
+<tr>
+<td>第几步最危险？</td>
+<td>所选方向增益与算子范数</td>
+<td>有限窗口峰值就是全时间峰值</td>
+</tr>
+<tr>
+<td>改一点矩阵，谱会移多远？</td>
+<td>Weyl或伪谱，注意矩阵条件</td>
+<td>单个特征方向也一样稳定</td>
+</tr>
+<tr>
+<td>不求出全部特征值，能定位多少？</td>
+<td>Gershgorin圆盘及分离分组</td>
+<td>圆盘内每一点都是真实特征值</td>
+</tr>
+</tbody>
+</table>
+<p>实验使用二维Jordan块、二维对称扰动和三维对称链。每一个矩阵、向量、实际乘法和残差都有记录。小模型帮助理解判断依据；这里没有大型矩阵性能测试。</p>
+<div class="learning-lab" data-learning-lab="non-normal-transient">
+<p><strong>关闭JavaScript仍能核对。</strong> 下表与插图来自固定运行；交互会在当前浏览器重新计算。公式描述的精确算术对象与实际浮点记录分别保留。</p>
+<p>固定运行：2026-09-11，Node 24.14.0 / darwin arm64。<a href="assets/learning/projects/matrix-norms/run-snapshot.json">下载全部矩阵、向量和运算记录</a>。瞬态使用r=0.9、g=10、e₂与30步窗口；发散例使用A=0.9I、z=0.5与8阶部分和；对称例使用中心1、谱隙1、原轴0°、幅度0.1与扰动正轴45°；圆盘例使用正文三维链。各共同单位尺度均为1。</p>
+<table>
+<thead>
+<tr>
+<th>固定参数下的量</th>
+<th style="text-align: right;">参考值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Jordan谱半径</td>
+<td style="text-align: right;">0.9</td>
+</tr>
+<tr>
+<td>e₂第一步增益</td>
+<td style="text-align: right;">10.040418318</td>
+</tr>
+<tr>
+<td>窗口最大算子增益</td>
+<td style="text-align: right;">38.7459227175</td>
+</tr>
+<tr>
+<td>最早达到该峰值的步数</td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td>e₂第30步增益</td>
+<td style="text-align: right;">14.1304496783</td>
+</tr>
+<tr>
+<td>发散例的逆矩阵范数</td>
+<td style="text-align: right;">2.5</td>
+</tr>
+<tr>
+<td>发散例第8阶部分和范数</td>
+<td style="text-align: right;">493.39822592</td>
+</tr>
+<tr>
+<td>逆矩阵减第8阶部分和范数</td>
+<td style="text-align: right;">495.89822592</td>
+</tr>
+<tr>
+<td>对称例实际扰动范数</td>
+<td style="text-align: right;">0.1</td>
+</tr>
+<tr>
+<td>首特征值绝对变化</td>
+<td style="text-align: right;">0.00990195135928</td>
+</tr>
+<tr>
+<td>首方向夹角的sin</td>
+<td style="text-align: right;">0.0985376179666</td>
+</tr>
+<tr>
+<td>小扰动间隔估计</td>
+<td style="text-align: right;">0.111111111111</td>
+</tr>
+<tr>
+<td>第一行圆盘半径</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>第二行圆盘半径</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td>第三行圆盘半径</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>分离组确定的负特征值数</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>分离组确定的正特征值数</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td>Jacobi最大本征残差</td>
+<td style="text-align: right;">9.99200722163e-16</td>
+</tr>
+</tbody>
+</table>
+<p>这里的峰值仅属于30步窗口。发散例的逆矩阵存在，但Neumann级数不收敛；对称方向估计依赖谱隙条件。圆盘计数来自定理与分离关系，Jacobi残差单独展示实际求解精度。</p>
+</div>
+<p><a href="assets/img/ma-01-norm-ledgers.svg"><img alt="矩阵瞬态、Neumann余项、对称方向扰动与Gershgorin定位" src="assets/img/ma-01-norm-ledgers.svg" /></a></p>
+<p>插图可打开原尺寸；线性图保留真实零，对数图仅显示严格正的实际读数。没有出现的点需要回表查看，不能把空白读成零。</p>
+</section>
+<h2 id="1">1. 范数测伸缩，谱半径测特征方向<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>先在有限维复向量空间上固定一个向量范数，定义诱导矩阵范数</p>
 <div class="arithmatex">\[
-A=\begin{pmatrix}0.9&amp;10\\0&amp;0.9\end{pmatrix},\qquad
-N=0.9I=\begin{pmatrix}0.9&amp;0\\0&amp;0.9\end{pmatrix}.
+\|A\|=\sup_{x\ne0}\frac{\|Ax\|}{\|x\|}.
 \]</div>
-<p>两者的特征值都只是 <span class="arithmatex">\(0.9,0.9\)</span>，所以两者都有 <span class="arithmatex">\(\rho=0.9&lt;1\)</span>。如果“特征值就是全部动力学”，你会预测它们的每一步都差不多。可是从 <span class="arithmatex">\(x_0=e_2=(0,1)^\top\)</span> 出发，</p>
+<p>将 <span class="arithmatex">\(ABx\)</span> 分两次估计，立即得到</p>
 <div class="arithmatex">\[
-Ae_2=(10,0.9)^\top,\qquad Ne_2=(0,0.9)^\top.
+\|ABx\|\le\|A\|\,\|Bx\|
+\le\|A\|\,\|B\|\,\|x\|,
+\qquad \|AB\|\le\|A\|\,\|B\|.
 \]</div>
-<p>先别算更多步：你预测 <span class="arithmatex">\(\|A^j e_2\|_2\)</span> 会不会超过 <span class="arithmatex">\(1\)</span>？换成 <span class="arithmatex">\(e_1\)</span> 后，结论还会不会成立？谜底不是“谱半径失效”，而是<strong>有限时间的方向性增益</strong>没有被谱半径记录。</p>
-<h3 id="2">2. 最小模型：一个幂零方向把信息剪切到另一坐标<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>写成</p>
+<p>若 <span class="arithmatex">\(Av=\lambda v\)</span> 且 <span class="arithmatex">\(v\ne0\)</span>，则 <span class="arithmatex">\(|\lambda|\le\|A\|\)</span>，所以谱半径满足</p>
 <div class="arithmatex">\[
-A=rI+gK,\qquad K=\begin{pmatrix}0&amp;1\\0&amp;0\end{pmatrix},\qquad K^2=0.
+\rho(A)=\max_{\lambda\in\sigma(A)}|\lambda|
+\le\|A\|.
 \]</div>
-<p>因为 <span class="arithmatex">\(rI\)</span> 与 <span class="arithmatex">\(K\)</span> 对易，二项式展开只剩两项。对 <span class="arithmatex">\(k\geq1\)</span>，当 <span class="arithmatex">\(r\neq0\)</span> 时</p>
+<p>反向一般不成立。幂零矩阵</p>
 <div class="arithmatex">\[
-A^k=\begin{pmatrix}a&amp;b\\0&amp;a\end{pmatrix},\qquad
-a=r^k,\quad b=kgr^{k-1}.
+K=\begin{pmatrix}0&amp;1\\0&amp;0\end{pmatrix}
 \]</div>
-<p>这里的 <span class="arithmatex">\(kgr^{k-1}\)</span> 正是“先把 <span class="arithmatex">\(e_2\)</span> 的能量送进第一坐标，再由 <span class="arithmatex">\(r\)</span> 逐步收缩”的剪切项。<span class="arithmatex">\(r=0\)</span> 不能把 <span class="arithmatex">\(0^{k-1}\)</span> 当作无条件安全的代数记号：明确地，<span class="arithmatex">\(A^0=I\)</span>，<span class="arithmatex">\(A^1=\left(\begin{smallmatrix}0&amp;g\\0&amp;0\end{smallmatrix}\right)\)</span>，而 <span class="arithmatex">\(A^k=0\)</span>（<span class="arithmatex">\(k\ge2\)</span>）。</p>
-<p>对于 <span class="arithmatex">\(M=\left(\begin{smallmatrix}a&amp;b\\0&amp;a\end{smallmatrix}\right)\)</span>，</p>
+<p>满足 <span class="arithmatex">\(\rho(K)=0\)</span>，但 <span class="arithmatex">\(\|K\|_2=1\)</span>：它把 <span class="arithmatex">\(e_2\)</span> 送到 <span class="arithmatex">\(e_1\)</span>，再送到零。</p>
+<p>欧氏诱导范数由最大奇异值给出。列和范数、行和范数与Frobenius范数则为</p>
 <div class="arithmatex">\[
-M^\top M=\begin{pmatrix}a^2&amp;ab\\ab&amp;a^2+b^2\end{pmatrix},\qquad
-\|M\|_2^2=\frac{2a^2+b^2+|b|\sqrt{b^2+4a^2}}{2}.
+\|A\|_1=\max_j\sum_i|a_{ij}|,\qquad
+\|A\|_\infty=\max_i\sum_j|a_{ij}|,\qquad
+\|A\|_F=\left(\sum_{i,j}|a_{ij}|^2\right)^{1/2}.
 \]</div>
-<p>因此实验画出的蓝色包络是<strong>精确的</strong> <span class="arithmatex">\(\|A^j\|_2\)</span>，不是 <span class="arithmatex">\(j|g||r|^{j-1}\)</span> 的粗略替代；金色曲线则是所选单位方向 <span class="arithmatex">\(x_0=(\cos\theta,\sin\theta)^\top\)</span> 的 <span class="arithmatex">\(\|A^jx_0\|_2\)</span>。同谱正规控制 <span class="arithmatex">\(N=rI\)</span> 的对应值恒为 <span class="arithmatex">\(\|N^jx_0\|_2=|r|^j\)</span>。</p>
-<h3 id="3">3. 确定性实验：每一步都要能对账<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>下面的实验只使用上述闭式公式，不抽样、不动画化随机轨迹。调节 <span class="arithmatex">\(r\)</span>、耦合 <span class="arithmatex">\(g\)</span>、horizon <span class="arithmatex">\(k\)</span> 和初始角 <span class="arithmatex">\(\theta\)</span>，然后读三笔账：</p>
-<ol>
-<li><strong>轨迹账</strong>：<span class="arithmatex">\(\|A^jx_0\|_2\)</span> 与同谱正规控制 <span class="arithmatex">\(|r|^j\)</span> 的逐步比较；</li>
-<li><strong>最坏方向账</strong>：精确 <span class="arithmatex">\(\|A^j\|_2\)</span>，以及当前窗口 <span class="arithmatex">\(0\le j\le k\)</span> 的峰值；</li>
-<li><strong>resolvent 账</strong>：固定 <span class="arithmatex">\(z=1.30\)</span>，显示有限 Neumann 和
-   <span class="arithmatex">\(\displaystyle R_k(z)=\sum_{j=0}^k z^{-j-1}A^j\)</span>，并与完整 <span class="arithmatex">\((zI-A)^{-1}\)</span> 比较。</li>
-</ol>
-<p>先按“放大案例”读一遍，再切换到 <span class="arithmatex">\(g=0\)</span>、<span class="arithmatex">\(e_1\)</span>、<span class="arithmatex">\(r=1\)</span>、<span class="arithmatex">\(r=1.1\)</span> 和 <span class="arithmatex">\(r=0\)</span>。每次只改变一个旋钮：这样才能把“耦合造成的瞬态”“初始方向造成的可见性”和“最终谱半径造成的渐近行为”分开。</p>
-<h3 id="4">4. 术语边界：五个相近的量不是一回事<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<ul>
-<li><strong>渐近稳定性</strong>是 <span class="arithmatex">\(A^j\to0\)</span>；本族中它等价于 <span class="arithmatex">\(|r|&lt;1\)</span>。它不等于每一步 <span class="arithmatex">\(\|A^{j+1}\|_2\le\|A^j\|_2\)</span>，也不等于欧氏诱导范数 <span class="arithmatex">\(\|A\|_2&lt;1\)</span>。</li>
-<li><strong>瞬态增益</strong>是某个有限 <span class="arithmatex">\(j\)</span> 的 <span class="arithmatex">\(\|A^j x_0\|_2/\|x_0\|_2\)</span>，或最坏方向的 <span class="arithmatex">\(\|A^j\|_2\)</span>。它会依赖 <span class="arithmatex">\(j\)</span> 和方向；Gelfand 公式只控制 <span class="arithmatex">\(j\to\infty\)</span> 的 <span class="arithmatex">\(j\)</span> 次根极限，不能给有限时间单调性背书。</li>
-<li><strong>奇异值</strong>是 <span class="arithmatex">\(A^j\)</span> 的伸缩因子；最大奇异值就是 <span class="arithmatex">\(\|A^j\|_2\)</span>。它测的是最坏方向增益，不是特征值，也不是“某个特征向量被乘了多少”。</li>
-<li><strong>特征向量条件数</strong>描述对角化 <span class="arithmatex">\(A=V\Lambda V^{-1}\)</span> 时基 <span class="arithmatex">\(V\)</span> 的敏感度。若 <span class="arithmatex">\(g\ne0\)</span>，本例是重复特征值的缺陷 Jordan 块：只有 <span class="arithmatex">\(\operatorname{span}\{e_1\}\)</span> 一个特征方向，根本没有可逆特征向量矩阵 <span class="arithmatex">\(V\)</span>，所以不能给它塞一个有限的 <span class="arithmatex">\(\kappa_2(V)\)</span>。<span class="arithmatex">\(g=0\)</span> 时 <span class="arithmatex">\(A=rI\)</span>，可选正交特征基，<span class="arithmatex">\(\kappa_2(V)=1\)</span>。</li>
-<li><strong>特征值扰动敏感性</strong>与上述瞬态增益相关但不同。取
-  <span class="arithmatex">\(\displaystyle E=\left(\begin{smallmatrix}0&amp;0\\\varepsilon&amp;0\end{smallmatrix}\right)\)</span>，则 <span class="arithmatex">\(A+E\)</span> 的特征值是
-  <span class="arithmatex">\(\displaystyle r\pm\sqrt{g\varepsilon}\)</span>（取复平方根），呈平方根级分裂；这是缺陷性的谱敏感性，不是说 <span class="arithmatex">\(\|A^j\|_2\)</span> 的某个数值本身就是特征值误差。</li>
-</ul>
-<h3 id="5-resolvent">5. 伪谱的诚实读法：resolvent 是桥，不是同义词<a class="headerlink" href="#5-resolvent" title="Permanent link"></a></h3>
-<p>对 <span class="arithmatex">\(z\notin\sigma(A)\)</span>，</p>
-<div class="arithmatex">\[
-(zI-A)^{-1}=\begin{pmatrix}
-\dfrac1{z-r}&amp;\dfrac{g}{(z-r)^2}\\[4pt]
-0&amp;\dfrac1{z-r}
-\end{pmatrix}.
-\]</div>
-<p>因此 <span class="arithmatex">\(\|(zI-A)^{-1}\|_2\)</span> 变大时，<span class="arithmatex">\(z\)</span> 对小矩阵扰动更敏感；在 <span class="arithmatex">\(2\)</span>-范数下，</p>
-<div class="arithmatex">\[
-z\in\sigma_\varepsilon(A)\iff
-\|(zI-A)^{-1}\|_2&gt;\varepsilon^{-1},
-\]</div>
-<p>并且 <span class="arithmatex">\(\varepsilon=1/\|(zI-A)^{-1}\|_2=\sigma_{\min}(zI-A)\)</span> 是把 <span class="arithmatex">\(z\)</span> 推成谱点所需的最小谱范数扰动。实验中的 <span class="arithmatex">\(R_k(z)\)</span> 是<strong>有限 horizon 的 resolvent 诊断</strong>；它不是把有限和直接冒充成伪谱定义，完整 resolvent 才给出上面的精确 <span class="arithmatex">\(\varepsilon\)</span>-尺度。</p>
-<h3 id="6-jordan">6. 回到定理：谱半径负责长期，Jordan 项负责过程<a class="headerlink" href="#6-jordan" title="Permanent link"></a></h3>
-<p>由闭式公式，<span class="arithmatex">\(|r|&lt;1\)</span> 时 <span class="arithmatex">\(r^k\to0\)</span> 且 <span class="arithmatex">\(k|r|^{k-1}\to0\)</span>，所以 <span class="arithmatex">\(A^k\to0\)</span>。反之 <span class="arithmatex">\(|r|&gt;1\)</span> 时指数项不衰减，<span class="arithmatex">\(|r|=1\)</span> 时 <span class="arithmatex">\(g\ne0\)</span> 还会留下 <span class="arithmatex">\(kg r^{k-1}\)</span>；故本族确实满足</p>
-<div class="arithmatex">\[
-A^k\to0\quad\Longleftrightarrow\quad\rho(A)=|r|&lt;1.
-\]</div>
-<p>这正是 Gelfand 公式</p>
-<div class="arithmatex">\[
-\rho(A)=\lim_{k\to\infty}\|A^k\|^{1/k}
-\]</div>
-<p>所说的“渐近速度”。它允许 <span class="arithmatex">\(\|A^k\|_2\)</span> 在早期上升、达到峰值、再下降；所以“最终稳定”与“过程没有放大”是两条不同的工程要求。</p>
-<h3 id="7-jordan">7. 迁移问题：把 Jordan 极限带到不同特征值<a class="headerlink" href="#7-jordan" title="Permanent link"></a></h3>
+<p>其中Frobenius范数是矩阵元素上的欧氏范数；<span class="arithmatex">\(n&gt;1\)</span> 时 <span class="arithmatex">\(\|I\|_F=\sqrt n\)</span>，因此它不是同一空间上某个向量范数的诱导范数。有限维中这些范数相互控制，但常数可能依赖维数。不要在一个需要明确误差常数的式子里不加说明地互换它们。</p>
+<h2 id="2-jordan">2. Jordan块怎样制造瞬态<a class="headerlink" href="#2-jordan" title="Permanent link"></a></h2>
 <p>考虑</p>
 <div class="arithmatex">\[
-B=\begin{pmatrix}0.8&amp;6\\0&amp;0.95\end{pmatrix}.
+A=rI+gK=\begin{pmatrix}r&amp;g\\0&amp;r\end{pmatrix},
+\qquad K^2=0.
 \]</div>
-<p>先不计算数值：你预计 <span class="arithmatex">\(B^k e_2\)</span> 的第一坐标会不会出现有限时间峰值？由上三角乘法可得</p>
+<p>当 <span class="arithmatex">\(k\ge1\)</span> 且 <span class="arithmatex">\(r\ne0\)</span>，二项式展开给出</p>
 <div class="arithmatex">\[
-B^k=\begin{pmatrix}
-0.8^k&amp;6\,\dfrac{0.8^k-0.95^k}{0.8-0.95}\\
-0&amp;0.95^k
-\end{pmatrix};
+A^k=r^kI+kg r^{k-1}K.
 \]</div>
-<p>当 <span class="arithmatex">\(0.8\to0.95=r\)</span> 时，差商极限正好变成 <span class="arithmatex">\(k r^{k-1}\)</span>。请说明：这里的“差异化/差商”与 Jordan 块的 <span class="arithmatex">\(kg r^{k-1}\)</span> 是什么关系？若把 <span class="arithmatex">\(6\)</span> 换成 <span class="arithmatex">\(0\)</span>，哪些瞬态与扰动敏感性同时消失？</p>
-<div class="learning-lab" data-learning-lab="non-normal-transient">
-<p><strong>无 JavaScript 时的静态读法：</strong>固定 <span class="arithmatex">\(r=0.9,g=10,\theta=90^\circ,k=10\)</span>，即 <span class="arithmatex">\(x_0=e_2\)</span>。使用</p>
+<p>若 <span class="arithmatex">\(r=0\)</span>，应单独写 <span class="arithmatex">\(A^0=I\)</span>、<span class="arithmatex">\(A^1=gK\)</span>、<span class="arithmatex">\(A^k=0\)</span>（<span class="arithmatex">\(k\ge2\)</span>），不依赖含糊的零次幂约定。</p>
+<p>从 <span class="arithmatex">\(e_2\)</span> 出发，剪切项把第二坐标传到第一坐标：</p>
 <div class="arithmatex">\[
-A^j e_2=\bigl(jgr^{j-1},r^j\bigr)^\top,\qquad
-\|A^j e_2\|_2=\sqrt{(jgr^{j-1})^2+r^{2j}},\qquad
-\|N^j e_2\|_2=r^j.
+A^ke_2=(kg r^{k-1},r^k)^T.
 \]</div>
-<p>手算账本可取 <span class="arithmatex">\(j=0,1,2,5,10\)</span>；其中 <span class="arithmatex">\(j=0\)</span> 单独记 <span class="arithmatex">\(A^0e_2=e_2\)</span>，而 <span class="arithmatex">\(j\ge1\)</span> 使用上式。预期正规控制依次是 <span class="arithmatex">\(1,0.9,0.81,0.59049,0.348678\)</span>，而非正规轨迹约为 <span class="arithmatex">\(1,10.040,18.018,32.810,38.744\)</span>。第 <span class="arithmatex">\(10\)</span> 步的精确算子增益由上面的奇异值公式得到约 <span class="arithmatex">\(38.745\)</span>。脚本加载后可调 <span class="arithmatex">\(r,g,k,\theta\)</span>，查看同谱控制、精确 <span class="arithmatex">\(\|A^j\|_2\)</span>、逐步 ledger、边界案例和 resolvent 诊断；脚本失败时仍可依照这些闭式式子完成整页推理。</p>
-</div>
-</section>
-<h2 id="1_1">1. 矩阵范数与谱半径<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p><strong>诱导范数</strong> <span class="arithmatex">\(\|A\| = \sup_{\|x\|=1}\|Ax\|\)</span>（次可乘 <span class="arithmatex">\(\|AB\| \leq \|A\|\|B\|\)</span>）；谱半径 <span class="arithmatex">\(\rho(A) = \max|\lambda_i|\)</span>。</p>
-<p><strong>基本不等式</strong> <span class="arithmatex">\(\rho(A) \leq \|A\|\)</span>（任何诱导范数；特征向量一行）。⚠️ 反向不成立：<span class="arithmatex">\(A = \begin{pmatrix}0 &amp; 1\\ 0&amp; 0\end{pmatrix}\)</span>，<span class="arithmatex">\(\rho = 0\)</span> 而 <span class="arithmatex">\(\|A\|_2 = 1\)</span>——<strong>非正规矩阵的范数与谱可以严重脱节</strong>（瞬态增长现象：<span class="arithmatex">\(\|A^k\|\)</span> 可先涨后消——伪谱理论的入口【引用 Trefethen–Embree】）。</p>
-<p><strong>定理（Gelfand 公式）</strong></p>
+<p>取 <span class="arithmatex">\(r=0.9,g=10\)</span>，第一步长度就超过10，尽管谱半径只有0.9。从 <span class="arithmatex">\(e_1\)</span> 出发却只有 <span class="arithmatex">\(A^ke_1=r^ke_1\)</span>，完全看不到剪切项。因此所选方向的增益与最坏方向增益必须分开。</p>
+<p>对任意实数 <span class="arithmatex">\(a,b\)</span>，令 <span class="arithmatex">\(T=\left(\begin{smallmatrix}a&amp;b\\0&amp;a\end{smallmatrix}\right)\)</span>。由 <span class="arithmatex">\(T^TT\)</span> 的二阶特征方程可得</p>
 <div class="arithmatex">\[
-\rho(A) = \lim_{k\to\infty}\|A^k\|^{1/k}
+\sigma_{\max}(T)=\frac{\sqrt{4a^2+b^2}+|b|}{2},
+\qquad
+\sigma_{\min}(T)=\frac{a^2}{\sigma_{\max}(T)}
 \]</div>
-<p><strong>【证明】</strong> （<span class="arithmatex">\(\geq\)</span>）<span class="arithmatex">\(\rho(A)^k = \rho(A^k) \leq \|A^k\|\)</span>。（<span class="arithmatex">\(\leq\)</span>）对任意 <span class="arithmatex">\(\varepsilon\)</span>，<span class="arithmatex">\(B = A/(\rho + \varepsilon)\)</span> 的谱半径 <span class="arithmatex">\(&lt; 1\)</span> ⇒ <span class="arithmatex">\(B^k \to 0\)</span>（Jordan 形逐块验证：<span class="arithmatex">\(J^k\)</span> 的元素是 <span class="arithmatex">\(\lambda^{k-j}\binom kj\)</span> 型，<span class="arithmatex">\(|\lambda| &lt; 1\)</span> 时多项式×几何衰减归零——高代 V 的 Jordan 在此干活）⇒ <span class="arithmatex">\(\|B^k\|\)</span> 有界，<span class="arithmatex">\(\|A^k\|^{1/k} \leq (\rho + \varepsilon)\cdot C^{1/k} \to \rho + \varepsilon\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>推论（全站欠条的总清偿）</strong> <span class="arithmatex">\(A^k \to 0 \iff \rho(A) &lt; 1\)</span>；幂级数 <span class="arithmatex">\(\sum c_kA^k\)</span> 的收敛判据以 <span class="arithmatex">\(\rho\)</span> 为半径——<strong>迭代法收敛判据（数值 II）、Markov 链混合（随机过程）、AR 过程平稳性（时序）、离散动力系统稳定（ode-03）</strong>：四门课引用的"谱半径 &lt; 1"是同一条 Gelfand。另一实用件：<span class="arithmatex">\(\forall\varepsilon\ \exists\)</span> 范数使 <span class="arithmatex">\(\|A\| \leq \rho + \varepsilon\)</span>（Jordan 基下加权——"谱半径是所有诱导范数的下确界"）。</p>
-<h2 id="2-weyl-daviskahan">2. 对称谱的扰动：Weyl 与 Davis–Kahan<a class="headerlink" href="#2-weyl-daviskahan" title="Permanent link"></a></h2>
-<p><strong>定理（Weyl）</strong> 对称 <span class="arithmatex">\(A, E\)</span>：</p>
+<p>（零矩阵另记两个奇异值均为0）。第二式利用两个奇异值的乘积为 <span class="arithmatex">\(|\det T|=a^2\)</span>，避免直接相减两个接近的大数。</p>
+<p>实验同时计算逐次矩阵乘法得到的 <span class="arithmatex">\(A^j\)</span> 与闭式结果，并记录两者差距。曲线来自浮点计算，不把公式里的“等于”自动解释成逐位一致。</p>
+<h2 id="3-gelfand">3. Gelfand公式为什么只负责渐近速率<a class="headerlink" href="#3-gelfand" title="Permanent link"></a></h2>
+<p>先证明一个基本事实：</p>
 <div class="arithmatex">\[
-|\lambda_i(A + E) - \lambda_i(A)| \;\leq\; \|E\|_2 \qquad \forall i
+A^k\to0\quad\Longleftrightarrow\quad\rho(A)\lt1.
 \]</div>
-<p><strong>【证明】</strong> Courant–Fischer 极小极大（<span class="arithmatex">\(\lambda_i = \min_{\dim S = n-i+1}\max_{x\in S}\frac{x^\top Ax}{x^\top x}\)</span>——高代 VI Rayleigh 商的推广，本页顺带补全）：对同一子空间族，<span class="arithmatex">\(\frac{x^\top(A+E)x}{x^\top x}\)</span> 与 <span class="arithmatex">\(\frac{x^\top Ax}{x^\top x}\)</span> 逐点差 <span class="arithmatex">\(\leq \|E\|\)</span>，min-max 保持不等式。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>读法</strong>：<strong>对称特征值是"条件数为 1"的完美量</strong>——扰动多少、谱至多动多少（nla-02 引用的定理在此还账）；样本协方差谱因此可信到 <span class="arithmatex">\(\|\hat\Sigma - \Sigma\|\)</span> 级（hdp-03 的谱界直接换算成特征值误差——三门课在一行不等式上接通）。</p>
-<p><strong>特征向量则不然（Davis–Kahan，<span class="arithmatex">\(\sin\Theta\)</span> 定理陈述）【引用】</strong>：<span class="arithmatex">\(\sin\angle(v_i, \hat v_i) \lesssim \frac{\|E\|}{\text{gap}_i}\)</span>——<strong>谱隙做分母</strong>：特征值挤在一起时方向失稳（nla-02 例 3 "PCA 单轴不可信"的定理出处）。"值稳定、向量看谱隙"六个字带走。</p>
-<h2 id="3-gershgorin">3. Gershgorin 圆盘（谱的免费定位）<a class="headerlink" href="#3-gershgorin" title="Permanent link"></a></h2>
-<p><strong>定理</strong> <span class="arithmatex">\(A\)</span> 的每个特征值落在某个圆盘 <span class="arithmatex">\(D_i = \{z: |z - a_{ii}| \leq \sum_{j\neq i}|a_{ij}|\}\)</span> 内。
-<strong>【证明】</strong> <span class="arithmatex">\(Ax = \lambda x\)</span>，取 <span class="arithmatex">\(|x_i|\)</span> 最大的分量：<span class="arithmatex">\(|\lambda - a_{ii}||x_i| = |\sum_{j\neq i}a_{ij}x_j| \leq |x_i|\sum|a_{ij}|\)</span>。<span class="arithmatex">\(\blacksquare\)</span>（两行定理，性价比之王。）
-<strong>推论</strong>：严格对角占优 ⇒ 可逆（0 不在任何圆盘）——数值 II Jacobi/GS 收敛条件的一行证明补齐；连通版本（<span class="arithmatex">\(k\)</span> 个圆盘的连通块恰含 <span class="arithmatex">\(k\)</span> 个特征值）用于谱的分离论证【引用】。</p>
-<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（Gelfand 体感）</strong> <span class="arithmatex">\(A = \begin{pmatrix}0.9 &amp; 10\\ 0 &amp; 0.9\end{pmatrix}\)</span>：<span class="arithmatex">\(\rho = 0.9 &lt; 1\)</span> 但 <span class="arithmatex">\(\|A\|_2 \approx 10\)</span>——<span class="arithmatex">\(\|A^k\|\)</span> 先冲高（<span class="arithmatex">\(k\cdot0.9^{k-1}\cdot10\)</span> 型）至 <span class="arithmatex">\(k \approx 10\)</span> 才衰减：<strong>"最终收敛"与"过程平稳"是两回事</strong>（迭代法/RNN 的瞬态爆发同源；非正规性的实害一图看懂）。</p>
-<p><strong>例 2（Weyl 应用）</strong> 协方差估计误差 <span class="arithmatex">\(\|\hat\Sigma - \Sigma\| \leq 0.1\)</span>：每个特征值误差 <span class="arithmatex">\(\leq 0.1\)</span>——"解释方差前 5 名"的排序在特征值间隔 <span class="arithmatex">\(&gt; 0.2\)</span> 时保序（Weyl 两次）；间隔更小时排序不可信——PCA 报告的严谨措辞由此。</p>
-<p><strong>例 3（Gershgorin 速判）</strong> <span class="arithmatex">\(A = \begin{pmatrix}4 &amp; 1 &amp; 0\\ 1 &amp; 3 &amp; 1 \\ 0 &amp; 1 &amp; -2\end{pmatrix}\)</span>：圆盘 <span class="arithmatex">\([3,5], [1,5], [-4,0]\)</span>——立即知道：可能有负特征值（第三盘）、谱 <span class="arithmatex">\(\subseteq [-4, 5]\)</span>、且 <span class="arithmatex">\(\{-4\leq z\leq0\}\)</span> 盘与前两盘不交 ⇒ 恰一个负特征值。<strong>不解特征方程的谱侦察</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：半正定世界的运算——Löwner 序、Schur 补与矩阵函数：把"矩阵当数用"的合法边界画清楚。</em></p>
-<p>用真实设计矩阵检验数值表示与误差，可做<a href="project-01-co2-trends.html">NOAA CO₂真实数据项目</a>。使用有版本和质量说明的固定快照，保留独立复算与模型边界。</p>
+<p>若有 <span class="arithmatex">\(|\lambda|\ge1\)</span>，沿相应特征向量的 <span class="arithmatex">\(A^kv=\lambda^kv\)</span> 就不趋于零。反过来，将矩阵化成Jordan块。对 <span class="arithmatex">\(J=\lambda I+N\)</span>、<span class="arithmatex">\(N^m=0\)</span>，</p>
+<div class="arithmatex">\[
+J^k=\sum_{j=0}^{\min(k,m-1)}
+\binom kj\lambda^{k-j}N^j.
+\]</div>
+<p>当 <span class="arithmatex">\(0\lt|\lambda|\lt1\)</span>，每一项是固定次数的多项式乘几何衰减，趋于零；<span class="arithmatex">\(\lambda=0\)</span> 时整个块最终恰为零。相似变换只引入固定的范数常数，于是结论成立。</p>
+<p>现在证明Gelfand公式。对诱导范数，特征向量论证先给</p>
+<div class="arithmatex">\[
+\rho(A)\le\|A^k\|^{1/k}.
+\]</div>
+<p>任取 <span class="arithmatex">\(\varepsilon&gt;0\)</span>，令 <span class="arithmatex">\(B=A/(\rho(A)+\varepsilon)\)</span>。其谱半径严格小于1，因此 <span class="arithmatex">\(B^k\to0\)</span>，从而存在固定 <span class="arithmatex">\(C\)</span> 使所有 <span class="arithmatex">\(\|B^k\|\le C\)</span>。于是</p>
+<div class="arithmatex">\[
+\|A^k\|^{1/k}
+\le(\rho(A)+\varepsilon)C^{1/k}.
+\]</div>
+<p>取上极限再令 <span class="arithmatex">\(\varepsilon\downarrow0\)</span>，得到</p>
+<div class="arithmatex">\[
+\lim_{k\to\infty}\|A^k\|^{1/k}=\rho(A).
+\]</div>
+<p>对任意其他矩阵范数，利用有限维范数等价即可转移结论，因为固定比较常数的 <span class="arithmatex">\(k\)</span> 次根趋于1。</p>
+<p>这个证明没有给出第10步、第100步的实用误差预算，也没有推出序列 <span class="arithmatex">\(\|A^k\|\)</span> 单调。<a href="https://arxiv.org/abs/0810.2856">Kozyakin的原始研究</a>进一步研究了有限步逼近速率；本页不把极限公式本身当作已有速率估计。</p>
+<h2 id="4">4. 能不能换一种长度，让范数接近谱半径？<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>可以，但改变长度也会改变“误差有多大”的含义。若 <span class="arithmatex">\(A=VJV^{-1}\)</span> 为Jordan分解，对每个大小为 <span class="arithmatex">\(m\)</span> 的块取</p>
+<div class="arithmatex">\[
+D=\operatorname{diag}(1,t,t^2,\ldots,t^{m-1}),
+\qquad t&gt;0.
+\]</div>
+<p>那么 <span class="arithmatex">\(D^{-1}JD\)</span> 的超对角元从1变成 <span class="arithmatex">\(t\)</span>。把各块的 <span class="arithmatex">\(D\)</span> 合并，并设 <span class="arithmatex">\(S=VD\)</span>，在新范数</p>
+<div class="arithmatex">\[
+\|x\|_{\rm new}=\|S^{-1}x\|_\infty
+\]</div>
+<p>下，诱导矩阵范数满足</p>
+<div class="arithmatex">\[
+\|A\|_{\rm new}=\|S^{-1}AS\|_\infty
+\le\rho(A)+t.
+\]</div>
+<p>所以所有诱导范数中的下确界是谱半径。不过，下确界不一定取得：非零幂零矩阵的谱半径是0，任何真正的矩阵范数却都不能把它记为0。随着 <span class="arithmatex">\(t\)</span> 很小，坐标变换还可能变得病态；这不是消除了原来欧氏长度下的瞬态。</p>
+<h2 id="5-neumann">5. Neumann和：有限恒等式与无限收敛要分开<a class="headerlink" href="#5-neumann" title="Permanent link"></a></h2>
+<p>对 <span class="arithmatex">\(z\ne0\)</span>，定义有限和</p>
+<div class="arithmatex">\[
+S_k(z)=\sum_{j=0}^k z^{-j-1}A^j.
+\]</div>
+<p>逐项相消给出不需要收敛假设的恒等式</p>
+<div class="arithmatex">\[
+(zI-A)S_k(z)=I-z^{-k-1}A^{k+1}.
+\]</div>
+<p>若 <span class="arithmatex">\(zI-A\)</span> 可逆，令 <span class="arithmatex">\(R(z)=(zI-A)^{-1}\)</span>，还有</p>
+<div class="arithmatex">\[
+R(z)-S_k(z)=R(z)\,z^{-k-1}A^{k+1}.
+\]</div>
+<p>只有当 <span class="arithmatex">\(\rho(A)/|z|\lt1\)</span> 时，才可由上一节证明尾项趋于零，从而将无限Neumann和等同于 <span class="arithmatex">\(R(z)\)</span>。<strong>逆矩阵存在本身不保证这一展开收敛。</strong> 比如 <span class="arithmatex">\(A=0.9I,z=0.5\)</span>，逆矩阵存在，但每项含 <span class="arithmatex">\(1.8^j\)</span>，不会趋于零。</p>
+<p>一般标量幂级数 <span class="arithmatex">\(\sum c_kz^k\)</span> 若收敛半径为 <span class="arithmatex">\(R\)</span>，<span class="arithmatex">\(\rho(A)\lt R\)</span> 是相应矩阵级数收敛的充分条件。边界 <span class="arithmatex">\(\rho(A)=R\)</span> 需要另查：即使是标量单位阵，<span class="arithmatex">\(\sum I/k^2\)</span> 与 <span class="arithmatex">\(\sum I\)</span> 就有不同结果；非平凡Jordan块还涉及导数型项。</p>
+<p>实验逐项保留 <span class="arithmatex">\(z^{-j-1}A^j\)</span>、部分和、尾项以及实际恒等式缺陷。<span class="arithmatex">\(z=0\)</span> 时这些有限和不定义；<span class="arithmatex">\(z=r\)</span> 时Jordan模型的逆矩阵不定义，两种失败原因分别标记。</p>
+<h2 id="6">6. 伪谱：把某个数变成特征值，需要改多少矩阵？<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>本页采用<strong>闭</strong> <span class="arithmatex">\(\varepsilon\)</span>-伪谱约定，<span class="arithmatex">\(\varepsilon\ge0\)</span>：</p>
+<div class="arithmatex">\[
+\sigma_\varepsilon(A)
+=\{z:\sigma_{\min}(zI-A)\le\varepsilon\}.
+\]</div>
+<p>它等价于存在 <span class="arithmatex">\(\|E\|_2\le\varepsilon\)</span> 使 <span class="arithmatex">\(z\in\sigma(A+E)\)</span>。证明可以直接看最小扰动：</p>
+<p>若 <span class="arithmatex">\((A+E)v=zv\)</span> 且 <span class="arithmatex">\(\|v\|_2=1\)</span>，则</p>
+<div class="arithmatex">\[
+\|E\|_2\ge\|Ev\|_2
+=\|(zI-A)v\|_2
+\ge\sigma_{\min}(zI-A).
+\]</div>
+<p>反之取最小右奇异向量 <span class="arithmatex">\(v\)</span>，记 <span class="arithmatex">\(w=(zI-A)v\)</span>，令 <span class="arithmatex">\(E=wv^*\)</span>，便有 <span class="arithmatex">\(Ev=w\)</span>、<span class="arithmatex">\(\|E\|_2=\|w\|_2\)</span>，达到这个下界。</p>
+<p>当 <span class="arithmatex">\(z\)</span> 不在原谱中，</p>
+<div class="arithmatex">\[
+\|R(z)\|_2=\frac1{\sigma_{\min}(zI-A)}.
+\]</div>
+<p>谱点处逆矩阵不存在，不能在代码中返回一个有限“逆矩阵”；在讨论伪谱时可约定逆范数为无穷。<a href="https://people.maths.ox.ac.uk/~trefethen/publication/PDF/2001_96.pdf">Trefethen、Contedini与Embree的定义2.1</a>给出了这些等价描述。</p>
+<p>实验把最小奇异值、实际浮点向量构造出的扰动范数和构造后残差分别列出。接近奇异时，最小奇异值可以很小，而浮点向量乘法会留下不同量级的舍入缺陷；不能擅自把这三列改成同一个数。</p>
+<h2 id="7-weyl">7. Weyl：对称特征值的绝对变化有界<a class="headerlink" href="#7-weyl" title="Permanent link"></a></h2>
+<p>对实对称矩阵，将特征值按</p>
+<div class="arithmatex">\[
+\lambda_1(A)\ge\cdots\ge\lambda_n(A)
+\]</div>
+<p>排列。Courant–Fischer公式为</p>
+<div class="arithmatex">\[
+\lambda_i(A)
+=\min_{\dim S=n-i+1}\quad
+\max_{\substack{x\in S\\\|x\|_2=1}}x^TAx.
+\]</div>
+<p>为什么维数是这个数？任意这样的 <span class="arithmatex">\(S\)</span> 都与前 <span class="arithmatex">\(i\)</span> 个特征向量张成的空间有非零交集，因此其最大Rayleigh商至少为 <span class="arithmatex">\(\lambda_i\)</span>；取后 <span class="arithmatex">\(n-i+1\)</span> 个特征向量张成的空间，恰好达到该值。</p>
+<p>若 <span class="arithmatex">\(E=E^T\)</span> 且 <span class="arithmatex">\(\eta=\|E\|_2\)</span>，对所有单位向量都有</p>
+<div class="arithmatex">\[
+-\eta\le x^TEx\le\eta.
+\]</div>
+<p>把它加到Rayleigh商中，再依次取最大值、最小值，得到</p>
+<div class="arithmatex">\[
+|\lambda_i(A+E)-\lambda_i(A)|\le\eta.
+\]</div>
+<p>这是<strong>绝对</strong>变化界。若某个特征值很接近0，相同的绝对变化仍可能对应很大的相对变化。此外，有序的第 <span class="arithmatex">\(i\)</span> 个数与一个带有物理标签的方向是不同对象；在谱交叉附近，不能用“排序稳定”代替方向匹配的论证。<a href="https://www.cs.columbia.edu/~djhsu/AML/lectures/davis-kahan.pdf">Hsu的讲义</a>给出了Weyl与子空间扰动的连贯说明。</p>
+<h2 id="8">8. 单个方向的稳定性：分母究竟是哪一道谱隙？<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(A\)</span> 对称，目标特征值 <span class="arithmatex">\(\lambda_i\)</span> 是单的，单位特征向量为 <span class="arithmatex">\(v_i\)</span>。对任意单位候选向量 <span class="arithmatex">\(\widehat v\)</span> 和实数 <span class="arithmatex">\(\mu\)</span>，定义</p>
+<div class="arithmatex">\[
+r=(A-\mu I)\widehat v,\qquad
+\delta=\min_{j\ne i}|\lambda_j-\mu|.
+\]</div>
+<p>若 <span class="arithmatex">\(\delta&gt;0\)</span>，在原矩阵的正交特征基中展开 <span class="arithmatex">\(\widehat v=\sum_jc_jv_j\)</span>，便有</p>
+<div class="arithmatex">\[
+\|r\|_2^2
+=\sum_j|\lambda_j-\mu|^2|c_j|^2
+\ge\delta^2\sum_{j\ne i}|c_j|^2.
+\]</div>
+<p>把两个方向看成不区分正负号的直线，得到</p>
+<div class="arithmatex">\[
+\sin\angle(v_i,\widehat v)
+\le\frac{\|r\|_2}{\delta}.
+\]</div>
+<p>若 <span class="arithmatex">\(\widehat v\)</span> 是 <span class="arithmatex">\(A+E\)</span> 的对应单位特征向量，<span class="arithmatex">\(\mu=\lambda_i(A+E)\)</span>，则精确算术中 <span class="arithmatex">\(r=-E\widehat v\)</span>。令原始间隔</p>
+<div class="arithmatex">\[
+\gamma=\min_{j\ne i}|\lambda_j-\lambda_i|.
+\]</div>
+<p>在 <span class="arithmatex">\(\eta=\|E\|_2\lt\gamma/2\)</span> 条件下，Weyl给出 <span class="arithmatex">\(\delta\ge\gamma-\eta&gt;0\)</span>，于是</p>
+<div class="arithmatex">\[
+\sin\angle(v_i,\widehat v)
+\le\frac{\eta}{\gamma-\eta}.
+\]</div>
+<p>这里明确区分了原始间隔 <span class="arithmatex">\(\gamma\)</span> 与候选特征值到其他原始谱点的分离 <span class="arithmatex">\(\delta\)</span>。若目标是重特征值，单个方向本来就不唯一，应改为讨论整个不变子空间，不能把零分母修成一个很小的正数来继续报单向量结论。</p>
+<h2 id="9">9. 将精确扰动定理带进浮点实验<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>实验先构造要求的扰动 <span class="arithmatex">\(E_{\rm requested}\)</span>，再实际形成 <span class="arithmatex">\(B=\operatorname{fl}(A+E_{\rm requested})\)</span>，单独记录 <span class="arithmatex">\(E_{\rm actual}=B-A\)</span>。足够小的对角改动可能在形成 <span class="arithmatex">\(B\)</span> 时被舍入吸收；此时不能仍按“要求改了多少”假装输入矩阵确实改了同样的量。</p>
+<p>两个对称矩阵都用二维闭式谱分解，保留本征方程残差、投影矩阵以及范数偏差。残差先形成移位矩阵 <span class="arithmatex">\(A-\mu I\)</span> 再乘向量，减少两个大乘积相减的损失；这样仍没有免除全部舍入。</p>
+<p>页面同时显示原始 <span class="arithmatex">\(\|r\|/\delta\)</span> 读数及一个带有限精度缓冲的估计，缓冲尺度明示为 <span class="arithmatex">\(64u(\|A\|_F+\|B\|_F)\)</span>，<span class="arithmatex">\(u\)</span> 是机器精度。它是教学诊断，不是经过向外舍入证明的区间证书。分离与该尺度不可区分时，不给出有效方向保证；真正需要严格数值证书时，应采用经证明的误差界或区间运算。</p>
+<p>特别是，不能在实际特征向量、实际矩阵乘法已经有缺陷时，仍强制把理论上应为零的残差填成零。末位误差也不应被解释成定理失效。</p>
+<h2 id="10-gershgorin">10. Gershgorin：不用先求根，也能圈出谱<a class="headerlink" href="#10-gershgorin" title="Permanent link"></a></h2>
+<p>对任意复方阵，定义行圆盘</p>
+<div class="arithmatex">\[
+D_i=\left\{z\in\mathbb C:
+|z-a_{ii}|\le R_i\right\},
+\qquad R_i=\sum_{j\ne i}|a_{ij}|.
+\]</div>
+<p>若 <span class="arithmatex">\(Ax=\lambda x\)</span>，选取绝对值最大的非零分量 <span class="arithmatex">\(x_i\)</span>。第 <span class="arithmatex">\(i\)</span> 行给出</p>
+<div class="arithmatex">\[
+|\lambda-a_{ii}|\,|x_i|
+=\left|\sum_{j\ne i}a_{ij}x_j\right|
+\le R_i|x_i|.
+\]</div>
+<p>除以 <span class="arithmatex">\(|x_i|\)</span> 即知每个特征值都属于至少一个圆盘。对实对称矩阵，谱是实数，因此可以把圆盘与实轴相交，读成区间。</p>
+<p>还有一个更强的计数结论：若一组共 <span class="arithmatex">\(m\)</span> 个圆盘的并与其余圆盘分离，那么这组区域恰包含 <span class="arithmatex">\(m\)</span> 个特征值，按代数重数计。令</p>
+<div class="arithmatex">\[
+H(t)=D+t(A-D),\qquad 0\le t\le1,
+\]</div>
+<p>其中 <span class="arithmatex">\(D\)</span> 是对角部分。<span class="arithmatex">\(t=0\)</span> 时根就是对角元；随着 <span class="arithmatex">\(t\)</span> 增大，所有圆盘都包含在最终圆盘里。多项式的根作为含重数的集合连续变化，不能越过两个分离区域之间的空隙，所以每组计数保持不变。<a href="https://www.cs.cornell.edu/courses/cs6210/2025fa/lec/2025-10-22.html">Bindel的课程讲义</a>说明了这一同伦论证。</p>
+<p>闭圆盘相切时已经相连，不能仍视作分离。实验的相交判断对实际二进制输入作精确符号比较；图上的舍入小数只负责显示。</p>
+<p>严格行对角占优意味着所有圆盘都排除0，故矩阵可逆。不过，这一步是在证明矩阵可逆。要证明Jacobi或Gauss–Seidel迭代收敛，还须分析各自的迭代矩阵或相应收缩估计。</p>
+<h2 id="11">11. 四道迁移题与完整答案<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<h3 id="_2">题一：谱半径为零，为什么矩阵范数不能也选成零？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>对非零 <span class="arithmatex">\(K=\left(\begin{smallmatrix}0&amp;1\\0&amp;0\end{smallmatrix}\right)\)</span>，构造使诱导范数任意小的向量范数，并解释下确界为什么不取得。</p>
+<details class="answer">
+<summary>答案：任意接近零与等于零是两种陈述</summary>
+<p>取 <span class="arithmatex">\(D=\operatorname{diag}(1,t)\)</span>，定义 <span class="arithmatex">\(\|x\|_t=\|D^{-1}x\|_\infty\)</span>，则</p>
+<div class="arithmatex">\[
+D^{-1}KD=\begin{pmatrix}0&amp;t\\0&amp;0\end{pmatrix},
+\qquad \|K\|_t=t.
+\]</div>
+<p>任取正数 <span class="arithmatex">\(t\)</span> 都得到真正的向量范数，可以让它任意小。但 <span class="arithmatex">\(K\ne0\)</span>，若某个矩阵范数把它记为0，就违反了范数的正定性。因此这里的下确界0不由任何一个范数取得。</p>
+</details>
+<h3 id="neumann">题二：逆矩阵存在，Neumann和为什么还会失败？<a class="headerlink" href="#neumann" title="Permanent link"></a></h3>
+<p>取 <span class="arithmatex">\(A=0.9I,z=0.5\)</span>。写出逆矩阵、有限和恒等式和不收敛的原因。</p>
+<details class="answer">
+<summary>答案：展开的位置没有满足收敛条件</summary>
+<p>有 <span class="arithmatex">\(zI-A=-0.4I\)</span>，因此 <span class="arithmatex">\(R(z)=-2.5I\)</span> 存在。但</p>
+<div class="arithmatex">\[
+S_k(z)=2\sum_{j=0}^k1.8^jI
+\]</div>
+<p>的项不趋于0。有限恒等式仍成立：</p>
+<div class="arithmatex">\[
+(-0.4I)S_k=I-1.8^{k+1}I.
+\]</div>
+<p>右端尾项没有消失，正好解释了为什么不能取极限得到逆矩阵。谱点处逆不存在与谱外展开不收敛是不同情况。</p>
+</details>
+<h3 id="45">题三：特征值完全相同，主方向能否转45度？<a class="headerlink" href="#45" title="Permanent link"></a></h3>
+<p>取 <span class="arithmatex">\(\delta&gt;0\)</span>，比较 <span class="arithmatex">\(A=\operatorname{diag}(1+\delta,1-\delta)\)</span> 与 <span class="arithmatex">\(B=Q A Q^T\)</span>，其中 <span class="arithmatex">\(Q\)</span> 为45度旋转。计算它们的谱、扰动大小和主方向夹角。</p>
+<details class="answer">
+<summary>答案：绝对扰动可以小，方向变化仍然大</summary>
+<p>直接乘出</p>
+<div class="arithmatex">\[
+B=\begin{pmatrix}1&amp;\delta\\\delta&amp;1\end{pmatrix},
+\qquad
+E=B-A=\begin{pmatrix}-\delta&amp;\delta\\\delta&amp;\delta\end{pmatrix}.
+\]</div>
+<p>两矩阵特征值都是 <span class="arithmatex">\(1+\delta,1-\delta\)</span>，而 <span class="arithmatex">\(\|E\|_2=\sqrt2\,\delta\)</span>。原主方向是 <span class="arithmatex">\(e_1\)</span>，新主方向是 <span class="arithmatex">\((e_1+e_2)/\sqrt2\)</span>，夹角45度，与 <span class="arithmatex">\(\delta\)</span> 的大小无关。</p>
+<p>原谱隙为 <span class="arithmatex">\(2\delta\)</span>。让 <span class="arithmatex">\(\delta\to0\)</span> 会同时缩小扰动和谱隙，扰动与谱隙之比没有趋于0；这没有违反方向稳定性定理。极限 <span class="arithmatex">\(\delta=0\)</span> 时主方向本身不唯一。</p>
+</details>
+<h3 id="_3">题四：从三行数字准确数出正、负特征值<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>对</p>
+<div class="arithmatex">\[
+A=\begin{pmatrix}4&amp;1&amp;0\\1&amp;3&amp;1\\0&amp;1&amp;-2\end{pmatrix}
+\]</div>
+<p>求三个行圆盘，并在不解特征多项式的条件下确定正、负特征值数目。</p>
+<details class="answer">
+<summary>答案：第三行的半径是1</summary>
+<p>三行的非对角绝对值和分别为 <span class="arithmatex">\(1,2,1\)</span>。由于矩阵对称，圆盘在实轴上给出</p>
+<div class="arithmatex">\[
+[3,5],\qquad[1,5],\qquad[-3,-1].
+\]</div>
+<p>前两个区域相连并完全位于正半轴；第三个与它们分离，并完全位于负半轴。因此前一组恰含两个正特征值，后一组恰含一个负特征值，没有零特征值。圆盘只定位和计数，并没有给出这三个特征值的精确位置。</p>
+</details>
+<h2 id="12">12. 继续使用这些证据<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<p>在离散动力系统中先问是否渐近稳定，再问有限时间的最坏增益；在PCA中分别报告特征值误差和方向分离条件；在求解器中保留实际残差，在谱定位中保留圆盘半径与分离判断。每个结论都对应一个具体对象。</p>
+<p>下一讲<a href="ma-02-psd-functions.html">半正定矩阵、Schur补与矩阵函数</a>会继续检查：哪些标量不等式能带到矩阵，哪些需要额外的对易或正定条件。也可用<a href="project-01-co2-trends.html">NOAA CO₂数据项目</a>检验矩阵表示、尺度和误差如何影响真实拟合。</p>
+<style>
+article:has(#ma-norm-learning-title) .katex{position:relative}
+article:has(#ma-norm-learning-title) [data-learning-lab="non-normal-transient"]:not([data-cl-mounted="true"]) td:nth-child(2){white-space:nowrap;font-size:.9em;font-variant-numeric:tabular-nums}
+</style>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="nla-03-krylov.html"><span class="pager-label">上一页</span>数值线代 III · Krylov 子空间方法</a>

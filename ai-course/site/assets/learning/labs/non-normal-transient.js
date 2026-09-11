@@ -1,837 +1,366 @@
-(function (host) {
-  "use strict";
-
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "non-normal-transient-lab-styles";
-  var INSTANCE = 0;
-  var EPS = 1e-12;
-  var Z_PROBE = 1.3;
-  var DEFAULTS = { r: 0.9, g: 10, k: 10, theta: 90 };
-  var PRESETS = [
-    {
-      id: "amplify",
-      label: "放大案例",
-      values: { r: 0.9, g: 10, k: 10, theta: 90 }
-    },
-    {
-      id: "normal",
-      label: "g=0 正规边界",
-      values: { r: 0.9, g: 0, k: 10, theta: 90 }
-    },
-    {
-      id: "eigen",
-      label: "e₁ 特征方向",
-      values: { r: 0.9, g: 10, k: 10, theta: 0 }
-    },
-    {
-      id: "critical",
-      label: "r=1 临界",
-      values: { r: 1, g: 10, k: 10, theta: 90 }
-    },
-    {
-      id: "unstable",
-      label: "r=1.1 不稳定",
-      values: { r: 1.1, g: 10, k: 10, theta: 90 }
-    },
-    {
-      id: "nilpotent",
-      label: "r=0 幂零",
-      values: { r: 0, g: 10, k: 4, theta: 90 }
-    }
+(function(root,factory){const api=factory();if(typeof module==="object"&&module.exports)module.exports=api;if(root&&root.CourseLearning)root.CourseLearning.register("non-normal-transient",api.mount);})(typeof window!=="undefined"?window:globalThis,function(){
+"use strict";
+const norm=x=>Math.hypot(...x),dot=(x,y)=>x.reduce((s,v,i)=>s+v*y[i],0),mv=(A,x)=>A.map(r=>dot(r,x)),tr=A=>A[0].map((_,i)=>A.map(r=>r[i])),mm=(A,B)=>A.map(r=>tr(B).map(c=>dot(r,c))),sub=(x,y)=>x.map((v,i)=>v-y[i]),msub=(A,B)=>A.map((r,i)=>sub(r,B[i])),madd=(A,B)=>A.map((r,i)=>r.map((v,j)=>v+B[i][j])),mul=(A,s)=>A.map(r=>r.map(v=>s*v)),fro=A=>norm(A.flat()),eye=n=>Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>+(i===j)));
+function unit(angle){
+ const k=((angle%360)+360)%360;
+ if(k===0)return[1,0];if(k===90)return[0,1];if(k===180)return[-1,0];if(k===270)return[0,-1];
+ return[Math.cos(angle*Math.PI/180),Math.sin(angle*Math.PI/180)];
+}
+function triangularSVD(a,b){
+ const A=[[a,b],[0,a]],size=Math.max(Math.abs(a),Math.abs(b));
+ if(size===0)return{A,max:0,min:0,vMax:[1,0],vMin:[0,1],maxImage:[0,0],minImage:[0,0]};
+ const x=a/size,y=b/size,hi=(Math.hypot(2*x,y)+Math.abs(y))/2,lo=(Math.abs(x)/hi)*Math.abs(x);
+ let vMax;
+ if(y===0)vMax=[1,0];else{const length=Math.hypot(x,hi);vMax=[x*Math.sign(y)/length,hi/length];}
+ const vMin=[-vMax[1],vMax[0]];
+ return{A,max:hi*size,min:lo*size,vMax,vMin,maxImage:mv(A,vMax),minImage:mv(A,vMin)};
+}
+function jordanPower(r,g,j){
+ if(j===0)return eye(2);if(r===0)return j===1?[[0,g],[0,0]]:[[0,0],[0,0]];
+ return[[r**j,j*g*r**(j-1)],[0,r**j]];
+}
+function transient(s){
+ const {r,g,k,theta,z}=s,A=[[r,g],[0,r]],x0=unit(theta),rho=Math.abs(r),rows=[];
+ let P=eye(2),S=[[0,0],[0,0]];
+ const M=[[z-r,-g],[0,z-r]],sv=triangularSVD(z-r,-g);
+ const inverse=z===r?null:[[1/(z-r),g/(z-r)**2],[0,1/(z-r)]];
+ const v=sv.vMin,Ev=mv(M,v),E=Ev.map(a=>v.map(b=>a*b)),changed=madd(A,E),changedResidual=sub(mv(changed,v),v.map(a=>z*a));
+ for(let j=0;j<=k;j++){
+  const before=P.map(r=>r.slice());
+  if(j>0)P=mm(A,P);
+  const closed=jordanPower(r,g,j),x=mv(P,x0),svd=triangularSVD(P[0][0],P[0][1]),normal=Math.abs(r)**j;
+  let term=null,sum=null,identityResidual=null,tail=null,identityGap=null,remainder=null,remainderPredicted=null,remainderGap=null;
+  if(z!==0){
+   term=mul(P,z**(-j-1));S=madd(S,term);sum=S.map(r=>r.slice());
+   identityResidual=msub(eye(2),mm(M,S));tail=mul(mm(A,P),z**(-j-1));identityGap=fro(msub(identityResidual,tail));
+   if(inverse){remainder=msub(inverse,S);remainderPredicted=mm(inverse,tail);remainderGap=fro(msub(remainder,remainderPredicted));}
+  }
+  rows.push({j,before,P:P.map(r=>r.slice()),closed,closedGap:fro(msub(P,closed)),x,selected:norm(x),normal,svd,envelope:svd.max,
+   rootGain:j?svd.max**(1/j):null,term,sum,identityResidual,tail,identityGap,remainder,remainderPredicted,remainderGap,
+   partialNorm:sum?triangularSVD(S[0][0],S[0][1]).max:null,remainderNorm:remainder?triangularSVD(remainder[0][0],remainder[0][1]).max:null});
+ }
+ const peak=(field)=>rows.reduce((best,row)=>row[field]>best[field]?row:best,rows[0]);
+ return{A,x0,rho,normal:g===0,diagonalizable:g===0,asymptotic:rho<1?"decay":rho>1?"growth":g===0?"bounded-nondecaying":"polynomial-growth",
+  nonNormality:g*g,rows,selectedPeak:peak("selected").j,envelopePeak:peak("envelope").j,final:rows.at(-1),
+  resolvent:{z,M,svd:sv,status:inverse?"invertible":"spectral-point",inverse,norm:inverse?triangularSVD(inverse[0][0],inverse[0][1]).max:null,
+   neumann:z===0?"undefined-at-zero":Math.abs(z)>rho?"convergent":"not-convergent",v,Ev,E,changed,changedResidual,perturbationNorm:fro(E),attainmentGap:Math.abs(fro(E)-sv.min)}};
+}
+function symEig2(A){
+ const c=A[0][0]/2+A[1][1]/2,d=A[0][0]/2-A[1][1]/2,b=A[0][1],rad=Math.hypot(d,b),values=[c+rad,c-rad];
+ if(rad===0)return{A,center:c,radius:rad,values,simple:false,vectors:[[1,0],[0,1]],residuals:[[0,0],[0,0]]};
+ const v=d>=0?[rad+d,b]:[b,rad-d],n=norm(v),hi=v.map(x=>x/n),lo=[-hi[1],hi[0]],vectors=[hi,lo];
+ return{A,center:c,radius:rad,values,simple:true,vectors,residuals:vectors.map((v,i)=>sub(mv(A,v),v.map(x=>x*values[i])))};
+}
+function symmetricFrom(center,radius,angle){
+ const [c,s]=unit(2*angle),a=radius*c,b=radius*s;
+ return[[center+a,b],[b,center-a]];
+}
+function perturbation(s){
+ const scale=10**s.scaleExponent,A=mul(symmetricFrom(s.center,s.gap/2,s.axisAngle),scale),requestedE=mul(symmetricFrom(0,s.epsilon,s.perturbAngle),scale);
+ const B=madd(A,requestedE),E=msub(B,A),ae=symEig2(A),be=symEig2(B),ee=symEig2(E),eta=Math.max(...ee.values.map(Math.abs)),gap=2*ae.radius;
+ const resolution=64*Number.EPSILON*(fro(A)+fro(B));
+ const comparisons=be.values.map((value,i)=>{
+  const v=be.vectors[i],other=1-i,shifted=A.map((row,j)=>row.map((x,k)=>j===k?x-value:x)),residual=mv(shifted,v),separation=Math.abs(value-ae.values[other]),bothSimple=ae.simple&&be.simple;
+  const sinAngle=bothSimple?Math.abs(dot(ae.vectors[other],v)):null,angle=bothSimple?Math.atan2(sinAngle,Math.abs(dot(ae.vectors[i],v))):null;
+  const projected=dot(ae.vectors[other],residual),identityLeft=(ae.values[other]-value)*dot(ae.vectors[other],v);
+  const rawBound=bothSimple&&separation>0?norm(residual)/separation:null;
+  const bound=bothSimple&&separation>resolution?(norm(residual)+resolution)/(separation-resolution):null;
+  const gapBound=bothSimple&&gap>2*resolution&&eta<gap/2?eta/(gap-eta):null;
+  const P=v.map(a=>v.map(b=>a*b)),u=ae.vectors[i],P0=u.map(a=>u.map(b=>a*b)),projectorDifference=msub(P,P0);
+  return{i,value,originalValue:ae.values[i],deviation:Math.abs(value-ae.values[i]),v,shifted,residual,residualNorm:norm(residual),Ev:mv(E,v),residualIdentity:sub(residual,mv(E,v).map(x=>-x)),separation,
+   sinAngle,angle,projected,identityLeft,rawBound,bound,gapBound,resolution,resolved:bothSimple&&separation>resolution,P,P0,projectorDifference,projectorFro:bothSimple?fro(projectorDifference):null};
+ });
+ return{scale,A,requestedE,B,E,formationGap:fro(msub(E,requestedE)),ae,be,ee,eta,gap,resolution,comparisons,
+  absoluteWeyl:eta,relativeScale:Math.max(...ae.values.map(Math.abs)),distinctAfter:be.simple};
+}
+function exactSignSum(values){
+ const buf=new ArrayBuffer(8),view=new DataView(buf);
+ const terms=values.map(x=>{
+  view.setFloat64(0,x,false);const bits=view.getBigUint64(0,false),sign=(bits>>63n)?-1n:1n,e=Number((bits>>52n)&2047n),f=bits&((1n<<52n)-1n);
+  return{n:sign*(e?f+(1n<<52n):f),e:e?e-1023-52:-1074};
+ }).filter(t=>t.n!==0n);
+ if(!terms.length)return 0;const base=Math.min(...terms.map(t=>t.e)),n=terms.reduce((a,t)=>a+(t.n<<BigInt(t.e-base)),0n);return n>0n?1:n<0n?-1:0;
+}
+function jacobi3(A){
+ let T=A.map(r=>r.slice()),Q=eye(3);const records=[],threshold=64*Number.EPSILON*fro(A);let status="iteration-budget";
+ for(let step=0;step<100;step++){
+  let p=0,q=1;
+  for(const[i,j]of [[0,2],[1,2]])if(Math.abs(T[i][j])>Math.abs(T[p][q])){p=i;q=j;}
+  const off=Math.hypot(T[0][1],T[0][2],T[1][2])*Math.SQRT2;
+  if(off<=threshold){status=off===0?"exact-diagonal":"off-diagonal-threshold";break;}
+  const before=T.map(r=>r.slice()),Qbefore=Q.map(r=>r.slice()),a=T[p][p],b=T[p][q],d=T[q][q],tau=(d-a)/(2*b);
+  const t=(tau>=0?1:-1)/(Math.abs(tau)+Math.hypot(1,tau)),c=1/Math.hypot(1,t),s=t*c,J=eye(3);
+  J[p][p]=J[q][q]=c;J[p][q]=s;J[q][p]=-s;
+  const raw=mm(mm(tr(J),T),J),after=raw.map(r=>r.slice());
+  after[p][q]=after[q][p]=0;
+  for(let i=0;i<3;i++)for(let j=i+1;j<3;j++)after[i][j]=after[j][i]=(raw[i][j]+raw[j][i])/2;
+  // Keep the chosen off-diagonal truncation distinct from symmetrization.
+  after[p][q]=after[q][p]=0;
+  const correction=msub(after,raw);T=after;Q=mm(Q,J);
+  records.push({step,p,q,off,threshold,before,Qbefore,tau,t,c,s,J,raw,correction,after:T.map(r=>r.slice()),Q:Q.map(r=>r.slice())});
+ }
+ const pairs=[0,1,2].map(i=>{const value=T[i][i],v=Q.map(r=>r[i]),residual=sub(mv(A,v),v.map(x=>value*x));return{value,v,residual,residualNorm:norm(residual),radius:norm(residual)/norm(v)};}).sort((a,b)=>a.value-b.value);
+ return{A,T,Q,records,status,threshold,pairs,orthogonality:fro(msub(mm(tr(Q),Q),eye(3))),similarity:fro(msub(T,mm(mm(tr(Q),A),Q))),correctionBudget:records.reduce((s,r)=>s+fro(r.correction),0)};
+}
+function gershgorin(s){
+ const scale=10**s.scaleExponent,A=mul([[s.d1,s.coupling,0],[s.coupling,s.d2,s.coupling],[0,s.coupling,s.d3]],scale),disks=A.map((r,i)=>({i,center:r[i],radius:r.reduce((a,x,j)=>a+(i===j?0:Math.abs(x)),0)}));
+ const edges=[],parents=[0,1,2],find=i=>parents[i]===i?i:(parents[i]=find(parents[i]));
+ for(let i=0;i<3;i++)for(let j=i+1;j<3;j++){
+  const a=disks[i],b=disks[j],terms=a.center>=b.center?[a.center,-b.center,-a.radius,-b.radius]:[b.center,-a.center,-a.radius,-b.radius],sign=exactSignSum(terms),connected=sign<=0;
+  edges.push({i,j,separation:Math.abs(a.center-b.center)-a.radius-b.radius,exactSign:sign,connected});if(connected)parents[find(j)]=find(i);
+ }
+ const groups=[];
+ for(let i=0;i<3;i++){const root=find(i);let g=groups.find(g=>g.root===root);if(!g){g={root,indices:[]};groups.push(g);}g.indices.push(i);}
+ for(const g of groups){g.lower=Math.min(...g.indices.map(i=>disks[i].center-disks[i].radius));g.upper=Math.max(...g.indices.map(i=>disks[i].center+disks[i].radius));g.theoremCount=g.indices.length;}
+ const eig=jacobi3(A),pairs=eig.pairs.map(p=>({...p,margins:disks.map(d=>d.radius-Math.abs(p.value-d.center)),groups:groups.flatMap((g,i)=>p.value+p.radius>=g.lower&&p.value-p.radius<=g.upper?[i]:[])}));
+ const dominance=disks.map(d=>({i:d.i,margin:Math.abs(d.center)-d.radius,strict:exactSignSum([Math.abs(d.center),-d.radius])>0}));
+ return{scale,A,disks,edges,groups,eig,pairs,dominance,strictlyDominant:dominance.every(d=>d.strict),negativeCount:groups.filter(g=>g.upper<0).reduce((s,g)=>s+g.theoremCount,0),positiveCount:groups.filter(g=>g.lower>0).reduce((s,g)=>s+g.theoremCount,0)};
+}
+const DEFAULTS={mode:"transient",r:.9,g:10,k:30,theta:90,z:1.3,center:1,gap:1,axisAngle:0,epsilon:.1,perturbAngle:45,scaleExponent:0,d1:4,d2:3,d3:-2,coupling:1};
+function num(v,key,lo,hi,integer=false){
+ if(typeof v!=="number"&&typeof v!=="string")throw Error(key+"必须为有限数值");
+ if(typeof v==="string"){
+  v=v.trim();if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(v))throw Error(key+"不能为空或含非数字内容");
+  const original=v;v=Number(v);if(v===0&&/[1-9]/.test(original.split(/e/i)[0]))throw Error(key+"发生下溢");
+ }
+ if(!Number.isFinite(v)||v<lo||v>hi||(integer&&!Number.isInteger(v)))throw Error(key+"须在"+lo+"至"+hi+"之间"+(integer?"且为整数":""));
+ return v;
+}
+function config(raw={}){
+ if(!raw||typeof raw!=="object"||Array.isArray(raw))throw Error("配置须为对象");
+ const s={...DEFAULTS,mode:Object.hasOwn(raw,"mode")?raw.mode:DEFAULTS.mode};
+ if(!["transient","perturbation","gershgorin"].includes(s.mode))throw Error("未知实验");
+ const fields=s.mode==="transient"?[["r",-1.1,1.1],["g",-20,20],["k",0,60,true],["theta",-180,180],["z",-2,2]]:
+ s.mode==="perturbation"?[["center",-2,2],["gap",0,4],["axisAngle",-180,180],["epsilon",0,2],["perturbAngle",-180,180],["scaleExponent",-12,12,true]]:
+ [["d1",-5,5,true],["d2",-5,5,true],["d3",-5,5,true],["coupling",-4,4],["scaleExponent",-12,12,true]];
+ for(const[key,lo,hi,int]of fields)s[key]=num(Object.hasOwn(raw,key)?raw[key]:s[key],key,lo,hi,int);
+ if(s.mode==="transient"&&s.z!==0&&Math.abs(s.z)<.1)throw Error("探针z取0或绝对值至少0.1，以保持有限和可表示");
+ return s;
+}
+function snapshot(raw={}){
+ const s=config(raw);
+ if(s.mode==="transient")return{config:s,result:transient(s)};
+ if(s.mode==="perturbation"){
+  const values=[...new Set([...Array.from({length:21},(_,i)=>i/10),s.epsilon])].sort((a,b)=>a-b);
+  return{config:s,result:perturbation(s),study:values.map(epsilon=>({epsilon,result:perturbation({...s,epsilon})}))};
+ }
+ return{config:s,result:gershgorin(s),study:Array.from({length:11},(_,i)=>({t:i/10,result:gershgorin({...s,coupling:s.coupling*i/10})}))};
+}
+const PRESETS=[
+ {id:"default",label:"稳定但先放大"},
+ {id:"normal",label:"g=0：同谱正规控制",g:0},
+ {id:"eigen",label:"e1：看不到剪切",theta:0},
+ {id:"nilpotent",label:"r=0：两步幂零",r:0,k:4},
+ {id:"critical",label:"r=1：线性增长",r:1},
+ {id:"negative",label:"负r：交替符号也会瞬态",r:-.9,g:-10},
+ {id:"near-critical",label:"接近1仍不是1",r:1-1e-13,g:0},
+ {id:"tiny-coupling",label:"微小非零耦合仍非正规",g:1e-13},
+ {id:"unstable",label:"r>1：长期增长",r:1.1},
+ {id:"neumann-fail",label:"逆存在，Neumann却发散",g:0,z:.5,k:20},
+ {id:"spectral",label:"探针恰为谱点",z:.9},
+ {id:"zero-probe",label:"z=0：有限和不定义",z:0},
+ {id:"weyl",label:"Weyl绝对变化与方向",mode:"perturbation"},
+ {id:"small-gap",label:"小谱隙：方向更敏感",mode:"perturbation",gap:.02},
+ {id:"degenerate",label:"重根：方向不唯一",mode:"perturbation",gap:0},
+ {id:"rounding",label:"机器尺度：不伪造方向保证",mode:"perturbation",gap:1e-15,epsilon:1e-15,axisAngle:35,perturbAngle:-60},
+ {id:"commuting",label:"对易扰动与方向交换",mode:"perturbation",perturbAngle:90,epsilon:1},
+ {id:"disks",label:"圆盘：两正一负",mode:"gershgorin"},
+ {id:"touch",label:"圆盘相接的边界",mode:"gershgorin",coupling:5/3},
+ {id:"all-connected",label:"相连圆盘不能分别计数",mode:"gershgorin",coupling:4},
+ {id:"diagonal",label:"零半径圆盘",mode:"gershgorin",coupling:0},
+ {id:"repeated",label:"重特征值也按重数计",mode:"gershgorin",d1:1,d2:1,d3:1,coupling:0}
+];
+const QUESTIONS=[
+ ["谱半径小于1能保证每一步范数都下降吗？",["不能，它只给渐近衰减","能，每次都会收缩"],0,"Jordan剪切可以先放大再衰减，方向也影响可见增益。"],
+ ["zI−A可逆，Neumann无限和就一定收敛吗？",["不能，展开还要求相应谱半径小于1","能，可逆足够"],0,"有限恒等式始终可核对，取无限极限还需要尾项消失。"],
+ ["对称特征值变化很小，可以保证主方向稳定吗？",["还要检查谱分离以及方向是否唯一","可以，Weyl已经保证方向"],0,"值的绝对稳定与向量的谱隙条件是不同问题。"],
+ ["两个闭Gershgorin圆盘相切时，可分别各数一个根吗？",["不能，需要与其余圆盘真正分离","可以，相切不算相连"],0,"相切属于相连，计数定理按分离的区域组使用。"]
+];
+function fmt(x){
+ if(x===null||x===undefined)return"—";if(typeof x==="boolean")return x?"是":"否";if(typeof x!=="number")return String(x);
+ if(!Number.isFinite(x))throw Error("不能显示非有限结果");if(Number.isInteger(x))return String(x);
+ return Math.abs(x)<1e-4||Math.abs(x)>=1e6?x.toExponential(8):String(Number(x.toPrecision(10)));
+}
+const B="#268bd2",O="#cb6a16",G="#29966c",R="#b44a72",V="#9966bb",series=(key,label,color,points,line=true)=>({key,label,color,points,line});
+function plot(title,x,y,ss,xmin,xmax){
+ const ys=ss.flatMap(s=>s.points.map(p=>p[1])),range=y.startsWith("log₁₀")?ys:[0,...ys],lo=range.length?Math.min(...range):0,hi=range.length?Math.max(...range):0,pad=(hi-lo||1)*.08;
+ return{title,x,y,series:ss,xmin,xmax:xmax>xmin?xmax:xmin+1,ymin:lo-pad,ymax:hi+pad,square:false,markers:[]};
+}
+function plots(d){
+ const s=d.config,p=d.result;
+ if(s.mode==="transient"){
+  const rows=p.rows,trace=(key,label,color,log=false)=>series(key,label,color,rows.flatMap(r=>r[key]!==null&&(!log||r[key]>0)?[[r.j,log?Math.log10(r[key]):r[key]]]:[]),!log);
+  return[
+   plot("同谱的有限时间表现：方向与最坏增益","矩阵作用次数j","向量长度或欧氏算子范数",[trace("envelope","最坏方向增益",B),trace("selected","所选方向增益",O),trace("normal","同谱正规控制",G)],0,s.k),
+   plot("根速率趋于谱半径，不是每一步的收缩率","矩阵作用次数j（j=0不定义）","||Aʲ||₂的j次根",[trace("rootGain","当前根速率",B),series("rho","谱半径",R,[[0,p.rho],[Math.max(1,s.k),p.rho]])],0,s.k),
+   plot("有限Neumann和：逆存在也可能不收敛","部分和最高次数j","部分和与逆矩阵范数",[trace("partialNorm","部分和范数",O),series("inverse","逆矩阵范数",B,p.resolvent.norm===null?[]:[[0,p.resolvent.norm],[Math.max(1,s.k),p.resolvent.norm]])],0,s.k),
+   plot("实际Neumann余项与有限恒等式缺陷","部分和最高次数j","log₁₀ 实际误差（零留在表中）",[trace("remainderNorm","逆减部分和",B,true),trace("identityGap","有限恒等式缺陷",O,true),trace("remainderGap","余项等式缺陷",G,true)],0,s.k),
+   plot("逐次矩阵乘法与闭式公式的差距","矩阵作用次数j","log₁₀ ||P(乘法)−P(闭式)||F",[trace("closedGap","实际差距",B,true)],0,s.k)
   ];
-
-  var STYLE_TEXT = [
-    ".nnt-lab { --nnt-main: var(--accent, #315f9d); --nnt-selected: var(--cl-gold, #9b6a12); --nnt-normal: var(--cl-green, #39734d); --nnt-muted: var(--fg-soft); --nnt-grid: var(--border); max-width: 100%; min-width: 0; overflow: hidden; }",
-    ".nnt-lab .nnt-intro, .nnt-lab .nnt-note { color: var(--nnt-muted); font-size: 13px; line-height: 1.7; }",
-    ".nnt-lab .nnt-prompt { margin: 12px 0 16px; padding: 11px 13px; border-left: 3px solid var(--nnt-selected); background: var(--block-bg, var(--bg)); line-height: 1.7; }",
-    ".nnt-lab .nnt-preset-box { margin: 0 0 16px; padding: 0; border: 0; min-width: 0; }",
-    ".nnt-lab .nnt-preset-box legend { margin-bottom: 7px; color: var(--fg-soft); font-size: 13px; font-weight: 700; }",
-    ".nnt-lab .nnt-preset-row { display: flex; flex-wrap: wrap; gap: 7px; }",
-    ".nnt-lab .nnt-preset-row button { flex: 1 1 135px; }",
-    ".nnt-lab .nnt-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-items: start; min-width: 0; }",
-    ".nnt-lab .nnt-controls, .nnt-lab .nnt-stage { min-width: 0; }",
-    ".nnt-lab .nnt-controls { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 13px; padding: 12px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg); }",
-    ".nnt-lab .nnt-control { display: grid; gap: 5px; min-width: 0; }",
-    ".nnt-lab .nnt-control label { color: var(--fg-soft); font-size: 13px; font-weight: 650; }",
-    ".nnt-lab .nnt-control output { color: var(--accent); font-variant-numeric: tabular-nums; }",
-    ".nnt-lab .nnt-control input[type=range] { width: 100%; min-height: 44px; accent-color: var(--accent); }",
-    ".nnt-lab .nnt-button-row { display: flex; flex-wrap: wrap; grid-column: 1 / -1; gap: 7px; }",
-    ".nnt-lab .nnt-button-row button { flex: 1 1 120px; }",
-    ".nnt-lab .nnt-stage-frame { min-width: 0; padding: 9px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg); overflow: hidden; }",
-    ".nnt-lab .nnt-stage-title { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin: 0 0 8px; color: var(--nnt-muted); font-size: 13px; }",
-    ".nnt-lab .nnt-status { min-height: 1.7em; margin: 0 0 8px; color: var(--fg); font-size: 13px; font-weight: 650; line-height: 1.7; }",
-    ".nnt-lab .nnt-svg { display: block; width: 100%; max-width: 100%; height: auto; color: var(--fg); }",
-    ".nnt-lab .nnt-svg text { fill: currentColor; font-family: inherit; letter-spacing: 0; }",
-    ".nnt-lab .nnt-panel { fill: var(--bg); stroke: var(--border); stroke-width: 1.1; }",
-    ".nnt-lab .nnt-grid-line { stroke: var(--nnt-grid); stroke-opacity: .45; stroke-width: 1; }",
-    ".nnt-lab .nnt-axis { stroke: var(--nnt-grid); stroke-opacity: .8; stroke-width: 1.25; }",
-    ".nnt-lab .nnt-horizon { stroke: var(--nnt-selected); stroke-opacity: .8; stroke-width: 1.5; stroke-dasharray: 5 4; }",
-    ".nnt-lab .nnt-envelope { fill: none; stroke: var(--nnt-main); stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; }",
-    ".nnt-lab .nnt-selected-line { fill: none; stroke: var(--nnt-selected); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }",
-    ".nnt-lab .nnt-normal-line { fill: none; stroke: var(--nnt-normal); stroke-width: 2; stroke-dasharray: 7 4; stroke-linecap: round; stroke-linejoin: round; }",
-    ".nnt-lab .nnt-dot { stroke: var(--bg); stroke-width: 1.7; }",
-    ".nnt-lab .nnt-dot-envelope { fill: var(--nnt-main); }",
-    ".nnt-lab .nnt-dot-selected { fill: var(--nnt-selected); }",
-    ".nnt-lab .nnt-dot-normal { fill: var(--nnt-normal); }",
-    ".nnt-lab .nnt-bar-main { fill: var(--nnt-main); fill-opacity: .82; }",
-    ".nnt-lab .nnt-bar-normal { fill: var(--nnt-normal); fill-opacity: .76; }",
-    ".nnt-lab .nnt-axis-label { fill: var(--nnt-muted) !important; font-size: 11px; }",
-    ".nnt-lab .nnt-chart-label { fill: var(--fg) !important; font-size: 12px; font-weight: 700; }",
-    ".nnt-lab .nnt-legend { display: flex; flex-wrap: wrap; gap: 6px 15px; margin: 7px 2px 0; color: var(--nnt-muted); font-size: 12px; line-height: 1.5; }",
-    ".nnt-lab .nnt-legend-item { display: inline-flex; align-items: center; gap: 6px; }",
-    ".nnt-lab .nnt-swatch { display: inline-block; width: 24px; height: 0; border-top: 3px solid currentColor; }",
-    ".nnt-lab .nnt-swatch-envelope { color: var(--nnt-main); }",
-    ".nnt-lab .nnt-swatch-selected { color: var(--nnt-selected); }",
-    ".nnt-lab .nnt-swatch-normal { color: var(--nnt-normal); border-top-style: dashed; }",
-    ".nnt-lab .nnt-subtitle { margin: 16px 0 7px; color: var(--fg); font-size: 14px; font-weight: 700; }",
-    ".nnt-lab .nnt-metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 7px; margin-top: 11px; }",
-    ".nnt-lab .nnt-metric { min-width: 0; padding: 9px; border-top: 2px solid var(--border); background: var(--bg); }",
-    ".nnt-lab .nnt-metric span, .nnt-lab .nnt-metric small { display: block; color: var(--nnt-muted); line-height: 1.45; }",
-    ".nnt-lab .nnt-metric span { font-size: 11.5px; }",
-    ".nnt-lab .nnt-metric strong { display: block; margin-top: 3px; color: var(--fg); font-size: 15px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }",
-    ".nnt-lab .nnt-metric small { margin-top: 3px; font-size: 11px; }",
-    ".nnt-lab .nnt-formula { max-width: 100%; overflow-x: auto; padding: 10px 12px; border-left: 3px solid var(--nnt-main); background: var(--bg); color: var(--fg); font-family: \"SF Mono\", Menlo, Consolas, monospace; font-size: 12.5px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }",
-    ".nnt-lab .nnt-resolvent-note { margin: 7px 0 0; color: var(--nnt-muted); font-size: 12.5px; line-height: 1.65; }",
-    ".nnt-lab .nnt-table-wrap { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }",
-    ".nnt-lab .nnt-ledger { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-size: 12.5px; font-variant-numeric: tabular-nums; }",
-    ".nnt-lab .nnt-ledger caption { padding: 0 0 7px; text-align: left; color: var(--nnt-muted); font-size: 12.5px; }",
-    ".nnt-lab .nnt-ledger th, .nnt-lab .nnt-ledger td { padding: 7px 6px; border-bottom: 1px solid var(--border); text-align: right; overflow-wrap: anywhere; }",
-    ".nnt-lab .nnt-ledger th:first-child, .nnt-lab .nnt-ledger td:first-child { width: 12%; text-align: center; }",
-    ".nnt-lab .nnt-ledger th { color: var(--nnt-muted); font-size: 11.5px; font-weight: 650; }",
-    ".nnt-lab .nnt-ledger tr.nnt-current td { background: color-mix(in srgb, var(--accent) 12%, var(--bg)); font-weight: 700; }",
-    ".nnt-lab .nnt-ledger td:nth-child(2) { color: var(--nnt-selected); }",
-    ".nnt-lab .nnt-ledger td:nth-child(3) { color: var(--nnt-normal); }",
-    ".nnt-lab .nnt-ledger td:nth-child(4) { color: var(--nnt-main); }",
-    ".nnt-lab .nnt-footnote { margin: 10px 0 0; padding: 9px 11px; border-left: 3px solid var(--nnt-selected); background: var(--block-bg, var(--bg)); color: var(--nnt-muted); font-size: 12.5px; line-height: 1.7; }",
-    ".nnt-lab button:focus-visible, .nnt-lab input:focus-visible { outline: 3px solid var(--cl-focus, #1769aa); outline-offset: 2px; }",
-    "@media (max-width: 760px) { .nnt-lab .nnt-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); } }",
-    "@media (max-width: 480px) { .nnt-lab .nnt-controls { grid-template-columns: minmax(0, 1fr); } .nnt-lab .nnt-stage-frame { padding: 6px; } .nnt-lab .nnt-ledger { font-size: 11.5px; } .nnt-lab .nnt-ledger th, .nnt-lab .nnt-ledger td { padding-left: 3px; padding-right: 3px; } }",
-    "@media (prefers-reduced-motion: reduce) { .nnt-lab * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }"
-  ].join("\n");
-
-  function installStyles() {
-    if (document.getElementById(STYLE_ID)) {
-      return;
-    }
-    var style = document.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = STYLE_TEXT;
-    document.head.appendChild(style);
+ }
+ if(s.mode==="perturbation"){
+  const xs=d.study,points=(i,key,valid=x=>x!==null)=>xs.flatMap(v=>valid(v.result.comparisons[i][key])?[[v.epsilon,v.result.comparisons[i][key]]]:[]);
+  return[
+   plot("有序特征值：显示的是绝对变化","要求的扰动幅度ε（单位尺度前）","特征值 / 共同尺度",[0,1].flatMap(i=>[
+    series("e"+i,"第"+(i+1)+"个特征值",i===0?B:O,xs.map(v=>[v.epsilon,v.result.be.values[i]/p.scale])),
+    series("upper"+i,"Weyl上界"+i,i===0?G:V,xs.map(v=>[v.epsilon,(v.result.ae.values[i]+v.result.eta)/p.scale])),
+    series("lower"+i,"Weyl下界"+i,i===0?G:V,xs.map(v=>[v.epsilon,(v.result.ae.values[i]-v.result.eta)/p.scale]))]),0,2),
+   plot("方向变化：谱隙条件不满足时留空","要求的扰动幅度ε（单位尺度前）","sin角度与理论间隔比较（上界可超过1）",[0,1].flatMap(i=>[
+    series("angle"+i,"第"+(i+1)+"个方向",i===0?B:O,points(i,"sinAngle"),false),
+    series("gap"+i,"小扰动间隔估计"+i,i===0?G:V,points(i,"gapBound"),false)]),0,2),
+   plot("残差读数与有限精度缓冲，不能当区间证书","要求的扰动幅度ε（单位尺度前）","方向角正弦、原读数与缓冲估计",[
+    series("angle","首方向实际sin角",B,points(0,"sinAngle"),false),
+    series("raw","原始残差/分离读数",O,points(0,"rawBound"),false),
+    series("buffered","带64u尺度的诊断",R,points(0,"bound"),false)],0,2),
+   plot("要求的扰动与实际形成的矩阵差","要求的扰动幅度ε（单位尺度前）","log₁₀ 共同尺度归一的舍入缺陷",[
+    series("formation","形成B时的差距",B,xs.flatMap(v=>v.result.formationGap>0?[[v.epsilon,Math.log10(v.result.formationGap/p.scale)]]:[]),false),
+    series("eigen","B的本征方程缺陷",O,xs.flatMap(v=>{const n=norm(v.result.be.residuals.flat());return n>0?[[v.epsilon,Math.log10(n/p.scale)]]:[];}),false)],0,2)
+  ];
+ }
+ const disks=p.disks,cs=disks.map(q=>q.center/p.scale),rs=disks.map(q=>q.radius/p.scale),left=Math.min(...cs.map((c,i)=>c-rs[i])),right=Math.max(...cs.map((c,i)=>c+rs[i])),mid=(left+right)/2,h=Math.max(1,...rs,(right-left)/6)*1.12;
+ const circles=disks.map((q,i)=>series("disk"+i,"第"+(i+1)+"行圆盘",[B,O,V][i],Array.from({length:121},(_,j)=>{const u=unit(j*3);return[cs[i]+rs[i]*u[0],rs[i]*u[1]];})));
+ circles.push(series("eigen","实际Jacobi特征值",R,p.pairs.map(q=>[q.value/p.scale,0]),false));
+ const diskPlot={title:"Gershgorin闭圆盘：等单位复平面与真实谱点",x:"实部 / 共同尺度",y:"虚部 / 共同尺度",series:circles,xmin:mid-3*h,xmax:mid+3*h,ymin:-h,ymax:h,square:false,equalUnits:true,markers:[]};
+ return[diskPlot,
+  plot("同伦中的实际对称谱：计数证明不依赖此网格","H(t)=D+t(A−D)的t","按大小排序的特征值 / 共同尺度",[0,1,2].map(i=>series("eigen"+i,"第"+(i+1)+"小特征值",[B,O,V][i],d.study.map(v=>[v.t,v.result.pairs[i].value/p.scale]))),0,1),
+  plot("Jacobi的实际本征残差与相似误差","H(t)=D+t(A−D)的t","log₁₀ 共同尺度归一的实际缺陷",[
+   series("residual","全部本征残差",B,d.study.flatMap(v=>{const x=norm(v.result.pairs.flatMap(r=>r.residual));return x>0?[[v.t,Math.log10(x/p.scale)]]:[];}),false),
+   series("similarity","相似误差",O,d.study.flatMap(v=>v.result.eig.similarity>0?[[v.t,Math.log10(v.result.eig.similarity/p.scale)]]:[]),false)],0,1)];
+}
+const stateNames={decay:"渐近衰减",growth:"指数增长","bounded-nondecaying":"有界但不衰减","polynomial-growth":"多项式增长",invertible:"逆矩阵存在","spectral-point":"谱点：逆不存在",convergent:"Neumann收敛","not-convergent":"Neumann不收敛","undefined-at-zero":"z=0：有限和不定义","exact-diagonal":"浮点非对角恰为0","off-diagonal-threshold":"非对角达到阈值","iteration-budget":"预算结束"};
+function ledgers(d){
+ const s=d.config,p=d.result,col=x=>x.map(v=>[v]),entries=a=>Object.entries(a).flatMap(([key,A])=>A.flatMap((r,i)=>r.map((v,j)=>[key,i,j,v]))),t=(key,title,headers,rows)=>({key,title,headers,rows});
+ if(s.mode==="transient")return[
+  t("summary","输入、精确边界与窗口峰值",["量","值"],[["r",s.r],["g",s.g],["窗口k",s.k],["方向角",s.theta],["谱半径",p.rho],["渐近状态",stateNames[p.asymptotic]],["正规",p.normal],["存在特征基",p.diagonalizable],["非正规性缺陷",p.nonNormality],["方向峰值所在j",p.selectedPeak],["最坏增益峰值所在j",p.envelopePeak],["探针z",s.z],["逆状态",stateNames[p.resolvent.status]],["级数状态",stateNames[p.resolvent.neumann]]]),
+  t("input","完整输入",["对象","i","j","值"],entries({A:p.A,x0:col(p.x0),shifted:p.resolvent.M})),
+  t("trace","每一步的增益、根速率与余项",["j","所选增益","正规控制","算子增益","最小奇异值","j次根","乘法闭式差","部分和范数","逆减部分和范数","有限恒等式缺陷","余项恒等式缺陷"],p.rows.map(r=>[r.j,r.selected,r.normal,r.envelope,r.svd.min,r.rootGain,r.closedGap,r.partialNorm,r.remainderNorm,r.identityGap,r.remainderGap])),
+  t("powers","每一步实际乘法、闭式和方向",["j","对象","i","j","值"],p.rows.flatMap(r=>entries({before:r.before,P:r.P,closed:r.closed,x:col(r.x),maxDirection:col(r.svd.vMax),minDirection:col(r.svd.vMin),maxImage:col(r.svd.maxImage),minImage:col(r.svd.minImage)}).map(v=>[r.j,...v]))),
+  t("neumann","每一项、部分和、尾项与实际余项",["最高次数","对象","i","j","值"],p.rows.flatMap(r=>entries(Object.fromEntries(["term","sum","identityResidual","tail","remainder","remainderPredicted"].filter(k=>r[k]!==null).map(k=>[k,r[k]]))).map(v=>[r.j,...v]))),
+  t("resolvent","最小扰动公式与实际浮点见证",["量","值"],[["逆矩阵范数",p.resolvent.norm],["移位矩阵最大奇异值",p.resolvent.svd.max],["移位矩阵最小奇异值",p.resolvent.svd.min],["实际扰动范数",p.resolvent.perturbationNorm],["达到最小值的浮点差距",p.resolvent.attainmentGap],["构造后残差",norm(p.resolvent.changedResidual)]]),
+  t("witness","逆矩阵、奇异向量与显式扰动所有元素",["对象","i","j","值"],entries({...p.resolvent.inverse?{inverse:p.resolvent.inverse}:{},v:col(p.resolvent.v),Ev:col(p.resolvent.Ev),E:p.resolvent.E,changed:p.resolvent.changed,changedResidual:col(p.resolvent.changedResidual)}))
+ ];
+ const perturbRows=(v,label)=>v.comparisons.map(r=>[label,r.i,r.originalValue,r.value,r.deviation,r.residualNorm,r.separation,r.sinAngle,r.rawBound,r.bound,r.gapBound,r.resolution,r.resolved,r.projectorFro]);
+ const perturbMatrices=v=>entries({A:v.A,requestedE:v.requestedE,B:v.B,E:v.E,...Object.fromEntries(["ae","be","ee"].flatMap(k=>[[k+"Vectors",tr(v[k].vectors)],[k+"Residuals",tr(v[k].residuals)]]))});
+ const perturbVectors=v=>v.comparisons.flatMap(r=>entries({v:col(r.v),shifted:r.shifted,residual:col(r.residual),Ev:col(r.Ev),identity:col(r.residualIdentity),P:r.P,P0:r.P0,difference:r.projectorDifference}).map(z=>[r.i,...z]));
+ if(s.mode==="perturbation")return[
+  t("summary","实际扰动与有限精度尺度",["量","值"],[["共同尺度",p.scale],["要求的谱隙",s.gap*p.scale],["实际A谱隙",p.gap],["要求的扰动幅度",s.epsilon*p.scale],["实际B-A范数",p.eta],["形成矩阵差距",p.formationGap],["64u诊断尺度",p.resolution],["原始方向唯一",p.ae.simple],["扰动后方向唯一",p.be.simple],["估计性质","浮点诊断，非区间证书"]]),
+  t("input","实际矩阵与所有谱分解",["对象","i","j","值"],perturbMatrices(p)),
+  t("directions","当前两个方向的完整证据",["参数ε","方向i","原值","新值","绝对变化","残差范数","分离δ","sin角","原残差/δ","缓冲估计","小扰动间隔估计","64u尺度","分离可解析","投影差F范数"],perturbRows(p,s.epsilon)),
+  t("vectors","当前向量、残差与投影矩阵",["方向","对象","i","j","值"],perturbVectors(p)),
+  t("scan","扫描所有谱值、方向读数和无效状态",["参数ε","方向i","原值","新值","绝对变化","残差范数","分离δ","sin角","原残差/δ","缓冲估计","小扰动间隔估计","64u尺度","分离可解析","投影差F范数"],d.study.flatMap(v=>perturbRows(v.result,v.epsilon))),
+  t("scan-matrices","每个扫描点的完整矩阵",["参数ε","对象","i","j","值"],d.study.flatMap(v=>perturbMatrices(v.result).map(z=>[v.epsilon,...z]))),
+  t("scan-vectors","每个扫描点的完整向量与投影",["参数ε","方向","对象","i","j","值"],d.study.flatMap(v=>perturbVectors(v.result).map(z=>[v.epsilon,...z])))
+ ];
+ const runs=[{t:1,current:true,result:p},...d.study.map(v=>({...v,current:false}))];
+ return[
+  t("summary","圆盘与对称谱计数",["量","值"],[["共同尺度",p.scale],["分离组数",p.groups.length],["严格对角占优",p.strictlyDominant],["由分离组确定的负特征值数",p.negativeCount],["由分离组确定的正特征值数",p.positiveCount],["Jacobi状态",stateNames[p.eig.status]],["旋转次数",p.eig.records.length],["本征基正交缺陷",p.eig.orthogonality],["相似误差",p.eig.similarity],["显式修正范数之和",p.eig.correctionBudget]]),
+  t("input","完整三维矩阵",["对象","i","j","值"],entries({A:p.A,T:p.eig.T,Q:p.eig.Q})),
+  t("disks","每一行圆盘与严格占优",["行i","圆心","半径","实轴下端","实轴上端","占优余量","严格占优"],p.disks.map((v,i)=>[i,v.center,v.radius,v.center-v.radius,v.center+v.radius,p.dominance[i].margin,p.dominance[i].strict])),
+  t("edges","相切属于相连：二进制数精确比较",["圆盘i","圆盘j","浮点分离读数","精确分离符号","相连"],p.edges.map(v=>[v.i,v.j,v.separation,v.exactSign,v.connected])),
+  t("groups","分离区域的定理计数",["组号","所含行","实轴下端","实轴上端","按代数重数的计数"],p.groups.map((v,i)=>[i,v.indices.join(","),v.lower,v.upper,v.theoremCount])),
+  t("spectra","当前与全部同伦采样的实际谱",["当前参数","t","特征值i","值","残差范数","残差/向量范数","相交区域组"],runs.flatMap(v=>v.result.pairs.map((q,i)=>[v.current,v.t,i,q.value,q.residualNorm,q.radius,q.groups.join(",")]))),
+  t("vectors","全部谱向量与实际残差",["当前参数","t","特征值i","坐标j","向量","残差"],runs.flatMap(v=>v.result.pairs.flatMap((q,i)=>q.v.map((x,j)=>[v.current,v.t,i,j,x,q.residual[j]])))),
+  t("rotations","每个Jacobi旋转参数",["当前参数","t","步","p","q","非对角范数","阈值","tau","tan","cos","sin"],runs.flatMap(v=>v.result.eig.records.map(q=>[v.current,v.t,q.step,q.p,q.q,q.off,q.threshold,q.tau,q.t,q.c,q.s]))),
+  t("rotation-matrices","全部旋转前后矩阵与截断修正",["当前参数","t","步","对象","i","j","值"],runs.flatMap(v=>v.result.eig.records.flatMap(q=>entries({before:q.before,Qbefore:q.Qbefore,J:q.J,raw:q.raw,correction:q.correction,after:q.after,Q:q.Q}).map(z=>[v.current,v.t,q.step,...z])))),
+  t("homotopy-matrices","全部同伦矩阵、圆盘与基",["t","对象","i","j","值"],d.study.flatMap(v=>entries({A:v.result.A,T:v.result.eig.T,Q:v.result.eig.Q,disks:v.result.disks.map(q=>[q.center,q.radius])}).map(z=>[v.t,...z])))
+ ];
+}
+ const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const tick=v=>v===0?"0":Math.abs(v)<1e-3||Math.abs(v)>=1e4?v.toExponential(2):String(Number(v.toPrecision(4)));
+ function svg(q){
+  const left=q.square?325:100,width=q.square?250:750,height=250,top=85,bottom=335,x=v=>left+width*(v-q.xmin)/(q.xmax-q.xmin),y=v=>bottom-height*(v-q.ymin)/(q.ymax-q.ymin);
+  let s='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="425" role="img" aria-label="'+esc(q.title)+'"><title>'+esc(q.title)+'</title><text x="25" y="32" font-size="22">'+esc(q.title)+'</text>';
+  for(let i=0;i<(q.square?3:5);i++){
+   const v=q.ymin+(q.ymax-q.ymin)*i/(q.square?2:4);
+   s+='<path d="M'+left+' '+y(v)+'H'+(left+width)+'" stroke="currentColor" opacity=".18"/><text x="'+(left-12)+'" y="'+(y(v)+5)+'" text-anchor="end">'+tick(v)+'</text>';
   }
-
-  function setAttributes(node, attrs) {
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) {
-        return;
-      }
-      if (key === "className") {
-        node.setAttribute("class", String(value));
-      } else if (key === "htmlFor") {
-        node.setAttribute("for", String(value));
-      } else if (key === "text") {
-        node.textContent = String(value);
-      } else if (key.slice(0, 2) === "on" && typeof value === "function") {
-        node.addEventListener(key.slice(2).toLowerCase(), value);
-      } else if (value === true) {
-        node.setAttribute(key, "");
-      } else {
-        node.setAttribute(key, String(value));
-      }
-    });
-    return node;
+  const ticks=q.xTicks||Array.from({length:5},(_,i)=>q.xmin+(q.xmax-q.xmin)*i/4);
+  for(const v of ticks)s+='<text x="'+x(v)+'" y="'+(bottom+28)+'" text-anchor="middle">'+tick(v)+'</text>';
+  if(q.ymin<=0&&q.ymax>=0)s+='<line data-zero="true" x1="'+left+'" x2="'+(left+width)+'" y1="'+y(0)+'" y2="'+y(0)+'" stroke="currentColor" opacity=".7"/>';
+  s+='<text x="'+left+'" y="65">'+esc(q.y)+'</text><text x="'+(left+width/2)+'" y="'+(bottom+63)+'" text-anchor="middle">'+esc(q.x)+'</text>';
+  for(const series of q.series){
+   if(series.area)s+='<rect data-area="'+series.key+'" x="'+x(series.points[0][0])+'" y="'+y(series.points[0][1])+'" width="'+(x(series.points[1][0])-x(series.points[0][0]))+'" height="'+(y(0)-y(series.points[0][1]))+'" fill="'+series.color+'" opacity=".12"/>';
+   if(series.line)s+='<polyline data-series="'+series.key+'" points="'+series.points.map(p=>x(p[0])+','+y(p[1])).join(" ")+'" stroke="'+series.color+'" stroke-width="2" fill="none"/>';
+   series.points.forEach((p,i)=>{const open=series.endOpen&&i===series.points.length-1;s+='<circle data-series="'+series.key+'" data-index="'+i+'" data-open="'+!!open+'" cx="'+x(p[0])+'" cy="'+y(p[1])+'" r="'+(series.endOpen?3.5:series.line?1.8:3.5)+'" fill="'+(open?"var(--bg,#faf7ef)":series.color)+'" stroke="'+series.color+'"/>';});
   }
-
-  function appendChildren(node, children) {
-    if (children === undefined || children === null) {
-      return node;
-    }
-    var list = Array.isArray(children) ? children : [children];
-    list.forEach(function (child) {
-      if (child === undefined || child === null || child === false) {
-        return;
-      }
-      node.appendChild(
-        child && child.nodeType ? child : document.createTextNode(String(child))
-      );
-    });
-    return node;
+  for(const [i,m]of (q.markers||[]).entries()){
+   const px=x(m.x),right=px>700;
+   s+='<line data-marker="'+i+'" x1="'+px+'" x2="'+px+'" y1="'+top+'" y2="'+bottom+'" stroke="currentColor" stroke-dasharray="5 5" opacity=".65"/><text x="'+(px+(right?-4:4))+'" y="'+(80+25*q.markers.slice(0,i).filter(p=>Math.abs(px-x(p.x))<110).length)+'" font-size="13" text-anchor="'+(right?'end':'start')+'">'+esc(m.label)+'</text>';
   }
+  return s+"</svg>";
+ }
 
-  function makeElement(api, tag, attrs, children) {
-    if (api && typeof api.el === "function") {
-      return api.el(tag, attrs || {}, children);
-    }
-    return appendChildren(
-      setAttributes(document.createElement(tag), attrs || {}),
-      children
-    );
+ const STYLE=".matrix146{color:var(--fg,#273646)}.matrix146 .matrix-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}.matrix146 label{display:flex;flex-direction:column;gap:6px}.matrix146 input,.matrix146 select{font:inherit;padding:8px;max-width:100%;background:var(--bg,#fff);color:inherit;border:1px solid #8b98a0;border-radius:5px}.matrix146 button{font:inherit;padding:8px 12px;margin:5px;cursor:pointer}.matrix146 button[aria-pressed=true]{outline:3px solid #478aaa}.matrix146 .matrix-scroll{overflow:auto;max-width:100%;margin:16px 0}.matrix146 .matrix-scroll:focus{outline:3px solid #478aaa}.matrix146 .matrix-ledger{max-height:420px}.matrix146 svg{width:900px!important;max-width:none!important;display:block;fill:currentColor;font:16px system-ui}.matrix146 table{display:table;overflow:visible;width:max-content;max-width:none;min-width:900px;border-collapse:collapse;font-variant-numeric:tabular-nums}.matrix146 th,.matrix146 td{padding:9px;border:1px solid #98a4ab;text-align:left;white-space:nowrap}.matrix146 .matrix-error{color:#c74b39}.matrix146 [hidden]{display:none!important}.matrix146 fieldset{margin:16px 0;padding:12px}.matrix146 details{margin:16px 0}.matrix146 summary{cursor:pointer;font-weight:600}.matrix146 .matrix-legend{font-size:.95em}.matrix146 .matrix-note{line-height:1.7}.matrix146 [hidden]{display:none!important}.matrix146 select{font:inherit;color:var(--fg,#282820);background:var(--bg,#faf7ef);padding:8px;max-width:100%}";
+ function mount(container){
+  const doc=container.ownerDocument;
+  if(!doc.getElementById("matrix146-style")){const style=doc.createElement("style");style.id="matrix146-style";style.textContent=STYLE;doc.head.appendChild(style);}
+  const field=(key,label,modes)=>'<label data-modes="'+modes+'">'+label+'<input data-key="'+key+'" type="number" step="any"></label>';
+  container.innerHTML='<div class="matrix146"><h3>矩阵变了，哪一种证据仍然可靠？</h3><p>先预测，再核对实际矩阵、每次运算和读数的条件。</p><div class="matrix-presets">'+PRESETS.map(p=>'<button type="button" data-preset="'+p.id+'">'+esc(p.label)+'</button>').join("")+'</div><div class="matrix-controls"><label>实验<select data-key="mode"><option value="transient">Jordan瞬态与Neumann和</option><option value="perturbation">对称谱与方向扰动</option><option value="gershgorin">Gershgorin圆盘与计数</option></select></label>'+
+   field("r","Jordan对角r（−1.1–1.1）","transient")+field("g","剪切耦合g（−20–20）","transient")+field("k","观察窗口k（0–60整数）","transient")+field("theta","初始方向θ（−180–180度）","transient")+field("z","实探针z（0或0.1≤|z|≤2）","transient")+
+   field("center","原谱中心（−2–2）","perturbation")+field("gap","要求的原谱隙（0–4）","perturbation")+field("axisAngle","原主轴角（−180–180度）","perturbation")+field("epsilon","要求的扰动幅度（0–2）","perturbation")+field("perturbAngle","扰动正方向角（−180–180度）","perturbation")+
+   field("d1","第一行对角（−5–5整数）","gershgorin")+field("d2","第二行对角（−5–5整数）","gershgorin")+field("d3","第三行对角（−5–5整数）","gershgorin")+field("coupling","相邻耦合（−4–4）","gershgorin")+
+   field("scaleExponent","共同尺度10的指数（−12–12整数）","perturbation gershgorin")+'</div>'+
+   QUESTIONS.map((q,i)=>'<fieldset data-question="'+i+'"><legend>'+(i+1)+'. '+esc(q[0])+'</legend>'+q[1].map((v,j)=>'<button type="button" data-choice="'+j+'" aria-pressed="false">'+esc(v)+'</button>').join("")+'</fieldset>').join("")+
+   '<button type="button" data-action="reveal">揭示图与完整账本</button><button type="button" data-action="reset">重置预测</button><p class="matrix-error" role="alert"></p><p role="status"></p><div class="matrix-results" hidden></div></div>';
+  const fields=Array.from(container.querySelectorAll("[data-key]")),answers=Array(4).fill(null),result=container.querySelector(".matrix-results"),reveal=container.querySelector("[data-action=reveal]"),feedback=container.querySelector("[role=status]"),error=container.querySelector("[role=alert]");
+  fields.forEach(e=>e.value=DEFAULTS[e.dataset.key]);
+  let revealed=false,valid=null;
+  function render(d){
+   const notes={transient:"谱半径与g是否为0按实际输入严格区分，不把接近边界当成等号。窗口峰值只属于当前有限窗口。逐次乘法、闭式、Neumann每一项和实际余项均保留；逆不存在与级数不收敛不同。最小奇异值、实际构造的扰动和其残差不强制相等。",perturbation:"Weyl控制有序特征值的绝对变化。方向证据需要明确分离，重根时方向不唯一。要求的E与实际B−A分别列出；64u缓冲只是有限精度诊断，不是区间证书，分离不足时估计留空。扫描横轴改变扰动幅度，当前精确输入也加入网格。",gershgorin:"当前模型是三维实对称链，因此真实谱在实轴；圆盘仍按等单位复平面绘出。相切判为相连，分离关系对实际二进制圆心/半径作精确比较。Jacobi计算记录全部旋转、对称化与非对角截断修正；同伦网格展示现象，不替代连续参数的计数证明。"};
+   result.innerHTML='<p>'+notes[d.config.mode]+'</p>'+
+    plots(d).map(q=>'<p>'+q.series.filter((s,i,ss)=>ss.findIndex(t=>t.label===s.label&&t.color===s.color)===i).map(s=>esc(s.label)+'（'+({"#268bd2":"蓝","#cb6a16":"橙","#29966c":"绿","#9966bb":"紫","#b44a72":"玫红"}[s.color])+'）').join("；")+'</p><div class="matrix-scroll" role="region" tabindex="0" aria-label="'+esc(q.title)+'">'+svg(q)+'</div>').join("")+
+    ledgers(d).map(t=>'<details data-ledger="'+t.key+'"'+(t.key==="summary"?' open':"")+'><summary>'+esc(t.title)+'（'+t.rows.length+' 行）</summary><div class="matrix-scroll matrix-ledger" role="region" tabindex="0" aria-label="'+esc(t.title)+'"><table data-table="'+t.key+'"><thead><tr>'+t.headers.map(x=>'<th scope="col">'+esc(x)+'</th>').join("")+'</tr></thead><tbody>'+t.rows.map(r=>'<tr>'+r.map(x=>'<td>'+esc(fmt(x))+'</td>').join("")+'</tr>').join("")+'</tbody></table></div></details>').join("")+
+    '<p>“—”表示不适用、未定义或有限精度不足，不是0。对数图仅画严格正的实际值；线性图保留零。所有显示图与表都来自同一组计算记录。精确算术定理、浮点诊断与严格数值证书要分别理解。</p>';
   }
-
-  function makeSvg(api, tag, attrs, children) {
-    if (api && typeof api.svg === "function") {
-      return api.svg(tag, attrs || {}, children);
-    }
-    return appendChildren(
-      setAttributes(document.createElementNS(SVG_NS, tag), attrs || {}),
-      children
-    );
+  function update(){
+   const raw=Object.fromEntries(fields.map(e=>[e.dataset.key,e.value]));
+   container.querySelectorAll("[data-modes]").forEach(e=>e.hidden=!e.dataset.modes.split(" ").includes(raw.mode));
+   try{valid=config(raw);error.textContent="";}catch(e){valid=null;revealed=false;error.textContent=e.message;}
+   reveal.disabled=!valid||answers.some(x=>x===null);result.hidden=!revealed;
+   if(revealed&&valid)render(snapshot(valid));
+   feedback.textContent=revealed?answers.filter((x,i)=>x===QUESTIONS[i][2]).length+" / 4。"+QUESTIONS.map(q=>q[3]).join(" "):"";
   }
+  fields.forEach(e=>e.addEventListener(e.tagName==="SELECT"?"change":"input",update));
+  container.querySelectorAll("[data-choice]").forEach(b=>b.addEventListener("click",()=>{
+   const i=Number(b.closest("[data-question]").dataset.question);answers[i]=Number(b.dataset.choice);b.parentElement.querySelectorAll("[data-choice]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));update();
+  }));
+  container.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{
+   const s=Object.assign({},DEFAULTS,PRESETS.find(p=>p.id===b.dataset.preset));fields.forEach(e=>e.value=s[e.dataset.key]);update();
+  }));
+  reveal.addEventListener("click",()=>{if(!reveal.disabled){revealed=true;update();}});
+  container.querySelector("[data-action=reset]").addEventListener("click",()=>{answers.fill(null);revealed=false;container.querySelectorAll("[data-choice]").forEach(b=>b.setAttribute("aria-pressed","false"));update();container.querySelector("[data-choice]").focus();});
+  update();
+ }
 
-  function replaceChildren(node, children) {
-    if (node && typeof node.replaceChildren === "function") {
-      node.replaceChildren.apply(node, Array.isArray(children) ? children : [children]);
-      return;
-    }
-    while (node && node.firstChild) {
-      node.removeChild(node.firstChild);
-    }
-    appendChildren(node, children);
-  }
 
-  function formatNumber(api, value, digits) {
-    if (!Number.isFinite(value)) {
-      return "∞";
-    }
-    if (api && typeof api.format === "function") {
-      return api.format(value, digits);
-    }
-    var places = digits === undefined ? 3 : digits;
-    var text = value.toFixed(places);
-    return text.indexOf(".") === -1
-      ? text
-      : text.replace(/0+$/, "").replace(/\.$/, "");
-  }
 
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-  }
 
-  function copyValues(values) {
-    return { r: values.r, g: values.g, k: values.k, theta: values.theta };
-  }
 
-  function powerData(r, g, j) {
-    if (j === 0) {
-      return { a: 1, b: 0 };
-    }
-    if (r === 0) {
-      return j === 1
-        ? { a: 0, b: g }
-        : { a: 0, b: 0 };
-    }
-    return {
-      a: Math.pow(r, j),
-      b: j * g * Math.pow(r, j - 1)
-    };
-  }
 
-  function triangularNorm(a, b) {
-    var aa = Math.abs(a) * Math.abs(a);
-    var bb = Math.abs(b) * Math.abs(b);
-    var discriminant = bb + 4 * aa;
-    var lambdaMax = (2 * aa + bb + Math.abs(b) * Math.sqrt(discriminant)) / 2;
-    return Math.sqrt(Math.max(0, lambdaMax));
-  }
 
-  function vectorAt(r, g, j, theta) {
-    var radians = theta * Math.PI / 180;
-    var c = Math.cos(radians);
-    var s = Math.sin(radians);
-    var power = powerData(r, g, j);
-    return {
-      x: power.a * c + power.b * s,
-      y: power.a * s
-    };
-  }
 
-  function vectorNorm(vector) {
-    return Math.hypot(vector.x, vector.y);
-  }
 
-  function buildData(state) {
-    var k = Math.round(clamp(Number(state.k), 0, 30));
-    var r = Number(state.r);
-    var g = Number(state.g);
-    var theta = Number(state.theta);
-    var selected = [];
-    var normal = [];
-    var envelope = [];
-    var ledger = [];
-    var selectedPeak = -Infinity;
-    var selectedPeakJ = 0;
-    var envelopePeak = -Infinity;
-    var envelopePeakJ = 0;
 
-    for (var j = 0; j <= k; j += 1) {
-      var vector = vectorAt(r, g, j, theta);
-      var selectedNorm = vectorNorm(vector);
-      var normalNorm = Math.pow(Math.abs(r), j);
-      var power = powerData(r, g, j);
-      var envelopeNorm = triangularNorm(power.a, power.b);
-      selected.push(selectedNorm);
-      normal.push(normalNorm);
-      envelope.push(envelopeNorm);
-      ledger.push({
-        j: j,
-        selected: selectedNorm,
-        normal: normalNorm,
-        envelope: envelopeNorm
-      });
-      if (selectedNorm > selectedPeak) {
-        selectedPeak = selectedNorm;
-        selectedPeakJ = j;
-      }
-      if (envelopeNorm > envelopePeak) {
-        envelopePeak = envelopeNorm;
-        envelopePeakJ = j;
-      }
-    }
 
-    return {
-      r: r,
-      g: g,
-      k: k,
-      theta: theta,
-      rho: Math.abs(r),
-      x0: vectorAt(1, 0, 0, theta),
-      selected: selected,
-      normal: normal,
-      envelope: envelope,
-      ledger: ledger,
-      selectedPeak: selectedPeak,
-      selectedPeakJ: selectedPeakJ,
-      envelopePeak: envelopePeak,
-      envelopePeakJ: envelopePeakJ,
-      power: powerData(r, g, k),
-      resolvent: resolventData(r, g, k)
-    };
-  }
 
-  function resolventData(r, g, k) {
-    var partialA = 0;
-    var partialB = 0;
-    var partialNormal = 0;
-    for (var j = 0; j <= k; j += 1) {
-      var factor = Math.pow(Z_PROBE, -j - 1);
-      var power = powerData(r, g, j);
-      partialA += factor * power.a;
-      partialB += factor * power.b;
-      partialNormal += factor * Math.pow(r, j);
-    }
-    var gap = Z_PROBE - r;
-    var exactA = 1 / gap;
-    var exactB = g / (gap * gap);
-    var exactNorm = triangularNorm(exactA, exactB);
-    return {
-      z: Z_PROBE,
-      partialNorm: triangularNorm(partialA, partialB),
-      exactNorm: exactNorm,
-      partialNormal: Math.abs(partialNormal),
-      exactNormal: 1 / Math.abs(gap),
-      epsilon: 1 / exactNorm
-    };
-  }
 
-  function svgText(api, x, y, value, attrs) {
-    var merged = Object.assign(
-      {
-        x: x,
-        y: y,
-        "font-size": "12",
-        "text-anchor": "middle",
-        fill: "currentColor"
-      },
-      attrs || {}
-    );
-    return makeSvg(api, "text", merged, [value]);
-  }
 
-  function line(api, x1, y1, x2, y2, className) {
-    return makeSvg(api, "line", {
-      x1: x1,
-      y1: y1,
-      x2: x2,
-      y2: y2,
-      className: className
-    });
-  }
 
-  function circle(api, cx, cy, radius, className) {
-    return makeSvg(api, "circle", {
-      cx: cx,
-      cy: cy,
-      r: radius,
-      className: className
-    });
-  }
-
-  function seriesPath(values, xMap, yMap) {
-    return values.map(function (value, index) {
-      return (index === 0 ? "M" : "L") + xMap(index).toFixed(2) + " " + yMap(value).toFixed(2);
-    }).join(" ");
-  }
-
-  function chartWithTitle(api, width, height, titleId, titleText, description) {
-    var svg = makeSvg(api, "svg", {
-      className: "nnt-svg",
-      viewBox: "0 0 " + width + " " + height,
-      role: "img",
-      focusable: "false",
-      "aria-labelledby": titleId
-    });
-    svg.appendChild(makeSvg(api, "title", { id: titleId }, [titleText]));
-    if (description) {
-      svg.appendChild(makeSvg(api, "desc", {}, [description]));
-    }
-    return svg;
-  }
-
-  function renderTrajectory(api, data, uid) {
-    var width = 760;
-    var height = 320;
-    var left = 52;
-    var right = 16;
-    var top = 27;
-    var bottom = 38;
-    var plotWidth = width - left - right;
-    var plotHeight = height - top - bottom;
-    var xMax = Math.max(1, data.k);
-    var maxValue = Math.max.apply(null, data.envelope.concat(data.selected, data.normal));
-    var yMax = Math.max(1, maxValue) * 1.1;
-    var xMap = function (j) { return left + j / xMax * plotWidth; };
-    var yMap = function (value) { return top + (yMax - value) / yMax * plotHeight; };
-    var svg = chartWithTitle(
-      api,
-      width,
-      height,
-      uid + "-trajectory-title",
-      "非正规矩阵与正规控制的有限时间增益",
-      "金色实线是所选初始方向的轨迹范数，蓝线是二范数增益包络，绿色虚线是同谱正规控制。"
-    );
-
-    svg.appendChild(makeSvg(api, "rect", {
-      x: left,
-      y: top,
-      width: plotWidth,
-      height: plotHeight,
-      className: "nnt-panel"
-    }));
-    for (var gy = 0; gy <= 4; gy += 1) {
-      var yValue = yMax * gy / 4;
-      var y = yMap(yValue);
-      svg.appendChild(line(api, left, y, width - right, y, "nnt-grid-line"));
-      svg.appendChild(svgText(api, left - 8, y + 4, formatNumber(api, yValue, 2), {
-        className: "nnt-axis-label",
-        "text-anchor": "end"
-      }));
-    }
-    svg.appendChild(line(api, left, top + plotHeight, width - right, top + plotHeight, "nnt-axis"));
-    for (var gx = 0; gx <= data.k; gx += Math.max(1, Math.ceil(data.k / 6))) {
-      var xTick = xMap(gx);
-      svg.appendChild(line(api, xTick, top + plotHeight, xTick, top + plotHeight + 5, "nnt-axis"));
-      svg.appendChild(svgText(api, xTick, height - 13, "j=" + gx, { className: "nnt-axis-label" }));
-    }
-    if (data.k > 0 && data.k % Math.max(1, Math.ceil(data.k / 6)) !== 0) {
-      svg.appendChild(svgText(api, xMap(data.k), height - 13, "j=" + data.k, { className: "nnt-axis-label" }));
-    }
-    var horizonX = xMap(data.k);
-    svg.appendChild(line(api, horizonX, top, horizonX, top + plotHeight, "nnt-horizon"));
-    svg.appendChild(svgText(api, left, 16, "范数", {
-      className: "nnt-chart-label",
-      "text-anchor": "start"
-    }));
-    svg.appendChild(svgText(api, width - right, height - 13, "步数 j", {
-      className: "nnt-axis-label",
-      "text-anchor": "end"
-    }));
-    svg.appendChild(makeSvg(api, "path", {
-      d: seriesPath(data.envelope, xMap, yMap),
-      className: "nnt-envelope"
-    }));
-    svg.appendChild(makeSvg(api, "path", {
-      d: seriesPath(data.selected, xMap, yMap),
-      className: "nnt-selected-line"
-    }));
-    svg.appendChild(makeSvg(api, "path", {
-      d: seriesPath(data.normal, xMap, yMap),
-      className: "nnt-normal-line"
-    }));
-    svg.appendChild(circle(api, horizonX, yMap(data.envelope[data.k]), 4.6, "nnt-dot nnt-dot-envelope"));
-    svg.appendChild(circle(api, horizonX, yMap(data.selected[data.k]), 4.2, "nnt-dot nnt-dot-selected"));
-    svg.appendChild(circle(api, horizonX, yMap(data.normal[data.k]), 3.8, "nnt-dot nnt-dot-normal"));
-    return svg;
-  }
-
-  function renderResolvent(api, data, uid) {
-    var width = 700;
-    var height = 235;
-    var left = 48;
-    var right = 15;
-    var top = 28;
-    var bottom = 52;
-    var plotWidth = width - left - right;
-    var plotHeight = height - top - bottom;
-    var values = [
-      data.resolvent.partialNorm,
-      data.resolvent.exactNorm,
-      data.resolvent.partialNormal,
-      data.resolvent.exactNormal
-    ];
-    var labels = ["A, Rₖ", "A, R∞", "rI, Rₖ", "rI, R∞"];
-    var maxValue = Math.max.apply(null, values);
-    var yMax = Math.max(1, maxValue) * 1.12;
-    var svg = chartWithTitle(
-      api,
-      width,
-      height,
-      uid + "-resolvent-title",
-      "有限步 Neumann resolvent 与完整 resolvent 对比",
-      "R_k(z) 是从零阶到当前 horizon 的有限 Neumann 和；R∞ 是精确 resolvent，左组为非正规矩阵，右组为正规控制。"
-    );
-    var yMap = function (value) { return top + (yMax - value) / yMax * plotHeight; };
-    svg.appendChild(makeSvg(api, "rect", {
-      x: left,
-      y: top,
-      width: plotWidth,
-      height: plotHeight,
-      className: "nnt-panel"
-    }));
-    for (var gy = 0; gy <= 4; gy += 1) {
-      var yValue = yMax * gy / 4;
-      var y = yMap(yValue);
-      svg.appendChild(line(api, left, y, width - right, y, "nnt-grid-line"));
-      svg.appendChild(svgText(api, left - 7, y + 4, formatNumber(api, yValue, 2), {
-        className: "nnt-axis-label",
-        "text-anchor": "end"
-      }));
-    }
-    var barWidth = Math.min(86, plotWidth / 7);
-    var gap = (plotWidth - 4 * barWidth) / 5;
-    values.forEach(function (value, index) {
-      var x = left + gap + index * (barWidth + gap);
-      var y = yMap(value);
-      var className = index < 2 ? "nnt-bar-main" : "nnt-bar-normal";
-      svg.appendChild(makeSvg(api, "rect", {
-        x: x,
-        y: y,
-        width: barWidth,
-        height: Math.max(0, top + plotHeight - y),
-        className: className
-      }));
-      svg.appendChild(svgText(api, x + barWidth / 2, Math.max(top + 14, y - 6), formatNumber(api, value, 2), {
-        className: "nnt-axis-label"
-      }));
-      svg.appendChild(svgText(api, x + barWidth / 2, height - 26, labels[index], {
-        className: "nnt-axis-label"
-      }));
-    });
-    svg.appendChild(svgText(api, left, 16, "resolvent 范数", {
-      className: "nnt-chart-label",
-      "text-anchor": "start"
-    }));
-    svg.appendChild(svgText(api, width - right, height - 9, "z=" + formatNumber(api, data.resolvent.z, 2) + "；Rₖ=Σ₀ᵏ z⁻ʲ⁻¹Aʲ", {
-      className: "nnt-axis-label",
-      "text-anchor": "end"
-    }));
-    return svg;
-  }
-
-  function metric(api, label, value, note) {
-    return makeElement(api, "div", { className: "nnt-metric" }, [
-      makeElement(api, "span", {}, [label]),
-      makeElement(api, "strong", {}, [value]),
-      note ? makeElement(api, "small", {}, [note]) : null
-    ]);
-  }
-
-  function statusText(data) {
-    if (data.rho < 1 - EPS) {
-      if (data.selectedPeak > 1 + EPS) {
-        return "ρ(A)<1：所选方向先放大，之后仍会渐近衰减。";
-      }
-      if (data.envelopePeak > 1 + EPS) {
-        return "ρ(A)<1：所选方向未放大，但算子包络显示其他方向存在瞬态增益。";
-      }
-      return "ρ(A)<1：渐近稳定；本方向在当前窗口没有超过初始范数。";
-    }
-    if (Math.abs(data.rho - 1) <= EPS) {
-      return data.g > EPS
-        ? "ρ(A)=1：不渐近稳定；Jordan 耦合的 kg 项阻止衰减。"
-        : "ρ(A)=1：临界，A^k=I，不衰减也不放大。";
-    }
-    return "ρ(A)>1：系统不稳定，最终的指数增长已不是纯粹的瞬态。";
-  }
-
-  function eigenvectorText(data) {
-    return data.g <= EPS
-      ? "A=rI；可取正交特征基，κ₂(V)=1"
-      : "缺陷 Jordan 块；无特征基，κ(V) 不定义/可视为∞";
-  }
-
-  function renderFormula(api, data) {
-    var p = data.power;
-    var text;
-    if (data.k === 0) {
-      text = "k=0：A⁰=I，||A⁰||₂=1。\n";
-    } else if (data.r === 0) {
-      text = data.k === 1
-        ? "r=0 且 k=1：A¹=[[0,g],[0,0]]，所以 a=0，b=g。\n"
-        : "r=0 且 k≥2：Aᵏ=0（幂零指数 2），所以 a=0，b=0。\n";
-    } else {
-      text = "Aᵏ = [[a,b],[0,a]]，其中 a=rᵏ=" + formatNumber(api, p.a, 6) +
-        "，b=kgrᵏ⁻¹=" + formatNumber(api, p.b, 6) + "。\n";
-    }
-    text += "||Aᵏ||₂ = sqrt((2a²+b²+|b|sqrt(b²+4a²))/2) = " +
-      formatNumber(api, data.envelope[data.k], 6) + "。\n";
-    text += "x₀=(cos θ,sin θ)，θ=" + formatNumber(api, data.theta, 0) +
-      "°；||Aᵏx₀||₂=" + formatNumber(api, data.selected[data.k], 6) +
-      "，同谱正规控制 ||(rI)ᵏx₀||₂=|r|ᵏ=" + formatNumber(api, data.normal[data.k], 6) + "。";
-    return makeElement(api, "div", { className: "nnt-formula" }, [text]);
-  }
-
-  function renderLedger(api, data) {
-    var table = makeElement(api, "table", { className: "nnt-ledger" });
-    table.appendChild(makeElement(api, "caption", {}, [
-      "确定性账本：每一行都是同一个 x₀ 在第 j 步的可复核数值；当前 horizon 以色块标出。"
-    ]));
-    var thead = makeElement(api, "thead", {}, [
-      makeElement(api, "tr", {}, [
-        makeElement(api, "th", { scope: "col" }, ["j"]),
-        makeElement(api, "th", { scope: "col" }, ["||Aʲx₀||₂"]),
-        makeElement(api, "th", { scope: "col" }, ["正规 |r|ʲ"]),
-        makeElement(api, "th", { scope: "col" }, ["||Aʲ||₂"])
-      ])
-    ]);
-    table.appendChild(thead);
-    var tbody = makeElement(api, "tbody");
-    data.ledger.forEach(function (row) {
-      tbody.appendChild(makeElement(api, "tr", {
-        className: row.j === data.k ? "nnt-current" : ""
-      }, [
-        makeElement(api, "th", { scope: "row" }, [String(row.j)]),
-        makeElement(api, "td", {}, [formatNumber(api, row.selected, 5)]),
-        makeElement(api, "td", {}, [formatNumber(api, row.normal, 5)]),
-        makeElement(api, "td", {}, [formatNumber(api, row.envelope, 5)])
-      ]));
-    });
-    table.appendChild(tbody);
-    return table;
-  }
-
-  function renderMetrics(api, data) {
-    var nonNormality = data.g * data.g;
-    return makeElement(api, "div", { className: "nnt-metric-grid" }, [
-      metric(api, "渐近状态", data.rho < 1 - EPS ? "ρ<1，最终衰减" : (data.rho > 1 + EPS ? "ρ>1，最终增长" : "ρ=1，临界"), statusText(data)),
-      metric(api, "谱半径 ρ(A)", formatNumber(api, data.rho, 4), "两个特征值都等于 r"),
-      metric(api, "当前方向增益", formatNumber(api, data.selected[data.k], 5), "||Aᵏx₀||₂ / ||x₀||₂"),
-      metric(api, "算子增益包络", formatNumber(api, data.envelope[data.k], 5), "精确的 ||Aᵏ||₂"),
-      metric(api, "正规控制", formatNumber(api, data.normal[data.k], 5), "同谱 N=rI 的 ||Nᵏ||₂"),
-      metric(api, "窗口内方向峰值", formatNumber(api, data.selectedPeak, 5), "j=" + data.selectedPeakJ),
-      metric(api, "窗口内算子峰值", formatNumber(api, data.envelopePeak, 5), "j=" + data.envelopePeakJ),
-      metric(api, "非正规性缺陷", formatNumber(api, nonNormality, 4), "||AA*−A*A||₂=g²"),
-      metric(api, "特征向量条件", eigenvectorText(data), "不要把它与奇异值或 resolvent 混为一谈"),
-      metric(api, "ε-resolvent 尺度", formatNumber(api, data.resolvent.epsilon, 6), "σmin(zI−A)，z=" + formatNumber(api, Z_PROBE, 2))
-    ]);
-  }
-
-  var pureModel = {
-    defaults: copyValues(DEFAULTS),
-    probe: Z_PROBE,
-    powerData: powerData,
-    triangularNorm: triangularNorm,
-    vectorAt: vectorAt,
-    buildData: buildData,
-    resolventData: resolventData
-  };
-
-  if (typeof module === "object" && module.exports) {
-    module.exports = pureModel;
-    return;
-  }
-
-  if (!host || !host.CourseLearning || typeof host.CourseLearning.register !== "function") {
-    return;
-  }
-
-  host.CourseLearning.register("non-normal-transient", function (root, api) {
-    if (!root || typeof document === "undefined") {
-      return;
-    }
-
-    installStyles();
-    root.classList.add("nnt-lab");
-    var uid = "cl-nnt-" + (INSTANCE += 1);
-    var state = copyValues(DEFAULTS);
-    var refs = {};
-    var presetButtons = [];
-
-    var heading = makeElement(api, "h3", {}, [
-      "非正规瞬态：谱半径之外的短期账本"
-    ]);
-    var intro = makeElement(api, "p", { className: "nnt-intro" }, [
-      "系统 xₙ₊₁=Axₙ 采用 A=[[r,g],[0,r]]；正规控制 N=rI 与它有完全相同的两个特征值。拖动参数，观察同样的 ρ(A)=|r| 如何允许完全不同的有限时间增益。"
-    ]);
-    var prompt = makeElement(api, "div", { className: "nnt-prompt" }, [
-      "先预测：当 r=0.9、g=10、x₀=e₂ 时，Aᵏx₀ 会不会超过 1？再切到 e₁；e₁ 是特征方向，耦合项是否还会出现？"
-    ]);
-
-    var presetBox = makeElement(api, "fieldset", { className: "nnt-preset-box" });
-    presetBox.appendChild(makeElement(api, "legend", {}, ["快速边界与对照"]));
-    var presetRow = makeElement(api, "div", { className: "nnt-preset-row" });
-    PRESETS.forEach(function (preset) {
-      var button = makeElement(api, "button", {
-        type: "button",
-        text: preset.label,
-        "data-preset": preset.id,
-        "aria-pressed": "false"
-      });
-      button.addEventListener("click", function () {
-        state = copyValues(preset.values);
-        syncControls();
-        render();
-        if (api && typeof api.announce === "function") {
-          api.announce(root, "已切换到" + preset.label + "。" + statusText(buildData(state)));
-        }
-      });
-      presetButtons.push({ button: button, values: preset.values });
-      presetRow.appendChild(button);
-    });
-    presetBox.appendChild(presetRow);
-
-    function addRange(key, label, min, max, step, value, digits, suffix) {
-      var id = uid + "-" + key;
-      var output = makeElement(api, "output", { id: id + "-output", htmlFor: id }, [""]);
-      var labelNode = makeElement(api, "label", { htmlFor: id }, [
-        label + " = ",
-        output,
-        suffix || ""
-      ]);
-      var input = makeElement(api, "input", {
-        id: id,
-        type: "range",
-        min: String(min),
-        max: String(max),
-        step: String(step),
-        value: String(value),
-        "aria-label": label
-      });
-      input.addEventListener("input", function () {
-        state[key] = Number(input.value);
-        render();
-      });
-      refs[key] = input;
-      refs[key + "Output"] = output;
-      refs[key + "Digits"] = digits;
-      return makeElement(api, "div", { className: "nnt-control" }, [labelNode, input]);
-    }
-
-    var controls = makeElement(api, "div", { className: "nnt-controls" }, [
-      addRange("r", "收缩因子 r", 0, 1.1, 0.01, state.r, 2, ""),
-      addRange("g", "非正规耦合 g", 0, 20, 0.5, state.g, 1, ""),
-      addRange("k", "观察 horizon k", 0, 30, 1, state.k, 0, ""),
-      addRange("theta", "初始角 θ", -180, 180, 5, state.theta, 0, "°"),
-      makeElement(api, "p", { className: "nnt-note" }, [
-        "x₀=(cos θ,sin θ)。θ=0° 取 e₁（特征方向）；θ=90° 取 e₂（把耦合送入第一坐标）。"
-      ])
-    ]);
-    var resetButton = makeElement(api, "button", {
-      type: "button",
-      className: "cl-primary",
-      text: "重置默认参数",
-      "aria-label": "重置非正规瞬态实验参数"
-    });
-    resetButton.addEventListener("click", function () {
-      state = copyValues(DEFAULTS);
-      syncControls();
-      render();
-      if (api && typeof api.announce === "function") {
-        api.announce(root, "已重置。" + statusText(buildData(state)));
-      }
-    });
-    controls.appendChild(makeElement(api, "div", { className: "nnt-button-row" }, [resetButton]));
-
-    var status = makeElement(api, "p", { className: "nnt-status", "aria-live": "polite" }, [""]);
-    refs.status = status;
-    var chartHost = makeElement(api, "div");
-    var legend = makeElement(api, "div", { className: "nnt-legend" }, [
-      makeElement(api, "span", { className: "nnt-legend-item" }, [
-        makeElement(api, "span", { className: "nnt-swatch nnt-swatch-selected", "aria-hidden": "true" }),
-        "所选方向 ||Aʲx₀||₂"
-      ]),
-      makeElement(api, "span", { className: "nnt-legend-item" }, [
-        makeElement(api, "span", { className: "nnt-swatch nnt-swatch-envelope", "aria-hidden": "true" }),
-        "算子包络 ||Aʲ||₂"
-      ]),
-      makeElement(api, "span", { className: "nnt-legend-item" }, [
-        makeElement(api, "span", { className: "nnt-swatch nnt-swatch-normal", "aria-hidden": "true" }),
-        "正规控制 |r|ʲ"
-      ])
-    ]);
-    var metricsHost = makeElement(api, "div");
-    var formulaHost = makeElement(api, "div");
-    var resolventHost = makeElement(api, "div");
-    var ledgerHost = makeElement(api, "div", { className: "nnt-table-wrap" });
-    var stage = makeElement(api, "div", { className: "nnt-stage" }, [
-      makeElement(api, "div", { className: "nnt-stage-frame" }, [
-        makeElement(api, "div", { className: "nnt-stage-title" }, [
-          makeElement(api, "span", {}, ["轨迹范数与有限时间增益"]),
-          makeElement(api, "span", {}, ["虚线 horizon = k"])
-        ]),
-        status,
-        chartHost,
-        legend,
-        metricsHost,
-        makeElement(api, "h4", { className: "nnt-subtitle" }, ["本步的精确公式"]),
-        formulaHost,
-        makeElement(api, "h4", { className: "nnt-subtitle" }, ["有限 horizon 的 resolvent 诊断"]),
-        resolventHost,
-        makeElement(api, "p", { className: "nnt-resolvent-note" }, [
-          "固定探针 z=1.30 位于所有滑块谱的外侧。Rₖ(z)=Σⱼ₌₀ᵏ z⁻ʲ⁻¹Aʲ 是有限 Neumann 部分和；它不是伪谱本身。完整 resolvent 的 ε 尺度是 εres=1/||(zI−A)⁻¹||₂=σmin(zI−A)：它精确表示让 z 成为某个谱点所需的最小谱范数扰动。"
-        ]),
-        makeElement(api, "h4", { className: "nnt-subtitle" }, ["逐步 ledger"]),
-        ledgerHost,
-        makeElement(api, "p", { className: "nnt-footnote" }, [
-          "读法提醒：蓝线只是每一步的最大单位向量增益，不保证随 j 单调；Gelfand 公式只描述 k→∞ 的根速率，不能替 finite-time monotonicity 背书。"
-        ])
-      ])
-    ]);
-    var layout = makeElement(api, "div", { className: "nnt-layout" }, [controls, stage]);
-    replaceChildren(root, [heading, intro, prompt, presetBox, layout]);
-
-    function syncControls() {
-      refs.r.value = String(state.r);
-      refs.g.value = String(state.g);
-      refs.k.value = String(state.k);
-      refs.theta.value = String(state.theta);
-      refs.rOutput.textContent = formatNumber(api, state.r, 2);
-      refs.gOutput.textContent = formatNumber(api, state.g, 1);
-      refs.kOutput.textContent = formatNumber(api, state.k, 0);
-      refs.thetaOutput.textContent = formatNumber(api, state.theta, 0);
-      presetButtons.forEach(function (item) {
-        var active = item.values.r === state.r && item.values.g === state.g &&
-          item.values.k === state.k && item.values.theta === state.theta;
-        item.button.setAttribute("aria-pressed", active ? "true" : "false");
-      });
-    }
-
-    function render() {
-      state.r = clamp(Number(state.r), 0, 1.1);
-      state.g = clamp(Number(state.g), 0, 20);
-      state.k = Math.round(clamp(Number(state.k), 0, 30));
-      state.theta = Math.round(clamp(Number(state.theta), -180, 180) / 5) * 5;
-      var data = buildData(state);
-      refs.status.textContent = statusText(data) + " 当前 x₀=(" +
-        formatNumber(api, data.x0.x, 3) + ", " + formatNumber(api, data.x0.y, 3) + ")。";
-      replaceChildren(chartHost, renderTrajectory(api, data, uid));
-      replaceChildren(metricsHost, renderMetrics(api, data));
-      replaceChildren(formulaHost, renderFormula(api, data));
-      replaceChildren(resolventHost, renderResolvent(api, data, uid));
-      replaceChildren(ledgerHost, renderLedger(api, data));
-      syncControls();
-    }
-
-    syncControls();
-    render();
-  });
-})(typeof window !== "undefined" ? window : null);
+function selfTest(){
+ let checks=0;const ck=(v,m)=>{checks++;if(!v)throw Error(m);};
+ ck(fmt(1e-15)!=="0"&&fmt(0)==="0","small display");
+ ck(unit(90)[0]===0&&unit(180)[1]===0,"exact cardinal directions");
+ let p=snapshot().result;ck(p.rho===.9&&p.final.envelope>1&&p.asymptotic==="decay","transient is compatible with decay");
+ p=snapshot({r:0,k:4}).result;ck(p.rows[1].envelope===10&&p.rows[2].envelope===0,"actual nilpotence");
+ p=snapshot({r:1-1e-13,g:1e-13}).result;ck(p.asymptotic==="decay"&&!p.normal,"strict boundary not epsilon");
+ p=snapshot({z:.5,g:0}).result;ck(p.resolvent.status==="invertible"&&p.resolvent.neumann==="not-convergent","invertible not Neumann");
+ p=snapshot({z:.9}).result;ck(p.resolvent.inverse===null&&p.resolvent.svd.min===0,"spectral singularity");
+ p=snapshot({z:0}).result;ck(p.rows.every(r=>r.sum===null)&&p.resolvent.status==="invertible","undefined sum separate");
+ p=snapshot({mode:"perturbation",gap:0}).result;ck(p.comparisons.every(r=>r.sinAngle===null),"multiple direction undefined");
+ p=snapshot({mode:"perturbation",gap:1e-15,epsilon:1e-15}).result;ck(p.comparisons.every(r=>r.bound===null),"precision unresolved");
+ p=snapshot({mode:"gershgorin"}).result;ck(p.disks[2].radius===1&&p.negativeCount===1&&p.positiveCount===2,"correct Gershgorin example");
+ ck(exactSignSum([1,-.5,-.5])===0&&exactSignSum([1,-.5,-.5000000000000001])<0,"exact disk contact");
+ return{status:"PASS",checks};
+}
+return{DEFAULTS,PRESETS,QUESTIONS,num,config,snapshot,norm,dot,mv,tr,mm,sub,msub,madd,mul,fro,eye,unit,triangularSVD,jordanPower,transient,symEig2,symmetricFrom,perturbation,exactSignSum,jacobi3,gershgorin,fmt,plots,ledgers,svg,mount,selfTest};
+});
