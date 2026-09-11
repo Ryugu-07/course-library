@@ -1,446 +1,384 @@
-(function (root, factory) {
-  "use strict";
-
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("perron-frobenius", exported.mount);
-  }
-  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module && process.argv.indexOf("--self-test") !== -1) {
-    try {
-      var report = exported.selfTest();
-      process.stdout.write("perron-frobenius self-test: PASS (" + report.checks + " checks, " + report.presets + " presets)\n");
-    } catch (error) {
-      process.stderr.write("perron-frobenius self-test: FAIL\n" + error.stack + "\n");
-      process.exitCode = 1;
-    }
-  }
-})(typeof window !== "undefined" ? window : null, function (host) {
-  "use strict";
-
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "cl-perron-frobenius-styles";
-  var EPS = 1e-10;
-  var MACHINE_EPS = 64 * (Number.EPSILON || 2.220446049250313e-16);
-  var RELATIVE_TOLERANCE = 1e-8;
-  var INSTANCE = 0;
-
-  var PRESETS = [
-    {
-      id: "positive",
-      label: "正矩阵：严格混合",
-      matrix: [[2, 1], [1, 2]],
-      initial: [1, 0.25],
-      description: "A>0；外围谱只有 Perron 根。"
-    },
-    {
-      id: "primitive",
-      label: "本原但非正：谱隙仍在",
-      matrix: [[0, 2, 1], [1, 0, 1], [1, 1, 0]],
-      initial: [1, 0.3, 0.2],
-      description: "不可约、周期 1，但有零元素。"
-    },
-    {
-      id: "periodic",
-      label: "周期不可约：幂法振荡",
-      matrix: [[0, 2], [1, 0]],
-      initial: [1, 0.25],
-      description: "不可约、周期 2；外围谱成对出现。"
-    },
-    {
-      id: "reducible",
-      label: "可约：先拆 SCC",
-      matrix: [[2, 1, 0], [0, 1, 0], [0, 0, 0.5]],
-      initial: [1, 0.6, 0.3],
-      description: "三个类、两个次临界块；全局向量不能盲写。"
-    }
+(function(root,factory){const api=factory();if(typeof module==="object"&&module.exports)module.exports=api;if(root&&root.CourseLearning)root.CourseLearning.register("perron-frobenius",api.mount);})(typeof window!=="undefined"?window:globalThis,function(){
+"use strict";
+const dot=(x,y)=>x.reduce((s,v,i)=>s+v*y[i],0),l1=x=>x.reduce((s,v)=>s+Math.abs(v),0),norm=x=>Math.hypot(...x),tr=A=>A[0].map((_,j)=>A.map(r=>r[j])),mv=(A,x)=>A.map(r=>dot(r,x)),mm=(A,B)=>A.map(r=>tr(B).map(c=>dot(r,c))),eye=n=>Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>+(i===j))),add=(A,B)=>A.map((r,i)=>r.map((x,j)=>x+B[i][j])),sub=(A,B)=>A.map((r,i)=>r.map((x,j)=>x-B[i][j])),mul=(A,c)=>A.map(r=>r.map(x=>x*c)),fro=A=>norm(A.flat()),outer=(x,y)=>x.map(v=>y.map(w=>v*w)),unit=x=>{const n=l1(x);return n?x.map(v=>v/n):null;};
+function gcd(a,b){a=a<0n?-a:a;b=b<0n?-b:b;while(b){const t=a%b;a=b;b=t;}return a;}
+function rat(n,d=1n){if(!d)throw Error("zero rational denominator");if(d<0n){n=-n;d=-d;}const g=gcd(n,d);return{n:n/g,d:d/g};}
+function exact(x){
+ if(!Number.isFinite(x))throw Error("finite number required");if(x===0)return rat(0n);
+ const v=new DataView(new ArrayBuffer(8));v.setFloat64(0,x);
+ const h=v.getUint32(0),l=v.getUint32(4),e=(h>>>20)&2047,sign=(h>>>31)?-1n:1n,m=(BigInt(h&1048575)<<32n)|BigInt(l);
+ const n=sign*(e?m+(1n<<52n):m),k=e?e-1075:-1074;
+ return k>=0?rat(n<<BigInt(k)):rat(n,1n<<BigInt(-k));
+}
+const qa=(a,b)=>rat(a.n*b.d+b.n*a.d,a.d*b.d),qn=a=>({n:-a.n,d:a.d}),qs=(a,b)=>qa(a,qn(b)),qm=(a,b)=>rat(a.n*b.n,a.d*b.d),qd=(a,b)=>rat(a.n*b.d,a.d*b.n),qabs=a=>({n:a.n<0n?-a.n:a.n,d:a.d}),qcmp=(a,b)=>{const n=a.n*b.d-b.n*a.d;return n<0n?-1:n>0n?1:0;};
+function qvalue(a){if(!a.n)return 0;const sign=a.n<0n?-1:1,n=a.n<0n?-a.n:a.n,s=Math.max(0,n.toString(2).length-53),t=Math.max(0,a.d.toString(2).length-53);return sign*Number(n>>BigInt(s))/Number(a.d>>BigInt(t))*2**(s-t);}
+const packed=a=>({numerator:a.n.toString(),denominator:a.d.toString(),value:qvalue(a)}),qsum=x=>x.reduce(qa,rat(0n)),qdot=(x,y)=>qsum(x.map((v,i)=>qm(v,y[i]))),qmv=(A,x)=>A.map(r=>qdot(r,x)),qpvec=x=>x.map(packed),qpmat=A=>A.map(qpvec),qmatrix=A=>A.map(r=>r.map(exact));
+function solveExact(A,b){
+ let R=qmatrix(A).map((r,i)=>r.concat(exact(b[i]))),pivots=[],trace=[{stage:"input",matrix:qpmat(R)}],row=0;
+ for(let col=0;col<A.length&&row<A.length;col++){
+  let p=row;while(p<A.length&&!R[p][col].n)p++;if(p===A.length)continue;
+  [R[row],R[p]]=[R[p],R[row]];const pivot=R[row][col];R[row]=R[row].map(v=>qd(v,pivot));
+  for(let i=0;i<A.length;i++)if(i!==row){const factor=R[i][col];R[i]=R[i].map((v,j)=>qs(v,qm(factor,R[row][j])));}
+  pivots.push(col);trace.push({stage:"pivot",row,col,swapped:p,pivot:packed(pivot),matrix:qpmat(R)});row++;
+ }
+ const consistent=R.every(r=>r.slice(0,A.length).some(v=>v.n)||!r[A.length].n),unique=consistent&&row===A.length;
+ const solution=unique?R.map(r=>r[A.length]):null;
+ return{rank:row,consistent,unique,pivots,trace,solution:solution?qpvec(solution):null,_solution:solution};
+}
+function graph(A){
+ const n=A.length,edges=[];for(let j=0;j<n;j++)for(let i=0;i<n;i++)if(A[i][j]>0)edges.push({from:j,to:i,weight:A[i][j]});
+ let reach=eye(n).map(r=>r.map(Boolean));edges.forEach(e=>reach[e.from][e.to]=true);
+ for(let k=0;k<n;k++)for(let i=0;i<n;i++)for(let j=0;j<n;j++)reach[i][j]=reach[i][j]||(reach[i][k]&&reach[k][j]);
+ const assigned=new Set(),classes=[];
+ for(let i=0;i<n;i++)if(!assigned.has(i)){
+  const vertices=Array.from({length:n},(_,j)=>j).filter(j=>reach[i][j]&&reach[j][i]);vertices.forEach(j=>assigned.add(j));
+  const distances=Array(n).fill(null),queue=[i];distances[i]=0;
+  for(let k=0;k<queue.length;k++)edges.filter(e=>e.from===queue[k]&&vertices.includes(e.to)).forEach(e=>{if(distances[e.to]===null){distances[e.to]=distances[e.from]+1;queue.push(e.to);}});
+  let g=0n;const periods=edges.filter(e=>vertices.includes(e.from)&&vertices.includes(e.to)).map(e=>{const difference=distances[e.from]+1-distances[e.to];g=gcd(g,BigInt(difference));return{...e,difference};});
+  classes.push({vertices,distances,periodEdges:periods,period:g?Number(g):null,closed:!edges.some(e=>vertices.includes(e.from)&&!vertices.includes(e.to)),matrix:vertices.map(i=>vertices.map(j=>A[i][j]))});
+ }
+ return{edges,reach,classes,irreducible:classes.length===1,period:classes.length===1?classes[0].period:null,primitive:classes.length===1&&classes[0].period===1,positive:A.every(r=>r.every(v=>v>0))};
+}
+function collatz(A,x){
+ if(!x.every(v=>v>0))return null;
+ const exactAX=qmv(qmatrix(A),x.map(exact)),ratios=exactAX.map((v,i)=>qd(v,exact(x[i])));
+ let lo=ratios[0],hi=lo;ratios.forEach(v=>{if(qcmp(v,lo)<0)lo=v;if(qcmp(v,hi)>0)hi=v;});
+ return{ax:mv(A,x),ratios:qpvec(ratios),lower:packed(lo),upper:packed(hi),width:packed(qs(hi,lo))};
+}
+function iterate(A,x0,steps,target=null){
+ let x=unit(x0),rows=[],stopped=false;if(!x)throw Error("nonzero initial vector required");
+ for(let k=0;k<=steps;k++){
+  const ax=mv(A,x),growth=l1(ax),next=growth?ax.map(v=>v/growth):null;
+  rows.push({k,x:x.slice(),ax,growth,next,delta:next?l1(next.map((v,i)=>v-x[i])):null,targetError:target?l1(x.map((v,i)=>v-target[i])):null,collatz:collatz(A,x)});
+  if(!next){stopped=true;break;}x=next;
+ }
+ return{rows,stopped,initial:x0.slice(),normalization:"l1",target};
+}
+const c=(re,im=0)=>({re,im}),ca=(a,b)=>c(a.re+b.re,a.im+b.im),cm=(a,b)=>c(a.re*b.re-a.im*b.im,a.re*b.im+a.im*b.re),cs=(a,b)=>c(a.re-b.re,a.im-b.im),cr=(a,t)=>c(a.re*t,a.im*t),cvnorm=x=>Math.hypot(...x.flatMap(v=>[v.re,v.im]));
+function complexEvidence(A,lambda,vector){
+ const n=cvnorm(vector),v=vector.map(z=>cr(z,1/n)),av=A.map(r=>r.reduce((s,a,j)=>ca(s,cr(v[j],a)),c(0))),residual=av.map((z,i)=>cs(z,cm(lambda,v[i])));
+ return{lambda,vector:v,av,residual,residualNorm:cvnorm(residual),modulus:Math.hypot(lambda.re,lambda.im)};
+}
+function two(p){
+ const scale=10**p.scaleExponent,A=mul([[p.a,p.b],[p.c,p.d]],scale),[[a,b],[cc,d]]=A,g=graph(A);
+ const determinant=qs(qm(exact(a),exact(d)),qm(exact(b),exact(cc))),disc=Math.hypot(a-d,2*Math.sqrt(b)*Math.sqrt(cc));
+ const rho=b>0&&cc>0?(a/2+d/2+disc/2):Math.max(a,d),other=rho?(a===0&&d===0?-rho:qvalue(determinant)/rho):0;
+ let right,left,algebraicMultiplicity=(b*cc===0&&a===d)?2:1,dimension,caseName;
+ if(b>0&&cc>0){
+  const gap=a>=d?2*b*cc/(disc+a-d):(disc+d-a)/2;
+  right=[unit([b,gap])];left=[unit([cc,gap])];dimension=1;caseName="irreducible";
+ }else if(a>d){right=[unit([a-d,cc])];left=[unit([a-d,b])];dimension=1;caseName="first-dominant";}
+ else if(d>a){right=[unit([b,d-a])];left=[unit([cc,d-a])];dimension=1;caseName="second-dominant";}
+ else if(b>0){right=[[1,0]];left=[[0,1]];dimension=1;caseName="jordan-upper";}
+ else if(cc>0){right=[[0,1]];left=[[1,0]];dimension=1;caseName="jordan-lower";}
+ else{right=[[1,0],[0,1]];left=[[1,0],[0,1]];dimension=2;caseName="scalar";}
+ const rightResiduals=right.map(v=>mv(A,v).map((x,i)=>x-rho*v[i])),leftResiduals=left.map(v=>mv(tr(A),v).map((x,i)=>x-rho*v[i]));
+ const x0=[p.x1,p.x2],nonnegative=x0.every(x=>x>=0),simple=algebraicMultiplicity===1;
+ let exactProjection=null,projectionReason="非简单主根不使用单一左右向量投影公式";
+ if(simple){
+  if(a>d&&b*cc===0){exactProjection=qdot([qs(exact(a),exact(d)),exact(b)],x0.map(exact));projectionReason="未归一化精确左向量(a−d,b)";}
+  else if(d>a&&b*cc===0){exactProjection=qdot([exact(cc),qs(exact(d),exact(a))],x0.map(exact));projectionReason="未归一化精确左向量(c,d−a)";}
+  else if(a===d&&b===cc){exactProjection=qs(exact(x0[0]),{n:-exact(x0[1]).n,d:exact(x0[1]).d});projectionReason="对称等对角模型：精确左方向(1,1)";}
+  else projectionReason=nonnegative?"不可约且非零非负起点：正左向量保证正投影":"一般带符号起点：浮点内积仅作诊断";
+ }
+ const projection=exactProjection?packed(exactProjection):null,approximateProjection=simple?dot(left[0],x0):null;
+ const shiftedMatrix=A.map((r,i)=>r.map((v,j)=>v+(i===j?scale:0))),target=dimension===1&&nonnegative?right[0]:null,power=iterate(A,x0,p.steps,target),shifted=iterate(shiftedMatrix,x0,p.steps,target);
+ const spectrum=[{re:rho,im:0,modulus:rho},{re:other,im:0,modulus:Math.abs(other)}];
+ const criticalClasses=g.classes.length===1?[0]:g.classes.map((cl,i)=>cl.matrix[0][0]===rho?i:null).filter(i=>i!==null);
+ return{mode:"two",scale,A,graph:g,determinant:packed(determinant),discriminant:disc,rho,other,spectrum,right,left,rightResiduals,leftResiduals,dimension,algebraicMultiplicity,caseName,simple,rightSupport:right.map(v=>v.map((x,i)=>x>0?i:null).filter(i=>i!==null)),criticalClasses,projection,projectionReason,approximateProjection,
+  theoremNonnegative:g.primitive&&nonnegative,subdominantRatio:rho?Math.abs(other)/rho:null,power,shiftedMatrix,shifted};
+}
+function cycle(p){
+ const scale=10**p.scaleExponent,N=mul([[0,0,p.w3],[p.w1,0,0],[0,p.w2,0]],scale),diagonal=scale*p.shift,A=N.map((r,i)=>r.map((v,j)=>v+(i===j?diagonal:0)));
+ const u=N[1][0],v=N[2][1],w=N[0][2],product=u*v*w,beta=Math.cbrt(product),rho=diagonal+beta;
+ const roots=[c(beta),c(-beta/2,Math.sqrt(3)*beta/2),c(-beta/2,-Math.sqrt(3)*beta/2)];
+ const eigen=roots.map(z=>complexEvidence(A,c(z.re+diagonal,z.im),[cm(z,z),c(u*z.re,u*z.im),c(u*v)]));
+ const right=unit([beta*beta,u*beta,u*v]),left=unit([u*v,v*beta,beta*beta]),cube=mm(mm(N,N),N),predictedCube=mul(eye(3),product);
+ const x0=[p.x1,p.x2,p.x3],shiftedMatrix=A.map((r,i)=>r.map((x,j)=>x+(i===j?scale:0)));
+ return{mode:"cycle",scale,A,N,diagonal,product,exactProduct:packed(qm(qm(exact(u),exact(v)),exact(w))),beta,rho,graph:graph(A),eigen,right,left,rightResidual:mv(A,right).map((x,i)=>x-rho*right[i]),leftResidual:mv(tr(A),left).map((x,i)=>x-rho*left[i]),cube,predictedCube,cubeGap:sub(cube,predictedCube),cubeGapNorm:fro(sub(cube,predictedCube)),shiftedMatrix,
+  power:iterate(A,x0,p.steps,right),shifted:iterate(shiftedMatrix,x0,p.steps,right),subdominantRatio:eigen[1].modulus/rho};
+}
+function markov(p){
+ const v=[p.teleport1,p.teleport2,1-p.teleport1-p.teleport2],initial=[p.mass1,p.mass2,1-p.mass1-p.mass2];
+ const bases={cycle:[[0,0,1],[1,0,0],[0,1,0]],closed:[[1,0,0],[0,1,1],[0,0,0]],dangling:[[0,0,0],[1,0,0],[0,1,0]]},raw=bases[p.network].map(r=>r.slice());
+ const dangling=raw[0].map((_,j)=>raw.every(r=>r[j]===0)),completed=raw.map((r,i)=>r.map((x,j)=>dangling[j]?v[i]:x));
+ const P=completed.map((r,i)=>r.map((x,j)=>(1-p.lazy)*x+(i===j?p.lazy:0))),alpha=p.alpha;
+ const G=P.map((r,i)=>r.map((x,j)=>alpha*x+(1-alpha)*v[i])),B=P.map((r,i)=>r.map((x,j)=>(i===j?1:0)-alpha*x)),b=v.map(x=>(1-alpha)*x);
+ const solve=solveExact(B,b),pi=solve._solution;delete solve._solution;
+ const exactP=qmatrix(P),exactG=qmatrix(G),exactB=qmatrix(B),qb=b.map(exact),colSums=G[0].map((_,j)=>qsum(exactG.map(r=>r[j])));
+ const rows=[],rawRows=[];let x=initial.slice(),rawX=initial.slice(),average=Array(3).fill(0);
+ for(let k=0;k<=p.steps;k++){
+  const px=mv(P,x),linearNext=px.map((z,i)=>alpha*z+(1-alpha)*v[i]),matrixNext=mv(G,x),fixedResidual=linearNext.map((z,i)=>z-x[i]);
+  const qx=x.map(exact),qres=qmv(exactB,qx).map((z,i)=>qs(qb[i],z)),residualNorm=qsum(qres.map(qabs)),bound=alpha<1?qd(residualNorm,qs(rat(1n),exact(alpha))):null;
+  const exactError=pi?qsum(qx.map((z,i)=>qabs(qs(z,pi[i])))):null;
+  const mass=qsum(qx),matrixGap=matrixNext.map((z,i)=>z-linearNext[i]),qnext=linearNext.map(exact);
+  const arithmeticDefect=qnext.map((z,i)=>qs(z,qa(qm(exact(alpha),qmv(exactP,qx)[i]),qm(qs(rat(1n),exact(alpha)),exact(v[i])))));
+  rows.push({k,x:x.slice(),px,linearNext,matrixNext,matrixGap,fixedResidual,exactResidual:qpvec(qres),residualNorm:packed(residualNorm),bound:bound?packed(bound):null,error:exactError?packed(exactError):null,mass:packed(mass),massDefect:packed(qs(mass,rat(1n))),arithmeticDefect:qpvec(arithmeticDefect)});
+  average=average.map((z,i)=>(k*z+rawX[i])/(k+1));const rawNext=mv(P,rawX);
+  rawRows.push({k,x:rawX.slice(),next:rawNext,average:average.slice(),delta:l1(rawNext.map((z,i)=>z-rawX[i])),averageResidual:mv(P,average).map((z,i)=>z-average[i]),mass:packed(qsum(rawX.map(exact)))});
+  x=linearNext;rawX=rawNext;
+ }
+ return{mode:"markov",network:p.network,raw,dangling,completed,P,G,B,b,v,initial,alpha,lazy:p.lazy,colSums:qpvec(colSums),stochasticExact:colSums.every(z=>z.n===z.d),graph:graph(P),googleGraph:graph(G),solve,rows,rawRows,contraction:alpha<1?alpha:null};
+}
+const DEFAULTS={mode:"two",a:2,b:1,c:1,d:2,scaleExponent:0,x1:1,x2:.25,x3:.5,steps:24,w1:1,w2:1,w3:1,shift:0,network:"cycle",alpha:.875,lazy:0,teleport1:.5,teleport2:.25,mass1:1,mass2:0};
+const PRESETS=[
+ {id:"positive",label:"正矩阵：主方向",values:{}},
+ {id:"primitive",label:"含零但本原",values:{a:0,b:1,c:2,d:1}},
+ {id:"periodic",label:"两步轮换",values:{a:0,b:1,c:1,d:0}},
+ {id:"special-start",label:"周期网络也能静止",values:{a:0,b:1,c:1,d:0,x2:1}},
+ {id:"near-periodic",label:"微小自环，漫长混合",values:{a:1e-6,b:1,c:1,d:1e-6}},
+ {id:"near-reducible",label:"微小连边仍存在",values:{a:1,b:1e-12,c:1e-12,d:1}},
+ {id:"small-units",label:"整体单位10⁻⁶",values:{scaleExponent:-6}},
+ {id:"large-units",label:"整体单位10⁶",values:{scaleExponent:6}},
+ {id:"zero-projection",label:"带符号零主投影",values:{x1:1,x2:-1}},
+ {id:"zero-component",label:"非负起点有零分量",values:{x1:0,x2:1}},
+ {id:"reducible",label:"可约而主空间一维",values:{a:2,b:1,c:0,d:1}},
+ {id:"reducible-positive",label:"可约却有唯一全正主方向",values:{a:2,b:0,c:1,d:1}},
+ {id:"missed-class",label:"起点漏掉主类",values:{a:2,b:0,c:0,d:1,x1:0,x2:1}},
+ {id:"multiple",label:"两个独立主方向",values:{a:1,b:0,c:0,d:1}},
+ {id:"jordan",label:"同根耦合与Jordan",values:{a:1,b:1,c:0,d:1}},
+ {id:"nilpotent",label:"两步归零",values:{a:0,b:1,c:0,d:0}},
+ {id:"zero",label:"零矩阵边界",values:{a:0,b:0,c:0,d:0}},
+ {id:"cycle",label:"三周期与复特征值",values:{mode:"cycle"}},
+ {id:"weighted-cycle",label:"加权三环",values:{mode:"cycle",w1:2,w2:.5,w3:1}},
+ {id:"shifted-cycle",label:"加自环移走周期",values:{mode:"cycle",shift:.5}},
+ {id:"tiny-cycle",label:"三环改变整体单位",values:{mode:"cycle",scaleExponent:-6}},
+ {id:"pagerank",label:"个性化PageRank",values:{mode:"markov"}},
+ {id:"undamped",label:"α=1：原始周期",values:{mode:"markov",alpha:1}},
+ {id:"lazy",label:"惰性化三环",values:{mode:"markov",alpha:1,lazy:.5}},
+ {id:"closed",label:"两个闭类",values:{mode:"markov",network:"closed",alpha:1}},
+ {id:"closed-teleport",label:"跳转连接闭类",values:{mode:"markov",network:"closed"}},
+ {id:"dangling",label:"悬挂节点补列",values:{mode:"markov",network:"dangling"}},
+ {id:"personalized-zero",label:"跳转分布含零",values:{mode:"markov",network:"closed",teleport1:1,teleport2:0}},
+ {id:"alpha-zero",label:"α=0：一步跳转",values:{mode:"markov",alpha:0}},
+ {id:"slow-teleport",label:"α=1023/1024",values:{mode:"markov",alpha:1023/1024,steps:48}}
+];
+const QUESTIONS=[
+ {text:"不可约网络的原始迭代一定混合吗？",options:["还要检查周期和起点","强连通就足够"],correct:0},
+ {text:"可约是否意味着主特征空间一定多维？",options:["需要实际计算","一定多维"],correct:0},
+ {text:"曲线在有限步看似平稳，能否证明本原？",options:["不能，特殊起点也可能静止","能够"],correct:0},
+ {text:"PageRank残差上界 r/(1−α) 在α=1时呢？",options:["这个界不再适用","把分母直接改成1"],correct:0}
+];
+function num(value){
+ if(typeof value==="string"){if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(value.trim()))throw Error("请输入有限十进制数");const s=value;value=Number(value);if(value===0&&/[1-9]/.test(s.split(/[eE]/)[0]))throw Error("输入发生下溢");}
+ if(typeof value!=="number"||!Number.isFinite(value))throw Error("请输入有限数");return value;
+}
+function config(input={}){
+ if(!input||typeof input!=="object"||Array.isArray(input))throw Error("参数对象无效");
+ const p={...DEFAULTS},mode=input.mode===undefined?p.mode:input.mode;if(!["two","cycle","markov"].includes(mode))throw Error("未知实验");p.mode=mode;
+ const active=mode==="two"?["a","b","c","d","scaleExponent","x1","x2","steps"]:mode==="cycle"?["w1","w2","w3","shift","scaleExponent","x1","x2","x3","steps"]:["alpha","lazy","teleport1","teleport2","mass1","mass2","steps"];
+ active.forEach(k=>{if(input[k]!==undefined)p[k]=num(input[k]);});
+ const range=(k,lo,hi,integer=false)=>{if(p[k]<lo||p[k]>hi||(integer&&!Number.isInteger(p[k])))throw Error(k+"超出范围");};
+ range("steps",0,64,true);
+ if(mode!=="markov"){
+  range("scaleExponent",-6,6,true);
+  for(const k of(mode==="two"?["a","b","c","d"]:["w1","w2","w3","shift"])){range(k,0,4);if(p[k]!==0&&p[k]<1e-12)throw Error("非零矩阵参数至少1e−12");}
+  if(mode==="cycle"&&["w1","w2","w3"].some(k=>p[k]<1e-6))throw Error("三环权重至少1e−6；断环边界请用二维模型");
+  for(const k of(mode==="two"?["x1","x2"]:["x1","x2","x3"])){range(k,mode==="two"?-4:0,4);if(p[k]!==0&&Math.abs(p[k])<1e-12)throw Error("非零起点分量至少1e−12");}
+  if((mode==="two"?[p.x1,p.x2]:[p.x1,p.x2,p.x3]).every(x=>x===0))throw Error("起点不能全零");
+ }else{
+  p.network=input.network===undefined?p.network:input.network;if(!["cycle","closed","dangling"].includes(p.network))throw Error("未知转移网络");
+  for(const k of["alpha","lazy","teleport1","teleport2","mass1","mass2"]){range(k,0,1);if(!Number.isInteger(p[k]*1024))throw Error("概率参数必须为1/1024的整数倍");}
+  if(p.teleport1+p.teleport2>1||p.mass1+p.mass2>1)throw Error("前两个概率之和不能超过1");
+ }
+ return p;
+}
+function snapshot(input={}){const parameters=config(input);return{parameters,result:parameters.mode==="two"?two(parameters):parameters.mode==="cycle"?cycle(parameters):markov(parameters)};}
+function fmt(x){if(x===null||x===undefined)return"—";if(typeof x==="boolean")return x?"是":"否";if(typeof x!=="number")return String(x);if(!Number.isFinite(x))throw Error("不能显示非有限数");if(Number.isInteger(x))return String(x);return Math.abs(x)<1e-4||Math.abs(x)>=1e6?x.toExponential(8):String(Number(x.toPrecision(10)));}
+const B="#268bd2",O="#cb6a16",G="#29966c",R="#b44a72",V="#9966bb",COLORS=[B,O,G,R,V],series=(key,label,color,points,line=true)=>({key,label,color,points,line});
+function plot(title,x,y,ss,xmin,xmax,square=false){
+ const v=ss.flatMap(s=>s.points.map(p=>p[1])),ys=y.startsWith("log₁₀")?v:[0,...v],lo=ys.length?Math.min(...ys):0,hi=ys.length?Math.max(...ys):0,pad=(hi-lo||1)*.08;
+ return{title,x,y,series:ss,xmin,xmax:xmax>xmin?xmax:xmin+1,ymin:lo-pad,ymax:hi+pad,square,markers:[]};
+}
+function networkPlot(title,g){
+ const n=g.reach.length,nodes=n===2?[[260,230],[640,230]]:[[450,180],[240,330],[660,330]];
+ return{type:"network",title,nodes,edges:g.edges,series:[]};
+}
+function plots(d){
+ const p=d.parameters,r=d.result,last=Math.max(1,p.steps),positive=(rows,get)=>rows.flatMap(z=>{const y=get(z);return y!==null&&y>0?[[z.k,Math.log10(y)]]:[];});
+ const history=(title,rows,n)=>plot(title,"迭代步k","归一化分量（保留负值与零）",Array.from({length:n},(_,i)=>series("x"+i,"分量"+i,COLORS[i],rows.map(z=>[z.k,z.x[i]]))),0,last);
+ if(p.mode!=="markov"){
+  const n=r.A.length,qs=[
+   networkPlot("实际传递方向：Aᵢⱼ把节点j送到节点i",r.graph),
+   history("原始幂法：每次真实乘法后的方向",r.power.rows,n),
+   plot("到所列参考方向的距离：原始与加自环","迭代步k","log₁₀ L¹方向误差；无参考方向时留空",[
+    series("raw","原始A",B,positive(r.power.rows,z=>z.targetError)),series("shifted","A+单位尺度·I",O,positive(r.shifted.rows,z=>z.targetError))],0,last),
+   plot("正测试向量给出的Collatz–Wielandt夹逼","迭代步k","谱半径 / 单位尺度；带符号或零分量时留空",[
+    series("lower","精确分数下界的近似显示",B,r.power.rows.flatMap(z=>z.collatz?[[z.k,z.collatz.lower.value/r.scale]]:[])),
+    series("upper","精确分数上界的近似显示",O,r.power.rows.flatMap(z=>z.collatz?[[z.k,z.collatz.upper.value/r.scale]]:[])),
+    series("rho","解析谱半径的浮点值",G,[[0,r.rho/r.scale],[last,r.rho/r.scale]])],0,last)
   ];
-
-  var STYLE_TEXT = [
-    ".pf-lab{--pf-blue:var(--cl-blue,#315f9d);--pf-gold:var(--cl-gold,#9b6a12);--pf-green:var(--cl-green,#39734d);--pf-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere;}",
-    ".pf-lab *,.pf-lab *::before,.pf-lab *::after{box-sizing:border-box}.pf-lab [hidden]{display:none!important}.pf-lab h3,.pf-lab h4{margin:0;color:var(--fg);letter-spacing:0}.pf-lab h3{font-size:1.18rem}.pf-lab h4{font-size:1rem}.pf-lab p{margin:.65rem 0}.pf-note,.pf-feedback{color:var(--fg-soft);font-size:13px;line-height:1.7}.pf-lab button,.pf-lab select,.pf-lab input{font:inherit}.pf-lab button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.pf-lab button:hover{border-color:var(--pf-blue)}.pf-lab button[aria-pressed=true],.pf-lab button.pf-primary{border-color:var(--pf-blue);background:var(--pf-blue);color:#fff;font-weight:750}.pf-lab button:focus-visible,.pf-lab select:focus-visible,.pf-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.pf-lab select{width:100%;min-height:44px;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg)}.pf-control label{display:block;color:var(--fg-soft);font-size:13px;margin-bottom:4px}.pf-control output{color:var(--fg);font-weight:700}.pf-controls{display:grid;grid-template-columns:minmax(220px,1fr) minmax(180px,.7fr) auto;gap:10px;align-items:end;margin:12px 0}.pf-control input{display:block;width:100%;accent-color:var(--pf-blue)}.pf-control input[type=range]{min-height:44px}.pf-gate{margin:14px 0;padding:12px 14px;border-left:3px solid var(--pf-gold);background:var(--bg)}.pf-gate fieldset{min-width:0;margin:0 0 11px;padding:0;border:0}.pf-gate fieldset:last-child{margin-bottom:0}.pf-gate legend{margin-bottom:7px;font-weight:700;line-height:1.5}.pf-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.pf-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.pf-actions>*{flex:1 1 180px}.pf-feedback{min-height:2em;margin:8px 0 0;font-weight:700}.pf-warn{color:var(--pf-red)}.pf-pass{color:var(--pf-green)}.pf-result{margin-top:14px}.pf-layout{display:grid;grid-template-columns:minmax(250px,.95fr) minmax(0,1.45fr);gap:14px;align-items:start}.pf-frame{border:1px solid var(--border);background:var(--bg);padding:6px;min-width:0}.pf-svg{display:block;width:100%;height:auto}.pf-svg text{font-family:inherit;fill:var(--fg-soft,#6f6a60);font-size:11px}.pf-svg .pf-axis{stroke:var(--border);stroke-width:1}.pf-svg .pf-edge{stroke:var(--pf-blue);stroke-width:1.7;opacity:.8}.pf-svg .pf-node{fill:var(--bg);stroke:var(--pf-gold);stroke-width:2}.pf-svg .pf-node-label{fill:var(--fg);font-weight:700;text-anchor:middle;dominant-baseline:middle}.pf-svg .pf-spectral-circle{fill:none;stroke:var(--border);stroke-dasharray:4 4}.pf-svg .pf-peripheral{fill:var(--pf-red);stroke:var(--bg);stroke-width:1}.pf-svg .pf-bar{fill:var(--pf-green)}.pf-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 10px}.pf-metric{min-width:0;border-top:2px solid var(--pf-blue);padding:7px 8px;background:var(--bg)}.pf-metric span{display:block;color:var(--fg-soft);font-size:12px}.pf-metric strong{display:block;font-size:1.05rem;overflow-wrap:anywhere}.pf-table-wrap{overflow-x:auto;max-width:100%;margin-top:12px}.pf-table{border-collapse:collapse;width:100%;min-width:760px;font-size:12px}.pf-table caption{text-align:left;color:var(--fg-soft);padding:5px 0}.pf-table th,.pf-table td{border:1px solid var(--border);padding:6px 7px;text-align:left;vertical-align:top}.pf-table th{background:var(--block-bg);color:var(--fg)}.pf-certificate{border-left:3px solid var(--pf-green);padding-left:10px;font-size:13px}.pf-certificate.pf-blocked{border-color:var(--pf-red)}",
-    "@media(max-width:760px){.pf-layout{grid-template-columns:minmax(0,1fr)}.pf-controls{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.pf-controls button{grid-column:1/-1}}@media(max-width:500px){.pf-controls{grid-template-columns:minmax(0,1fr)}.pf-choice-grid,.pf-actions{display:grid;grid-template-columns:minmax(0,1fr)}.pf-actions>*{width:100%}.pf-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.pf-frame{padding:3px}}@media(prefers-reduced-motion:reduce){.pf-lab *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}"
-  ].join("");
-
-  function assert(condition, message) {
-    if (!condition) throw new Error("perron-frobenius self-test: " + message);
+  if(p.mode==="cycle"){
+   const points=r.eigen.map(z=>[z.lambda.re/r.rho,z.lambda.im/r.rho]),q=plot("完整三点复谱：实部不能代替特征值","Re λ / ρ","Im λ / ρ",[series("eigen","三个本征值",B,points,false)],-1.2,1.2,true);q.ymin=-1.2;q.ymax=1.2;qs.splice(1,0,q);
   }
-
-  function near(left, right, tolerance) { var scale = Math.max(Math.abs(left), Math.abs(right)); return Math.abs(left - right) <= relativeTolerance(scale, tolerance === undefined ? 1e-6 : tolerance); }
-  function cloneMatrix(matrix) { return matrix.map(function (row) { return row.slice(); }); }
-  function cloneVector(vector) { return vector.slice(); }
-  function clonePreset(preset) { return { id: preset.id, label: preset.label, matrix: cloneMatrix(preset.matrix), initial: cloneVector(preset.initial), description: preset.description }; }
-
-  function relativeTolerance(scale, factor) { var magnitude = Math.abs(Number(scale)) || 0; return magnitude * ((factor === undefined ? RELATIVE_TOLERANCE : factor) + MACHINE_EPS); }
-  function relativeNear(left, right, factor) { return Math.abs(left - right) <= relativeTolerance(Math.max(Math.abs(left), Math.abs(right)), factor); }
-  function matrixScale(matrix) { var scale = 0; matrix.forEach(function (row) { row.forEach(function (value) { scale = Math.max(scale, Math.abs(value)); }); }); return scale; }
-  function transpose(matrix) { return matrix[0].map(function (_, column) { return matrix.map(function (row) { return row[column]; }); }); }
-  function shiftedMatrix(matrix, shift) { return matrix.map(function (row, i) { return row.map(function (value, j) { return value - (i === j ? shift : 0); }); }); }
-
-  function nullspace(matrix) {
-    var rows = matrix.length, columns = rows ? matrix[0].length : 0, working = cloneMatrix(matrix), tolerance = relativeTolerance(matrixScale(matrix), RELATIVE_TOLERANCE), pivotColumns = [], pivotRow = 0;
-    for (var column = 0; column < columns && pivotRow < rows; column += 1) {
-      var pivot = pivotRow;
-      for (var candidate = pivotRow + 1; candidate < rows; candidate += 1) if (Math.abs(working[candidate][column]) > Math.abs(working[pivot][column])) pivot = candidate;
-      if (Math.abs(working[pivot][column]) <= tolerance) continue;
-      if (pivot !== pivotRow) { var swapped = working[pivotRow]; working[pivotRow] = working[pivot]; working[pivot] = swapped; }
-      var pivotValue = working[pivotRow][column];
-      for (var normalizeColumn = column; normalizeColumn < columns; normalizeColumn += 1) working[pivotRow][normalizeColumn] /= pivotValue;
-      for (var row = 0; row < rows; row += 1) {
-        if (row === pivotRow) continue;
-        var factor = working[row][column];
-        if (factor === 0) continue;
-        for (var eliminateColumn = column; eliminateColumn < columns; eliminateColumn += 1) working[row][eliminateColumn] -= factor * working[pivotRow][eliminateColumn];
-      }
-      pivotColumns.push(column); pivotRow += 1;
-    }
-    var pivotLookup = {};
-    pivotColumns.forEach(function (column, index) { pivotLookup[column] = index; });
-    var freeColumns = [];
-    for (var free = 0; free < columns; free += 1) if (pivotLookup[free] === undefined) freeColumns.push(free);
-    var basis = freeColumns.map(function (freeColumn) {
-      var vector = Array.apply(null, Array(columns)).map(function () { return 0; });
-      vector[freeColumn] = 1;
-      pivotColumns.forEach(function (pivotColumn, index) { vector[pivotColumn] = -working[index][freeColumn]; });
-      return normalize(vector);
-    });
-    return { dimension: basis.length, basis: basis, pivotColumns: pivotColumns, tolerance: tolerance };
+  return qs;
+ }
+ return[
+  networkPlot("补齐悬挂列并惰性化后的转移P",r.graph),
+  networkPlot("加入个性化跳转后的转移G",r.googleGraph),
+  plot("原始链：节点0的瞬时概率与时间平均","迭代步k","概率；平均包括第0步到第k步",[
+   series("raw","Pᵏx₀的第0分量",B,r.rawRows.map(z=>[z.k,z.x[0]])),series("average","Cesàro平均第0分量",O,r.rawRows.map(z=>[z.k,z.average[0]]))],0,last),
+  history("PageRank仿射迭代：每个节点的实际概率",r.rows,3),
+  plot("误差与残差上界：用同一实际向量核对","迭代步k","log₁₀ L¹量；α=1时误差与上界留空",[
+   series("error","到精确分布的实际误差",B,positive(r.rows,z=>z.error?.value??null)),
+   series("bound","精确残差/(1−α)上界",O,positive(r.rows,z=>z.bound?.value??null)),
+   series("residual","精确残差",G,positive(r.rows,z=>z.residualNorm.value))],0,last),
+  plot("浮点实现的质量与运算缺陷","迭代步k","log₁₀ L¹缺陷；零值不画点",[
+   series("mass","实际概率和偏离1",R,positive(r.rows,z=>Math.abs(z.massDefect.value))),
+   series("arithmetic","一步浮点舍入缺陷",V,positive(r.rows,z=>l1(z.arithmeticDefect.map(v=>v.value))))],0,last)
+ ];
+}
+const WORDS={A:"矩阵A",N:"环矩阵N",P:"列随机P",G:"跳转矩阵G",B:"线性方程矩阵",b:"线性方程右端",v:"跳转分布",initial:"初始概率",rho:"谱半径",other:"另一个根",right:"右向量基",left:"左向量基",rightResiduals:"右本征残差",leftResiduals:"左本征残差",rightResidual:"右本征残差",leftResidual:"左本征残差",dimension:"主空间维数",algebraicMultiplicity:"主根代数重数",discriminant:"二次方程根差",determinant:"行列式",k:"步",x:"当前向量",ax:"实际Ax",next:"下一方向",growth:"乘法后L¹范数",delta:"相邻方向差",targetError:"到参考方向的L¹差",target:"参考方向",collatz:"CW夹逼",ratios:"各分量比值",lower:"下界",upper:"上界",width:"夹逼宽度",edges:"边",from:"起点j",to:"终点i",weight:"权重Aij",reach:"可达性",classes:"强连通类",vertices:"节点",distances:"广搜距离",periodEdges:"周期计算各边",difference:"距离差加1",period:"周期",closed:"是否闭类",matrix:"矩阵",positive:"全元素严格正",primitive:"本原",irreducible:"不可约",eigen:"本征对",lambda:"特征值",re:"实部",im:"虚部",vector:"向量",av:"实际Av",residual:"残差",residualNorm:"残差L¹或本征二范数",modulus:"复模",cube:"实际N³",predictedCube:"权重积乘I",cubeGap:"三次恒等式缺陷",cubeGapNorm:"三次缺陷F范数",raw:"原始转移",dangling:"是否悬挂列",completed:"补齐悬挂列",colSums:"G精确列和",solve:"有理数消元",rank:"精确秩",consistent:"相容",unique:"唯一解",pivots:"枢轴列",trace:"完整消元",stage:"阶段",row:"行",col:"列",swapped:"交换来源行",pivot:"原枢轴",solution:"精确解",linearNext:"实际仿射下一步",matrixNext:"实际Gx",matrixGap:"Gx减仿射下一步",fixedResidual:"浮点固定点残差",exactResidual:"精确固定点残差",bound:"严格后验上界",error:"到精确解的误差",mass:"实际向量分量和",massDefect:"概率和减1",arithmeticDefect:"一步实际舍入",px:"实际Px",average:"时间平均",averageResidual:"时间平均的平稳残差"};
+function leafRows(value,path="",out=[]){
+ if(value===null||typeof value!=="object"){out.push([path,value,""]);return out;}
+ if("numerator"in value&&"denominator"in value){out.push([path,value.value,value.numerator+"/"+value.denominator]);return out;}
+ for(const [key,v]of Object.entries(value))leafRows(v,path?path+" / "+(WORDS[key]||key):(WORDS[key]||key),out);
+ return out;
+}
+function ledgers(d){
+ const p=d.parameters,r=d.result,t=(key,title,o)=>({key,title,headers:["对象 / 索引","数值或状态","精确分数（若有）"],rows:leafRows(o)});
+ if(p.mode==="two")return[
+  t("summary","先按结构判断，再看有限步",{"单位尺度":r.scale,"本原":r.graph.primitive,"不可约":r.graph.irreducible,"周期":r.graph.period,"谱半径":r.rho,"主空间维数":r.dimension,"代数重数":r.algebraicMultiplicity,"精确结构分支":r.caseName,"非负起点的本原定理适用":r.theoremNonnegative,"单位尺度化次根模比例":r.subdominantRatio,"左投影说明":r.projectionReason,"精确未归一化左投影":r.projection,"近似归一化左投影":r.approximateProjection}),
+  t("matrices","完整矩阵、左右方向与实际残差",{A:r.A,shiftedMatrix:r.shiftedMatrix,determinant:r.determinant,discriminant:r.discriminant,right:r.right,left:r.left,rightResiduals:r.rightResiduals,leftResiduals:r.leftResiduals,spectrum:r.spectrum,rightSupport:r.rightSupport,criticalClasses:r.criticalClasses}),
+  t("structure","支持图、所有可达关系与周期计算",r.graph),
+  t("power","原始幂法：每一步、全部分量与精确CW分数",r.power),
+  t("shifted","加单位尺度自环后的完整迭代",r.shifted)
+ ];
+ if(p.mode==="cycle")return[
+  t("summary","周期三环与自环的作用",{"单位尺度":r.scale,"谱半径":r.rho,"周期":r.graph.period,"本原":r.graph.primitive,"次根模比例":r.subdominantRatio,"实际三次恒等式缺陷":r.cubeGapNorm,"精确权重乘积":r.exactProduct}),
+  t("matrices","完整输入与三次恒等式",{A:r.A,N:r.N,shiftedMatrix:r.shiftedMatrix,cube:r.cube,predictedCube:r.predictedCube,cubeGap:r.cubeGap,right:r.right,left:r.left,rightResidual:r.rightResidual,leftResidual:r.leftResidual}),
+  t("structure","实际边、可达性与周期",r.graph),
+  t("spectrum","三组完整复特征值、向量与残差",r.eigen),
+  t("power","原始幂法与CW夹逼",r.power),
+  t("shifted","加单位尺度自环后的完整迭代",r.shifted)
+ ];
+ return[
+  t("summary","概率守恒、唯一性与上界适用范围",{"跟随链接概率α":r.alpha,"精确列和为1":r.stochasticExact,"G严格正":r.googleGraph.positive,"G本原":r.googleGraph.primitive,"收缩常数":r.contraction,"线性方程唯一解":r.solve.unique,"边界说明":r.alpha===1?"α=1时本线性方程为齐次；唯一平稳分布需另加归一化并看闭类，不使用该残差上界":"α<1即有唯一仿射固定点；跳转分布含零时也成立"}),
+  t("matrices","从原始规则到PageRank的全部矩阵",{raw:r.raw,dangling:r.dangling,completed:r.completed,P:r.P,G:r.G,B:r.B,b:r.b,v:r.v,initial:r.initial,colSums:r.colSums}),
+  t("structure","P与G的实际类结构",{P:r.graph,G:r.googleGraph}),
+  t("solve","精确有理数消元的每个枢轴与完整矩阵",r.solve),
+  t("power","PageRank每一步：实际值、精确误差与上界",r.rows),
+  t("averages","原始链每一步与完整Cesàro平均",r.rawRows)
+ ];
+}
+function networkSVG(q){
+ let s='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="425" role="img" aria-label="'+esc(q.title)+'"><title>'+esc(q.title)+'</title><text x="25" y="32" font-size="22">'+esc(q.title)+'</text><text x="25" y="60">箭头起点j → 终点i；每条非零边保留实际权重，自环单独画出。</text>';
+ const arrow=(x,y,dx,dy)=>{const n=Math.hypot(dx,dy),u=dx/n,v=dy/n;return'<polygon points="'+x+','+y+' '+(x-10*u+4*v)+','+(y-10*v-4*u)+' '+(x-10*u-4*v)+','+(y-10*v+4*u)+'" fill="'+B+'"/>';};
+ q.edges.forEach((e,k)=>{
+  const [x,y]=q.nodes[e.from],[u,v]=q.nodes[e.to];let path,label,tip,dir;
+  if(e.from===e.to){path="M"+(x-13)+" "+(y-20)+" C"+(x-75)+" "+(y-105)+" "+(x+75)+" "+(y-105)+" "+(x+13)+" "+(y-20);label=[x,y-90];tip=[x+13,y-20];dir=[-62,85];}
+  else{
+   const dx=u-x,dy=v-y,n=Math.hypot(dx,dy),a=[x+23*dx/n,y+23*dy/n],b=[u-23*dx/n,v-23*dy/n],control=[(x+u)/2-36*dy/n,(y+v)/2+36*dx/n];
+   path="M"+a[0]+" "+a[1]+" Q"+control[0]+" "+control[1]+" "+b[0]+" "+b[1];label=[(a[0]+2*control[0]+b[0])/4-12*dy/n,(a[1]+2*control[1]+b[1])/4+12*dx/n];tip=b;dir=[b[0]-control[0],b[1]-control[1]];
   }
-
-  function supportOfBasis(basis) {
-    var support = [], tolerance = relativeTolerance(1, RELATIVE_TOLERANCE);
-    if (!basis.length) return support;
-    for (var index = 0; index < basis[0].length; index += 1) {
-      if (basis.some(function (vector) { return Math.abs(vector[index]) > tolerance; })) support.push(index);
-    }
-    return support;
+  s+='<path data-edge="'+k+'" data-from="'+e.from+'" data-to="'+e.to+'" d="'+path+'" stroke="'+B+'" stroke-width="2" fill="none"/>'+arrow(...tip,...dir)+'<text data-edge-weight="'+k+'" x="'+label[0]+'" y="'+label[1]+'" text-anchor="middle" font-size="16">'+esc(fmt(e.weight))+'</text>';
+ });
+ q.nodes.forEach(([x,y],i)=>{s+='<circle data-node="'+i+'" cx="'+x+'" cy="'+y+'" r="22" fill="var(--bg,#faf7ef)" stroke="currentColor"/><text x="'+x+'" y="'+(y+6)+'" text-anchor="middle">'+i+'</text>';});
+ return s+'</svg>';
+}
+ const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const tick=v=>v===0?"0":Math.abs(v)<1e-3||Math.abs(v)>=1e4?v.toExponential(2):String(Number(v.toPrecision(4)));
+ function svg(q){
+  if(q.type==="network")return networkSVG(q);
+  const left=q.square?325:100,width=q.square?250:750,height=250,top=85,bottom=335,x=v=>left+width*(v-q.xmin)/(q.xmax-q.xmin),y=v=>bottom-height*(v-q.ymin)/(q.ymax-q.ymin);
+  let s='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="425" role="img" aria-label="'+esc(q.title)+'"><title>'+esc(q.title)+'</title><text x="25" y="32" font-size="22">'+esc(q.title)+'</text>';
+  for(let i=0;i<(q.square?3:5);i++){
+   const v=q.ymin+(q.ymax-q.ymin)*i/(q.square?2:4);
+   s+='<path d="M'+left+' '+y(v)+'H'+(left+width)+'" stroke="currentColor" opacity=".18"/><text x="'+(left-12)+'" y="'+(y(v)+5)+'" text-anchor="end">'+tick(v)+'</text>';
   }
-
-  function perronEigenspace(matrix, rho) {
-    var space = nullspace(shiftedMatrix(matrix, rho)), basis = space.basis.map(function (vector) { return normalize(vector); });
-    return { dimension: basis.length, basis: basis, support: supportOfBasis(basis), tolerance: space.tolerance };
+  const ticks=q.xTicks||Array.from({length:5},(_,i)=>q.xmin+(q.xmax-q.xmin)*i/4);
+  for(const v of ticks)s+='<text x="'+x(v)+'" y="'+(bottom+28)+'" text-anchor="middle">'+tick(v)+'</text>';
+  if(q.ymin<=0&&q.ymax>=0)s+='<line data-zero="true" x1="'+left+'" x2="'+(left+width)+'" y1="'+y(0)+'" y2="'+y(0)+'" stroke="currentColor" opacity=".7"/>';
+  s+='<text x="'+left+'" y="65">'+esc(q.y)+'</text><text x="'+(left+width/2)+'" y="'+(bottom+63)+'" text-anchor="middle">'+esc(q.x)+'</text>';
+  for(const series of q.series){
+   if(series.area)s+='<rect data-area="'+series.key+'" x="'+x(series.points[0][0])+'" y="'+y(series.points[0][1])+'" width="'+(x(series.points[1][0])-x(series.points[0][0]))+'" height="'+(y(0)-y(series.points[0][1]))+'" fill="'+series.color+'" opacity=".12"/>';
+   if(series.line)s+='<polyline data-series="'+series.key+'" points="'+series.points.map(p=>x(p[0])+','+y(p[1])).join(" ")+'" stroke="'+series.color+'" stroke-width="2" fill="none"/>';
+   series.points.forEach((p,i)=>{const open=series.endOpen&&i===series.points.length-1;s+='<circle data-series="'+series.key+'" data-index="'+i+'" data-open="'+!!open+'" cx="'+x(p[0])+'" cy="'+y(p[1])+'" r="'+(series.endOpen?3.5:series.line?1.8:3.5)+'" fill="'+(open?"var(--bg,#faf7ef)":series.color)+'" stroke="'+series.color+'"/>';});
   }
-
-  function projectionStatus(initial, leftBasis) {
-    if (!leftBasis || !leftBasis.length) return { known: false, zero: null, values: [] };
-    var scale = Math.max(l1(initial), Number.MIN_VALUE), tolerance = relativeTolerance(scale, RELATIVE_TOLERANCE), values = leftBasis.map(function (left) { return left.reduce(function (sum, value, index) { return sum + value * initial[index]; }, 0); });
-    return { known: true, zero: values.every(function (value) { return Math.abs(value) <= tolerance; }), values: values };
+  for(const [i,m]of (q.markers||[]).entries()){
+   const px=x(m.x),right=px>700;
+   s+='<line data-marker="'+i+'" x1="'+px+'" x2="'+px+'" y1="'+top+'" y2="'+bottom+'" stroke="currentColor" stroke-dasharray="5 5" opacity=".65"/><text x="'+(px+(right?-4:4))+'" y="'+(80+25*q.markers.slice(0,i).filter(p=>Math.abs(px-x(p.x))<110).length)+'" font-size="13" text-anchor="'+(right?'end':'start')+'">'+esc(m.label)+'</text>';
   }
+  return s+"</svg>";
+ }
 
-  function validateMatrix(matrix) {
-    var errors = [];
-    if (!Array.isArray(matrix) || matrix.length === 0) return { valid: false, errors: ["matrix must be a nonempty square array"] };
-    var n = matrix.length;
-    matrix.forEach(function (row, i) {
-      if (!Array.isArray(row) || row.length !== n) { errors.push("row " + i + " is not square"); return; }
-      row.forEach(function (value, j) {
-        if (typeof value !== "number" || !isFinite(value)) errors.push("entry " + i + "," + j + " is not finite");
-        else if (value < 0) errors.push("entry " + i + "," + j + " is negative");
-      });
-    });
-    return { valid: errors.length === 0, errors: errors, n: n };
+ const STYLE=".perron148{color:var(--fg,#273646)}.perron148 .perron-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}.perron148 label{display:flex;flex-direction:column;gap:6px}.perron148 input,.perron148 select{font:inherit;padding:8px;max-width:100%;background:var(--bg,#fff);color:inherit;border:1px solid #8b98a0;border-radius:5px}.perron148 button{font:inherit;padding:8px 12px;margin:5px;cursor:pointer}.perron148 button[aria-pressed=true]{outline:3px solid #478aaa}.perron148 .perron-scroll{overflow:auto;max-width:100%;margin:16px 0}.perron148 .perron-scroll:focus{outline:3px solid #478aaa}.perron148 .perron-ledger{max-height:420px}.perron148 svg{width:900px!important;max-width:none!important;display:block;fill:currentColor;font:16px system-ui}.perron148 table{display:table;overflow:visible;width:max-content;max-width:none;min-width:900px;border-collapse:collapse;font-variant-numeric:tabular-nums}.perron148 th,.perron148 td{padding:9px;border:1px solid #98a4ab;text-align:left;white-space:nowrap}.perron148 .perron-error{color:#c74b39}.perron148 [hidden]{display:none!important}.perron148 fieldset{margin:16px 0;padding:12px}.perron148 details{margin:16px 0}.perron148 summary{cursor:pointer;font-weight:600}.perron148 .perron-legend{font-size:.95em}.perron148 .perron-note{line-height:1.7}.perron148 [hidden]{display:none!important}.perron148 select{font:inherit;color:var(--fg,#282820);background:var(--bg,#faf7ef);padding:8px;max-width:100%}";
+ function mount(container){
+  const doc=container.ownerDocument;
+  if(!doc.getElementById("perron148-style")){const style=doc.createElement("style");style.id="perron148-style";style.textContent=STYLE;doc.head.appendChild(style);}
+  const field=(key,label,modes)=>'<label data-modes="'+modes+'">'+label+'<input data-key="'+key+'" type="number" step="any"></label>';
+  container.innerHTML='<div class="perron148"><h3>网络能互通，就一定会混合吗？</h3><p>先预测，再改变矩阵、起点或跳转规则；每次乘法与结论条件都能展开核对。</p><div class="perron-presets">'+PRESETS.map(p=>'<button type="button" data-preset="'+p.id+'">'+esc(p.label)+'</button>').join("")+'</div><div class="perron-controls"><label>实验<select data-key="mode"><option value="two">二维非负矩阵与起点</option><option value="cycle">三环、复谱与自环</option><option value="markov">随机链与个性化PageRank</option></select></label>'+
+   field("a","矩阵a₀₀（0–4）","two")+field("b","矩阵a₀₁（0–4）","two")+field("c","矩阵a₁₀（0–4）","two")+field("d","矩阵a₁₁（0–4）","two")+
+   field("w1","环权重0→1（1e−6–4）","cycle")+field("w2","环权重1→2（1e−6–4）","cycle")+field("w3","环权重2→0（1e−6–4）","cycle")+field("shift","共同自环δ（0–4）","cycle")+
+   field("scaleExponent","整体单位10的指数（−6–6整数）","two cycle")+
+   field("x1","起点第0分量（二维−4–4，三环0–4）","two cycle")+field("x2","起点第1分量（二维−4–4，三环0–4）","two cycle")+field("x3","起点第2分量（0–4）","cycle")+
+   '<label data-modes="markov">原始转移规则<select data-key="network"><option value="cycle">三周期环</option><option value="closed">两个闭类</option><option value="dangling">末节点无出边</option></select></label>'+
+   field("alpha","跟随链接概率α（0–1）","markov")+field("lazy","停在原地的概率（0–1）","markov")+
+   field("teleport1","跳转到节点0的概率（0–1）","markov")+field("teleport2","跳转到节点1的概率（0–1）","markov")+
+   field("mass1","初始节点0概率（0–1）","markov")+field("mass2","初始节点1概率（0–1）","markov")+
+   field("steps","观察步数（0–64整数）","two cycle markov")+'</div><p>概率参数取1/1024的整数倍，第三个概率由总和1确定。其他非零参数至少1e−12；三环权重至少1e−6。二维允许带符号起点；全零起点不定义归一化。</p>'+
+   QUESTIONS.map((q,i)=>'<fieldset data-question="'+i+'"><legend>'+(i+1)+'. '+esc(q.text)+'</legend>'+q.options.map((v,j)=>'<button type="button" data-choice="'+j+'" aria-pressed="false">'+esc(v)+'</button>').join("")+'</fieldset>').join("")+
+   '<button type="button" data-action="reveal">揭示图与完整账本</button><button type="button" data-action="reset">重置预测</button><p class="perron-error" role="alert"></p><p role="status"></p><div class="perron-results" hidden></div></div>';
+  const fields=Array.from(container.querySelectorAll("[data-key]")),answers=Array(4).fill(null),result=container.querySelector(".perron-results"),reveal=container.querySelector("[data-action=reveal]"),feedback=container.querySelector("[role=status]"),error=container.querySelector("[role=alert]");
+  fields.forEach(e=>e.value=DEFAULTS[e.dataset.key]);
+  let revealed=false,valid=null;
+  function render(d){
+   const notes={two:"二维模型的主空间维数与重数由精确结构分支决定；本征值和向量按稳定解析式计算，实际残差完整保留。带符号起点的近似左投影不能作为一般精确零判据。参考方向的距离不自动意味着会趋零；可约Jordan情形也不使用简单主根投影公式。",cycle:"三环模型明确使用三次特征方程，显示全部复特征值与复向量残差。整体缩放时，附加自环也按同一单位缩放。CW的有理分数针对实际输入与当前浮点向量提供严格夹逼；图上显示的是分数近似值。",markov:"每条边都按列向量方向j→i。先补齐悬挂列，再惰性化，最后加入个性化跳转。α<1时用有理数解线性方程；误差、残差和上界针对同一个实际存储向量计算，精确分数才是证书。α=1时不冒用收缩界，也不由齐次方程未给唯一解来断言平稳分布不唯一。"};
+   result.innerHTML='<p>'+notes[d.parameters.mode]+'</p>'+
+    plots(d).map(q=>'<p>'+q.series.filter((s,i,ss)=>ss.findIndex(t=>t.label===s.label&&t.color===s.color)===i).map(s=>esc(s.label)+'（'+({"#268bd2":"蓝","#cb6a16":"橙","#29966c":"绿","#9966bb":"紫","#b44a72":"玫红"}[s.color])+'）').join("；")+'</p><div class="perron-scroll" role="region" tabindex="0" aria-label="'+esc(q.title)+'">'+svg(q)+'</div>').join("")+
+    ledgers(d).map(t=>'<details data-ledger="'+t.key+'"'+(t.key==="summary"?' open':"")+'><summary>'+esc(t.title)+'（'+t.rows.length+' 行）</summary><div class="perron-scroll perron-ledger" role="region" tabindex="0" aria-label="'+esc(t.title)+'"><table data-table="'+t.key+'"><thead><tr>'+t.headers.map(x=>'<th scope="col">'+esc(x)+'</th>').join("")+'</tr></thead><tbody>'+t.rows.map(r=>'<tr>'+r.map(x=>'<td>'+esc(fmt(x))+'</td>').join("")+'</tr>').join("")+'</tbody></table></div></details>').join("")+
+    '<p>“—”表示不适用、未定义或有限精度不足，不是0。对数图仅画严格正的实际值；线性图保留零。所有显示图与表都来自同一组计算记录。精确算术定理、浮点诊断与严格数值证书要分别理解。</p>';
   }
-
-  function submatrix(matrix, vertices) { return vertices.map(function (from) { return vertices.map(function (to) { return matrix[from][to]; }); }); }
-  function matrixVector(matrix, vector) { return matrix.map(function (row) { return row.reduce(function (sum, value, index) { return sum + value * vector[index]; }, 0); }); }
-  function l1(vector) { return vector.reduce(function (sum, value) { return sum + Math.abs(value); }, 0); }
-  function normalize(vector) { var norm = l1(vector); return norm === 0 ? vector.map(function () { return 0; }) : vector.map(function (value) { return value / norm; }); }
-  function distance(left, right) { return left.reduce(function (sum, value, index) { return sum + Math.abs(value - right[index]); }, 0); }
-  function positiveVector(n) { return Array.apply(null, Array(n)).map(function () { return 1; }); }
-
-  function stronglyConnectedComponents(matrix) {
-    var n = matrix.length, seen = [], order = [], result = [];
-    function visit(vertex, reverse, sink) {
-      seen[vertex] = true;
-      for (var next = 0; next < n; next += 1) {
-        var edge = reverse ? matrix[next][vertex] : matrix[vertex][next];
-        if (edge > 0 && !seen[next]) visit(next, reverse, sink);
-      }
-      sink.push(vertex);
-    }
-    for (var i = 0; i < n; i += 1) if (!seen[i]) visit(i, false, order);
-    seen = [];
-    for (var index = order.length - 1; index >= 0; index -= 1) {
-      if (seen[order[index]]) continue;
-      var component = [];
-      visit(order[index], true, component);
-      component.sort(function (a, b) { return a - b; });
-      result.push(component);
-    }
-    result.sort(function (a, b) { return a[0] - b[0]; });
-    return result;
+  function update(){
+   const raw=Object.fromEntries(fields.map(e=>[e.dataset.key,e.value]));
+   container.querySelectorAll("[data-modes]").forEach(e=>e.hidden=!e.dataset.modes.split(" ").includes(raw.mode));
+   try{valid=config(raw);error.textContent="";}catch(e){valid=null;revealed=false;error.textContent=e.message;}
+   reveal.disabled=!valid||answers.some(x=>x===null);result.hidden=!revealed;
+   if(revealed&&valid)render(snapshot(valid));
+   feedback.textContent=revealed?answers.filter((x,i)=>x===QUESTIONS[i].correct).length+" / 4。"+"结构定理、有限迭代和误差证书分别核对。":"";
   }
+  fields.forEach(e=>e.addEventListener(e.tagName==="SELECT"?"change":"input",update));
+  container.querySelectorAll("[data-choice]").forEach(b=>b.addEventListener("click",()=>{
+   const i=Number(b.closest("[data-question]").dataset.question);answers[i]=Number(b.dataset.choice);b.parentElement.querySelectorAll("[data-choice]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));update();
+  }));
+  container.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{
+   const s=Object.assign({},DEFAULTS,PRESETS.find(p=>p.id===b.dataset.preset).values);fields.forEach(e=>e.value=s[e.dataset.key]);update();
+  }));
+  reveal.addEventListener("click",()=>{if(!reveal.disabled){revealed=true;update();}});
+  container.querySelector("[data-action=reset]").addEventListener("click",()=>{answers.fill(null);revealed=false;container.querySelectorAll("[data-choice]").forEach(b=>b.setAttribute("aria-pressed","false"));update();container.querySelector("[data-choice]").focus();});
+  update();
+ }
 
-  function gcd(left, right) {
-    left = Math.abs(Math.round(left)); right = Math.abs(Math.round(right));
-    while (right) { var remainder = left % right; left = right; right = remainder; }
-    return left;
-  }
 
-  function periodOf(matrix, vertices) {
-    if (vertices.length === 1) return matrix[vertices[0]][vertices[0]] > 0 ? 1 : 0;
-    var root = vertices[0], distances = {}, queue = [root], head = 0;
-    distances[root] = 0;
-    while (head < queue.length) {
-      var vertex = queue[head++];
-      vertices.forEach(function (next) {
-        if (matrix[vertex][next] > 0 && distances[next] === undefined) { distances[next] = distances[vertex] + 1; queue.push(next); }
-      });
-    }
-    var period = 0;
-    vertices.forEach(function (from) {
-      vertices.forEach(function (to) {
-        if (matrix[from][to] > 0) period = gcd(period, distances[from] + 1 - distances[to]);
-      });
-    });
-    return period;
-  }
 
-  function c(re, im) { return { re: re, im: im }; }
-  function cAdd(left, right) { return c(left.re + right.re, left.im + right.im); }
-  function cSub(left, right) { return c(left.re - right.re, left.im - right.im); }
-  function cMul(left, right) { return c(left.re * right.re - left.im * right.im, left.re * right.im + left.im * right.re); }
-  function cScale(value, scalar) { return c(value.re * scalar, value.im * scalar); }
-  function cConj(value) { return c(value.re, -value.im); }
-  function cAbs(value) { return Math.sqrt(value.re * value.re + value.im * value.im); }
-  function cDiv(left, right) { var denominator = right.re * right.re + right.im * right.im; return denominator === 0 ? c(0, 0) : c((left.re * right.re + left.im * right.im) / denominator, (left.im * right.re - left.re * right.im) / denominator); }
 
-  function complexMatrixMultiply(left, right) {
-    var n = left.length, result = [];
-    for (var i = 0; i < n; i += 1) {
-      result[i] = [];
-      for (var j = 0; j < n; j += 1) {
-        var sum = c(0, 0);
-        for (var k = 0; k < n; k += 1) sum = cAdd(sum, cMul(left[i][k], right[k][j]));
-        result[i][j] = sum;
-      }
-    }
-    return result;
-  }
 
-  function qrEigenvalues(matrix) {
-    var n = matrix.length, current = matrix.map(function (row) { return row.map(function (value) { return c(value, 0); }); }), qrTolerance = relativeTolerance(matrixScale(matrix), RELATIVE_TOLERANCE);
-    if (n === 1) return [{ re: matrix[0][0], im: 0, modulus: Math.abs(matrix[0][0]) }];
-    if (n === 2) {
-      var trace = matrix[0][0] + matrix[1][1], determinant = matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0], discriminant = trace * trace - 4 * determinant;
-      if (discriminant >= 0) { var root = Math.sqrt(discriminant); return [{ re: (trace + root) / 2, im: 0, modulus: Math.abs((trace + root) / 2) }, { re: (trace - root) / 2, im: 0, modulus: Math.abs((trace - root) / 2) }]; }
-      var real = trace / 2, imaginary = Math.sqrt(-discriminant) / 2, modulus = Math.sqrt(real * real + imaginary * imaginary);
-      return [{ re: real, im: imaginary, modulus: modulus }, { re: real, im: -imaginary, modulus: modulus }];
-    }
-    for (var iteration = 0; iteration < 180; iteration += 1) {
-      var q = Array.apply(null, Array(n)).map(function () { return Array.apply(null, Array(n)).map(function () { return c(0, 0); }); });
-      var r = Array.apply(null, Array(n)).map(function () { return Array.apply(null, Array(n)).map(function () { return c(0, 0); }); });
-      for (var column = 0; column < n; column += 1) {
-        var vector = current.map(function (row) { return row[column]; });
-        for (var previous = 0; previous < column; previous += 1) {
-          var projection = c(0, 0);
-          for (var rowIndex = 0; rowIndex < n; rowIndex += 1) projection = cAdd(projection, cMul(cConj(q[rowIndex][previous]), vector[rowIndex]));
-          r[previous][column] = projection;
-          for (rowIndex = 0; rowIndex < n; rowIndex += 1) vector[rowIndex] = cSub(vector[rowIndex], cMul(q[rowIndex][previous], projection));
-        }
-        var norm = Math.sqrt(vector.reduce(function (sum, value) { return sum + cAbs(value) * cAbs(value); }, 0));
-        if (norm <= qrTolerance) {
-          vector = positiveVector(n).map(function (value, index) { return c(index === column ? 1 : 0, 0); });
-          for (previous = 0; previous < column; previous += 1) {
-            var basisProjection = c(0, 0);
-            for (rowIndex = 0; rowIndex < n; rowIndex += 1) basisProjection = cAdd(basisProjection, cMul(cConj(q[rowIndex][previous]), vector[rowIndex]));
-            for (rowIndex = 0; rowIndex < n; rowIndex += 1) vector[rowIndex] = cSub(vector[rowIndex], cMul(q[rowIndex][previous], basisProjection));
-          }
-          norm = Math.sqrt(vector.reduce(function (sum, value) { return sum + cAbs(value) * cAbs(value); }, 0));
-        }
-        r[column][column] = c(norm, 0);
-        for (rowIndex = 0; rowIndex < n; rowIndex += 1) q[rowIndex][column] = cScale(vector[rowIndex], 1 / (Math.max(qrTolerance, norm) || 1));
-      }
-      current = complexMatrixMultiply(r, q);
-    }
-    return current.map(function (row, index) { return { re: row[index].re, im: row[index].im, modulus: cAbs(row[index]) }; });
-  }
 
-  function shiftedPower(matrix, steps) {
-    var n = matrix.length, shift = 1, x = normalize(positiveVector(n)), eigenvalue = 0, delta = Infinity;
-    for (var step = 0; step < (steps || 100); step += 1) {
-      var y = matrixVector(matrix, x).map(function (value, index) { return value + shift * x[index]; });
-      eigenvalue = y.reduce(function (sum, value) { return sum + value; }, 0) / Math.max(Number.MIN_VALUE, x.reduce(function (sum, value) { return sum + value; }, 0));
-      var next = normalize(y); delta = distance(next, x); x = next;
-    }
-    var ax = matrixVector(matrix, x), ratio = ax.reduce(function (sum, value) { return sum + value; }, 0) / Math.max(Number.MIN_VALUE, x.reduce(function (sum, value) { return sum + value; }, 0));
-    return { vector: x, rho: Math.max(0, ratio), shiftedEigenvalue: eigenvalue, delta: delta, converged: delta < 1e-8 };
-  }
 
-  function powerIteration(matrix, options) {
-    options = options || {};
-    var n = matrix.length, steps = options.steps === undefined ? 16 : Math.max(0, Math.floor(options.steps)), initial = options.initial ? options.initial.slice() : positiveVector(n);
-    if (initial.length !== n || initial.some(function (value) { return typeof value !== "number" || !isFinite(value); }) || l1(initial) === 0) throw new Error("power iteration needs a finite, nonzero initial vector");
-    var leftBasis = options.perronLeftBasis;
-    if (leftBasis === undefined) { var root = options.perronRoot === undefined ? shiftedPower(matrix, 120).rho : options.perronRoot; leftBasis = root > 0 ? nullspace(shiftedMatrix(transpose(matrix), root)).basis : null; }
-    var condition = initial.every(function (value) { return value > 0; }) ? "strictly-positive" : (initial.every(function (value) { return value >= 0; }) ? "nonnegative-with-zeros" : "signed"), projection = projectionStatus(initial, leftBasis), x = normalize(initial), rows = [{ k: 0, vector: x.slice(), growth: null, delta: null }], delta = Infinity;
-    for (var step = 1; step <= steps; step += 1) {
-      var y = matrixVector(matrix, x), growth = l1(y);
-      if (growth === 0) { x = y.map(function () { return 0; }); rows.push({ k: step, vector: x.slice(), growth: 0, delta: distance(x, rows[rows.length - 1].vector) }); break; }
-      var next = y.map(function (value) { return value / growth; });
-      delta = distance(next, x); rows.push({ k: step, vector: next.slice(), growth: growth, delta: delta }); x = next;
-    }
-    return { rows: rows, vector: x.slice(), converged: projection.zero !== true && delta < (options.tolerance === undefined ? 1e-7 : options.tolerance), steps: rows.length - 1, initialCondition: condition, perronProjection: projection, zeroPerronProjection: projection.known ? projection.zero : null };
-  }
 
-  function peripheralSpectrumFor(rho, period) {
-    if (!(rho > 0) || !(period > 0)) return [];
-    var values = [];
-    for (var k = 0; k < period; k += 1) {
-      var angle = 2 * Math.PI * k / period, re = rho * Math.cos(angle), im = rho * Math.sin(angle);
-      values.push({ re: Math.abs(re) <= relativeTolerance(rho, RELATIVE_TOLERANCE) ? 0 : re, im: Math.abs(im) <= relativeTolerance(rho, RELATIVE_TOLERANCE) ? 0 : im, modulus: rho });
-    }
-    return values;
-  }
 
-  function classRecord(matrix, vertices) {
-    var block = submatrix(matrix, vertices), root = shiftedPower(block, 100), period = periodOf(matrix, vertices);
-    return { vertices: vertices.slice(), matrix: block, rho: root.rho, period: period, primitive: period === 1, eigenvector: root.vector, peripheralSpectrum: peripheralSpectrumFor(root.rho, period) };
-  }
 
-  function spectrumSummary(values, rho, periodic, peripheralTie) {
-    if (!(rho > 0)) return { eigenvalues: values, subdominantRatio: null, tolerance: 0 };
-    if (periodic || peripheralTie) return { eigenvalues: values, subdominantRatio: 1, tolerance: relativeTolerance(rho, RELATIVE_TOLERANCE) };
-    var tolerance = relativeTolerance(rho, RELATIVE_TOLERANCE), subordinate = values.filter(function (value) { return value.modulus < rho - tolerance; }).map(function (value) { return value.modulus; });
-    return { eigenvalues: values, subdominantRatio: subordinate.length ? Math.min(1, Math.max.apply(null, subordinate) / rho) : 0, tolerance: tolerance };
-  }
 
-  function peripheralSpectrum(matrixOrRho, period) {
-    if (Array.isArray(matrixOrRho)) return analyzeMatrix(matrixOrRho).peripheralSpectrum;
-    return peripheralSpectrumFor(Number(matrixOrRho), Number(period));
-  }
 
-  function analyzeMatrix(matrix, options) {
-    var validation = validateMatrix(matrix);
-    if (!validation.valid) return { validation: validation, matrix: Array.isArray(matrix) ? cloneMatrix(matrix) : [] };
-    options = options || {};
-    var n = matrix.length, classes = stronglyConnectedComponents(matrix).map(function (vertices) { return classRecord(matrix, vertices); }), irreducible = classes.length === 1, positive = matrix.every(function (row) { return row.every(function (value) { return value > 0; }); }), criticalRho = Math.max.apply(null, classes.map(function (item) { return item.rho; })), criticalClasses = classes.filter(function (item) { return relativeNear(item.rho, criticalRho, RELATIVE_TOLERANCE); }), period = irreducible ? classes[0].period : null, primitive = irreducible && period === 1, initial = options.initial === undefined ? positiveVector(n) : options.initial, perronSpace = perronEigenspace(matrix, criticalRho), leftSpace = criticalRho > 0 ? nullspace(shiftedMatrix(transpose(matrix), criticalRho)) : { basis: [] }, power = powerIteration(matrix, { initial: initial, perronLeftBasis: leftSpace.basis, steps: options.steps === undefined ? 16 : options.steps }), shifted = irreducible ? shiftedPower(matrix, 120) : null, values = qrEigenvalues(matrix), spectrum = spectrumSummary(values, criticalRho, irreducible && period > 1, criticalClasses.length > 1), peripheral = [];
-    if (irreducible) peripheral = classes[0].peripheralSpectrum;
-    else criticalClasses.forEach(function (item) { item.peripheralSpectrum.forEach(function (value) { if (!peripheral.some(function (existing) { return sameComplex(existing, value, criticalRho); })) peripheral.push(value); }); });
-    var perronResult = irreducible ? vectorString(shifted.vector) : "dim ker(A−ρI)=" + perronSpace.dimension + "；支持=" + supportString(perronSpace.support);
-    var perronEvidence = irreducible ? "用 A+I 的稳定幂法取得方向；原始幂法起点条件与投影另单独记录。" : "可约性不决定唯一性；实际 Perron 谱空间维数=" + perronSpace.dimension + "，支持=" + supportString(perronSpace.support) + "。";
-    var ledger = [
-      { layer: "非负 / 正", result: positive ? "A>0" : "A≥0 但含零元素", role: "模型定义", evidence: positive ? "严格正支持图一步互达。" : "非负性本身不提供周期与可约性结论。" },
-      { layer: "SCC / 不可约", result: irreducible ? "不可约" : "可约，" + classes.length + " 个 SCC", role: "强连通的精确翻译", evidence: classes.map(function (item) { return "{" + item.vertices.join(",") + "}"; }).join(" ") },
-      { layer: "周期 / 本原", result: irreducible ? (period === 1 ? "h=1，本原" : "h=" + period + "，周期不可约") : "按块分别计算", role: "本原 ⇔ 不可约且 h=1", evidence: irreducible ? "闭路长度 gcd=" + period : "可约时不能用单一周期替代 SCC 类结构" },
-      { layer: "Perron 根", result: "ρ≈" + formatNumber(criticalRho, 5), role: "临界块最大根", evidence: "临界 SCC=" + criticalClasses.map(function (item) { return "{" + item.vertices.join(",") + "}"; }).join("、") },
-      { layer: "Perron 向量", result: perronResult, role: irreducible ? "正右特征向量" : "实际谱空间 / 支持", evidence: perronEvidence },
-      { layer: "原始幂法", result: power.zeroPerronProjection ? "零 Perron 投影：不作主方向结论" : (power.converged ? "有限步看见收敛" : "有限步未收敛"), role: primitive ? "x>0 时定理保证渐近收敛" : "诊断，不升级为定理", evidence: "起点=" + power.initialCondition + "；k=" + power.steps + "；最后方向=" + vectorString(power.vector) },
-      { layer: "外围谱", result: spectrumString(peripheral), role: "周期 / 临界类账本", evidence: peripheral.length + " 个 |λ|=ρ 的点；周期类会保留单位圆相位。" },
-      { layer: "混合比例", result: spectrum.subdominantRatio === null ? "ρ=0，无混合读法" : formatNumber(spectrum.subdominantRatio, 5), role: "谱隙诊断 |λnext|/ρ", evidence: primitive ? "应严格小于 1；数值比例只是当前矩阵的有限谱摘要。" : "等于 1 或未定义时，不能宣称原始幂法混合。" }
-    ];
-    return {
-      validation: validation,
-      matrix: cloneMatrix(matrix),
-      n: n,
-      positive: positive,
-      irreducible: irreducible,
-      primitive: primitive,
-      period: period,
-      classes: classes,
-      criticalClasses: criticalClasses.map(function (item) { return item.vertices.slice(); }),
-      rho: criticalRho,
-      perron: { root: criticalRho, eigenvector: irreducible ? shifted.vector.slice() : null, representative: perronSpace.basis.length ? perronSpace.basis[0].slice() : null, eigenspaceDimension: perronSpace.dimension, unique: perronSpace.dimension === 1, support: perronSpace.support.slice(), eigenspaceBasis: perronSpace.basis.map(function (vector) { return vector.slice(); }), classEigenvectors: classes.map(function (item) { return { vertices: item.vertices.slice(), rho: item.rho, vector: item.eigenvector.slice() }; }) },
-      eigenvalues: values,
-      peripheralSpectrum: peripheral,
-      subdominantRatio: spectrum.subdominantRatio,
-      power: power,
-      shiftedPower: shifted,
-      ledger: ledger
-    };
-  }
 
-  function perronRoot(matrix) { return analyzeMatrix(matrix).rho; }
-  function formatNumber(value, digits) { return Number(value).toFixed(digits === undefined ? 3 : digits); }
-  function vectorString(vector) { return vector ? "(" + vector.map(function (value) { return formatNumber(value, 3); }).join(", ") + ")" : "—"; }
-  function complexString(value) { return formatNumber(value.re, 3) + (value.im >= 0 ? "+" : "") + formatNumber(value.im, 3) + "i"; }
-  function spectrumString(values) { return values.length ? values.map(complexString).join(", ") : "∅"; }
-  function supportString(support) { return support.length ? "{" + support.join(",") + "}" : "∅"; }
-  function sameComplex(left, right, scale) { var distance = Math.sqrt((left.re - right.re) * (left.re - right.re) + (left.im - right.im) * (left.im - right.im)); return distance <= relativeTolerance(Math.max(scale || 0, cAbs(left), cAbs(right)), RELATIVE_TOLERANCE); }
 
-  function presetById(id) { for (var index = 0; index < PRESETS.length; index += 1) if (PRESETS[index].id === id) return PRESETS[index]; return PRESETS[0]; }
-  function setAttributes(node, attributes) { Object.keys(attributes || {}).forEach(function (key) { var value = attributes[key]; if (value === undefined || value === null || value === false) return; if (key === "className") node.setAttribute("class", String(value)); else if (key === "text") node.textContent = String(value); else if (value === true) node.setAttribute(key, ""); else node.setAttribute(key, String(value)); }); return node; }
-  function appendChildren(node, children, doc) { if (children === undefined || children === null) return node; (Array.isArray(children) ? children : [children]).forEach(function (child) { if (child === undefined || child === null || child === false) return; node.appendChild(child && child.nodeType ? child : doc.createTextNode(String(child))); }); return node; }
-  function element(doc, tag, attributes, children) { return appendChildren(setAttributes(doc.createElement(tag), attributes), children, doc); }
-  function svgElement(doc, tag, attributes, children) { return appendChildren(setAttributes(doc.createElementNS(SVG_NS, tag), attributes), children, doc); }
-  function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
-  function installStyles(doc) { if (doc.getElementById && doc.getElementById(STYLE_ID)) return; var style = doc.createElement("style"); style.id = STYLE_ID; style.textContent = STYLE_TEXT; (doc.head || doc.documentElement).appendChild(style); }
-  function announce(api, root, message) { if (api && typeof api.announce === "function") api.announce(root, message); }
-  function metric(doc, label) { var value = element(doc, "strong", { text: "—" }); return { node: element(doc, "div", { className: "pf-metric" }, [element(doc, "span", { text: label }), value]), value: value }; }
 
-  function questionSpecs(result) {
-    return [
-      { key: "positive", prompt: "严格正矩阵是否一定本原？", expected: "yes", choices: [{ value: "yes", label: "是" }, { value: "no", label: "不一定" }, { value: "only-periodic", label: "只看周期" }] },
-      { key: "power", prompt: "当前矩阵是否由定理保证原始归一化幂法收敛？", expected: result.primitive ? "yes" : "no", choices: [{ value: "yes", label: "保证" }, { value: "no", label: "不保证" }, { value: "finite", label: "看有限曲线即可" }] },
-      { key: "reducible", prompt: "可约矩阵应先记录什么？", expected: "scc", choices: [{ value: "scc", label: "SCC / 临界块" }, { value: "global", label: "直接写唯一全正向量" }, { value: "trace", label: "只看迹" }] }
-    ];
-  }
 
-  function renderPredictions(state, refs, result) {
-    var specs = questionSpecs(result);
-    refs.questions.forEach(function (questionRef, index) { var spec = specs[index]; questionRef.legend.textContent = spec.prompt; questionRef.buttons.forEach(function (buttonRef) { var selected = state.predictions[spec.key] === buttonRef.value; buttonRef.node.setAttribute("aria-pressed", selected ? "true" : "false"); if (state.revealed) { var correct = buttonRef.value === spec.expected; buttonRef.node.textContent = (correct ? "✓ " : "") + buttonRef.label; buttonRef.node.className = correct ? "pf-pass" : (selected ? "pf-warn" : ""); } else { buttonRef.node.textContent = buttonRef.label; buttonRef.node.className = ""; } }); });
-  }
-
-  function drawVisualization(doc, svg, result, uid) {
-    clear(svg); svg.setAttribute("viewBox", "0 0 760 360");
-    svg.appendChild(svgElement(doc, "title", { id: uid + "-svg-title", text: "Perron-Frobenius 图、外围谱与幂法" }));
-    svg.appendChild(svgElement(doc, "desc", { id: uid + "-svg-desc", text: "左侧是矩阵非零项的有向支持图；右侧是外围谱；底部是最后一次归一化幂法向量。" }));
-    var defs = svgElement(doc, "defs", {}), markerId = uid + "-arrow", marker = svgElement(doc, "marker", { id: markerId, markerWidth: "7", markerHeight: "7", refX: "6", refY: "3.5", orient: "auto", markerUnits: "strokeWidth" });
-    marker.appendChild(svgElement(doc, "path", { d: "M0,0 L7,3.5 L0,7 z", fill: "#315f9d" })); defs.appendChild(marker); svg.appendChild(defs);
-    var n = result.n, points = [], centerX = 145, centerY = 130, radius = Math.min(84, 25 + 15 * n);
-    for (var i = 0; i < n; i += 1) { var angle = -Math.PI / 2 + 2 * Math.PI * i / n; points.push([centerX + radius * Math.cos(angle), centerY + radius * Math.sin(angle)]); }
-    for (i = 0; i < n; i += 1) for (var j = 0; j < n; j += 1) if (result.matrix[i][j] > 0) svg.appendChild(svgElement(doc, "line", { x1: points[i][0], y1: points[i][1], x2: points[j][0], y2: points[j][1], class: "pf-edge", "marker-end": "url(#" + markerId + ")" }));
-    points.forEach(function (point, index) { svg.appendChild(svgElement(doc, "circle", { cx: point[0], cy: point[1], r: "17", class: "pf-node" })); svg.appendChild(svgElement(doc, "text", { x: point[0], y: point[1], class: "pf-node-label" }, String(index))); });
-    svg.appendChild(svgElement(doc, "text", { x: "40", y: "252", class: "pf-small" }, result.irreducible ? "支持图：强连通" : "支持图：可约，先看 SCC"));
-    var sx = 545, sy = 130, sr = 82, rho = result.rho > 0 ? result.rho : 1, scale = sr / rho;
-    svg.appendChild(svgElement(doc, "circle", { cx: sx, cy: sy, r: sr, class: "pf-spectral-circle" })); svg.appendChild(svgElement(doc, "line", { x1: sx - sr - 10, y1: sy, x2: sx + sr + 10, y2: sy, class: "pf-axis" })); svg.appendChild(svgElement(doc, "line", { x1: sx, y1: sy - sr - 10, x2: sx, y2: sy + sr + 10, class: "pf-axis" }));
-    result.peripheralSpectrum.forEach(function (value) { svg.appendChild(svgElement(doc, "circle", { cx: sx + value.re * scale, cy: sy - value.im * scale, r: "5", class: "pf-peripheral" })); });
-    svg.appendChild(svgElement(doc, "text", { x: "470", y: "28", class: "pf-small" }, "外围谱 |λ|=ρ≈" + formatNumber(result.rho, 3))); svg.appendChild(svgElement(doc, "text", { x: "470", y: "252", class: "pf-small" }, spectrumString(result.peripheralSpectrum)));
-    var row = result.power.rows[result.power.rows.length - 1].vector, barBase = 335, barWidth = Math.min(58, 220 / Math.max(1, n)), barStart = 420;
-    row.forEach(function (value, index) { var height = Math.max(0, 75 * value), x = barStart + index * (barWidth + 10); svg.appendChild(svgElement(doc, "rect", { x: x, y: barBase - height, width: barWidth, height: height, class: "pf-bar" })); svg.appendChild(svgElement(doc, "text", { x: x + barWidth / 2, y: barBase + 16, class: "pf-small", "text-anchor": "middle" }, "v" + index)); });
-    svg.appendChild(svgElement(doc, "text", { x: "40", y: "300", class: "pf-small" }, "归一化幂法最后向量"));
-  }
-
-  function renderLedger(doc, hostNode, result) {
-    var body = element(doc, "tbody", {}); result.ledger.forEach(function (row) { body.appendChild(element(doc, "tr", {}, [element(doc, "th", { scope: "row", text: row.layer }), element(doc, "td", { text: row.result }), element(doc, "td", { text: row.role }), element(doc, "td", { text: row.evidence })])); }); clear(hostNode); hostNode.appendChild(element(doc, "table", { className: "pf-table" }, [element(doc, "caption", { text: "非负矩阵学习账本：结构、谱和数值行为分栏" }), element(doc, "thead", {}, [element(doc, "tr", {}, [element(doc, "th", { scope: "col", text: "层" }), element(doc, "th", { scope: "col", text: "结果" }), element(doc, "th", { scope: "col", text: "逻辑角色" }), element(doc, "th", { scope: "col", text: "证据 / 边界" })])]), body]));
-  }
-
-  function mount(root, api) {
-    if (!root || !root.ownerDocument) return;
-    var doc = root.ownerDocument, uid = "pf-" + (++INSTANCE), state = { presetId: PRESETS[0].id, steps: 16, revealed: false, predictions: {}, feedback: "" }, refs = { questions: [] };
-    installStyles(doc);
-    var shell = element(doc, "div", { className: "pf-lab" }); shell.appendChild(element(doc, "h3", { text: "Perron-Frobenius 实验：结构先于收敛曲线" })); shell.appendChild(element(doc, "p", { className: "pf-note", text: "固定有限非负矩阵；比较正、本原、周期不可约和可约四类行为。" }));
-    var presetSelect = element(doc, "select", { "aria-label": "Perron-Frobenius 矩阵预设" }); PRESETS.forEach(function (preset) { presetSelect.appendChild(element(doc, "option", { value: preset.id, text: preset.label })); });
-    var stepsInput = element(doc, "input", { type: "range", min: "6", max: "32", step: "1", value: "16", "aria-label": "幂迭代步数" }), stepsOutput = element(doc, "output", { text: "16" });
-    var reset = element(doc, "button", { type: "button", text: "重置预测" });
-    shell.appendChild(element(doc, "div", { className: "pf-controls" }, [element(doc, "div", { className: "pf-control" }, [element(doc, "label", { text: "矩阵预设" }), presetSelect]), element(doc, "div", { className: "pf-control" }, [element(doc, "label", {}, ["幂法步数：", stepsOutput]), stepsInput]), reset]));
-    var gate = element(doc, "div", { className: "pf-gate" }); questionSpecs(analyzeMatrix(PRESETS[0].matrix)).forEach(function (spec) { var fieldset = element(doc, "fieldset", {}), legend = element(doc, "legend", { text: spec.prompt }), grid = element(doc, "div", { className: "pf-choice-grid" }), questionRef = { key: spec.key, legend: legend, buttons: [] }; spec.choices.forEach(function (choice) { var button = element(doc, "button", { type: "button", "aria-pressed": "false", text: choice.label }); button.addEventListener("click", function () { state.predictions[spec.key] = choice.value; state.feedback = ""; render(); }); questionRef.buttons.push({ value: choice.value, label: choice.label, node: button }); grid.appendChild(button); }); fieldset.appendChild(legend); fieldset.appendChild(grid); gate.appendChild(fieldset); refs.questions.push(questionRef); }); shell.appendChild(gate);
-    var actions = element(doc, "div", { className: "pf-actions" }), reveal = element(doc, "button", { type: "button", className: "pf-primary", text: "核对预测并揭晓" }), feedback = element(doc, "p", { className: "pf-feedback", "aria-live": "polite" }); actions.appendChild(reveal); shell.appendChild(actions); shell.appendChild(feedback);
-    var resultShell = element(doc, "div", { className: "pf-result", hidden: true }), svg = svgElement(doc, "svg", { className: "pf-svg", role: "img", "aria-labelledby": uid + "-svg-title " + uid + "-svg-desc", viewBox: "0 0 760 360" }), metricsHost = element(doc, "div", { className: "pf-metrics" }), certificate = element(doc, "p", { className: "pf-certificate" }), tableHost = element(doc, "div", { className: "pf-table-wrap" });
-    resultShell.appendChild(element(doc, "div", { className: "pf-layout" }, [element(doc, "div", { className: "pf-frame" }, [svg]), element(doc, "div", {}, [metricsHost, certificate])])); resultShell.appendChild(tableHost); shell.appendChild(resultShell); clear(root); root.appendChild(shell);
-    function lock() { state.revealed = false; state.predictions = {}; state.feedback = ""; render(); }
-    presetSelect.addEventListener("change", function () { state.presetId = presetSelect.value; state.initial = null; lock(); }); stepsInput.addEventListener("input", function () { state.steps = Number(stepsInput.value); lock(); }); reset.addEventListener("click", function () { state = { presetId: PRESETS[0].id, steps: 16, revealed: false, predictions: {}, feedback: "" }; render(); announce(api, root, "Perron-Frobenius 预测已重置。"); });
-    reveal.addEventListener("click", function () { var result = analyzeMatrix(presetById(state.presetId).matrix, { initial: presetById(state.presetId).initial, steps: state.steps }), specs = questionSpecs(result); if (!specs.every(function (spec) { return state.predictions[spec.key] !== undefined; })) { state.feedback = "请先完成三项预测。"; render(); return; } var correct = specs.filter(function (spec) { return state.predictions[spec.key] === spec.expected; }).length; state.revealed = true; state.feedback = "已揭晓：" + correct + "/" + specs.length + " 命中；把 raw power 和结构定理分开读。"; render(); announce(api, root, state.feedback); });
-    function render() { var preset = presetById(state.presetId), result = analyzeMatrix(preset.matrix, { initial: preset.initial, steps: state.steps }); presetSelect.value = preset.id; stepsInput.value = String(state.steps); stepsOutput.textContent = String(state.steps); renderPredictions(state, refs, result); feedback.textContent = state.feedback || ""; feedback.className = "pf-feedback" + (state.feedback.indexOf("请先") === 0 ? " pf-warn" : ""); resultShell.hidden = !state.revealed; if (!state.revealed) return; drawVisualization(doc, svg, result, uid); var metrics = [metric(doc, "类型"), metric(doc, "ρ"), metric(doc, "周期 h"), metric(doc, "Perron 向量"), metric(doc, "原始幂法"), metric(doc, "次大比例")]; clear(metricsHost); metrics.forEach(function (item) { metricsHost.appendChild(item.node); }); metrics[0].value.textContent = result.positive ? "正" : (result.irreducible ? (result.primitive ? "本原" : "周期不可约") : "可约"); metrics[1].value.textContent = formatNumber(result.rho, 5); metrics[2].value.textContent = result.period === null ? "按 SCC" : String(result.period); metrics[3].value.textContent = result.irreducible ? vectorString(result.perron.eigenvector) : "dim=" + result.perron.eigenspaceDimension + "；支持=" + supportString(result.perron.support); metrics[4].value.textContent = result.power.zeroPerronProjection ? "零 Perron 投影" : (result.power.converged ? "收敛迹象" : "未收敛"); metrics[5].value.textContent = result.subdominantRatio === null ? "—" : formatNumber(result.subdominantRatio, 5); certificate.className = "pf-certificate" + (result.primitive && !result.power.zeroPerronProjection ? "" : " pf-blocked"); certificate.textContent = result.power.zeroPerronProjection ? "当前幂法起点在 Perron 左特征空间上的投影为零，不把归一化曲线当作 Perron 方向。" : (result.primitive ? "本原证书：对逐元素严格正起点，归一化幂法有渐近收敛定理；当前有限表和谱隙比例仍只是该矩阵的数值回放。" : (result.irreducible ? "不可约但非本原：外围谱保留周期相位，原始幂法不享有普遍收敛保证。" : "可约证书：Perron 特征空间 dim=" + result.perron.eigenspaceDimension + "，支持=" + supportString(result.perron.support) + "；按实际谱空间描述，不由可约性预判唯一性。")); renderLedger(doc, tableHost, result); }
-    render();
-  }
-
-  function selfTest() {
-    var checks = 0;
-    function check(condition, message) { assert(condition, message); checks += 1; }
-    PRESETS.forEach(function (preset) { var result = analyzeMatrix(preset.matrix, { initial: preset.initial, steps: 20 }); check(result.validation.valid, preset.id + " validation"); check(result.ledger.length >= 8, preset.id + " ledger depth"); check(result.rho >= 0, preset.id + " nonnegative rho"); });
-    var positive = analyzeMatrix(presetById("positive").matrix, { initial: [1, 0.25], steps: 20 }); check(positive.positive && positive.irreducible && positive.primitive, "positive classification"); check(near(positive.rho, 3, 1e-5), "positive Perron root"); check(near(positive.perron.eigenvector[0], positive.perron.eigenvector[1], 1e-5), "positive Perron vector"); check(positive.peripheralSpectrum.length === 1, "positive peripheral spectrum"); check(positive.subdominantRatio < 1, "positive spectral gap"); check(positive.power.converged, "positive raw power convergence");
-    var primitive = analyzeMatrix(presetById("primitive").matrix, { initial: [1, 0.3, 0.2], steps: 80 }); check(!primitive.positive && primitive.irreducible && primitive.primitive, "primitive nonpositive classification"); check(primitive.period === 1, "primitive period one"); check(primitive.peripheralSpectrum.length === 1, "primitive peripheral spectrum"); check(primitive.power.converged, "primitive raw power convergence");
-    var periodic = analyzeMatrix(presetById("periodic").matrix, { initial: [1, 0.25], steps: 12 }); check(periodic.irreducible && !periodic.primitive && periodic.period === 2, "periodic classification"); check(near(periodic.rho, Math.sqrt(2), 1e-5), "periodic Perron root"); check(periodic.peripheralSpectrum.length === 2, "periodic peripheral pair"); check(periodic.subdominantRatio === 1, "periodic no spectral gap ratio"); check(!periodic.power.converged, "periodic raw power does not converge"); check(periodic.power.rows[1].vector[0] !== periodic.power.rows[2].vector[0], "periodic power alternates");
-    var reducible = analyzeMatrix(presetById("reducible").matrix, { initial: [1, 0.6, 0.3], steps: 18 }); check(!reducible.irreducible && reducible.classes.length === 3, "reducible SCC classes"); check(near(reducible.rho, 2, 1e-5), "reducible critical root"); check(reducible.perron.eigenvector === null, "reducible global vector boundary"); check(reducible.criticalClasses.length === 1 && reducible.criticalClasses[0][0] === 0, "reducible critical class"); check(reducible.ledger[1].result.indexOf("可约") === 0, "reducible ledger class structure");
-    check(reducible.perron.eigenspaceDimension === 1 && reducible.perron.unique && reducible.perron.support.length === 1 && reducible.perron.support[0] === 0, "reducible actual Perron space");
-    var reducibleMultiple = analyzeMatrix([[2, 0], [0, 2]], { initial: [1, 1], steps: 4 }); check(reducibleMultiple.perron.eigenspaceDimension === 2 && !reducibleMultiple.perron.unique && reducibleMultiple.perron.support.length === 2, "reducible multiplicity is measured");
-    var zeroProjection = analyzeMatrix([[2, 0], [0, 1]], { initial: [0, 1], steps: 6 }); check(zeroProjection.power.zeroPerronProjection === true && !zeroProjection.power.converged, "zero Perron projection is marked");
-    var tinyPeriodic = analyzeMatrix([[0, 1e-12], [1e-12, 0]], { initial: [1, 0.25], steps: 4 }); check(tinyPeriodic.irreducible && tinyPeriodic.period === 2 && near(tinyPeriodic.rho, 1e-12, 1e-8), "tiny positive cycle stays structural"); check(tinyPeriodic.peripheralSpectrum.length === 2 && tinyPeriodic.power.zeroPerronProjection === false, "tiny periodic spectrum and power");
-    var nearGap = analyzeMatrix([[1, 1e-6], [1e-6, 1]], { initial: [1, 0.25], steps: 4 }); check(nearGap.subdominantRatio > 0.99999 && nearGap.subdominantRatio < 1 && near(nearGap.subdominantRatio, 0.999998, 1e-6), "relative spectral ratio threshold");
-    check(peripheralSpectrum(3, 2).length === 2, "peripheral helper period"); check(validateMatrix([[1, -1]]).valid === false, "negative matrix rejected"); check(powerIteration([[0, 1], [1, 0]], { initial: [1, 0.25], steps: 4 }).rows.length === 5, "power helper rows");
-    return { ok: true, checks: checks, presets: PRESETS.length };
-  }
-
-  return { EPS: EPS, PRESETS: PRESETS.map(clonePreset), validateMatrix: validateMatrix, stronglyConnectedComponents: stronglyConnectedComponents, periodOf: periodOf, qrEigenvalues: qrEigenvalues, perronRoot: perronRoot, powerIteration: powerIteration, peripheralSpectrum: peripheralSpectrum, analyzeMatrix: analyzeMatrix, classifyMatrix: analyzeMatrix, selfTest: selfTest, mount: mount };
+function selfTest(){
+ let checks=0;const ck=(v,m)=>{checks++;if(!v)throw Error(m);};
+ let r=snapshot().result;ck(r.graph.primitive&&r.rho===3,"positive");
+ r=snapshot({a:0,b:1,c:1,d:0}).result;ck(r.graph.period===2&&r.other===-1,"periodic");
+ r=snapshot({a:1,b:1,c:0,d:1}).result;ck(r.dimension===1&&r.algebraicMultiplicity===2,"Jordan");
+ r=snapshot({a:1,b:0,c:0,d:1}).result;ck(r.dimension===2,"multiple");
+ r=snapshot({a:0,b:1,c:0,d:0}).result;ck(r.power.stopped&&r.rho===0,"nilpotent");
+ r=snapshot({x1:1,x2:-1}).result;ck(r.projection.numerator==="0","zero projection");
+ r=snapshot({mode:"cycle"}).result;ck(r.graph.period===3&&r.eigen[1].lambda.im>0,"complex cycle");
+ r=snapshot({mode:"markov"}).result;ck(r.solve.unique&&r.stochasticExact,"PageRank");
+ r=snapshot({mode:"markov",alpha:1}).result;ck(r.contraction===null&&r.rows.every(z=>z.bound===null),"undamped");
+ r=snapshot({mode:"markov",network:"dangling"}).result;ck(r.dangling[2]&&r.stochasticExact,"dangling");
+ ck(fmt(1e-15)!=="0"&&fmt(0)==="0","small values visible");
+ ck(graph([[0]]).period===null&&!graph([[0]]).primitive,"zero singleton exception");
+ return{status:"PASS",checks};
+}
+return{DEFAULTS,PRESETS,QUESTIONS,num,config,snapshot,two,cycle,markov,graph,iterate,collatz,exact,packed,solveExact,fmt,plots,ledgers,svg,mount,selfTest};
 });
