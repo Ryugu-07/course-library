@@ -1,920 +1,198 @@
-(function (host) {
-  "use strict";
-
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "homology-boundary-lab-styles";
-  var INSTANCE = 0;
-
-  /*
-   * This lab is intentionally a finite, 2-dimensional simplicial-complex
-   * model over F_2.  Orientation and signs are not stored: every boundary
-   * matrix is a 0/1 matrix and all arithmetic below is modulo two.
-   */
-  var PRESETS = [
-    {
-      id: "solid-triangle",
-      label: "实心三角形",
-      description: "三条边加一个 2-simplex；环被面填掉。",
-      vertices: [
-        { id: "v0", label: "v₀", x: 105, y: 58 },
-        { id: "v1", label: "v₁", x: 285, y: 58 },
-        { id: "v2", label: "v₂", x: 195, y: 220 }
-      ],
-      edges: [
-        { id: "e01", label: "e₀₁", vertices: [0, 1] },
-        { id: "e12", label: "e₁₂", vertices: [1, 2] },
-        { id: "e20", label: "e₂₀", vertices: [2, 0] }
-      ],
-      faces: [
-        { id: "f012", label: "f₀₁₂", vertices: [0, 1, 2] }
-      ],
-      defaultChain: ["e01", "e12", "e20"]
-    },
-    {
-      id: "hollow-triangle",
-      label: "只有三角边界",
-      description: "三条边没有 2-simplex；同一条圈不能填。",
-      vertices: [
-        { id: "v0", label: "v₀", x: 105, y: 58 },
-        { id: "v1", label: "v₁", x: 285, y: 58 },
-        { id: "v2", label: "v₂", x: 195, y: 220 }
-      ],
-      edges: [
-        { id: "e01", label: "e₀₁", vertices: [0, 1] },
-        { id: "e12", label: "e₁₂", vertices: [1, 2] },
-        { id: "e20", label: "e₂₀", vertices: [2, 0] }
-      ],
-      faces: [],
-      defaultChain: ["e01", "e12", "e20"]
-    },
-    {
-      id: "triangle-plus-isolated",
-      label: "三角环 + 孤立点",
-      description: "一个 1-cycle 与一个不相连的顶点；β₀ 变成 2。",
-      vertices: [
-        { id: "v0", label: "v₀", x: 105, y: 58 },
-        { id: "v1", label: "v₁", x: 285, y: 58 },
-        { id: "v2", label: "v₂", x: 195, y: 220 },
-        { id: "v3", label: "v₃", x: 455, y: 140 }
-      ],
-      edges: [
-        { id: "e01", label: "e₀₁", vertices: [0, 1] },
-        { id: "e12", label: "e₁₂", vertices: [1, 2] },
-        { id: "e20", label: "e₂₀", vertices: [2, 0] }
-      ],
-      faces: [],
-      defaultChain: ["e01", "e12", "e20"]
-    },
-    {
-      id: "tetrahedron-surface",
-      label: "四面体表面",
-      description: "四个三角面组成 S² 的三角剖分；存在 2-cycle。",
-      vertices: [
-        { id: "v0", label: "v₀", x: 112, y: 64 },
-        { id: "v1", label: "v₁", x: 292, y: 64 },
-        { id: "v2", label: "v₂", x: 342, y: 220 },
-        { id: "v3", label: "v₃", x: 170, y: 250 }
-      ],
-      edges: [
-        { id: "e01", label: "e₀₁", vertices: [0, 1] },
-        { id: "e02", label: "e₀₂", vertices: [0, 2] },
-        { id: "e03", label: "e₀₃", vertices: [0, 3] },
-        { id: "e12", label: "e₁₂", vertices: [1, 2] },
-        { id: "e13", label: "e₁₃", vertices: [1, 3] },
-        { id: "e23", label: "e₂₃", vertices: [2, 3] }
-      ],
-      faces: [
-        { id: "f012", label: "f₀₁₂", vertices: [0, 1, 2] },
-        { id: "f013", label: "f₀₁₃", vertices: [0, 1, 3] },
-        { id: "f023", label: "f₀₂₃", vertices: [0, 2, 3] },
-        { id: "f123", label: "f₁₂₃", vertices: [1, 2, 3] }
-      ],
-      defaultChain: ["e01", "e12", "e02"]
-    }
-  ];
-
-  function fail(message) {
-    throw new Error("homology-boundary: " + message);
+(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;if(root&&root.CourseLearning)root.CourseLearning.register('homology-boundary',api.mount);})(typeof window!=='undefined'?window:globalThis,function(){
+'use strict';
+const Z=(m,n)=>({rows:m,cols:n,data:Array.from({length:m},()=>Array(n).fill(0n))}),I=n=>{const a=Z(n,n);for(let i=0;i<n;i++)a.data[i][i]=1n;return a;},clone=a=>({rows:a.rows,cols:a.cols,data:a.data.map(r=>r.slice())});
+const abs=x=>x<0n?-x:x,mod=(x,p)=>((x%p)+p)%p;
+function mul(a,b){if(a.cols!==b.rows)throw Error('矩阵尺寸不匹配');const c=Z(a.rows,b.cols);for(let i=0;i<a.rows;i++)for(let j=0;j<b.cols;j++)for(let k=0;k<a.cols;k++)c.data[i][j]+=a.data[i][k]*b.data[k][j];return c;}
+const vec=(a,v)=>a.data.map(r=>r.reduce((s,x,j)=>s+x*v[j],0n)),isZero=a=>a.data.every(r=>r.every(x=>x===0n)),col=(a,j)=>a.data.map(r=>r[j]);
+function columns(vectors,n){const a=Z(n,vectors.length);vectors.forEach((v,j)=>v.forEach((x,i)=>a.data[i][j]=x));return a;}
+const pack=a=>({rows:a.rows,cols:a.cols,data:a.data.map(r=>r.map(String))});
+function smith(input){
+ const D=clone(input),U=I(input.rows),V=I(input.cols),Ui=I(input.rows),Vi=I(input.cols),steps=[];
+ const rowSwap=(a,i,j)=>{[a.data[i],a.data[j]]=[a.data[j],a.data[i]];},colSwap=(a,i,j)=>a.data.forEach(r=>{[r[i],r[j]]=[r[j],r[i]];}),rowAdd=(a,i,j,q)=>a.data[i].forEach((_,k)=>a.data[i][k]+=q*a.data[j][k]),colAdd=(a,i,j,q)=>a.data.forEach(r=>r[i]+=q*r[j]);
+ function op(kind,i,j=null,q=null){
+  if(kind==='swapRows'){rowSwap(D,i,j);rowSwap(U,i,j);colSwap(Ui,i,j);}
+  else if(kind==='swapColumns'){colSwap(D,i,j);colSwap(V,i,j);rowSwap(Vi,i,j);}
+  else if(kind==='addRow'){rowAdd(D,i,j,q);rowAdd(U,i,j,q);colAdd(Ui,j,i,-q);}
+  else if(kind==='addColumn'){colAdd(D,i,j,q);colAdd(V,i,j,q);rowAdd(Vi,j,i,-q);}
+  else if(kind==='negateRow'){D.data[i]=D.data[i].map(x=>-x);U.data[i]=U.data[i].map(x=>-x);Ui.data.forEach(r=>r[i]=-r[i]);}
+  steps.push({index:steps.length,kind,i,j,multiple:q===null?null:String(q),matrix:pack(D)});
+  if(steps.length>4000)throw Error('整数消元超过本实验的4000步上限；未给出同调结论');
+ }
+ let k=0;
+ while(k<Math.min(D.rows,D.cols)){
+  let pos=null;for(let i=k;i<D.rows;i++)for(let j=k;j<D.cols;j++)if(D.data[i][j]!==0n&&(!pos||abs(D.data[i][j])<abs(D.data[pos[0]][pos[1]])))pos=[i,j];
+  if(!pos)break;if(pos[0]!==k)op('swapRows',k,pos[0]);if(pos[1]!==k)op('swapColumns',k,pos[1]);
+  while(true){
+   let restart=false;
+   for(let i=k+1;i<D.rows;i++)if(D.data[i][k]!==0n){const q=D.data[i][k]/D.data[k][k];if(q!==0n)op('addRow',i,k,-q);if(D.data[i][k]!==0n)op('swapRows',i,k);restart=true;break;}
+   if(restart)continue;
+   for(let j=k+1;j<D.cols;j++)if(D.data[k][j]!==0n){const q=D.data[k][j]/D.data[k][k];if(q!==0n)op('addColumn',j,k,-q);if(D.data[k][j]!==0n)op('swapColumns',j,k);restart=true;break;}
+   if(restart)continue;
+   let bad=null;for(let i=k+1;i<D.rows&&!bad;i++)for(let j=k+1;j<D.cols;j++)if(D.data[i][j]%D.data[k][k]!==0n){bad=[i,j];break;}
+   if(bad){op('addRow',k,bad[0],1n);continue;}break;
   }
+  if(D.data[k][k]<0n)op('negateRow',k);k++;
+ }
+ return{D,U,V,Ui,Vi,rank:k,diagonal:Array.from({length:k},(_,j)=>D.data[j][j]),steps};
+}
+const smithRecord=s=>({diagonal:s.diagonal.map(String),rank:s.rank,D:pack(s.D),U:pack(s.U),V:pack(s.V),inverseU:pack(s.Ui),inverseV:pack(s.Vi),steps:s.steps});
+function rref(input,p){
+ const a=clone(input);a.data=a.data.map(r=>r.map(v=>mod(v,p)));const U=I(a.rows),pivots=[],steps=[];let k=0;
+ function record(kind,i,j,multiple){steps.push({index:steps.length,kind,i,j,multiple:String(multiple),matrix:pack(a)});}
+ for(let j=0;j<a.cols&&k<a.rows;j++){
+  const found=a.data.findIndex((r,i)=>i>=k&&r[j]!==0n);if(found<0)continue;
+  if(found!==k){[a.data[k],a.data[found]]=[a.data[found],a.data[k]];[U.data[k],U.data[found]]=[U.data[found],U.data[k]];record('swapRows',k,found,1n);}
+  let inv=1n;while(mod(a.data[k][j]*inv,p)!==1n)inv++;
+  if(inv!==1n){a.data[k]=a.data[k].map(x=>mod(x*inv,p));U.data[k]=U.data[k].map(x=>mod(x*inv,p));record('scaleRow',k,k,inv);}
+  for(let i=0;i<a.rows;i++)if(i!==k&&a.data[i][j]!==0n){const q=-a.data[i][j];a.data[i]=a.data[i].map((x,t)=>mod(x+q*a.data[k][t],p));U.data[i]=U.data[i].map((x,t)=>mod(x+q*U.data[k][t],p));record('addRow',i,k,q);}
+  pivots.push(j);k++;
+ }
+ return{matrix:a,U,pivots,rank:k,steps};
+}
+function solveF(A,b,p){const R=rref(A,p),rhs=vec(R.U,b).map(v=>mod(v,p));const consistent=rhs.slice(R.rank).every(v=>v===0n);if(!consistent)return{consistent:false,solution:null,transformed:rhs.map(String),certificate:pack(R.U)};const x=Array(A.cols).fill(0n);R.pivots.forEach((j,i)=>x[j]=rhs[i]);return{consistent:true,solution:x.map(String),transformed:rhs.map(String),certificate:pack(R.U)};}
+function kernelF(A,p,R=rref(A,p)){const free=Array.from({length:A.cols},(_,i)=>i).filter(i=>!R.pivots.includes(i));return free.map(j=>{const v=Array(A.cols).fill(0n);v[j]=1n;R.pivots.forEach((c,i)=>v[c]=mod(-R.matrix.data[i][j],p));return v;});}
+function integerGroup(A,B){
+ const s=smith(A),trans=mul(s.Vi,B);if(trans.data.slice(0,s.rank).some(r=>r.some(v=>v!==0n)))throw Error('相邻基变换不兼容');
+ const kernel=Z(A.cols,A.cols-s.rank);for(let i=0;i<A.cols;i++)for(let j=s.rank;j<A.cols;j++)kernel.data[i][j-s.rank]=s.V.data[i][j];
+ const coordinates={rows:A.cols-s.rank,cols:B.cols,data:trans.data.slice(s.rank).map(r=>r.slice())},t=smith(coordinates),reps=mul(kernel,t.Ui);
+ const generators=[];for(let j=0;j<coordinates.rows;j++)if(j>=t.rank||t.diagonal[j]>1n){const order=j<t.rank?t.diagonal[j]:null;generators.push({coordinate:j,order:order===null?null:String(order),representative:col(reps,j).map(String),fillingMultiple:order===null?null:col(t.V,j).map(String)});}
+ return{lower:s,upper:t,kernel,transformedUpper:trans,coordinates,representatives:reps,generators,freeRank:coordinates.rows-t.rank,torsion:t.diagonal.filter(v=>v>1n).map(String)};
+}
+function integerSelection(c,A,B,h){
+ const boundary=vec(A,c),cycle=boundary.every(v=>v===0n);if(!cycle)return{cycle:false,boundary:boundary.map(String),classification:'not-cycle',classCoordinates:null,order:null,filling:null};
+ const coordinates=vec(h.lower.Vi,c).slice(h.lower.rank),smithCoordinates=vec(h.upper.U,coordinates),classes=smithCoordinates.map((v,j)=>j<h.upper.rank?mod(v,h.upper.diagonal[j]):v);
+ const zero=classes.every(v=>v===0n);let order=1n;
+ const gcd=(a,b)=>{a=abs(a);b=abs(b);while(b!==0n)[a,b]=[b,a%b];return a;};
+ for(let j=0;j<classes.length;j++){if(j>=h.upper.rank&&classes[j]!==0n){order=null;break;}if(j<h.upper.rank){const d=h.upper.diagonal[j],o=d/gcd(d,classes[j]);order=order/gcd(order,o)*o;}}
+ let filling=null;
+ if(order!==null){const z=Array(B.cols).fill(0n);for(let j=0;j<h.upper.rank;j++)z[j]=smithCoordinates[j]*order/h.upper.diagonal[j];filling=vec(h.upper.V,z).map(String);}
+ return{cycle,boundary:boundary.map(String),kernelCoordinates:coordinates.map(String),smithCoordinates:smithCoordinates.map(String),classCoordinates:classes.map(String),classification:zero?'boundary':order===null?'infinite-class':'torsion-class',order:order===null?null:String(order),filling};
+}
+function fieldGroup(A,B,p){
+ const lo=rref(A,p),up=rref(B,p),kernel=kernelF(A,p,lo),boundary=up.pivots.map(j=>col(B,j).map(v=>mod(v,p))),homology=[];let current=boundary.slice();
+ for(const v of kernel){if(rref(columns([...current,v],A.cols),p).rank>current.length){homology.push(v);current.push(v);}}
+ return{lower:lo,upper:up,kernel,boundary,homology,dimension:homology.length};
+}
+function fieldSelection(c,A,B,h,p){
+ const boundary=vec(A,c).map(v=>mod(v,p)),cycle=boundary.every(v=>v===0n);if(!cycle)return{cycle:false,boundary:boundary.map(String),classification:'not-cycle',decomposition:null,homologyCoordinates:null,filling:null};
+ const decomposition=solveF(columns([...h.boundary,...h.homology],A.cols),c,p);if(!decomposition.consistent)throw Error('同调基未张成闭链');const hc=decomposition.solution.slice(h.boundary.length),zero=hc.every(v=>v==='0');const filling=zero?solveF(B,c,p):null;
+ return{cycle,boundary:boundary.map(String),classification:zero?'boundary':'homology-class',decomposition,homologyCoordinates:hc,filling};
+}
+const DEFAULTS={mode:'simplicial',facets:'012',model:'rp2',degree:'1',chain:'1,-1,1',coefficient:'Z',m:'6',dimensions:'1,2,1,0',d1:'',d2:'2;0',d3:''};
+function integerText(x,label,limit){if(typeof x!=='string'||! /^-?(?:0|[1-9]\d*)$/.test(x)||abs(BigInt(x))>BigInt(limit))throw Error(label+'须为范围内的十进制整数，不含空格');return BigInt(x);}
+function readMatrix(raw,m,n,label){if(typeof raw!=='string')throw Error(label+'须为文本矩阵');if(raw==='')return Z(m,n);if(!m||!n)throw Error(label+'的零维矩阵必须留空');const rows=raw.split(';').map(r=>r.split(',').map(v=>integerText(v,label,8)));if(rows.length!==m||rows.some(r=>r.length!==n))throw Error(label+'须为'+m+'行'+n+'列，行用分号、列用逗号');return{rows:m,cols:n,data:rows};}
+function simplicial(facets){if(typeof facets!=='string'||!facets||facets.length>80)throw Error('单纯形须为非空编号文本，最多80字符');const top=facets.split(';');if(top.length>16||new Set(top).size!==top.length)throw Error('最多16个不同单纯形');for(const s of top)if(!/^[0-4]{1,4}$/.test(s)||[...s].some((c,i)=>i&&c<=s[i-1]))throw Error('每个单纯形用0至4的严格递增编号，最多4个顶点');const sets=Array.from({length:4},()=>new Set());for(const s of top)for(let mask=1;mask<2**s.length;mask++){const f=[...s].filter((_,i)=>mask&(1<<i)).join('');sets[f.length-1].add(f);}const cells=sets.map(v=>[...v].sort()),dimensions=cells.map(c=>c.length),boundaries=[Z(0,dimensions[0])];for(let k=1;k<=3;k++){const D=Z(dimensions[k-1],dimensions[k]);cells[k].forEach((s,j)=>{for(let i=0;i<s.length;i++){const face=s.slice(0,i)+s.slice(i+1),row=cells[k-1].indexOf(face);D.data[row][j]=i%2?-1n:1n;}});boundaries.push(D);}boundaries.push(Z(dimensions[3],0));return{dimensions,cells,boundaries,label:'有限三维单纯复形（自动补齐全部面）',geometric:true};}
+function modelData(p){
+ if(p.mode==='simplicial')return simplicial(p.facets);
+ let dimensions,inputs,label;
+ if(p.mode==='cellular'){
+  const m=integerText(p.m,'附加度数',8);const models={rp2:[[1,1,1,0],['','2',''],'射影平面RP²的胞腔链'],torus:[[1,2,1,0],['','',''],'环面T²的胞腔链'],klein:[[1,2,1,0],['','2;0',''],'Klein瓶的胞腔链（a系数为2）'],moore:[[1,1,1,0],['',String(m),''],'圆周沿度数m附加一个圆盘'],sphere3:[[1,0,0,1],['','',''],'三维球面S³的胞腔链'],lens:[[1,1,1,1],['',String(m),''],'标准三维透镜空间链型（m非零时）']};
+  if(!Object.hasOwn(models,p.model))throw Error('未知胞腔模型');if(p.model==='lens'&&m===0n)throw Error('透镜空间模型要求非零度数');[dimensions,inputs,label]=models[p.model];
+ }else{if(typeof p.dimensions!=='string'||!/^\d,\d,\d,\d$/.test(p.dimensions))throw Error('维数须为四个0至6整数');dimensions=p.dimensions.split(',').map(Number);if(dimensions.some(v=>v>6))throw Error('自定义各链群最多6维');inputs=[p.d1,p.d2,p.d3];label='自定义有限自由整数链候选；不自动宣称可由空间实现';}
+ const cells=dimensions.map((n,k)=>Array.from({length:n},(_,j)=>'c'+k+'_'+j)),boundaries=[Z(0,dimensions[0]),...inputs.map((s,i)=>readMatrix(s,dimensions[i],dimensions[i+1],'d'+(i+1))),Z(dimensions[3],0)];return{dimensions,cells,boundaries,label,geometric:false};
+}
+function config(raw={}){if(!raw||typeof raw!=='object'||Array.isArray(raw))throw Error('参数须为对象');const p={...DEFAULTS,...raw};if(!['simplicial','cellular','custom'].includes(p.mode))throw Error('未知模型类型');if(!['Z','2','3','5'].includes(p.coefficient))throw Error('系数须为Z或素域2、3、5');if(typeof p.degree!=='string'||! /^[0-3]$/.test(p.degree))throw Error('链次数须为0至3');const m=modelData(p),n=m.dimensions[Number(p.degree)];if(typeof p.chain!=='string')throw Error('链系数须为文本');if(p.chain!==''){const v=p.chain.split(',').map(x=>integerText(x,'链系数',12));if(v.length!==n)throw Error('当前次数需要'+n+'个链系数；留空表示零链');}return p;}
+function snapshot(raw={}){
+ const p=config(raw),model=modelData(p),k=Number(p.degree),c=p.chain===''?Array(model.dimensions[k]).fill(0n):p.chain.split(',').map(BigInt),checks=[];
+ for(let j=1;j<=3;j++){const product=mul(model.boundaries[j-1],model.boundaries[j]);checks.push({degree:j,product:pack(product),zero:isZero(product)});}
+ const valid=checks.every(z=>z.zero),result={model:model.label,geometric:model.geometric,dimensions:model.dimensions,cells:model.cells,boundaries:model.boundaries.map(pack),chainChecks:checks,validIntegerComplex:valid,degree:k,chain:c.map(String),eulerChains:model.dimensions.reduce((s,n,i)=>s+(i%2?-n:n),0),integerHomology:null,fieldComparisons:null,selected:null};
+ if(!valid){result.scope='相邻边界复合不为零，商群尚未定义；即使某个模p乘积碰巧为零，也不把该输入冒充整数链复形的系数变换。';return{parameters:p,result};}
+ const H=Array.from({length:4},(_,j)=>integerGroup(model.boundaries[j],model.boundaries[j+1]));
+ result.integerHomology=H.map((h,j)=>({degree:j,freeRank:h.freeRank,torsion:h.torsion,generators:h.generators,lowerSmith:smithRecord(h.lower),kernelBasis:pack(h.kernel),transformedUpper:pack(h.transformedUpper),upperInKernel:pack(h.coordinates),upperSmith:smithRecord(h.upper),quotientRepresentatives:pack(h.representatives)}));
+ result.eulerHomology=H.reduce((s,h,j)=>s+(j%2?-h.freeRank:h.freeRank),0);
+ const fields=[2n,3n,5n].map(prime=>{const groups=Array.from({length:4},(_,j)=>fieldGroup(model.boundaries[j],model.boundaries[j+1],prime));return{prime:String(prime),groups:groups.map((h,j)=>({degree:j,dimension:h.dimension,lowerRank:h.lower.rank,upperRank:h.upper.rank,kernelBasis:h.kernel.map(v=>v.map(String)),boundaryBasis:h.boundary.map(v=>v.map(String)),homologyBasis:h.homology.map(v=>v.map(String)),lowerRref:pack(h.lower.matrix),upperRref:pack(h.upper.matrix),lowerRowChange:pack(h.lower.U),upperRowChange:pack(h.upper.U),lowerSteps:h.lower.steps,upperSteps:h.upper.steps,uctDimension:H[j].freeRank+H[j].torsion.filter(x=>BigInt(x)%prime===0n).length+(j?H[j-1].torsion.filter(x=>BigInt(x)%prime===0n).length:0)})),selection:fieldSelection(c,model.boundaries[k],model.boundaries[k+1],groups[k],prime)};});
+ result.fieldComparisons=fields;result.integerSelection=integerSelection(c,model.boundaries[k],model.boundaries[k+1],H[k]);result.selected=p.coefficient==='Z'?result.integerSelection:fields.find(f=>f.prime===p.coefficient).selection;result.scope='整数计算使用BigInt与可逆整数基变换；素域计算分别重做消元。0至3次均计算，4次链群为零；记录不含浮点同调判定。';return{parameters:p,result};
+}
+const PRESETS=[
+ {id:'solid',label:'三角形填面：闭链是边界',values:{}},
+ {id:'hollow',label:'只有三角边：无限阶类',values:{facets:'01;02;12'}},
+ {id:'one-edge',label:'只取一条边：不是闭链',values:{chain:'1,0,0'}},
+ {id:'isolated',label:'环加孤立点：H0分成两份',values:{facets:'01;02;12;3',degree:'0',chain:'1,0,0,-1'}},
+ {id:'surface',label:'四面体表面：非零H2',values:{facets:'012;013;023;123',degree:'2',chain:'-1,1,-1,1'}},
+ {id:'solid-tetra',label:'填入三维单纯形：同一面链变边界',values:{facets:'0123',degree:'2',chain:'-1,1,-1,1'}},
+ {id:'tetra-chain',label:'三维实体自身不是3闭链',values:{facets:'0123',degree:'3',chain:'1'}},
+ {id:'two-triangles',label:'共边双三角形：方向抵消',values:{facets:'012;123',degree:'2',chain:'1,-1'}},
+ {id:'rp2',label:'RP²整数H1：二次才填得掉',values:{mode:'cellular',model:'rp2',chain:'1'}},
+ {id:'rp2-mod2',label:'RP²模2：H1和H2都出现',values:{mode:'cellular',model:'rp2',coefficient:'2',degree:'2',chain:'1'}},
+ {id:'rp2-mod3',label:'RP²模3：乘2可以求逆',values:{mode:'cellular',model:'rp2',coefficient:'3',chain:'1'}},
+ {id:'moore6',label:'度数6附加：Z/6',values:{mode:'cellular',model:'moore',chain:'1'}},
+ {id:'moore6-double',label:'Z/6中的2：实际阶为3',values:{mode:'cellular',model:'moore',chain:'2'}},
+ {id:'moore6-negative',label:'负定向不改变群',values:{mode:'cellular',model:'moore',m:'-6',chain:'1'}},
+ {id:'moore0',label:'度数0：H1和H2自由',values:{mode:'cellular',model:'moore',m:'0',chain:'1'}},
+ {id:'torus',label:'环面的整数自由类',values:{mode:'cellular',model:'torus',chain:'1,1'}},
+ {id:'klein',label:'Klein瓶：自由与二挠并存',values:{mode:'cellular',model:'klein',chain:'1,1'}},
+ {id:'klein-torsion',label:'Klein瓶的纯挠类',values:{mode:'cellular',model:'klein',chain:'1,0'}},
+ {id:'sphere3',label:'S³的三维基本类',values:{mode:'cellular',model:'sphere3',degree:'3',chain:'1'}},
+ {id:'lens',label:'透镜空间链型：H1挠与H3自由',values:{mode:'cellular',model:'lens',degree:'3',chain:'1'}},
+ {id:'coupled',label:'必须同步基变换：H1为Z/2',values:{mode:'custom',dimensions:'1,2,1,0',d1:'1,1',d2:'2;-2',chain:'1,-1'}},
+ {id:'smith6',label:'2与3需要组合成Smith因子6',values:{mode:'custom',dimensions:'1,2,2,0',d1:'',d2:'2,0;0,3',chain:'1,1'}},
+ {id:'invalid',label:'边界的边界非零：拒绝计算同调',values:{mode:'custom',dimensions:'1,1,1,0',d1:'2',d2:'1',chain:'1'}},
+ {id:'zero',label:'零链：填充见证也是零',values:{chain:''}}
+];
+function selfTest(){let checks=0;const ck=(v,m)=>{checks++;if(!v)throw Error(m);},r=id=>snapshot(PRESETS.find(p=>p.id===id).values).result;ck(r('solid').selected.classification==='boundary','solid');ck(r('hollow').integerHomology[1].freeRank===1,'circle');ck(!r('one-edge').selected.cycle,'edge');ck(r('surface').integerHomology[2].freeRank===1,'sphere2');ck(r('solid-tetra').selected.classification==='boundary','tetra');ck(r('rp2').selected.order==='2','rp2');ck(r('rp2-mod2').fieldComparisons[0].groups[2].dimension===1,'UCT');ck(r('moore6-double').selected.order==='3','order');ck(r('coupled').integerHomology[1].torsion.join()==='2','coupled');ck(r('smith6').integerHomology[1].torsion.join()==='6','smith');ck(!r('invalid').validIntegerComplex,'invalid complex');ck(r('zero').selected.order==='1','zero');return{status:'PASS',checks};}
 
-  function isInteger(value) {
-    return Number.isInteger ? Number.isInteger(value) : isFinite(value) && Math.floor(value) === value;
+ const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const tick=v=>v===0?"0":Math.abs(v)<1e-3||Math.abs(v)>=1e4?v.toExponential(2):String(Number(v.toPrecision(4)));
+ function curveSvg(q){
+  const left=q.square?325:100,width=q.square?250:750,height=250,top=85,bottom=335,x=v=>left+width*(v-q.xmin)/(q.xmax-q.xmin),y=v=>bottom-height*(v-q.ymin)/(q.ymax-q.ymin);
+  let s='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="425" role="img" aria-label="'+esc(q.title)+'"><title>'+esc(q.title)+'</title><text x="25" y="32" font-size="22">'+esc(q.title)+'</text>';
+  const yticks=q.yTicks||Array.from({length:q.square?3:5},(_,i)=>q.ymin+(q.ymax-q.ymin)*i/(q.square?2:4));
+  for(const v of yticks){
+   s+='<path d="M'+left+' '+y(v)+'H'+(left+width)+'" stroke="currentColor" opacity=".18"/><text x="'+(left-12)+'" y="'+(y(v)+5)+'" text-anchor="end">'+tick(v)+'</text>';
   }
-
-  function bit(value) {
-    var number = Number(value);
-    if (!isFinite(number)) fail("matrix entries must be finite");
-    return Math.abs(Math.floor(number)) % 2;
+  const ticks=q.xTicks||Array.from({length:5},(_,i)=>q.xmin+(q.xmax-q.xmin)*i/4);
+  for(const v of ticks)s+='<text x="'+x(v)+'" y="'+(bottom+28)+'" text-anchor="middle">'+tick(v)+'</text>';
+  if(q.ymin<=0&&q.ymax>=0)s+='<line data-zero="true" x1="'+left+'" x2="'+(left+width)+'" y1="'+y(0)+'" y2="'+y(0)+'" stroke="currentColor" opacity=".7"/>';
+  s+='<text x="'+left+'" y="65">'+esc(q.y)+'</text><text x="'+(left+width/2)+'" y="'+(bottom+63)+'" text-anchor="middle">'+esc(q.x)+'</text>';
+  for(const series of q.series){
+   if(series.area)s+='<rect data-area="'+series.key+'" x="'+x(series.points[0][0])+'" y="'+y(series.points[0][1])+'" width="'+(x(series.points[1][0])-x(series.points[0][0]))+'" height="'+(y(0)-y(series.points[0][1]))+'" fill="'+series.color+'" opacity=".12"/>';
+   if(series.line)s+='<polyline data-series="'+series.key+'" points="'+series.points.map(p=>x(p[0])+','+y(p[1])).join(" ")+'" stroke="'+series.color+'" stroke-width="2" fill="none"/>';
+   series.points.forEach((p,i)=>{const open=series.endOpen&&i===series.points.length-1;s+='<circle data-series="'+series.key+'" data-index="'+i+'" data-open="'+!!open+'" cx="'+x(p[0])+'" cy="'+y(p[1])+'" r="'+(series.endOpen?3.5:series.line?1.8:3.5)+'" fill="'+(open?"var(--bg,#faf7ef)":series.color)+'" stroke="'+series.color+'"/>';});
   }
-
-  function zeros(rows, columns) {
-    var result = [];
-    for (var row = 0; row < rows; row += 1) {
-      result.push(new Array(columns).fill(0));
-    }
-    return result;
+  for(const [i,m]of (q.markers||[]).entries()){
+   const px=x(m.x),right=px>700;
+   s+='<line data-marker="'+i+'" x1="'+px+'" x2="'+px+'" y1="'+top+'" y2="'+bottom+'" stroke="currentColor" stroke-dasharray="5 5" opacity=".65"/><text x="'+(px+(right?-4:4))+'" y="'+(80+25*q.markers.slice(0,i).filter(p=>Math.abs(px-x(p.x))<110).length)+'" font-size="13" text-anchor="'+(right?'end':'start')+'">'+esc(m.label)+'</text>';
   }
+  return s+"</svg>";
+ }
 
-  function cloneMatrix(matrix) {
-    return matrix.map(function (row) { return row.slice(); });
-  }
+const STYLE='.homology157{color:var(--fg,#273646)}.homology157 .homology-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;min-width:0}.homology157 label{display:flex;flex-direction:column;gap:6px}.homology157 input,.homology157 select{font:inherit;padding:8px;max-width:100%;min-width:0;box-sizing:border-box;background:var(--bg,#fff);color:inherit;border:1px solid #8b98a0;border-radius:5px}.homology157 input{width:100%}.homology157 button{font:inherit;padding:8px 12px;margin:5px;cursor:pointer}.homology157 button[aria-pressed=true]{outline:3px solid #478aaa}.homology157 .homology-scroll{overflow:auto;max-width:100%;margin:16px 0}.homology157 .homology-scroll:focus{outline:3px solid #478aaa}.homology157 .homology-ledger{max-height:420px}.homology157 svg{width:900px!important;max-width:none!important;display:block;fill:currentColor;font:16px system-ui}.homology157 table{display:table;overflow:visible;width:max-content;max-width:none;min-width:900px;border-collapse:collapse;font-variant-numeric:tabular-nums}.homology157 th,.homology157 td{padding:9px;border:1px solid #98a4ab;text-align:left}.homology157 td{max-width:540px;white-space:normal;overflow-wrap:anywhere}.homology157 .homology-error{color:#c74b39}.homology157 [hidden]{display:none!important}.homology157 fieldset{margin:16px 0;padding:12px}.homology157 details{margin:16px 0}.homology157 summary{cursor:pointer;font-weight:600}';
+const QUESTIONS=[['一条链的非零倍数能被填充，它自己就一定是边界吗？',['不一定，可能代表有限阶挠元','一定，除以这个倍数即可'],0],['整数同调自由秩为0，模2同调也一定为0吗？',['不一定，整数挠会改变模2结果','一定，维数不会因系数改变'],0],['四面体表面上的二维闭链，填入实体后仍一定非零吗？',['不一定，它可成为三维边界','一定，原来的面没有变化'],0],['给核取若干整数向量，只要在有理数上张成就够了吗？',['不够，还要完整生成整数核格点','够了，同一有理子空间就是同一整数群'],0]];
+const BLUE='#268bd2',ORANGE='#cb6a16',GREEN='#29966c',VIOLET='#9966bb',ROSE='#b44a72';
+const series=(key,label,color,points,line=true)=>({key,label,color,points,line});
+function chart(title,x,y,ss){const xx=ss.flatMap(s=>s.points.map(p=>p[0])),yy=ss.flatMap(s=>s.points.map(p=>p[1])),hi=Math.max(1,...xx),lo=Math.min(0,...yy),top=Math.max(0,...yy),pad=(top-lo||1)*.08;return{type:'chart',title,x,y,series:ss,xmin:0,xmax:hi,ymin:lo-pad,ymax:top+pad,square:false,markers:[],xTicks:[...new Set(Array.from({length:5},(_,i)=>Math.round(hi*i/4)))],yTicks:[...new Set(Array.from({length:5},(_,i)=>Math.round(lo+(top-lo)*i/4)))]};}
+function geometry(r){const n=r.cells[0].length,positions=r.cells[0].map((v,i)=>({label:v,x:280+180*Math.cos(-Math.PI/2+2*Math.PI*i/Math.max(1,n)),y:215+125*Math.sin(-Math.PI/2+2*Math.PI*i/Math.max(1,n))}));return{type:'complex',title:'有向单纯形与选定链：投影不改变关联',positions,cells:r.cells,degree:r.degree,chain:r.chain,dimensions:r.dimensions,series:[]};}
+function diagram(r){return{type:'chain',title:'胞腔或代数链：箭头由带符号矩阵给出',dimensions:r.dimensions,matrices:r.boundaries.slice(1,4),valid:r.validIntegerComplex,series:[]};}
+function matrixPlot(title,m){return{type:'matrix',title,matrix:m,series:[]};}
+function plots(d){const r=d.result,first=r.geometric?geometry(r):diagram(r),out=[first,matrixPlot('选定次数的边界D'+r.degree+'：列出发，行到达',r.boundaries[r.degree])];if(!r.validIntegerComplex)return [...out,matrixPlot('首个失败的相邻边界复合',r.chainChecks.find(c=>!c.zero).product),chart('只有链群维数；同调未定义','次数','链群维数',[series('dimensions','链群的维数',ROSE,r.dimensions.map((n,k)=>[k,n]),false)])];
+ out.push(chart('同一整数链复形，换系数后逐次比较','同调次数0、1、2、3','维数；蓝色仅整数自由秩',[series('integer','整数自由秩',BLUE,r.integerHomology.map(h=>[h.degree,h.freeRank])),...r.fieldComparisons.map((f,i)=>series('p'+f.prime,'模'+f.prime+'同调维数',[ORANGE,GREEN,VIOLET][i],f.groups.map(h=>[h.degree,h.dimension]))) ]));
+ const s=r.selected;if(s.cycle){const coords=d.parameters.coefficient==='Z'?s.classCoordinates:s.homologyCoordinates;out.push(chart('选定类在商群中的坐标','商坐标编号（含单位因子时坐标为0）','坐标值；模数及代表见完整表',[series('class','所选系数下的商坐标',ROSE,coords.map((v,i)=>[i,Number(v)]),false)]));}else out.push(chart('当前链没有闭合：边界的每个坐标','到达链群基编号','非零坐标阻止它成为同调代表',[series('boundary','所选系数下的边界',ROSE,s.boundary.map((v,i)=>[i,Number(v)]),false)]));return out;
+}
+function svgStart(q){return'<svg xmlns="http://www.w3.org/2000/svg" width="900" height="425" role="img" aria-label="'+esc(q.title)+'"><title>'+esc(q.title)+'</title><text x="25" y="30" font-size="22">'+esc(q.title)+'</text>';}
+function complexSvg(q){let s=svgStart(q);const pos=Object.fromEntries(q.positions.map(v=>[v.label,v]));
+ for(const [i,f]of q.cells[2].entries()){const pp=[...f].map(v=>pos[v]);s+='<polygon data-face="'+i+'" points="'+pp.map(v=>v.x+','+v.y).join(' ')+'" fill="'+BLUE+'" fill-opacity=".1" stroke="none"/>';if(q.degree===2){const x=pp.reduce((a,v)=>a+v.x,0)/3,y=pp.reduce((a,v)=>a+v.y,0)/3;s+='<text data-face-chain="'+i+'" x="'+x+'" y="'+y+'" text-anchor="middle" font-size="14">'+esc(f+': '+q.chain[i])+'</text>';}}
+ for(const [i,e]of q.cells[1].entries()){const a=pos[e[0]],b=pos[e[1]],value=q.degree===1?q.chain[i]:null,color=value!==null&&value!=='0'?ROSE:BLUE,dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy),ux=dx/len,uy=dy/len,x=a.x+.6*dx,y=a.y+.6*dy,pts=[[x+6*ux,y+6*uy],[x-6*ux+3*uy,y-6*uy-3*ux],[x-6*ux-3*uy,y-6*uy+3*ux]];s+='<line data-edge="'+i+'" x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'" stroke="'+color+'" stroke-width="2"/><polygon data-arrow="'+i+'" points="'+pts.map(p=>p.join(',')).join(' ')+'" fill="'+color+'"/>';if(value!==null)s+='<text data-edge-chain="'+i+'" x="'+((a.x+b.x)/2+8)+'" y="'+((a.y+b.y)/2-8)+'" font-size="14">'+esc(e+': '+value)+'</text>';}
+ for(const [i,v]of q.positions.entries())s+='<circle data-vertex="'+i+'" cx="'+v.x+'" cy="'+v.y+'" r="6" fill="'+BLUE+'"/><text x="'+(v.x+12)+'" y="'+(v.y-8)+'">'+esc(v.label+(q.degree===0?': '+q.chain[i]:''))+'</text>';
+ s+='<text x="550" y="100">当前链次数：'+q.degree+'</text>';q.dimensions.forEach((n,k)=>s+='<text data-cell-count="'+k+'" x="550" y="'+(140+k*35)+'">'+k+'维单纯形：'+n+'</text>');s+='<text x="550" y="305">三维单纯形：'+esc(q.cells[3].join('；')||'无')+'</text><text x="25" y="382">箭头固定基的正方向；负系数表示反向。重叠只来自平面投影。</text>';return s+'</svg>';}
+function chainSvg(q){let s=svgStart(q);for(let k=3;k>=0;k--){const x=100+(3-k)*220;s+='<rect x="'+(x-50)+'" y="145" width="100" height="70" rx="8" fill="none" stroke="'+BLUE+'"/><text data-chain-group="'+k+'" x="'+x+'" y="186" text-anchor="middle">C'+k+'：Z^'+q.dimensions[k]+'</text>';if(k>0){s+='<line data-chain-arrow="'+k+'" x1="'+(x+55)+'" y1="180" x2="'+(x+160)+'" y2="180" stroke="'+GREEN+'"/><polygon points="'+(x+160)+',180 '+(x+151)+',175 '+(x+151)+',185" fill="'+GREEN+'"/><text x="'+(x+108)+'" y="150" text-anchor="middle">D'+k+'</text><text data-matrix-shape="'+k+'" x="'+(x+108)+'" y="244" text-anchor="middle">'+q.matrices[k-1].rows+'×'+q.matrices[k-1].cols+'</text>';}}
+ s+='<text x="25" y="325">'+(q.valid?'每对相邻箭头复合为零：可以定义同调商群。':'有相邻箭头复合不为零：不能定义这份整数同调。')+'</text><text x="25" y="377">箭头不是空间里的边；此图显示链群及矩阵尺寸，完整矩阵见下表。</text>';return s+'</svg>';}
+function matrixSvg(q){let s=svgStart(q),m=q.matrix;s+='<text x="25" y="67">矩阵形状 '+m.rows+' × '+m.cols+'；负数保留定向，空维数仍有意义。</text>';if(!m.rows||!m.cols)return s+'<text x="80" y="210" font-size="24">零维矩阵：没有可显示的元素。</text></svg>';const size=Math.min(42,250/m.rows,650/m.cols),x0=120,y0=103;for(let i=0;i<m.rows;i++)for(let j=0;j<m.cols;j++){const v=m.data[i][j];s+='<rect data-cell="'+i+'-'+j+'" x="'+(x0+j*size)+'" y="'+(y0+i*size)+'" width="'+size+'" height="'+size+'" fill="'+(v==='0'?'none':v.startsWith('-')?ORANGE:BLUE)+'" fill-opacity=".15" stroke="#8b8b8b" stroke-width=".5"/><text data-entry="'+i+'-'+j+'" x="'+(x0+(j+.5)*size)+'" y="'+(y0+(i+.5)*size+5)+'" text-anchor="middle" font-size="13">'+esc(v)+'</text>';}
+ for(let j=0;j<m.cols;j++)s+='<text x="'+(x0+(j+.5)*size)+'" y="92" text-anchor="middle" font-size="12">'+j+'</text>';for(let i=0;i<m.rows;i++)s+='<text x="100" y="'+(y0+(i+.5)*size+5)+'" font-size="12">'+i+'</text>';return s+'<text x="25" y="395">行列编号从0开始；蓝=正，橙=负；表中保留全部精确整数。</text></svg>';}
+function svg(q){return q.type==='chart'?curveSvg(q):q.type==='complex'?complexSvg(q):q.type==='chain'?chainSvg(q):matrixSvg(q);}
+const WORDS={model:'模型说明',geometric:'有单纯复形关联图',dimensions:'各次链群维数',cells:'各次基的完整编号',chainChecks:'相邻边界检查',validIntegerComplex:'有效整数链复形',degree:'次数',chain:'当前链完整坐标',eulerChains:'链群Euler和',eulerHomology:'整数同调自由秩Euler和',scope:'结论范围',freeRank:'整数自由秩',torsion:'非单位不变量因子',generators:'全部商群生成元及倍数填充',coordinate:'商坐标编号',order:'精确阶；不适用或无限阶须结合分类',representative:'原链基中的代表',fillingMultiple:'乘该阶后的填充链',rank:'秩',diagonal:'全部正Smith因子',D:'Smith矩阵',U:'左基变换',V:'右基变换',inverseU:'左变换的整数逆',inverseV:'右变换的整数逆',kernelBasis:'完整闭链基',transformedUpper:'同步换基后的上行矩阵',upperInKernel:'上行像的闭链基坐标',quotientRepresentatives:'全部Smith商坐标的原链代表',index:'步号',kind:'操作类型',i:'目标行列',j:'来源行列',multiple:'操作倍数',matrix:'此步后的完整矩阵',prime:'素数',dimension:'该系数下的同调维数',lowerRank:'下行秩',upperRank:'上行秩',boundaryBasis:'边界像的一组基',homologyBasis:'同调类的全部基代表',lowerRref:'下行简化矩阵',upperRref:'上行简化矩阵',lowerRowChange:'下行左变换',upperRowChange:'上行左变换',uctDimension:'独立系数公式应有维数',cycle:'当前链闭合',boundary:'当前链的边界',classification:'当前链分类',kernelCoordinates:'闭链基坐标',smithCoordinates:'取模前Smith坐标',classCoordinates:'整数商坐标',homologyCoordinates:'域上的商坐标',filling:'填充记录，整数有限类填最小正倍数',consistent:'方程可解',solution:'完整解向量',transformed:'变换后的右端',certificate:'可核对的左变换',decomposition:'边界基与同调基中的分解',zero:'全零',product:'完整复合矩阵'};
+const CLASS={'not-cycle':'不是闭链','boundary':'边界，代表零类','infinite-class':'无限阶非零类','torsion-class':'有限阶非零挠类','homology-class':'域上的非零同调类'};
+function fmt(v){if(v===null||v===undefined)return'—（不适用；无限阶见分类）';if(typeof v==='boolean')return v?'是':'否';if(typeof v==='object'){if('rows'in v&&'cols'in v&&Array.isArray(v.data))return v.rows+'×'+v.cols+' ['+v.data.map(r=>r.join(',')).join('；')+']';return Array.isArray(v)?'['+v.map(fmt).join('；')+']':Object.entries(v).map(([k,z])=>(WORDS[k]||k)+'='+fmt(z)).join('；');}if(v==='')return'（空）';return CLASS[v]||String(v);}
+function summ(key,title,obj,exclude=[]){return{key,title,headers:['量','完整记录'],rows:Object.entries(obj).filter(([k])=>!exclude.includes(k)).map(([k,v])=>[WORDS[k]||k,v])};}
+function rows(key,title,items){const keys=items.length?Object.keys(items[0]):[];return{key,title,headers:keys.map(k=>WORDS[k]||k),rows:items.map(z=>keys.map(k=>z[k]))};}
+function ledgers(d){const r=d.result,out=[summ('summary','模型、系数边界与链群',r,['boundaries','integerHomology','fieldComparisons','selected','integerSelection']),rows('boundaries','D0至D4：全部原始边界及尺寸',r.boundaries.map((m,k)=>({degree:k,matrix:m})))];if(!r.validIntegerComplex)return out;
+ for(const h of r.integerHomology){const key='z'+h.degree;out.push(summ(key,'H'+h.degree+'整数核、像与全部代表',h,['lowerSmith','upperSmith']));for(const [suffix,s]of [['lower',h.lowerSmith],['upper',h.upperSmith]])out.push(summ(key+'-'+suffix,'H'+h.degree+' '+(suffix==='lower'?'下行':'闭链基中上行')+'的完整Smith证书',s,['steps']),rows(key+'-'+suffix+'-steps','逐步整数消元：保留整张矩阵',s.steps));}
+ for(const f of r.fieldComparisons){for(const h of f.groups){const key='p'+f.prime+'-h'+h.degree;out.push(summ(key,'模'+f.prime+' H'+h.degree+'全部基与消元证书',h,['lowerSteps','upperSteps']),rows(key+'-lower-steps','下行域消元全部步骤',h.lowerSteps),rows(key+'-upper-steps','上行域消元全部步骤',h.upperSteps));}out.push(summ('p'+f.prime+'-selected','当前链在模'+f.prime+'下的完整分类与填充',f.selection));}
+ out.push(summ('integer-selected','当前链的整数阶、商坐标与倍数填充',r.integerSelection));return out;
+}
+function mount(container){const doc=container.ownerDocument;if(!doc.getElementById('homology157-style')){const s=doc.createElement('style');s.id='homology157-style';s.textContent=STYLE;doc.head.appendChild(s);}const field=(key,label,modes='simplicial cellular custom')=>'<label data-modes="'+modes+'">'+label+'<input data-key="'+key+'" type="text"></label>';container.innerHTML='<div class="homology157"><h3>把“能不能填”变成一份精确证书</h3><p>先分清链、闭链和同调类；改变系数时重新计算。所有整数基及其逆保存在表中。</p><div>'+PRESETS.map(p=>'<button type="button" data-preset="'+p.id+'">'+esc(p.label)+'</button>').join('')+'</div><div class="homology-controls"><label>模型类型<select data-key="mode"><option value="simplicial">单纯形及全部面</option><option value="cellular">给定胞腔模型</option><option value="custom">自定义整数链候选</option></select></label>'+field('facets','单纯形：如012;03，自动补齐面','simplicial')+'<label data-modes="cellular">胞腔模型<select data-key="model"><option value="rp2">射影平面RP²</option><option value="torus">环面T²</option><option value="klein">Klein瓶</option><option value="moore">沿度数m附加圆盘</option><option value="sphere3">三维球面S³</option><option value="lens">透镜空间链型</option></select></label>'+field('m','附加度数m（仅Moore/透镜模型使用）','cellular')+field('dimensions','C0,C1,C2,C3维数（各0至6）','custom')+field('d1','D1：分号分行，逗号分列；空=零矩阵','custom')+field('d2','D2：行=C1基，列=C2基','custom')+field('d3','D3：行=C2基，列=C3基','custom')+'<label>当前链次数<select data-key="degree">'+[0,1,2,3].map(k=>'<option value="'+k+'">'+k+'次链</option>').join('')+'</select></label>'+field('chain','当前链系数（逗号分隔；空=零链）')+'<label>观察所选链的系数<select data-key="coefficient"><option value="Z">整数Z</option><option value="2">素域F₂</option><option value="3">素域F₃</option><option value="5">素域F₅</option></select></label></div><p>单纯形用0至4的递增编号，每个最多4顶点、共至多16项。矩阵输入整数限−8至8，链系数限−12至12。不接受空格或小数；改模型或次数后，需要让链系数个数匹配，也可留空检查零链。</p>'+QUESTIONS.map((q,i)=>'<fieldset data-question="'+i+'"><legend>'+(i+1)+'. '+esc(q[0])+'</legend>'+q[1].map((v,j)=>'<button type="button" data-choice="'+j+'" aria-pressed="false">'+esc(v)+'</button>').join('')+'</fieldset>').join('')+'<button type="button" data-action="reveal">揭示图与完整证书</button><button type="button" data-action="reset">重置预测</button><p class="homology-error" role="alert"></p><p role="status"></p><div class="homology-results" hidden></div></div>';
+ const fields=[...container.querySelectorAll('[data-key]')],answers=Array(4).fill(null),result=container.querySelector('.homology-results'),reveal=container.querySelector('[data-action=reveal]'),error=container.querySelector('[role=alert]'),status=container.querySelector('[role=status]');fields.forEach(e=>e.value=DEFAULTS[e.dataset.key]);let revealed=false,valid=null;
+ function render(d){const r=d.result;result.innerHTML='<p data-conclusion>'+esc(!r.validIntegerComplex?'边界的边界非零：尚未定义同调。':fmt(r.selected.classification)+(r.selected.order===null?'':r.selected.order?'；整数类精确阶='+r.selected.order:'')+'。')+'</p><p>'+esc(r.scope)+'</p>'+plots(d).map(q=>'<p>'+q.series.map(s=>esc(s.label)+'（'+({'#268bd2':'蓝','#cb6a16':'橙','#29966c':'绿','#9966bb':'紫','#b44a72':'玫红'}[s.color])+'）').join('；')+'</p><div class="homology-scroll" role="region" tabindex="0" aria-label="'+esc(q.title)+'">'+svg(q)+'</div>').join('')+ledgers(d).map(z=>'<details data-ledger="'+z.key+'"'+(z.key==='summary'?' open':'')+'><summary>'+esc(z.title)+'（'+z.rows.length+'行）</summary><div class="homology-scroll homology-ledger" role="region" tabindex="0" aria-label="'+esc(z.title)+'"><table data-table="'+z.key+'"><thead><tr>'+z.headers.map(v=>'<th scope="col">'+esc(v)+'</th>').join('')+'</tr></thead><tbody>'+z.rows.map(row=>'<tr>'+row.map(v=>'<td>'+esc(fmt(v))+'</td>').join('')+'</tr>').join('')+'</tbody></table></div></details>').join('')+'<p>图的几何坐标只负责排版。矩阵、同调类和整数判定均保留精确值；“无限阶”与“不适用”须结合分类读取。每个图表可用键盘横向滚动。</p>';}
+ function update(){const raw=Object.fromEntries(fields.map(e=>[e.dataset.key,e.value]));container.querySelectorAll('[data-modes]').forEach(e=>e.hidden=!e.dataset.modes.split(' ').includes(raw.mode));try{valid=config(raw);error.textContent='';}catch(e){valid=null;revealed=false;error.textContent=e.message;}reveal.disabled=!valid||answers.some(v=>v===null);result.hidden=!revealed;if(revealed&&valid){try{render(snapshot(valid));}catch(e){revealed=false;result.hidden=true;error.textContent=e.message;}}status.textContent=revealed?answers.filter((a,i)=>a===QUESTIONS[i][2]).length+' / 4。再检查每个结论的系数与次数。':'';}
+ fields.forEach(e=>e.addEventListener(e.tagName==='SELECT'?'change':'input',update));container.querySelectorAll('[data-choice]').forEach(b=>b.addEventListener('click',()=>{const i=Number(b.closest('[data-question]').dataset.question);answers[i]=Number(b.dataset.choice);b.parentElement.querySelectorAll('[data-choice]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));update();}));container.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{const p={...DEFAULTS,...PRESETS.find(z=>z.id===b.dataset.preset).values};fields.forEach(e=>e.value=p[e.dataset.key]);update();}));reveal.addEventListener('click',()=>{if(!reveal.disabled){revealed=true;update();}});container.querySelector('[data-action=reset]').addEventListener('click',()=>{answers.fill(null);revealed=false;container.querySelectorAll('[data-choice]').forEach(b=>b.setAttribute('aria-pressed','false'));update();container.querySelector('[data-choice]').focus();});update();}
 
-  function clonePreset(preset) {
-    return {
-      id: preset.id,
-      label: preset.label,
-      description: preset.description,
-      vertices: preset.vertices.map(function (vertex) {
-        return { id: vertex.id, label: vertex.label, x: vertex.x, y: vertex.y };
-      }),
-      edges: preset.edges.map(function (edge) {
-        return { id: edge.id, label: edge.label, vertices: edge.vertices.slice() };
-      }),
-      faces: preset.faces.map(function (face) {
-        return { id: face.id, label: face.label, vertices: face.vertices.slice() };
-      }),
-      defaultChain: preset.defaultChain.slice()
-    };
-  }
-
-  function presetById(id) {
-    for (var index = 0; index < PRESETS.length; index += 1) {
-      if (PRESETS[index].id === id) return PRESETS[index];
-    }
-    fail("unknown preset: " + id);
-  }
-
-  function sourceComplex(input) {
-    if (typeof input === "string") return presetById(input);
-    if (input && input.complex) return input.complex;
-    if (input && Array.isArray(input.vertices) && Array.isArray(input.edges)) return input;
-    fail("expected a preset id or a simplicial complex");
-  }
-
-  function pairKey(left, right) {
-    return left < right ? left + ":" + right : right + ":" + left;
-  }
-
-  function vertexIndex(value, count, label) {
-    var index = typeof value === "number" ? value : Number(value);
-    if (!isInteger(index) || index < 0 || index >= count) fail(label + " has an invalid vertex");
-    return index;
-  }
-
-  function normalizeComplex(input) {
-    var source = sourceComplex(input);
-    var rawVertices = Array.isArray(source.vertices) ? source.vertices : [];
-    if (rawVertices.length === 0) fail("a complex needs at least one vertex");
-
-    var vertices = rawVertices.map(function (vertex, index) {
-      var object = vertex && typeof vertex === "object" ? vertex : { label: String(vertex) };
-      return {
-        id: object.id === undefined ? "v" + index : String(object.id),
-        label: object.label === undefined ? "v" + index : String(object.label),
-        x: Number.isFinite(Number(object.x)) ? Number(object.x) : 80 + (index % 4) * 150,
-        y: Number.isFinite(Number(object.y)) ? Number(object.y) : 70 + Math.floor(index / 4) * 120
-      };
-    });
-
-    var edgeMap = Object.create(null);
-    var edges = (source.edges || []).map(function (edge, index) {
-      var raw = edge && typeof edge === "object" && Array.isArray(edge.vertices) ? edge.vertices : edge;
-      if (!Array.isArray(raw) || raw.length !== 2) fail("edge " + index + " must have two vertices");
-      var left = vertexIndex(raw[0], vertices.length, "edge " + index);
-      var right = vertexIndex(raw[1], vertices.length, "edge " + index);
-      if (left === right) fail("edge " + index + " has repeated vertices");
-      var key = pairKey(left, right);
-      if (edgeMap[key] !== undefined) fail("duplicate edge " + key);
-      edgeMap[key] = index;
-      return {
-        id: edge && typeof edge === "object" && edge.id !== undefined ? String(edge.id) : "e" + index,
-        label: edge && typeof edge === "object" && edge.label !== undefined ? String(edge.label) : "e" + index,
-        vertices: [left, right]
-      };
-    });
-
-    var faces = (source.faces || []).map(function (face, index) {
-      var raw = face && typeof face === "object" && Array.isArray(face.vertices) ? face.vertices : face;
-      if (!Array.isArray(raw) || raw.length !== 3) fail("face " + index + " must be a triangle");
-      var faceVertices = raw.map(function (value) { return vertexIndex(value, vertices.length, "face " + index); });
-      if (faceVertices[0] === faceVertices[1] || faceVertices[1] === faceVertices[2] || faceVertices[0] === faceVertices[2]) {
-        fail("face " + index + " has repeated vertices");
-      }
-      var boundaryPairs = [
-        [faceVertices[0], faceVertices[1]],
-        [faceVertices[1], faceVertices[2]],
-        [faceVertices[2], faceVertices[0]]
-      ];
-      var edgeIndices = boundaryPairs.map(function (pair) {
-        var edgeIndex = edgeMap[pairKey(pair[0], pair[1])];
-        if (edgeIndex === undefined) fail("face " + index + " uses a missing edge");
-        return edgeIndex;
-      });
-      return {
-        id: face && typeof face === "object" && face.id !== undefined ? String(face.id) : "f" + index,
-        label: face && typeof face === "object" && face.label !== undefined ? String(face.label) : "f" + index,
-        vertices: faceVertices,
-        edgeIndices: edgeIndices
-      };
-    });
-
-    var defaultChain = Array.isArray(source.defaultChain) ? source.defaultChain.slice() : [];
-    return {
-      id: source.id === undefined ? "custom" : String(source.id),
-      label: source.label === undefined ? "自定义复形" : String(source.label),
-      description: source.description === undefined ? "" : String(source.description),
-      vertices: vertices,
-      edges: edges,
-      faces: faces,
-      defaultChain: defaultChain
-    };
-  }
-
-  function buildBoundaryMatrices(input) {
-    var complex = normalizeComplex(input);
-    var boundary1 = zeros(complex.vertices.length, complex.edges.length);
-    complex.edges.forEach(function (edge, edgeIndex) {
-      boundary1[edge.vertices[0]][edgeIndex] = 1;
-      boundary1[edge.vertices[1]][edgeIndex] = 1;
-    });
-
-    var boundary2 = zeros(complex.edges.length, complex.faces.length);
-    complex.faces.forEach(function (face, faceIndex) {
-      face.edgeIndices.forEach(function (edgeIndex) {
-        boundary2[edgeIndex][faceIndex] = 1;
-      });
-    });
-
-    return {
-      complex: complex,
-      boundary1: boundary1,
-      boundary2: boundary2,
-      rowLabels1: complex.vertices.map(function (vertex) { return vertex.label; }),
-      columnLabels1: complex.edges.map(function (edge) { return edge.label; }),
-      rowLabels2: complex.edges.map(function (edge) { return edge.label; }),
-      columnLabels2: complex.faces.map(function (face) { return face.label; })
-    };
-  }
-
-  function rrefGF2(matrix) {
-    var result = cloneMatrix(matrix).map(function (row) { return row.map(bit); });
-    var rows = result.length;
-    var columns = rows === 0 ? 0 : result[0].length;
-    var pivotColumns = [];
-    var pivotRow = 0;
-
-    for (var column = 0; column < columns && pivotRow < rows; column += 1) {
-      var found = -1;
-      for (var row = pivotRow; row < rows; row += 1) {
-        if (result[row][column] === 1) {
-          found = row;
-          break;
-        }
-      }
-      if (found === -1) continue;
-      if (found !== pivotRow) {
-        var swap = result[found];
-        result[found] = result[pivotRow];
-        result[pivotRow] = swap;
-      }
-      for (var eliminate = 0; eliminate < rows; eliminate += 1) {
-        if (eliminate === pivotRow || result[eliminate][column] === 0) continue;
-        for (var entry = column; entry < columns; entry += 1) {
-          result[eliminate][entry] = (result[eliminate][entry] + result[pivotRow][entry]) % 2;
-        }
-      }
-      pivotColumns.push(column);
-      pivotRow += 1;
-    }
-
-    return { matrix: result, rank: pivotRow, pivotColumns: pivotColumns };
-  }
-
-  function rankGF2(matrix) {
-    return rrefGF2(matrix).rank;
-  }
-
-  function columnCount(matrix) {
-    return matrix.length === 0 ? 0 : matrix[0].length;
-  }
-
-  function kernelDimensionGF2(matrix) {
-    return columnCount(matrix) - rankGF2(matrix);
-  }
-
-  function multiplyMod2(left, right) {
-    var leftRows = left.length;
-    var leftColumns = leftRows === 0 ? 0 : left[0].length;
-    var rightRows = right.length;
-    var rightColumns = rightRows === 0 ? 0 : right[0].length;
-    if (leftColumns !== rightRows) fail("matrix dimensions do not multiply");
-    var result = zeros(leftRows, rightColumns);
-    for (var row = 0; row < leftRows; row += 1) {
-      for (var column = 0; column < rightColumns; column += 1) {
-        var total = 0;
-        for (var middle = 0; middle < leftColumns; middle += 1) {
-          total += bit(left[row][middle]) * bit(right[middle][column]);
-        }
-        result[row][column] = total % 2;
-      }
-    }
-    return result;
-  }
-
-  function multiplyVectorMod2(matrix, vector) {
-    var columns = columnCount(matrix);
-    if (columns !== vector.length) fail("matrix and vector dimensions do not match");
-    return matrix.map(function (row) {
-      var total = 0;
-      for (var index = 0; index < columns; index += 1) total += bit(row[index]) * bit(vector[index]);
-      return total % 2;
-    });
-  }
-
-  function solveMod2(matrix, vector) {
-    if (matrix.length !== vector.length) fail("linear-system dimensions do not match");
-    var columns = columnCount(matrix);
-    var augmented = matrix.map(function (row, index) {
-      return row.map(bit).concat([bit(vector[index])]);
-    });
-    var reduced = rrefGF2(augmented).matrix;
-    var solution = new Array(columns).fill(0);
-    for (var row = 0; row < reduced.length; row += 1) {
-      var pivot = -1;
-      for (var column = 0; column < columns; column += 1) {
-        if (reduced[row][column] === 1) {
-          pivot = column;
-          break;
-        }
-      }
-      if (pivot === -1 && reduced[row][columns] === 1) {
-        return { consistent: false, solution: null };
-      }
-      if (pivot !== -1) solution[pivot] = reduced[row][columns];
-    }
-    return { consistent: true, solution: solution };
-  }
-
-  function matrixIsZero(matrix) {
-    return matrix.every(function (row) {
-      return row.every(function (entry) { return bit(entry) === 0; });
-    });
-  }
-
-  function edgeVector(complex, chain) {
-    var vector = new Array(complex.edges.length).fill(0);
-    if (chain === undefined || chain === null) chain = complex.defaultChain;
-    if (Array.isArray(chain)) {
-      var isBitVector = chain.length === complex.edges.length && chain.every(function (entry) {
-        return typeof entry === "number" || entry === 0 || entry === 1;
-      });
-      if (isBitVector) return chain.map(bit);
-      chain.forEach(function (edgeId) {
-        var index = complex.edges.findIndex(function (edge) { return edge.id === String(edgeId); });
-        if (index === -1) fail("unknown chain edge: " + edgeId);
-        vector[index] = 1;
-      });
-      return vector;
-    }
-    if (chain && typeof chain === "object") {
-      complex.edges.forEach(function (edge, index) { vector[index] = bit(chain[edge.id]); });
-      return vector;
-    }
-    fail("chain must be an edge id list or a bit vector");
-  }
-
-  function analyze(input, chain) {
-    var matrices = buildBoundaryMatrices(input);
-    var complex = matrices.complex;
-    var chainVector = edgeVector(complex, chain);
-    var boundaryOfChain = multiplyVectorMod2(matrices.boundary1, chainVector);
-    var boundaryWitness = solveMod2(matrices.boundary2, chainVector);
-    var isCycle = boundaryOfChain.every(function (entry) { return entry === 0; });
-    var inImage = boundaryWitness.consistent;
-    var classification = !isCycle ? "not-cycle" : inImage ? "boundary" : "homology-class";
-    var rank1 = rankGF2(matrices.boundary1);
-    var rank2 = rankGF2(matrices.boundary2);
-    var product = multiplyMod2(matrices.boundary1, matrices.boundary2);
-    var betti = {
-      beta0: complex.vertices.length - rank1,
-      beta1: complex.edges.length - rank1 - rank2,
-      beta2: complex.faces.length - rank2
-    };
-    var euler = complex.vertices.length - complex.edges.length + complex.faces.length;
-    return {
-      complex: complex,
-      matrices: {
-        boundary1: matrices.boundary1,
-        boundary2: matrices.boundary2,
-        product: product
-      },
-      labels: {
-        boundary1Rows: matrices.rowLabels1,
-        boundary1Columns: matrices.columnLabels1,
-        boundary2Rows: matrices.rowLabels2,
-        boundary2Columns: matrices.columnLabels2
-      },
-      ranks: { boundary1: rank1, boundary2: rank2 },
-      kernelDimensions: {
-        boundary1: complex.edges.length - rank1,
-        boundary2: complex.faces.length - rank2
-      },
-      betti: betti,
-      euler: euler,
-      eulerFromBetti: betti.beta0 - betti.beta1 + betti.beta2,
-      boundarySquareZero: matrixIsZero(product),
-      chain: chainVector,
-      boundaryOfChain: boundaryOfChain,
-      isCycle: isCycle,
-      inImage: inImage,
-      isBoundary: isCycle && inImage,
-      classification: classification,
-      boundaryWitness: inImage ? boundaryWitness.solution : null
-    };
-  }
-
-  function closeEnough(left, right) {
-    return left === right;
-  }
-
-  function selfTest() {
-    var checks = 0;
-    function check(condition, message) {
-      checks += 1;
-      if (!condition) fail("self-test failed: " + message);
-    }
-    function allBinary(matrix) {
-      return matrix.every(function (row) {
-        return row.every(function (entry) { return entry === 0 || entry === 1; });
-      });
-    }
-    function expected(id, beta) {
-      var report = analyze(id);
-      check(JSON.stringify([report.betti.beta0, report.betti.beta1, report.betti.beta2]) === JSON.stringify(beta), id + " Betti numbers");
-      check(report.boundarySquareZero, id + " boundary square zero");
-      check(allBinary(report.matrices.boundary1) && allBinary(report.matrices.boundary2), id + " binary boundary matrices");
-      check(report.euler === report.eulerFromBetti, id + " Euler reconciliation");
-      check(report.kernelDimensions.boundary1 + report.ranks.boundary1 === report.complex.edges.length, id + " rank-nullity for boundary1");
-      check(report.kernelDimensions.boundary2 + report.ranks.boundary2 === report.complex.faces.length, id + " rank-nullity for boundary2");
-      return report;
-    }
-
-    check(PRESETS.length >= 4, "at least four presets");
-    var solid = expected("solid-triangle", [1, 0, 0]);
-    var hollow = expected("hollow-triangle", [1, 1, 0]);
-    var ring = expected("triangle-plus-isolated", [2, 1, 0]);
-    var tetra = expected("tetrahedron-surface", [1, 0, 1]);
-
-    check(solid.ranks.boundary1 === 2 && solid.ranks.boundary2 === 1, "solid ranks");
-    check(hollow.ranks.boundary1 === 2 && hollow.ranks.boundary2 === 0, "hollow ranks");
-    check(ring.ranks.boundary1 === 2 && ring.ranks.boundary2 === 0, "ring ranks");
-    check(tetra.ranks.boundary1 === 3 && tetra.ranks.boundary2 === 3, "tetrahedron ranks");
-    check(tetra.kernelDimensions.boundary2 === 1, "tetrahedron has a 2-cycle");
-
-    var solidChain = analyze("solid-triangle", ["e01", "e12", "e20"]);
-    var hollowChain = analyze("hollow-triangle", ["e01", "e12", "e20"]);
-    var ringChain = analyze("triangle-plus-isolated", ["e01", "e12", "e20"]);
-    var tetraFace = analyze("tetrahedron-surface", ["e01", "e12", "e02"]);
-    var oneEdge = analyze("hollow-triangle", ["e01"]);
-    check(solidChain.isCycle && solidChain.isBoundary && solidChain.classification === "boundary", "solid triangle is a boundary");
-    check(hollowChain.isCycle && !hollowChain.isBoundary && hollowChain.classification === "homology-class", "hollow triangle is a non-boundary cycle");
-    check(ringChain.isCycle && !ringChain.isBoundary && ringChain.classification === "homology-class", "ring cycle survives");
-    check(tetraFace.isCycle && tetraFace.isBoundary, "tetrahedron face boundary");
-    check(!oneEdge.isCycle && oneEdge.classification === "not-cycle", "one edge is not a cycle");
-    check(closeEnough(solidChain.boundaryOfChain[0], 0) && solidChain.boundaryOfChain[1] === 0 && solidChain.boundaryOfChain[2] === 0, "solid chain has zero boundary");
-    check(JSON.stringify(solidChain.boundaryWitness) === "[1]", "solid chain has the face as witness");
-    check(JSON.stringify(hollow.matrices.boundary1) === JSON.stringify([
-      [1, 0, 1],
-      [1, 1, 0],
-      [0, 1, 1]
-    ]), "triangle boundary1 matrix");
-    check(JSON.stringify(solid.matrices.boundary2) === JSON.stringify([[1], [1], [1]]), "solid triangle boundary2 matrix");
-
-    return { ok: true, checks: checks, presets: PRESETS.length };
-  }
-
-  var pureModel = {
-    PRESETS: PRESETS.map(clonePreset),
-    getPreset: function (id) { return clonePreset(presetById(id)); },
-    normalizeComplex: normalizeComplex,
-    buildBoundaryMatrices: buildBoundaryMatrices,
-    rrefGF2: rrefGF2,
-    rankGF2: rankGF2,
-    kernelDimensionGF2: kernelDimensionGF2,
-    multiplyMod2: multiplyMod2,
-    analyze: analyze,
-    selfTest: selfTest
-  };
-
-  if (typeof module === "object" && module.exports) {
-    module.exports = pureModel;
-    if (typeof require !== "undefined" && require.main === module && process.argv.indexOf("--self-test") !== -1) {
-      try {
-        var report = selfTest();
-        console.log("homology-boundary self-test: PASS (" + report.checks + " checks, " + report.presets + " presets)");
-      } catch (error) {
-        console.error(error.message);
-        process.exitCode = 1;
-      }
-    }
-    return;
-  }
-
-  if (!host || !host.CourseLearning || typeof host.CourseLearning.register !== "function") return;
-
-  function setAttributes(node, attributes) {
-    Object.keys(attributes || {}).forEach(function (key) {
-      var value = attributes[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", String(value));
-      else if (key === "text") node.textContent = String(value);
-      else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, String(value));
-    });
-    return node;
-  }
-
-  function appendChildren(node, children, doc) {
-    if (children === undefined || children === null) return node;
-    (Array.isArray(children) ? children : [children]).forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child && child.nodeType ? child : doc.createTextNode(String(child)));
-    });
-    return node;
-  }
-
-  function element(doc, tag, attributes, children) {
-    return appendChildren(setAttributes(doc.createElement(tag), attributes), children, doc);
-  }
-
-  function svgElement(doc, tag, attributes, children) {
-    return appendChildren(setAttributes(doc.createElementNS(SVG_NS, tag), attributes), children, doc);
-  }
-
-  function installStyles(doc) {
-    if (doc.getElementById && doc.getElementById(STYLE_ID)) return;
-    var style = doc.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = [
-      ".cl-homology { --hb-bg: var(--bg, #fff); --hb-panel: var(--block-bg, #f4f1e9); --hb-fg: var(--fg, #292722); --hb-muted: var(--fg-soft, #6b6557); --hb-border: var(--border, #d7d0c2); --hb-accent: var(--accent, #315f9d); --hb-good: var(--cl-green, #39734d); --hb-warn: var(--cl-red, #b64335); --hb-gold: var(--cl-gold, #9b6a12); width: 100%; max-width: 100%; box-sizing: border-box; margin: 0; padding: 16px; border: 1px solid var(--hb-border); border-radius: 8px; background: var(--hb-bg); color: var(--hb-fg); font-size: 14px; line-height: 1.55; overflow: hidden; }",
-      "html[data-theme=dark] .cl-homology { --hb-accent: var(--accent, #83c8ff); --hb-good: var(--cl-green, #72bd8b); --hb-warn: var(--cl-red, #f08c7d); --hb-gold: var(--cl-gold, #e2b458); }",
-      ".cl-homology *, .cl-homology *::before, .cl-homology *::after { box-sizing: border-box; }",
-      ".cl-homology .hb-shell, .cl-homology .hb-controls, .cl-homology .hb-stage { min-width: 0; }",
-      ".cl-homology .hb-heading { margin: 0 0 5px; color: var(--hb-fg); font-size: 1.22rem; line-height: 1.35; }",
-      ".cl-homology .hb-intro, .cl-homology .hb-note { margin: 7px 0; color: var(--hb-muted); }",
-      ".cl-homology .hb-preset-box { margin: 14px 0; padding: 0; border: 0; }",
-      ".cl-homology .hb-preset-box legend { margin-bottom: 7px; color: var(--hb-muted); font-weight: 700; }",
-      ".cl-homology .hb-preset-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }",
-      ".cl-homology button { min-width: 0; min-height: 44px; padding: 8px 10px; border: 1px solid var(--hb-border); border-radius: 6px; background: var(--hb-panel); color: var(--hb-fg); font: inherit; line-height: 1.3; cursor: pointer; }",
-      ".cl-homology button:hover:not(:disabled) { border-color: var(--hb-accent); }",
-      ".cl-homology button[aria-pressed=true], .cl-homology .hb-primary { border-color: var(--hb-accent); background: var(--hb-accent); color: var(--hb-bg); font-weight: 700; }",
-      ".cl-homology button:disabled { cursor: not-allowed; opacity: .55; }",
-      ".cl-homology button:focus-visible { outline: 3px solid var(--cl-focus, #1769aa); outline-offset: 2px; }",
-      ".cl-homology .hb-preset { min-height: 58px; text-align: left; }",
-      ".cl-homology .hb-preset small { display: block; margin-top: 3px; color: var(--hb-muted); font-size: 11px; line-height: 1.3; }",
-      ".cl-homology .hb-preset[aria-pressed=true] small { color: var(--hb-bg); }",
-      ".cl-homology .hb-layout { display: grid; grid-template-columns: minmax(200px, .78fr) minmax(0, 1.22fr); gap: 16px; align-items: start; }",
-      ".cl-homology .hb-section { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--hb-border); }",
-      ".cl-homology .hb-section:first-child { margin-top: 0; padding-top: 0; border-top: 0; }",
-      ".cl-homology h4 { margin: 0 0 7px; color: var(--hb-fg); font-size: 1rem; }",
-      ".cl-homology .hb-edge-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }",
-      ".cl-homology .hb-edge-button { min-height: 48px; }",
-      ".cl-homology .hb-action-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; margin-top: 8px; }",
-      ".cl-homology .hb-selection { margin: 9px 0 0; padding: 9px 10px; border-left: 3px solid var(--hb-gold); background: var(--hb-panel); color: var(--hb-muted); overflow-wrap: anywhere; }",
-      ".cl-homology .hb-stage-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }",
-      ".cl-homology .hb-stage-title { color: var(--hb-muted); font-size: 12.5px; }",
-      ".cl-homology .hb-graph-wrap { max-width: 100%; padding: 7px; border: 1px solid var(--hb-border); border-radius: 7px; background: var(--hb-bg); overflow: hidden; }",
-      ".cl-homology .hb-svg { display: block; width: 100%; max-width: 100%; height: auto; color: var(--hb-fg); }",
-      ".cl-homology .hb-svg text { fill: currentColor; font-family: inherit; letter-spacing: 0; }",
-      ".cl-homology .hb-face { fill: var(--hb-accent); fill-opacity: .14; stroke: var(--hb-border); stroke-width: 1.5; }",
-      ".cl-homology .hb-face-1 { fill: var(--hb-good); } .cl-homology .hb-face-2 { fill: var(--hb-gold); } .cl-homology .hb-face-3 { fill: var(--hb-warn); }",
-      ".cl-homology .hb-edge { stroke: var(--hb-muted); stroke-width: 4; stroke-linecap: round; }",
-      ".cl-homology .hb-edge-selected { stroke: var(--hb-warn); stroke-width: 7; }",
-      ".cl-homology .hb-vertex { fill: var(--hb-bg); stroke: var(--hb-accent); stroke-width: 3; }",
-      ".cl-homology .hb-vertex-boundary { fill: var(--hb-gold); stroke: var(--hb-warn); stroke-width: 4; }",
-      ".cl-homology .hb-vertex-label { font-size: 16px; font-weight: 750; }",
-      ".cl-homology .hb-edge-label { fill: var(--hb-muted) !important; font-size: 12px; font-weight: 650; }",
-      ".cl-homology .hb-face-label { fill: var(--hb-muted) !important; font-size: 12px; }",
-      ".cl-homology .hb-graph-legend { display: flex; flex-wrap: wrap; gap: 5px 12px; margin: 7px 2px 0; color: var(--hb-muted); font-size: 11.5px; }",
-      ".cl-homology .hb-legend-item { display: inline-flex; align-items: center; gap: 5px; }",
-      ".cl-homology .hb-swatch { display: inline-block; width: 14px; height: 10px; border-radius: 2px; background: var(--hb-muted); }",
-      ".cl-homology .hb-swatch-selected { background: var(--hb-warn); } .cl-homology .hb-swatch-face { background: var(--hb-accent); opacity: .55; } .cl-homology .hb-swatch-boundary { background: var(--hb-gold); border: 2px solid var(--hb-warn); }",
-      ".cl-homology .hb-verdict { margin-top: 12px; padding: 10px 11px; border-left: 4px solid var(--hb-gold); background: var(--hb-panel); }",
-      ".cl-homology .hb-verdict[data-kind=boundary] { border-color: var(--hb-good); } .cl-homology .hb-verdict[data-kind=homology-class] { border-color: var(--hb-accent); } .cl-homology .hb-verdict[data-kind=not-cycle] { border-color: var(--hb-warn); }",
-      ".cl-homology .hb-verdict strong { color: var(--hb-fg); }",
-      ".cl-homology .hb-verdict p { margin: 4px 0; }",
-      ".cl-homology .hb-good { color: var(--hb-good); font-weight: 700; } .cl-homology .hb-warn { color: var(--hb-warn); font-weight: 700; }",
-      ".cl-homology .hb-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin: 12px 0; }",
-      ".cl-homology .hb-metric { min-width: 0; padding: 9px; border-top: 2px solid var(--hb-border); background: var(--hb-panel); }",
-      ".cl-homology .hb-metric span { display: block; color: var(--hb-muted); font-size: 11px; line-height: 1.35; }",
-      ".cl-homology .hb-metric strong { display: block; margin-top: 3px; color: var(--hb-fg); font-size: 16px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }",
-      ".cl-homology .hb-matrix-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 13px; }",
-      ".cl-homology .hb-matrix-card { min-width: 0; padding: 10px; border: 1px solid var(--hb-border); border-radius: 6px; background: var(--hb-panel); }",
-      ".cl-homology .hb-matrix-card h4 { margin-bottom: 2px; }",
-      ".cl-homology .hb-matrix-note { margin: 5px 0 0; color: var(--hb-muted); font-size: 11.5px; }",
-      ".cl-homology .hb-table-wrap { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }",
-      ".cl-homology table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11.5px; font-variant-numeric: tabular-nums; }",
-      ".cl-homology th, .cl-homology td { padding: 5px 3px; border-bottom: 1px solid var(--hb-border); text-align: center; overflow-wrap: anywhere; }",
-      ".cl-homology th { color: var(--hb-muted); font-weight: 700; } .cl-homology th:first-child { text-align: left; }",
-      ".cl-homology td { color: var(--hb-fg); }",
-      ".cl-homology .hb-ledger { margin-top: 13px; } .cl-homology .hb-ledger table th:first-child, .cl-homology .hb-ledger table td:first-child { text-align: left; width: 27%; } .cl-homology .hb-ledger table th:last-child, .cl-homology .hb-ledger table td:last-child { text-align: left; width: 47%; }",
-      ".cl-homology .hb-check { margin-top: 9px; color: var(--hb-good); font-weight: 700; }",
-      ".cl-homology .hb-check-fail { color: var(--hb-warn); }",
-      ".cl-homology .hb-sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }",
-      "@media (max-width: 700px) { .cl-homology { margin-left: -8px; margin-right: -8px; width: calc(100% + 16px); padding: 14px; } .cl-homology .hb-layout { grid-template-columns: minmax(0, 1fr); } .cl-homology .hb-matrix-grid { grid-template-columns: minmax(0, 1fr); } .cl-homology .hb-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); } }",
-      "@media (max-width: 390px) { .cl-homology .hb-preset-grid, .cl-homology .hb-edge-grid, .cl-homology .hb-action-row { grid-template-columns: minmax(0, 1fr); } .cl-homology .hb-metrics { grid-template-columns: minmax(0, 1fr); } .cl-homology table { font-size: 10.5px; } }",
-      "@media (prefers-reduced-motion: reduce) { .cl-homology * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }"
-    ].join("\n");
-    (doc.head || doc.documentElement).appendChild(style);
-  }
-
-  function textVector(values) {
-    return "(" + values.join(", ") + ")";
-  }
-
-  function selectedLabels(report) {
-    return report.complex.edges.filter(function (edge, index) { return report.chain[index] === 1; }).map(function (edge) { return edge.label; });
-  }
-
-  function classificationLabel(classification) {
-    if (classification === "boundary") return "boundary（边界）∈ B₁ = im ∂₂";
-    if (classification === "homology-class") return "homology class（非边界 cycle，代表非零 [c] ∈ H₁）";
-    return "not a cycle（不是 cycle，不属于 Z₁）";
-  }
-
-  function renderMatrix(doc, title, subtitle, rows, columns, matrix, rank, kernelDimension) {
-    var card = element(doc, "section", { className: "hb-matrix-card" });
-    card.appendChild(element(doc, "h4", { text: title }));
-    card.appendChild(element(doc, "p", { className: "hb-matrix-note", text: subtitle }));
-    if (columns.length === 0) {
-      card.appendChild(element(doc, "p", { className: "hb-matrix-note", text: "矩阵形状 " + rows.length + " × 0：C₂=0，因此没有面列。" }));
-    } else {
-      var wrapper = element(doc, "div", { className: "hb-table-wrap" });
-      var table = element(doc, "table", { className: "hb-matrix" });
-      table.appendChild(element(doc, "caption", { className: "hb-sr-only", text: title + " 矩阵" }));
-      var head = element(doc, "tr");
-      head.appendChild(element(doc, "th", { scope: "col", text: "" }));
-      columns.forEach(function (column) { head.appendChild(element(doc, "th", { scope: "col", text: column })); });
-      table.appendChild(element(doc, "thead", {}, head));
-      var body = element(doc, "tbody");
-      matrix.forEach(function (row, rowIndex) {
-        var tableRow = element(doc, "tr");
-        tableRow.appendChild(element(doc, "th", { scope: "row", text: rows[rowIndex] }));
-        row.forEach(function (entry) { tableRow.appendChild(element(doc, "td", { text: String(entry) })); });
-        body.appendChild(tableRow);
-      });
-      table.appendChild(body);
-      wrapper.appendChild(table);
-      card.appendChild(wrapper);
-    }
-    card.appendChild(element(doc, "p", { className: "hb-matrix-note", text: "rank = " + rank + "；ker 维数 = " + kernelDimension }));
-    return card;
-  }
-
-  function replaceRenderedRoot(root, next) {
-    var liveRegion = root.querySelector ? root.querySelector("[data-cl-live]") : null;
-    var current = root.querySelector ? root.querySelector(":scope > .hb-shell") : null;
-    if (current) root.replaceChild(next, current);
-    else if (liveRegion && liveRegion.parentNode === root) root.insertBefore(next, liveRegion);
-    else root.appendChild(next);
-  }
-
-  function renderGraph(doc, report, serial) {
-    var complex = report.complex;
-    var positions = complex.vertices.map(function (vertex) { return { x: vertex.x, y: vertex.y }; });
-    var svg = svgElement(doc, "svg", {
-      className: "hb-svg",
-      viewBox: "0 0 640 300",
-      role: "img",
-      "aria-label": complex.label + " 的顶点、边、面和当前 1-chain"
-    });
-    svg.appendChild(svgElement(doc, "title", { id: "hb-svg-title-" + serial }, complex.label + " 的单纯复形"));
-    svg.appendChild(svgElement(doc, "desc", { id: "hb-svg-desc-" + serial }, "橙色边是当前选择的 1-chain；金色顶点是其边界 ∂₁c 的非零位置。"));
-
-    complex.faces.forEach(function (face, faceIndex) {
-      var points = face.vertices.map(function (vertexIndex) { return positions[vertexIndex].x + "," + positions[vertexIndex].y; }).join(" ");
-      svg.appendChild(svgElement(doc, "polygon", { points: points, className: "hb-face hb-face-" + (faceIndex % 4), "aria-label": face.label }));
-      var center = face.vertices.reduce(function (sum, vertexIndex) {
-        return { x: sum.x + positions[vertexIndex].x / 3, y: sum.y + positions[vertexIndex].y / 3 };
-      }, { x: 0, y: 0 });
-      svg.appendChild(svgElement(doc, "text", { x: center.x, y: center.y, className: "hb-face-label", "text-anchor": "middle" }, face.label));
-    });
-
-    complex.edges.forEach(function (edge, edgeIndex) {
-      var left = positions[edge.vertices[0]];
-      var right = positions[edge.vertices[1]];
-      var selected = report.chain[edgeIndex] === 1;
-      svg.appendChild(svgElement(doc, "line", {
-        x1: left.x,
-        y1: left.y,
-        x2: right.x,
-        y2: right.y,
-        className: selected ? "hb-edge hb-edge-selected" : "hb-edge",
-        "aria-label": edge.label + (selected ? "，已选" : "，未选")
-      }));
-      svg.appendChild(svgElement(doc, "text", {
-        x: (left.x + right.x) / 2,
-        y: (left.y + right.y) / 2 - 7,
-        className: "hb-edge-label",
-        "text-anchor": "middle"
-      }, edge.label));
-    });
-
-    complex.vertices.forEach(function (vertex, vertexIndex) {
-      var position = positions[vertexIndex];
-      var nonzero = report.boundaryOfChain[vertexIndex] === 1;
-      svg.appendChild(svgElement(doc, "circle", {
-        cx: position.x,
-        cy: position.y,
-        r: nonzero ? 10 : 8,
-        className: nonzero ? "hb-vertex hb-vertex-boundary" : "hb-vertex",
-        "aria-label": vertex.label + (nonzero ? "，∂₁c 非零" : "，∂₁c 为零位置")
-      }));
-      svg.appendChild(svgElement(doc, "text", {
-        x: position.x,
-        y: position.y - 14,
-        className: "hb-vertex-label",
-        "text-anchor": "middle"
-      }, vertex.label));
-    });
-    return svg;
-  }
-
-  function mount(root, api) {
-    var doc = root.ownerDocument || (typeof document !== "undefined" ? document : null);
-    if (!doc) return;
-    installStyles(doc);
-    root.classList.add("cl-homology");
-    INSTANCE += 1;
-    var serial = INSTANCE;
-    var initial = pureModel.getPreset("solid-triangle");
-    var state = { presetId: initial.id, chain: initial.defaultChain.slice() };
-    var announce = function (message) {
-      if (api && typeof api.announce === "function") api.announce(root, message);
-    };
-
-    function firstFaceChain(report) {
-      var chain = new Array(report.complex.edges.length).fill(0);
-      if (report.complex.faces.length > 0) {
-        report.complex.faces[0].edgeIndices.forEach(function (edgeIndex) { chain[edgeIndex] = 1; });
-      }
-      return chain;
-    }
-
-    function render() {
-      var report = pureModel.analyze(state.presetId, state.chain);
-      var preset = report.complex;
-      var shell = element(doc, "div", { className: "hb-shell" });
-      shell.appendChild(element(doc, "h3", { className: "hb-heading", text: "同调边界账本：在 F₂ 上记账" }));
-      shell.appendChild(element(doc, "p", { className: "hb-intro", text: "选择有限二维单纯复形，再点选边组成 1-chain c。脚本只做 F₂ 运算：1+1=0，精确显示 ∂₁c、im ∂₂ 与 β₀, β₁, β₂。" }));
-
-      var presetBox = element(doc, "fieldset", { className: "hb-preset-box" });
-      presetBox.appendChild(element(doc, "legend", { text: "选择复形（所有数值均在 F₂ 上）" }));
-      var presetGrid = element(doc, "div", { className: "hb-preset-grid", role: "group", "aria-label": "选择单纯复形预设" });
-      pureModel.PRESETS.forEach(function (item) {
-        var button = element(doc, "button", {
-          type: "button",
-          className: "hb-preset",
-          "aria-pressed": item.id === state.presetId ? "true" : "false",
-          "aria-label": "载入" + item.label
-        });
-        button.appendChild(doc.createTextNode(item.label));
-        button.appendChild(element(doc, "small", { text: item.description }));
-        button.addEventListener("click", function () {
-          var next = pureModel.getPreset(item.id);
-          state.presetId = item.id;
-          state.chain = next.defaultChain.slice();
-          render();
-          announce("已载入" + item.label + "；当前链为" + textVector(pureModel.analyze(item.id, state.chain).chain) + "。");
-        });
-        presetGrid.appendChild(button);
-      });
-      presetBox.appendChild(presetGrid);
-
-      var layout = element(doc, "div", { className: "hb-layout" });
-      var controls = element(doc, "div", { className: "hb-controls" });
-      var stage = element(doc, "div", { className: "hb-stage" });
-      layout.appendChild(controls);
-      layout.appendChild(stage);
-
-      var chainSection = element(doc, "section", { className: "hb-section" });
-      chainSection.appendChild(element(doc, "h4", { text: "点选 1-chain 的边" }));
-      chainSection.appendChild(element(doc, "p", { className: "hb-note", text: "选中边的系数为 1，未选边为 0；顺序只用于记账，不代表 F₂ 中的 orientation。" }));
-      var edgeGrid = element(doc, "div", { className: "hb-edge-grid", role: "group", "aria-label": "选择边组成一链" });
-      preset.edges.forEach(function (edge, edgeIndex) {
-        var selected = report.chain[edgeIndex] === 1;
-        var button = element(doc, "button", {
-          type: "button",
-          className: "hb-edge-button",
-          "aria-pressed": selected ? "true" : "false",
-          "aria-label": (selected ? "取消选择 " : "选择 ") + edge.label
-        }, (selected ? "✓ " : "") + edge.label);
-        button.addEventListener("click", function () {
-          var nextChain = report.chain.slice();
-          nextChain[edgeIndex] = nextChain[edgeIndex] ? 0 : 1;
-          state.chain = nextChain;
-          render();
-          announce(edge.label + (nextChain[edgeIndex] ? " 已加入" : " 已移出") + "当前 1-chain。");
-        });
-        edgeGrid.appendChild(button);
-      });
-      chainSection.appendChild(edgeGrid);
-      var actionRow = element(doc, "div", { className: "hb-action-row" });
-      var clearButton = element(doc, "button", { type: "button", text: "清空链" });
-      clearButton.addEventListener("click", function () {
-        state.chain = new Array(preset.edges.length).fill(0);
-        render();
-        announce("当前 1-chain 已清空。");
-      });
-      var defaultButton = element(doc, "button", { type: "button", className: "hb-primary", text: "恢复默认链" });
-      defaultButton.addEventListener("click", function () {
-        state.chain = preset.defaultChain.slice();
-        render();
-        announce("已恢复" + preset.label + "的默认链。");
-      });
-      actionRow.appendChild(clearButton);
-      actionRow.appendChild(defaultButton);
-      chainSection.appendChild(actionRow);
-      var faceButton = element(doc, "button", { type: "button", text: "取第一面边界" });
-      faceButton.disabled = preset.faces.length === 0;
-      faceButton.addEventListener("click", function () {
-        state.chain = firstFaceChain(report);
-        render();
-        announce("已选择第一面的边界。");
-      });
-      chainSection.appendChild(faceButton);
-      chainSection.appendChild(element(doc, "p", { className: "hb-selection", text: "当前 c = " + (selectedLabels(report).length ? selectedLabels(report).join(" + ") : "0") + "；坐标 = " + textVector(report.chain) }));
-      controls.appendChild(chainSection);
-
-      var stageHead = element(doc, "div", { className: "hb-stage-head" });
-      stageHead.appendChild(element(doc, "h4", { text: "复形与当前边界" }));
-      stageHead.appendChild(element(doc, "span", { className: "hb-stage-title", text: preset.label + " · " + preset.vertices.length + " 个顶点，" + preset.edges.length + " 条边，" + preset.faces.length + " 个面" }));
-      stage.appendChild(stageHead);
-      var graphWrap = element(doc, "div", { className: "hb-graph-wrap" });
-      graphWrap.appendChild(renderGraph(doc, report, serial));
-      var legend = element(doc, "div", { className: "hb-graph-legend" });
-      [["hb-swatch-face", "面（2-simplex）"], ["hb-swatch-selected", "当前 c 的边"], ["hb-swatch-boundary", "∂₁c 的非零顶点"]].forEach(function (item) {
-        var legendItem = element(doc, "span", { className: "hb-legend-item" });
-        legendItem.appendChild(element(doc, "i", { className: "hb-swatch " + item[0], "aria-hidden": "true" }));
-        legendItem.appendChild(doc.createTextNode(item[1]));
-        legend.appendChild(legendItem);
-      });
-      graphWrap.appendChild(legend);
-      stage.appendChild(graphWrap);
-
-      var verdict = element(doc, "section", { className: "hb-verdict", "data-kind": report.classification });
-      verdict.appendChild(element(doc, "strong", { text: classificationLabel(report.classification) }));
-      verdict.appendChild(element(doc, "p", { text: "∂₁c = " + textVector(report.boundaryOfChain) + (report.isCycle ? "，所以 c ∈ Z₁。" : "，所以 c ∉ Z₁。") }));
-      verdict.appendChild(element(doc, "p", { text: "c ∈ im ∂₂ = B₁？ " + (report.inImage ? "是。" : "否。") + (report.boundaryWitness ? " 一个见证 2-chain 的坐标是 " + textVector(report.boundaryWitness) + "。" : "") }));
-      if (report.classification === "not-cycle") verdict.appendChild(element(doc, "p", { className: "hb-warn", text: "只有 cycle 才能代表 H₁ 中的类；当前链有非零边界。" }));
-      stage.appendChild(verdict);
-
-      var metrics = element(doc, "div", { className: "hb-metrics" });
-      [["β₀", report.betti.beta0, "dim H₀(F₂)"], ["β₁", report.betti.beta1, "dim Z₁/B₁"], ["β₂", report.betti.beta2, "dim ker ∂₂"]].forEach(function (metric) {
-        var card = element(doc, "div", { className: "hb-metric" });
-        card.appendChild(element(doc, "span", { text: metric[0] + "（F₂）" }));
-        card.appendChild(element(doc, "strong", { text: String(metric[1]) }));
-        card.appendChild(element(doc, "span", { text: metric[2] }));
-        metrics.appendChild(card);
-      });
-      stage.appendChild(metrics);
-
-      var matrixGrid = element(doc, "div", { className: "hb-matrix-grid" });
-      matrixGrid.appendChild(renderMatrix(doc, "∂₁：C₁ → C₀", "行是顶点，列是边；每列有两个 1。", report.labels.boundary1Rows, report.labels.boundary1Columns, report.matrices.boundary1, report.ranks.boundary1, report.kernelDimensions.boundary1));
-      matrixGrid.appendChild(renderMatrix(doc, "∂₂：C₂ → C₁", "行是边，列是面；F₂ 中方向符号被忘掉。", report.labels.boundary2Rows, report.labels.boundary2Columns, report.matrices.boundary2, report.ranks.boundary2, report.kernelDimensions.boundary2));
-      stage.appendChild(matrixGrid);
-
-      var ledger = element(doc, "section", { className: "hb-ledger" });
-      ledger.appendChild(element(doc, "h4", { text: "矩阵—秩—Betti—Euler 账本" }));
-      var ledgerTable = element(doc, "table");
-      ledgerTable.appendChild(element(doc, "caption", { className: "hb-sr-only", text: "同调边界账本" }));
-      var ledgerHead = element(doc, "tr");
-      ["量", "值", "意义"].forEach(function (label) { ledgerHead.appendChild(element(doc, "th", { scope: "col", text: label })); });
-      ledgerTable.appendChild(element(doc, "thead", {}, ledgerHead));
-      var ledgerBody = element(doc, "tbody");
-      [
-        ["rank ∂₁", report.ranks.boundary1, "顶点边界的像维数"],
-        ["ker 维数 ∂₁", report.kernelDimensions.boundary1, "Z₁ 的维数"],
-        ["rank ∂₂", report.ranks.boundary2, "B₁ 的维数"],
-        ["ker 维数 ∂₂", report.kernelDimensions.boundary2, "H₂（此处无 C₃）的维数"],
-        ["χ = V−E+F", report.euler, "链群维数的交替和"],
-        ["β₀−β₁+β₂", report.eulerFromBetti, "同调维数的交替和"]
-      ].forEach(function (row) {
-        var tr = element(doc, "tr");
-        row.forEach(function (value) { tr.appendChild(element(doc, "td", { text: String(value) })); });
-        ledgerBody.appendChild(tr);
-      });
-      ledgerTable.appendChild(ledgerBody);
-      ledger.appendChild(element(doc, "div", { className: "hb-table-wrap" }, ledgerTable));
-      ledger.appendChild(element(doc, "p", { className: report.boundarySquareZero ? "hb-check" : "hb-check hb-check-fail", text: "数值验证 ∂₁∂₂ = 0：" + (report.boundarySquareZero ? "通过。" : "失败，请检查复形的面—边关系。") }));
-      stage.appendChild(ledger);
-      shell.appendChild(presetBox);
-      shell.appendChild(layout);
-      replaceRenderedRoot(root, shell);
-    }
-
-    render();
-  }
-
-  host.CourseLearning.register("homology-boundary", mount);
-})(typeof window !== "undefined" ? window : null);
+return {DEFAULTS,PRESETS,QUESTIONS,config,snapshot,plots,ledgers,fmt,svg,mount,selfTest};});
