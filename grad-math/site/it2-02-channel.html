@@ -52,144 +52,465 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 04:59</div>
+    <div class="build-time">构建于 2026-09-11 15:46</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：有限码能精确验，容量定理却必须说清量词</a><ul>
-<li><a href="#channel-coding-learning-title">1. 先预测：哪一个数属于哪一层？</a></li>
-<li><a href="#2">2. 静态后备：重复码是一台诚实的有限块显微镜</a></li>
-<li><a href="#3">3. 四个边界条件</a></li>
+<li><a href="#_1">学习层：看到一条低误码曲线，还差哪些信息？</a><ul>
+<li><a href="#channel-learning-title">同一个信道，换个译码器就可能完全不同</a></li>
+<li><a href="#_2">先预测四个问题</a></li>
 </ul>
 </li>
-<li><a href="#1">1. 设置与联合典型性</a></li>
-<li><a href="#2_1">2. 可达性（正向定理）的证明</a></li>
-<li><a href="#3-r-c">3. 逆定理（\(R &gt; C\) 不可能）</a></li>
-<li><a href="#4">4. 微分熵与高斯信道（连续世界一页速通）</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#1">1. 一个码需要五项定义</a></li>
+<li><a href="#2">2. 最大似然：先看信道，再决定“距离近”好不好</a></li>
+<li><a href="#3">3. 完整枚举：平局和混淆矩阵都不能省</a></li>
+<li><a href="#4">4. 联合典型性：约束的是三项自信息</a></li>
+<li><a href="#5">5. 随机编码：平均对谁取，存在什么码</a></li>
+<li><a href="#6">6. 删去坏消息：平均小怎样变成最大也小</a></li>
+<li><a href="#7">7. 有限真假配对账本：别让小指数遮住大尾项</a></li>
+<li><a href="#8">8. 逆定理：无记忆给不等式，不自动给等号</a></li>
+<li><a href="#9">9. 枚举随机码本：平均之下确实有具体成员</a></li>
+<li><a href="#10">10. 高斯信道：单位和功率约束必须跟着公式</a></li>
+<li><a href="#11">11. 四道完整练习：把容易混用的结论拆开</a><ul>
+<li><a href="#_3">练习一：多重复一位，平均错误为什么没变？</a></li>
+<li><a href="#ml">练习二：一个有限并集上界，为什么不等于ML误码？</a></li>
+<li><a href="#fano">练习三：Fano给的是下界，还是精确错误？</a></li>
+<li><a href="#_4">练习四：功率翻倍为何不总多半比特？</a></li>
+</ul>
+</li>
+<li><a href="#12">12. 从存在性走向构造：哪些问题还在后面</a></li>
 </ul>
 </div>
 </details>
-<h1 id="ii">信息论进阶 II · 信道编码定理的证明<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<h1 id="ii">信息论进阶 II · 信道编码、有限译码与随机码本<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Cover &amp; Thomas §7 ｜ <strong>前置</strong>：it2-01、本科信息论 II–III
-本科信息论 III 只陈述了信道编码定理；本页给出 Shannon 的证明——<strong>随机编码 + 联合典型译码</strong>：不构造任何具体的码，而是证明"随机抓一把码字平均而言就能工作"。这是概率方法（图论组合线见过）最辉煌的一次出手，也是"存在性证明改变工业"的孤例级案例。</p>
+<p><strong>前置</strong>：it2-01 的 AEP 与有限码本、条件熵和互信息、条件概率与并集界。
+<strong>本课问题</strong>：一个具体码本到底错多少？为什么随机造码能证明容量可达？有限误码、平均误码、最坏消息误码和渐近容量分别需要什么证据？本课先穷举短码，再把证明中的每个概率项单独记账。</p>
 </blockquote>
-<figure class="diagram">
-<p><img alt="有噪信道：输入→转移矩阵→输出，容量 C=\max I(X;Y)。" src="assets/img/it2-02-channel.svg" /></p>
-<figcaption><span class="fig-id">图 it2-02.1</span>有噪信道：输入→转移矩阵→输出，容量 \(C=\max I(X;Y)\)。</figcaption>
-</figure>
 <div data-learning-page></div>
-
-<section aria-labelledby="channel-coding-learning-title" class="learning-layer">
-<h2 id="_1">学习层：有限码能精确验，容量定理却必须说清量词<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="channel-coding-learning-title">1. 先预测：哪一个数属于哪一层？<a class="headerlink" href="#channel-coding-learning-title" title="Permanent link"></a></h3>
-<p>下面三句话只有各自在正确量词下才成立：</p>
-<ol>
-<li>一个长度为 <span class="arithmatex">\(n\)</span> 的具体码可以穷举收到的 <span class="arithmatex">\(2^n\)</span> 个词，得到<strong>这个码、这个译码器</strong>的精确误码率。</li>
-<li>随机编码证明里的 union bound 比较 <span class="arithmatex">\(2^{nR}\)</span> 个候选与单个假配对约 <span class="arithmatex">\(2^{-nI}\)</span> 的指数；它不要求那些错误事件彼此独立。</li>
-<li><span class="arithmatex">\(R&gt;C\)</span> 的逆定理排除的是“存在误码率随 <span class="arithmatex">\(n\)</span> 趋零的码族”，而不是宣称每个有限码都具有同一个固定误码率。</li>
-</ol>
-<p>先判断这三层能否互相替代；提交后再同时查看重复码的精确二项尾概率、最近邻全枚举结果与典型性指数账本。</p>
-<h3 id="2">2. 静态后备：重复码是一台诚实的有限块显微镜<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<div class="learning-lab" data-learning-lab="channel-coding">
-<p>长度为奇数 <span class="arithmatex">\(n\)</span> 的二元重复码只有码字 <span class="arithmatex">\(0^n,1^n\)</span>，多数译码的误码率可精确写成</p>
-<div class="arithmatex">\[
-P_e^{\mathrm{rep}}(n,\varepsilon)
-=\sum_{k=(n+1)/2}^{n}\binom nk\varepsilon^k(1-\varepsilon)^{n-k},
-\qquad R_{\mathrm{rep}}=\frac1n.
-\]</div>
+<style>
+.channel-course .katex{position:relative}
+.channel-course .channel-fallback td:last-child{white-space:nowrap;font-size:.9em}
+</style>
+<noscript><style>.channel-course span.arithmatex{overflow-wrap:anywhere;word-break:break-word;white-space:normal}</style></noscript>
+<div class="channel-course">
+<section aria-labelledby="channel-learning-title" class="learning-layer">
+<h2 id="_1">学习层：看到一条低误码曲线，还差哪些信息？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="channel-learning-title">同一个信道，换个译码器就可能完全不同<a class="headerlink" href="#channel-learning-title" title="Permanent link"></a></h3>
+<p>为了发送一位消息，用 000 表示 0、111 表示 1。如果每位以概率 0.1 翻转，多数表决很自然；如果每位以概率 0.9 翻转，收到 000 反而更支持“原来发了 111”。信道并没有失去信息，错误发生在译码器仍然按“翻转很少”来判断。</p>
+<p>因此，一份有限实验至少要写清<strong>码本、消息先验、信道、译码规则和平局规则</strong>。容量只描述在适用条件下可以达到的渐近边界，不替你选择其中任意一个。</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: right;"><span class="arithmatex">\(n\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(\varepsilon=0.1\)</span> 的精确 <span class="arithmatex">\(P_e\)</span></th>
-<th style="text-align: right;">码率</th>
+<th>实验</th>
+<th>实际计算的对象</th>
+<th>它不能单独证明什么</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;"><span class="arithmatex">\(0.1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td>有限 BSC 码本</td>
+<td>全部接收词、逐消息错误、混淆矩阵、平局</td>
+<td>任意长码族达到容量</td>
 </tr>
 <tr>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;"><span class="arithmatex">\(0.028\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1/3\)</span></td>
+<td>真配对与假配对</td>
+<td>完整 Hamming 类型、真实尾项、假接受概率、并集上界</td>
+<td>指定有限码的实际错误等于上界</td>
 </tr>
 <tr>
-<td style="text-align: right;">5</td>
-<td style="text-align: right;"><span class="arithmatex">\(0.00856\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1/5\)</span></td>
+<td>两个随机码字</td>
+<td>每个有序码本及其概率、译码错误、群体平均</td>
+<td>随便抽到哪个码本都很好</td>
 </tr>
 </tbody>
 </table>
-<p>它把可靠性换成了越来越低的码率，因此不能用“<span class="arithmatex">\(P_e\)</span> 下降”就宣布接近容量。实验还逐一枚举所有接收词，并在最近邻平局时均匀拆分；枚举值必须与上面的二项尾概率相同，这是实现层的独立对账。</p>
-<p>证明骨架另列一笔带松弛量 <span class="arithmatex">\(\delta&gt;0\)</span> 的指数赛跑：</p>
-<div class="arithmatex">\[
-2^{nR}\,2^{-n(C-\delta)}=2^{-n(C-R-\delta)}.
-\]</div>
-<p>当 <span class="arithmatex">\(C-R-\delta&gt;0\)</span> 时它衰减，说明随机编码平均错误分析为何有机会闭合；它不是重复码的精确误码率，也没有把“典型性失败”那一项从证明中抹掉。</p>
-<h3 id="3">3. 四个边界条件<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<ul>
-<li><strong>有限块不等于渐近。</strong>一个有限码表现优秀是构造证据，不能替代对一整列码、任意目标误码与充分大块长的量词证明。</li>
-<li><strong>低于容量不等于指定码好用。</strong>定理说存在码族；重复码、错误译码器或受复杂度限制的实现仍可能很差。</li>
-<li><strong>高于容量不等于每个有限实验立刻失败。</strong>强逆定理还能给更尖锐结论，但本页基础逆定理只需要证明误码不能趋零。</li>
-<li><strong>容量不自动提供算法。</strong>随机码本的存在性与高效编码、译码、有限长度色散和工程约束是不同问题。</li>
-</ul>
+<h3 id="_2">先预测四个问题<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<ol>
+<li>码率低于容量，故意总猜第一个消息，也会可靠起来吗？</li>
+<li>并集界是否要求每个假码字导致的错误事件相互独立？</li>
+<li>把三个重复位增加到四个，平均误码一定严格下降吗？</li>
+<li>一个很小的假配对指数项，能否代替真配对不典型的尾概率？</li>
+</ol>
+<div class="learning-lab" data-learning-lab="channel-coding">
+<p><strong>无 JavaScript 时：</strong>下列固定图、18 项数值以及第 11 节四份完整答案可以独立阅读。交互实验重新计算当前参数，完整固定记录可下载核对。</p>
+<figure class="plot">
+<p><a href="assets/img/it2-02-channel-ledgers.svg"><img alt="逐消息平局、真假距离分布、有限并集界与随机码本错误" src="assets/img/it2-02-channel-ledgers.svg" /></a></p>
+<figcaption>图1.1：固定输入的实际错误与概率账本；图线连接离散点只作读图辅助。可打开原图查看四个面板。</figcaption>
+</figure>
+<div class="channel-fallback">
+<p>固定运行：2026-09-11，Node 24.14.0 / darwin arm64。<a href="assets/learning/projects/channel-coding/run-snapshot.json">下载全部接收词、混淆矩阵、类型和随机码本</a>。四位例码本0000、1111，消息均匀，p=0.1，ML且平局优先首标签；500位例M=2^200、p=0.1、带宽0.02；三位典型例M=2、p=0.1、带宽0.5；随机码本例n=3、每位P(1)=1/2、p=0.1、两条独立码字、均匀消息与ML。</p>
+<table>
+<thead>
+<tr>
+<th>固定参数下的量</th>
+<th style="text-align: right;">参考值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>四位优先0：消息0错误</td>
+<td style="text-align: right;">0.0037</td>
+</tr>
+<tr>
+<td>四位优先0：消息1错误</td>
+<td style="text-align: right;">0.0523</td>
+</tr>
+<tr>
+<td>四位平均块错误</td>
+<td style="text-align: right;">0.028</td>
+</tr>
+<tr>
+<td>四位最大消息错误</td>
+<td style="text-align: right;">0.0523</td>
+</tr>
+<tr>
+<td>四位重复码率</td>
+<td style="text-align: right;">0.25</td>
+</tr>
+<tr>
+<td>BSC(0.1)容量</td>
+<td style="text-align: right;">0.531004406411</td>
+</tr>
+<tr>
+<td>500位真配对尾项</td>
+<td style="text-align: right;">0.601976557804</td>
+</tr>
+<tr>
+<td>500位假消息并集项</td>
+<td style="text-align: right;">8.29562044649e-19</td>
+</tr>
+<tr>
+<td>500位有限并集原始和</td>
+<td style="text-align: right;">0.601976557804</td>
+</tr>
+<tr>
+<td>三位例真配对尾项</td>
+<td style="text-align: right;">0.271</td>
+</tr>
+<tr>
+<td>三位例一个假接受率</td>
+<td style="text-align: right;">0.125</td>
+</tr>
+<tr>
+<td>三位例并集上界</td>
+<td style="text-align: right;">0.396</td>
+</tr>
+<tr>
+<td>三位唯一典型译码实际平均</td>
+<td style="text-align: right;">0.362125</td>
+</tr>
+<tr>
+<td>三位随机码本ML平均</td>
+<td style="text-align: right;">0.141</td>
+</tr>
+<tr>
+<td>三位随机码本碰撞概率</td>
+<td style="text-align: right;">0.125</td>
+</tr>
+<tr>
+<td>三位支持中最小ML错误</td>
+<td style="text-align: right;">0.028</td>
+</tr>
+<tr>
+<td>三位支持中最大ML错误</td>
+<td style="text-align: right;">0.5</td>
+</tr>
+<tr>
+<td>三位正概率有序码本数</td>
+<td style="text-align: right;">64</td>
+</tr>
+</tbody>
+</table>
+<p>图线连接离散点只作读图辅助，重合曲线可互相覆盖。概率精确值以分子、分母为准；熵与对数为浮点近似，选带不是严格区间证书。并集上界不等于实际错误；随机码本平均不等于每个成员。</p>
 </div>
+</div>
+<p>概率输入按最多六位小数的精确十进制分数解释。译码比较、平局分配、误码和码本概率用有理数计算；熵、互信息和典型带的对数判断用浮点数。所有正概率，即使显示下溢，也保留分子、分母及对数。零误码不画成某个任意的小正数。</p>
 </section>
-<h2 id="1">1. 设置与联合典型性<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>离散无记忆信道 <span class="arithmatex">\(p(y\mid x)\)</span>；码率 <span class="arithmatex">\(R\)</span>：用 <span class="arithmatex">\(n\)</span> 次信道传 <span class="arithmatex">\(nR\)</span> 比特（<span class="arithmatex">\(2^{nR}\)</span> 个消息）。目标：证明 <span class="arithmatex">\(R &lt; C = \max_{p(x)}I(X;Y)\)</span> 时错误率可任意小。</p>
-<p><strong>联合典型集</strong> <span class="arithmatex">\(A_\varepsilon^{(n)}\)</span>：序列对 <span class="arithmatex">\((x^n, y^n)\)</span> 的经验熵三项（<span class="arithmatex">\(x\)</span> 的、<span class="arithmatex">\(y\)</span> 的、联合的）都 <span class="arithmatex">\(\varepsilon\)</span>-贴近真熵。三条性质【骨架，均为 it2-01 性质的二维版】：
-① 真实配对 <span class="arithmatex">\((X^n, Y^n) \sim \prod p(x,y)\)</span> 落入 <span class="arithmatex">\(A_\varepsilon^{(n)}\)</span> 的概率 <span class="arithmatex">\(\to 1\)</span>（AEP 三次）；
-② <span class="arithmatex">\(|A_\varepsilon^{(n)}| \leq 2^{n(H(X,Y)+\varepsilon)}\)</span>；
-③ <strong>独立配对</strong>（<span class="arithmatex">\(\tilde X^n \perp Y^n\)</span>，各自边缘正确）误落联合典型的概率</p>
+<h2 id="1">1. 一个码需要五项定义<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>设有限输入字母表为 <span class="arithmatex">\(\mathcal X\)</span>、输出字母表为 <span class="arithmatex">\(\mathcal Y\)</span>，离散无记忆信道由转移概率 <span class="arithmatex">\(W(y\mid x)\)</span> 给出。独立使用 <span class="arithmatex">\(n\)</span> 次意味着</p>
 <div class="arithmatex">\[
-P\big((\tilde X^n, Y^n) \in A_\varepsilon^{(n)}\big) \leq 2^{-n(I(X;Y) - 3\varepsilon)}
+W^n(y^n\mid x^n)=\prod_{t=1}^nW(y_t\mid x_t).
 \]</div>
-<p>（<em>证</em>：逐点 <span class="arithmatex">\(p(x^n)p(y^n) \approx 2^{-n(H(X)+H(Y))}\)</span>，集合大小 ≈ <span class="arithmatex">\(2^{nH(X,Y)}\)</span>，相乘得 <span class="arithmatex">\(2^{-nI}\)</span>——<strong>互信息 = "假配对装真"的指数难度</strong>：这一行是整个定理的灵魂。）</p>
-<h2 id="2_1">2. 可达性（正向定理）的证明<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p><strong>【证明骨架（四步，结构完整）】</strong>
-<strong>① 随机造码</strong>：按最优输入分布 <span class="arithmatex">\(p^*(x)\)</span> 独立随机生成 <span class="arithmatex">\(2^{nR}\)</span> 个码字——<strong>码本是抽签抽出来的</strong>；
-<strong>② 译码规则</strong>：收到 <span class="arithmatex">\(y^n\)</span>，找<strong>唯一</strong>与之联合典型的码字；无或不唯一则报错；
-<strong>③ 错误分析（对随机码本取平均）</strong>：发送消息 1——</p>
-<ul>
-<li>错误 A：真配对不典型，概率 <span class="arithmatex">\(\to 0\)</span>（性质①）；</li>
-<li>错误 B：某个假码字 <span class="arithmatex">\(\tilde X^n(j)\)</span>（<span class="arithmatex">\(j \neq 1\)</span>，与 <span class="arithmatex">\(Y^n\)</span> 独立！）碰巧联合典型——union bound 于 <span class="arithmatex">\(2^{nR}\)</span> 个假码字：</li>
-</ul>
+<p>消息 <span class="arithmatex">\(J\)</span> 在 <span class="arithmatex">\(\{0,\ldots,M-1\}\)</span> 上均匀。编码器为 <span class="arithmatex">\(f(j)=x^n(j)\)</span>；码本是一列按<strong>消息标签</strong>编号的词。不同标签偶尔对应同一个词，仍然是两个需要区分的消息，不能在计算前把重复词去重。</p>
+<p>译码器观察 <span class="arithmatex">\(Y^n\)</span> 后输出 <span class="arithmatex">\(\widehat J\)</span>，也可以输出擦除标记。码率定义为</p>
 <div class="arithmatex">\[
-P(\text{B}) \leq 2^{nR}\cdot 2^{-n(I - 3\varepsilon)} \to 0 \quad \text{当 } R &lt; I(X;Y) - 3\varepsilon
+R=\frac{\log_2M}{n}\quad\text{比特/次信道使用}.
 \]</div>
-<p><strong>④ 去随机化</strong>：平均错误率 <span class="arithmatex">\(\to 0\)</span> ⇒ <strong>存在</strong>一个码本达到平均错误率；再删掉最差一半码字，把"平均错误小"升级为"最大错误小"（牺牲的码率 <span class="arithmatex">\(\frac1n \to 0\)</span>）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>读法</strong>：③ 是"两个指数赛跑"——假码字的数量 <span class="arithmatex">\(2^{nR}\)</span> 对撞装真难度 <span class="arithmatex">\(2^{-nI}\)</span>，<span class="arithmatex">\(R &lt; I\)</span> 则真相赢；取 <span class="arithmatex">\(p^* = \arg\max I\)</span> 即达容量。<strong>随机码字在高维中彼此"远离"</strong>（hdp 的近正交现象在编码空间的重演）——好码不难存在、难在可实现译码：从 1948 到 Turbo/LDPC/Polar 的七十年正是在补"多项式时间译码"这个洞（Polar 码是首个可证达容量 + 高效译码的构造【引用 Arıkan】）。</p>
-<h2 id="3-r-c">3. 逆定理（<span class="arithmatex">\(R &gt; C\)</span> 不可能）<a class="headerlink" href="#3-r-c" title="Permanent link"></a></h2>
-<p><strong>【骨架】</strong> Fano 不等式（本科信息论 II 提名的那位）把错误率与条件熵挂钩：<span class="arithmatex">\(P_e \geq \frac{H(W\mid\hat W) - 1}{nR}\)</span>；数据处理不等式链 <span class="arithmatex">\(W \to X^n \to Y^n \to \hat W\)</span> 给 <span class="arithmatex">\(I(W;\hat W) \leq I(X^n;Y^n) \leq nC\)</span>（无记忆信道逐次使用的互信息可加性【一行】）；两者合并：<span class="arithmatex">\(R &gt; C\)</span> ⇒ <span class="arithmatex">\(P_e\)</span> 有正下界，不随 <span class="arithmatex">\(n\)</span> 消失。<span class="arithmatex">\(\blacksquare\)</span>
-——容量之上不是"难"，是<strong>不可能</strong>（信息论的"物理定律"品格；与 slt 线 NFL、JL 下界同属"不可能定理"家族——DPI 是三者共同的引擎之一）。</p>
-<h2 id="4">4. 微分熵与高斯信道（连续世界一页速通）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p>微分熵 <span class="arithmatex">\(h(X)=-\int f\ln f\)</span> 以自然对数计，单位是 nat（本科信息论 III 已警告可负）；高斯信道 <span class="arithmatex">\(Y=X+Z\)</span>，<span class="arithmatex">\(Z\sim N(0,N)\)</span>、功率约束 <span class="arithmatex">\(EX^2\le P\)</span>。以下容量改用以 2 为底的对数，因此单位是 bit/次信道使用：</p>
+<p>当 <span class="arithmatex">\(M\)</span> 不是 2 的整数幂时，这仍是合法的数学码率；它不表示每次恰好承载整数个二元位。</p>
+<p>令 <span class="arithmatex">\(e_j=P(\widehat J\ne j\mid J=j)\)</span>。需要区分</p>
 <div class="arithmatex">\[
-C = \frac12\log_2\Big(1 + \frac PN\Big)\quad\text{bit/use}.
+P_e=\frac1M\sum_{j=0}^{M-1}e_j,
+\qquad P_{e,\max}=\max_j e_j.
 \]</div>
-<p><strong>【骨架】</strong> <span class="arithmatex">\(I=h(Y)-h(Z)\)</span>；给定方差高斯最大化 <span class="arithmatex">\(h(Y)\)</span>（最大熵，本科信息论 III）⇒ 输入取高斯达界。两项若先按 nat 相减，再除以 <span class="arithmatex">\(\ln2\)</span> 即得到上面的 bit。<span class="arithmatex">\(\blacksquare\)</span>——<strong>香农极限公式</strong>：通信工程的北极星；实基带带宽为 <span class="arithmatex">\(W\)</span> Hz 时常写 <span class="arithmatex">\(C=W\log_2(1+\mathrm{SNR})\)</span> bit/s，具体前因子还取决于实/复与带宽约定。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（赛跑的数感）</strong> BSC(<span class="arithmatex">\(\varepsilon = 0.1\)</span>)：<span class="arithmatex">\(C \approx 0.531\)</span>。取 <span class="arithmatex">\(R = 0.4\)</span>：假码字 <span class="arithmatex">\(2^{0.4n}\)</span> 个、单个装真概率 <span class="arithmatex">\(2^{-0.531n}\)</span> ⇒ 错误 <span class="arithmatex">\(\lesssim 2^{-0.131n}\)</span>——<span class="arithmatex">\(n = 500\)</span> 时 <span class="arithmatex">\(\sim 10^{-20}\)</span>：<strong>块长是可靠性的燃料</strong>（实际 LDPC 码块长数千的原因）。</p>
-<p><strong>例 2（Fano 的独立价值，可评分迁移）</strong> 令消息 <span class="arithmatex">\(W\)</span> 在 <span class="arithmatex">\(M=8\)</span> 个标签上均匀，某观测 <span class="arithmatex">\(Y\)</span> 满足 <span class="arithmatex">\(H(W\mid Y)=2\)</span> bits。对任意由 <span class="arithmatex">\(Y\)</span> 给出的猜测 <span class="arithmatex">\(\hat W\)</span>，Fano 不等式</p>
+<p>前者是平均<strong>块错误率</strong>，后者要求保护最难传的消息。若 <span class="arithmatex">\(M=2^k\)</span> 并已固定每个标签的 <span class="arithmatex">\(k\)</span> 位二元表示，还可定义平均比特错误率</p>
 <div class="arithmatex">\[
-H(W\mid Y)\le h_2(P_e)+P_e\log_2(M-1)\le1+P_e\log_2(M-1)
+P_b=\frac1k\mathbb E[d_H(J,\widehat J)].
 \]</div>
-<p>给出 <span class="arithmatex">\(P_e\ge(2-1)/\log_2 7\approx0.356\)</span>。这里必须取 <span class="arithmatex">\(M\ge3\)</span> 才让 <span class="arithmatex">\(\log_2(M-1)\)</span> 版本提供非退化分母；二元情形应直接分析二元错误或使用更合适的界。统计学习下界（slt-02 的 NFL 精细版）与多臂老虎机遗憾下界都用这套“Fano 方法”【引用】。</p>
-<p><strong>例 3（容量公式的边际直觉）</strong> 若当前 <span class="arithmatex">\(\mathrm{SNR}=s\)</span>，功率翻倍带来的精确增量是</p>
+<p>一次块错误可能只错一位，也可能错多位，因此 <span class="arithmatex">\(P_b\)</span> 不等于 <span class="arithmatex">\(P_e\)</span>。本实验仅在标签确有固定二元表示且 <span class="arithmatex">\(k&gt;0\)</span> 时报告 <span class="arithmatex">\(P_b\)</span>。这些指标与随机化译码的定义可参阅 <a href="https://ocw.mit.edu/courses/6-441-information-theory-spring-2016/8d9b42a8d43e28ca4a75e09fb4a89371_MIT6_441S16_chapter_14.pdf">MIT 6.441 第 14 章</a>。</p>
+<h2 id="2">2. 最大似然：先看信道，再决定“距离近”好不好<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>固定收到 <span class="arithmatex">\(y^n\)</span>，最大后验译码选择使 <span class="arithmatex">\(P(J=j\mid Y^n=y^n)\)</span> 最大的标签。均匀消息先验下，由 Bayes 公式，它等价于最大化</p>
 <div class="arithmatex">\[
-\Delta C=\frac12\log_2\frac{1+2s}{1+s}\quad\text{bit/use}.
+W^n(y^n\mid x^n(j)).
 \]</div>
-<p>它在有限 <span class="arithmatex">\(s\)</span> 时小于 <span class="arithmatex">\(0.5\)</span> bit/use，并在高 SNR 时趋于 <span class="arithmatex">\(\frac12\log_2 2=0.5\)</span> bit/use；写成约 <span class="arithmatex">\(0.35\)</span> 是把自然对数数值与 bit 单位混用了。<strong>对数收益递减</strong>解释了通信系统为何往往更愿意增加带宽或空间自由度。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：信息论进阶收官——率失真理论（有损压缩的极限）与大偏差（Sanov 定理）：熵在"压缩"与"稀有事件"两个方向的完全体。</em></p>
+<p>这就是最大似然（ML）译码。并列最优标签可以按固定规则选择，也可以均匀随机选择；对当前均匀先验，两者给出相同的最优平均正确率，但逐消息错误和最大错误可能不同。</p>
+<p>二元对称信道 BSC<span class="arithmatex">\((p)\)</span> 的每位以概率 <span class="arithmatex">\(p\)</span> 翻转，完整参数域为 <span class="arithmatex">\(0\leq p\leq1\)</span>。若接收词与码字相距 <span class="arithmatex">\(d\)</span> 位，</p>
+<div class="arithmatex">\[
+W^n(y^n\mid x^n)=p^d(1-p)^{n-d}.
+\]</div>
+<p>当 <span class="arithmatex">\(0\lt p\lt 1/2\)</span> 时，似然随距离递减，ML 是最近邻；当 <span class="arithmatex">\(1/2\lt p\lt 1\)</span> 时，似然随距离递增，ML 是最远邻。后一种信道也可以先把每个接收位翻转，再按 BSC<span class="arithmatex">\((1-p)\)</span> 译码。</p>
+<p><span class="arithmatex">\(p=0\)</span> 是无噪声，<span class="arithmatex">\(p=1\)</span> 是确定性翻转，二者都能保留全部输入信息。<span class="arithmatex">\(p=1/2\)</span> 时所有接收词与输入独立，任何译码器的最优平均正确率都是 <span class="arithmatex">\(1/M\)</span>，即 <span class="arithmatex">\(P_e=1-1/M\)</span>。这与消息是否用了重复码无关。</p>
+<p>本实验同时提供“ML”“最近邻”和“总猜标签 0”。它不会把 <span class="arithmatex">\(p&gt;1/2\)</span> 偷改成 <span class="arithmatex">\(1/2\)</span>，也不会把低于容量自动当作译码正确的理由。</p>
+<h2 id="3">3. 完整枚举：平局和混淆矩阵都不能省<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>用 <span class="arithmatex">\(D(j\mid y)\)</span> 表示收到词 <span class="arithmatex">\(y\)</span> 后输出标签 <span class="arithmatex">\(j\)</span> 的概率。它可以是确定的 0 或 1，也可以是平局均分得到的分数。于是完整混淆矩阵是</p>
+<div class="arithmatex">\[
+T_{ij}=P(\widehat J=j\mid J=i)
+=\sum_y W^n(y\mid x^n(i))D(j\mid y).
+\]</div>
+<p>每行总和为 1，且</p>
+<div class="arithmatex">\[
+e_i=\sum_{j\ne i}T_{ij}.
+\]</div>
+<p>实验直接累加错误项，不先计算一个接近 1 的成功概率再做相减，避免把微小但非零的错误消掉。对每个接收词，它保存全部似然、并列赢家、实际分配和消息后验。</p>
+<p>两个相反的重复码字 <span class="arithmatex">\(0^n,1^n\)</span>，在最近邻及均匀平局下有</p>
+<div class="arithmatex">\[
+P_e^{\mathrm{rep}}=
+\sum_{d&gt;n/2}\binom ndp^d(1-p)^{n-d}
++\frac12\mathbf1_{\{n\text{为偶数}\}}
+\binom n{n/2}p^{n/2}(1-p)^{n/2}.
+\]</div>
+<p>偶数长度不能靠把 <span class="arithmatex">\(n\)</span> 自动加一来处理。固定优先某个标签的平局规则会改变两个消息各自的错误；平均值仍可与上式核对。若使用 ML 且 <span class="arithmatex">\(p&gt;1/2\)</span>，上式应使用 <span class="arithmatex">\(1-p\)</span>。</p>
+<p>码本的最小 Hamming 距离 <span class="arithmatex">\(d_{\min}\)</span> 可以给几何保证：不同码字、最近邻译码时，少于 <span class="arithmatex">\(d_{\min}/2\)</span> 位翻转不可能把接收词送进另一码字更近的区域。证明只需三角不等式</p>
+<div class="arithmatex">\[
+d_H(x_i,x_j)\leq d_H(x_i,y)+d_H(y,x_j).
+\]</div>
+<p>距离保证只覆盖指定错误数，不等于完整误码率。重复码字导致 <span class="arithmatex">\(d_{\min}=0\)</span>；单消息码本则没有“码字对的最小距离”，实验记为不适用。</p>
+<h2 id="4">4. 联合典型性：约束的是三项自信息<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>选择输入分布 <span class="arithmatex">\(P_X\)</span>，与信道共同诱导 <span class="arithmatex">\(P_{XY}(x,y)=P_X(x)W(y\mid x)\)</span> 及输出边缘 <span class="arithmatex">\(P_Y\)</span>。定义弱联合典型集，要求正概率序列对同时满足</p>
+<div class="arithmatex">\[
+\left|-\frac1n\log_2P_X^n(x^n)-H(X)\right|\leq\varepsilon,
+\]</div>
+<div class="arithmatex">\[
+\left|-\frac1n\log_2P_Y^n(y^n)-H(Y)\right|\leq\varepsilon,
+\]</div>
+<div class="arithmatex">\[
+\left|-\frac1n\log_2P_{XY}^n(x^n,y^n)-H(X,Y)\right|\leq\varepsilon.
+\]</div>
+<p>这些是相对于<strong>真实分布的负对数似然平均</strong>，不是把经验分布的熵算出来后只比较三个数字。经验分布接近真实分布是另一种常用典型性定义，需要另外写出条件。</p>
+<p>对真实 IID 配对，三项分别由 AEP 收敛；再用并集界，真配对不在集合中的概率 <span class="arithmatex">\(\delta_n\)</span> 趋零。集合基数由每个成员的联合概率下界给出</p>
+<div class="arithmatex">\[
+|A_{n,\varepsilon}|\leq2^{n(H(X,Y)+\varepsilon)}.
+\]</div>
+<p>现在改抽<strong>相互独立</strong>且边缘正确的 <span class="arithmatex">\(\widetilde X^n\)</span> 和 <span class="arithmatex">\(Y^n\)</span>。在集合内，两边缘概率各有上界，所以</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\alpha_n
+&amp;=P((\widetilde X^n,Y^n)\in A_{n,\varepsilon})\\
+&amp;=\sum_{(x^n,y^n)\in A_{n,\varepsilon}}P_X^n(x^n)P_Y^n(y^n)\\
+&amp;\leq2^{n(H(X,Y)+\varepsilon)}
+2^{-n(H(X)-\varepsilon)}2^{-n(H(Y)-\varepsilon)}\\
+&amp;=2^{-n(I(X;Y)-3\varepsilon)}.
+\end{aligned}
+\]</div>
+<p>这里的互信息描述真配对与独立假配对的可区分程度。三个松弛量来自三个明确的不等式，不能在有限数值例子里凭空删除。</p>
+<h2 id="5">5. 随机编码：平均对谁取，存在什么码<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>固定输入分布，记 <span class="arithmatex">\(I=I(X;Y)\)</span>。选 <span class="arithmatex">\(R\lt I\)</span>，并取 <span class="arithmatex">\(\varepsilon&gt;0\)</span> 使 <span class="arithmatex">\(R\lt I-3\varepsilon\)</span>。令整数消息位数 <span class="arithmatex">\(k_n=\lfloor nR\rfloor\)</span>、消息数 <span class="arithmatex">\(M_n=2^{k_n}\)</span>。</p>
+<p>独立生成每个码字 <span class="arithmatex">\(X^n(j)\sim P_X^n\)</span>。收到 <span class="arithmatex">\(y^n\)</span> 后，若恰有一个消息的码字与之联合典型，就输出它；没有或有多个则报告错误。随机码本中出现重复词并不被排除，它们造成的标签歧义也必须计入错误。</p>
+<p>对消息 0，若真配对在集合内，且没有其他码字与输出形成典型配对，则译码成功。因此</p>
+<div class="arithmatex">\[
+P_e(0)\leq P(\text{真配对不典型})
++P(\text{至少一个假配对典型}).
+\]</div>
+<p>对随机码本取期望时，未发送码字独立于本次输出，故</p>
+<div class="arithmatex">\[
+\mathbb E_{\mathcal C}[P_e(0\mid\mathcal C)]
+\leq\delta_n+(M_n-1)\alpha_n
+\leq\delta_n+2^{-n(I-3\varepsilon-R)}\longrightarrow0.
+\]</div>
+<p>每个标签的生成方式相同，所以同样的上界适用于对均匀消息求平均后的码本错误率 <span class="arithmatex">\(\mathbb E_{\mathcal C}P_e(\mathcal C)\)</span>。于是至少存在一个具体码本，其平均错误不超过这个平均上界。</p>
+<p><strong>并集界不要求错误事件独立。</strong>独立性用于识别一个未发送码字与输出的分布；把多个事件概率相加，是另一件事。证明也没有承诺每个随机抽到的码本都达到上界。</p>
+<p>对有限字母表，互信息关于输入分布连续，输入概率单纯形紧，故</p>
+<div class="arithmatex">\[
+C=\max_{P_X}I(X;Y)
+\]</div>
+<p>可取得。任取 <span class="arithmatex">\(R\lt C\)</span>，选择使 <span class="arithmatex">\(I&gt;R\)</span> 的输入分布，上面的构造就证明可达性。阈值式随机编码的另一种完整推导见 <a href="https://ocw.mit.edu/courses/6-441-information-theory-spring-2016/83c18c0b0ff3d650e8734b7bc678a2fd_MIT6_441S16_chapter_15.pdf">MIT 6.441 第 15.2 节</a>。</p>
+<h2 id="6">6. 删去坏消息：平均小怎样变成最大也小<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>假设已找到一个 <span class="arithmatex">\(M\)</span> 消息码本，平均错误不超过 <span class="arithmatex">\(\eta\)</span>。错误大于 <span class="arithmatex">\(2\eta\)</span> 的消息不能超过一半；否则所有消息错误的平均会超过 <span class="arithmatex">\(\eta\)</span>。</p>
+<p>保留至少 <span class="arithmatex">\(M/2\)</span> 个好消息。对保留标签继续使用原译码规则；如果原译码器输出已删除标签，就改指向某个保留标签。原本正确的保留消息不会因此变错，所以新码的</p>
+<div class="arithmatex">\[
+P_{e,\max}'\leq2\eta,
+\qquad
+R'=\frac1n\log_2M'\geq\frac1n\log_2M-\frac1n.
+\]</div>
+<p>因此，当 <span class="arithmatex">\(\eta_n\to0\)</span>，最大错误也趋零，码率损失至多 <span class="arithmatex">\(1/n\)</span>。这一步说明“平均错误版本”和“最大错误版本”的容量一致；它不是说一个未经删选的有限码本本来就均匀保护每个消息。</p>
+<p>如果目标码率恰为给定 <span class="arithmatex">\(R\lt C\)</span>，可以先以严格介于 <span class="arithmatex">\(R\)</span> 与 <span class="arithmatex">\(C\)</span> 的码率构造，再做删选，让最后码率仍不少于 <span class="arithmatex">\(R\)</span>。这样处理量词，才能把整数取整和删半损失放进同一个证明。</p>
+<h2 id="7">7. 有限真假配对账本：别让小指数遮住大尾项<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>对 BSC<span class="arithmatex">\((p)\)</span> 使用均匀输入，则 <span class="arithmatex">\(H(X)=H(Y)=1\)</span>、<span class="arithmatex">\(H(X,Y)=1+H_2(p)\)</span>、<span class="arithmatex">\(C=1-H_2(p)\)</span>。两边缘的每符号自信息恒等于 1，联合典型条件只剩</p>
+<div class="arithmatex">\[
+\left|z(d)-H_2(p)\right|\leq\varepsilon,
+\qquad
+z(d)=-\frac dn\log_2p-\left(1-\frac dn\right)\log_2(1-p).
+\]</div>
+<p>真实配对的距离 <span class="arithmatex">\(D\)</span> 服从 Binomial<span class="arithmatex">\((n,p)\)</span>；独立均匀假配对的距离服从 Binomial<span class="arithmatex">\((n,1/2)\)</span>。因此，对当前接受的距离集合 <span class="arithmatex">\(S\)</span>，可以完整计算</p>
+<div class="arithmatex">\[
+\delta=1-\sum_{d\in S}\binom ndp^d(1-p)^{n-d},
+\qquad
+\alpha=\sum_{d\in S}\binom nd2^{-n}.
+\]</div>
+<p>这两个概率具有不同的采样分布，不能把一张直方图当作两者。随机编码的有限平均错误上界是</p>
+<div class="arithmatex">\[
+\mathbb E_{\mathcal C}P_e(\mathcal C)
+\leq\min\{1,\delta+(M-1)\alpha\}.
+\]</div>
+<p>实验同时显示原始和以及截到 1 的概率上界；原始和大于 1 时，只说明这份上界无用。它不会把截断后的 1 仍标成未经截断的指数表达式。</p>
+<p>例如 <span class="arithmatex">\(n=500,p=0.1,M=2^{200},\varepsilon=0.02\)</span>，真配对尾概率约为 <span class="arithmatex">\(0.601976557804\)</span>。只写假配对的指数项很小，不能推出总错误很小。这个结果也<strong>不意味着所有该码率的码都错六成</strong>：当前典型带和译码分析可能过于保守，ML 译码可以更好。</p>
+<p>均匀 BSC 还可以得到比一般三松弛量更紧的指数：因为两边缘自信息没有偏差，集合内的信息密度至少为 <span class="arithmatex">\(n(C-\varepsilon)\)</span>，所以 <span class="arithmatex">\(\alpha\leq2^{-n(C-\varepsilon)}\)</span>。这是该对称设置的专门界，不能无说明地替换一般证明中的 <span class="arithmatex">\(3\varepsilon\)</span>。</p>
+<p>为免把浮点对数判界冒充严格区间证书，实验另给出一个完全有理数的核对。对已选集合中每个正概率距离，定义</p>
+<div class="arithmatex">\[
+r_d=\frac{2^{-n}}{p^d(1-p)^{n-d}}.
+\]</div>
+<p>于是</p>
+<div class="arithmatex">\[
+\alpha=\sum_{d\in S}P_{\mathrm{真}}(D=d)r_d
+\leq(1-\delta)\max_{d\in S}r_d.
+\]</div>
+<p>这是针对<strong>实际已选集合</strong>的精确分数界。空接受集时，假接受率与这个上界均为零，但真配对尾概率为 1。</p>
+<h2 id="8">8. 逆定理：无记忆给不等式，不自动给等号<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>消息均匀时 <span class="arithmatex">\(H(J)=\log_2M\)</span>。设 <span class="arithmatex">\(E=\mathbf1_{\{J\ne\widehat J\}}\)</span>。给定估计与是否出错，错误情况下原消息最多有 <span class="arithmatex">\(M-1\)</span> 个可能值，因而</p>
+<div class="arithmatex">\[
+H(J\mid\widehat J)\leq H_2(P_e)+P_e\log_2(M-1)
+\leq1+P_e\log_2M.
+\]</div>
+<p>这是 Fano 不等式的一种用法。数据处理链</p>
+<div class="arithmatex">\[
+J\longrightarrow X^n\longrightarrow Y^n\longrightarrow\widehat J
+\]</div>
+<p>给出 <span class="arithmatex">\(I(J;\widehat J)\leq I(X^n;Y^n)\)</span>。即使码字坐标相互相关，无记忆性仍然保证</p>
+<div class="arithmatex">\[
+\begin{aligned}
+I(X^n;Y^n)
+&amp;=H(Y^n)-H(Y^n\mid X^n)\\
+&amp;\leq\sum_{t=1}^nH(Y_t)-\sum_{t=1}^nH(Y_t\mid X_t)\\
+&amp;=\sum_{t=1}^nI(X_t;Y_t)\leq nC.
+\end{aligned}
+\]</div>
+<p>第一项用熵的次可加性，第二项的等号来自给定完整输入后的条件独立。不能把有相关输入的一般情形写成互信息自动逐次相加。</p>
+<p>将这些式子合并，对于 <span class="arithmatex">\(M&gt;1\)</span>，</p>
+<div class="arithmatex">\[
+\log_2M\leq nC+1+P_e\log_2M,
+\qquad
+P_e\geq1-\frac{nC+1}{\log_2M}.
+\]</div>
+<p>有限 <span class="arithmatex">\(n\)</span> 时右端可能为负；它是一个无用的下界，不是负错误率。若码率趋于严格大于 <span class="arithmatex">\(C\)</span> 的 <span class="arithmatex">\(R\)</span>，则错误率不能趋零。这是弱逆定理。它尚未证明错误率趋于 1；后者需要强逆定理的额外论证。</p>
+<p>实验还用实际码本的 <span class="arithmatex">\(I(J;Y^n)\)</span> 给 Fano 下界，再与用 <span class="arithmatex">\(nC\)</span> 得到的下界并列。这样可以看出：具体码本损失的信息，与信道本身允许的最大信息量，也不是同一个数。</p>
+<h2 id="9">9. 枚举随机码本：平均之下确实有具体成员<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>现在只生成两个码字，每位独立以概率 <span class="arithmatex">\(q\)</span> 取 1，两个码字也独立。长度至多 4 时，可以列出全部 <span class="arithmatex">\(2^{2n}\)</span> 个<strong>有序</strong>码本，并按其生成概率加权，而不依赖随机模拟。</p>
+<p>若两码字相距 <span class="arithmatex">\(d\)</span> 位，相同的位置不提供区分信息。不同的 <span class="arithmatex">\(d\)</span> 位构成一个重复判别问题。在 ML 译码下，其平均错误恰好是使用翻转率 <span class="arithmatex">\(\min(p,1-p)\)</span> 的长度 <span class="arithmatex">\(d\)</span> 重复码误差，偶数 <span class="arithmatex">\(d\)</span> 包括平局；<span class="arithmatex">\(d=0\)</span> 时两消息完全重合，误差为 <span class="arithmatex">\(1/2\)</span>。</p>
+<p>两个独立 Bernoulli<span class="arithmatex">\((q)\)</span> 位不同的概率是 <span class="arithmatex">\(2q(1-q)\)</span>，所以码字距离服从</p>
+<div class="arithmatex">\[
+D\sim\operatorname{Binomial}(n,2q(1-q)).
+\]</div>
+<p>由此得到第二种独立核对：</p>
+<div class="arithmatex">\[
+\mathbb E_{\mathcal C}P_e^{\mathrm{ML}}(\mathcal C)
+=\sum_{d=0}^n\binom nd[2q(1-q)]^d
+[1-2q(1-q)]^{n-d}P_e^{\mathrm{rep}}(d,\min(p,1-p)).
+\]</div>
+<p>例如 <span class="arithmatex">\(n=3,p=0.1,q=1/2\)</span>，四种距离的概率为 <span class="arithmatex">\((1,3,3,1)/8\)</span>，相应错误为 <span class="arithmatex">\(0.5,0.1,0.1,0.028\)</span>，平均得到</p>
+<div class="arithmatex">\[
+\mathbb E P_e^{\mathrm{ML}}=\frac{0.5+3(0.1)+3(0.1)+0.028}{8}=0.141.
+\]</div>
+<p>相反码字的错误为 0.028，重复码字的错误为 0.5；平均值既不等于最好，也不等于每个成员。若信道完全无噪声，错误仍可能来自随机码字碰撞：在此均匀例子中，碰撞概率 <span class="arithmatex">\(1/8\)</span>，平均错误为 <span class="arithmatex">\(1/16\)</span>。</p>
+<p>一般碰撞概率是</p>
+<div class="arithmatex">\[
+P(X^n(0)=X^n(1))=[q^2+(1-q)^2]^n.
+\]</div>
+<p><span class="arithmatex">\(q=0\)</span> 或 1 时只会抽到一种词，容量虽可能很大，这个随机造码方案却只能产生无法区分的两个消息。因此实验报告的是“有正生成概率的码本中，最好和最坏分别怎样”，不把零概率抽到的成员当作存在性结论的见证。</p>
+<h2 id="10">10. 高斯信道：单位和功率约束必须跟着公式<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>实值 AWGN 信道为 <span class="arithmatex">\(Y=X+Z\)</span>，其中 <span class="arithmatex">\(Z\sim N(0,N)\)</span>、<span class="arithmatex">\(N&gt;0\)</span>，且噪声独立于输入。以比特计的微分熵满足</p>
+<div class="arithmatex">\[
+I(X;Y)=h_2(Y)-h_2(Z).
+\]</div>
+<p>在 <span class="arithmatex">\(\mathbb E X^2\leq P\)</span> 下，<span class="arithmatex">\(\operatorname{Var}(Y)\leq P+N\)</span>。给定方差，高斯分布最大化微分熵，所以</p>
+<div class="arithmatex">\[
+I(X;Y)\leq\frac12\log_2(2\pi e(P+N))
+-\frac12\log_2(2\pi eN)
+=\frac12\log_2(1+P/N).
+\]</div>
+<p>零均值高斯输入 <span class="arithmatex">\(X\sim N(0,P)\)</span> 达到这个单次信息上界。要把它升级为满足逐码字功率限制的编码定理，还需处理生成码字的功率集中与筛选，不能仅凭“选高斯输入”一句话就跳过编码可达性。</p>
+<p>通常的实值容量为</p>
+<div class="arithmatex">\[
+C_{\mathbb R}=\frac12\log_2(1+P/N)\quad\text{比特/实值信道使用}.
+\]</div>
+<p>若一次使用是一个复值符号，且 <span class="arithmatex">\(P=\mathbb E|X|^2\)</span>、<span class="arithmatex">\(N=\mathbb E|Z|^2\)</span>，相应圆对称复高斯模型给 <span class="arithmatex">\(C_{\mathbb C}=\log_2(1+P/N)\)</span>。两者统计的是不同维数，不能把前因子当作相互冲突的结论。</p>
+<p>自然对数得到 nat，转换成比特需要除以 <span class="arithmatex">\(\ln2\)</span>。以每秒计还需明确带宽、实/复自由度和噪声功率的约定。峰值幅度约束也不是平均平方功率约束，不能沿用同一个高斯最优输入。定义与证明范围见 <a href="https://ocw.mit.edu/courses/6-441-information-theory-spring-2016/24fb44b6a101e847c32ffe38bbeeea6e_MIT6_441S16_chapter_17.pdf">MIT 6.441 第 17.1 与 17.3.1 节</a>。</p>
+<h2 id="11">11. 四道完整练习：把容易混用的结论拆开<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<h3 id="_3">练习一：多重复一位，平均错误为什么没变？<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>对码本 0000、1111 经过 BSC<span class="arithmatex">\((0.1)\)</span>，分别采用均匀平局和总优先标签 0 的最近邻规则。求平均错误及最大消息错误，并与三位重复码比较。</p>
+<details class="answer">
+<summary>展开完整答案：平局改变最坏消息，不改变这个平均值</summary>
+<p>严格多数翻转的概率为</p>
+<div class="arithmatex">\[
+4(0.1)^3(0.9)+(0.1)^4=0.0037.
+\]</div>
+<p>恰好两位翻转的概率为 <span class="arithmatex">\(6(0.1)^2(0.9)^2=0.0486\)</span>。均匀平局使每个消息的错误都是</p>
+<div class="arithmatex">\[
+0.0037+\tfrac12(0.0486)=0.028.
+\]</div>
+<p>所以平均和最大消息错误均为 0.028，与三位重复码相同，但码率从 <span class="arithmatex">\(1/3\)</span> 降到 <span class="arithmatex">\(1/4\)</span>。</p>
+<p>若平局总猜标签 0，消息 0 的错误为 0.0037，消息 1 的错误为 <span class="arithmatex">\(0.0037+0.0486=0.0523\)</span>。平均仍是 0.028，最大却变成 0.0523。评价“这个码错多少”之前，必须说明平均还是最大，以及平局如何处理。</p>
+</details>
+<h3 id="ml">练习二：一个有限并集上界，为什么不等于ML误码？<a class="headerlink" href="#ml" title="Permanent link"></a></h3>
+<p>取 <span class="arithmatex">\(n=3,p=0.1\)</span>、均匀输入、两个随机码字、联合典型带宽 <span class="arithmatex">\(\varepsilon=0.5\)</span>。求接受的距离、真尾概率、假接受概率和并集上界。</p>
+<details class="answer">
+<summary>展开完整答案：保留真尾，再比较不同译码器</summary>
+<p><span class="arithmatex">\(H_2(0.1)\approx0.468996\)</span>。距离 0 的噪声自信息为 <span class="arithmatex">\(-\log_2 0.9\approx0.152003\)</span>，在带内；距离 1 的噪声自信息约为 1.208645，已经在带外，后续距离更大。因此只接受距离 0。</p>
+<p>真实无翻转概率为 <span class="arithmatex">\(0.9^3=0.729\)</span>，故 <span class="arithmatex">\(\delta=0.271\)</span>。独立假码字恰好等于接收词的概率为 <span class="arithmatex">\(\alpha=1/8\)</span>。两个消息的并集上界为</p>
+<div class="arithmatex">\[
+\delta+(M-1)\alpha=0.271+0.125=0.396.
+\]</div>
+<p>在这个特殊设置中还可算出“唯一典型配对译码”的真实群体平均错误：只有真词等于收到的词且假词不等于它时成功，所以</p>
+<div class="arithmatex">\[
+P_e^{\mathrm{典型}}=1-(0.729)(7/8)=0.362125.
+\]</div>
+<p>并集上界较大，是因为把两个错误事件的交集重复计入。第 9 节算出的群体平均 ML 错误为 0.141，又更小，因为 ML 也能利用有翻转但仍支持某个标签的接收结果。三个数字分别是上界、一个特定译码器的实际平均和最优平均译码的结果，不能互换。</p>
+</details>
+<h3 id="fano">练习三：Fano给的是下界，还是精确错误？<a class="headerlink" href="#fano" title="Permanent link"></a></h3>
+<p>八个消息均匀，某观测 <span class="arithmatex">\(Y\)</span> 满足 <span class="arithmatex">\(H(J\mid Y)=2\)</span> 比特。对任意基于 <span class="arithmatex">\(Y\)</span> 的估计，给出一个直接可算的错误下界。</p>
+<details class="answer">
+<summary>展开完整答案：条件熵剩余限制可恢复程度</summary>
+<p>数据处理保证估计不会比完整观测包含更多消息信息，即 <span class="arithmatex">\(H(J\mid\widehat J)\geq H(J\mid Y)=2\)</span>。再用 Fano，</p>
+<div class="arithmatex">\[
+2\leq H_2(P_e)+P_e\log_2 7\leq1+P_e\log_2 7,
+\]</div>
+<p>所以</p>
+<div class="arithmatex">\[
+P_e\geq\frac1{\log_2 7}\approx0.356207187108.
+\]</div>
+<p>这是利用 <span class="arithmatex">\(H_2(P_e)\leq1\)</span> 得到的较松下界，不是精确最小错误。若保留二元熵项，可以进一步求解隐式不等式。二元消息情形不能除以 <span class="arithmatex">\(\log_2(2-1)=0\)</span>；应保留二元熵或使用含 <span class="arithmatex">\(\log_2M\)</span> 的较松版本。</p>
+<p>这里假设的是均匀消息和正确的条件熵信息，没有指定某个有限信道码本，因此不能从这一个下界恢复具体混淆矩阵。</p>
+</details>
+<h3 id="_4">练习四：功率翻倍为何不总多半比特？<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>实值 AWGN 当前信噪比为 <span class="arithmatex">\(s&gt;0\)</span>。求功率翻倍后的容量增量及高信噪比极限，写明单位。</p>
+<details class="answer">
+<summary>展开完整答案：半比特是极限，不是有限信噪比恒等式</summary>
+<p>噪声功率固定时，信噪比从 <span class="arithmatex">\(s\)</span> 变为 <span class="arithmatex">\(2s\)</span>，所以</p>
+<div class="arithmatex">\[
+\Delta C=\frac12\log_2\frac{1+2s}{1+s}
+\quad\text{比特/实值信道使用}.
+\]</div>
+<p>因为 <span class="arithmatex">\(1\lt (1+2s)/(1+s)\lt 2\)</span>，故 <span class="arithmatex">\(0\lt \Delta C\lt 1/2\)</span>。当 <span class="arithmatex">\(s\to\infty\)</span>，比值趋于 2，增量才趋于半比特。若 <span class="arithmatex">\(s=1\)</span>，增量为 <span class="arithmatex">\(\frac12\log_2(3/2)\approx0.292481250361\)</span> 比特。</p>
+<p>若用自然对数，高信噪比增量是 <span class="arithmatex">\(\frac12\ln2\approx0.346574\)</span> nat；把这个数字直接写成 bit 就混淆了单位。复值信道按每个复符号计时，公式和增量再按两个实自由度作相应调整。</p>
+</details>
+<h2 id="12">12. 从存在性走向构造：哪些问题还在后面<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<p>随机编码证明回答“存在什么”，完整枚举回答“这个有限对象怎样”，高效算法回答“能否在预算内实现”。三者可以互相指引，但不能用其中一项替代另外两项。</p>
+<p>有限块长分析需要保留目标错误、整数消息数以及信息密度的波动；强逆定理研究高于容量时错误是否趋于 1；有输入成本、反馈或记忆的信道还要重新核对模型条件。本课的类型与短码实验提供可复核的起点，没有实现一般信道的容量最优编码器。</p>
+<p>构造性方向中，Arıkan 的极化码原始结果给出二元输入离散无记忆信道的<strong>对称容量</strong>可达码族，以及逐次消除编解码的 <span class="arithmatex">\(O(N\log N)\)</span> 复杂度。对称容量指均匀输入的互信息；在对称信道上它等于容量，在一般非对称信道上不能直接画等号。准确范围见 <a href="https://arxiv.org/abs/0807.3917">Channel polarization 原始论文</a>。</p>
+<p>学习下一讲率失真之前，可以用一张账本自检：消息数和码率是否一致，译码平局是否明确，概率总和是否为 1，图上的错误是平均还是最大，显示的是实际值还是上界，渐近证明有没有保留尾项。能逐一回答，才算把容量公式接回了一个可运行的通信问题。</p>
+</div>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="it2-01-aep.html"><span class="pager-label">上一页</span>信息论进阶 I · AEP 与典型集</a>
