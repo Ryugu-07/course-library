@@ -1,843 +1,135 @@
-(function () {
-  "use strict";
-
-  if (
-    typeof window === "undefined" ||
-    !window.CourseLearning ||
-    typeof window.CourseLearning.register !== "function"
-  ) {
-    return;
+(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;if(root&&root.CourseLearning)root.CourseLearning.register('winding-lift',api.mount);})(typeof window!=='undefined'?window:globalThis,function(){
+"use strict";
+const abs=n=>n<0n?-n:n;
+function gcd(a,b){a=abs(a);b=abs(b);while(b){const t=a%b;a=b;b=t;}return a;}
+function rat(n,d=1n){if(d===0n)throw Error('分母为零');if(d<0n){n=-n;d=-d;}const g=gcd(n,d);return{n:n/g,d:d/g};}
+const ZERO=rat(0n),ONE=rat(1n),add=(a,b)=>rat(a.n*b.d+b.n*a.d,a.d*b.d),sub=(a,b)=>rat(a.n*b.d-b.n*a.d,a.d*b.d),mul=(a,b)=>rat(a.n*b.n,a.d*b.d),div=(a,b)=>rat(a.n*b.d,a.d*b.n),cmp=(a,b)=>a.n*b.d-b.n*a.d,neg=a=>rat(-a.n,a.d),ar=a=>rat(abs(a.n),a.d),sum=xs=>xs.reduce(add,ZERO),key=a=>a.n+'/'+a.d;
+function number(q){if(!q.n)return 0;const a=String(abs(q.n)),b=String(q.d),k=16;const [v,e]=((q.n<0n?-1:1)*Number(a.slice(0,k))/Number(b.slice(0,k))).toExponential(16).split('e');return Number(v+'e'+(Number(e)+Math.max(0,a.length-k)-Math.max(0,b.length-k)));}
+const pack=q=>({numerator:String(q.n),denominator:String(q.d),value:number(q)});
+function fromNumber(x){if(!Number.isFinite(x))throw Error('非有限浮点数');const [m,e0]=String(x).split('e'),e=Number(e0||0),[u,v='']=m.replace('-','').split('.'),n=BigInt(u+v)*(x<0?-1n:1n),power=e-v.length;return power>=0?rat(n*10n**BigInt(power)):rat(n,10n**BigInt(-power));}
+function decimal(value,label,lo=-1000000,hi=1000000){if(typeof value!=='string'&&typeof value!=='number')throw Error(label+'须为十进制数');const s=String(value).trim();if(!/^-?(?:\d+(?:\.\d{1,6})?|\.\d{1,6})$/.test(s))throw Error(label+'须为最多6位小数（不接受指数记法）');const x=Number(s);if(!Number.isFinite(x)||x<lo||x>hi)throw Error(label+'超出范围');const v=s.replace('-','').split('.'),d=10n**BigInt((v[1]||'').length),n=BigInt(v[0]||'0')*d+BigInt(v[1]||'0');return rat(s[0]==='-'?-n:n,d);}
+const DEFAULTS={mode:'lift',operation:'homotopy',liftA:'0,1.5,-0.5,1',liftB:'0,1',s:'0.5',t:'0.5',polygon:'1,-1;1,1;-1,1;-1,-1;1,-1',offsetX:'0',offsetY:'0',word:'abAB',wordB:'',conjugator:'a'};
+function exactList(raw,label,min,max){if(typeof raw!=='string'||raw.length>1000)throw Error(label+'须为逗号分隔的小数');const a=raw.split(',').map(v=>decimal(v,label,min,max));return a;}
+function liftInput(raw,label){const a=exactList(raw,label,-12,12);if(a.length<2||a.length>13)throw Error(label+'须有2至13个等时间节点');if(a[0].n!==0n)throw Error(label+'须从0开始');if(a.at(-1).d!==1n||abs(a.at(-1).n)>8n)throw Error(label+'终点须为−8至8的整数，确保圆周投影闭合');return a;}
+function parseWord(raw,label){if(typeof raw!=='string'||raw.length>64||!/^[aAbB]*$/.test(raw))throw Error(label+'仅接受最多64个a、A、b、B，不含空格；空串表示单位元');return raw;}
+function config(raw={}){if(!raw||typeof raw!=='object'||Array.isArray(raw))throw Error('参数须为对象');const p={...DEFAULTS,...raw};if(!['lift','polygon','word'].includes(p.mode))throw Error('未知模式');
+ if(p.mode==='lift'){if(!['homotopy','concat','inverse'].includes(p.operation))throw Error('未知提升运算');const a=liftInput(p.liftA,'提升A'),b=liftInput(p.liftB,'提升B');decimal(p.s,'变形参数',0,1);decimal(p.t,'沿路参数',0,1);if(p.operation==='homotopy'&&cmp(a.at(-1),b.at(-1))!==0n)throw Error('两个提升终点不同：直线插值不是固定基点的回路同伦。请改用接续或选择相同终点。');}
+ if(p.mode==='polygon'){if(typeof p.polygon!=='string'||p.polygon.length>1800)throw Error('折线须为分号分行、逗号分坐标');const a=p.polygon.split(';').map(z=>{const v=exactList(z,'坐标',-10,10);if(v.length!==2)throw Error('每个顶点必须有两个坐标');return v;});if(a.length<2||a.length>33)throw Error('须有2至33个顶点，含重复首点');if(a[0].some((v,i)=>cmp(v,a.at(-1)[i])!==0n))throw Error('请显式重复首点闭合；实验不会自动补末边');decimal(p.offsetX,'水平平移',-10,10);decimal(p.offsetY,'竖直平移',-10,10);decimal(p.t,'沿路参数',0,1);}
+ if(p.mode==='word'){parseWord(p.word,'词w');parseWord(p.wordB,'比较词v');parseWord(p.conjugator,'连接词h');if(!['homotopy','concat','inverse','conjugate'].includes(p.operation))throw Error('未知词运算');}
+ return p;
+}
+const vecadd=(a,b)=>a.map((v,i)=>add(v,b[i])),vecsub=(a,b)=>a.map((v,i)=>sub(v,b[i])),scale=(a,s)=>a.map(v=>mul(v,s)),dot=(a,b)=>sum(a.map((v,i)=>mul(v,b[i]))),cross=(a,b)=>sub(mul(a[0],b[1]),mul(a[1],b[0])),clamp01=q=>cmp(q,ZERO)<0n?ZERO:cmp(q,ONE)>0n?ONE:q;
+function interpolate(a,t){if(cmp(t,ONE)===0n)return a.at(-1);const h=mul(t,rat(BigInt(a.length-1))),j=Number(h.n/h.d),u=sub(h,rat(BigInt(j)));return add(mul(sub(ONE,u),a[j]),mul(u,a[j+1]));}
+function project(q){const f=Number(q.n%q.d)/Number(q.d),v=2*Math.PI*f;return[Math.cos(v),Math.sin(v)];}
+function uniqueQ(a){const m=new Map(a.map(v=>[key(v),v]));return[...m.values()].sort((a,b)=>cmp(a,b)<0n?-1:cmp(a,b)>0n?1:0);}
+function liftRun(p){const a=liftInput(p.liftA,'A'),b=liftInput(p.liftB,'B'),s=decimal(p.s,'s',0,1),t=decimal(p.t,'t',0,1),n=a.at(-1),k=b.at(-1),ta=a.map((_,i)=>rat(BigInt(i),BigInt(a.length-1))),tb=b.map((_,i)=>rat(BigInt(i),BigInt(b.length-1)));
+ const evaluate=u=>p.operation==='homotopy'?add(mul(sub(ONE,s),interpolate(a,u)),mul(s,interpolate(b,u))):p.operation==='concat'?(cmp(u,rat(1n,2n))<=0n?interpolate(a,mul(rat(2n),u)):add(n,interpolate(b,sub(mul(rat(2n),u),ONE)))):sub(interpolate(a,sub(ONE,u)),n);
+ const knots=p.operation==='homotopy'?uniqueQ([...ta,...tb]):p.operation==='concat'?uniqueQ([...ta.map(v=>div(v,rat(2n))),...tb.map(v=>div(add(ONE,v),rat(2n)))]):uniqueQ(ta.map(v=>sub(ONE,v)));
+ const record=u=>{const v=evaluate(u);return{t:pack(u),a:pack(interpolate(a,u)),b:pack(interpolate(b,u)),value:pack(v),projection:project(v)};};
+ const times=uniqueQ([...knots,t,...Array.from({length:241},(_,i)=>rat(BigInt(i),240n))]);
+ return{mode:'lift',operation:p.operation,a:a.map(pack),b:b.map(pack),s:pack(s),t:pack(t),endA:pack(n),endB:pack(k),winding:pack(evaluate(ONE)),start:pack(evaluate(ZERO)),knots:knots.map(record),samples:times.map(record),current:record(t),sameClass:cmp(n,k)===0n,proofScope:p.operation==='homotopy'?'相同整数端点，解析线性提升同伦固定两端；采样仅供画图':'按接续或逆元的精确分段公式计算，投影三角函数为浮点近似'};
+}
+function polygonRun(p){const offset=[decimal(p.offsetX,'x',-10,10),decimal(p.offsetY,'y',-10,10)],input=p.polygon.split(';').map(z=>exactList(z,'顶点',-10,10)),vertices=input.map(v=>vecadd(v,offset)),segments=[];let angle=0,contribution=0,valid=true,minimum=null;
+ for(let j=0;j<vertices.length-1;j++){const a=vertices[j],b=vertices[j+1],d=vecsub(b,a),cr=cross(a,b),ab=dot(a,b),dd=dot(d,d),collision=cr.n===0n&&cmp(ab,ZERO)<=0n,u=dd.n===0n?ZERO:clamp01(div(neg(dot(a,d)),dd)),nearest=vecadd(a,scale(d,u)),distance2=dot(nearest,nearest),up=cmp(a[1],ZERO)<=0n&&cmp(b[1],ZERO)>0n,down=cmp(b[1],ZERO)<=0n&&cmp(a[1],ZERO)>0n,c=up&&cr.n>0n?1:down&&cr.n<0n?-1:0,delta=collision?null:Math.atan2(number(cr),number(ab));
+  if(collision)valid=false;contribution+=c;if(delta!==null)angle+=delta;if(minimum===null||cmp(distance2,minimum)<0n)minimum=distance2;
+  const ray=(up||down)?div(cr,sub(b[1],a[1])):null;
+  segments.push({index:j,a:a.map(pack),b:b.map(pack),cross:pack(cr),dot:pack(ab),length2:pack(dd),collision,up,down,rayX:ray?pack(ray):null,contribution:collision?null:c,nearestParameter:pack(u),nearest:nearest.map(pack),distance2:pack(distance2),angleDelta:delta,cumulativeAngle:valid?angle:null,cumulativeCrossings:valid?contribution:null});
+ }
+ const t=decimal(p.t,'t',0,1),h=mul(t,rat(BigInt(segments.length))),j=cmp(t,ONE)===0n?segments.length-1:Number(h.n/h.d),u=cmp(t,ONE)===0n?ONE:sub(h,rat(BigInt(j))),current=vecadd(vertices[j],scale(vecsub(vertices[j+1],vertices[j]),u));
+ const samples=[];for(let j=0;j<segments.length;j++)for(let k=0;k<=16;k++){if(j&&k===0)continue;const v=vecadd(vertices[j],scale(vecsub(vertices[j+1],vertices[j]),rat(BigInt(k),16n))),r2=dot(v,v);samples.push({t:pack(rat(BigInt(j*16+k),BigInt(16*segments.length))),position:v.map(pack),projection:r2.n===0n?null:v.map(x=>number(x)/Math.sqrt(number(r2)))});}
+ return{mode:'polygon',input:input.map(v=>v.map(pack)),offset:offset.map(pack),vertices:vertices.map(v=>v.map(pack)),t:pack(t),current:current.map(pack),segments,samples,valid,winding:valid?contribution:null,angleSum:valid?angle:null,angleWinding:valid?angle/(2*Math.PI):null,angleDifference:valid?angle/(2*Math.PI)-contribution:null,minimumDistance2:pack(minimum),collisionSegments:segments.filter(s=>s.collision).map(s=>s.index),proofScope:'精确有理数逐段判断闭合折线避零及割线穿越；辐角和图为浮点诊断，未验证任意连续同伦'};
+}
+const inverseLetter=c=>({a:'A',A:'a',b:'B',B:'b'}[c]);
+const inverseWord=w=>w.split('').reverse().map(inverseLetter).join('');
+function reduceWord(word){const stack=[],trace=[{step:0,letter:'',action:'start',stack:'',length:0,a:0,b:0,pair:null}],pairs=[];let a=0,b=0;for(const [j,c]of [...word].entries()){a+=c==='a'?1:c==='A'?-1:0;b+=c==='b'?1:c==='B'?-1:0;let action='push',pair=null;if(stack.length&&stack.at(-1).letter===inverseLetter(c)){pair=[stack.pop().index,j];pairs.push(pair);action='cancel';}else stack.push({letter:c,index:j});trace.push({step:j+1,letter:c,action,stack:stack.map(z=>z.letter).join(''),length:stack.length,a,b,pair});}return{input:word,reduced:stack.map(z=>z.letter).join(''),length:stack.length,abelianization:[a,b],pairs,trace};}
+function cyclic(word){let w=word,prefix='',removed=[];while(w.length>=2&&w[0]===inverseLetter(w.at(-1))){removed.push([w[0],w.at(-1)]);prefix+=w[0];w=w.slice(1,-1);}const rotations=w?[...new Set(Array.from({length:w.length},(_,i)=>w.slice(i)+w.slice(0,i)))]:[''];return{reduced:word,prefix,core:w,removed,rotations,canonical:[...rotations].sort()[0]};}
+function wordRun(p){const a=reduceWord(p.word),b=reduceWord(p.wordB),h=reduceWord(p.conjugator),raw=p.operation==='inverse'?inverseWord(p.word):p.operation==='conjugate'?p.conjugator+p.word+inverseWord(p.conjugator):p.operation==='concat'?p.word+p.wordB:p.word,result=reduceWord(raw),ca=cyclic(a.reduced),cb=cyclic(b.reduced);return{mode:'word',operation:p.operation,a,b,h,result,cyclicA:ca,cyclicB:cb,equal:a.reduced===b.reduced,sameAbelianization:a.abelianization.every((v,i)=>v===b.abelianization[i]),conjugate:ca.canonical===cb.canonical,proofScope:'F(a,b)自由群的有限词运算；八字形的空间识别依赖下一讲van Kampen，不能推广为任意空间判定器'};}
+function snapshot(raw={}){const p=config(raw);return{parameters:p,result:p.mode==='lift'?liftRun(p):p.mode==='polygon'?polygonRun(p):wordRun(p)};}
+const PRESETS=[
+ {id:'default',label:'提升：回摆仍是一圈',values:{}},
+ {id:'zero',label:'提升：来回走但绕数零',values:{liftA:'0,2,-2,0',liftB:'0,0'}},
+ {id:'negative',label:'提升：负三圈',values:{liftA:'0,1,-4,-3',liftB:'0,-3'}},
+ {id:'start',label:'同伦起点',values:{s:'0'}},
+ {id:'end',label:'同伦终点',values:{s:'1',t:'1'}},
+ {id:'different-grids',label:'不同节点网格仍能接同伦',values:{liftA:'0,2,-1,2',liftB:'0,0,1,0,2',s:'0.333333',t:'0.123456'}},
+ {id:'concat',label:'接续：2加负1',values:{operation:'concat',liftA:'0,3,2',liftB:'0,-1',t:'0.5'}},
+ {id:'inverse',label:'倒放：从零到负2',values:{operation:'inverse',liftA:'0,3,2',t:'1'}},
+ {id:'square',label:'折线：逆时针方形',values:{mode:'polygon'}},
+ {id:'clockwise',label:'折线：顺时针方形',values:{mode:'polygon',polygon:'1,-1;-1,-1;-1,1;1,1;1,-1'}},
+ {id:'tiny',label:'折线：百万分之一仍绕一圈',values:{mode:'polygon',polygon:'0.000001,-0.000001;0.000001,0.000001;-0.000001,0.000001;-0.000001,-0.000001;0.000001,-0.000001'}},
+ {id:'outside',label:'平移后不包围原点',values:{mode:'polygon',offsetX:'2'}},
+ {id:'touch',label:'边恰好穿过原点',values:{mode:'polygon',offsetX:'1'}},
+ {id:'near-touch',label:'距临界只差百万分之一',values:{mode:'polygon',offsetX:'0.999999'}},
+ {id:'vertex',label:'顶点正好位于原点',values:{mode:'polygon',polygon:'0,0;1,0;1,1;0,0'}},
+ {id:'axis',label:'顶点在割线上不重复计数',values:{mode:'polygon',polygon:'1,0;0,1;-1,0;0,-1;1,0'}},
+ {id:'repeat',label:'重复顶点是停留',values:{mode:'polygon',polygon:'1,0;1,0;0,1;-1,0;0,-1;1,0'}},
+ {id:'constant',label:'非零常值路',values:{mode:'polygon',polygon:'1,0;1,0'}},
+ {id:'double',label:'同一方形走两遍',values:{mode:'polygon',polygon:'1,-1;1,1;-1,1;-1,-1;1,-1;1,1;-1,1;-1,-1;1,-1'}},
+ {id:'self-cross',label:'自交不一定碰原点',values:{mode:'polygon',polygon:'-2,-1;2,2;-2,2;2,-1;-2,-1'}},
+ {id:'commutator',label:'交换子：总次数零而词非空',values:{mode:'word'}},
+ {id:'cancel',label:'相邻逆元逐对消去',values:{mode:'word',word:'abBA',wordB:''}},
+ {id:'conjugate',label:'移基点：共轭改变约化词',values:{mode:'word',operation:'conjugate',word:'abAB',wordB:'aabABA',conjugator:'a'}},
+ {id:'rotate',label:'循环旋转对应自由同伦',values:{mode:'word',word:'abAB',wordB:'bABa'}},
+ {id:'word-inverse',label:'词倒放要翻转次序',values:{mode:'word',operation:'inverse',word:'ab',wordB:'BA'}},
+ {id:'word-product',label:'接续跨接缝也会消去',values:{mode:'word',operation:'concat',word:'ab',wordB:'BA'}},
+ {id:'empty',label:'空词是单位元',values:{mode:'word',word:'',wordB:'',conjugator:''}}
+];
+function selfTest(){let checks=0;const ck=(x,m)=>{checks++;if(!x)throw Error(m);},get=id=>snapshot(PRESETS.find(x=>x.id===id).values).result;ck(get('default').winding.value===1,'lift');ck(get('concat').winding.value===1,'concat');ck(get('inverse').winding.value===-2,'inverse');ck(get('tiny').winding===1&&get('tiny').minimumDistance2.numerator==='1','tiny');ck(get('touch').winding===null,'collision');ck(get('axis').winding===1,'half open');ck(get('repeat').winding===1,'repeat');ck(get('constant').winding===0,'constant');ck(get('double').winding===2,'double');ck(!get('commutator').equal&&get('commutator').sameAbelianization,'nonabelian');ck(get('cancel').equal,'cancel');ck(get('rotate').conjugate&&!get('rotate').equal,'rotation');return{status:'PASS',checks};}
+ const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const tick=v=>v===0?"0":Math.abs(v)<1e-3||Math.abs(v)>=1e4?v.toExponential(2):String(Number(v.toPrecision(4)));
+ function curveSvg(q){
+  const left=q.square?325:100,width=q.square?250:750,height=250,top=85,bottom=335,x=v=>left+width*(v-q.xmin)/(q.xmax-q.xmin),y=v=>bottom-height*(v-q.ymin)/(q.ymax-q.ymin);
+  let s='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="425" role="img" aria-label="'+esc(q.title)+'"><title>'+esc(q.title)+'</title><text x="25" y="32" font-size="22">'+esc(q.title)+'</text>';
+  for(let i=0;i<(q.square?3:5);i++){
+   const v=q.ymin+(q.ymax-q.ymin)*i/(q.square?2:4);
+   s+='<path d="M'+left+' '+y(v)+'H'+(left+width)+'" stroke="currentColor" opacity=".18"/><text x="'+(left-12)+'" y="'+(y(v)+5)+'" text-anchor="end">'+tick(v)+'</text>';
   }
+  const ticks=q.xTicks||Array.from({length:5},(_,i)=>q.xmin+(q.xmax-q.xmin)*i/4);
+  for(const v of ticks)s+='<text x="'+x(v)+'" y="'+(bottom+28)+'" text-anchor="middle">'+tick(v)+'</text>';
+  if(q.ymin<=0&&q.ymax>=0)s+='<line data-zero="true" x1="'+left+'" x2="'+(left+width)+'" y1="'+y(0)+'" y2="'+y(0)+'" stroke="currentColor" opacity=".7"/>';
+  s+='<text x="'+left+'" y="65">'+esc(q.y)+'</text><text x="'+(left+width/2)+'" y="'+(bottom+63)+'" text-anchor="middle">'+esc(q.x)+'</text>';
+  for(const series of q.series){
+   if(series.area)s+='<rect data-area="'+series.key+'" x="'+x(series.points[0][0])+'" y="'+y(series.points[0][1])+'" width="'+(x(series.points[1][0])-x(series.points[0][0]))+'" height="'+(y(0)-y(series.points[0][1]))+'" fill="'+series.color+'" opacity=".12"/>';
+   if(series.line)s+='<polyline data-series="'+series.key+'" points="'+series.points.map(p=>x(p[0])+','+y(p[1])).join(" ")+'" stroke="'+series.color+'" stroke-width="2" fill="none"/>';
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var TAU = 2 * Math.PI;
-  var AMPLITUDE = 1;
-  var INSTANCE = 0;
-  var DEFAULT_STATE = { n: 1, lambda: 0.65, t: 0.5 };
-  var PRESETS = [
-    { n: -2, label: "n=−2" },
-    { n: -1, label: "n=−1" },
-    { n: 0, label: "n=0" },
-    { n: 1, label: "n=1" },
-    { n: 2, label: "n=2" }
-  ];
-
-  var STYLE_TEXT = [
-    ".winding-lift-lab { --wl-circle: var(--cl-blue, #315f9d); --wl-lift: var(--cl-green, #39734d); --wl-trail: var(--cl-gold, #9b6a12); --wl-current: var(--accent, #315f9d); --wl-endpoint: var(--cl-red, #b64335); --wl-muted: var(--fg-soft, #6f6a60); --wl-grid: currentColor; line-height: 1.5; }",
-    "html[data-theme='dark'] .winding-lift-lab { --wl-circle: #83c8ff; --wl-lift: #72bd8b; --wl-trail: #e2b458; --wl-current: #83c8ff; --wl-endpoint: #f08c7d; --wl-muted: #b8b2a7; }",
-    ".winding-lift-lab .wl-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-items: start; }",
-    ".winding-lift-lab .wl-controls, .winding-lift-lab .wl-stage { min-width: 0; }",
-    ".winding-lift-lab .wl-controls { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(190px, .7fr) minmax(190px, .7fr); gap: 12px 18px; align-items: end; }",
-    ".winding-lift-lab .wl-controls > h4, .winding-lift-lab .wl-controls > .wl-control:first-of-type, .winding-lift-lab .wl-controls > .wl-note { grid-column: 1 / -1; }",
-    ".winding-lift-lab .wl-controls > h4 { margin: 0; }",
-    ".winding-lift-lab .wl-control { display: grid; gap: 6px; min-width: 0; }",
-    ".winding-lift-lab .wl-label { color: var(--fg-soft); font-size: 13px; font-weight: 650; }",
-    ".winding-lift-lab .wl-preset-buttons { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }",
-    ".winding-lift-lab button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--fg); font: inherit; line-height: 1.35; cursor: pointer; }",
-    ".winding-lift-lab button:hover { border-color: var(--accent); }",
-    ".winding-lift-lab button[aria-pressed='true'], .winding-lift-lab .wl-primary { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 700; }",
-    ".winding-lift-lab input[type=range] { display: block; width: 100%; min-height: 44px; margin: 0; accent-color: var(--accent); }",
-    ".winding-lift-lab button:focus-visible, .winding-lift-lab input:focus-visible { outline: 3px solid var(--cl-focus, #1769aa); outline-offset: 2px; }",
-    ".winding-lift-lab .wl-output { color: var(--accent); font-variant-numeric: tabular-nums; }",
-    ".winding-lift-lab .wl-note, .winding-lift-lab .wl-status, .winding-lift-lab .wl-boundary { margin: 0; color: var(--wl-muted); font-size: 13px; line-height: 1.65; overflow-wrap: anywhere; }",
-    ".winding-lift-lab .wl-status { min-height: 1.65em; color: var(--fg); font-weight: 650; }",
-    ".winding-lift-lab .wl-stage-frame { padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); overflow-x: hidden; }",
-    ".winding-lift-lab .wl-svg { display: block; width: 100%; min-width: 0; height: auto; color: var(--fg); }",
-    ".winding-lift-lab .wl-svg text { fill: currentColor; font-family: inherit; letter-spacing: 0; }",
-    ".winding-lift-lab .wl-panel { fill: var(--bg); stroke: var(--border); stroke-width: 1.2; }",
-    ".winding-lift-lab .wl-circle-guide { fill: none; stroke: var(--wl-circle); stroke-width: 2.6; }",
-    ".winding-lift-lab .wl-circle-inner { fill: none; stroke: currentColor; stroke-opacity: .14; stroke-width: 1.2; stroke-dasharray: 3 5; }",
-    ".winding-lift-lab .wl-trail { fill: none; stroke: var(--wl-trail); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; opacity: .88; }",
-    ".winding-lift-lab .wl-radius { stroke: var(--wl-current); stroke-opacity: .55; stroke-width: 1.4; stroke-dasharray: 5 4; }",
-    ".winding-lift-lab .wl-lift { fill: none; stroke: var(--wl-lift); stroke-width: 3.1; stroke-linecap: round; stroke-linejoin: round; }",
-    ".winding-lift-lab .wl-grid { stroke: var(--wl-grid); stroke-opacity: .14; stroke-width: 1; }",
-    ".winding-lift-lab .wl-zero { stroke: var(--wl-grid); stroke-opacity: .48; stroke-width: 1.35; }",
-    ".winding-lift-lab .wl-axis { stroke: var(--wl-grid); stroke-opacity: .55; stroke-width: 1.25; }",
-    ".winding-lift-lab .wl-current-guide { stroke: var(--wl-current); stroke-opacity: .72; stroke-width: 1.4; stroke-dasharray: 5 4; }",
-    ".winding-lift-lab .wl-endpoint-guide { stroke: var(--wl-endpoint); stroke-opacity: .62; stroke-width: 1.5; stroke-dasharray: 5 4; }",
-    ".winding-lift-lab .wl-base-point { fill: var(--wl-circle); stroke: var(--bg); stroke-width: 2; }",
-    ".winding-lift-lab .wl-current-point { fill: var(--wl-current); stroke: var(--bg); stroke-width: 2.2; }",
-    ".winding-lift-lab .wl-start-point { fill: var(--wl-lift); stroke: var(--bg); stroke-width: 2; }",
-    ".winding-lift-lab .wl-endpoint { fill: var(--wl-endpoint); stroke: var(--bg); stroke-width: 2.2; }",
-    ".winding-lift-lab .wl-panel-title { font-size: 15px; font-weight: 700; }",
-    ".winding-lift-lab .wl-axis-label, .winding-lift-lab .wl-caption { fill: var(--wl-muted) !important; font-size: 11px; }",
-    ".winding-lift-lab .wl-circle-label, .winding-lift-lab .wl-lift-label, .winding-lift-lab .wl-endpoint-label { font-size: 12px; font-weight: 700; }",
-    ".winding-lift-lab .wl-circle-label { fill: var(--wl-circle) !important; }",
-    ".winding-lift-lab .wl-lift-label { fill: var(--wl-lift) !important; }",
-    ".winding-lift-lab .wl-endpoint-label { fill: var(--wl-endpoint) !important; }",
-    ".winding-lift-lab .wl-current-label { fill: var(--wl-current) !important; font-size: 12px; font-weight: 700; }",
-    ".winding-lift-lab .wl-legend { display: flex; flex-wrap: wrap; gap: 7px 14px; margin-top: 10px; color: var(--wl-muted); font-size: 12px; }",
-    ".winding-lift-lab .wl-legend-item { display: inline-flex; align-items: center; gap: 5px; }",
-    ".winding-lift-lab .wl-legend-line { display: inline-block; width: 25px; height: 0; border-top: 3px solid currentColor; }",
-    ".winding-lift-lab .wl-legend-circle { color: var(--wl-circle); }",
-    ".winding-lift-lab .wl-legend-trail { color: var(--wl-trail); border-top-width: 4px; }",
-    ".winding-lift-lab .wl-legend-lift { color: var(--wl-lift); }",
-    ".winding-lift-lab .wl-legend-endpoint { color: var(--wl-endpoint); }",
-    ".winding-lift-lab .wl-legend-point { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: currentColor; }",
-    ".winding-lift-lab .wl-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-top: 12px; }",
-    ".winding-lift-lab .wl-metric { min-width: 0; padding: 9px 10px; border-top: 2px solid var(--border); background: var(--bg); }",
-    ".winding-lift-lab .wl-metric span { display: block; color: var(--wl-muted); font-size: 11.5px; line-height: 1.4; }",
-    ".winding-lift-lab .wl-metric strong { display: block; margin-top: 3px; color: var(--fg); font-size: 15px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }",
-    ".winding-lift-lab .wl-formula { margin-top: 10px; padding: 10px 12px; border-left: 3px solid var(--accent); background: var(--bg); font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 13px; line-height: 1.65; overflow-wrap: anywhere; }",
-    ".winding-lift-lab .wl-boundary { margin-top: 9px; padding: 8px 10px; border-left: 3px solid var(--wl-endpoint); background: var(--bg); }",
-    "@media (max-width: 860px) { .winding-lift-lab .wl-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); } .winding-lift-lab .wl-controls > h4, .winding-lift-lab .wl-controls > .wl-control:first-of-type, .winding-lift-lab .wl-controls > .wl-note { grid-column: 1 / -1; } }",
-    "@media (max-width: 560px) { .winding-lift-lab .wl-controls { grid-template-columns: minmax(0, 1fr); } .winding-lift-lab .wl-controls > h4, .winding-lift-lab .wl-controls > .wl-control:first-of-type, .winding-lift-lab .wl-controls > .wl-note { grid-column: auto; } .winding-lift-lab .wl-preset-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); } .winding-lift-lab .wl-stage-frame { padding: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; } .winding-lift-lab .wl-svg { width: 760px; max-width: none; } }",
-    "@media (prefers-reduced-motion: reduce) { .winding-lift-lab * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }"
-  ].join("\n");
-
-  function appendChildren(node, children) {
-    if (children === undefined || children === null) {
-      return node;
-    }
-    var list = Array.isArray(children) ? children : [children];
-    list.forEach(function (child) {
-      if (child === undefined || child === null || child === false) {
-        return;
-      }
-      node.appendChild(
-        child && child.nodeType ? child : document.createTextNode(String(child))
-      );
-    });
-    return node;
+   if(series.arrows)for(let j=0;j<series.points.length-1;j++){
+    const a=series.points[j],b=series.points[j+1],dx=x(b[0])-x(a[0]),dy=y(b[1])-y(a[1]),length=Math.hypot(dx,dy);if(!length)continue;
+    const ux=dx/length,uy=dy/length,px=x(a[0])+.6*dx,py=y(a[1])+.6*dy,size=Math.min(7,length*.2),points=[[px+size*ux,py+size*uy],[px-size*ux+size*.55*uy,py-size*uy-size*.55*ux],[px-size*ux-size*.55*uy,py-size*uy+size*.55*ux]];
+    s+='<polygon data-arrow="'+series.key+'" data-index="'+j+'" points="'+points.map(v=>v.join(',')).join(' ')+'" fill="'+series.color+'"/>';
+   }
+   series.points.forEach((p,i)=>{const open=series.endOpen&&i===series.points.length-1;s+='<circle data-series="'+series.key+'" data-index="'+i+'" data-open="'+!!open+'" cx="'+x(p[0])+'" cy="'+y(p[1])+'" r="'+(series.endOpen?3.5:series.line?1.8:3.5)+'" fill="'+(open?"var(--bg,#faf7ef)":series.color)+'" stroke="'+series.color+'"/>';});
   }
-
-  function setAttributes(node, attrs) {
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) {
-        return;
-      }
-      if (key === "className") {
-        node.setAttribute("class", String(value));
-      } else if (key === "htmlFor") {
-        node.setAttribute("for", String(value));
-      } else if (key === "text") {
-        node.textContent = String(value);
-      } else if (key.slice(0, 2) === "on" && typeof value === "function") {
-        node.addEventListener(key.slice(2).toLowerCase(), value);
-      } else if (value === true) {
-        node.setAttribute(key, "");
-      } else {
-        node.setAttribute(key, String(value));
-      }
-    });
-    return node;
+  for(const [i,m]of (q.markers||[]).entries()){
+   const px=x(m.x),right=px>700;
+   s+='<line data-marker="'+i+'" x1="'+px+'" x2="'+px+'" y1="'+top+'" y2="'+bottom+'" stroke="currentColor" stroke-dasharray="5 5" opacity=".65"/><text x="'+(px+(right?-4:4))+'" y="'+(80+25*q.markers.slice(0,i).filter(p=>Math.abs(px-x(p.x))<110).length)+'" font-size="13" text-anchor="'+(right?'end':'start')+'">'+esc(m.label)+'</text>';
   }
+  return s+"</svg>";
+ }
 
-  function makeElement(api, tag, attrs, children) {
-    if (api && typeof api.el === "function") {
-      return api.el(tag, attrs || {}, children);
-    }
-    return appendChildren(
-      setAttributes(document.createElement(tag), attrs || {}),
-      children
-    );
-  }
 
-  function makeSvg(api, tag, attrs, children) {
-    if (api && typeof api.svg === "function") {
-      return api.svg(tag, attrs || {}, children);
-    }
-    return appendChildren(
-      setAttributes(document.createElementNS(SVG_NS, tag), attrs || {}),
-      children
-    );
-  }
+const svg=curveSvg;
+const QUESTIONS=[['两条圆周回路的零起点提升终点相同，能否推出固定基点同伦？',['能，提升之间的线性同伦固定两端','不能，还要路径图形相同'],0],['平面回路发生自交，绕数一定未定义吗？',['不一定，关键是是否碰到被删除的原点','一定，自交就无法数圈'],0],['一条边恰好穿过原点，应该怎样报告？',['绕数未定义，指出碰撞边','把浮点辐角和四舍五入成整数'],0],['八字形中的两种绕法净次数都为零，回路一定可缩吗？',['不一定，交换子可保留非交换信息','一定，两种绕法各自抵消了'],0]];
+const BLUE='#268bd2',ORANGE='#cb6a16',GREEN='#29966c',VIOLET='#9966bb',ROSE='#b44a72';
+const series=(key,label,color,points,line=true)=>({key,label,color,points,line});
+function chart(title,x,y,ss,{square=false,integer=false,range=null}={}){const xx=ss.flatMap(s=>s.points.map(z=>z[0])),yy=ss.flatMap(s=>s.points.map(z=>z[1]));let xmin=range?range[0]:Math.min(0,...xx),xmax=range?range[1]:Math.max(0,...xx),ymin=Math.min(0,...yy),ymax=Math.max(0,...yy);if(xmin===xmax)xmax=xmin+1;if(square){const lo=Math.min(xmin,ymin),hi=Math.max(xmax,ymax),pad=(hi-lo||1)*.1;xmin=ymin=lo-pad;xmax=ymax=hi+pad;}else{const pad=(ymax-ymin||1)*.08;ymin-=pad;ymax+=pad;}return{title,x,y,series:ss,xmin,xmax,ymin,ymax,square,markers:[],xTicks:square?Array.from({length:3},(_,i)=>xmin+(xmax-xmin)*i/2):integer?[...new Set(Array.from({length:5},(_,i)=>Math.round(xmin+(xmax-xmin)*i/4)))]:undefined};}
+function plots(d){const r=d.result;
+ if(r.mode==='lift'){const a=r.samples,cur=r.current;const q=chart('实线提升：沿路进度与端点层数','沿路参数 t','提升值（圈）',[series('a','提升A',ORANGE,a.map(z=>[z.t.value,z.a.value])),series('b','提升B',GREEN,a.map(z=>[z.t.value,z.b.value])),series('result','当前运算结果',BLUE,a.map(z=>[z.t.value,z.value.value])),series('current','当前点',ROSE,[[cur.t.value,cur.value.value]],false)],{range:[0,1]});q.markers=[{x:cur.t.value,label:'当前 t='+tick(cur.t.value)}];
+ return[q,chart('同一提升投影到圆周','实部 x','虚部 y',[series('projection','投影路径；重复绕行会重合',BLUE,a.map(z=>z.projection)),series('current','当前投影点',ROSE,[cur.projection],false),series('origin','原点不在圆周上',ORANGE,[[0,0]],false)],{square:true,range:[-1,1]}),chart('输入端点与运算端点','0=A；1=B；2=结果','零起点提升的终点值',[series('endpoints','整数端点',VIOLET,[[0,r.endA.value],[1,r.endB.value],[2,r.winding.value]],false)],{integer:true,range:[0,2]}),chart('投影坐标怎样随沿路进度变化','沿路参数 t','单位圆上的坐标值',[series('real','实部 x(t)',BLUE,a.map(z=>[z.t.value,z.projection[0]])),series('imag','虚部 y(t)',ORANGE,a.map(z=>[z.t.value,z.projection[1]]))],{range:[0,1]})];}
+ if(r.mode==='polygon'){const z=r.segments;return[chart('输入折线：实际线段与原点','x（原坐标）','y（原坐标）',[{...series('polygon','闭合折线；箭头为行进方向',BLUE,r.vertices.map(v=>v.map(q=>q.value))),arrows:true},series('nearest','每段最近点',GREEN,z.map(v=>v.nearest.map(q=>q.value)),false),series('current','当前沿路点',ROSE,[r.current.map(q=>q.value)],false),series('origin','被删除的原点',ORANGE,[[0,0]],false)],{square:true}),chart('逐段的连续辐角累加诊断','已走完的边数','累计角度 / 2π（浮点）',[series('angle','首次碰撞后不继续定义',BLUE,[[0,0],...z.filter(v=>v.cumulativeAngle!==null).map(v=>[v.index+1,v.cumulativeAngle/(2*Math.PI)])])],{integer:true,range:[0,z.length]}),chart('每段到原点的最短距离平方','线段编号','精确分数的近似值；零表示碰撞',[series('distance','每段最短距离平方',GREEN,z.map(v=>[v.index,v.distance2.value]),false)],{integer:true,range:[0,Math.max(1,z.length-1)]}),chart('正半轴穿越的逐段贡献','线段编号','+1向上；−1向下；0不计',[series('crossings','碰撞边不填数值',VIOLET,z.filter(v=>v.contribution!==null).map(v=>[v.index,v.contribution]),false)],{integer:true,range:[0,Math.max(1,z.length-1)]})];}
+ const tr=r.a.trace,rr=r.result.trace;return[chart('读入原词：约化栈长度','已读字母数','当前约化词长度',[series('stack','栈长度',BLUE,tr.map(v=>[v.step,v.length]))],{integer:true}),chart('原词的两个净次数','已读字母数','有符号累计次数',[series('a','a方向净次数',BLUE,tr.map(v=>[v.step,v.a])),series('b','b方向净次数',ORANGE,tr.map(v=>[v.step,v.b]))],{integer:true}),chart('运算结果：完整约化过程','已读运算结果字母数','当前约化词长度',[series('result','结果栈长度',VIOLET,rr.map(v=>[v.step,v.length]))],{integer:true}),chart('交换化路径会丢掉次序信息','a净次数','b净次数',[series('path','原词的交换化路径',GREEN,tr.map(v=>[v.a,v.b])),series('end','终点',ROSE,[r.a.abelianization],false)],{square:true})];
+}
+const WORDS={numerator:'分子',denominator:'分母',value:'近似值',mode:'模式',operation:'运算',lift:'提升',polygon:'折线',word:'自由群词',homotopy:'同伦或查看原词',concat:'接续',inverse:'倒放',conjugate:'是否共轭/共轭运算',a:'A或a净次数',b:'B或b净次数',h:'连接词h',s:'变形参数s',t:'沿路参数t',endA:'A终点',endB:'B终点',winding:'绕数',start:'起点',current:'当前点完整记录',sameClass:'两条圆周回路同类',proofScope:'结论范围',projection:'圆周投影坐标',input:'原始输入',offset:'平移向量',vertices:'平移后的全部顶点',valid:'整条闭合折线避开原点',angleSum:'辐角和（弧度）',angleWinding:'辐角和除以2π',angleDifference:'浮点绕数减精确整数',minimumDistance2:'最小距离平方',collisionSegments:'碰撞边编号',index:'线段编号',cross:'叉积',dot:'端点内积',length2:'边长平方',collision:'含原点',up:'向上跨越y=0',down:'向下跨越y=0',rayX:'y=0交点横坐标',contribution:'正半轴穿越贡献',nearestParameter:'最近点在线段中的参数',nearest:'最近点',distance2:'距离平方',angleDelta:'本段辐角增量（弧度）',cumulativeAngle:'累计辐角（首次碰撞后未定义）',cumulativeCrossings:'累计穿越（首次碰撞后未定义）',position:'平面位置',reduced:'约化词',length:'约化长度',abelianization:'交换化的两个净次数',pairs:'消去的原始字母下标对',step:'已读字母数',letter:'本次字母',action:'动作',stack:'当前完整栈',pair:'本次消去下标对',push:'压入',cancel:'消去',prefix:'被移除的前缀',core:'循环约化词',removed:'移除的首尾对',rotations:'全部不同循环旋转',canonical:'字典序最小旋转',equal:'w与v在自由群中相等',sameAbelianization:'w与v交换化相同',result:'运算结果'};
+function fmt(v){if(v===null||v===undefined)return'—（未定义或不适用）';if(typeof v==='boolean')return v?'是':'否';if(typeof v==='number'){if(!Number.isFinite(v))throw Error('非有限读数');return v===0?'0':Math.abs(v)<1e-4||Math.abs(v)>=1e6?v.toExponential(8):String(Number(v.toPrecision(10)));}if(typeof v==='object')return Array.isArray(v)?'['+v.map(fmt).join('；')+']':Object.entries(v).map(([k,z])=>(WORDS[k]||k)+'='+fmt(z)).join('；');return v===''?'ε（空词）':String(v);}
+function summaryTable(key,title,r,exclude=[]){return{key,title,headers:['量','完整记录'],rows:Object.entries(r).filter(([k])=>!exclude.includes(k)).map(([k,v])=>[WORDS[k]||k,v])};}
+function recordTable(key,title,rows){const keys=rows.length?Object.keys(rows[0]):[];return{key,title,headers:keys.map(k=>WORDS[k]||k),rows:rows.map(z=>keys.map(k=>z[k]))};}
+function ledgers(d){const r=d.result;if(r.mode==='lift')return[summaryTable('summary','精确端点与运算结论',r,['knots','samples']),recordTable('knots','全部分段接点',r.knots),recordTable('samples','全部绘图采样与投影读数',r.samples)];if(r.mode==='polygon')return[summaryTable('summary','合法性、整数与浮点诊断',r,['segments','samples']),recordTable('segments','每条边的精确判定与辐角记录',r.segments),recordTable('samples','全部折线采样；不替代逐段证书',r.samples)];const out=[summaryTable('summary','原词比较与结论范围',r,['a','b','h','result','cyclicA','cyclicB'])];for(const k of ['a','b','h','result'])out.push(summaryTable(k,k==='result'?'运算结果完整记录':k==='h'?'连接词h':k==='a'?'原词w':'比较词v',r[k],['trace']),recordTable(k+'-trace','每个字母的消去轨迹：'+k,r[k].trace));out.push(summaryTable('cyclicA','w的循环约化与全部旋转',r.cyclicA),summaryTable('cyclicB','v的循环约化与全部旋转',r.cyclicB));return out;}
+const STYLE='.winding155{color:var(--fg,#273646)}.winding155 .winding-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;min-width:0}.winding155 label{display:flex;flex-direction:column;gap:6px}.winding155 input,.winding155 select{font:inherit;padding:8px;max-width:100%;min-width:0;box-sizing:border-box;background:var(--bg,#fff);color:inherit;border:1px solid #8b98a0;border-radius:5px}.winding155 input{width:100%}.winding155 button{font:inherit;padding:8px 12px;margin:5px;cursor:pointer}.winding155 button[aria-pressed=true]{outline:3px solid #478aaa}.winding155 .winding-scroll{overflow:auto;max-width:100%;margin:16px 0}.winding155 .winding-scroll:focus{outline:3px solid #478aaa}.winding155 .winding-ledger{max-height:420px}.winding155 svg{width:900px!important;max-width:none!important;display:block;fill:currentColor;font:16px system-ui}.winding155 table{display:table;overflow:visible;width:max-content;max-width:none;min-width:900px;border-collapse:collapse;font-variant-numeric:tabular-nums}.winding155 th,.winding155 td{padding:9px;border:1px solid #98a4ab;text-align:left}.winding155 td{max-width:540px;white-space:normal;overflow-wrap:anywhere}.winding155 .winding-error{color:#c74b39}.winding155 [hidden]{display:none!important}.winding155 fieldset{margin:16px 0;padding:12px}.winding155 details{margin:16px 0}.winding155 summary{cursor:pointer;font-weight:600}';
+function mount(container){const doc=container.ownerDocument;if(!doc.getElementById('winding155-style')){const s=doc.createElement('style');s.id='winding155-style';s.textContent=STYLE;doc.head.appendChild(s);}const field=(key,label,modes)=>'<label data-modes="'+modes+'">'+label+'<input data-key="'+key+'" type="text"></label>';
+ container.innerHTML='<div class="winding155"><h3>从路径证据到群元素</h3><p>先预测，再揭示。提升的解析公式、折线的精确符号、自由群的字母消去各有适用空间。</p><div class="winding-presets">'+PRESETS.map(p=>'<button type="button" data-preset="'+p.id+'">'+esc(p.label)+'</button>').join('')+'</div><div class="winding-controls"><label>模式<select data-key="mode"><option value="lift">圆周提升与同伦</option><option value="polygon">穿孔平面折线绕数</option><option value="word">八字形与自由群词</option></select></label><label data-modes="lift word">运算<select data-key="operation"><option value="homotopy">提升同伦／查看原词</option><option value="concat">接续</option><option value="inverse">倒放</option><option value="conjugate">词共轭</option></select></label>'+field('liftA','提升A：等时间节点，首0、末整数','lift')+field('liftB','提升B：等时间节点，首0、末整数','lift')+field('s','变形参数s（0至1）','lift')+field('t','沿路参数t（0至1）','lift polygon')+field('polygon','折线：x,y; x,y; …；显式重复首点','polygon')+field('offsetX','水平平移（−10至10）','polygon')+field('offsetY','竖直平移（−10至10）','polygon')+field('word','原词w（a A b B；不含空格）','word')+field('wordB','比较词v（空串为单位元）','word')+field('conjugator','连接词h（用于共轭）','word')+'</div><p>小数最多6位，不用指数记法。提升2至13节点，值在−12至12，终点整数在−8至8。折线2至33顶点，原坐标在−10至10。词最多64字母；A与B分别表示a与b的逆。</p>'+QUESTIONS.map((q,i)=>'<fieldset data-question="'+i+'"><legend>'+(i+1)+'. '+esc(q[0])+'</legend>'+q[1].map((v,j)=>'<button type="button" data-choice="'+j+'" aria-pressed="false">'+esc(v)+'</button>').join('')+'</fieldset>').join('')+'<button type="button" data-action="reveal">揭示图与完整账本</button><button type="button" data-action="reset">重置预测</button><p class="winding-error" role="alert"></p><p role="status"></p><div class="winding-results" hidden></div></div>';
+ const fields=[...container.querySelectorAll('[data-key]')],answers=Array(4).fill(null),result=container.querySelector('.winding-results'),reveal=container.querySelector('[data-action=reveal]'),error=container.querySelector('[role=alert]'),feedback=container.querySelector('[role=status]');fields.forEach(e=>e.value=DEFAULTS[e.dataset.key]);let revealed=false,valid=null;
+ function render(d){const r=d.result,notes=r.mode==='polygon'?(r.valid?'全部线段精确避零。整数绕数='+r.winding+'；辐角只是独立浮点诊断。':'路径含原点：绕数未定义。碰撞边编号='+r.collisionSegments.join('、')+'。图中不为缺失读数填0。'):r.mode==='word'?'群词的净次数不是完整同伦类；F(a,b)模型下比较约化词与循环旋转，图中的闭合交换化路径不保证原词为单位。':'零起点提升的端点给绕数；投影图的重复绕行会重合，必须同时看提升和端点记录。';result.innerHTML='<p data-conclusion>'+esc(notes)+'</p>'+plots(d).map(q=>'<p>'+q.series.map(s=>esc(s.label)+'（'+({'#268bd2':'蓝','#cb6a16':'橙','#29966c':'绿','#9966bb':'紫','#b44a72':'玫红'}[s.color])+'）').join('；')+'</p><div class="winding-scroll" role="region" tabindex="0" aria-label="'+esc(q.title)+'">'+svg(q)+'</div>').join('')+ledgers(d).map(z=>'<details data-ledger="'+z.key+'"'+(z.key==='summary'?' open':'')+'><summary>'+esc(z.title)+'（'+z.rows.length+'行）</summary><div class="winding-scroll winding-ledger" role="region" tabindex="0" aria-label="'+esc(z.title)+'"><table data-table="'+z.key+'"><thead><tr>'+z.headers.map(v=>'<th scope="col">'+esc(v)+'</th>').join('')+'</tr></thead><tbody>'+z.rows.map(row=>'<tr>'+row.map(v=>'<td>'+esc(fmt(v))+'</td>').join('')+'</tr>').join('')+'</tbody></table></div></details>').join('')+'<p>下标从0开始。分子分母完整保留；三角函数与坐标为近似。图表可以键盘横向滚动。采样点之间的绘图连线只用于观察。</p>';}
+ function update(){const raw=Object.fromEntries(fields.map(e=>[e.dataset.key,e.value]));container.querySelectorAll('[data-modes]').forEach(e=>e.hidden=!e.dataset.modes.split(' ').includes(raw.mode));try{valid=config(raw);error.textContent='';}catch(e){valid=null;revealed=false;error.textContent=e.message;}reveal.disabled=!valid||answers.some(v=>v===null);result.hidden=!revealed;if(revealed&&valid)render(snapshot(valid));feedback.textContent=revealed?answers.filter((a,i)=>a===QUESTIONS[i][2]).length+' / 4。对照正文检查自己的理由。':'';}
+ fields.forEach(e=>e.addEventListener(e.tagName==='SELECT'?'change':'input',update));container.querySelectorAll('[data-choice]').forEach(b=>b.addEventListener('click',()=>{const i=Number(b.closest('[data-question]').dataset.question);answers[i]=Number(b.dataset.choice);b.parentElement.querySelectorAll('[data-choice]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));update();}));container.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{const p={...DEFAULTS,...PRESETS.find(z=>z.id===b.dataset.preset).values};fields.forEach(e=>e.value=p[e.dataset.key]);update();}));reveal.addEventListener('click',()=>{if(!reveal.disabled){revealed=true;update();}});container.querySelector('[data-action=reset]').addEventListener('click',()=>{answers.fill(null);revealed=false;container.querySelectorAll('[data-choice]').forEach(b=>b.setAttribute('aria-pressed','false'));update();container.querySelector('[data-choice]').focus();});update();
+}
 
-  function clear(node) {
-    while (node && node.firstChild) {
-      node.removeChild(node.firstChild);
-    }
-  }
-
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-  }
-
-  function formatNumber(api, value, digits) {
-    if (!Number.isFinite(value)) {
-      return "—";
-    }
-    var places = digits === undefined ? 3 : digits;
-    var text = api && typeof api.format === "function"
-      ? api.format(value, places)
-      : value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
-    return text.replace(/-/g, "−");
-  }
-
-  function formatInteger(value) {
-    return value < 0 ? "−" + Math.abs(value) : String(value);
-  }
-
-  function svgText(api, x, y, text, attrs) {
-    return makeSvg(
-      api,
-      "text",
-      Object.assign(
-        {
-          x: x,
-          y: y,
-          "font-size": "12",
-          "text-anchor": "middle",
-          fill: "currentColor"
-        },
-        attrs || {}
-      ),
-      [text]
-    );
-  }
-
-  function metric(api, label) {
-    var value = makeElement(api, "strong", {}, ["—"]);
-    return {
-      card: makeElement(api, "div", { className: "wl-metric" }, [
-        makeElement(api, "span", {}, [label]),
-        value
-      ]),
-      value: value
-    };
-  }
-
-  function legendLine(api, className, label) {
-    return makeElement(api, "span", { className: "wl-legend-item " + className }, [
-      makeElement(api, "span", { className: "wl-legend-line", "aria-hidden": "true" }),
-      label
-    ]);
-  }
-
-  function legendPoint(api, className, label) {
-    return makeElement(api, "span", { className: "wl-legend-item " + className }, [
-      makeElement(api, "span", { className: "wl-legend-point", "aria-hidden": "true" }),
-      label
-    ]);
-  }
-
-  function liftValue(n, lambda, t) {
-    return n * t + lambda * AMPLITUDE * Math.sin(TAU * t);
-  }
-
-  function circlePoint(cx, cy, radius, value) {
-    var angle = TAU * value;
-    return {
-      x: cx + radius * Math.cos(angle),
-      y: cy - radius * Math.sin(angle)
-    };
-  }
-
-  function pointPath(points) {
-    return points
-      .map(function (point, index) {
-        return (index === 0 ? "M" : "L") +
-          point.x.toFixed(2) + "," + point.y.toFixed(2);
-      })
-      .join(" ");
-  }
-
-  function projectionPath(n, lambda, end, cx, cy, radius) {
-    if (end <= 0) {
-      return "";
-    }
-    var samples = Math.max(12, Math.ceil(end * 220));
-    var points = [];
-    for (var i = 0; i <= samples; i += 1) {
-      var t = end * i / samples;
-      points.push(circlePoint(cx, cy, radius, liftValue(n, lambda, t)));
-    }
-    return pointPath(points);
-  }
-
-  function liftPath(n, lambda, xMap, yMap) {
-    var points = [];
-    for (var i = 0; i <= 240; i += 1) {
-      var t = i / 240;
-      points.push({ x: xMap(t), y: yMap(liftValue(n, lambda, t)) });
-    }
-    return pointPath(points);
-  }
-
-  function graphRange(n, lambda) {
-    var wiggle = Math.abs(lambda * AMPLITUDE);
-    var low = Math.min(0, n) - wiggle - 0.35;
-    var high = Math.max(0, n) + wiggle + 0.35;
-    if (high - low < 2.4) {
-      var center = (low + high) / 2;
-      low = center - 1.2;
-      high = center + 1.2;
-    }
-    return { min: low, max: high };
-  }
-
-  function drawCircle(api, children, state) {
-    var cx = 220;
-    var cy = 282;
-    var radius = 150;
-    var currentLift = liftValue(state.n, state.lambda, state.t);
-    var current = circlePoint(cx, cy, radius, currentLift);
-    var base = circlePoint(cx, cy, radius, 0);
-
-    children.push(
-      makeSvg(api, "rect", {
-        className: "wl-panel",
-        x: 14,
-        y: 14,
-        width: 430,
-        height: 492,
-        rx: 8
-      }),
-      svgText(api, 32, 43, "① 圆周投影 p∘ℓ", {
-        className: "wl-panel-title",
-        "text-anchor": "start"
-      }),
-      svgText(api, 32, 64, "当前点随 t 移动；颜色轨迹是已走过的投影", {
-        className: "wl-caption",
-        "text-anchor": "start"
-      }),
-      makeSvg(api, "circle", {
-        className: "wl-circle-inner",
-        cx: cx,
-        cy: cy,
-        r: radius + 11
-      }),
-      makeSvg(api, "circle", {
-        className: "wl-circle-guide",
-        cx: cx,
-        cy: cy,
-        r: radius
-      }),
-      makeSvg(api, "line", {
-        className: "wl-radius",
-        x1: cx,
-        y1: cy,
-        x2: current.x,
-        y2: current.y
-      })
-    );
-
-    var trail = projectionPath(
-      state.n,
-      state.lambda,
-      state.t,
-      cx,
-      cy,
-      radius
-    );
-    if (trail) {
-      children.push(makeSvg(api, "path", { className: "wl-trail", d: trail }));
-    }
-
-    children.push(
-      makeSvg(api, "circle", {
-        className: "wl-base-point",
-        cx: base.x,
-        cy: base.y,
-        r: 7
-      }),
-      makeSvg(api, "circle", {
-        className: "wl-current-point",
-        cx: current.x,
-        cy: current.y,
-        r: 7
-      }),
-      svgText(api, 408, 270, "基点 1=p(0)", {
-        className: "wl-circle-label",
-        "text-anchor": "end"
-      }),
-      svgText(
-        api,
-        clamp(current.x + (current.x < cx ? -10 : 10), 54, 386),
-        clamp(current.y + (current.y < cy ? -14 : 24), 94, 442),
-        "当前 p(ℓ(t))",
-        {
-          className: "wl-current-label",
-          "text-anchor": current.x < cx ? "end" : "start"
-        }
-      ),
-      svgText(api, cx, 472, "p(x)=e^(2πix)；p⁻¹(1)=ℤ", {
-        className: "wl-caption"
-      })
-    );
-  }
-
-  function drawLift(api, children, state) {
-    var panel = { x: 458, y: 14, width: 608, height: 492 };
-    var left = 532;
-    var right = 1032;
-    var top = 104;
-    var bottom = 448;
-    var range = graphRange(state.n, state.lambda);
-    var yMap = function (value) {
-      return bottom - (value - range.min) / (range.max - range.min) * (bottom - top);
-    };
-    var xMap = function (value) {
-      return left + value * (right - left);
-    };
-    var currentLift = liftValue(state.n, state.lambda, state.t);
-    var currentX = xMap(state.t);
-    var currentY = yMap(currentLift);
-    var endpointY = yMap(state.n);
-
-    children.push(
-      makeSvg(api, "rect", {
-        className: "wl-panel",
-        x: panel.x,
-        y: panel.y,
-        width: panel.width,
-        height: panel.height,
-        rx: 8
-      }),
-      svgText(api, panel.x + 20, 43, "② 实线提升 ℓ:[0,1]→ℝ", {
-        className: "wl-panel-title",
-        "text-anchor": "start"
-      }),
-      svgText(api, panel.x + 20, 64, "终点固定在整数纤维 p⁻¹(1)=ℤ", {
-        className: "wl-caption",
-        "text-anchor": "start"
-      }),
-      svgText(api, right, 86, "整数层", {
-        className: "wl-caption",
-        "text-anchor": "end"
-      })
-    );
-
-    var firstInteger = Math.ceil(range.min);
-    var lastInteger = Math.floor(range.max);
-    for (var integer = firstInteger; integer <= lastInteger; integer += 1) {
-      var gridY = yMap(integer);
-      children.push(
-        makeSvg(api, "line", {
-          className: integer === 0 ? "wl-zero" : "wl-grid",
-          x1: left,
-          y1: gridY,
-          x2: right,
-          y2: gridY
-        }),
-        svgText(api, left - 11, gridY + 4, formatInteger(integer), {
-          className: "wl-axis-label",
-          "text-anchor": "end"
-        })
-      );
-    }
-
-    [0, 0.5, 1].forEach(function (value) {
-      var x = xMap(value);
-      children.push(
-        makeSvg(api, "line", {
-          className: "wl-grid",
-          x1: x,
-          y1: top,
-          x2: x,
-          y2: bottom
-        }),
-        svgText(api, x, bottom + 22, formatNumber(null, value, 1), {
-          className: "wl-axis-label"
-        })
-      );
-    });
-
-    children.push(
-      makeSvg(api, "line", {
-        className: "wl-axis",
-        x1: left,
-        y1: bottom,
-        x2: right,
-        y2: bottom
-      }),
-      makeSvg(api, "line", {
-        className: "wl-axis",
-        x1: left,
-        y1: top,
-        x2: left,
-        y2: bottom
-      }),
-      makeSvg(api, "path", {
-        className: "wl-lift",
-        d: liftPath(state.n, state.lambda, xMap, yMap)
-      }),
-      makeSvg(api, "line", {
-        className: "wl-current-guide",
-        x1: currentX,
-        y1: top,
-        x2: currentX,
-        y2: bottom
-      }),
-      makeSvg(api, "line", {
-        className: "wl-endpoint-guide",
-        x1: right,
-        y1: top,
-        x2: right,
-        y2: endpointY
-      }),
-      makeSvg(api, "circle", {
-        className: "wl-start-point",
-        cx: xMap(0),
-        cy: yMap(0),
-        r: 6
-      }),
-      makeSvg(api, "circle", {
-        className: "wl-current-point",
-        cx: currentX,
-        cy: currentY,
-        r: 7
-      }),
-      makeSvg(api, "circle", {
-        className: "wl-endpoint",
-        cx: right,
-        cy: endpointY,
-        r: 7
-      }),
-      svgText(api, left + 5, yMap(0) - 11, "ℓ(0)=0", {
-        className: "wl-lift-label",
-        "text-anchor": "start"
-      }),
-      svgText(api, right - 8, endpointY - 12, "ℓ(1)=" + formatInteger(state.n), {
-        className: "wl-endpoint-label",
-        "text-anchor": "end"
-      }),
-      svgText(
-        api,
-        currentX > right - 112 ? currentX - 10 : currentX + 10,
-        clamp(currentY - 12, top + 18, bottom - 18),
-        "当前 ℓ(t)",
-        {
-          className: "wl-current-label",
-          "text-anchor": currentX > right - 112 ? "end" : "start"
-        }
-      ),
-      svgText(api, (left + right) / 2, 488, "进度 t", {
-        className: "wl-caption"
-      }),
-      svgText(api, left - 58, top + 12, "提升值", {
-        className: "wl-caption",
-        "text-anchor": "start"
-      })
-    );
-  }
-
-  function drawScene(api, svg, state, ids) {
-    clear(svg);
-    var currentLift = liftValue(state.n, state.lambda, state.t);
-    var projected = {
-      x: Math.cos(TAU * currentLift),
-      y: Math.sin(TAU * currentLift)
-    };
-    var children = [
-      makeSvg(api, "title", { id: ids.plotTitle }, [
-        "Winding-lift：绕数 " + formatInteger(state.n) +
-          "，形变 λ=" + formatNumber(api, state.lambda, 2) +
-          "，进度 t=" + formatNumber(api, state.t, 2)
-      ]),
-      makeSvg(api, "desc", { id: ids.plotDesc }, [
-        "左图为覆盖映射 p(x)=e^(2πix) 的圆周投影，右图为从 0 出发的实线提升。当前点同步显示；改变形变时终点仍为整数 n。"
-      ])
-    ];
-    drawCircle(api, children, state);
-    drawLift(api, children, state);
-    appendChildren(svg, children);
-    svg.setAttribute(
-      "aria-label",
-      "绕数 " + formatInteger(state.n) +
-        "；当前提升值 " + formatNumber(api, currentLift, 3) +
-        "；投影坐标 (" + formatNumber(api, projected.x, 3) +
-        ", " + formatNumber(api, projected.y, 3) + ")；终点提升值 " +
-        formatInteger(state.n)
-    );
-  }
-
-  function buildLab(root, api) {
-    if (!root || typeof document === "undefined") {
-      return;
-    }
-
-    INSTANCE += 1;
-    var instanceId = "winding-lift-" + INSTANCE;
-    var ids = {
-      controlsTitle: instanceId + "-controls-title",
-      plotTitle: instanceId + "-plot-title",
-      plotDesc: instanceId + "-plot-desc",
-      status: instanceId + "-status",
-      lambda: instanceId + "-lambda",
-      progress: instanceId + "-progress"
-    };
-    var state = {
-      n: DEFAULT_STATE.n,
-      lambda: DEFAULT_STATE.lambda,
-      t: DEFAULT_STATE.t
-    };
-    var refs = { presetButtons: [] };
-
-    clear(root);
-    root.classList.add("winding-lift-lab");
-    var style = document.createElement("style");
-    style.textContent = STYLE_TEXT;
-    root.appendChild(style);
-
-    var heading = makeElement(api, "h3", {}, [
-      "Winding-lift：把圆周的回路抬到实线"
-    ]);
-    var intro = makeElement(api, "p", { className: "wl-note" }, [
-      "固定覆盖映射 p(x)=e^(2πix) 与提升起点 ℓ(0)=0。选择离散绕数 n，调节可消去的回摆 λ，再拖动进度 t；双图和数值账本会同时更新。"
-    ]);
-
-    var presetGroup = makeElement(api, "div", {
-      className: "wl-preset-buttons",
-      role: "group",
-      "aria-label": "选择离散绕数预设"
-    });
-    PRESETS.forEach(function (preset) {
-      var button = makeElement(api, "button", {
-        type: "button",
-        "aria-pressed": preset.n === state.n ? "true" : "false",
-        "aria-label": "选择绕数 " + formatInteger(preset.n)
-      }, [preset.label]);
-      button.addEventListener("click", function () {
-        state.n = preset.n;
-        update();
-        announce("已选择绕数 n=" + formatInteger(state.n) +
-          "；终点提升值保持为 " + formatInteger(state.n));
-      });
-      refs.presetButtons.push({ n: preset.n, button: button });
-      presetGroup.appendChild(button);
-    });
-
-    var lambdaOutput = makeElement(api, "output", {
-      htmlFor: ids.lambda,
-      className: "wl-output"
-    }, [formatNumber(api, state.lambda, 2)]);
-    var lambdaLabel = makeElement(api, "label", { htmlFor: ids.lambda }, [
-      "形变 λ（固定端点回摆） = ",
-      lambdaOutput
-    ]);
-    var lambdaInput = makeElement(api, "input", {
-      id: ids.lambda,
-      type: "range",
-      min: "0",
-      max: "1.8",
-      step: "0.05",
-      value: String(state.lambda),
-      "aria-label": "形变 λ，固定端点回摆幅度",
-      "aria-describedby": ids.status
-    });
-
-    var progressOutput = makeElement(api, "output", {
-      htmlFor: ids.progress,
-      className: "wl-output"
-    }, [formatNumber(api, state.t, 2)]);
-    var progressLabel = makeElement(api, "label", { htmlFor: ids.progress }, [
-      "移动进度 t = ",
-      progressOutput
-    ]);
-    var progressInput = makeElement(api, "input", {
-      id: ids.progress,
-      type: "range",
-      min: "0",
-      max: "1",
-      step: "0.01",
-      value: String(state.t),
-      "aria-label": "路径移动进度 t",
-      "aria-describedby": ids.status
-    });
-
-    var resetButton = makeElement(api, "button", {
-      type: "button",
-      className: "wl-primary",
-      "aria-label": "恢复默认绕数、形变和进度"
-    }, ["重置"]);
-    resetButton.addEventListener("click", function () {
-      state.n = DEFAULT_STATE.n;
-      state.lambda = DEFAULT_STATE.lambda;
-      state.t = DEFAULT_STATE.t;
-      update();
-      announce("已重置：n=1，λ=0.65，t=0.5；端点提升值为 1");
-    });
-
-    var controls = makeElement(api, "section", {
-      className: "wl-controls",
-      "aria-labelledby": ids.controlsTitle
-    }, [
-      makeElement(api, "h4", { id: ids.controlsTitle }, ["操作台"]),
-      makeElement(api, "div", { className: "wl-control" }, [
-        makeElement(api, "span", { className: "wl-label" }, ["离散绕数 n（含负、零、正）"]),
-        presetGroup
-      ]),
-      makeElement(api, "div", { className: "wl-control" }, [
-        lambdaLabel,
-        lambdaInput
-      ]),
-      makeElement(api, "div", { className: "wl-control" }, [
-        progressLabel,
-        progressInput
-      ]),
-      resetButton,
-      makeElement(api, "p", { className: "wl-note" }, [
-        "所有曲线由同一条确定性公式采样；重复点击、拖动或切换预设只会重绘当前 SVG，不累积图形节点。"
-      ])
-    ]);
-
-    var svg = makeSvg(api, "svg", {
-      className: "wl-svg",
-      viewBox: "0 0 1080 520",
-      role: "img",
-      "aria-labelledby": ids.plotTitle + " " + ids.plotDesc
-    });
-    var stageTitle = makeElement(api, "div", { className: "cl-stage-title" }, [
-      makeElement(api, "span", {}, ["双图对照"]),
-      makeElement(api, "span", { className: "wl-output" }, [
-        "左：投影　右：提升与端点"
-      ])
-    ]);
-    var legend = makeElement(api, "div", {
-      className: "wl-legend",
-      "aria-label": "图例"
-    }, [
-      legendLine(api, "wl-legend-circle", "圆周 S¹"),
-      legendLine(api, "wl-legend-trail", "投影已走轨迹"),
-      legendLine(api, "wl-legend-lift", "实线提升 ℓ"),
-      legendPoint(api, "wl-legend-endpoint", "端点 ℓ(1)=n")
-    ]);
-
-    var nMetric = metric(api, "绕数 n");
-    var lambdaMetric = metric(api, "形变 λ");
-    var tMetric = metric(api, "当前进度 t");
-    var liftMetric = metric(api, "当前提升 ℓ(t)");
-    var projectionMetric = metric(api, "投影 p(ℓ(t))");
-    var endpointMetric = metric(api, "端点 ℓ(1)");
-    var metrics = makeElement(api, "div", {
-      className: "wl-metrics",
-      "aria-label": "数值账本"
-    }, [
-      nMetric.card,
-      lambdaMetric.card,
-      tMetric.card,
-      liftMetric.card,
-      projectionMetric.card,
-      endpointMetric.card
-    ]);
-    refs.nMetric = nMetric.value;
-    refs.lambdaMetric = lambdaMetric.value;
-    refs.tMetric = tMetric.value;
-    refs.liftMetric = liftMetric.value;
-    refs.projectionMetric = projectionMetric.value;
-    refs.endpointMetric = endpointMetric.value;
-
-    var formula = makeElement(api, "div", {
-      className: "wl-formula",
-      "aria-label": "当前提升公式"
-    }, []);
-    var status = makeElement(api, "p", {
-      className: "wl-status",
-      id: ids.status,
-      role: "status",
-      "aria-live": "polite"
-    }, []);
-    var boundary = makeElement(api, "p", { className: "wl-boundary" }, []);
-    refs.lambdaOutput = lambdaOutput;
-    refs.progressOutput = progressOutput;
-    refs.lambdaInput = lambdaInput;
-    refs.progressInput = progressInput;
-    refs.formula = formula;
-    refs.status = status;
-    refs.boundary = boundary;
-    refs.svg = svg;
-
-    var stage = makeElement(api, "section", {
-      className: "wl-stage",
-      "aria-label": "覆盖映射与路径提升双图"
-    }, [
-      stageTitle,
-      makeElement(api, "div", { className: "wl-stage-frame" }, [svg]),
-      legend,
-      metrics,
-      formula,
-      status,
-      boundary
-    ]);
-    var layout = makeElement(api, "div", { className: "wl-layout" }, [
-      controls,
-      stage
-    ]);
-    root.appendChild(heading);
-    root.appendChild(intro);
-    root.appendChild(layout);
-
-    function announce(message) {
-      if (api && typeof api.announce === "function") {
-        api.announce(root, message);
-      }
-    }
-
-    function update() {
-      var currentLift = liftValue(state.n, state.lambda, state.t);
-      var projection = {
-        x: Math.cos(TAU * currentLift),
-        y: Math.sin(TAU * currentLift)
-      };
-      refs.lambdaOutput.textContent = formatNumber(api, state.lambda, 2);
-      refs.progressOutput.textContent = formatNumber(api, state.t, 2);
-      refs.lambdaInput.value = String(state.lambda);
-      refs.progressInput.value = String(state.t);
-      refs.lambdaInput.setAttribute(
-        "aria-valuetext",
-        "形变 λ=" + formatNumber(api, state.lambda, 2)
-      );
-      refs.progressInput.setAttribute(
-        "aria-valuetext",
-        "进度 t=" + formatNumber(api, state.t, 2)
-      );
-      refs.nMetric.textContent = formatInteger(state.n);
-      refs.lambdaMetric.textContent = formatNumber(api, state.lambda, 2);
-      refs.tMetric.textContent = formatNumber(api, state.t, 2);
-      refs.liftMetric.textContent = formatNumber(api, currentLift, 3);
-      refs.projectionMetric.textContent =
-        "(" + formatNumber(api, projection.x, 3) + ", " +
-        formatNumber(api, projection.y, 3) + ")";
-      refs.endpointMetric.textContent = formatInteger(state.n);
-      refs.formula.textContent =
-        "ℓ(t) = " + formatInteger(state.n) + "·t + " +
-        formatNumber(api, state.lambda, 2) +
-        "·sin(2πt)（a=1）；p(ℓ(t))=(cos(2πℓ(t)), sin(2πℓ(t)))";
-      refs.status.textContent =
-        "当前 t=" + formatNumber(api, state.t, 2) +
-        "，ℓ(t)=" + formatNumber(api, currentLift, 3) +
-        "，p(ℓ(t))=(" + formatNumber(api, projection.x, 3) + ", " +
-        formatNumber(api, projection.y, 3) + ")。" +
-        (Math.abs(state.t - 1) < 0.0001
-          ? " 已到终点：ℓ(1)=" + formatInteger(state.n) + "。"
-          : " 拖到 t=1 可检查整数终点。");
-      refs.boundary.textContent =
-        "端点/基点条件：ℓ(0)=0，p(0)=1；ℓ(1)=" +
-        formatInteger(state.n) + "∈p⁻¹(1)=ℤ，且 p(ℓ(1))=1。" +
-        " 改变 λ 只改变中间路径，不改变这个终点账本。";
-      refs.presetButtons.forEach(function (item) {
-        item.button.setAttribute(
-          "aria-pressed",
-          item.n === state.n ? "true" : "false"
-        );
-      });
-      drawScene(api, refs.svg, state, ids);
-    }
-
-    lambdaInput.addEventListener("input", function () {
-      var value = Number(lambdaInput.value);
-      state.lambda = clamp(Number.isFinite(value) ? value : 0, 0, 1.8);
-      update();
-    });
-    lambdaInput.addEventListener("change", function () {
-      announce("形变 λ=" + formatNumber(api, state.lambda, 2) +
-        "；端点仍为 " + formatInteger(state.n));
-    });
-    progressInput.addEventListener("input", function () {
-      var value = Number(progressInput.value);
-      state.t = clamp(Number.isFinite(value) ? value : 0, 0, 1);
-      update();
-    });
-    progressInput.addEventListener("change", function () {
-      announce("进度 t=" + formatNumber(api, state.t, 2) +
-        "；当前提升值为 " +
-        formatNumber(api, liftValue(state.n, state.lambda, state.t), 3));
-    });
-
-    update();
-  }
-
-  window.CourseLearning.register("winding-lift", buildLab);
-}());
+return {DEFAULTS,PRESETS,QUESTIONS,config,snapshot,plots,ledgers,fmt,svg,mount,selfTest};});
