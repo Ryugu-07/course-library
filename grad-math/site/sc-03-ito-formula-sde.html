@@ -52,276 +52,303 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-12 02:06</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#sc03-learning-title">学习层：普通链式法则漏掉的那一本账</a><ul>
-<li><a href="#1-x2-dt">1. 具体谜题：为什么 \(x^2\) 需要一项额外的 \(dt\)？</a></li>
-<li><a href="#2">2. 最小模型：最高层生成，同一路径向下聚合</a></li>
-<li><a href="#3">3. 读账本：恒等式是精确的，极限要分清量词</a></li>
-<li><a href="#4">4. 迁移：从账本回到定理</a></li>
-</ul>
-</li>
-<li><a href="#1-ito-ito">1. Itô 过程与 Itô 公式</a></li>
-<li><a href="#2-sde">2. SDE：强解的存在唯一性</a></li>
-<li><a href="#3_1">3. 两个立即收割</a></li>
-<li><a href="#4_1">4. 练习与要点</a></li>
+<li><a href="#_1">学习层：链式法则漏掉了哪一项？</a></li>
+<li><a href="#1">1. 平方与四次方：先做完全精确的代数</a></li>
+<li><a href="#2">2. 光滑对照与取样反例</a></li>
+<li><a href="#3">3. 定理先交代清楚定义域</a></li>
+<li><a href="#4">4. 加权二次变差：不用待证公式证明自己</a></li>
+<li><a href="#5-taylor">5. Taylor余项：把时间与空间分开</a></li>
+<li><a href="#6">6. 局部化与协变差的含义</a></li>
+<li><a href="#7">7. 强解：给定噪声后构造同一个过程</a></li>
+<li><a href="#8-picard">8. Picard迭代：阶乘怎样保证收敛</a></li>
+<li><a href="#9">9. 唯一性、矩界与条件的边界</a></li>
+<li><a href="#10-euler">10. 几何布朗运动：精确正性与Euler负值</a></li>
+<li><a href="#11-ou">11. OU过程与四阶矩：用定理解决新问题</a></li>
+<li><a href="#12">12. 四道练习：检验推理能否迁移</a></li>
 </ul>
 </div>
 </details>
-<h1 id="iii-ito-sde">随机分析 III · Itô 公式与 SDE 理论<a class="headerlink" href="#iii-ito-sde" title="Permanent link"></a></h1>
+<h1 id="iii-itosde">随机分析 III · Itô公式与SDE存在唯一性<a class="headerlink" href="#iii-itosde" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Øksendal §4–5 ｜ <strong>前置</strong>：sc-01/02、ode-01（本科）、泛函 I
-两张本科欠条在本页兑付：<strong>Itô 公式的证明</strong>（“带 <span class="arithmatex">\((dB)^2 = dt\)</span> 的 Taylor 展开”如何变成定理）与 <strong>SDE 解的存在唯一性</strong>（Picard 迭代在 <span class="arithmatex">\(L^2\)</span> 路径空间的重演）。</p>
+<p><strong>前置</strong>：<a href="sc-01-brownian-rigorous.html">布朗运动</a>、<a href="sc-02-ito-integral.html">Itô积分</a>、常微分方程的Picard迭代。<strong>目标</strong>：证明二阶修正从何而来，再用已建立的积分构造随机微分方程的解。</p>
 </blockquote>
-<div data-learning-page></div>
-
-<section aria-labelledby="sc03-learning-title" class="learning-layer">
-<h2 id="sc03-learning-title">学习层：普通链式法则漏掉的那一本账<a class="headerlink" href="#sc03-learning-title" title="Permanent link"></a></h2>
-<h3 id="1-x2-dt">1. 具体谜题：为什么 <span class="arithmatex">\(x^2\)</span> 需要一项额外的 <span class="arithmatex">\(dt\)</span>？<a class="headerlink" href="#1-x2-dt" title="Permanent link"></a></h3>
-<p>在光滑微积分里，分割 <span class="arithmatex">\(0=t_0&lt;\cdots&lt;t_N=T\)</span> 上有</p>
-<div class="arithmatex">\[
-X_{t_{j+1}}^2-X_{t_j}^2
- =2X_{t_j}\Delta X_j+(\Delta X_j)^2,
- \qquad \Delta X_j=X_{t_{j+1}}-X_{t_j}.
-\]</div>
-<p>如果把最后一项想当然地当成高阶小量，普通链式法则会预测
-<span class="arithmatex">\(X_T^2-X_0^2\approx\sum_j2X_{t_j}\Delta X_j\)</span>。但对 Brownian 路径，
-每个增量的典型大小是 <span class="arithmatex">\(\sqrt{\Delta t}\)</span>，所以 <span class="arithmatex">\((\Delta B_j)^2\)</span> 与
-<span class="arithmatex">\(\Delta t\)</span> 同阶：它们相加后不会自动消失。</p>
-<p>本页实验把这件事写成两笔可核对的账。写 <span class="arithmatex">\(n=2^L\)</span>，则：</p>
-<div class="arithmatex">\[
-I_n=\sum_{j=0}^{n-1}2B_{t_j}\Delta B_j,\qquad
-Q_n=\sum_{j=0}^{n-1}(\Delta B_j)^2,\qquad t_j=jT/n,
-\]</div>
-<p>并逐层显示离散恒等式</p>
-<div class="arithmatex">\[
-B_T^2-B_0^2=I_n+Q_n.
-\]</div>
-<p>先别看结果，预测三件事：</p>
-<ol>
-<li>Brownian 的 <span class="arithmatex">\(Q_L\)</span> 在 <span class="arithmatex">\(L\)</span> 加大时会趋向 <span class="arithmatex">\(0\)</span>、<span class="arithmatex">\(T\)</span>，还是没有稳定口径？</li>
-<li><span class="arithmatex">\(\int_0^T2B_t\,dB_t\)</span> 的左端和极限，是 <span class="arithmatex">\(B_T^2-B_0^2\)</span>、<span class="arithmatex">\(B_T^2-B_0^2-T\)</span>，还是别的量？</li>
-<li>对 <span class="arithmatex">\(dS_t=\mu S_t\,dt+\sigma S_t\,dB_t\)</span>，<span class="arithmatex">\(\log S_t\)</span> 的漂移是 <span class="arithmatex">\(\mu\)</span>、<span class="arithmatex">\(\mu+\sigma^2/2\)</span>，还是 <span class="arithmatex">\(\mu-\sigma^2/2\)</span>？</li>
-</ol>
-<p>实验会先锁住这三项判断；提交前不显示 seed、分割层数、路径图或账本结果。揭示后可以连续切换样本、层数和路径类型，重置则重新门控。</p>
-<h3 id="2">2. 最小模型：最高层生成，同一路径向下聚合<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>固定 <span class="arithmatex">\(T=1\)</span> 和一个最高 dyadic 层 <span class="arithmatex">\(M\)</span>。脚本只生成一次独立高斯细增量</p>
-<div class="arithmatex">\[
-\Delta B_{M,r}=\sqrt{T2^{-M}}\,\zeta_r,\qquad \zeta_r\sim N(0,1),
-\]</div>
-<p>再把相邻的细增量相加：</p>
-<div class="arithmatex">\[
-\Delta B_{L,j}=
-\sum_{r=j2^{M-L}}^{(j+1)2^{M-L}-1}\Delta B_{M,r},\qquad L\le M.
-\]</div>
-<p>因此不同 <span class="arithmatex">\(L\)</span> 使用同一条样本路径，粗层端点是细层端点的子集，尤其保持同一个 <span class="arithmatex">\(B_T\)</span>；切换层数不是重新抽样。对照路径取</p>
-<div class="arithmatex">\[
-f(t)=0.75\sin(2\pi t)+0.25\sin(6\pi t),
-\]</div>
-<p>在相同的 uniform nested partitions 上计算同样的 <span class="arithmatex">\(Q_L\)</span>、左端和与总变差。光滑路径的有限变差保证 <span class="arithmatex">\(Q_L\to0\)</span>，但“连续”本身并不足以推出这个结论。</p>
-<h3 id="3">3. 读账本：恒等式是精确的，极限要分清量词<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>对任意一条离散路径，逐段展开就得到</p>
-<div class="arithmatex">\[
-2X_{t_j}\Delta X_j+(\Delta X_j)^2
-=X_{t_{j+1}}^2-X_{t_j}^2;
-\]</div>
-<p>所以 <span class="arithmatex">\(I_n+Q_n\)</span> 在每一层都应与端点平方差相等（只差浮点舍入）。对 Brownian，<span class="arithmatex">\(Q_n\)</span>（实验中记作 <span class="arithmatex">\(Q_L\)</span>）是一条有限样本上的诊断：它通常围绕 <span class="arithmatex">\(T\)</span> 波动，不要求单调，也绝不凭一条样本冒充证明。对应的随机分析定理是：对固定 <span class="arithmatex">\(t\)</span> 和确定性 uniform/dyadic 分割 <span class="arithmatex">\(\pi_n\)</span>，</p>
-<div class="arithmatex">\[
-Q_t(\pi_n)=\sum_j(B_{t_{j+1}}-B_{t_j})^2
-\xrightarrow{L^2}t,\qquad\text{因而}\qquad Q_t(\pi_n)\xrightarrow{P}t.
-\]</div>
-<p>沿 dyadic 分割还可由方差可和与 Borel–Cantelli 得到几乎处处收敛；这里的交互图只展示固定有限层和固定样本。可选的 <span class="arithmatex">\(\sum|\Delta B|^3\)</span> 或总变差能帮助观察“更高阶项变小”，但它们不是二次变差定理本身。</p>
-<p>对 <span class="arithmatex">\(x^2\)</span>，这本账在极限中读成</p>
-<div class="arithmatex">\[
-d(B_t^2)=2B_t\,dB_t+dt,\qquad
-\int_0^T2B_t\,dB_t=B_T^2-B_0^2-T.
-\]</div>
-<p>这正是普通链式法则漏掉的项：二次变差把二阶 Taylor 项留下来了。</p>
-<div class="learning-lab" data-learning-lab="ito-quadratic-variation" markdown="1">
-<p><strong>无 JavaScript 时的静态读法：</strong>固定 <span class="arithmatex">\(T=1\)</span>，先在最高 dyadic 层生成一批 seeded Gaussian 增量，再向下聚合；每个层的端点和 <span class="arithmatex">\(B_T\)</span> 都来自同一条路径。对任意当前层 <span class="arithmatex">\(L\)</span>，直接计算</p>
-<div class="arithmatex">\[
-Q_n=\sum(\Delta X)^2,\qquad I_n=\sum2X_{\rm left}\Delta X,\qquad
-X_T^2-X_0^2-I_n-Q_n=0
-\]</div>
-<p>（数值上只剩舍入误差）。Brownian 的单样本 <span class="arithmatex">\(Q_L\)</span> 只是围绕 <span class="arithmatex">\(T\)</span> 的有限诊断，可能上下波动；光滑对照的 <span class="arithmatex">\(Q_L\)</span> 随 uniform nested partition 加细而趋向 <span class="arithmatex">\(0\)</span>。揭示后的账本还会并列显示 <span class="arithmatex">\(I_L\)</span>、<span class="arithmatex">\(Q_L\)</span>、端点平方差和残差，并标出
-<span class="arithmatex">\(\int_0^T2B_t\,dB_t=B_T^2-B_0^2-T\)</span>。这些有限层数值不能替代 <span class="arithmatex">\(L^2\)</span>/概率（dyadic 时再加几乎处处）收敛定理。</p>
+<div class="sde-course">
+<style>.sde-course .learning-lab{margin-left:0;margin-right:0;width:100%}.sde-course .fallback-scroll{overflow:auto;max-width:100%}.sde-course .fallback-scroll td{overflow-wrap:anywhere}.sde-course .fallback-scroll td:last-child{white-space:nowrap;font-variant-numeric:tabular-nums;font-size:.8em}</style>
+<noscript>
+<style>.sde-course span.arithmatex{overflow-wrap:anywhere;white-space:normal}</style>
+</noscript>
+<div data-learning-page="data-learning-page"></div>
+<section class="learning-layer">
+<h2 id="_1">学习层：链式法则漏掉了哪一项？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>先选平方函数。每段都满足“终点函数值变化＝一次项＋二次项”，二次项是实际的增量平方。换成四次方，还会出现可以直接算出的三次、四次余项。把分割加密，观察哪本账保留下来；每层的代数恒等式与无限细分的概率定理分别核查。</p>
+<div class="learning-lab" data-learning-lab="ito-quadratic-variation">
+<p><strong>先预测，再揭示。</strong> 读取层L只选取同一路径的节点；提高生成层M保留原有节点。GBM的精确解与Euler近似也使用这条布朗路径。图线连接有限观测点，不能代替未观测区间上的真实路径。</p>
+<figure class="plot">
+<p><a href="assets/img/sc-03-ito-sde-ledgers.svg"><img alt="Itô公式与Euler近似的四个固定场景" src="assets/img/sc-03-ito-sde-ledgers.svg" /></a></p>
+<figcaption>图1.1：打开原图，依次比较有限恒等式、dt误差和Euler正性。</figcaption>
+</figure>
+<div aria-label="Itô公式固定数值记录" class="fallback-scroll" role="region" tabindex="0">
 <table>
 <thead>
 <tr>
-<th>账本</th>
-<th style="text-align: right;">Brownian 样本</th>
-<th style="text-align: right;">光滑路径</th>
-<th>读法</th>
+<th scope="col">项目</th>
+<th scope="col">固定记录值</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><span class="arithmatex">\(Q_L=\sum(\Delta X)^2\)</span></td>
-<td style="text-align: right;">单样本在 <span class="arithmatex">\(T\)</span> 附近波动</td>
-<td style="text-align: right;"><span class="arithmatex">\(\to0\)</span></td>
-<td>诊断，不是证明</td>
+<td>平方场景读取层L</td>
+<td>4</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(I_L=\sum2X_{\rm left}\Delta X\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(B_T^2-B_0^2-T\)</span> 的离散近似</td>
-<td style="text-align: right;"><span class="arithmatex">\(X_T^2-X_0^2\)</span> 的离散近似</td>
-<td>左端点约定</td>
+<td>平方场景Q</td>
+<td>1.302582507473014</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(I_L+Q_L\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(X_T^2-X_0^2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(X_T^2-X_0^2\)</span></td>
-<td>每层 telescoping 恒等式</td>
+<td>平方一次项</td>
+<td>-0.7156714385429651</td>
+</tr>
+<tr>
+<td>平方二次项</td>
+<td>1.302582507473014</td>
+</tr>
+<tr>
+<td>平方余项</td>
+<td>0</td>
+</tr>
+<tr>
+<td>平方恒等式残差</td>
+<td>-2.220446049250313e-16</td>
+</tr>
+<tr>
+<td>平方dt修正后残差</td>
+<td>0.30258250747301374</td>
+</tr>
+<tr>
+<td>四次方一次项</td>
+<td>-2.1823290519447514</td>
+</tr>
+<tr>
+<td>四次方二次项</td>
+<td>2.019528150424946</td>
+</tr>
+<tr>
+<td>四次方余项</td>
+<td>0.5072655043524177</td>
+</tr>
+<tr>
+<td>四次方加权平方增量误差</td>
+<td>-0.8695530926496122</td>
+</tr>
+<tr>
+<td>四次方dt修正后残差</td>
+<td>-0.36228758829719476</td>
+</tr>
+<tr>
+<td>粗Euler精确终点</td>
+<td>0.003957263901509246</td>
+</tr>
+<tr>
+<td>粗Euler终点</td>
+<td>-2.532202426482935</td>
+</tr>
+<tr>
+<td>首个非正Euler节点</td>
+<td>1</td>
+</tr>
+<tr>
+<td>粗Euler解析均值</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>零时域Q</td>
+<td>0</td>
+</tr>
+<tr>
+<td>零时域精确终点</td>
+<td>1</td>
+</tr>
+<tr>
+<td>零时域Euler终点</td>
+<td>1</td>
+</tr>
+<tr>
+<td>零时域首个非正节点</td>
+<td>未出现</td>
 </tr>
 </tbody>
 </table>
 </div>
-<h3 id="4">4. 迁移：从账本回到定理<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>看到一般的 <span class="arithmatex">\(dX_t=\mu_tdt+\sigma_tdB_t\)</span> 时，先问二次变差是哪一项：
-<span class="arithmatex">\(d\langle X\rangle_t=\sigma_t^2dt\)</span>。若 <span class="arithmatex">\(f\in C^{1,2}\)</span>，时间一阶、空间二阶连续可微，
-那么二阶空间导数正好会乘上这本账的密度 <span class="arithmatex">\(\sigma_t^2dt\)</span>。但图上的一个 seed、一个最高层和一组分割，只是理解机制的实验接口；定理仍需要适应性、可积性和极限论证。</p>
+<p><a href="assets/learning/projects/ito-quadratic-variation/run-snapshot.json">下载四个场景的完整路径与账本(JSON)</a>。均用M=4、seed=20260722；平方/四次场景T=1、L=4、μ=0.3、σ=0.8；粗Euler场景T=1、L=0、μ=−2、σ=2；零时域场景T=0、L=4。表内保留固定数值，图上刻度做显示舍入。</p>
+</div>
+<p>建议先读1–3节，理解有限账本；4–6节完成Itô公式的证明；7–9节证明SDE存在唯一性；10–12节把定理用于具体模型与练习。长表用于复算，第一次阅读不必全部展开。</p>
 </section>
-<h2 id="1-ito-ito">1. Itô 过程与 Itô 公式<a class="headerlink" href="#1-ito-ito" title="Permanent link"></a></h2>
-<p><strong>Itô 过程</strong>：</p>
-<div class="arithmatex">\[
-X_t=X_0+\int_0^t\mu_s\,ds+\int_0^t\sigma_s\,dB_s,
-\]</div>
-<p>其中微分记号 <span class="arithmatex">\(dX_t=\mu_tdt+\sigma_tdB_t\)</span> 只是速记。对每个有限时间区间 <span class="arithmatex">\([0,T]\)</span>，通常要求 <span class="arithmatex">\(X\)</span> 连续且适应，<span class="arithmatex">\(\mu,\sigma\)</span> 渐进可测，并满足相应的平方可积条件，例如</p>
-<div class="arithmatex">\[
-E\int_0^T(|\mu_s|^2+|\sigma_s|^2)\,ds&lt;\infty;
-\]</div>
-<p>更一般的局部版本由停时局部化处理。这样 Itô 积分和公式中的各项才有定义。</p>
-<p><strong>定理（Itô 公式）</strong> 若 <span class="arithmatex">\(f\in C^{1,2}\)</span>（时间一阶、空间二阶连续可微），并且在所用的局部化/可积性条件下各项可积，则</p>
-<div class="arithmatex">\[
-df(t,X_t)=\Big(f_t+\mu_tf_x+\frac12\sigma_t^2f_{xx}\Big)dt
-+\sigma_tf_x\,dB_t.
-\]</div>
-<p>这里的 <span class="arithmatex">\(C^{1,2}\)</span> 不是装饰：<span class="arithmatex">\(f_t\)</span>、<span class="arithmatex">\(f_x\)</span>、<span class="arithmatex">\(f_{xx}\)</span> 分别承担时间一阶项、随机一阶项和幸存的二阶空间项。</p>
-<p><strong>【证明骨架（结构完整，簿记略）】</strong> 四步：</p>
-<p>① <strong>局部化</strong>：令停时在 <span class="arithmatex">\(X\)</span>、<span class="arithmatex">\(\mu\)</span>、<span class="arithmatex">\(\sigma\)</span> 或相关积分超过 <span class="arithmatex">\(R\)</span> 时截断，使停止过程和系数落在有界区域；先对每个 <span class="arithmatex">\(R\)</span> 证明，再让 <span class="arithmatex">\(R\uparrow\infty\)</span>。这是把局部估计接回原过程的步骤，不是把无界问题默认为有界。</p>
-<p>② <strong>二维 Taylor 展开</strong>：对分割 <span class="arithmatex">\(\{t_j\}\)</span>，在左端点展开</p>
-<div class="arithmatex">\[
-\begin{aligned}
-f(t_{j+1},X_{t_{j+1}})-f(t_j,X_{t_j})
-={}&amp;f_t\,\Delta t_j+f_x\,\Delta X_j
- +\frac12f_{xx}(\Delta X_j)^2+R_j.
-\end{aligned}
-\]</div>
-<p>时间一阶项由有限变差积分负责；空间二阶项不能沿 Brownian 路径直接丢掉。</p>
-<p>③ <strong>逐项归位</strong>：<span class="arithmatex">\(\sum f_x\Delta X_j\)</span> 的左端和按 sc-02 收敛到
-<span class="arithmatex">\(\int f_x\,dX\)</span>。又因为</p>
-<div class="arithmatex">\[
-(\Delta X_j)^2=\sigma_{t_j}^2(\Delta B_j)^2
- +2\mu_{t_j}\sigma_{t_j}\Delta t_j\Delta B_j
- +\mu_{t_j}^2(\Delta t_j)^2+\text{逼近误差},
-\]</div>
-<p>加总后第一项给出 <span class="arithmatex">\(\int\sigma_s^2ds\)</span>；交叉项和 <span class="arithmatex">\(dt^2\)</span> 项由局部化后的矩估计归零。这就是二次变差定理的加权版本。</p>
-<p>④ <strong>余项控制</strong>：在局部化的紧集上，<span class="arithmatex">\(f_{xx}\)</span> 一致连续，故
-<span class="arithmatex">\(R_j=o((\Delta X_j)^2)\)</span>；结合增量矩估计和二次变差收敛，余项和趋于零。再解除局部化，得到公式。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>读法</strong>：证明把“<span class="arithmatex">\((dB)^2=dt\)</span>、其余高阶项归零”的口诀逐项落实为极限，而不是把微分符号当作先验代数规则。多维版把 <span class="arithmatex">\(\sigma^2dt\)</span> 换成协变差矩阵 <span class="arithmatex">\(d\langle X^i,X^j\rangle\)</span>，结构相同【引用】。</p>
-<p><strong>Itô 与 Stratonovich 的约定</strong>：Itô 积分用左端点、被积过程适应；Stratonovich 记作 <span class="arithmatex">\(\circ dB\)</span>，在足够光滑时满足</p>
-<div class="arithmatex">\[
-\int_0^T H_t\circ dB_t
-=\int_0^T H_t\,dB_t+\frac12[H,B]_T.
-\]</div>
-<p>若 <span class="arithmatex">\(H_t=g(t,X_t)\)</span> 且 <span class="arithmatex">\(dX_t=\mu_tdt+\sigma_tdB_t\)</span>，则
-<span class="arithmatex">\([H,B]_t=\int_0^t g_x(s,X_s)\sigma_sds\)</span>；因此把 Stratonovich SDE 改写成 Itô 形式会多出相应的半个导数漂移修正。两种 convention 都有用途，但本页的左端点账本和公式默认是 Itô。</p>
-<h2 id="2-sde">2. SDE：强解的存在唯一性<a class="headerlink" href="#2-sde" title="Permanent link"></a></h2>
+<h2 id="1">1. 平方与四次方：先做完全精确的代数<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>令x为当前值、z为下一段增量。两条恒等式是</p>
+<div class="arithmatex">\[ (x+z)^2-x^2=2xz+z^2,\]</div>
+<div class="arithmatex">\[ (x+z)^4-x^4=4x^3z+6x^2z^2+4xz^3+z^4.\]</div>
+<p>实验把最后两个高阶项合称余项，但按上式实际计算，并非把残差强行设为0。逐段相加后，左边望远镜消去，只剩端点函数值之差。浮点残差另外列出。</p>
+<p>对布朗节点记</p>
+<div class="arithmatex">\[ A_pi=\sum_j f'(B_{t_j})\Delta B_j,\quad
+C_pi=\frac12\sum_j f''(B_{t_j})(\Delta B_j)^2,\quad
+D_pi=\frac12\sum_j f''(B_{t_j})\Delta t_j.\]</div>
+<p>有限恒等式是端点差=A+C+余项。Itô公式要证明的是：A趋于随机积分，C趋于时间积分，而余项消失。实验显示的“用dt修正后的残差”恰为(C−D)+余项；它在有限层通常不为0。</p>
+<p>平方函数的余项恒为0，C就是二次变差Q。四次方的二阶权重为6B²，不能只证明无权重Q趋于T，就跳过加权极限。</p>
+<h2 id="2">2. 光滑对照与取样反例<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>对连续有限变差路径a，任意最大段长趋于0的分割满足</p>
+<div class="arithmatex">\[ \sum_j(\Delta a_j)^2
+\le\max_j|\Delta a_j|\sum_j|\Delta a_j|
+\le\max_j|\Delta a_j|\operatorname{TV}(a)\longrightarrow0.\]</div>
+<p>实验中的光滑曲线为a(t)=0.75sin(2πt)+0.25sin(6πt)，它的二次变差趋于0；布朗运动的二次变差则趋于T。连续性只负责最大增量趋于0，有限总变差才给出上式另一半控制。</p>
+<p>还有一个更隐蔽的取样问题。令确定函数σ(t)=1_Q(t)，即在有理时间为1，其余为0。它可预测且在dt测度下等于0，所以</p>
+<div class="arithmatex">\[ \int_0^1\sigma(t)^2dt=0,\qquad \int_0^1\sigma(t)dB_t=0.\]</div>
+<p>但是dyadic网格左端全为有理数，直接使用σ(tⱼ)会得到布朗增量和，完全没有逼近这个积分。<strong>可测系数不能一律用指定网格的点值逼近。</strong> 上一页的H²简单过程逼近处理的是等价类；本页证明保留σ在整个小段上的积分，只对连续的f导数取左端值。</p>
+<h2 id="3">3. 定理先交代清楚定义域<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>在通常过滤下，B为布朗运动，X₀为有限的F₀可测变量。设μ、σ可预测，并对每个有限T满足</p>
+<div class="arithmatex">\[ \int_0^T|\mu_s|ds&lt;\infty,\qquad
+\int_0^T\sigma_s^2ds&lt;\infty\quad\text{几乎处处}.\]</div>
+<p>用上一页的局部积分定义连续Itô过程</p>
+<div class="arithmatex">\[ X_t=X_0+\int_0^t\mu_sds+\int_0^t\sigma_sdB_s.\]</div>
+<p>若f、fₜ、fₓ、fₓₓ连续，即f∈C^{1,2}，则几乎处处对所有t同时成立</p>
+<div class="arithmatex">\[ f(t,X_t)-f(0,X_0)
+=\int_0^t\left(f_t+\mu_sf_x+\frac12\sigma_s^2f_{xx}\right)(s,X_s)ds
++\int_0^t f_x(s,X_s)\sigma_sdB_s.\]</div>
+<p>漂移项中的μₛ、σₛ在(s,Xₛ)之外取值；括号只是把f的三个导数写在一起。各项先按局部意义定义。这个定理不额外要求f有时间二阶导数或时间—空间混合导数。</p>
+<h2 id="4">4. 加权二次变差：不用待证公式证明自己<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>先设σ∈H²，M=∫σdB，w为有界连续适应过程。我们证明，在确定性分割最大段长趋于0时，</p>
+<div class="arithmatex">\[ \sum_jw_{t_j}(\Delta M_j)^2
+\xrightarrow{P}\int_0^T w_s\sigma_s^2ds.\]</div>
+<p><strong>第一步：对被积过程的稳定性。</strong> 取有界简单可预测σ⁽ᵐ⁾→σ于H²，并令M⁽ᵐ⁾=∫σ⁽ᵐ⁾dB。每段等距相加，给出</p>
+<div class="arithmatex">\[ \mathbb E\sum_j|\Delta(M-M^{(m)})_j|^2
+=\|\sigma-\sigma^{(m)}\|_{\mathcal H_T^2}^2.\]</div>
+<p>分解平方差，再对“概率×有限段编号”用Cauchy–Schwarz，得到</p>
+<div class="arithmatex">\[ \mathbb E\sum_j\left|(\Delta M_j)^2-(\Delta M^{(m)}_j)^2\right|
+\le\|\sigma-\sigma^{(m)}\|_2\big(\|\sigma\|_2+\|\sigma^{(m)}\|_2\big).\]</div>
+<p>乘上‖w‖∞也成立，且上界与分割无关。同样的平方差估计控制∫w(σ²−(σ⁽ᵐ⁾)²)。因此只需处理一个固定的有界简单过程。</p>
+<p><strong>第二步：简单系数上的随机误差。</strong> 设|σ⁽ᵐ⁾|≤K。除去跨越其有限个固定跳点的网格段，剩余每段的系数ξⱼ在左端已知，而且ΔM⁽ᵐ⁾ⱼ=ξⱼΔBⱼ。定义</p>
+<div class="arithmatex">\[ U_j=w_{t_j}\xi_j^2\big((\Delta B_j)^2-\Delta t_j\big).\]</div>
+<p>Uⱼ是条件均值为0的鞅差，不同段交叉期望为0；高斯四阶矩给出</p>
+<div class="arithmatex">\[ \mathbb E\left|\sum_jU_j\right|^2
+\le2\|w\|_\infty^2K^4\sum_j(\Delta t_j)^2
+\le2\|w\|_\infty^2K^4T|\pi|\longrightarrow0.\]</div>
+<p>被除去的小段总长度至多为“固定跳点数×最大段长”，它们的平方增量期望由等距控制，时间积分也由有界性控制，所以两者均在L¹中消失。剩余加权时间和由w路径连续、σ⁽ᵐ⁾分段恒定趋于∫w(σ⁽ᵐ⁾)²。先让分割变细，再令m增大，第一步的统一估计完成证明。</p>
+<p><strong>第三步：加回漂移。</strong> A=∫μds为连续有限变差过程，第2节给出Σ(ΔA)²→0。混合项满足</p>
+<div class="arithmatex">\[ \left|\sum_j w_{t_j}\Delta A_j\Delta M_j\right|
+\le\|w\|_\infty\sqrt{\sum_j(\Delta A_j)^2}\sqrt{\sum_j(\Delta M_j)^2}\xrightarrow{P}0.\]</div>
+<p>后一因子由已证的无权重结论在概率意义下有界。因此X的加权二次变差也等于∫wσ²。这一证明只使用上一页的等距、简单过程稠密性与布朗增量矩，没有预先调用Itô公式。</p>
+<h2 id="5-taylor">5. Taylor余项：把时间与空间分开<a class="headerlink" href="#5-taylor" title="Permanent link"></a></h2>
+<p>先处理f及相关导数有界且一致连续、σ∈H²的情形。记x=Xₜⱼ、z=ΔXⱼ、h=Δtⱼ。把增量拆成</p>
+<div class="arithmatex">\[ f(t_j+h,x+z)-f(t_j,x)
+=\big[f(t_j+h,x+z)-f(t_j,x+z)\big]
++\big[f(t_j,x+z)-f(t_j,x)\big].\]</div>
+<p>第一项沿时间积分fₜ；第二项在固定时间做空间二阶Taylor展开。因此</p>
+<div class="arithmatex">\[ \Delta f_j=f_t(t_j,X_{t_j})h+f_x(t_j,X_{t_j})z
++\frac12f_{xx}(t_j,X_{t_j})z^2+R_j.\]</div>
+<p>若ωₜ、ωₓ分别控制fₜ与fₓₓ的一致连续性，则</p>
+<div class="arithmatex">\[ \sum_j|R_j|
+\le T\,\omega_t\big(|\pi|+\max_j|\Delta X_j|\big)
++\frac12\omega_x\big(\max_j|\Delta X_j|\big)\sum_j(\Delta X_j)^2
+\xrightarrow{P}0.\]</div>
+<p>连续路径让两个ω趋于0；第4节让平方增量和在概率意义下有界。时间余项只需要h的一阶控制，没有暗中使用不存在的fₜₜ或fₜₓ。</p>
+<p>时间一阶和趋于∫fₜds。空间一阶项分为漂移与随机积分。后者应准确写成</p>
+<div class="arithmatex">\[ \sum_j f_x(t_j,X_{t_j})\Delta M_j
+=\int_0^T f_x(t_{\rm left}(s),X_{t_{\rm left}(s)})\sigma_s\,dB_s.\]</div>
+<p>只对连续的fₓ(t,Xₜ)取左端值，保留σₛ。被积过程平方差受常数倍σ²支配，故由等距在L²中收敛。漂移项用|μ|的路径可积性与有界支配收敛。二阶项用第4节的权w=fₓₓ(t,Xₜ)。各项与余项归位，得到固定T的公式；对可数有理T取共同事件，再由所有积分过程连续，得到对所有t同时成立。</p>
+<h2 id="6">6. 局部化与协变差的含义<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>一般情形先取光滑截断fᴿ，使它在[0,T]×[−R,R]内与f相同、导数全局有界。对X、累计漂移总量和扩散能量使用停止时间</p>
+<div class="arithmatex">\[ \tau_R=T\wedge\inf\left\{t:|X_t|\ge R\ \text{或}\
+\int_0^t|\mu_s|ds\ge R\ \text{或}\ \int_0^t\sigma_s^2ds\ge R\right\}.\]</div>
+<p>停止扩散的期望能量至多R，属于H²。先对停止后的X和fᴿ应用第5节，再用停止公式在τᴿ处读取等式；在停止前截断导数与原导数一致。由于每条连续路径在有限区间有界、两种累计积分有限，随R→∞，最终不再提前停止，于是还原原公式。这里停的是累计量，未假设任意可测μ、σ都能靠“系数首次越界”变成有界过程。</p>
+<p>若X、Y由同一个B驱动，扩散系数为σ、η，极化恒等式与第4节给出</p>
+<div class="arithmatex">\[ [X,Y]_t=\int_0^t\sigma_s\eta_sds.\]</div>
+<p>特别[X]ₜ=∫σ²。对足够光滑的g，Itô公式说明g(t,Xₜ)的扩散系数为gₓσ，因此其与B的协变差为∫gₓσds。这才支持半个协变差的Stratonovich修正；本页不把它推广到任意不连续被积过程。</p>
+<h2 id="7">7. 强解：给定噪声后构造同一个过程<a class="headerlink" href="#7" title="Permanent link"></a></h2>
 <p>考虑</p>
-<div class="arithmatex">\[
-dX_t=\mu(t,X_t)dt+\sigma(t,X_t)dB_t,\qquad X_0=x_0.
-\]</div>
-<p><strong>定理（Itô 存在唯一性）</strong> 假设 <span class="arithmatex">\(\mu,\sigma\)</span> 对时间可测，并且存在与 <span class="arithmatex">\(t\)</span> 无关的常数 <span class="arithmatex">\(L,C\)</span>，对所有 <span class="arithmatex">\(t,x,y\)</span> 有</p>
-<div class="arithmatex">\[
-|\mu(t,x)-\mu(t,y)|+|\sigma(t,x)-\sigma(t,y)|\le L|x-y|
-\]</div>
-<p>以及全局线性增长</p>
-<div class="arithmatex">\[
-|\mu(t,x)|+|\sigma(t,x)|\le C(1+|x|).
-\]</div>
-<p>若 <span class="arithmatex">\(X_0\)</span> 是平方可积的 <span class="arithmatex">\(\mathcal F_0\)</span>-可测随机变量，则对每个有限 <span class="arithmatex">\(T\)</span> 存在唯一（不可区分意义）的连续适应<strong>强解</strong>，并且</p>
-<div class="arithmatex">\[
-E\sup_{t\le T}|X_t|^2&lt;\infty.
-\]</div>
-<p>这里“强”表示解由给定的 Brownian motion 和过滤构造，适应性不是事后补上的标签。全局 Lipschitz + 线性增长是一个方便的充分条件版本，不是所有 SDE 的最弱假设。</p>
-<p><strong>【证明骨架（Picard 在 <span class="arithmatex">\(L^2\)</span> 路径空间）】</strong> 定义</p>
-<div class="arithmatex">\[
-(\Phi X)_t=x_0+\int_0^t\mu(s,X_s)ds+\int_0^t\sigma(s,X_s)dB_s.
-\]</div>
-<p>在 <span class="arithmatex">\(\|X\|_{T,2}^2=E\sup_{t\le T}|X_t|^2\)</span> 的完备空间上：</p>
-<p>① <span class="arithmatex">\(\Phi\)</span> 良定：线性增长、Cauchy–Schwarz 与 Itô 等距给出平方可积性，适应性来自 <span class="arithmatex">\(X\)</span> 的适应性和积分构造。</p>
-<p>② <strong>积分型估计</strong>：对 <span class="arithmatex">\(X,Y\)</span>，漂移项用 Cauchy–Schwarz，扩散项用 <strong>Doob <span class="arithmatex">\(L^2\)</span> 极大不等式 + Itô 等距</strong>，得到</p>
-<div class="arithmatex">\[
-E\sup_{t\le T}|(\Phi X-\Phi Y)_t|^2
-\le C_T\int_0^T E|X_s-Y_s|^2ds.
-\]</div>
-<p>这不是在任意 <span class="arithmatex">\(T\)</span> 上已经得到的“直接压缩”：右侧是 Volterra 型积分估计。可以在足够短的时间片上选范数使其成为压缩，再逐片延拓；也可以直接对 Picard 差分迭代该估计，得到阶乘衰减</p>
-<div class="arithmatex">\[
-\|X^{(n+1)}-X^{(n)}\|_{T,2}^2
-\le \frac{(C_TT)^n}{n!}\|X^{(1)}-X^{(0)}\|_{T,2}^2,
-\]</div>
-<p>从而在任意给定有限 <span class="arithmatex">\(T\)</span> 上求和。</p>
-<p>③ <strong>存在性</strong>：<span class="arithmatex">\(X^{(n+1)}=\Phi X^{(n)}\)</span> 的差分级数在路径空间中 Cauchy，完备性给出极限；再用 Itô 积分的稳定性把极限送回积分方程。需要路径级结论时，可用 Doob 控制和 Borel–Cantelli 沿子列得到几乎处处一致收敛。</p>
-<p>④ <strong>唯一性</strong>：两解之差满足同型的积分估计；令 <span class="arithmatex">\(u(t)=E\sup_{s\le t}|X_s-Y_s|^2\)</span>，由 Grönwall 不等式</p>
-<div class="arithmatex">\[
-u(t)\le C\int_0^t u(s)ds\quad\Longrightarrow\quad u(t)=0,
-\]</div>
-<p>得到不可区分唯一。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>读法</strong>：与 ode-01 的 Picard 定理逐步对应（映射—压缩/积分估计—迭代—Grönwall），只是每步多穿一件概率装备（Itô 等距、Doob、Borel–Cantelli）。若 Lipschitz 失守，唯一性可能失效：例如 <span class="arithmatex">\(\sigma(x)=|x|^\alpha\)</span>、<span class="arithmatex">\(\alpha&lt;1/2\)</span> 的情形需额外讨论；CIR 的临界平方根扩散则需要专门论证【引用】。</p>
-<h2 id="3_1">3. 两个立即收割<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>几何 Brownian motion</strong>（严格版）：取 <span class="arithmatex">\(S_0&gt;0\)</span>，考虑</p>
-<div class="arithmatex">\[
-dS_t=\mu S_tdt+\sigma S_tdB_t
-\]</div>
-<p>的系数满足全局 Lipschitz 与线性增长，故有唯一强解。对 <span class="arithmatex">\(\log S_t\)</span> 使用 Itô 公式前要先交代正性：可令
-<span class="arithmatex">\(\tau_\varepsilon=\inf\{t:S_t\le\varepsilon\}\)</span>，在逼近零的停时局部化区间上对
-<span class="arithmatex">\(\log S_{t\wedge\tau_\varepsilon}\)</span> 计算；或者先直接验证下面严格为正的指数候选，再由强解唯一性确认它就是原解，从而确认 <span class="arithmatex">\(S_t&gt;0\)</span>。</p>
-<div class="arithmatex">\[
-S_t=S_0\exp\big((\mu-\tfrac12\sigma^2)t+\sigma B_t\big).
-\]</div>
-<p>漂移修正 <span class="arithmatex">\(-\sigma^2/2\)</span> 正是二次变差留下的二阶项，不是记号偏好。</p>
-<p><strong>OU 过程</strong>：以下方差公式先假设 <span class="arithmatex">\(\theta&gt;0\)</span>（稳定 OU 情形）：</p>
-<div class="arithmatex">\[
-dX_t=-\theta X_tdt+\sigma dB_t
-\]</div>
-<p>有唯一强解</p>
-<div class="arithmatex">\[
-X_t=e^{-\theta t}x_0+\sigma\int_0^t e^{-\theta(t-s)}dB_s.
-\]</div>
-<p>对 <span class="arithmatex">\(e^{\theta t}X_t\)</span> 用 Itô 公式验证；它是高斯过程，方差
-<span class="arithmatex">\(\frac{\sigma^2}{2\theta}(1-e^{-2\theta t})\)</span> 由 Itô 等距一行算出。并且
-[
-\lim_{\theta\downarrow0}\frac{\sigma^2}{2\theta}(1-e^{-2\theta t})=\sigma^2t;
-]
-在 <span class="arithmatex">\(\theta=0\)</span> 时方程变为 <span class="arithmatex">\(dX_t=\sigma\,dB_t\)</span>，故（确定性 <span class="arithmatex">\(x_0\)</span> 下）方差确为 <span class="arithmatex">\(\sigma^2t\)</span>。</p>
-<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（Itô 公式即计算器）</strong> 求 <span class="arithmatex">\(E[B_t^4]\)</span>：对 <span class="arithmatex">\(f=x^4\)</span> 用 Itô，</p>
-<div class="arithmatex">\[
-dB_t^4=4B_t^3dB_t+6B_t^2dt.
-\]</div>
-<p>取期望（鞅项归零）得 <span class="arithmatex">\(\frac d{dt}EB_t^4=6EB_t^2=6t\)</span>，所以
-<span class="arithmatex">\(EB_t^4=3t^2\)</span>；高斯四阶矩可由此自产，并可递推全部偶数矩。</p>
-<p><strong>例 2（Grönwall 亲手用）</strong> 由存在性估计得到</p>
-<div class="arithmatex">\[
-E|X_t|^2\le C(1+|x_0|^2)e^{Ct}.
-\]</div>
-<p>线性增长先给出积分型矩界，再由 Grönwall 收口；这说明解在有限时间内矩不会爆破，也是 Euler–Maruyama 收敛性分析的前置件。</p>
-<p><strong>例 3（验证型练习）</strong> 证明</p>
-<div class="arithmatex">\[
-X_t=\frac{B_t}{1+t}
-\]</div>
-<p>满足</p>
-<div class="arithmatex">\[
-dX_t=-\frac{X_t}{1+t}dt+\frac1{1+t}dB_t.
-\]</div>
-<p>对 <span class="arithmatex">\(f(t,x)=x/(1+t)\)</span> 用 Itô 公式；注意 <span class="arithmatex">\(f_{xx}=0\)</span>，所以线性函数不吃 Itô 税。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：换测度的魔法——Girsanov 定理、鞅表示定理与 Feynman–Kac：金融数学三大支柱的严格版，随机分析收官。</em></p>
+<div class="arithmatex">\[ X_t=X_0+\int_0^t b(s,X_s)ds+\int_0^t a(s,X_s)dB_s.\]</div>
+<p>设b、a联合Borel可测，且存在统一常数L、C满足</p>
+<div class="arithmatex">\[ |b(t,x)-b(t,y)|+|a(t,x)-a(t,y)|\le L|x-y|,\]</div>
+<div class="arithmatex">\[ |b(t,x)|+|a(t,x)|\le C(1+|x|).\]</div>
+<p>假设X₀∈L²(F₀)。结论是：每个有限T上存在连续适应解，E supₜ≤T|Xₜ|²&lt;∞，同一初值与同一B下的两解不可区分。“强”指在给定的噪声和过滤上构造，而不是比较解的数值精度。</p>
+<p>在连续适应过程的空间S²中，范数为</p>
+<div class="arithmatex">\[ \|X\|_{S_T^2}=\left(\mathbb E\sup_{t\le T}|X_t|^2\right)^{1/2}.\]</div>
+<p>这个空间完备：从Cauchy列抽取子列，使相邻S²距离可求和。由E sup|差|≤S²范数，Tonelli说明相邻统一差之和几乎处处有限，所以子列一致收敛到连续过程；逐时适应性由过滤完备性保留。Fatou把Cauchy控制传到极限，给出S²收敛，进而原列也收敛。过程按不可区分关系取等价类。</p>
+<p>可预测性也有出处：连续适应X可预测，(t,ω)↦(t,Xₜ(ω))可预测，复合联合Borel的a、b仍可预测。</p>
+<h2 id="8-picard">8. Picard迭代：阶乘怎样保证收敛<a class="headerlink" href="#8-picard" title="Permanent link"></a></h2>
+<p>定义</p>
+<div class="arithmatex">\[ (\Phi X)_t=X_0+\int_0^t b(s,X_s)ds+\int_0^t a(s,X_s)dB_s.\]</div>
+<p>线性增长、漂移的Cauchy–Schwarz与随机积分的Doob L²控制保证Φ把S²映到自身。对两个过程，用两项平方≤两倍平方和，得到对t≤T</p>
+<div class="arithmatex">\[ \mathbb E\sup_{u\le t}|(\Phi X-\Phi Y)_u|^2
+\le K_T\int_0^t\mathbb E\sup_{v\le s}|X_v-Y_v|^2ds,\qquad K_T=2L^2(T+4).\]</div>
+<p>从常值过程X⁽⁰⁾=X₀开始，令X⁽ⁿ⁺¹⁾=ΦX⁽ⁿ⁾，并记dₙ(t)=E supᵤ≤t|X⁽ⁿ⁺¹⁾ᵤ−X⁽ⁿ⁾ᵤ|²。逐次积分给出</p>
+<div class="arithmatex">\[ d_n(T)\le d_0(T)\frac{(K_TT)^n}{n!}.\]</div>
+<p>需要求和的是S²距离，也就是这个界的平方根。相邻项比值为√(KₜT/(n+1))→0，因此</p>
+<div class="arithmatex">\[ \sum_{n\ge0}\|X^{(n+1)}-X^{(n)}\|_{S_T^2}&lt;\infty.\]</div>
+<p>完备性给出极限X。前述差映射估计也说明Φ在S²中连续，因此ΦX=limΦX⁽ⁿ⁾=limX⁽ⁿ⁺¹⁾=X，积分方程成立。无需把Φ误称为任意长时间上的直接压缩。</p>
+<h2 id="9">9. 唯一性、矩界与条件的边界<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>两解之差的u(t)=E supₛ≤t|Xₛ−Yₛ|²满足</p>
+<div class="arithmatex">\[ u(t)\le K_T\int_0^t u(s)ds.\]</div>
+<p>令v(t)=∫₀ᵗu(s)ds，则v′≤Kₜv且v(0)=0；乘e⁻ᴷᵀᵗ得到v=0。因此u(T)=0，即几乎处处在整个[0,T]上相同。对整数T取共同事件得到全时间不可区分唯一。</p>
+<p>矩界也可写出常数。令m(t)=E supᵤ≤t|Xᵤ|²，三项平方不等式和线性增长给出</p>
+<div class="arithmatex">\[ m(t)\le3\mathbb E|X_0|^2+6C^2(T+4)\int_0^t(1+m(s))ds.\]</div>
+<p>写Aₜ=6C²(T+4)，积分型Grönwall给出</p>
+<div class="arithmatex">\[ m(t)\le\big(3\mathbb E|X_0|^2+A_Tt\big)e^{A_Tt},\qquad t\le T.\]</div>
+<p>有限时域矩受控，使所构造的解不会在有限时间爆破。不同T上的解由唯一性相容，可拼接。</p>
+<p>这些是充分条件。若去掉Lipschitz，哪怕没有噪声，也可能不唯一：初值0的常微分方程dX=2√|X|dt，既有恒零解，也有任意等待时间c后开始的Xₜ=(t−c)₊²。若只有局部Lipschitz却无增长控制，dX=X²dt、X₀=1在t=1爆破。两个反例分别说明唯一性条件和全局延拓条件的作用。</p>
+<h2 id="10-euler">10. 几何布朗运动：精确正性与Euler负值<a class="headerlink" href="#10-euler" title="Permanent link"></a></h2>
+<p>设S₀=1，dS=μSdt+σSdB，μ、σ为常数。系数满足上一节条件。先用Itô公式直接验证严格为正的候选</p>
+<div class="arithmatex">\[ S_t=\exp\big((\mu-\sigma^2/2)t+\sigma B_t\big).\]</div>
+<p>其时间导数与空间二阶项合起来为μS，随机项为σS；唯一性确认它就是解。此时再取log才有依据，漂移为μ−σ²/2。</p>
+<p>实验还显示漏掉修正的指数exp(μt+σBₜ)，以及同一增量下的Euler递推</p>
+<div class="arithmatex">\[ Y_{j+1}=Y_j(1+\mu h+\sigma\Delta B_j),\qquad Y_0=1.\]</div>
+<p>精确解总为正，Euler因子却可能非正。出现这种情况时，实验记录第一个非正节点，保留真实数值；不会偷偷取绝对值或对负数取log。网格最大误差只是在当前有限节点上与精确解比较，不是连续路径sup误差，更不是强误差期望。</p>
+<p>独立增量让总体矩可递推。记n=T/h，则</p>
+<div class="arithmatex">\[ \mathbb EY_n=(1+\mu h)^n,\qquad
+\mathbb EY_n^2=\big((1+\mu h)^2+\sigma^2h\big)^n,\]</div>
+<p>而精确解满足</p>
+<div class="arithmatex">\[ \mathbb ES_T=e^{\mu T},\qquad \mathbb ES_T^2=e^{(2\mu+\sigma^2)T}.\]</div>
+<p>这些来自理想高斯模型，单条路径的终点并不等于总体均值。固定T加密时，两个Euler矩分别趋于精确矩；这仅证明这两个矩的收敛，不单独证明路径强收敛阶。T=0时所有节点时间为0，精确解和Euler均为1。</p>
+<h2 id="11-ou">11. OU过程与四阶矩：用定理解决新问题<a class="headerlink" href="#11-ou" title="Permanent link"></a></h2>
+<p>对确定x₀，考虑dX=−θXdt+σdB。给e^{θt}Xₜ用Itô公式，得到</p>
+<div class="arithmatex">\[ X_t=e^{-\theta t}x_0+\sigma\int_0^t e^{-\theta(t-s)}dB_s.\]</div>
+<p>核函数确定，所以X为高斯过程。等距给出</p>
+<div class="arithmatex">\[ \mathbb EX_t=e^{-\theta t}x_0,\qquad
+\operatorname{Var}(X_t)=\begin{cases}
+\sigma^2(1-e^{-2\theta t})/(2\theta),&amp;\theta\ne0,\\
+\sigma^2t,&amp;\theta=0.
+\end{cases}\]</div>
+<p>θ&lt;0时这个方差仍为正，只是过程不再均值回复。θ&gt;0时极限方差σ²/(2θ)说明恢复力与噪声达到的平衡。若要从零时刻就平稳，应选独立的X₀∼N(0,σ²/(2θ))；确定x₀的解通常不平稳。一个时间步内的精确随机卷积并不只是“常数×同一个ΔB”，因为它还包含布朗桥噪声；本页不把这种替换叫作同路径精确模拟。</p>
+<p>再看B⁴。Itô公式给出dB⁴=4B³dB+6B²dt。高斯六阶矩有限，保证E∫₀ᵀB⁶dt&lt;∞，所以随机积分是真正的平方可积鞅，可以取零期望。于是</p>
+<div class="arithmatex">\[ \mathbb EB_t^4=6\int_0^t\mathbb EB_s^2ds=3t^2.\]</div>
+<p>这重现了已知高斯矩；不能为了推导矩，未经可积性检查就把任意局部鞅的期望写成0。</p>
+<h2 id="12">12. 四道练习：检验推理能否迁移<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>练习一：为什么把Q换成T之后，有限层残差不再只剩舍入误差？</summary>
+<p>平方函数每层满足Bₜ²−B₀²=A+Q。用时间修正T替代Q后，残差为Q−T，通常非零。它有均值0和方差2T²/n，因此在L²中趋于0；这与有限代数恒等式是不同结论。四次方还要加上实际高阶余项和加权的平方增量误差。</p>
+</details>
+<details class="answer">
+<summary>练习二：σ(t)=1_Q(t)说明了哪一步不能省略？</summary>
+<p>σ在dt测度下为0，随机积分因此为0。但dyadic左值恒1，直接点采样得到Bₜ。必须证明被积过程在H²中逼近，不能仅凭可预测性就指定一组点值。本页对fₓ(t,Xₜ)取左值有连续性依据，同时保留σₛ原本的积分。</p>
+</details>
+<details class="answer">
+<summary>练习三：验证Xₜ=Bₜ/(1+t)的SDE</summary>
+<p>取f(t,x)=x/(1+t)，则fₜ=−x/(1+t)²、fₓ=1/(1+t)、fₓₓ=0。因此</p>
+<div class="arithmatex">\[ dX_t=-\frac{X_t}{1+t}dt+\frac1{1+t}dB_t.\]</div>
+<p>二阶修正消失是因为空间二阶导数为0，并不意味着布朗运动的二次变差消失。该方程系数满足全局Lipschitz和线性增长，所以候选验证后可由唯一性确认。</p>
+</details>
+<details class="answer">
+<summary>练习四：Euler的一条路径更接近精确解，是否证明收敛阶？</summary>
+<p>不能。当前网格误差只涉及一个seed和有限节点，可能随层数非单调。强误差要求同噪声耦合下的期望范数估计；弱误差比较测试函数的期望；精确解正性又是另一条路径性质。实验能定位差异、检查实现，理论收敛阶仍需相应估计与假设。</p>
+</details>
+<p>下一页：<a href="sc-04-girsanov.html">Girsanov与换测度</a>。本页的局部化、真鞅可积性与强解唯一性，会继续决定哪些形式计算可以成立。</p>
+<p><strong>参考。</strong> <a href="https://galton.uchicago.edu/~lalley/Courses/385/ItoIntegral.pdf">Steven P. Lalley，Notes on the Itô Calculus</a>，第2节的Itô公式与证明框架。本页独立展开可测扩散系数的加权二次变差、时间/空间余项及Picard完备空间论证；OU的均值、方差与初值条件按所写方程直接推导。</p>
+</div>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="sc-02-ito-integral.html"><span class="pager-label">上一页</span>随机分析 II · Itô 积分的构造</a>
