@@ -1,642 +1,100 @@
-(function (root, factory) {
-  "use strict";
+(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;if(root&&root.CourseLearning)root.CourseLearning.register('ito-integral-ledger',api.mount);})(typeof window!=='undefined'?window:typeof globalThis!=='undefined'?globalThis:this,function(){
+'use strict';
+const DEFAULTS={integrand:'brownian',T:'1',maxLevel:'7',level:'5',paths:'64',pathIndex:'1',seed:'20260722'};
+function config(input){if(input===undefined)input={};if(input===null||typeof input!=='object'||Array.isArray(input))throw Error('参数须为对象');for(const k of Object.keys(input))if(!Object.hasOwn(DEFAULTS,k))throw Error('未知参数：'+k);const c={...DEFAULTS,...input};for(const k of Object.keys(c))if(typeof c[k]!=='string')throw Error('所有参数必须是字符串');if(!['brownian','constant','time','sign'].includes(c.integrand))throw Error('请选择范围内的被积过程');for(const [k,lo,hi]of [['seed',0,4294967295],['maxLevel',2,9],['level',0,9],['paths',1,128],['pathIndex',1,128]])if(!/^(?:0|[1-9]\d*)$/.test(c[k])||c[k].length>10||Number(c[k])<lo||Number(c[k])>hi)throw Error(k+'须为'+lo+'至'+hi+'的整数');if(Number(c.level)>Number(c.maxLevel))throw Error('测量层L不得超过生成层M；此页只使用已生成布朗节点');if(Number(c.pathIndex)>Number(c.paths))throw Error('显示路径编号不得超过路径总数');if(c.T.length>20||! /^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(c.T)||Number(c.T)>4)throw Error('T须为0至4的普通十进制数');return c;}
+function sum(xs){let s=0,c=0;for(const v of xs){const y=v-c,t=s+y;c=(t-s)-y;s=t;}return s;}
+function randomNormals(seed){let state=seed>>>0;const records=[];function word(){state=(state+0x6D2B79F5)|0;let t=Math.imul(state^(state>>>15),1|state);t=(t+Math.imul(t^(t>>>7),61|t))^t;return(t^(t>>>14))>>>0;}function next(){const a=word(),b=word(),u=(a+.5)/4294967296,v=(b+.5)/4294967296,z=Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);records.push([a,b,z]);return z;}return{next,records};}
+function H(kind,t,b){return kind==='constant'?1:kind==='time'?t:kind==='brownian'?b:b>=0?1:-1;}
+const pathCache=new Map();
+function unitPath(seed,index,M){const pathSeed=(seed+Math.imul(index,0x9e3779b9))>>>0,key=pathSeed+'|'+M;if(pathCache.has(key))return pathCache.get(key);const rng=randomNormals(pathSeed);let path=[0,rng.next()];for(let m=0;m<M;m++){const next=Array(2*path.length-1);for(let k=0;k<path.length;k++)next[2*k]=path[k];for(let k=0;k<2**m;k++)next[2*k+1]=(path[k]+path[k+1])/2+2**(-(m+2)/2)*rng.next();path=next;}const record={pathSeed,unitValues:path,normalDraws:rng.records};if(pathCache.size>=256)pathCache.delete(pathCache.keys().next().value);pathCache.set(key,record);return record;}
+function summarize(path,T,kind,withSteps=true){const n=path.length-1,dt=T/n,terms={left:[],right:[],trapezoid:[],energy:[],quadraticVariation:[],covariation:[]},steps=[];for(let j=0;j<n;j++){const tLeft=j*dt,tRight=(j+1)*dt,bLeft=path[j],bRight=path[j+1],delta=bRight-bLeft,hLeft=H(kind,tLeft,bLeft),hRight=H(kind,tRight,bRight),hAverage=(hLeft+hRight)/2,left=hLeft*delta,right=hRight*delta,trapezoid=hAverage*delta,energy=hLeft*hLeft*dt,q=delta*delta,covariation=(hRight-hLeft)*delta;terms.left.push(left);terms.right.push(right);terms.trapezoid.push(trapezoid);terms.energy.push(energy);terms.quadraticVariation.push(q);terms.covariation.push(covariation);if(withSteps)steps.push({j,tLeft,tRight,bLeft,bRight,delta,hLeft,hRight,hAverage,left,right,trapezoid,energy,q,covariation});}const totals=Object.fromEntries(Object.entries(terms).map(([k,v])=>[k,sum(v)])),terminal=path[n],brownianIdentity=kind==='brownian'?{leftExpected:(terminal*terminal-totals.quadraticVariation)/2,rightExpected:(terminal*terminal+totals.quadraticVariation)/2,trapezoidExpected:terminal*terminal/2,leftResidual:totals.left-(terminal*terminal-totals.quadraticVariation)/2,rightResidual:totals.right-(terminal*terminal+totals.quadraticVariation)/2,trapezoidResidual:totals.trapezoid-terminal*terminal/2}:null;const result={count:n,dt,terminal,totals,leftSquare:totals.left*totals.left,pairedDifference:totals.left*totals.left-totals.energy,identity:{rightMinusLeftResidual:totals.right-totals.left-totals.covariation,trapezoidAverageResidual:totals.trapezoid-(totals.left+totals.right)/2},brownianIdentity};if(withSteps){result.path=path;result.steps=steps;const cumulative={left:[0],right:[0],trapezoid:[0],energy:[0],quadraticVariation:[0],covariation:[0]};for(const k of Object.keys(cumulative)){let acc=0,c=0;for(const v of terms[k]){const y=v-c,t=acc+y;c=(t-acc)-y;acc=t;cumulative[k].push(acc);}}result.cumulative=cumulative;}return result;}
+function theory(kind,T,L){const n=2**L,dt=T/n,T2=T*T,T4=T2*T2;let discrete,continuous,varLeftSquare,varEnergy=0,covariance=0,varPaired,certificate=null;if(kind==='brownian'){discrete=T2*(n-1)/(2*n);continuous=T2/2;const d4=dt**4;varLeftSquare=d4*n*(n-1)*(7*n*n-19*n+18)/2;varEnergy=d4*n*(n-1)*(n*n-n+1)/3;covariance=d4*n*(n-1)*(2*n*n-5*n+5)/3;varPaired=d4*n*(n-1)*(5*n*n-13*n+12)/2;certificate={traceA:0,traceA2:dt*dt*n*(n-1)/4,traceA4:d4*((n-1)**4+n-1)/16,traceK:discrete,traceK2:varEnergy/2,traceA2K:covariance/8,eigenvalueA1:dt*(n-1)/2,eigenvalueARest:-dt/2,eigenvalueARestMultiplicity:n-1,matrixConvention:'I=ZᵀAZ, Aij=dt/2 off-diagonal; energy=ZᵀKZ, Kij=dt²(n−1−max(i,j)), indices0..n−1'};}else{discrete=kind==='time'?dt**3*n*(n-1)*(2*n-1)/6:T;continuous=kind==='time'?T**3/3:T;varLeftSquare=2*discrete*discrete;varPaired=varLeftSquare;}return{level:L,count:n,dt,meanLeft:0,expectedLeftSquare:discrete,expectedEnergy:discrete,continuousTarget:continuous,discretizationBias:discrete-continuous,expectedPairedDifference:0,varianceLeftSquare:varLeftSquare,varianceEnergy:varEnergy,covarianceLeftSquareEnergy:covariance,variancePairedDifference:varPaired,expectedQ:T,varianceQ:2*T2/n,brownianCertificate:certificate,scope:'理想独立高斯模型的有限分割期望与方差；伪随机样本是可复算诊断。'};}
+function stats(values,target,populationVariance){const n=values.length,mean=sum(values)/n,deviations=values.map(x=>x-mean),sumSquares=sum(deviations.map(x=>x*x)),sampleVariance=n>1?sumSquares/(n-1):null;return{count:n,mean,target,gap:mean-target,sumSquaredDeviations:sumSquares,sampleVariance,estimatedStandardError:n>1?Math.sqrt(sampleVariance/n):null,modelStandardError:populationVariance===null?null:Math.sqrt(populationVariance/n),scope:n>1?'估计标准误基于样本方差；不自动给出严格置信覆盖率。':'只有1条路径：样本方差和估计标准误不适用。'};}
+function snapshot(input){const c=config(input),M=Number(c.maxLevel),L=Number(c.level),N=Number(c.paths),selected=Number(c.pathIndex)-1,T=Number(c.T),scale=Math.sqrt(T),paths=[];for(let i=0;i<N;i++){const raw=unitPath(Number(c.seed),i,M);paths.push({index:i+1,...JSON.parse(JSON.stringify(raw)),values:raw.unitValues.map(v=>v*scale)});}const selectedLevels=[],ensembleLevels=[];let selectedCurrent;for(let l=0;l<=M;l++){const step=2**(M-l),reference=theory(c.integrand,T,l),current=paths.map(p=>{const ys=p.values.filter((_,j)=>j%step===0);return summarize(ys,T,c.integrand,l===L&&p.index===selected+1);}),samples=current.map((v,i)=>({index:i+1,terminal:v.terminal,...v.totals,leftSquare:v.leftSquare,pairedDifference:v.pairedDifference,identity:v.identity,brownianIdentity:v.brownianIdentity}));if(l===L)selectedCurrent=current[selected];selectedLevels.push({level:l,...summarize(paths[selected].values.filter((_,j)=>j%step===0),T,c.integrand,false)});ensembleLevels.push({level:l,theory:reference,samples,statistics:{left:stats(samples.map(v=>v.left),0,reference.expectedLeftSquare),leftSquare:stats(samples.map(v=>v.leftSquare),reference.expectedLeftSquare,reference.varianceLeftSquare),energy:stats(samples.map(v=>v.energy),reference.expectedEnergy,reference.varianceEnergy),paired:stats(samples.map(v=>v.pairedDifference),0,reference.variancePairedDifference),q:stats(samples.map(v=>v.quadraticVariation),T,reference.varianceQ)}});}return{version:162,parameters:c,rngConvention:'第i条路径(0-based)seed=(seed+imul(i,0x9e3779b9)) mod 2^32；Mulberry32开区间均匀数与Box–Muller；各路径用Lévy帽函数逐层生成。',coupling:'固定种子和T，改变样本数保留已有路径；提高M保留旧节点；改变L只读取同一路径节点。伪随机子流不被声称为数学上真正独立。',paths,selectedPath:selectedCurrent,selectedLevels,ensembleLevels,selectedEnsemble:ensembleLevels[L],comparisonScope:c.integrand==='brownian'?'左/右/梯形有限恒等式及其布朗极限在讲义证明。':'右端与梯形仅为有限取点对照；本实验不据此声称一般Stratonovich极限。'};}
 
-  var exported = factory();
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("ito-integral-ledger", exported.mount);
-  }
-  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module) {
-    try {
-      var report = exported.selfTest();
-      process.stdout.write("ito-integral-ledger self-test: PASS (" + report.checks + " checks)\n");
-    } catch (error) {
-      process.stderr.write("ito-integral-ledger self-test: FAIL\n" + error.stack + "\n");
-      process.exitCode = 1;
-    }
-  }
-})(typeof window !== "undefined" ? window : null, function () {
-  "use strict";
+const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fmt(v){if(v===null)return'不适用';if(typeof v==='number'){if(!Number.isFinite(v))throw Error('非有限显示值');if(v===0)return'0';if(Number.isInteger(v))return String(v);return Math.abs(v)<1e-5||Math.abs(v)>=1e6?v.toExponential(7):String(Number(v.toPrecision(9)));}return Array.isArray(v)?v.map(fmt).join(', '):String(v);}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=1e5?v.toExponential(3):String(Number(v.toPrecision(5)));
+const integrandName=k=>({brownian:'H=B',constant:'H=1',time:'H=t',sign:'H=sign₊(B)'}[k]);
+function plots(s){const ps=[],colors=['#256c91','#ae6017','#687981','#26705b'],T=Number(s.parameters.T),L=Number(s.parameters.level),path=s.selectedPath,ensemble=s.selectedEnsemble;
+ function add(key,title,caption,xLabel,yLabel,series,opts={}){const xs=series.flatMap(t=>t.points.map(p=>p[0])),ys=series.flatMap(t=>t.points.map(p=>p[1]));let xMin=Math.min(...xs),xMax=Math.max(...xs),yMin=Math.min(0,...ys),yMax=Math.max(0,...ys);const xDegenerate=xMin===xMax;if(xDegenerate)xMax=xMin+1;let pad=(yMax-yMin)*.08||1;yMin-=pad;yMax+=pad;ps.push({key,title,caption,width:900,height:460,xLabel:xLabel+(xDegenerate?'（所有观测在同一点）':''),yLabel,xMin,xMax,yMin,yMax,xDegenerate,series:series.map((t,i)=>({...t,color:colors[i%4]})),...opts});}
+ const pairs=ys=>ys.map((y,j)=>[T*j/(ys.length-1),y]),current=s.paths[Number(s.parameters.pathIndex)-1];
+ add('path','固定路径 '+s.parameters.pathIndex+'：最高生成层与当前网格','橙线保留已生成细节；蓝线只连接当前读取节点。改变L不重新抽样。','时间 t','布朗路径值 B',[{label:'当前读取网格',points:pairs(path.path)},{label:'最细生成网格',points:pairs(current.values)}]);
+ const hp=path.steps.flatMap(t=>[[t.tLeft,t.hLeft],[t.tRight,t.hLeft]]);add('integrand','实际用于左端和的简单过程：'+integrandName(s.parameters.integrand),'每一段的系数在该段开始时已知；竖线只连接图形，不改变端点的可预测约定。','时间 t','简单过程的系数 H',[{label:'每段已知的系数',points:hp}]);
+ add('integrals','同一有限网格的三种累计和','右端与梯形是取点对照；只有满足讲义条件时，才进一步陈述各自的连续极限。','时间 t','累计积分和',[{label:'左端和',points:pairs(path.cumulative.left)},{label:'右端和',points:pairs(path.cumulative.right)},{label:'梯形平均和',points:pairs(path.cumulative.trapezoid)}]);
+ const levels=s.ensembleLevels;add('isometry','两个样本均值，应当靠近哪个目标？','离散期望与连续目标分别绘出；增加样本数不会消除二者之间的网格偏差。','读取层 L','平方积分／能量',[{label:'样本均值：左和平方',points:levels.map(t=>[t.level,t.statistics.leftSquare.mean])},{label:'样本均值：能量',points:levels.map(t=>[t.level,t.statistics.energy.mean])},{label:'离散精确期望',points:levels.map(t=>[t.level,t.theory.expectedEnergy])},{label:'连续目标',points:levels.map(t=>[t.level,t.theory.continuousTarget])}],{integerX:true,selected:L});
+ add('paired','同一条样本的 I² 与能量通常不相等','每个点对应一条路径：D=左和平方−能量。等距说E[D]=0，不要求每个点为0。','路径编号','成对差 D',[{label:'每条路径的D',points:ensemble.samples.map(t=>[t.index,t.pairedDifference])},{label:'理论均值0',points:ensemble.samples.map(t=>[t.index,0])}],{integerX:ensemble.samples.length<=16});
+ const series=[{label:'成对差的样本均值',points:levels.map(t=>[t.level,t.statistics.paired.mean])},{label:'理论均值0',points:levels.map(t=>[t.level,0])}];if(ensemble.statistics.paired.estimatedStandardError!==null){series.push({label:'均值＋1估计标准误',points:levels.map(t=>[t.level,t.statistics.paired.mean+t.statistics.paired.estimatedStandardError])},{label:'均值−1估计标准误',points:levels.map(t=>[t.level,t.statistics.paired.mean-t.statistics.paired.estimatedStandardError])});}add('sampling','成对等距诊断：均值与估计标准误',ensemble.samples.length===1?'N=1：不能估计样本方差或标准误；图中只画当前差值与理论0。':'±1标准误仅为样本波动尺度，不自动构成严格置信区间或收敛证明。','读取层 L','成对差的均值',[...series],{integerX:true,selected:L});
+ add('bias','能量均值与连续目标的差，可以拆成两部分','蓝色总差=橙色抽样差+灰色网格偏差。N与L分别影响不同环节。','读取层 L','相对目标的差值',[{label:'样本能量−连续目标',points:levels.map(t=>[t.level,t.statistics.energy.mean-t.theory.continuousTarget])},{label:'样本能量−离散期望',points:levels.map(t=>[t.level,t.statistics.energy.gap])},{label:'离散期望−连续目标',points:levels.map(t=>[t.level,t.theory.discretizationBias])}],{integerX:true,selected:L});return ps;
+}
+function svg(p){const left=104,right=866,top=101,bottom=360,x=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top);let out='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="460" viewBox="0 0 900 460" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><desc>'+esc(p.caption)+'</desc><rect width="900" height="460" fill="#fff"/>';const text=(xx,yy,t,size=13,anchor='start',fill='#283b46')=>'<text x="'+xx+'" y="'+yy+'" font-family="system-ui,sans-serif" font-size="'+size+'" text-anchor="'+anchor+'" fill="'+fill+'">'+esc(t)+'</text>';
+ out+=text(22,30,p.title,19)+text(22,441,p.caption,12);p.series.forEach((s,i)=>{out+='<line x1="'+(25+217*i)+'" y1="57" x2="'+(49+217*i)+'" y2="57" stroke="'+s.color+'" stroke-width="3"'+(i>=2?' stroke-dasharray="5 4"':'')+'/>'+text(56+217*i,62,s.label,12);});
+ for(let j=0;j<=5;j++){const yy=top+(bottom-top)*j/5,v=p.yMax-(p.yMax-p.yMin)*j/5;out+='<line x1="'+left+'" x2="'+right+'" y1="'+yy+'" y2="'+yy+'" stroke="#e1e6e8"/>'+text(left-8,yy+4,axisFmt(v),11,'end');}
+ const xTicks=p.xDegenerate?[p.xMin]:p.integerX?Array.from({length:Math.floor(p.xMax)-Math.ceil(p.xMin)+1},(_,i)=>Math.ceil(p.xMin)+i):Array.from({length:6},(_,j)=>p.xMin+(p.xMax-p.xMin)*j/5);for(const v of xTicks)out+=text(x(v),bottom+22,axisFmt(v),11,'middle');out+='<path d="M '+left+' '+top+' V '+bottom+' H '+right+'" fill="none" stroke="#283b46"/>'+text(25,84,p.yLabel,12)+text((left+right)/2,410,p.xLabel+(p.selected!==undefined?'（虚线：当前 L='+p.selected+'）':''),13,'middle');
+ for(let i=p.series.length-1;i>=0;i--){const s=p.series[i];out+='<polyline data-series="'+i+'" points="'+s.points.map(q=>x(q[0])+','+y(q[1])).join(' ')+'" fill="none" stroke="'+s.color+'" stroke-width="'+(i===0?2:1.6)+'"'+(i>=2?' stroke-dasharray="5 4"':'')+'/>';if(s.points.length<=128)for(const q of s.points)out+='<circle cx="'+x(q[0])+'" cy="'+y(q[1])+'" r="3" fill="'+s.color+'"/>';}
+ if(p.selected!==undefined){const xx=x(p.selected);out+='<line x1="'+xx+'" x2="'+xx+'" y1="'+top+'" y2="'+bottom+'" stroke="#283b46" stroke-dasharray="2 5"/>';}return out+'</svg>';
+}
+function ledgers(s){const out=[],add=(key,title,headers,rows)=>out.push({key,title,headers,rows}),path=s.selectedPath,e=s.selectedEnsemble,th=e.theory,selected=s.paths[Number(s.parameters.pathIndex)-1],N=s.paths.length;
+ add('summary','当前设置与适用范围',['项目','值'],[['被积过程',integrandName(s.parameters.integrand)],['T',Number(s.parameters.T)],['生成层M',Number(s.parameters.maxLevel)],['读取层L',Number(s.parameters.level)],['样本数N',N],['显示路径编号',selected.index],['根种子',Number(s.parameters.seed)],['显示路径子流种子',selected.pathSeed],['左端和',path.totals.left],['右端和',path.totals.right],['梯形平均和',path.totals.trapezoid],['路径能量',path.totals.energy],['路径Q',path.totals.quadraticVariation],['该路径成对差D',path.pairedDifference],['有限分割共同目标',th.expectedEnergy],['连续目标',th.continuousTarget],['确定的网格偏差',th.discretizationBias],['构造与耦合',s.coupling],['取点对照范围',s.comparisonScope],['随机规则',s.rngConvention]]);
+ add('selected-levels','显示路径：全部读取层的有限和',['L','区间数','末值B','左端和','右端和','梯形和','能量','Q','协变差和','左和平方','成对差D','右−左−协变差残差','梯形平均残差'],s.selectedLevels.map(t=>[t.level,t.count,t.terminal,t.totals.left,t.totals.right,t.totals.trapezoid,t.totals.energy,t.totals.quadraticVariation,t.totals.covariation,t.leftSquare,t.pairedDifference,t.identity.rightMinusLeftResidual,t.identity.trapezoidAverageResidual]));
+ add('steps','当前路径：全部逐段贡献',['j','左时刻','右时刻','左B','右B','ΔB','已知左H','右H','梯形H','左贡献','右贡献','梯形贡献','能量贡献','平方增量','协变差贡献'],path.steps.map(t=>[t.j,t.tLeft,t.tRight,t.bLeft,t.bRight,t.delta,t.hLeft,t.hRight,t.hAverage,t.left,t.right,t.trapezoid,t.energy,t.q,t.covariation]));
+ add('current-nodes','当前路径：全部节点与累计账本',['j','t','B','累计左和','累计右和','累计梯形和','累计能量','累计Q','累计协变差'],path.path.map((v,j)=>[j,j*path.dt,v,...['left','right','trapezoid','energy','quadraticVariation','covariation'].map(k=>path.cumulative[k][j])]));
+ add('samples','当前读取层：全部样本的成对账本',['路径编号','末值B','左端和','右端和','梯形和','能量Y','Q','左和平方X','成对差D=X−Y'],e.samples.map(t=>[t.index,t.terminal,t.left,t.right,t.trapezoid,t.energy,t.quadraticVariation,t.leftSquare,t.pairedDifference]));
+ add('statistics','当前读取层：五个统计量的完整记录',['量','N','样本均值','离散期望','均值−期望','离差平方和','无偏样本方差','估计标准误','模型标准误','适用范围'],Object.entries(e.statistics).map(([k,t])=>[({left:'左端和',leftSquare:'左和平方',energy:'能量',paired:'成对差',q:'Q'})[k],t.count,t.mean,t.target,t.gap,t.sumSquaredDeviations,t.sampleVariance,t.estimatedStandardError,t.modelStandardError,t.scope]));
+ add('variance-terms','当前读取层：每条路径对样本方差的贡献',['路径编号','D','D均值','离差','离差平方'],e.samples.map(t=>{const d=t.pairedDifference-e.statistics.paired.mean;return[t.index,t.pairedDifference,e.statistics.paired.mean,d,d*d];}));
+ add('ensemble-levels','全部读取层：样本均值与精确目标',['L','N','平均左和平方','平均能量','平均成对差','成对差估计SE','成对差模型SE','离散共同期望','连续目标','网格偏差','样本能量−连续目标'],s.ensembleLevels.map(t=>[t.level,N,t.statistics.leftSquare.mean,t.statistics.energy.mean,t.statistics.paired.mean,t.statistics.paired.estimatedStandardError,t.statistics.paired.modelStandardError,t.theory.expectedEnergy,t.theory.continuousTarget,t.theory.discretizationBias,t.statistics.energy.mean-t.theory.continuousTarget]));
+ add('all-samples','全部读取层：全部样本摘要',['L','路径编号','左和','右和','梯形和','能量','Q','左和平方','成对差'],s.ensembleLevels.flatMap(t=>t.samples.map(r=>[t.level,r.index,r.left,r.right,r.trapezoid,r.energy,r.quadraticVariation,r.leftSquare,r.pairedDifference])));
+ add('normals','显示路径：全部原始抽样（其他路径见JSON）',['抽样编号','整数word1','整数word2','开区间u1','开区间u2','Box–Muller Z'],selected.normalDraws.map((r,i)=>[i,r[0],r[1],(r[0]+.5)/4294967296,(r[1]+.5)/4294967296,r[2]]));
+ add('fine-path','显示路径：最细单位路径与时间缩放',['j','单位时刻','单位布朗路径','实际时刻','实际B'],selected.unitValues.map((v,j)=>[j,j/(selected.unitValues.length-1),v,Number(s.parameters.T)*j/(selected.unitValues.length-1),selected.values[j]]));
+ add('theory','全部读取层：有限高斯模型的期望与方差',['L','n','dt','E左和','E左和平方','E能量','连续目标','网格偏差','Var左和平方','Var能量','Cov(左和平方,能量)','Var成对差','E Q','Var Q'],s.ensembleLevels.map(t=>{const r=t.theory;return[r.level,r.count,r.dt,r.meanLeft,r.expectedLeftSquare,r.expectedEnergy,r.continuousTarget,r.discretizationBias,r.varianceLeftSquare,r.varianceEnergy,r.covarianceLeftSquareEnergy,r.variancePairedDifference,r.expectedQ,r.varianceQ];}));
+ add('quadratic-forms','H=B时的高斯二次型证据',['L','tr A','tr A²','tr A⁴','tr K','tr K²','tr A²K','A第一特征值','A其余特征值','其余重数','矩阵规则'],s.ensembleLevels.filter(t=>t.theory.brownianCertificate).map(t=>{const r=t.theory.brownianCertificate;return[t.level,r.traceA,r.traceA2,r.traceA4,r.traceK,r.traceK2,r.traceA2K,r.eigenvalueA1,r.eigenvalueARest,r.eigenvalueARestMultiplicity,r.matrixConvention];}));
+ add('brownian-identities','H=B时的三种和望远镜恒等式',['L','预期左和','实际−预期左和','预期右和','实际−预期右和','预期梯形和','实际−预期梯形和'],s.selectedLevels.filter(t=>t.brownianIdentity).map(t=>{const r=t.brownianIdentity;return[t.level,r.leftExpected,r.leftResidual,r.rightExpected,r.rightResidual,r.trapezoidExpected,r.trapezoidResidual];}));return out;
+}
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "cl-ito-integral-ledger-styles";
-  var SERIAL = 0;
-  var DEFAULTS = { T: 1, level: 6, maxLevel: 9, paths: 96, pathIndex: 1, seed: 20260722 };
-  var PRESETS = [
-    { id: "baseline", label: "基准：96 条", T: 1, level: 6, maxLevel: 9, paths: 96, pathIndex: 1, seed: 20260722 },
-    { id: "coarse", label: "粗分割：2⁴", T: 1, level: 4, maxLevel: 9, paths: 96, pathIndex: 1, seed: 20260722 },
-    { id: "fine", label: "细分割：2⁹", T: 1, level: 9, maxLevel: 9, paths: 96, pathIndex: 1, seed: 20260722 },
-    { id: "single", label: "单路径诊断", T: 1, level: 6, maxLevel: 9, paths: 1, pathIndex: 1, seed: 20260722 },
-    { id: "longer", label: "T=2：同一规则", T: 2, level: 6, maxLevel: 9, paths: 96, pathIndex: 1, seed: 20260722 }
-  ];
-  var STYLE_TEXT = [
-    ".il-lab{--il-blue:var(--cl-blue,#315f9d);--il-gold:var(--cl-gold,#9b6a12);--il-green:var(--cl-green,#39734d);--il-red:var(--cl-red,#b64335);--il-soft:var(--fg-soft,#6f6a60);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere;}",
-    "html[data-theme=\"dark\"] .il-lab{--il-blue:#83c8ff;--il-gold:#e2b458;--il-green:#72bd8b;--il-red:#f08c7d;--il-soft:#b8b2a7;}",
-    ".il-lab *,.il-lab *::before,.il-lab *::after{box-sizing:border-box;}.il-lab [hidden]{display:none!important;}",
-    ".il-lab h3,.il-lab h4{margin:0;color:var(--fg);letter-spacing:0;}.il-lab h3{font-size:1.18rem;}.il-lab h4{font-size:1rem;}.il-lab .il-intro,.il-lab .il-note,.il-lab .il-feedback{color:var(--il-soft);font-size:13px;line-height:1.7;}",
-    ".il-lab .il-gate{margin:14px 0;padding:12px 14px;border-left:3px solid var(--il-gold);background:var(--bg);}.il-lab fieldset{min-width:0;margin:10px 0;padding:10px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);}.il-lab legend{max-width:100%;padding:0 4px;color:var(--il-soft);font-size:13px;line-height:1.5;overflow-wrap:anywhere;}",
-    ".il-lab .il-choice-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}.il-lab button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit;line-height:1.35;cursor:pointer;overflow-wrap:anywhere;}.il-lab button:hover{border-color:var(--accent);}.il-lab button[aria-pressed=\"true\"],.il-lab button.il-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750;}.il-lab button:disabled{cursor:not-allowed;opacity:.55;}.il-lab button:focus-visible,.il-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px;}",
-    ".il-lab .il-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;}.il-lab .il-actions>*{flex:1 1 170px;}.il-lab .il-feedback{min-height:2em;margin:8px 0;font-weight:700;}.il-lab .il-pass{color:var(--il-green);}.il-lab .il-warn{color:var(--il-red);}",
-    ".il-lab .il-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.il-lab .il-presets{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:11px 0;}.il-lab .il-presets button{font-size:12px;}.il-lab .il-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 16px;margin:12px 0;}.il-lab .il-control{display:grid;gap:5px;min-width:0;}.il-lab .il-control label{color:var(--il-soft);font-size:13px;font-weight:700;}.il-lab output{color:var(--accent);font-variant-numeric:tabular-nums;}.il-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent);}",
-    ".il-lab .il-metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:12px 0;}.il-lab .il-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.il-lab .il-metric:nth-child(1),.il-lab .il-metric:nth-child(4){border-top-color:var(--il-blue);}.il-lab .il-metric:nth-child(2),.il-lab .il-metric:nth-child(5){border-top-color:var(--il-gold);}.il-lab .il-metric:nth-child(3),.il-lab .il-metric:nth-child(6){border-top-color:var(--il-green);}.il-lab .il-metric span{display:block;color:var(--il-soft);font-size:11.5px;line-height:1.4;}.il-lab .il-metric strong{display:block;margin-top:3px;font-size:14px;line-height:1.45;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;}",
-    ".il-lab .il-chart{min-width:0;padding:7px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow-x:auto;-webkit-overflow-scrolling:touch;}.il-lab svg{display:block;width:100%;height:auto;min-width:700px;color:var(--fg);}.il-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.il-lab .il-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.7;}.il-lab .il-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.72;}.il-lab .il-qv{fill:none;stroke:var(--il-blue);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}.il-lab .il-target{stroke:var(--il-gold);stroke-width:1.6;stroke-dasharray:5 4;}.il-lab .il-bar{fill:var(--il-green);fill-opacity:.74;}.il-lab .il-bar-sample{fill:var(--il-blue);fill-opacity:.74;}.il-lab .il-chart-title{font-size:13px;font-weight:750;}.il-lab .il-chart-label{font-size:11px;}",
-    ".il-lab .il-ledger{max-width:100%;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.il-lab table{width:100%;min-width:850px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.il-lab caption{padding:0 0 7px;text-align:left;color:var(--il-soft);font-size:12px;line-height:1.55;}.il-lab th,.il-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;white-space:nowrap;}.il-lab th{color:var(--il-soft);font-size:11.5px;font-weight:750;}.il-lab .il-good{color:var(--il-green);font-weight:750;}.il-lab .il-bad{color:var(--il-red);font-weight:750;}.il-lab .il-interpretation{margin:12px 0 0;padding:10px 12px;border-left:3px solid var(--il-green);background:var(--bg);font-size:13px;line-height:1.7;}",
-    "@media(max-width:980px){.il-lab .il-presets{grid-template-columns:repeat(3,minmax(0,1fr));}.il-lab .il-controls{grid-template-columns:repeat(2,minmax(0,1fr));}.il-lab .il-metrics{grid-template-columns:repeat(3,minmax(0,1fr));}}",
-    "@media(max-width:650px){.il-lab .il-choice-row,.il-lab .il-presets,.il-lab .il-controls,.il-lab .il-metrics{grid-template-columns:minmax(0,1fr);}.il-lab .il-chart{padding:5px;}}",
-    "@media(prefers-reduced-motion:reduce){.il-lab *{animation:none!important;transition:none!important;}}"
-  ].join("\n");
+const PRESETS=[
+ {id:'default',label:'H=B：基准实验',values:{}},
+ {id:'coarse',label:'只用一段：N无法补救',values:{level:'0'}},
+ {id:'two',label:'两段：第一次非零左和',values:{level:'1'}},
+ {id:'fine',label:'读到最细生成层',values:{level:'7'}},
+ {id:'single',label:'N=1：不估计标准误',values:{paths:'1'}},
+ {id:'ten',label:'N=10：整数应显示完整',values:{paths:'10'}},
+ {id:'hundred',label:'N=100：保留前面样本',values:{paths:'100'}},
+ {id:'last',label:'第100条路径',values:{paths:'100',pathIndex:'100'}},
+ {id:'constant',label:'H=1：积分就是B',values:{integrand:'constant'}},
+ {id:'time',label:'H=t：确定函数积分',values:{integrand:'time'}},
+ {id:'sign',label:'H=sign₊(B)：翻转噪声',values:{integrand:'sign'}},
+ {id:'sign-coarse',label:'符号过程的一段模型',values:{integrand:'sign',level:'0'}},
+ {id:'zero',label:'T=0：退化时域',values:{T:'0'}},
+ {id:'half',label:'T=0.5：同一单位路径',values:{T:'0.5'}},
+ {id:'long',label:'T=4：检验时间缩放',values:{T:'4'}},
+ {id:'zero-seed',label:'零种子',values:{seed:'0'}},
+ {id:'max-seed',label:'最大32位种子',values:{seed:'4294967295'}},
+ {id:'minimum',label:'最低生成层 M=2',values:{maxLevel:'2',level:'2',paths:'3',pathIndex:'3'}},
+ {id:'high',label:'最高生成层 M=9',values:{maxLevel:'9',level:'9'}},
+ {id:'maximum',label:'128条高分辨率样本',values:{maxLevel:'9',level:'9',paths:'128',pathIndex:'128'}},
+ {id:'time-single',label:'H=t，单路径',values:{integrand:'time',paths:'1'}},
+ {id:'sign-high',label:'符号过程高分辨率',values:{integrand:'sign',maxLevel:'9',level:'9'}},
+ {id:'zero-single',label:'T=0且N=1',values:{T:'0',paths:'1',level:'0'}}
+];
+const QUESTIONS=[
+ ['H=B只用一段时，增加路径数能得到连续目标1/2吗？',['可以，样本越多一定越准','不能，左端过程仍恒为0','只要选右端点就行'],1,'增加N改善当前离散模型的期望估计；网格偏差需要加密时间网格。'],
+ ['Itô等距是否要求每条路径的积分平方等于能量？',['不要求；相等的是期望','要求每条路径完全相等','只在N大时逐路径相等'],0,'成对差D通常非零；理论给出E[D]=0。'],
+ ['同一条H=B路径，右端和比左端和多什么？',['多一个标准误','没有差别','多Q，即平方增量和'],2,'逐段计算(B右−B左)ΔB，求和恰好是Q。'],
+ ['只有1条样本时，样本方差与估计标准误怎样显示？',['必须显示0','显示不适用','用总体方差冒充样本方差'],1,'N−1=0，不能从一条样本估计方差；模型已知方差可以另外列明。']
+];
 
-  function finite(value) {
-    return typeof value === "number" && Number.isFinite(value);
-  }
+const STYLE='.ito162{color:var(--fg);min-width:0;overflow-wrap:anywhere}.ito162 *{box-sizing:border-box}.ito162 [hidden]{display:none!important}.ito162 button,.ito162 input,.ito162 select{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--border);border-radius:5px;min-height:44px;padding:8px;max-width:100%}.ito162 button{margin:4px 4px 4px 0;cursor:pointer;white-space:normal}.ito162 button:disabled{opacity:.5;cursor:default}.ito162 button[aria-pressed=true]{outline:2px solid var(--accent);background:var(--block-bg)}.ito162 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}.ito-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}.ito-controls label{display:grid;gap:6px;min-width:0}.ito162 fieldset{border:1px solid var(--border);margin:12px 0;min-width:0}.ito162 legend{max-width:100%;font-weight:600}.ito162 p{line-height:1.7}.ito-error{color:var(--cl-red,#b64335)}.ito-scroll{overflow:auto;max-width:100%;min-width:0;border:1px solid var(--border);margin:10px 0}.ito-scroll svg{display:block;min-width:900px;width:900px;height:460px;max-width:none}.ito-scroll table{border-collapse:collapse;min-width:900px;width:max-content;max-width:none;font-size:12px}.ito-scroll th,.ito-scroll td{padding:7px;vertical-align:top;text-align:left;border:1px solid var(--border);min-width:40px;max-width:550px;white-space:normal;overflow-wrap:anywhere}.ito162 details{border:1px solid var(--border);padding:10px;margin:10px 0;min-width:0}.ito162 summary{cursor:pointer;min-height:44px;line-height:1.7}.ito162 .ito-summary{padding:12px;border-left:3px solid var(--accent);background:var(--block-bg)}@media(max-width:680px){.ito-controls{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){.ito162 *{scroll-behavior:auto!important}}';
+function tableHTML(t){return '<table data-table="'+esc(t.key)+'"><caption>'+esc(t.title)+'</caption><thead><tr>'+t.headers.map(h=>'<th scope="col">'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+t.rows.map(r=>'<tr>'+r.map(v=>'<td>'+esc(fmt(v))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';}
+const mounted=new WeakMap();
+function mount(container){if(mounted.has(container))mounted.get(container)();const doc=container.ownerDocument,win=doc.defaultView;if(!doc.getElementById('ito162-style')){const st=doc.createElement('style');st.id='ito162-style';st.textContent=STYLE;doc.head.appendChild(st);}const field=(k,label)=>'<label>'+label+'<input type="text" data-key="'+k+'"></label>',select=(k,label,options)=>'<label>'+label+'<select data-key="'+k+'">'+options.map(([value,text])=>'<option value="'+value+'">'+esc(text)+'</option>').join('')+'</select></label>';
+ container.innerHTML='<div class="ito162"><h3>Itô积分实验：有限和、期望与误差各算一笔</h3><p>先选场景并完成四项预测，再核对全部结果。N是路径数；L是读取层；M是最高生成层。先观察L=0，再分别增加N与L。</p><div>'+PRESETS.map(p=>'<button type="button" data-preset="'+p.id+'">'+esc(p.label)+'</button>').join('')+'</div><div class="ito-controls">'+select('integrand','左端简单过程的系数',[['brownian','H=B：布朗自身'],['constant','H=1：常数'],['time','H=t：确定时间函数'],['sign','H=sign₊(B)：当前符号']])+field('T','终点 T（0至4）')+field('seed','32位根种子（0至4294967295）')+field('maxLevel','最高生成层 M（2至9）')+field('level','当前读取层 L（0至M）')+field('paths','路径数 N（1至128）')+field('pathIndex','显示路径编号（1至N）')+'</div><p>改变N保留已有路径；提高M保留旧节点；改变L只读取同一条路径。原始伪随机数、全部最细路径和所有层的样本账本保存在JSON中。</p>'+QUESTIONS.map((q,i)=>'<fieldset data-question="'+i+'"><legend>'+(i+1)+'. '+esc(q[0])+'</legend>'+q[1].map((v,j)=>'<button type="button" data-choice="'+j+'" aria-pressed="false">'+esc(v)+'</button>').join('')+'</fieldset>').join('')+'<button type="button" data-action="reveal">核对预测并展示结果</button><button type="button" data-action="reset">重置实验</button><p class="ito-error" role="alert"></p><p role="status"></p><div class="ito-results" hidden></div></div>';
+ const shell=container.querySelector('.ito162'),inputs=[...shell.querySelectorAll('[data-key]')],result=shell.querySelector('.ito-results'),reveal=shell.querySelector('[data-action=reveal]'),error=shell.querySelector('[role=alert]'),status=shell.querySelector('[role=status]');let choices=QUESTIONS.map(()=>null),d=null,url=null;
+ const values=()=>Object.fromEntries(inputs.map(e=>[e.dataset.key,e.value]));function set(v){inputs.forEach(e=>e.value=String({...DEFAULTS,...v}[e.dataset.key]));}function cleanup(){if(url){win.URL.revokeObjectURL(url);url=null;}result.hidden=true;result.replaceChildren();}mounted.set(container,cleanup);
+ function update(){cleanup();try{d=snapshot(values());error.textContent='';}catch(e){d=null;error.textContent=e.message;}reveal.disabled=!d||choices.some(x=>x===null);status.textContent=!d?'请修正参数后再核对。':choices.some(x=>x===null)?'先完成四项预测。':'预测已记录，请揭晓核对。';}
+ function render(){if(!d)return;cleanup();result.hidden=false;const e=d.selectedEnsemble,th=e.theory,tables=ledgers(d);result.innerHTML='<div class="ito-summary">'+esc(integrandName(d.parameters.integrand)+'；N='+d.parameters.paths+'，L='+d.parameters.level+'。有限期望='+fmt(th.expectedEnergy)+'；连续目标='+fmt(th.continuousTarget)+'；网格偏差='+fmt(th.discretizationBias)+'。当前平均成对差='+fmt(e.statistics.paired.mean)+'，估计标准误='+fmt(e.statistics.paired.estimatedStandardError)+'。')+'</div><ol>'+QUESTIONS.map((q,i)=>'<li>'+esc((choices[i]===q[2]?'预测正确。':'需要修正。')+q[3])+'</li>').join('')+'</ol><p><a data-download download="ito-integral-ledger-run.json">下载本次全部路径与账本(JSON)</a></p>'+plots(d).map((p,i)=>'<div class="ito-scroll" role="region" tabindex="0" aria-label="图'+(i+1)+'：'+esc(p.title)+'">'+svg(p)+'</div>').join('')+'<p>每张表展开后显示全部行，宽表与图可以用方向键滚动。表格为阅读做显示舍入；JSON保留全部计算数值。</p><p>'+esc(d.comparisonScope)+' '+esc(e.statistics.paired.scope)+'</p>'+tables.map(t=>'<details data-ledger="'+t.key+'"><summary>'+esc(t.title)+'（'+t.rows.length+'行）</summary><div class="ito-scroll" role="region" tabindex="0" aria-label="'+esc(t.title)+'"></div></details>').join('');url=win.URL.createObjectURL(new win.Blob([JSON.stringify(d,null,2)+'\n'],{type:'application/json'}));result.querySelector('[data-download]').href=url;for(const t of tables){const detail=result.querySelector('[data-ledger="'+t.key+'"]');detail.addEventListener('toggle',()=>{if(detail.open&&!detail.querySelector('table'))detail.querySelector('[role=region]').innerHTML=tableHTML(t);});}status.textContent=choices.filter((v,i)=>v===QUESTIONS[i][2]).length+' / 4；请结合定义、等距和两类误差解释结果。';}
+ inputs.forEach(e=>e.addEventListener(e.tagName==='SELECT'?'change':'input',update));shell.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{set(PRESETS.find(p=>p.id===b.dataset.preset).values);update();}));shell.querySelectorAll('[data-question]').forEach((f,i)=>f.querySelectorAll('[data-choice]').forEach(b=>b.addEventListener('click',()=>{choices[i]=+b.dataset.choice;f.querySelectorAll('button').forEach(q=>q.setAttribute('aria-pressed',String(q===b)));if(!result.hidden)render();else update();})));reveal.addEventListener('click',render);shell.querySelector('[data-action=reset]').addEventListener('click',()=>{choices=QUESTIONS.map(()=>null);shell.querySelectorAll('[data-choice]').forEach(b=>b.setAttribute('aria-pressed','false'));set(DEFAULTS);update();shell.querySelector('[data-choice]').focus();});set(DEFAULTS);update();
+}
+function selfTest(){let checks=0;const ck=(v,m)=>{checks++;if(!v)throw Error(m);};for(const p of PRESETS){const s=snapshot(p.values),c=s.parameters;ck(s.paths.length===+c.paths,p.id+' samples');ck(s.selectedPath.path.length===2**Number(c.level)+1,p.id+' selected nodes');ck(s.selectedEnsemble.theory.expectedLeftSquare===s.selectedEnsemble.theory.expectedEnergy,p.id+' isometry');ck((s.selectedEnsemble.statistics.paired.estimatedStandardError===null)===(c.paths==='1'),p.id+' sample variance boundary');ck(plots(s).every(t=>t.series.every(r=>r.points.every(q=>Number.isFinite(q[0])&&Number.isFinite(q[1])&&q[0]>=t.xMin&&q[0]<=t.xMax&&q[1]>=t.yMin&&q[1]<=t.yMax))),p.id+' bounds');}ck(fmt(10)==='10'&&fmt(100)==='100','integer trailing zeros');return{status:'PASS',checks,presets:PRESETS.length};}
 
-  function number(value, fallback) {
-    if (value === null || value === "") return fallback;
-    var parsed = Number(value);
-    return finite(parsed) ? parsed : fallback;
-  }
-
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-  }
-
-  function normalizeSeed(value) {
-    return Math.floor(number(value, DEFAULTS.seed)) >>> 0;
-  }
-
-  function normalizeConfig(input) {
-    var source = input || {};
-    var maxLevel = Math.round(clamp(number(source.maxLevel, DEFAULTS.maxLevel), 2, 9));
-    var paths = Math.round(clamp(number(source.paths, DEFAULTS.paths), 1, 192));
-    return {
-      T: clamp(number(source.T, DEFAULTS.T), 0, 4),
-      level: Math.round(clamp(number(source.level, DEFAULTS.level), 1, maxLevel)),
-      maxLevel: maxLevel,
-      paths: paths,
-      pathIndex: Math.round(clamp(number(source.pathIndex, DEFAULTS.pathIndex), 1, paths)),
-      seed: normalizeSeed(source.seed)
-    };
-  }
-
-  function copyConfig(config) {
-    return {
-      T: config.T,
-      level: config.level,
-      maxLevel: config.maxLevel,
-      paths: config.paths,
-      pathIndex: config.pathIndex,
-      seed: config.seed
-    };
-  }
-
-  function makeRng(seed) {
-    var state = normalizeSeed(seed);
-    return function () {
-      var value;
-      state = (state + 0x6D2B79F5) >>> 0;
-      value = state;
-      value = Math.imul(value ^ (value >>> 15), value | 1);
-      value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
-      return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-
-  function normal(rng) {
-    var u = Math.max(rng(), Number.MIN_VALUE);
-    var v = Math.max(rng(), Number.MIN_VALUE);
-    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-  }
-
-  function generateFinePaths(config) {
-    var rng = makeRng(config.seed);
-    var fineSteps = 1 << config.maxLevel;
-    var scale = Math.sqrt(config.T / fineSteps);
-    var paths = [];
-    var pathIndex;
-    var step;
-    for (pathIndex = 0; pathIndex < config.paths; pathIndex += 1) {
-      var increments = [];
-      for (step = 0; step < fineSteps; step += 1) increments.push(scale * normal(rng));
-      paths.push(increments);
-    }
-    return paths;
-  }
-
-  function aggregate(increments, fromLevel, targetLevel) {
-    var factor = 1 << (fromLevel - targetLevel);
-    var result = [];
-    var index;
-    var offset;
-    for (index = 0; index < increments.length; index += factor) {
-      var sum = 0;
-      for (offset = 0; offset < factor; offset += 1) sum += increments[index + offset];
-      result.push(sum);
-    }
-    return result;
-  }
-
-  function summarizePath(increments, T) {
-    var steps = increments.length;
-    var dt = steps ? T / steps : 0;
-    var current = 0;
-    var qv = 0;
-    var left = 0;
-    var right = 0;
-    var midpoint = 0;
-    var energy = 0;
-    var values = [0];
-    var index;
-    for (index = 0; index < steps; index += 1) {
-      var delta = increments[index];
-      qv += delta * delta;
-      left += current * delta;
-      right += (current + delta) * delta;
-      midpoint += (current + 0.5 * delta) * delta;
-      energy += current * current * dt;
-      current += delta;
-      values.push(current);
-    }
-    return {
-      steps: steps,
-      terminal: current,
-      values: values,
-      qv: qv,
-      left: left,
-      right: right,
-      midpoint: midpoint,
-      energy: energy,
-      leftIdentityResidual: left + 0.5 * qv - 0.5 * current * current,
-      rightIdentityResidual: right - 0.5 * qv - 0.5 * current * current,
-      midpointIdentityResidual: midpoint - 0.5 * current * current
-    };
-  }
-
-  function mean(values) {
-    if (!values.length) return 0;
-    return values.reduce(function (sum, value) { return sum + value; }, 0) / values.length;
-  }
-
-  function compute(input) {
-    var config = normalizeConfig(input);
-    var finePaths = generateFinePaths(config);
-    var currentSummaries = finePaths.map(function (increments) {
-      return summarizePath(aggregate(increments, config.maxLevel, config.level), config.T);
-    });
-    var selectedFine = finePaths[config.pathIndex - 1];
-    var pathLevels = [];
-    var level;
-    for (level = 1; level <= config.maxLevel; level += 1) {
-      pathLevels.push({
-        level: level,
-        summary: summarizePath(aggregate(selectedFine, config.maxLevel, level), config.T)
-      });
-    }
-    var steps = 1 << config.level;
-    var leftValues = currentSummaries.map(function (item) { return item.left; });
-    var energyValues = currentSummaries.map(function (item) { return item.energy; });
-    var qvValues = currentSummaries.map(function (item) { return item.qv; });
-    var discreteTarget = config.T * config.T * (steps - 1) / (2 * steps);
-    var continuousTarget = config.T * config.T / 2;
-    var sample = {
-      count: config.paths,
-      meanLeft: mean(leftValues),
-      meanLeftSquare: mean(leftValues.map(function (value) { return value * value; })),
-      meanEnergy: mean(energyValues),
-      meanQv: mean(qvValues),
-      discreteIsometryTarget: discreteTarget,
-      continuousIsometryTarget: continuousTarget,
-      qvTarget: config.T,
-      leftSquareGapToDiscrete: mean(leftValues.map(function (value) { return value * value; })) - discreteTarget,
-      energyGapToContinuous: mean(energyValues) - continuousTarget
-    };
-    return {
-      config: config,
-      steps: steps,
-      selectedPath: currentSummaries[config.pathIndex - 1],
-      pathLevels: pathLevels,
-      sample: sample
-    };
-  }
-
-  function predictionAnswers() {
-    return {
-      endpoint: "left",
-      correction: "right-plus",
-      singlePath: "diagnostic",
-      isometry: "half-square"
-    };
-  }
-
-  function format(value, digits) {
-    if (value === null || value === undefined) return "—";
-    if (!finite(value)) return "∞";
-    var places = digits === undefined ? 5 : digits;
-    var absolute = Math.abs(value);
-    if (absolute > 0 && (absolute < 0.001 || absolute >= 10000)) return value.toExponential(Math.min(places, 5));
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function appendChildren(node, children, doc) {
-    if (children === undefined || children === null) return node;
-    (Array.isArray(children) ? children : [children]).forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child && child.nodeType ? child : doc.createTextNode(String(child)));
-    });
-    return node;
-  }
-
-  function makeElement(api, doc, tag, attrs, children) {
-    if (api && typeof api.el === "function") return api.el(tag, attrs || {}, children);
-    var node = doc.createElement(tag);
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", value);
-      else if (key === "text") node.textContent = value;
-      else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, value);
-    });
-    return appendChildren(node, children, doc);
-  }
-
-  function makeSvg(api, doc, tag, attrs, children) {
-    if (api && typeof api.svg === "function") return api.svg(tag, attrs || {}, children);
-    var node = doc.createElementNS(SVG_NS, tag);
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (key === "className") key = "class";
-      if (value !== undefined && value !== null) node.setAttribute(key, value);
-    });
-    return appendChildren(node, children, doc);
-  }
-
-  function clear(node) {
-    while (node.firstChild) node.removeChild(node.firstChild);
-  }
-
-  function installStyles(doc) {
-    if (doc.getElementById && doc.getElementById(STYLE_ID)) return;
-    var style = doc.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = STYLE_TEXT;
-    (doc.head || doc.documentElement).appendChild(style);
-  }
-
-  function announce(api, root, message) {
-    if (api && typeof api.announce === "function") api.announce(root, message);
-  }
-
-  function svgText(api, doc, x, y, text, attrs) {
-    var merged = { x: x, y: y, className: "il-chart-label" };
-    Object.keys(attrs || {}).forEach(function (key) { merged[key] = attrs[key]; });
-    return makeSvg(api, doc, "text", merged, text);
-  }
-
-  function pathFor(points, x, y) {
-    return points.map(function (point, index) {
-      return (index ? "L" : "M") + x(point.level).toFixed(2) + " " + y(point.summary.qv).toFixed(2);
-    }).join(" ");
-  }
-
-  function drawChart(api, doc, svg, result, uid) {
-    clear(svg);
-    var width = 780;
-    var height = 370;
-    var top = 38;
-    var bottom = 52;
-    var leftA = 52;
-    var rightA = 365;
-    var leftB = 430;
-    var rightB = 758;
-    var plotBottom = height - bottom;
-    var pathValues = result.pathLevels.map(function (item) { return item.summary.qv; }).concat([result.config.T]);
-    var qvMax = Math.max(1e-9, Math.max.apply(null, pathValues) * 1.12);
-    function xA(level) {
-      return leftA + (level - 1) / Math.max(1, result.config.maxLevel - 1) * (rightA - leftA);
-    }
-    function yA(value) {
-      return plotBottom - value / qvMax * (plotBottom - top);
-    }
-    var bars = [
-      { label: "E[I²]", value: result.sample.meanLeftSquare, className: "il-bar-sample" },
-      { label: "E∫B²", value: result.sample.meanEnergy, className: "il-bar" },
-      { label: "离散目标", value: result.sample.discreteIsometryTarget, className: "il-bar" },
-      { label: "连续目标", value: result.sample.continuousIsometryTarget, className: "il-target" }
-    ];
-    var barMax = Math.max(1e-9, Math.max.apply(null, bars.map(function (item) { return Math.abs(item.value); })) * 1.2);
-    function xB(index) {
-      return leftB + (index + 0.5) / bars.length * (rightB - leftB);
-    }
-    function yB(value) {
-      return plotBottom - value / barMax * (plotBottom - top);
-    }
-    svg.appendChild(makeSvg(api, doc, "title", { id: uid + "-chart-title" }, "二次变差与 Itô 等距的双账本"));
-    svg.appendChild(makeSvg(api, doc, "desc", { id: uid + "-chart-desc" }, "左图显示同一条路径的二次变差随 dyadic 层级变化，右图比较多路径样本与离散、连续等距目标。"));
-    [0, qvMax / 2, qvMax].forEach(function (value) {
-      svg.appendChild(makeSvg(api, doc, "line", { x1: leftA, y1: yA(value), x2: rightA, y2: yA(value), className: "il-grid" }));
-      svg.appendChild(svgText(api, doc, leftA - 8, yA(value) + 4, format(value, 2), { "text-anchor": "end" }));
-    });
-    svg.appendChild(makeSvg(api, doc, "line", { x1: leftA, y1: yA(result.config.T), x2: rightA, y2: yA(result.config.T), className: "il-target" }));
-    svg.appendChild(makeSvg(api, doc, "path", { d: pathFor(result.pathLevels, xA, yA), className: "il-qv" }));
-    result.pathLevels.forEach(function (item) {
-      svg.appendChild(makeSvg(api, doc, "circle", { cx: xA(item.level), cy: yA(item.summary.qv), r: 3.5, fill: "var(--il-blue)" }));
-    });
-    svg.appendChild(makeSvg(api, doc, "line", { x1: leftA, y1: plotBottom, x2: rightA, y2: plotBottom, className: "il-axis" }));
-    svg.appendChild(makeSvg(api, doc, "line", { x1: leftA, y1: top, x2: leftA, y2: plotBottom, className: "il-axis" }));
-    svg.appendChild(svgText(api, doc, leftA, 20, "单路径 Q_L：诊断，不是证明", { className: "il-chart-title" }));
-    svg.appendChild(svgText(api, doc, rightA, 20, "金虚线：T", { "text-anchor": "end" }));
-    svg.appendChild(svgText(api, doc, (leftA + rightA) / 2, height - 13, "dyadic 层 L", { "text-anchor": "middle" }));
-    [0, barMax / 2, barMax].forEach(function (value) {
-      svg.appendChild(makeSvg(api, doc, "line", { x1: leftB, y1: yB(value), x2: rightB, y2: yB(value), className: "il-grid" }));
-      svg.appendChild(svgText(api, doc, leftB - 8, yB(value) + 4, format(value, 2), { "text-anchor": "end" }));
-    });
-    bars.forEach(function (item, index) {
-      var barWidth = (rightB - leftB) / bars.length * 0.58;
-      var barX = xB(index) - barWidth / 2;
-      var barTop = yB(Math.max(0, item.value));
-      var barHeight = Math.max(1, plotBottom - barTop);
-      svg.appendChild(makeSvg(api, doc, "rect", { x: barX, y: barTop, width: barWidth, height: barHeight, className: item.className }));
-      svg.appendChild(svgText(api, doc, xB(index), plotBottom + 18, item.label, { "text-anchor": "middle" }));
-      svg.appendChild(svgText(api, doc, xB(index), barTop - 6, format(item.value, 3), { "text-anchor": "middle" }));
-    });
-    svg.appendChild(makeSvg(api, doc, "line", { x1: leftB, y1: plotBottom, x2: rightB, y2: plotBottom, className: "il-axis" }));
-    svg.appendChild(makeSvg(api, doc, "line", { x1: leftB, y1: top, x2: leftB, y2: plotBottom, className: "il-axis" }));
-    svg.appendChild(svgText(api, doc, leftB, 20, "多路径：E[I_L²] 与 E∫B²dt", { className: "il-chart-title" }));
-    svg.appendChild(svgText(api, doc, rightB, 20, "离散目标与连续目标分开", { "text-anchor": "end" }));
-  }
-
-  function metric(api, doc, label, value) {
-    return makeElement(api, doc, "div", { className: "il-metric" }, [
-      makeElement(api, doc, "span", { text: label }),
-      makeElement(api, doc, "strong", { text: value })
-    ]);
-  }
-
-  function ledger(api, doc, result) {
-    var path = result.selectedPath;
-    var sample = result.sample;
-    var rows = [
-      ["单路径 Q_n", format(path.qv, 7), format(sample.qvTarget, 5), "二次变差样本；不证明极限"],
-      ["左端 Itô 和 I_L", format(path.left, 7), "B_T²/2 − Q_n/2", "B_{t_j} 是 F_{t_j}-可测"],
-      ["右端和 I_R", format(path.right, 7), "I_L + Q_n", "偷看下一段增量，修正为 +Q"],
-      ["中点和 I_M", format(path.midpoint, 7), "I_L + Q_n/2", "Stratonovich 型修正"],
-      ["左端恒等式残差", format(path.leftIdentityResidual, 9), "0", "有限路径代数核对"],
-      ["E[I_L²] 样本", format(sample.meanLeftSquare, 7), format(sample.discreteIsometryTarget, 7), "离散左和的有限分割目标"],
-      ["E∫B²dt 样本", format(sample.meanEnergy, 7), format(sample.continuousIsometryTarget, 7), "连续等距目标 T²/2"],
-      ["多路径数 N", String(sample.count), "N 趋大才谈样本均值", "仍是 Monte Carlo 诊断"]
-    ];
-    var tableNode = makeElement(api, doc, "table", {});
-    tableNode.appendChild(makeElement(api, doc, "caption", {}, "透明账本：路径恒等式、可测性和期望量词分栏。"));
-    tableNode.appendChild(makeElement(api, doc, "thead", {}, makeElement(api, doc, "tr", {}, [
-      makeElement(api, doc, "th", {}, "项目"),
-      makeElement(api, doc, "th", {}, "当前值"),
-      makeElement(api, doc, "th", {}, "目标 / 修正"),
-      makeElement(api, doc, "th", {}, "读法")
-    ])));
-    var body = makeElement(api, doc, "tbody", {});
-    rows.forEach(function (row) {
-      body.appendChild(makeElement(api, doc, "tr", {}, row.map(function (cell, index) {
-        return makeElement(api, doc, "td", { className: index === 0 ? "il-good" : "" }, cell);
-      })));
-    });
-    tableNode.appendChild(body);
-    return tableNode;
-  }
-
-  function mount(root, api) {
-    var doc = root.ownerDocument || document;
-    installStyles(doc);
-    clear(root);
-    root.className = "il-lab";
-    var uid = "il-" + (++SERIAL);
-    var state = {
-      config: copyConfig(DEFAULTS),
-      revealed: false,
-      predictions: { endpoint: null, correction: null, singlePath: null, isometry: null }
-    };
-    var questions = [
-      {
-        key: "endpoint",
-        title: "Itô 简单过程应取哪个端点？",
-        choices: [["left", "左端点 B_tj"], ["right", "右端点 B_tj+1"], ["mid", "中点"]]
-      },
-      {
-        key: "correction",
-        title: "右端点相对左端点的修正？",
-        choices: [["right-plus", "多 Q_n"], ["mid-half", "多 Q_n/2"], ["same", "没有修正"]]
-      },
-      {
-        key: "singlePath",
-        title: "一条路径的 Q_n 能证明二次变差定理吗？",
-        choices: [["prove", "可以证明"], ["diagnostic", "只能作有限诊断"], ["unknown", "无法判断"]]
-      },
-      {
-        key: "isometry",
-        title: "连续模型中共同的期望目标？",
-        choices: [["half-square", "T²/2"], ["T", "T"], ["zero", "0"]]
-      }
-    ];
-    var shell = makeElement(api, doc, "div", {});
-    shell.appendChild(makeElement(api, doc, "h3", { text: "Itô 积分账本：左、右、中点与期望等距" }));
-    shell.appendChild(makeElement(api, doc, "p", { className: "il-intro", text: "固定 seeded Brownian 路径；路径级二次变差和多路径期望分别揭示，避免用一个样本承担两个量词。" }));
-    var form = makeElement(api, doc, "form", { className: "il-gate", "aria-labelledby": uid + "-gate-title" });
-    form.appendChild(makeElement(api, doc, "strong", { id: uid + "-gate-title", text: "预测门：先判断端点、修正和量词" }));
-    var choiceNodes = [];
-    var feedback;
-    questions.forEach(function (question) {
-      var field = makeElement(api, doc, "fieldset", {});
-      field.appendChild(makeElement(api, doc, "legend", {}, question.title));
-      var row = makeElement(api, doc, "div", { className: "il-choice-row" });
-      question.choices.forEach(function (choice) {
-        var button = makeElement(api, doc, "button", { type: "button", "aria-pressed": "false" }, choice[1]);
-        button.addEventListener("click", function () {
-          state.predictions[question.key] = choice[0];
-          choiceNodes.forEach(function (item) {
-            if (item.key === question.key) item.button.setAttribute("aria-pressed", item.value === choice[0] ? "true" : "false");
-          });
-          feedback.className = "il-feedback";
-          feedback.textContent = "预测已记录；四项都选好后揭示双账本。";
-        });
-        choiceNodes.push({ key: question.key, value: choice[0], button: button });
-        row.appendChild(button);
-      });
-      field.appendChild(row);
-      form.appendChild(field);
-    });
-    var actions = makeElement(api, doc, "div", { className: "il-actions" });
-    var reveal = makeElement(api, doc, "button", { type: "submit", className: "il-primary" }, "提交预测并揭示");
-    var reset = makeElement(api, doc, "button", { type: "button" }, "重置预测");
-    actions.appendChild(reveal);
-    actions.appendChild(reset);
-    form.appendChild(actions);
-    feedback = makeElement(api, doc, "p", { className: "il-feedback", "aria-live": "polite" }, "路径、结果和账本在揭示前保持隐藏。");
-    form.appendChild(feedback);
-    shell.appendChild(form);
-
-    var revealed = makeElement(api, doc, "section", { className: "il-revealed", hidden: "hidden", "aria-labelledby": uid + "-result-title" });
-    revealed.appendChild(makeElement(api, doc, "h3", { id: uid + "-result-title", text: "结果账本：单路径与多路径各自负责什么" }));
-    var presetWrap = makeElement(api, doc, "div", { className: "il-presets" });
-    PRESETS.forEach(function (preset) {
-      var button = makeElement(api, doc, "button", { type: "button" }, preset.label);
-      button.addEventListener("click", function () {
-        state.config = copyConfig(preset);
-        syncControls();
-        renderResult();
-      });
-      presetWrap.appendChild(button);
-    });
-    revealed.appendChild(presetWrap);
-    var controls = makeElement(api, doc, "div", { className: "il-controls" });
-    var controlInputs = {};
-    function addRange(key, label, min, max, step) {
-      var input = makeElement(api, doc, "input", { type: "range", min: min, max: max, step: step, value: state.config[key], "aria-label": label });
-      var output = makeElement(api, doc, "output", { "data-control-output": key }, format(state.config[key], key === "paths" || key === "level" ? 0 : 2));
-      var field = makeElement(api, doc, "div", { className: "il-control" }, [
-        makeElement(api, doc, "label", {}, [label, " ", output]),
-        input
-      ]);
-      input.addEventListener("input", function () {
-        state.config[key] = Math.round(Number(input.value)) === Number(input.value) && (key === "level" || key === "paths" || key === "pathIndex")
-          ? Math.round(Number(input.value))
-          : Number(input.value);
-        if (key === "paths") state.config.pathIndex = Math.min(state.config.pathIndex, state.config.paths);
-        if (key === "level") state.config.level = Math.min(state.config.level, state.config.maxLevel);
-        output.textContent = format(state.config[key], key === "paths" || key === "level" ? 0 : 2);
-        syncControls();
-        renderResult();
-      });
-      controlInputs[key] = { input: input, output: output };
-      controls.appendChild(field);
-    }
-    addRange("T", "终点 T", 0, 4, 0.1);
-    addRange("level", "当前层 L", 1, DEFAULTS.maxLevel, 1);
-    addRange("paths", "路径数 N", 1, 192, 1);
-    addRange("pathIndex", "显示路径", 1, 192, 1);
-    revealed.appendChild(controls);
-    var metricsNode = makeElement(api, doc, "div", { className: "il-metrics" });
-    var chartWrap = makeElement(api, doc, "div", { className: "il-chart" });
-    var chart = makeSvg(api, doc, "svg", { viewBox: "0 0 780 370", role: "img", "aria-labelledby": uid + "-chart-title " + uid + "-chart-desc" });
-    chartWrap.appendChild(chart);
-    var ledgerWrap = makeElement(api, doc, "div", { className: "il-ledger" });
-    var interpretation = makeElement(api, doc, "p", { className: "il-interpretation" });
-    revealed.appendChild(metricsNode);
-    revealed.appendChild(chartWrap);
-    revealed.appendChild(ledgerWrap);
-    revealed.appendChild(interpretation);
-    shell.appendChild(revealed);
-    root.appendChild(shell);
-
-    function syncControls() {
-      controlInputs.T.input.value = state.config.T;
-      controlInputs.T.output.textContent = format(state.config.T, 2);
-      controlInputs.level.input.value = state.config.level;
-      controlInputs.level.output.textContent = format(state.config.level, 0);
-      controlInputs.paths.input.value = state.config.paths;
-      controlInputs.paths.output.textContent = format(state.config.paths, 0);
-      controlInputs.pathIndex.input.max = state.config.paths;
-      controlInputs.pathIndex.input.value = Math.min(state.config.pathIndex, state.config.paths);
-      controlInputs.pathIndex.output.textContent = format(Math.min(state.config.pathIndex, state.config.paths), 0);
-    }
-
-    function renderResult() {
-      var result = compute(state.config);
-      state.config = result.config;
-      syncControls();
-      metricsNode.replaceChildren(
-        metric(api, doc, "T / 2^L", format(result.config.T, 2) + " / " + result.steps),
-        metric(api, doc, "路径 Q_n", format(result.selectedPath.qv, 6)),
-        metric(api, doc, "左 / 右和", format(result.selectedPath.left, 5) + " / " + format(result.selectedPath.right, 5)),
-        metric(api, doc, "中点和", format(result.selectedPath.midpoint, 5)),
-        metric(api, doc, "E[I_L²] / 离散目标", format(result.sample.meanLeftSquare, 4) + " / " + format(result.sample.discreteIsometryTarget, 4)),
-        metric(api, doc, "E∫B² / 连续目标", format(result.sample.meanEnergy, 4) + " / " + format(result.sample.continuousIsometryTarget, 4))
-      );
-      drawChart(api, doc, chart, result, uid);
-      clear(ledgerWrap);
-      ledgerWrap.appendChild(ledger(api, doc, result));
-      interpretation.textContent = result.config.paths === 1
-        ? "当前只有一条路径：Q_n 与三种和仍可核对逐段恒等式，但样本均值没有独立的期望量词，不能凭它证明等距。"
-        : "左端点是适应的 Itô 取法；右端/中点的差异由 Q_n 修正。右图把离散左和目标与连续 T²/2 分开，有限 N 只提供 Monte Carlo 诊断。";
-    }
-
-    form.addEventListener("submit", function (event) {
-      event.preventDefault();
-      var missing = questions.filter(function (question) { return state.predictions[question.key] === null; });
-      if (missing.length) {
-        feedback.className = "il-feedback il-warn";
-        feedback.textContent = "还缺 " + missing.length + " 项预测；揭示前不显示结果。";
-        return;
-      }
-      var answers = predictionAnswers();
-      var correct = questions.filter(function (question) {
-        return state.predictions[question.key] === answers[question.key];
-      }).length;
-      state.revealed = true;
-      revealed.removeAttribute("hidden");
-      reveal.disabled = true;
-      feedback.className = correct === questions.length ? "il-feedback il-pass" : "il-feedback";
-      feedback.textContent = "已揭示：" + correct + "/" + questions.length + " 项预测命中。";
-      renderResult();
-      announce(api, root, feedback.textContent);
-    });
-
-    reset.addEventListener("click", function () {
-      state.config = copyConfig(DEFAULTS);
-      state.revealed = false;
-      state.predictions = { endpoint: null, correction: null, singlePath: null, isometry: null };
-      choiceNodes.forEach(function (item) { item.button.setAttribute("aria-pressed", "false"); });
-      reveal.disabled = false;
-      revealed.setAttribute("hidden", "hidden");
-      feedback.className = "il-feedback";
-      feedback.textContent = "路径、结果和账本在揭示前保持隐藏。";
-      syncControls();
-    });
-    syncControls();
-  }
-
-  function close(left, right, tolerance) {
-    return Math.abs(left - right) <= (tolerance === undefined ? 1e-10 : tolerance);
-  }
-
-  function selfTest() {
-    var checks = 0;
-    function assert(condition, message) {
-      checks += 1;
-      if (!condition) throw new Error(message);
-    }
-    var first = compute(DEFAULTS);
-    var second = compute(DEFAULTS);
-    assert(JSON.stringify(first) === JSON.stringify(second), "seeded model must be deterministic");
-    assert(first.config.level === 6 && first.steps === 64, "default dyadic level");
-    assert(first.pathLevels.length === first.config.maxLevel, "nested level ledger");
-    assert(close(first.selectedPath.right - first.selectedPath.left, first.selectedPath.qv), "right-left quadratic variation correction");
-    assert(close(first.selectedPath.midpoint - first.selectedPath.left, first.selectedPath.qv / 2), "midpoint correction");
-    assert(close(first.selectedPath.midpoint, first.selectedPath.terminal * first.selectedPath.terminal / 2), "midpoint telescoping identity");
-    assert(close(first.selectedPath.leftIdentityResidual, 0), "left telescoping identity");
-    assert(close(first.selectedPath.rightIdentityResidual, 0), "right telescoping identity");
-    assert(close(first.selectedPath.midpointIdentityResidual, 0), "midpoint telescoping identity");
-    assert(first.sample.discreteIsometryTarget === 1 * 1 * 63 / 128, "finite left-sum target");
-    assert(first.sample.continuousIsometryTarget === 0.5, "continuous isometry target");
-    assert(first.sample.count === 96, "ensemble count");
-    first.pathLevels.forEach(function (item) {
-      assert(finite(item.summary.qv) && item.summary.qv >= 0, "nonnegative path quadratic variation");
-    });
-    var single = compute({ T: 1, level: 3, maxLevel: 8, paths: 1, pathIndex: 1, seed: 17 });
-    assert(single.sample.count === 1 && single.config.pathIndex === 1, "single path configuration");
-    var zero = compute({ T: 0, level: 4, maxLevel: 6, paths: 3, seed: 19 });
-    assert(zero.selectedPath.qv === 0 && zero.selectedPath.left === 0 && zero.sample.continuousIsometryTarget === 0, "zero horizon");
-    assert(predictionAnswers().endpoint === "left", "adapted endpoint answer");
-    assert(predictionAnswers().correction === "right-plus", "right correction answer");
-    assert(predictionAnswers().singlePath === "diagnostic", "single path answer");
-    return { checks: checks, presets: PRESETS.length };
-  }
-
-  return {
-    PRESETS: PRESETS,
-    aggregate: aggregate,
-    summarizePath: summarizePath,
-    compute: compute,
-    predictionAnswers: predictionAnswers,
-    selfTest: selfTest,
-    mount: mount
-  };
+return {DEFAULTS,PRESETS,QUESTIONS,config,snapshot,plots,svg,ledgers,fmt,tableHTML,mount,selfTest};
 });

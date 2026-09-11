@@ -52,168 +52,327 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-12 01:34</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：左端点负责适应，二次变差负责修正，期望等距另算一笔</a><ul>
-<li><a href="#1">1. 先预测：同一条路径的三个和会差多少？</a></li>
-<li><a href="#2">2. 三种取点：可测性与修正不能混成一句话</a></li>
-<li><a href="#3">3. 一条路径与期望等距：两个量词，两个账本</a></li>
-<li><a href="#4-seed">4. 动手实验：固定 seed，沿嵌套分割读账</a></li>
-<li><a href="#5">5. 迁移问题：把“适应”带到一般被积过程</a></li>
+<li><a href="#_1">学习层：增加路径数，能补救过粗的时间网格吗？</a></li>
+<li><a href="#1">1. 先算有限和：为什么取点会改变答案</a></li>
+<li><a href="#2">2. 可预测：把“现在已经知道”写进定义域</a></li>
+<li><a href="#3">3. 简单过程：先把每一段的贡献定义清楚</a></li>
+<li><a href="#4-ito">4. Itô等距：适应性在哪一步真正起作用</a></li>
+<li><a href="#5">5. 简单过程为什么足够稠密</a></li>
+<li><a href="#6">6. 等距延拓：逼近序列换掉，积分不会换掉</a></li>
+<li><a href="#7">7. 从每个时刻的随机变量，得到一个连续鞅</a></li>
+<li><a href="#8">8. 亲手算出布朗运动对自身的积分</a></li>
+<li><a href="#9">9. 两个迁移例子：确定函数与符号变换</a></li>
+<li><a href="#10">10. 期望实验：分清离散偏差与抽样误差</a><ul>
+<li><a href="#_2">选读：标准误的解析参考从哪里来</a></li>
 </ul>
 </li>
-<li><a href="#1_1">1. 适应性与简单过程</a></li>
-<li><a href="#2-ito">2. Itô 等距（构造的发动机）</a></li>
-<li><a href="#3_1">3. 稠密延拓（泛函分析收尾）</a></li>
-<li><a href="#4-ito">4. 作为过程的 Itô 积分：鞅性质</a></li>
-<li><a href="#5_1">5. 练习与要点</a></li>
+<li><a href="#11">11. 四道练习：把定义、极限和统计各自用对</a></li>
+<li><a href="#12">12. 停止与局部化：扩大定义域时保留哪些结论</a></li>
 </ul>
 </div>
 </details>
-<h1 id="ii-ito">随机分析 II · Itô 积分的构造<a class="headerlink" href="#ii-ito" title="Permanent link"></a></h1>
+<h1 id="ii-ito">随机分析 II · Itô积分：适应性、等距与连续过程<a class="headerlink" href="#ii-ito" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Øksendal §3 ｜ <strong>前置</strong>：sc-01、mt-03/04、泛函 I（等距延拓）
-一阶变差无穷让 <span class="arithmatex">\(\int f\,dB\)</span> 无法逐路径定义（sc-01）。Itô 的出路是放弃逐路径、改走 <span class="arithmatex">\(L^2\)</span>：<strong>简单过程上显式定义 → 等距性质 → 稠密延拓</strong>——与实变/泛函里"完备化"的手法完全同构。本页把这三步走严，并配齐鞅性质。</p>
+<p><strong>前置</strong>：<a href="sc-01-brownian-rigorous.html">布朗运动的构造与路径性质</a>、<a href="mt-03-conditional-martingale.html">条件期望与停止时间</a>、<a href="mt-04-martingale-convergence.html">鞅收敛与极大不等式</a>。本讲从简单过程出发，完成可预测L²空间中的积分构造，再解释实验里的两类误差。</p>
 </blockquote>
-<div data-learning-page></div>
-
-<section aria-labelledby="ito-learning-title" class="learning-layer">
-<h2 id="_1">学习层：左端点负责适应，二次变差负责修正，期望等距另算一笔<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="1">1. 先预测：同一条路径的三个和会差多少？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>固定 <span class="arithmatex">\(B_0=0\)</span>、均匀分割 <span class="arithmatex">\(t_j=jT/n\)</span>，把被积函数取为适应过程 <span class="arithmatex">\(H_t=B_t\)</span>。实验分别计算</p>
-<div class="arithmatex">\[
-I_n^{\mathrm L}=\sum_j B_{t_j}\Delta B_j,\qquad
-I_n^{\mathrm R}=\sum_j B_{t_{j+1}}\Delta B_j,\qquad
-I_n^{\mathrm M}=\sum_j\frac{B_{t_j}+B_{t_{j+1}}}{2}\Delta B_j.
-\]</div>
-<p>先预测四件事：</p>
-<ol>
-<li>哪一个取值 <span class="arithmatex">\(B_{t_j}\)</span> 对 <span class="arithmatex">\(\mathcal F_{t_j}\)</span> 可测，因而是 Itô 简单过程的合法左端点？</li>
-<li>右端点和中点相对左端点分别多出 <span class="arithmatex">\(Q_n\)</span> 和 <span class="arithmatex">\(Q_n/2\)</span>，还是都不多？</li>
-<li>一条路径上的 <span class="arithmatex">\(Q_n=\sum_j(\Delta B_j)^2\)</span> 能否证明二次变差定理？</li>
-<li><span class="arithmatex">\(E[(\int_0^T B_t\,dB_t)^2]\)</span> 与 <span class="arithmatex">\(E\int_0^T B_t^2dt\)</span> 的共同解析目标是 <span class="arithmatex">\(T^2/2\)</span>、<span class="arithmatex">\(T\)</span> 还是 <span class="arithmatex">\(0\)</span>？</li>
-</ol>
-<h3 id="2">2. 三种取点：可测性与修正不能混成一句话<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>逐段代数恒等式给出</p>
-<div class="arithmatex">\[
-I_n^{\mathrm R}-I_n^{\mathrm L}=Q_n,\qquad
-I_n^{\mathrm M}-I_n^{\mathrm L}=\frac12Q_n,\qquad
-I_n^{\mathrm M}=\frac12B_T^2.
-\]</div>
-<p>左端 <span class="arithmatex">\(B_{t_j}\)</span> 是 <span class="arithmatex">\(\mathcal F_{t_j}\)</span>-可测，符合适应性；右端 <span class="arithmatex">\(B_{t_{j+1}}\)</span> 偷看了下一段增量，中点也不是同一个左端点简单过程。对 Brownian 的细分极限，<span class="arithmatex">\(Q_n\)</span> 在适当分割下趋向 <span class="arithmatex">\(T\)</span>，于是</p>
-<div class="arithmatex">\[
-\int_0^T B_t\,dB_t=\frac{B_T^2-T}{2},\qquad
-\int_0^T B_t\circ dB_t=\frac{B_T^2}{2},\qquad
-I^{\mathrm R}\to\frac{B_T^2+T}{2}.
-\]</div>
-<p>最后一个右端和只是这里的修正对照；它不是因为“换一个写法”就自动成为 Itô 积分。</p>
-<h3 id="3">3. 一条路径与期望等距：两个量词，两个账本<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>单路径图只能回答“这条离散路径的 <span class="arithmatex">\(Q_n\)</span>、左和、右和与中点和是多少”。它不能回答期望，也不能独自证明几乎处处、依概率或 <span class="arithmatex">\(L^2\)</span> 的收敛。对 <span class="arithmatex">\(N\)</span> 条由同一规则生成的独立路径，实验另记</p>
-<div class="arithmatex">\[
-\widehat E[(I_n^{\mathrm L})^2],\qquad
-\widehat E\left[\sum_j B_{t_j}^2\Delta t_j\right],\qquad
-E\int_0^T B_t^2dt=\frac{T^2}{2}.
-\]</div>
-<p>前两项是有限样本的 Monte Carlo 诊断；第三项是解析目标。它们接近时是在检查离散模型与等距方向一致，仍不是一条样本“证明定理”。</p>
-<h3 id="4-seed">4. 动手实验：固定 seed，沿嵌套分割读账<a class="headerlink" href="#4-seed" title="Permanent link"></a></h3>
-<p>实验用固定 seed 生成最高 dyadic 层的 Gaussian 增量，再向下聚合到当前层；切换层数不会换一条路径。揭示前，路径、层数、样本数与账本全部隐藏；揭示后可调 <span class="arithmatex">\(T\)</span>、分割层数、路径数和当前显示路径。</p>
+<div class="ito-course">
+<style>.ito-course .learning-lab{margin-left:0;margin-right:0;width:100%}.ito-course .fallback-scroll{overflow:auto;max-width:100%}.ito-course .fallback-scroll td{overflow-wrap:anywhere}.ito-course .fallback-scroll td:last-child{white-space:nowrap;font-variant-numeric:tabular-nums;font-size:.8em}</style>
+<noscript>
+<style>.ito-course span.arithmatex{overflow-wrap:anywhere;white-space:normal}</style>
+</noscript>
+<div data-learning-page="data-learning-page"></div>
+<section class="learning-layer">
+<h2 id="_1">学习层：增加路径数，能补救过粗的时间网格吗？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>取被积过程H=B，只用[0,1]的一段。左端值B₀=0，所以每条样本的左端和都是0；无论生成多少条路径，它们的平方平均仍为0。可是连续积分的二阶矩是1/2。</p>
+<p>这里没有违反Itô等距。这个一步简单过程的能量也恰为0，等距在有限模型内完全正确。问题在于我们还没有让简单过程逼近整个B。<strong>增加路径数改善对有限模型期望的估计；加密时间网格改善对连续积分的逼近。</strong> 两个参数各有职责。</p>
 <div class="learning-lab" data-learning-lab="ito-integral-ledger">
-<p><strong>无 JavaScript 时的静态读法：</strong> 取 <span class="arithmatex">\(H_t=B_t\)</span>、<span class="arithmatex">\(B_0=0\)</span>。对任何有限分割，左、右、中点三列满足</p>
+<p><strong>无脚本读法。</strong> 先比较同一条路径的左端和、右端和、梯形平均，再读多路径的平方均值与能量均值。两者共同的有限分割目标、连续目标及其差额单独列出；单路径代数残差与多路径抽样误差分开记录。</p>
+<figure class="plot">
+<p><a href="assets/img/sc-02-ito-ledgers.svg"><img alt="Itô积分的四个固定实验场景" src="assets/img/sc-02-ito-ledgers.svg" /></a></p>
+<figcaption>图1.1：打开原图可比较取点、有限期望和样本标准误的适用边界。</figcaption>
+</figure>
+<div aria-label="Itô积分固定数值记录" class="fallback-scroll" role="region" tabindex="0">
 <table>
 <thead>
 <tr>
-<th>账本</th>
-<th>公式</th>
-<th>角色</th>
+<th scope="col">项目</th>
+<th scope="col">固定记录值</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>左端 Itô 和</td>
-<td><span class="arithmatex">\(I_n^{\mathrm L}=\frac12(B_T^2-Q_n)\)</span></td>
-<td>适应，细分后趋向 Itô 积分</td>
+<td>粗网格L</td>
+<td>0</td>
 </tr>
 <tr>
-<td>右端和</td>
-<td><span class="arithmatex">\(I_n^{\mathrm R}=I_n^{\mathrm L}+Q_n\)</span></td>
-<td>非左端点，极限比 Itô 多 <span class="arithmatex">\(T\)</span></td>
+<td>粗网格平均左和平方</td>
+<td>0</td>
 </tr>
 <tr>
-<td>中点和</td>
-<td><span class="arithmatex">\(I_n^{\mathrm M}=I_n^{\mathrm L}+Q_n/2=B_T^2/2\)</span></td>
-<td>Stratonovich 型修正</td>
+<td>粗网格平均能量</td>
+<td>0</td>
 </tr>
 <tr>
-<td>单路径二次变差</td>
-<td><span class="arithmatex">\(Q_n=\sum(\Delta B_j)^2\)</span></td>
-<td>有限样本诊断，不能单独证明定理</td>
+<td>粗网格离散目标</td>
+<td>0</td>
 </tr>
 <tr>
-<td>期望等距</td>
-<td><span class="arithmatex">\(E[(\int B\,dB)^2]=E\int B^2dt=T^2/2\)</span></td>
-<td>需要期望/多路径量词</td>
+<td>连续目标</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>布朗场景读取层L</td>
+<td>4</td>
+</tr>
+<tr>
+<td>当前路径左端和</td>
+<td>-0.35783571927148256</td>
+</tr>
+<tr>
+<td>当前路径右端和</td>
+<td>0.9447467882015312</td>
+</tr>
+<tr>
+<td>当前路径梯形和</td>
+<td>0.2934555344650243</td>
+</tr>
+<tr>
+<td>当前路径Q</td>
+<td>1.302582507473014</td>
+</tr>
+<tr>
+<td>当前路径能量</td>
+<td>0.4815135405124264</td>
+</tr>
+<tr>
+<td>成对差样本均值</td>
+<td>-0.29619264636074966</td>
+</tr>
+<tr>
+<td>成对差估计标准误</td>
+<td>0.1461431834369206</td>
+</tr>
+<tr>
+<td>当前离散共同目标</td>
+<td>0.46875</td>
+</tr>
+<tr>
+<td>单路径场景N</td>
+<td>1</td>
+</tr>
+<tr>
+<td>单路径估计标准误</td>
+<td>不适用</td>
+</tr>
+<tr>
+<td>符号过程路径能量</td>
+<td>1</td>
+</tr>
+<tr>
+<td>符号过程离散目标</td>
+<td>1</td>
+</tr>
+<tr>
+<td>符号过程左端和</td>
+<td>0.3373524120704071</td>
+</tr>
+<tr>
+<td>布朗左和恒等式残差</td>
+<td>1.1102230246251565e-16</td>
 </tr>
 </tbody>
 </table>
-<p>数值表的路径列和样本列必须分开阅读；有限 <span class="arithmatex">\(N\)</span> 的均值偏差是抽样误差，不是 Itô 等距失效。</p>
 </div>
-<h3 id="5">5. 迁移问题：把“适应”带到一般被积过程<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<p>若 <span class="arithmatex">\(H_t\)</span> 不是 <span class="arithmatex">\(B_t\)</span> 而是一个只在 <span class="arithmatex">\(t_j\)</span> 时可观测的交易策略，左端和仍然如何定义？若改用中点方案，怎样用半鞅二次变差写出修正？请同时标注适应性、平方可积性和极限方式；不要以一条漂亮路径图代替条件期望或 <span class="arithmatex">\(L^2\)</span> 论证。</p>
+<p><a href="assets/learning/projects/ito-integral-ledger/run-snapshot.json">下载四个场景的全部路径与账本(JSON)</a>。各场景T=1、M=4、根种子20260722；除单路径场景外N=16。图上刻度为阅读做舍入，表内保留固定记录的数值。</p>
+</div>
+<p>实验提供H=1、H=t、H=B和H=sign₊(B)四种适应过程。所有原始高斯抽样、最细路径、逐层逐样本账本和当前路径的每一步贡献都可下载。固定种子时，增加样本数保留已有路径；提高生成层保留旧节点；改变读数层只读取同一路径的节点。</p>
 </section>
-<h2 id="1_1">1. 适应性与简单过程<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p><strong>被积函数的资格</strong>（<span class="arithmatex">\(\mathcal{V}[0,T]\)</span> 类）：<span class="arithmatex">\(f(t,\omega)\)</span> 可测、<strong>适应并取可预测版本</strong>（<span class="arithmatex">\(f_t \in \mathcal{F}_t\)</span>——不偷看未来；连续适应过程自动给出可预测版本）、<span class="arithmatex">\(E\int_0^T f^2\,dt &lt; \infty\)</span>。</p>
-<p><strong>简单过程</strong>：<span class="arithmatex">\(\varphi(t) = \sum_j e_j\,\mathbb{1}_{[t_j, t_{j+1})}(t)\)</span>，<span class="arithmatex">\(e_j \in \mathcal{F}_{t_j}\)</span>-可测有界。对它积分<strong>显式定义</strong>：</p>
-<div class="arithmatex">\[
-\int_0^T \varphi\,dB := \sum_j e_j\big(B_{t_{j+1}} - B_{t_j}\big)
-\]</div>
-<p>（<strong>左端点取值就藏在 <span class="arithmatex">\(e_j \in \mathcal{F}_{t_j}\)</span> 里</strong>——"下注在开牌前"是定义的可测性要求，不是约定俗成。）</p>
-<h2 id="2-ito">2. Itô 等距（构造的发动机）<a class="headerlink" href="#2-ito" title="Permanent link"></a></h2>
-<p><strong>定理</strong> 对简单过程：</p>
-<div class="arithmatex">\[
-E\Big[\Big(\int_0^T\varphi\,dB\Big)^2\Big] \;=\; E\Big[\int_0^T \varphi^2\,dt\Big]
-\]</div>
-<p><strong>【证明】</strong> 展开平方为双重和。交叉项（<span class="arithmatex">\(i &lt; j\)</span>）：<span class="arithmatex">\(E[e_ie_j\Delta B_i\Delta B_j] = E\big[e_ie_j\Delta B_i\,E(\Delta B_j\mid\mathcal{F}_{t_j})\big] = 0\)</span>（塔性质 + 未来增量零均值——<strong>适应性在此杀死交叉项</strong>）；对角项：<span class="arithmatex">\(E[e_j^2(\Delta B_j)^2] = E\big[e_j^2\,E((\Delta B_j)^2\mid\mathcal{F}_{t_j})\big] = E[e_j^2]\Delta t_j\)</span>。求和即得。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>读法</strong>：积分映射 <span class="arithmatex">\(\varphi \mapsto \int\varphi\,dB\)</span> 是从可预测子空间 <span class="arithmatex">\(L^2_{\mathrm{pred}}(dt\times dP)\)</span> 到 <span class="arithmatex">\(L^2(dP)\)</span> 的<strong>等距</strong>——"随机积分的勾股定理"（本科 sde-01 预告的正式版）。等距 = 保范线性映射 = 可以安全延拓。</p>
-<h2 id="3_1">3. 稠密延拓（泛函分析收尾）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>引理（可预测简单过程的稠密性）【骨架】</strong> 先把定义域写成可预测平方可积空间 <span class="arithmatex">\(L^2_{\mathrm{pred}}(dt\times dP)\)</span>。其中的 elementary predictable processes</p>
-<div class="arithmatex">\[
-\varphi(t,\omega)=\sum_j \xi_j(\omega)\,\mathbf 1_{(t_j,t_{j+1}]}(t),
-\qquad \xi_j\in L^\infty(\mathcal F_{t_j}),
-\]</div>
-<p>在该空间中稠密。证明不靠普通时间卷积（卷积核可能读取 <span class="arithmatex">\(t\)</span> 之后的值而离开可预测 <span class="arithmatex">\(\sigma\)</span>-代数），而按以下骨架进行：先对有界左连续适应过程用左端点阶梯逼近；再用可预测 <span class="arithmatex">\(\sigma\)</span>-代数由集合 <span class="arithmatex">\(A\times(s,t]\)</span>、<span class="arithmatex">\(A\in\mathcal F_s\)</span> 生成这一事实和单调类论证推广到一般有界可预测过程；最后对 <span class="arithmatex">\(f^{(K)}=(-K)\vee(f\wedge K)\)</span> 截断，并令 <span class="arithmatex">\(K\to\infty\)</span>。在标准 Brownian 过滤下，也可把每个时间格的系数写成不偷看未来的条件期望投影</p>
-<div class="arithmatex">\[
-\xi_{j,n}=
-E\!\left[\left.\frac1{\Delta t_j}\int_{t_j}^{t_{j+1}}f_s\,ds\right|\mathcal F_{t_j}\right],
-\qquad
-\varphi_n=\sum_j\xi_{j,n}\mathbf 1_{(t_j,t_{j+1}]},
-\]</div>
-<p>再用 <span class="arithmatex">\(L^2\)</span> 条件期望的收缩性与网格加密得到逼近。三级逼近的关键是“可预测性先保住，再做 <span class="arithmatex">\(L^2\)</span> 极限”，不是把随机过程当作普通二维函数去磨光。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>定义（Itô 积分）</strong> 取简单过程 <span class="arithmatex">\(\varphi_n \to f\)</span>，则 <span class="arithmatex">\(\int\varphi_n dB\)</span> 是 <span class="arithmatex">\(L^2(dP)\)</span> 中的 Cauchy 列（<strong>等距把被积函数的 Cauchy 性原样搬运</strong>），其极限即 <span class="arithmatex">\(\int_0^T f\,dB\)</span>——与逼近序列无关（等距再用一次）。<span class="arithmatex">\(\blacksquare\)</span>
-（<strong>这就是泛函 I"有界线性算子在稠密子空间上定义后唯一延拓"的标准剧目</strong>——随机积分是泛函分析定理的一次著名出演。）</p>
-<h2 id="4-ito">4. 作为过程的 Itô 积分：鞅性质<a class="headerlink" href="#4-ito" title="Permanent link"></a></h2>
-<p><strong>定理</strong> <span class="arithmatex">\(M_t = \int_0^t f\,dB\)</span>（<span class="arithmatex">\(f \in \mathcal{V}\)</span>）满足：</p>
-<ol>
-<li><strong>鞅</strong>（关于 <span class="arithmatex">\(\mathcal{F}_t\)</span>）——<strong>【证明（简单过程情形）】</strong>：<span class="arithmatex">\(E[M_{t+s} - M_t\mid\mathcal{F}_t]\)</span> 的每项含未来增量的条件零均值（§2 同款论证）；一般情形 <span class="arithmatex">\(L^2\)</span> 极限保持鞅性（条件期望是 <span class="arithmatex">\(L^2\)</span> 压缩，mt-03）；</li>
-<li>连续修正存在<strong>【骨架】</strong>：简单过程积分显式连续；Doob 极大不等式（mt-04）+ 等距控制逼近误差的<strong>一致</strong>范数 ⇒ 沿子列一致收敛，连续性保住（数分 IV 的一致极限定理第三次上岗）；</li>
-<li>等距与线性对一般 <span class="arithmatex">\(f\)</span> 成立（延拓自动携带）。</li>
-</ol>
-<p><strong>零均值推论</strong>：<span class="arithmatex">\(E\int_0^t f\,dB = 0\)</span>——"公平赌博"从直觉变成定理链的产物。</p>
-<p><strong>推广一嘴【引用】</strong>：被积条件放宽到 <span class="arithmatex">\(P(\int f^2 dt &lt; \infty) = 1\)</span> 时积分仍可定义但只是<strong>局部鞅</strong>（真鞅可能失守——金融里"局部鞅 ≠ 鞅"正是泡沫模型的数学缝隙）；对一般连续半鞅积分、协变差 <span class="arithmatex">\(\langle M, N\rangle\)</span> 的 Kunita–Watanabe 理论见 K–S §3。</p>
-<h2 id="5_1">5. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<p><strong>例 1（亲手算 <span class="arithmatex">\(\int_0^T B\,dB\)</span>）</strong> 用分割 <span class="arithmatex">\(\varphi_n = \sum B_{t_j}\mathbb{1}_{[t_j,t_{j+1})}\)</span>：</p>
-<div class="arithmatex">\[
-\sum_j B_{t_j}\Delta B_j = \frac12\sum\big[(B_{t_{j+1}}^2 - B_{t_j}^2) - (\Delta B_j)^2\big] = \frac{B_T^2}{2} - \frac12\sum(\Delta B_j)^2 \to \frac{B_T^2 - T}{2}
-\]</div>
-<p>（末步 = sc-01 二次变差定理！）——本科 sde-01 那个"多出 <span class="arithmatex">\(-T/2\)</span>"的著名结果，现在每一步都有出处。顺手验证：若右端点取值，极限变为 <span class="arithmatex">\(\frac{B_T^2 + T}{2}\)</span>——<strong>不同取点收敛到不同答案</strong>，这就是"为什么必须钦定左端点"的计算级证明（中点 = Stratonovich）。</p>
-<p><strong>例 2（等距的直接红利）</strong> <span class="arithmatex">\(\mathrm{Var}\big(\int_0^T \sigma(t)\,dB\big) = \int_0^T\sigma^2dt\)</span>——时变波动率组合的方差公式（金融的 term structure 计算天天在用），等距定理的一行应用。</p>
-<p><strong>例 3（鞅性的用法）</strong> <span class="arithmatex">\(M_t = \int_0^t \mathrm{sign}(B_s)\,dB_s\)</span>：是鞅、二次变差 <span class="arithmatex">\(= t\)</span> ⇒ 由 Lévy 刻画（sc-01 §3）<strong>它本身是一个布朗运动</strong>（Tanaka 的例子——不同的被积函数可以"合成"出新 BM；也是"局部时"理论的门缝）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：Itô 公式的严格证明与 SDE 的存在唯一性——本科 sde 线的两大口头支票在此兑付。</em></p>
+<h2 id="1">1. 先算有限和：为什么取点会改变答案<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>对任意有限序列b₀=0,…,bₙ，记Δbⱼ=bⱼ₊₁−bⱼ。无需概率就能写出</p>
+<div class="arithmatex">\[L_n=\sum_jb_j\Delta b_j,\qquad R_n=\sum_jb_{j+1}\Delta b_j,\qquad
+C_n=\sum_j\frac{b_j+b_{j+1}}2\Delta b_j.\]</div>
+<p>用平方差分解逐项计算：</p>
+<div class="arithmatex">\[C_n=\frac{b_n^2}{2},\qquad
+L_n=\frac{b_n^2-Q_n}{2},\qquad
+R_n=\frac{b_n^2+Q_n}{2},\qquad Q_n=\sum_j(\Delta b_j)^2.\]</div>
+<p>对布朗节点，Q在确定性网格变细时以L²趋于T，因此三种和可以有不同极限。取哪个端点，与过程何时获得信息有关；它不是把同一个普通Riemann积分写成三种等价形式。</p>
+<p>这里C是<strong>两个端点值的梯形平均</strong>。对H=B，它也是本例常说的对称和；它并没有额外生成真正时间中点的布朗值。对于一般H，有限恒等式只有</p>
+<div class="arithmatex">\[R_n-L_n=\sum_j(H_{t_{j+1}}-H_{t_j})\Delta B_j,\qquad C_n=(L_n+R_n)/2.\]</div>
+<p>要把右边的极限称为协变差或Stratonovich修正，还需要相应条件和证明。特别对不连续的sign函数，本实验只显示有限对照，不能从几张数值图推断一般对称积分理论。</p>
+<p>布朗总变差无限，也不表示任何被积函数都不能逐路径积分。例如确定的C¹函数f可以通过分部积分定义</p>
+<div class="arithmatex">\[\int_0^T f(t)\,dB_t=f(T)B_T-f(0)B_0-\int_0^T B_t f'(t)\,dt.\]</div>
+<p>右边对每条连续路径都有意义。困难是为足够一般的随机适应过程建立统一的积分理论；本讲选用L²等距完成这件事。</p>
+<h2 id="2">2. 可预测：把“现在已经知道”写进定义域<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>固定有限T，并使用使B成为布朗运动的通常过滤。可预测σ代数由[0,T]上的集合</p>
+<div class="arithmatex">\[A\times(s,t],\quad A\in\mathcal F_s,\quad0\le s\lt t\le T,\]</div>
+<p>以及零时刻的可测集合生成。一个过程H可预测，指(t,ω)↦Hₜ(ω)对这个σ代数可测。矩形A×(s,t]的含义是：在s时已经知道A是否发生，随后一段时间按这个已知事件取值。</p>
+<p>有界左连续适应过程可用过去时刻阶梯值逐点逼近，所以可预测；连续适应过程当然也可预测。对可预测过程施加Borel函数仍可预测，因此B、B²以及sign₊(B)都符合这一可测性要求。</p>
+<p>定义</p>
+<div class="arithmatex">\[\mathcal H_T^2=L^2_{\mathrm{pred}}([0,T]\times\Omega,dt\otimes\mathbb P),\qquad
+\|H\|_{\mathcal H_T^2}^2=\mathbb E\int_0^T|H_t|^2\,dt.\]</div>
+<p>这里元素是dt×P几乎处处相等的等价类。两个过程可以在某些随机时刻不同，却代表同一个积分输入；不能把这种等价关系误写成所有时刻同时相等。</p>
+<p>“适应”本身只管每个时刻的可测性，并不独自说明联合可测性或平方可积性。本页明确以可预测L²空间为定义域，避免把这些不同条件缩成一句“不偷看未来”。</p>
+<h2 id="3">3. 简单过程：先把每一段的贡献定义清楚<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>取确定性分割0=t₀&lt;⋯&lt;tₙ=T，令</p>
+<div class="arithmatex">\[H_t=\sum_{j=0}^{n-1}\xi_j\mathbf1_{(t_j,t_{j+1}]}(t),\qquad
+\xi_j\in L^\infty(\mathcal F_{t_j}).\]</div>
+<p>使用左开右闭区间，使阶梯过程在跳点取旧值，成为左连续适应过程。计算时仍用在tⱼ已经知道的系数ξⱼ。若只改变有限个确定时刻的取值，dt×P等价类不变；这解释了数值书写中另一端点约定何时无害，却不允许把ξⱼ换成未来的 <span class="arithmatex">\(B_{t_{j+1}}\)</span>。</p>
+<p>对任意u∈[0,T]，定义整个积分过程</p>
+<div class="arithmatex">\[I_u(H)=\sum_j\xi_j\big(B_{u\wedge t_{j+1}}-B_{u\wedge t_j}\big).\]</div>
+<p>它适应且连续：在每一段上，系数早已可测，布朗增量连续；只有有限段需要相接。在分割中额外插入一个时间点，布朗增量的可加性保证结果不变。对两种表示取公共细分，就得到表示无关性与线性。</p>
+<p>有界系数使可积性首先没有困难。之后可将平方可积系数截断，再用等距延拓；因此例子 <span class="arithmatex">\(\xi_j=B_{t_j}\)</span>虽然不是有界变量，仍有严格进入定义域的途径。</p>
+<h2 id="4-ito">4. Itô等距：适应性在哪一步真正起作用<a class="headerlink" href="#4-ito" title="Permanent link"></a></h2>
+<p>对终点积分展开平方。若i&lt;j，则ξᵢΔBᵢ和ξⱼ都在tⱼ的过去信息内，于是</p>
+<div class="arithmatex">\[\mathbb E[\xi_i\xi_j\Delta B_i\Delta B_j]
+=\mathbb E\!\left[\xi_i\xi_j\Delta B_i\,\mathbb E(\Delta B_j\mid\mathcal F_{t_j})\right]=0.\]</div>
+<p>每个对角项则满足</p>
+<div class="arithmatex">\[\mathbb E[\xi_j^2(\Delta B_j)^2]
+=\mathbb E\!\left[\xi_j^2\mathbb E((\Delta B_j)^2\mid\mathcal F_{t_j})\right]
+=\mathbb E[\xi_j^2](t_{j+1}-t_j).\]</div>
+<p>两者相加，得到</p>
+<div class="arithmatex">\[\mathbb E[I_T(H)^2]=\mathbb E\int_0^T H_t^2dt,\qquad \mathbb E I_T(H)=0.\]</div>
+<p>对H+K、H−K用同一个等距并相减，还得到极化公式</p>
+<div class="arithmatex">\[\mathbb E[I_T(H)I_T(K)]=\mathbb E\int_0^T H_tK_tdt.\]</div>
+<p>这是一条<strong>期望中的恒等式</strong>。单条路径上的积分平方，通常不等于该路径的能量∫H²dt。实验为每条路径记录它们的差D；D的期望为0，与每次实现D=0完全不同。</p>
+<p>如果把系数改成下一时刻的值，取出条件期望的步骤就失去依据。这是等距证明对适应性的具体需求。</p>
+<h2 id="5">5. 简单过程为什么足够稠密<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>令μ=dt×P。有限时域使μ([0,T]×Ω)=T有限。取有界简单可预测过程张成的线性空间，并记它在L²(μ)中的闭包为V。</p>
+<p>考虑集合族D：E∈D当且仅当指标1_E属于V。整个空间的指标属于V，零时刻部分的μ测度为0；若E∈D，则补集的指标1−1_E仍属于V。若Eₖ两两不交且都在D，有限部分和属于V，而且</p>
+<div class="arithmatex">\[\left\|\mathbf1_{\cup_kE_k}-\sum_{k=1}^n\mathbf1_{E_k}\right\|_{L^2(\mu)}^2
+=\mu\!\left(\bigcup_{k&gt;n}E_k\right)\longrightarrow0.\]</div>
+<p>所以D是一个Dynkin系统。生成可预测σ代数的矩形构成π系统：两个矩形相交仍是这种矩形，因为两个事件的交在较晚的左端时间已可测。它们的指标本来就是允许的简单过程。π–λ定理因此说明，所有可预测集合的指标都在V。</p>
+<p>对有界可预测H，按函数值分成越来越细的有限层，可得到简单可测函数以一致误差逼近H；其每个指标已在V，故H∈V。对一般平方可积H，再截断</p>
+<div class="arithmatex">\[H^{(K)}=(-K)\vee(H\wedge K),\qquad
+\|H-H^{(K)}\|_{L^2(\mu)}\longrightarrow0\]</div>
+<p>即可。这里收敛由|H|²可积和支配收敛保证。于是有界简单可预测过程在整个H²空间中稠密。</p>
+<p>这份证明先保住了可预测σ代数，再做L²逼近；不需要可能读取未来值的对称时间卷积。</p>
+<h2 id="6">6. 等距延拓：逼近序列换掉，积分不会换掉<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>取H⁽ⁿ⁾为简单过程且在H²中趋于H。等距给出</p>
+<div class="arithmatex">\[\mathbb E|I_T(H^{(n)})-I_T(H^{(m)})|^2
+=\|H^{(n)}-H^{(m)}\|_{\mathcal H_T^2}^2\longrightarrow0.\]</div>
+<p>所以积分序列在完备的L²(P)中有唯一极限，定义为I_T(H)。若另选K⁽ⁿ⁾→H，则</p>
+<div class="arithmatex">\[\|I_T(H^{(n)})-I_T(K^{(n)})\|_2
+=\|H^{(n)}-K^{(n)}\|_{\mathcal H_T^2}\longrightarrow0,\]</div>
+<p>两种定义一致。线性、零均值、等距与极化公式都由L²极限保留。时间u处的积分可用H·1_(0,u]同样定义。</p>
+<p>一个常见的具体逼近是“先平均，再投影到过去”。在确定网格上设</p>
+<div class="arithmatex">\[\xi_{j,n}=\mathbb E\!\left[\left.\frac1{\Delta t_j}\int_{t_j}^{t_{j+1}}H_sds\right|\mathcal F_{t_j}\right],\qquad
+P_nH=\sum_j\xi_{j,n}\mathbf1_{(t_j,t_{j+1}]}.\]</div>
+<p>条件Jensen不等式与时间Cauchy–Schwarz给出</p>
+<div class="arithmatex">\[\Delta t_j\mathbb E|\xi_{j,n}|^2\le\mathbb E\int_{t_j}^{t_{j+1}}|H_s|^2ds,\]</div>
+<p>因此Pₙ是H²中的压缩。对有界生成矩形ξ1_(s,t]，所有完全落在(s,t]内部的网格段都正确读取ξ；可能有误差的只有至多两个边界段，其总长度趋于0。有界性使这部分L²误差趋于0。先对有限线性组合推广，再用上一节稠密性与压缩性，便得到PₙH→H。</p>
+<p>这个公式是条件期望意义的构造，并不是拿一条实际样本的未来观测值直接当作现在的系数。</p>
+<h2 id="7">7. 从每个时刻的随机变量，得到一个连续鞅<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>分别定义每个Iₜ，还没有自动得到一个共同连续版本。这个步骤要用过程的统一控制。</p>
+<p>简单过程积分是鞅。先在一段上看：条件期望会把未来布朗增量消去；跨越多个分割点时再用塔性质。对两个简单过程，连续时间Doob L²不等式与等距给出</p>
+<div class="arithmatex">\[\mathbb E\sup_{0\le t\le T}|I_t(H)-I_t(K)|^2
+\le4\mathbb E|I_T(H-K)|^2
+=4\|H-K\|_{\mathcal H_T^2}^2.\]</div>
+<p>可选一条逼近序列满足‖H⁽ⁿ⁾−H‖≤2⁻³ⁿ。于是相邻积分的统一误差超过2⁻ⁿ的概率至多是一个常数乘2⁻⁴ⁿ，可求和。Borel–Cantelli保证，在共同的概率1事件上，相邻统一误差最终不超过2⁻ⁿ；级数可求和，使积分过程统一Cauchy。连续函数的一致极限仍连续，记为M。</p>
+<p>对每个固定t，这个极限与此前定义的L²极限Iₜ(H)几乎处处相等，因此M是所需的连续修改。两种连续修改在有理时刻同时相等，再由连续性得到所有时刻同时相等。利用Fatou，前述Doob控制也延伸到一般H、K。</p>
+<p>鞅性质可以直接传递：若s≤t，简单过程积分满足</p>
+<div class="arithmatex">\[\mathbb E[I_t(H^{(n)})\mid\mathcal F_s]=I_s(H^{(n)}).\]</div>
+<p>条件期望是L²压缩，两边分别取L²极限，就得到E[Mₜ|Fₛ]=Mₛ。这说明一般积分是连续平方可积鞅。</p>
+<p>还有一条有用的补偿关系：</p>
+<div class="arithmatex">\[M_t^2-\int_0^tH_s^2ds\quad\text{是鞅。}\]</div>
+<p>简单过程时，在每个系数保持不变的时间段展开M的平方，线性项条件均值为0，新增平方的条件均值为ξ²Δt；与能量增量正好抵消。一般情形中，M⁽ⁿ⁾→M的L²收敛使其平方在L¹中收敛，而</p>
+<div class="arithmatex">\[\mathbb E\int_0^T|(H^{(n)})^2-H^2|dt
+\le\|H^{(n)}-H\|_{\mathcal H_T^2}
+\big(\|H^{(n)}\|_{\mathcal H_T^2}+\|H\|_{\mathcal H_T^2}\big)\longrightarrow0.\]</div>
+<p>再用条件期望的L¹压缩即可。这个能量过程将在后续二次变差理论中扮演核心角色；补偿关系与有限样本逐路径相等仍是两回事。</p>
+<h2 id="8">8. 亲手算出布朗运动对自身的积分<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>令H⁽ⁿ⁾在每个 <span class="arithmatex">\((t_j,t_{j+1}]\)</span> 上取 <span class="arithmatex">\(B_{t_j}\)</span>。它与B的H²距离可以精确计算：</p>
+<div class="arithmatex">\[\mathbb E\int_0^T|B_s-H_s^{(n)}|^2ds
+=\sum_j\int_{t_j}^{t_{j+1}}(s-t_j)ds
+=\frac12\sum_j(\Delta t_j)^2\le\frac T2|\pi_n|.\]</div>
+<p>因此，任意确定性网格最大段长趋于0，都给出H²逼近。等距使左端和趋于Itô积分；第1节的有限恒等式加上上一页的Q的L²收敛，便得到</p>
+<div class="arithmatex">\[\int_0^TB_t\,dB_t=\frac{B_T^2-T}{2}.\]</div>
+<p>两条路线得到的是同一个L²极限，因而右边的公式有定义上的保证。沿dyadic分割，上一页还给出Q几乎处处收敛，所以此例的左端和也几乎处处趋于该值。</p>
+<p>右端和与梯形和的相应极限分别为</p>
+<div class="arithmatex">\[\frac{B_T^2+T}{2},\qquad\frac{B_T^2}{2}.\]</div>
+<p>对H=B，梯形极限是Stratonovich积分。这个结论有此处的有限代数与二次变差证明支持，不需要把“中点方案总会更准确”当成原则。</p>
+<p>对于n个等长区间，平方可积误差还有明确大小：</p>
+<div class="arithmatex">\[\mathbb E\left|I_T(B)-L_n\right|^2=\frac{T^2}{2n}.\]</div>
+<p>这是<strong>积分随机变量的L²误差</strong>，并不保证某条样本的误差恰好是T/√(2n)。另一方面，<span class="arithmatex">\(B_T=\sqrt T\,Z\)</span>表明积分的分布是T(Z²−1)/2；一般随机被积过程的积分并不必然是高斯变量。</p>
+<h2 id="9">9. 两个迁移例子：确定函数与符号变换<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p><strong>确定的平方可积f。</strong> 对确定的简单函数f，积分是独立高斯增量的线性组合，服从中心高斯，方差为∫f²。一般f用L²逼近，特征函数通过收敛传递，故</p>
+<div class="arithmatex">\[\int_0^Tf(t)\,dB_t\sim N\!\left(0,\int_0^Tf(t)^2dt\right).\]</div>
+<p>例如f=1时终点积分就是 <span class="arithmatex">\(B_T\)</span>；f(t)=t时方差为T³/3。若f是C¹，离散分部积分与布朗路径连续性让剩余和趋于普通积分∫Bf′dt；再与Itô的L²极限比较，得到第1节的逐路径分部积分公式。这样，经典可逐路径定义的情形与新的L²构造确实相容。</p>
+<p><strong>根据当前符号翻转噪声。</strong> 定义sign₊(x)=1（x≥0），−1（x&lt;0），并取</p>
+<div class="arithmatex">\[M_t=\int_0^t\operatorname{sign}_+(B_s)\,dB_s.\]</div>
+<p>它是有界可预测被积过程的连续鞅。我们还可以直接证明M本身是一个布朗运动，而不提前调用尚未证明的Lévy刻画。</p>
+<p>先将符号冻结在每个网格左端，得到系数ξⱼ∈{−1,1}。给定左端过去，ξⱼ已经确定，而未来增量为独立中心高斯。因此</p>
+<div class="arithmatex">\[\mathbb E[e^{iu\xi_j\Delta B_j}\mid\mathcal F_{t_j}]
+=e^{-u^2\Delta t_j/2}.\]</div>
+<p>这个条件特征函数不依赖过去。按时间顺序使用塔性质，得到变换后的各段增量仍独立且具有正确的高斯方差；如果测试时刻在网格内部，只需把网格再细分，系数在新增左端仍然已知，所以同一论证成立。每个阶梯符号积分都是连续布朗过程。</p>
+<p>为了传到极限，注意对t&gt;0有P(Bₜ=0)=0，Tonelli给出</p>
+<div class="arithmatex">\[\mathbb E\int_0^T\mathbf1_{\{B_t=0\}}dt=0.\]</div>
+<p>故几乎每条路径在零点上花费的Lebesgue时间为0。对其余时刻，连续性使网格左端的符号最终与当前符号相同；有界支配收敛得到H²逼近。Doob控制使积分统一地以概率收敛到M，有限维特征函数随之收敛。M连续并保留布朗有限维分布，所以确实是布朗运动。</p>
+<p>如果把sign(0)约定为0，两种被积过程只在上述零时间集合上不同，属于同一个H²等价类，积分相同。实验采用sign₊，因此每个有限网格的能量也恰为T，方便核查。</p>
+<h2 id="10">10. 期望实验：分清离散偏差与抽样误差<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>均匀n段、H=B时，两个有限模型的期望相等：</p>
+<div class="arithmatex">\[\mathbb E[L_n^2]=\mathbb E\sum_{j=0}^{n-1}B_{t_j}^2\Delta t
+=\frac{T^2(n-1)}{2n}.\]</div>
+<p>这是因为<span class="arithmatex">\(\mathbb E[B_{t_j}^2]=t_j\)</span>，求和是一个等差数列。共同目标与连续T²/2相差−T²/(2n)，这部分偏差即使有无限多条独立样本也不会消失。</p>
+<p>实验用<span class="arithmatex">\(X_r=L_{n,r}^2\)</span> 和 <span class="arithmatex">\(Y_r=\sum_j B_{t_j,r}^2\Delta t\)</span>分别记录每条路径，并使用成对差Dᵣ=Xᵣ−Yᵣ。理想模型中E[Dᵣ]=0，但通常Dᵣ≠0。N条样本给出均值、无偏样本方差及估计标准误</p>
+<div class="arithmatex">\[\bar D=\frac1N\sum_{r=1}^ND_r,\qquad
+s_D^2=\frac1{N-1}\sum_{r=1}^N(D_r-\bar D)^2,\qquad
+\widehat{\mathrm{SE}}(\bar D)=s_D/\sqrt N.\]</div>
+<p>N=1时后两者不适用。即使N&gt;1，显示一个标准误也不自动建立严格的置信覆盖率；尾部较重的平方统计量尤其不能仅凭一次小样本就断言已经收敛。实验同时给出理想高斯模型的标准误作为参考，并明确伪随机样本只是可复算诊断。</p>
+<h3 id="_2">选读：标准误的解析参考从哪里来<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>令d=T/n，并把<strong>当前网格的标准化增量</strong>记为Zⱼ=ΔBⱼ/√d（T&gt;0）。这些Z是独立标准高斯；它们不一定等于生成器最初抽到的帽函数系数。有限账本可以写成两个高斯二次型：</p>
+<div class="arithmatex">\[L_n=Z^{\mathsf T}AZ,\qquad Y=Z^{\mathsf T}KZ,\]</div>
+<p>其中A的对角为0、非对角为d/2，且</p>
+<div class="arithmatex">\[K_{ij}=d^2(n-1-\max(i,j)),\qquad0\le i,j\lt n.\]</div>
+<p>后一公式来自展开每个 <span class="arithmatex">\(B_{t_j}^2\)</span>：同一对增量在之后的多少个左端节点上共同出现，就贡献多少次。矩阵A的特征值为d(n−1)/2一次、−d/2重复n−1次，因此trA=0。</p>
+<p>对足够小的u、v，正交对角化uA+vK和一维高斯积分给出</p>
+<div class="arithmatex">\[\log\mathbb E e^{uZ^{\mathsf T}AZ+vZ^{\mathsf T}KZ}
+=\sum_{k\ge1}\frac{2^{k-1}}k\operatorname{tr}(uA+vK)^k.\]</div>
+<p>比较二阶到四阶系数，可得</p>
+<div class="arithmatex">\[\operatorname{Var}(L_n^2)=48\operatorname{tr}(A^4)+8\operatorname{tr}(A^2)^2,\qquad
+\operatorname{Var}(Y)=2\operatorname{tr}(K^2),\]</div>
+<div class="arithmatex">\[\operatorname{Cov}(L_n^2,Y)=8\operatorname{tr}(A^2K).\]</div>
+<p>例如混合三阶矩为8tr(A²K)+2tr(A²)trK；减去E[L²]E[Y]=2tr(A²)trK，留下上式。四阶矩为48trA⁴+12(trA²)²，再减去二阶矩的平方，得到第一式。由此</p>
+<div class="arithmatex">\[\operatorname{Var}(D)=\operatorname{Var}(L_n^2)+\operatorname{Var}(Y)-2\operatorname{Cov}(L_n^2,Y)
+=\frac{d^4n(n-1)}2(5n^2-13n+12).\]</div>
+<p>所以理想独立样本均值的标准误是√(Var(D)/N)。实验记录所用矩阵规则、迹与特征值，便于与实际有限高斯模型核对。T=0时所有积分、能量及其总体方差均为0，不需要除以√d定义Z。</p>
+<h2 id="11">11. 四道练习：把定义、极限和统计各自用对<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>练习一：只用[0,T]的一段，H=B时增加样本数能得到连续积分吗？</summary>
+<p>每条路径都用左端H₀=B₀=0，所以L₁=0、Y₁=0、D₁=0，有限模型的等距精确成立，任意样本数的平均都为0。连续积分为 <span class="arithmatex">\((B_T^2-T)/2\)</span>，二阶矩T²/2。必须使网格变细才能让简单过程逼近B；N增加只能改善对当前有限模型的期望估计，无法替代n增加。T=0是两种目标同时为0的退化情况。</p>
+</details>
+<details class="answer">
+<summary>练习二：对于H(t)=t，求有限等距目标及其连续极限</summary>
+<p>左端系数tⱼ=jd是确定的，积分左和为Σjd·ΔBⱼ，服从中心高斯。方差与能量都是</p>
+<div class="arithmatex">\[d^3\sum_{j=0}^{n-1}j^2=\frac{d^3n(n-1)(2n-1)}6\longrightarrow\frac{T^3}{3}.\]</div>
+<p>每条路径的能量在这个例子里都是相同的确定数，但积分平方仍有随机性；中心高斯G的Var(G²)=2Var(G)²，所以成对差的总体方差为上述有限目标平方的两倍。这个例子展示了期望相等不等于逐样本相等。</p>
+</details>
+<details class="answer">
+<summary>练习三：改动零时刻取值，与把左端改成右端，有什么区别？</summary>
+<p>只在一个确定时刻改变H，不改变dt×P等价类，所以不改变Itô积分。若把整个 <span class="arithmatex">\((t_j,t_{j+1}]\)</span> 上的系数从 <span class="arithmatex">\(B_{t_j}\)</span> 改成 <span class="arithmatex">\(B_{t_{j+1}}\)</span>，改变的是一整段正长度时间上的随机变量，并且它通常不在 <span class="arithmatex">\(\mathcal F_{t_j}\)</span> 中可测；这既不是只改端点零集，也不是原来的简单可预测过程。有限右和比左和多Qₙ，细分后多T，差异不会被“端点测度为零”消掉。</p>
+</details>
+<details class="answer">
+<summary>练习四：路径能量几乎处处有限，是否足以保证积分是真鞅？</summary>
+<p>不够。令Y独立于布朗运动，并在零时刻已知，满足P(Y=2ᵏ)=2⁻ᵏ，k=1,2,…。概率和为1，Y每次实现都有限，但E[Y]=∞。取Hₜ=Y，则每个有限T上的能量TY²几乎处处有限，而积分为YBₜ。</p>
+<p>对t&gt;0，独立性与Tonelli给出E|YBₜ|=E[Y]E|Bₜ|=∞，所以它连可积性都不满足，不能是真鞅。下一节的能量停止时间仍能把它局部化为平方可积鞅；“局部鞅”中的局部限制不能省略。</p>
+</details>
+<h2 id="12">12. 停止与局部化：扩大定义域时保留哪些结论<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<p>先对H∈H²和有界停止时间τ证明停止公式</p>
+<div class="arithmatex">\[I_{t\wedge\tau}(H)=I_t\big(H\mathbf1_{[0,\tau]}\big).\]</div>
+<p>过程1_[0,τ]左连续且适应，因此可预测。若τ只取有限个网格值，H也为简单过程，在共同细分上逐段核对，公式直接成立。一般τ用网格向上取整τₙ↓τ；积分连续使左边收敛，右边的被积过程由支配收敛在H²中收敛。最后用简单过程逼近一般H，左边用Doob统一控制，右边用等距，得到完整公式。</p>
+<p>现在只要求H可预测，且对每个有限T有∫₀ᵀH²dt&lt;∞几乎处处。定义</p>
+<div class="arithmatex">\[\tau_m=m\wedge\inf\left\{t:\int_0^tH_s^2ds\ge m\right\}.\]</div>
+<p>积分能量过程连续、递增且适应，所以τₘ是停止时间。停止后的被积过程有总期望能量至多m，因此属于平方可积理论。随着m增大，τₘ几乎处处趋于∞；在任何固定有限时域上，最终不再发生停止。</p>
+<p>停止公式保证两个不同截断得到的积分在较早停止时间之前相同。先对可数m和有理t取共同的概率1事件，再用连续性，就能把这些过程一致地拼接成一个连续局部鞅。这给出了局部平方可积被积过程的Itô积分。</p>
+<p>如果缺少期望平方可积性，不能继续无条件使用本页的全局零均值与有限等距结论；练习四给出了甚至不具一阶可积性的具体例子。下一页将用这一构造建立<a href="sc-03-ito-formula-sde.html">Itô公式与SDE存在唯一性</a>，在那里再讨论二阶修正如何系统地进入链式法则。</p>
+<p><strong>参考。</strong> <a href="https://galton.uchicago.edu/~lalley/Courses/385/ItoIntegral.pdf">Steven P. Lalley，Notes on the Itô Calculus（2016）</a>，第1节的简单过程、等距延拓、停止与局部化。本页另外展开可预测空间的稠密性证明，并对有限高斯账本独立推导其误差公式。</p>
+</div>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="sc-01-brownian-rigorous.html"><span class="pager-label">上一页</span>随机分析 I · 布朗运动的严格构造</a>
