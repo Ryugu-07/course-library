@@ -1,1336 +1,430 @@
-(function (root, factory) {
-  "use strict";
-
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("eigen-iteration", exported.mount);
+(function(root,factory){const api=factory();if(typeof module==="object"&&module.exports)module.exports=api;if(root&&root.CourseLearning)root.CourseLearning.register("eigen-iteration",api.mount);})(typeof window!=="undefined"?window:globalThis,function(){
+"use strict";
+const norm=x=>Math.hypot(...x),dot=(x,y)=>x.reduce((s,v,i)=>s+v*y[i],0);
+const transpose=A=>A[0].map((_,j)=>A.map(r=>r[j]));
+const mm=(A,B)=>{const bt=transpose(B);return A.map(r=>bt.map(c=>dot(r,c)));};
+const mv=(A,x)=>A.map(r=>dot(r,x)),sub=(x,y)=>x.map((v,i)=>v-y[i]),msub=(A,B)=>A.map((r,i)=>sub(r,B[i]));
+const zeros=(m,n)=>Array.from({length:m},()=>Array(n).fill(0)),eye=n=>Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>+(i===j)));
+const fro=A=>norm(A.flat()),copy=A=>A.map(r=>r.slice()),off=A=>norm(A.flatMap((r,i)=>r.filter((_,j)=>i!==j)));
+function givensQR(A){
+ const n=A.length,R=copy(A),Qt=eye(n),rotations=[];
+ for(let j=0;j<n-1;j++)for(let i=n-1;i>j;i--){
+  const a=R[i-1][j],b=R[i][j],length=Math.hypot(a,b),c=length?a/length:1,s=length?b/length:0;
+  const before=R.map(r=>r.slice());
+  for(let k=j;k<n;k++){const x=R[i-1][k],y=R[i][k];R[i-1][k]=c*x+s*y;R[i][k]=-s*x+c*y;}
+  for(let k=0;k<n;k++){const x=Qt[i-1][k],y=Qt[i][k];Qt[i-1][k]=c*x+s*y;Qt[i][k]=-s*x+c*y;}
+  R[i][j]=0;
+  rotations.push({j,i,a,b,length,c,s,skipped:length===0,before,after:copy(R)});
+ }
+ return{Q:transpose(Qt),R,rotations};
+}
+function wilkinson(T,m){
+ const a=T[m-2][m-2],d=T[m-1][m-1],b=(T[m-2][m-1]+T[m-1][m-2])/2,delta=(a-d)/2;
+ if(b===0)return{value:d,a,d,b,delta,denominator:0};
+ const denominator=Math.abs(delta)+Math.hypot(delta,b);
+ return{value:d-(delta<0?-1:1)*b*(b/denominator),a,d,b,delta,denominator};
+}
+function qrChain(center=2,coupling=.4,scaleExponent=0){
+ const scale=10**scaleExponent,A=zeros(4,4);
+ for(let i=0;i<4;i++){A[i][i]=center*scale;if(i<3)A[i][i+1]=A[i+1][i]=coupling*scale;}
+ const phi=(1+Math.sqrt(5))/2,spectrum=[center-coupling*phi,center-coupling/phi,center+coupling/phi,center+coupling*phi].map(v=>v*scale);
+ return{A,spectrum,scale,center,coupling};
+}
+function qrRun(A,spectrum,steps,shifted){
+ const n=A.length,an=fro(A);let T=copy(A),Z=eye(n),active=n,budget=0;
+ const records=[],rows=[],events=[];
+ function deflate(iteration){
+  const local=[];
+  while(active>1){
+   const i=active-1,values=[];
+   for(let j=0;j<i;j++)values.push(T[i][j],T[j][i]);
+   const couplingNorm=norm(values),threshold=64*Number.EPSILON*(Math.abs(T[i][i])+Math.abs(T[i-1][i-1]));
+   if(couplingNorm!==0&&couplingNorm>threshold)break;
+   const correction=zeros(n,n),before=copy(T);
+   for(let j=0;j<i;j++){correction[i][j]=-T[i][j];correction[j][i]=-T[j][i];T[i][j]=T[j][i]=0;}
+   const size=fro(correction);budget+=size;
+   const v={iteration,index:i,couplingNorm,threshold,size,budget,before,correction,after:copy(T)};
+   local.push(v);events.push(v);active--;
+  }return local;
+ }
+ function measure(k){
+  const diagonal=T.map((r,i)=>r[i]),similarity=fro(msub(mm(mm(transpose(Z),A),Z),T)),eigenResidual=fro(msub(mm(A,Z),mm(Z,T)));
+  return{k,active,diagonal,offDiagonal:off(T),tail:active>1?Math.abs(T[active-1][active-2]):0,
+   diagonalDeviation:norm(sub(diagonal.slice().sort((a,b)=>a-b),spectrum)),similarity,eigenResidual,
+   relativeSimilarity:an?similarity/an:0,orthogonality:fro(msub(mm(transpose(Z),Z),eye(n))),
+   deflationBudget:budget,relativeDeflationBudget:an?budget/an:0,T:copy(T),Z:copy(Z)};
+ }
+ deflate(0);rows.push(measure(0));
+ for(let k=1;k<=steps&&active>1;k++){
+  const m=active,before=copy(T),shift=shifted?wilkinson(T,m):{value:0,a:null,d:null,b:null,delta:null,denominator:null};
+  const shiftedMatrix=T.slice(0,m).map((r,i)=>r.slice(0,m).map((v,j)=>v-(i===j?shift.value:0)));
+  const qr=givensQR(shiftedMatrix),next=mm(qr.R,qr.Q),embedded=eye(n);
+  for(let i=0;i<m;i++)for(let j=0;j<m;j++){T[i][j]=next[i][j]+(i===j?shift.value:0);embedded[i][j]=qr.Q[i][j];}
+  Z=mm(Z,embedded);const raw=copy(T),deflations=deflate(k);
+  records.push({k,activeBefore:m,before,shift,shiftedMatrix,...qr,raw,deflations:copy(deflations.map(v=>[v.index,v.size]))});
+  rows.push(measure(k));
+ }
+ return{method:shifted?"wilkinson":"unshifted",status:active===1?"deflated":"iteration-budget",stepsTaken:records.length,active,
+  A:copy(A),spectrum:spectrum.slice(),rows,records,events,final:rows[rows.length-1]};
+}
+function qrModel(raw={}){
+ const c=Object.assign({center:2,coupling:.4,scaleExponent:0,steps:32},raw);
+ for(const [key,lo,hi,integer]of [["center",-2,4,false],["coupling",0,1,false],["scaleExponent",-12,12,true],["steps",1,64,true]]){
+  const v=c[key];if(typeof v!=="number"||!Number.isFinite(v)||v<lo||v>hi||(integer&&!Number.isInteger(v)))throw Error("invalid "+key);
+ }
+ const p=qrChain(c.center,c.coupling,c.scaleExponent);
+ return{config:c,...p,methods:[qrRun(p.A,p.spectrum,c.steps,false),qrRun(p.A,p.spectrum,c.steps,true)]};
+}
+function unitAngle(degrees){
+ if(degrees%90===0){const k=((degrees/90)%4+4)%4;return[[1,0],[0,1],[-1,0],[0,-1]][k].slice();}
+ const t=degrees*Math.PI/180;return[Math.cos(t),Math.sin(t)];
+}
+const normalize=x=>{const n=norm(x);if(!n||!Number.isFinite(n))throw Error("zero or nonfinite vector");return x.map(v=>v/n);};
+function matrixFamily(s){
+ let A,normal,real=true,values,vectors;
+ if(s.kind==="symmetric"){
+  const [c,t]=unitAngle(2*s.axisAngle),mid=2-s.gap/2,b=s.gap/2*t;
+  A=[[mid+s.gap/2*c,b],[b,mid-s.gap/2*c]];normal=true;
+  const m=(A[0][0]+A[1][1])/2,r=Math.hypot((A[0][0]-A[1][1])/2,b),large=m+r,small=(A[0][0]*A[1][1]-b*b)/large;
+  values=[large,small];
+  if(r===0)vectors=[null,null];
+  else if(b===0)vectors=A[0][0]>A[1][1]?[[1,0],[0,1]]:[[0,1],[1,0]];
+  else{const theta=.5*Math.atan2(2*b,A[0][0]-A[1][1]),v=[Math.cos(theta),Math.sin(theta)];vectors=[v,[-v[1],v[0]]];}
+ }else if(s.kind==="nonnormal"){
+  A=[[2,s.gamma],[0,1]];normal=s.gamma===0;values=[2,1];vectors=[[1,0],normalize([-s.gamma,1])];
+ }else{
+  A=[[s.realPart,-s.omega],[s.omega,s.realPart]];normal=true;real=false;values=[{real:s.realPart,imag:s.omega},{real:s.realPart,imag:-s.omega}];vectors=[null,null];
+ }
+ const scale=10**s.scaleExponent;A=A.map(r=>r.map(v=>v*scale));
+ values=real?values.map(v=>v*scale):values.map(v=>({real:v.real*scale,imag:v.imag*scale}));
+ const dominant=real&&Math.abs(values[0])!==Math.abs(values[1])?(Math.abs(values[0])>Math.abs(values[1])?0:1):null;
+ return{A,normal,real,values,vectors,scale,dominant,gap:real?Math.abs(values[0]-values[1]):null};
+}
+function linearSolve2(M,b){
+ const size=fro(M);if(size===0)return{status:"singular-shift",M:copy(M),b:b.slice(),size};
+ const B=M.map(r=>r.map(v=>v/size)),rhs=b.map(v=>v/size),swapped=Math.abs(B[1][0])>Math.abs(B[0][0]);
+ if(swapped){[B[0],B[1]]=[B[1],B[0]];[rhs[0],rhs[1]]=[rhs[1],rhs[0]];}
+ if(B[0][0]===0)return{status:"singular-shift",M:copy(M),b:b.slice(),size,swapped};
+ const multiplier=B[1][0]/B[0][0],pivot=B[1][1]-multiplier*B[0][1],last=rhs[1]-multiplier*rhs[0];
+ if(pivot===0)return{status:"singular-shift",M:copy(M),b:b.slice(),size,swapped,multiplier,pivot};
+ const x1=last/pivot,x0=(rhs[0]-B[0][1]*x1)/B[0][0],x=[x0,x1],residual=sub(mv(M,x),b);
+ if(!x.every(Number.isFinite))return{status:"nonfinite-solve",M:copy(M),b:b.slice(),size,swapped,multiplier,pivot};
+ return{status:"ok",M:copy(M),b:b.slice(),size,swapped,multiplier,pivot,
+  L:[[1,0],[multiplier,1]],U:[[B[0][0],B[0][1]],[0,pivot]],permutedRhs:rhs,forwardRhs:[rhs[0],last],x,residual,
+  relativeResidual:norm(residual)/(size*norm(x)+norm(b))};
+}
+function nearest(info,rho){
+ if(!info.real||info.values[0]===info.values[1])return null;
+ const a=Math.abs(info.values[0]-rho),b=Math.abs(info.values[1]-rho);return a===b?null:a<b?0:1;
+}
+function measure(info,x,k){
+ const nx=norm(x),rho=dot(x,mv(info.A,x))/dot(x,x),residual=sub(mv(info.A,x),x.map(v=>rho*v)),rn=norm(residual),
+  index=nearest(info,rho),target=index===null?null:info.vectors[index],angle=target?Math.atan2(Math.abs(x[0]*target[1]-x[1]*target[0]),Math.abs(dot(x,target))):null,
+  separation=index===null?null:Math.abs(info.values[1-index]-rho),certificate=info.normal&&angle!==null&&separation>0?Math.min(1,rn/(nx*separation)):null;
+ const perturbation=residual.map(v=>x.map(t=>-v*t/dot(x,x))),distance=info.real?Math.min(...info.values.map(v=>Math.abs(v-rho))):Math.hypot(rho-info.values[0].real,info.values[0].imag);
+ return{k,x:x.slice(),rho,residual,residualNorm:rn,relativeResidual:fro(info.A)?rn/(fro(info.A)*nx):0,nearestIndex:index,
+  targetValue:index===null?null:info.values[index],angle,separation,certificate,distance,perturbation,backwardNorm:rn/nx};
+}
+function vectorRun(info,x0,steps,method,fixedShift){
+ let x=normalize(x0),status="iteration-budget";const rows=[measure(info,x,0)],records=[];
+ for(let k=1;k<=steps;k++){
+  const row=rows[rows.length-1];
+  if(row.residualNorm===0){status="zero-floating-residual";break;}
+  if(row.relativeResidual<=64*Number.EPSILON){status="residual-threshold";break;}
+  const before=x.slice();let raw,solver=null,shift=null;
+  if(method==="power"){
+   raw=mv(info.A,x);if(norm(raw)===0){status="zero-product";break;}
+  }else{
+   shift=method==="inverse"?fixedShift:row.rho;
+   const M=info.A.map((r,i)=>r.map((v,j)=>v-(i===j?shift:0)));solver=linearSolve2(M,x);
+   if(solver.status!=="ok"){status=solver.status;records.push({k,before,shift,solver,accepted:false});break;}
+   raw=solver.x;
   }
-  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module) {
-    try {
-      var report = exported.selfTest();
-      process.stdout.write("eigen-iteration self-test: PASS (" + report.checks + " checks, " + report.presets + " presets)\n");
-    } catch (error) {
-      process.stderr.write("eigen-iteration self-test: FAIL\n" + error.stack + "\n");
-      process.exitCode = 1;
-    }
-  }
-})(typeof window !== "undefined" ? window : null, function (host) {
-  "use strict";
-
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "cl-eigen-iteration-styles";
-  var EPS = 1e-10;
-  var MACHINE_EPSILON = Number.EPSILON || 2.220446049250313e-16;
-  var ULP_FACTOR = 64;
-  var SOLVE_RELATIVE_TOLERANCE = 1e-14;
-  var CLASSIFICATION_RELATIVE_TOLERANCE = 1e-10;
-  var DISCRIMINANT_RELATIVE_TOLERANCE = 1e-12;
-  var INSTANCE = 0;
-
-  var PRESETS = [
-    {
-      id: "symmetric-gap",
-      label: "预设 A",
-      matrix: [[4, 1], [1, 2]],
-      initialAngle: 19,
-      shift: 4.15,
-      targetIndex: 0
-    },
-    {
-      id: "symmetric-small-gap",
-      label: "预设 B",
-      matrix: [[2, 0.01], [0.01, 1.99]],
-      initialAngle: 35,
-      shift: 2.03,
-      targetIndex: 0
-    },
-    {
-      id: "nonnormal",
-      label: "预设 C",
-      matrix: [[2, 6], [0, 1]],
-      initialAngle: 34,
-      shift: 1.85,
-      targetIndex: 0
-    },
-    {
-      id: "normal-rotation",
-      label: "预设 D",
-      matrix: [[0, -1], [1, 0]],
-      initialAngle: 22,
-      shift: 0.3,
-      targetIndex: null
-    }
+  x=normalize(raw);records.push({k,before,shift,solver,raw:raw.slice(),normalizer:norm(raw),after:x.slice(),accepted:true});
+  rows.push(measure(info,x,k));
+ }
+ const last=rows[rows.length-1];
+ if(status==="iteration-budget"&&last.residualNorm===0)status="zero-floating-residual";
+ else if(status==="iteration-budget"&&last.relativeResidual<=64*Number.EPSILON)status="residual-threshold";
+ return{method,status,rows,records,final:last,expectedIndex:method==="power"?info.dominant:method==="inverse"?nearest(info,fixedShift):null};
+}
+function iterationModel(raw={}){
+ const s=Object.assign({kind:"symmetric",gap:2,axisAngle:20,initialAngle:5,gamma:6,realPart:0,omega:1,shift:1.9,steps:16,scaleExponent:0},raw);
+ if(!["symmetric","nonnormal","rotation"].includes(s.kind))throw Error("kind");
+ const fields=[["initialAngle",-90,90,false],["shift",-5,5,false],["steps",1,64,true],["scaleExponent",-12,12,true]];
+ if(s.kind==="symmetric")fields.push(["gap",0,6,false],["axisAngle",0,90,false]);
+ else if(s.kind==="nonnormal")fields.push(["gamma",0,50,false]);
+ else fields.push(["realPart",-2,2,false],["omega",.1,2,false]);
+ for(const [key,lo,hi,integer]of fields){const v=s[key];if(typeof v!=="number"||!Number.isFinite(v)||v<lo||v>hi||(integer&&!Number.isInteger(v)))throw Error("invalid "+key);}
+ const info=matrixFamily(s),x0=unitAngle(s.initialAngle),shift=s.shift*info.scale;
+ return{config:s,info,x0,shift,methods:["power","inverse","rayleigh"].map(method=>vectorRun(info,x0,s.steps,method,shift))};
+}
+function pseudospectralPoint(gamma,z,scale=1){
+ const a=2-z,d=1-z,M=[[a,gamma],[0,d]],g00=a*a,g01=a*gamma,g11=gamma*gamma+d*d,
+  large=(g00+g11)/2+Math.hypot((g00-g11)/2,g01),small=(a*d)**2/large;
+ const candidates=[[-g01,g00-small],[g11-small,-g01]],picked=norm(candidates[0])>=norm(candidates[1])?candidates[0]:candidates[1],length=norm(picked),
+  v=length?picked.map(x=>x/length):[1,0],raw=mv(M,v),E=raw.map(x=>v.map(y=>-x*y)),A=[[2,gamma],[0,1]],
+  changed=A.map((r,i)=>r.map((x,j)=>(x+E[i][j])*scale)),changedResidual=sub(mv(changed,v),v.map(x=>z*scale*x));
+ return{z,gamma,A:A.map(r=>r.map(x=>x*scale)),M:M.map(r=>r.map(x=>x*scale)),v,
+  sigmaMin:Math.sqrt(small)*scale,sigmaMax:Math.sqrt(large)*scale,distance:Math.min(Math.abs(z-2),Math.abs(z-1))*scale,
+  residual:raw.map(x=>x*scale),actualResidual:norm(raw)*scale,E:E.map(r=>r.map(x=>x*scale)),
+  perturbationNorm:fro(E)*scale,changed,changedResidual};
+}
+function sensitivityModel(raw={}){
+ const s=Object.assign({gamma:6,z:1.5,epsilon:.1,scaleExponent:0},raw);
+ for(const [key,lo,hi,integer]of [["gamma",0,50,false],["z",-1,4,false],["epsilon",1e-6,1,false],["scaleExponent",-12,12,true]]){
+  const v=s[key];if(typeof v!=="number"||!Number.isFinite(v)||v<lo||v>hi||(integer&&!Number.isInteger(v)))throw Error("invalid "+key);
+ }
+ const scale=10**s.scaleExponent,p=pseudospectralPoint(s.gamma,s.z,scale),grid=Array.from({length:101},(_,i)=>-1+i/20),
+  near=grid.findIndex(x=>Math.abs(x-s.z)<=8*Number.EPSILON*Math.max(Math.abs(x),Math.abs(s.z)));
+ if(near<0)grid.push(s.z);else grid[near]=s.z;grid.sort((a,b)=>a-b);
+ return{config:s,scale,threshold:s.epsilon*scale,result:p,study:grid.map(z=>pseudospectralPoint(s.gamma,z,scale))};
+}
+const DEFAULTS={mode:"iteration",kind:"symmetric",gap:2,axisAngle:20,initialAngle:5,gamma:6,realPart:0,omega:1,shift:1.9,steps:16,scaleExponent:0,center:2,coupling:.4,z:1.5,epsilon:.1};
+function num(v,key,lo,hi,integer=false){
+ if(typeof v!=="number"&&typeof v!=="string")throw Error(key+"必须是有限数值");
+ if(typeof v==="string"){
+  v=v.trim();if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(v))throw Error(key+"不能为空或含非数字内容");
+  const original=v;v=Number(v);if(v===0&&/[1-9]/.test(original.split(/e/i)[0]))throw Error(key+"发生下溢");
+ }
+ if(!Number.isFinite(v)||v<lo||v>hi||(integer&&!Number.isInteger(v)))throw Error(key+"须在"+lo+"至"+hi+"之间"+(integer?"且为整数":""));
+ return v;
+}
+function config(raw={}){
+ if(!raw||typeof raw!=="object"||Array.isArray(raw))throw Error("配置须为对象");
+ const s=Object.assign({},DEFAULTS),mode=Object.hasOwn(raw,"mode")?raw.mode:s.mode;
+ if(!["iteration","qr","sensitivity"].includes(mode))throw Error("未知实验模式");s.mode=mode;
+ const fields=[["scaleExponent",-12,12,true]];
+ if(mode==="iteration"){
+  s.kind=Object.hasOwn(raw,"kind")?raw.kind:s.kind;
+  if(!["symmetric","nonnormal","rotation"].includes(s.kind))throw Error("未知矩阵族");
+  fields.push(["initialAngle",-90,90],["shift",-5,5],["steps",1,64,true]);
+  if(s.kind==="symmetric")fields.push(["gap",0,6],["axisAngle",0,90]);
+  else if(s.kind==="nonnormal")fields.push(["gamma",0,50]);
+  else fields.push(["realPart",-2,2],["omega",.1,2]);
+ }else if(mode==="qr")fields.push(["center",-2,4],["coupling",0,1],["steps",1,64,true]);
+ else fields.push(["gamma",0,50],["z",-1,4],["epsilon",1e-6,1]);
+ for(const [key,lo,hi,int]of fields)s[key]=num(Object.hasOwn(raw,key)?raw[key]:s[key],key,lo,hi,int);
+ return s;
+}
+function snapshot(raw={}){
+ const s=config(raw);
+ return{config:s,result:s.mode==="iteration"?iterationModel(s):s.mode==="qr"?qrModel(s):sensitivityModel(s)};
+}
+const PRESETS=[
+ {id:"default",label:"对称：三种向量迭代"},
+ {id:"small-gap",label:"小间隙：方向需要额外证据",gap:1e-8,axisAngle:0,initialAngle:35,shift:1.99999999},
+ {id:"missing",label:"没有主方向的起始投影",axisAngle:0,gap:1,initialAngle:90},
+ {id:"negative",label:"负特征值的模长最大",axisAngle:0,gap:5,initialAngle:35},
+ {id:"equal-modulus",label:"正负模长打平",axisAngle:0,gap:4,initialAngle:35},
+ {id:"repeated",label:"重根：不指定唯一方向",gap:0},
+ {id:"singular",label:"固定移位正好落在谱上",axisAngle:0,gap:1,shift:2},
+ {id:"nonnormal",label:"非正规：不借用角度上界",kind:"nonnormal",gamma:20},
+ {id:"rotation",label:"旋转：实数域没有特征方向",kind:"rotation"},
+ {id:"qr",label:"四维QR：实际移位与缩减",mode:"qr",steps:32},
+ {id:"qr-tie",label:"四维正负谱：无移位停滞",mode:"qr",center:0,steps:32},
+ {id:"qr-diagonal",label:"已经对角：零步缩减",mode:"qr",coupling:0},
+ {id:"qr-cluster",label:"四维聚簇谱",mode:"qr",coupling:1e-8,steps:32},
+ {id:"qr-scale",label:"四维链共同放大10¹²",mode:"qr",scaleExponent:12,steps:32},
+ {id:"sensitivity",label:"原谱不动，伪谱截面变宽",mode:"sensitivity",gamma:20},
+ {id:"normal-slice",label:"正规对照：残差等于谱距离",mode:"sensitivity",gamma:0},
+ {id:"on-spectrum",label:"在原谱上：真实最小值为0",mode:"sensitivity",z:2}
+];
+const QUESTIONS=[
+ ["幂法每轮放大的主方向由什么决定？",["特征值的模长，并且起点要有该方向的分量","代数值最大的特征值，与起点无关"],0,"模长打平或目标系数为0时，常用收敛结论的条件不成立。"],
+ ["程序达到小残差阈值，能直接说向量方向已经准确吗？",["还需正规性和谱分离等条件","可以，任何矩阵都适用同一个角度上界"],0,"残差先给出非结构后向误差；方向结论还有分母和唯一性条件。"],
+ ["QR缩减把小耦合设为0时，应该怎样记录？",["记录实际删除的矩阵和范数","当作精确相似变换的一部分，不必记录"],0,"缩减是有控制的近似修改，不能与正交相似变换混为一谈。"],
+ ["非正规矩阵的最小奇异值很小，意味着什么？",["一个小矩阵扰动可使所选z成为特征值","所选z一定同样接近原矩阵的谱"],0,"实轴伪谱截面描述邻近矩阵的谱，原谱距离另列。"]
+];
+function fmt(x){
+ if(x===null||x===undefined)return"—";if(typeof x==="boolean")return x?"是":"否";if(typeof x!=="number")return String(x);
+ if(!Number.isFinite(x))throw Error("不能显示非有限结果");if(Number.isInteger(x))return String(x);
+ return Math.abs(x)<1e-4||Math.abs(x)>=1e6?x.toExponential(8):String(Number(x.toPrecision(10)));
+}
+const B="#268bd2",O="#cb6a16",G="#29966c",R="#b44a72",V="#9966bb";
+const names={power:"幂法",inverse:"固定移位反幂",rayleigh:"Rayleigh商迭代",unshifted:"无移位QR",wilkinson:"Wilkinson移位"};
+const colors={power:B,inverse:O,rayleigh:G,unshifted:R,wilkinson:B};
+const statusNames={"iteration-budget":"预算结束","zero-floating-residual":"浮点零残差","residual-threshold":"达到残差阈值","zero-product":"矩阵乘积为零","singular-shift":"移位系统奇异","nonfinite-solve":"求解产生非有限值",deflated:"已完成尾端缩减",ok:"成功"};
+const series=(key,label,color,points,line=true)=>({key,label,color,points,line});
+function plot(title,x,y,ss,xmin,xmax,square=false){
+ const ys=ss.flatMap(s=>s.points.map(p=>p[1])),anchor=y.startsWith("log₁₀")?[]:[0],
+  range=[...anchor,...ys],lo=range.length?Math.min(...range):0,hi=range.length?Math.max(...range):0,pad=(hi-lo||1)*.08;
+ return{title,x,y,series:ss,xmin,xmax:xmax>xmin?xmax:xmin+1,ymin:square?xmin:lo-pad,ymax:square?xmax:hi+pad,square,markers:[]};
+}
+function plots(d){
+ const s=d.config,p=d.result;
+ if(s.mode==="iteration"){
+  const methodSeries=(fn,log=false)=>p.methods.map(m=>series(m.method,names[m.method],colors[m.method],m.rows.flatMap(v=>{const y=fn(v);return y!==null&&(!log||y>0)?[[v.k,log?Math.log10(y):y]]:[];}),!log));
+  return[
+   plot("Rayleigh估计与实际谱：先辨认目标","已接受的迭代步","Rayleigh值 / 共同尺度",[
+    ...methodSeries(v=>v.rho/p.info.scale),
+    ...(p.info.real?p.info.values.map((v,i)=>series("lambda"+i,"参考特征值"+i,i?V:R,[[0,v/p.info.scale],[s.steps,v/p.info.scale]])):[])],0,s.steps),
+   plot("相对残差：零值只在全表保留","已接受的迭代步","log₁₀ ||r||₂ / (||A||F ||x||₂)",methodSeries(v=>v.relativeResidual,true),0,s.steps),
+   plot("最近唯一实方向：角度和正规分离上界","已接受的迭代步","sinθ 与当前sep给出的上界",p.methods.flatMap(m=>[
+    series(m.method,names[m.method]+"实际sinθ",colors[m.method],m.rows.filter(v=>v.angle!==null).map(v=>[v.k,Math.sin(v.angle)]),false),
+    series(m.method+"-bound",names[m.method]+"分离上界",colors[m.method],m.rows.filter(v=>v.certificate!==null).map(v=>[v.k,v.certificate]),false)]),0,s.steps),
+   plot("每次归一化后的实际向量，横纵同单位","第一坐标","第二坐标",p.methods.map(m=>series(m.method,names[m.method],colors[m.method],m.rows.map(v=>v.x),false)),-1.1,1.1,true)
   ];
-
-  var DEFAULT = { presetId: "symmetric-gap", steps: 8 };
-
-  var STYLE_TEXT = [
-    ".eigen-lab{--eig-blue:var(--cl-blue,#315f9d);--eig-gold:var(--cl-gold,#9b6a12);--eig-green:var(--cl-green,#39734d);--eig-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere;}",
-    ".eigen-lab *,.eigen-lab *::before,.eigen-lab *::after{box-sizing:border-box}.eigen-lab [hidden]{display:none!important}.eigen-lab h3,.eigen-lab h4{margin:0;color:var(--fg);letter-spacing:0}.eigen-lab h3{font-size:1.18rem}.eigen-lab h4{font-size:1rem}",
-    ".eigen-lab button,.eigen-lab input{font:inherit}.eigen-lab button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.eigen-lab button:hover{border-color:var(--accent)}.eigen-lab button[aria-pressed='true'],.eigen-lab button.eigen-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750}.eigen-lab button:focus-visible,.eigen-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.eigen-lab button:disabled{cursor:not-allowed;opacity:.55}",
-    ".eigen-lab .eigen-note,.eigen-lab .eigen-feedback{color:var(--fg-soft);font-size:13px;line-height:1.7}.eigen-lab .eigen-prompt{margin:14px 0;padding:12px 14px;border-left:3px solid var(--eig-gold);background:var(--bg)}.eigen-lab fieldset{min-width:0;margin:0;padding:0;border:0}.eigen-lab legend{margin-bottom:8px;color:var(--fg-soft);font-size:13px;font-weight:750}.eigen-lab .eigen-preset-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.eigen-lab .eigen-preset-grid button,.eigen-lab .eigen-choice-grid button{font-size:12px}.eigen-lab .eigen-question-list{display:grid;gap:10px;margin-top:13px}.eigen-lab .eigen-question{min-width:0;padding:10px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg)}.eigen-lab .eigen-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:7px}.eigen-lab .eigen-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.eigen-lab .eigen-actions>*{flex:1 1 170px}.eigen-lab .eigen-feedback{min-height:2em;margin:8px 0 0;font-weight:700}.eigen-lab .eigen-pass{color:var(--eig-green)}.eigen-lab .eigen-warn{color:var(--eig-red)}",
-    ".eigen-lab .eigen-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}.eigen-lab .eigen-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 16px;margin:12px 0;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg)}.eigen-lab .eigen-control{display:grid;gap:5px;min-width:0}.eigen-lab .eigen-control label{color:var(--fg-soft);font-size:13px;font-weight:700}.eigen-lab .eigen-control output{color:var(--accent);font-variant-numeric:tabular-nums}.eigen-lab .eigen-control input[type=range]{width:100%;min-height:44px;margin:0;accent-color:var(--accent)}.eigen-lab .eigen-control input[type=number]{width:100%;min-height:44px;padding:7px 9px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg)}",
-    ".eigen-lab .eigen-chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;min-width:0}.eigen-lab .eigen-chart{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow-x:auto;-webkit-overflow-scrolling:touch}.eigen-lab .eigen-chart-wide{grid-column:1/-1}.eigen-lab .eigen-svg{display:block;width:100%;min-width:620px;height:auto;color:var(--fg)}.eigen-lab .eigen-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.eigen-lab .eigen-grid-line{stroke:var(--border);stroke-width:1;stroke-opacity:.7}.eigen-lab .eigen-axis{stroke:currentColor;stroke-width:1.2;stroke-opacity:.75}.eigen-lab .eigen-power{stroke:var(--eig-blue);fill:none}.eigen-lab .eigen-inverse{stroke:var(--eig-green);fill:none}.eigen-lab .eigen-rayleigh{stroke:var(--eig-red);fill:none}.eigen-lab .eigen-qr{stroke:var(--eig-gold);fill:none}.eigen-lab .eigen-line{stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}.eigen-lab .eigen-dot{stroke:var(--bg);stroke-width:1.2}",
-    ".eigen-lab .eigen-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(126px,1fr));gap:8px;margin:12px 0}.eigen-lab .eigen-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg)}.eigen-lab .eigen-metric:nth-child(1),.eigen-lab .eigen-metric:nth-child(4){border-top-color:var(--eig-blue)}.eigen-lab .eigen-metric:nth-child(2),.eigen-lab .eigen-metric:nth-child(5){border-top-color:var(--eig-gold)}.eigen-lab .eigen-metric:nth-child(3),.eigen-lab .eigen-metric:nth-child(6){border-top-color:var(--eig-green)}.eigen-lab .eigen-metric span{display:block;color:var(--fg-soft);font-size:11.5px;line-height:1.4}.eigen-lab .eigen-metric strong{display:block;margin-top:3px;color:var(--fg);font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.eigen-lab .eigen-table-wrap{max-width:100%;margin-top:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}.eigen-lab table{width:100%;min-width:760px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.eigen-lab caption{padding:0 0 7px;text-align:left;color:var(--fg-soft);font-size:12px;line-height:1.55}.eigen-lab th,.eigen-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}.eigen-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750}.eigen-lab .eigen-good{color:var(--eig-green);font-weight:750}.eigen-lab .eigen-bad{color:var(--eig-red);font-weight:750}.eigen-lab .eigen-interpretation{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--eig-green);background:var(--bg);font-size:13px;line-height:1.7}",
-    "@media(max-width:900px){.eigen-lab .eigen-chart-grid{grid-template-columns:minmax(0,1fr)}.eigen-lab .eigen-chart-wide{grid-column:auto}.eigen-lab .eigen-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:700px){.eigen-lab .eigen-preset-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.eigen-lab .eigen-choice-grid{grid-template-columns:minmax(0,1fr)}}@media(max-width:430px){.eigen-lab .eigen-preset-grid,.eigen-lab .eigen-controls{grid-template-columns:minmax(0,1fr)}.eigen-lab .eigen-chart{padding:5px}}@media(prefers-reduced-motion:reduce){.eigen-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
-  ].join("\n");
-
-  function finite(value) {
-    return typeof value === "number" && isFinite(value);
+ }
+ if(s.mode==="qr"){
+  const trace=(field)=>p.methods.map(m=>series(m.method,names[m.method],colors[m.method],m.rows.filter(v=>v[field]>0).map(v=>[v.k,Math.log10(v[field])]),false));
+  return[
+   plot("非对角量：零值与预算结束各有记录","实际QR步数","log₁₀ ||off(Tₖ)||F / 共同尺度",p.methods.map(m=>series(m.method,names[m.method],colors[m.method],m.rows.filter(v=>v.offDiagonal>0).map(v=>[v.k,Math.log10(v.offDiagonal/p.scale)]),false)),0,s.steps),
+   plot("末步对角估计与解析谱，尚未收敛时有差异","升序索引","对角估计 / 共同尺度",[
+    series("reference","四维链解析谱",G,p.spectrum.map((v,i)=>[i,v/p.scale])),
+    ...p.methods.map(m=>series(m.method,names[m.method],colors[m.method],m.final.diagonal.slice().sort((a,b)=>a-b).map((v,i)=>[i,v/p.scale]),false))],0,3),
+   plot("累计基的正交性与相似关系分别检查","实际QR步数","log₁₀ 相对相似误差或正交性缺陷",[
+    ...trace("relativeSimilarity").map(v=>({...v,key:v.key+"-similarity",label:v.label+"相似误差"})),
+    ...trace("orthogonality").map(v=>({...v,key:v.key+"-orthogonality",label:v.label+"正交缺陷",color:v.key==="unshifted"?O:G}))],0,s.steps),
+   plot("缩减是显式扰动：累计删除范数","实际QR步数","累计 ||ΔT||F / ||A||F",p.methods.map(m=>series(m.method,names[m.method],colors[m.method],m.rows.map(v=>[v.k,v.relativeDeflationBudget]))),0,s.steps)
+  ];
+ }
+ return[
+  plot("只看实轴截面：最小扰动与原谱距离","实数 z / 共同尺度","谱范数 / 共同尺度",[
+   series("sigma","σmin(A−zI)",B,p.study.map(v=>[v.z,v.sigmaMin/p.scale])),
+   series("distance","到原谱{1,2}的距离",R,p.study.map(v=>[v.z,v.distance/p.scale])),
+   series("epsilon","选定扰动容许量ε",O,[[-1,s.epsilon],[4,s.epsilon]])],-1,4),
+  plot("同一个向量：实际残差与最小奇异值","实数 z / 共同尺度","谱范数 / 共同尺度",[
+   series("minimum","理论最小奇异值",B,p.study.map(v=>[v.z,v.sigmaMin/p.scale])),
+   series("achieved","实际构造的扰动范数",G,p.study.map(v=>[v.z,v.perturbationNorm/p.scale]),false)],-1,4),
+  plot("构造之后仍核对实际浮点特征方程","实数 z / 共同尺度","log₁₀ ||(A+E)v−zv||₂ / 共同尺度",[
+   series("check","构造后的实际残差（零不取对数）",O,p.study.filter(v=>norm(v.changedResidual)>0).map(v=>[v.z,Math.log10(norm(v.changedResidual)/p.scale)]),false)],-1,4)
+ ];
+}
+function ledgers(d){
+ const s=d.config,p=d.result,t=(key,title,headers,rows)=>({key,title,headers,rows}),col=x=>x.map(v=>[v]),
+ matrixRows=(objects)=>Object.entries(objects).flatMap(([key,A])=>A.flatMap((r,i)=>r.map((v,j)=>[key,i,j,v])));
+ if(s.mode==="iteration"){
+  const target=(i)=>i===null?null:p.info.values[i],mats={A:p.info.A,x0:col(p.x0)};
+  const records=p.methods.flatMap(m=>m.records.map(r=>({m,...r})));
+  return[
+   t("summary","输入、停止规则与参考谱",["量","值"],[["矩阵族",s.kind],["正规",p.info.normal],["谱全实",p.info.real],["λ0（实部）",p.info.real?p.info.values[0]:p.info.values[0].real],["λ1（实部）",p.info.real?p.info.values[1]:p.info.values[1].real],["虚部绝对值",p.info.real?0:p.info.values[0].imag],["共同尺度",p.info.scale],["固定移位（实际单位）",p.shift],["相对残差停止阈值",64*Number.EPSILON],["残差分母", "||A||F ||x||₂"],["最大模唯一目标索引",p.info.dominant]]),
+   t("methods","先读停止原因，再辨认返回的谱点",["算法","停止原因","接受步数","规则预期目标","末步最近谱点","ρ","相对残差","sinθ","正规分离上界"],p.methods.map(m=>[names[m.method],statusNames[m.status],m.final.k,target(m.expectedIndex),m.final.targetValue,m.final.rho,m.final.relativeResidual,m.final.angle===null?null:Math.sin(m.final.angle),m.final.certificate])),
+   t("input","实际矩阵和初始向量",["对象","i","j","值"],matrixRows(mats)),
+   t("trace","每一步的残差、当前分离和实际方向",["算法","k","x0","x1","ρ","r0","r1","||r||","相对残差","最近索引","最近谱值","到原谱距离","夹角(rad)","sep","sinθ上界","最小后向扰动范数"],p.methods.flatMap(m=>m.rows.map(r=>[names[m.method],r.k,...r.x,r.rho,...r.residual,r.residualNorm,r.relativeResidual,r.nearestIndex,r.targetValue,r.distance,r.angle,r.separation,r.certificate,r.backwardNorm]))),
+   t("perturbations","每一步达到最小后向误差的显式ΔA",["算法","k","对象","i","j","值"],p.methods.flatMap(m=>m.rows.flatMap(r=>matrixRows({deltaA:r.perturbation}).map(v=>[names[m.method],r.k,...v])))),
+   t("updates","所有尝试，包括奇异移位失败",["算法","k","接受","移位","之前x0","之前x1","未归一y0","未归一y1","归一尺度","之后x0","之后x1","线性求解状态","求解相对残差"],records.map(r=>[names[r.m.method],r.k,r.accepted,r.shift,...r.before,...(r.raw||[null,null]),r.normalizer,...(r.after||[null,null]),r.solver?statusNames[r.solver.status]:"矩阵乘法",r.solver?.relativeResidual])),
+   t("solves","每次消元的矩阵、向量、L与U全部元素",["算法","k","对象","i","j","值"],records.filter(r=>r.solver).flatMap(r=>{const v=r.solver,m={M:v.M,b:col(v.b)};for(const key of["L","U"])if(v[key])m[key]=v[key];for(const key of["permutedRhs","forwardRhs","x","residual"])if(v[key])m[key]=col(v[key]);return matrixRows(m).map(z=>[names[r.m.method],r.k,...z]);})),
+   t("pivots","消元的缩放、换行、乘子和实际主元",["算法","k","求解状态","矩阵尺度","换行","消元乘子","第二主元"],records.filter(r=>r.solver).map(r=>[names[r.m.method],r.k,statusNames[r.solver.status],r.solver.size,r.solver.swapped,r.solver.multiplier,r.solver.pivot]))
+  ];
+ }
+ if(s.mode==="qr")return[
+  t("summary","四维链与完整QR运行的边界",["量","值"],[["中心c",s.center],["近邻耦合b",s.coupling],["共同尺度",p.scale],["||A||F",fro(p.A)],...p.spectrum.map((v,i)=>["解析λ"+i,v]),["缩减常数64u",64*Number.EPSILON],["尾连接条件","||全部尾行列连接||₂ ≤ 64u(|tᵢᵢ|+|tᵢ₋₁,ᵢ₋₁|)"]]),
+  t("methods","两种算法的实际末步",["算法","状态","QR步数","活动维数","非对角范数","升序对角估计差","相对相似误差","正交缺陷","累计缩减范数"],p.methods.map(m=>[names[m.method],statusNames[m.status],m.stepsTaken,m.active,m.final.offDiagonal,m.final.diagonalDeviation,m.final.relativeSimilarity,m.final.orthogonality,m.final.deflationBudget])),
+  t("trace","每次相似变换后的全部误差",["算法","k","活动维数","t00","t11","t22","t33","非对角范数","活动尾元","对角估计差","||ZᵀAZ−T||F","||AZ−ZT||F","相对相似误差","正交缺陷","缩减预算","相对缩减预算"],p.methods.flatMap(m=>m.rows.map(r=>[names[m.method],r.k,r.active,...r.diagonal,r.offDiagonal,r.tail,r.diagonalDeviation,r.similarity,r.eigenResidual,r.relativeSimilarity,r.orthogonality,r.deflationBudget,r.relativeDeflationBudget]))),
+  t("bases","每一步完整T和累计Z",["算法","k","对象","i","j","值"],p.methods.flatMap(m=>m.rows.flatMap(r=>matrixRows({T:r.T,Z:r.Z}).map(v=>[names[m.method],r.k,...v])))),
+  t("shifts","实际局部移位参数",["算法","k","活动维数","移位μ","a","d","平均对称b","δ","稳定公式分母"],p.methods.flatMap(m=>m.records.map(r=>[names[m.method],r.k,r.activeBefore,r.shift.value,r.shift.a,r.shift.d,r.shift.b,r.shift.delta,r.shift.denominator]))),
+  t("factorizations","每次分解前后、Q和R全部元素",["算法","k","对象","i","j","值"],p.methods.flatMap(m=>m.records.flatMap(r=>matrixRows({before:r.before,shifted:r.shiftedMatrix,Q:r.Q,R:r.R,raw:r.raw}).map(v=>[names[m.method],r.k,...v])))),
+  t("rotations","Givens每次旋转的全部参数",["算法","k","旋转序号","消元列j","下行i","a","b","hypot","c","s","零长度跳过"],p.methods.flatMap(m=>m.records.flatMap(r=>r.rotations.map((v,i)=>[names[m.method],r.k,i,v.j,v.i,v.a,v.b,v.length,v.c,v.s,v.skipped])))),
+  t("rotation-matrices","每次Givens旋转前后的完整工作矩阵",["算法","k","旋转序号","对象","i","j","值"],p.methods.flatMap(m=>m.records.flatMap(r=>r.rotations.flatMap((v,i)=>matrixRows({before:v.before,after:v.after}).map(z=>[names[m.method],r.k,i,...z]))))),
+  t("deflations","每次缩减的真实删除量",["算法","事件","k","尾索引","连接范数","阈值","修改F范数","累计预算"],p.methods.flatMap(m=>m.events.map((v,i)=>[names[m.method],i,v.iteration,v.index,v.couplingNorm,v.threshold,v.size,v.budget]))),
+  t("deflation-matrices","缩减前、实际修改和缩减后完整矩阵",["算法","事件","对象","i","j","值"],p.methods.flatMap(m=>m.events.flatMap((v,i)=>matrixRows({before:v.before,correction:v.correction,after:v.after}).map(z=>[names[m.method],i,...z]))))
+ ];
+ const q=p.result;
+ return[
+  t("summary","原谱距离、最小扰动和实际核对",["量","值"],[["γ",s.gamma],["共同尺度",p.scale],["实际z",s.z*p.scale],["实际容许扰动ε",p.threshold],["到原谱距离",q.distance],["σmin",q.sigmaMin],["σmax",q.sigmaMax],["实际||(A−zI)v||",q.actualResidual],["实际||E||₂=||E||F（秩1）",q.perturbationNorm],["||(A+E)v−zv||",norm(q.changedResidual)],["按σmin判定在容许集合内",q.sigmaMin<=p.threshold]]),
+  t("matrices","达到下界的向量与扰动全部元素",["对象","i","j","值"],matrixRows({A:q.A,M:q.M,v:col(q.v),residual:col(q.residual),E:q.E,changed:q.changed,changedResidual:col(q.changedResidual)})),
+  t("study","完整实轴扫描，不隐藏原谱上的0",["z（未缩放）","σmin","σmax","到原谱距离","v0","v1","实际残差范数","实际扰动范数","构造后残差范数","在ε集合内"],p.study.map(v=>[v.z,v.sigmaMin,v.sigmaMax,v.distance,...v.v,v.actualResidual,v.perturbationNorm,norm(v.changedResidual),v.sigmaMin<=p.threshold])),
+  t("scan-matrices","每个扫描点的全部向量、扰动和构造核对",["z（未缩放）","对象","i","j","值"],p.study.flatMap(v=>matrixRows({M:v.M,v:col(v.v),residual:col(v.residual),E:v.E,changed:v.changed,changedResidual:col(v.changedResidual)}).map(row=>[v.z,...row])))
+ ];
+}
+ const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const tick=v=>v===0?"0":Math.abs(v)<1e-3||Math.abs(v)>=1e4?v.toExponential(2):String(Number(v.toPrecision(4)));
+ function svg(q){
+  const left=q.square?325:100,width=q.square?250:750,height=250,top=85,bottom=335,x=v=>left+width*(v-q.xmin)/(q.xmax-q.xmin),y=v=>bottom-height*(v-q.ymin)/(q.ymax-q.ymin);
+  let s='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="425" role="img" aria-label="'+esc(q.title)+'"><title>'+esc(q.title)+'</title><text x="25" y="32" font-size="22">'+esc(q.title)+'</text>';
+  for(let i=0;i<(q.square?3:5);i++){
+   const v=q.ymin+(q.ymax-q.ymin)*i/(q.square?2:4);
+   s+='<path d="M'+left+' '+y(v)+'H'+(left+width)+'" stroke="currentColor" opacity=".18"/><text x="'+(left-12)+'" y="'+(y(v)+5)+'" text-anchor="end">'+tick(v)+'</text>';
   }
-
-  function ulp(value) {
-    var magnitude = Math.abs(value);
-    if (!finite(magnitude)) return Infinity;
-    if (magnitude === 0) return Number.MIN_VALUE;
-    var exponent = Math.floor(Math.log(magnitude) / Math.LN2);
-    if (exponent < -1022) return Number.MIN_VALUE;
-    return Math.max(Number.MIN_VALUE, Math.pow(2, exponent) * MACHINE_EPSILON);
+  const ticks=q.xTicks||Array.from({length:5},(_,i)=>q.xmin+(q.xmax-q.xmin)*i/4);
+  for(const v of ticks)s+='<text x="'+x(v)+'" y="'+(bottom+28)+'" text-anchor="middle">'+tick(v)+'</text>';
+  if(q.ymin<=0&&q.ymax>=0)s+='<line data-zero="true" x1="'+left+'" x2="'+(left+width)+'" y1="'+y(0)+'" y2="'+y(0)+'" stroke="currentColor" opacity=".7"/>';
+  s+='<text x="'+left+'" y="65">'+esc(q.y)+'</text><text x="'+(left+width/2)+'" y="'+(bottom+63)+'" text-anchor="middle">'+esc(q.x)+'</text>';
+  for(const series of q.series){
+   if(series.area)s+='<rect data-area="'+series.key+'" x="'+x(series.points[0][0])+'" y="'+y(series.points[0][1])+'" width="'+(x(series.points[1][0])-x(series.points[0][0]))+'" height="'+(y(0)-y(series.points[0][1]))+'" fill="'+series.color+'" opacity=".12"/>';
+   if(series.line)s+='<polyline data-series="'+series.key+'" points="'+series.points.map(p=>x(p[0])+','+y(p[1])).join(" ")+'" stroke="'+series.color+'" stroke-width="2" fill="none"/>';
+   series.points.forEach((p,i)=>{const open=series.endOpen&&i===series.points.length-1;s+='<circle data-series="'+series.key+'" data-index="'+i+'" data-open="'+!!open+'" cx="'+x(p[0])+'" cy="'+y(p[1])+'" r="'+(series.endOpen?3.5:series.line?1.8:3.5)+'" fill="'+(open?"var(--bg,#faf7ef)":series.color)+'" stroke="'+series.color+'"/>';});
   }
-
-  function relativeTolerance(scale, relative) {
-    var magnitude = Math.abs(scale);
-    var relativePart = (relative === undefined ? EPS : relative) * magnitude;
-    var ulpPart = ULP_FACTOR * ulp(magnitude);
-    return Math.max(Number.MIN_VALUE, relativePart, ulpPart);
+  for(const [i,m]of (q.markers||[]).entries()){
+   const px=x(m.x),right=px>700;
+   s+='<line data-marker="'+i+'" x1="'+px+'" x2="'+px+'" y1="'+top+'" y2="'+bottom+'" stroke="currentColor" stroke-dasharray="5 5" opacity=".65"/><text x="'+(px+(right?-4:4))+'" y="'+(80+25*q.markers.slice(0,i).filter(p=>Math.abs(px-x(p.x))<110).length)+'" font-size="13" text-anchor="'+(right?'end':'start')+'">'+esc(m.label)+'</text>';
   }
+  return s+"</svg>";
+ }
 
-  function near(left, right, tolerance) {
-    var scale = Math.max(Math.abs(left), Math.abs(right));
-    return Math.abs(left - right) <= relativeTolerance(scale, tolerance);
+ const STYLE=".eigen144{color:var(--fg,#273646)}.eigen144 .eigen-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}.eigen144 label{display:flex;flex-direction:column;gap:6px}.eigen144 input,.eigen144 select{font:inherit;padding:8px;max-width:100%;background:var(--bg,#fff);color:inherit;border:1px solid #8b98a0;border-radius:5px}.eigen144 button{font:inherit;padding:8px 12px;margin:5px;cursor:pointer}.eigen144 button[aria-pressed=true]{outline:3px solid #478aaa}.eigen144 .eigen-scroll{overflow:auto;max-width:100%;margin:16px 0}.eigen144 .eigen-scroll:focus{outline:3px solid #478aaa}.eigen144 .eigen-ledger{max-height:420px}.eigen144 svg{width:900px!important;max-width:none!important;display:block;fill:currentColor;font:16px system-ui}.eigen144 table{display:table;overflow:visible;width:max-content;max-width:none;min-width:900px;border-collapse:collapse;font-variant-numeric:tabular-nums}.eigen144 th,.eigen144 td{padding:9px;border:1px solid #98a4ab;text-align:left;white-space:nowrap}.eigen144 .eigen-error{color:#c74b39}.eigen144 [hidden]{display:none!important}.eigen144 fieldset{margin:16px 0;padding:12px}.eigen144 details{margin:16px 0}.eigen144 summary{cursor:pointer;font-weight:600}.eigen144 .eigen-legend{font-size:.95em}.eigen144 .eigen-note{line-height:1.7}.eigen144 [hidden]{display:none!important}.eigen144 select{font:inherit;color:var(--fg,#282820);background:var(--bg,#faf7ef);padding:8px;max-width:100%}";
+ function mount(container){
+  const doc=container.ownerDocument;
+  if(!doc.getElementById("eigen144-style")){const style=doc.createElement("style");style.id="eigen144-style";style.textContent=STYLE;doc.head.appendChild(style);}
+  const field=(key,label,modes,kinds="")=>'<label data-modes="'+modes+'"'+(kinds?' data-kinds="'+kinds+'"':"")+'>'+label+'<input data-key="'+key+'" type="number" step="any"></label>';
+  container.innerHTML='<div class="eigen144"><h3>残差小了，目标找对了吗？</h3><p>先预测，再逐步核对真实向量、相似变换和显式扰动。</p><div class="eigen-presets">'+PRESETS.map(p=>'<button type="button" data-preset="'+p.id+'">'+esc(p.label)+'</button>').join("")+'</div><div class="eigen-controls"><label>实验<select data-key="mode"><option value="iteration">二维向量迭代</option><option value="qr">四维实际QR</option><option value="sensitivity">实轴伪谱截面</option></select></label>'+
+   '<label data-modes="iteration">矩阵族<select data-key="kind"><option value="symmetric">实对称</option><option value="nonnormal">上三角非正规</option><option value="rotation">旋转与复谱</option></select></label>'+
+   field("gap","对称谱隙（0–6）","iteration","symmetric")+field("axisAngle","特征轴角度°（0–90）","iteration","symmetric")+
+   field("initialAngle","初始向量角度°（−90–90）","iteration")+field("shift","固定移位 / 共同尺度（−5–5）","iteration")+
+   field("gamma","上三角γ（0–50）","iteration sensitivity","nonnormal")+
+   field("realPart","复谱实部 / 尺度（−2–2）","iteration","rotation")+field("omega","旋转频率 / 尺度（0.1–2）","iteration","rotation")+
+   field("steps","迭代预算（1–64整数）","iteration qr")+field("scaleExponent","共同缩放10的指数（−12–12整数）","iteration qr sensitivity")+
+   field("center","四维链中心c（−2–4）","qr")+field("coupling","四维链近邻耦合b（0–1）","qr")+
+   field("z","实数z / 共同尺度（−1–4）","sensitivity")+field("epsilon","容许扰动ε / 尺度（10⁻⁶–1）","sensitivity")+'</div>'+
+   QUESTIONS.map((q,i)=>'<fieldset data-question="'+i+'"><legend>'+(i+1)+'. '+esc(q[0])+'</legend>'+q[1].map((v,j)=>'<button type="button" data-choice="'+j+'" aria-pressed="false">'+esc(v)+'</button>').join("")+'</fieldset>').join("")+
+   '<button type="button" data-action="reveal">揭示图与完整账本</button><button type="button" data-action="reset">重置预测</button><p class="eigen-error" role="alert"></p><p role="status"></p><div class="eigen-results" hidden></div></div>';
+  const fields=Array.from(container.querySelectorAll("[data-key]")),answers=Array(4).fill(null),result=container.querySelector(".eigen-results"),reveal=container.querySelector("[data-action=reveal]"),feedback=container.querySelector("[role=status]"),error=container.querySelector("[role=alert]");
+  fields.forEach(e=>e.value=DEFAULTS[e.dataset.key]);
+  let revealed=false,valid=null;
+  function render(d){
+   const notes={iteration:"先比较规则预期目标与实际最近谱点，再读停止原因。相对残差分母为||A||F ||x||₂，阈值64×机器精度；浮点零残差不称为实数意义的精确收敛。角度按一维子空间比较，向量变号不等于方向失败。非正规、重根、谱点打平或没有实特征方向时不提供正规单方向证书。",qr:"实际执行四维显式Givens QR，并累计完整基Z。Wilkinson移位取当前活动块末尾2×2块的局部谱信息，零耦合单独处理。缩减检查全部尾行列连接，记录删除矩阵和范数；未完成缩减时明确显示预算结束。",sensitivity:"这里只计算实轴截面，不是完整复平面伪谱。原谱始终是共同尺度乘{1,2}。每个z都有实际最小奇异向量与秩一扰动E，并单独核对(A+E)v=zv的浮点残差；ε按同一尺度缩放。"};
+   result.innerHTML='<p>'+notes[d.config.mode]+'</p>'+
+    plots(d).map(q=>'<p>'+q.series.filter((s,i,ss)=>ss.findIndex(t=>t.label===s.label&&t.color===s.color)===i).map(s=>esc(s.label)+'（'+({"#268bd2":"蓝","#cb6a16":"橙","#29966c":"绿","#9966bb":"紫","#b44a72":"玫红"}[s.color])+'）').join("；")+'</p><div class="eigen-scroll" role="region" tabindex="0" aria-label="'+esc(q.title)+'">'+svg(q)+'</div>').join("")+
+    ledgers(d).map(t=>'<details data-ledger="'+t.key+'"'+(t.key==="summary"?' open':"")+'><summary>'+esc(t.title)+'（'+t.rows.length+' 行）</summary><div class="eigen-scroll eigen-ledger" role="region" tabindex="0" aria-label="'+esc(t.title)+'"><table data-table="'+t.key+'"><thead><tr>'+t.headers.map(x=>'<th scope="col">'+esc(x)+'</th>').join("")+'</tr></thead><tbody>'+t.rows.map(r=>'<tr>'+r.map(x=>'<td>'+esc(fmt(x))+'</td>').join("")+'</tr>').join("")+'</tbody></table></div></details>').join("")+
+    '<p>“—”表示对象未定义、不适用或步骤失败，不是0。对数图仅画严格正的实际值，真实0保留在完整表格中；未加绘图下限。图中每个点都来自本次运行。有限浮点核对不能替代理论证明或严格区间界。</p>';
   }
-
-  function clamp(value, minimum, maximum) {
-    return Math.max(minimum, Math.min(maximum, value));
+  function update(){
+   const raw=Object.fromEntries(fields.map(e=>[e.dataset.key,e.value]));
+   container.querySelectorAll("[data-modes]").forEach(e=>e.hidden=!e.dataset.modes.split(" ").includes(raw.mode)||(raw.mode==="iteration"&&e.dataset.kinds&&!e.dataset.kinds.split(" ").includes(raw.kind)));
+   try{valid=config(raw);error.textContent="";}catch(e){valid=null;revealed=false;error.textContent=e.message;}
+   reveal.disabled=!valid||answers.some(x=>x===null);result.hidden=!revealed;
+   if(revealed&&valid)render(snapshot(valid));
+   feedback.textContent=revealed?answers.filter((x,i)=>x===QUESTIONS[i][2]).length+" / 4。"+QUESTIONS.map(q=>q[3]).join(" "):"";
   }
+  fields.forEach(e=>e.addEventListener(e.tagName==="SELECT"?"change":"input",update));
+  container.querySelectorAll("[data-choice]").forEach(b=>b.addEventListener("click",()=>{
+   const i=Number(b.closest("[data-question]").dataset.question);answers[i]=Number(b.dataset.choice);b.parentElement.querySelectorAll("[data-choice]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));update();
+  }));
+  container.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{
+   const s=Object.assign({},DEFAULTS,PRESETS.find(p=>p.id===b.dataset.preset));fields.forEach(e=>e.value=s[e.dataset.key]);update();
+  }));
+  reveal.addEventListener("click",()=>{if(!reveal.disabled){revealed=true;update();}});
+  container.querySelector("[data-action=reset]").addEventListener("click",()=>{answers.fill(null);revealed=false;container.querySelectorAll("[data-choice]").forEach(b=>b.setAttribute("aria-pressed","false"));update();container.querySelector("[data-choice]").focus();});
+  update();
+ }
 
-  function copy(value) {
-    return JSON.parse(JSON.stringify(value));
-  }
 
-  function zeros(rows, columns) {
-    var result = [];
-    for (var row = 0; row < rows; row += 1) {
-      result.push(new Array(columns).fill(0));
-    }
-    return result;
-  }
 
-  function identity(size) {
-    var result = zeros(size, size);
-    for (var index = 0; index < size; index += 1) result[index][index] = 1;
-    return result;
-  }
 
-  function addVectors(left, right) {
-    return left.map(function (value, index) { return value + right[index]; });
-  }
 
-  function subtractVectors(left, right) {
-    return left.map(function (value, index) { return value - right[index]; });
-  }
 
-  function scaleVector(vector, scale) {
-    return vector.map(function (value) { return value * scale; });
-  }
 
-  function dot(left, right) {
-    return left.reduce(function (sum, value, index) { return sum + value * right[index]; }, 0);
-  }
 
-  function norm(vector) {
-    var scale = 0;
-    var sum = 1;
-    vector.forEach(function (value) {
-      var magnitude = Math.abs(value);
-      if (magnitude === 0) return;
-      if (scale < magnitude) {
-        sum = scale === 0 ? 1 : 1 + sum * Math.pow(scale / magnitude, 2);
-        scale = magnitude;
-      } else {
-        sum += Math.pow(magnitude / scale, 2);
-      }
-    });
-    return scale === 0 ? 0 : scale * Math.sqrt(sum);
-  }
 
-  function normalize(vector) {
-    var size = norm(vector);
-    if (!finite(size) || size === 0) throw new RangeError("cannot normalize a zero vector");
-    return scaleVector(vector, 1 / size);
-  }
 
-  function matVec(matrix, vector) {
-    return matrix.map(function (row) { return dot(row, vector); });
-  }
 
-  function matMul(left, right) {
-    var result = zeros(left.length, right[0].length);
-    for (var row = 0; row < left.length; row += 1) {
-      for (var column = 0; column < right[0].length; column += 1) {
-        for (var inner = 0; inner < right.length; inner += 1) {
-          result[row][column] += left[row][inner] * right[inner][column];
-        }
-      }
-    }
-    return result;
-  }
 
-  function transpose(matrix) {
-    return matrix[0].map(function (_, column) {
-      return matrix.map(function (row) { return row[column]; });
-    });
-  }
 
-  function subtractMatrices(left, right) {
-    return left.map(function (row, rowIndex) {
-      return row.map(function (value, columnIndex) { return value - right[rowIndex][columnIndex]; });
-    });
-  }
-
-  function matrixFrobenius(matrix) {
-    var scale = 0;
-    var sum = 1;
-    matrix.forEach(function (row) {
-      row.forEach(function (value) {
-        var magnitude = Math.abs(value);
-        if (magnitude === 0) return;
-        if (scale < magnitude) {
-          sum = scale === 0 ? 1 : 1 + sum * Math.pow(scale / magnitude, 2);
-          scale = magnitude;
-        } else {
-          sum += Math.pow(magnitude / scale, 2);
-        }
-      });
-    });
-    return scale === 0 ? 0 : scale * Math.sqrt(sum);
-  }
-
-  function solve2(matrix, right) {
-    var scale = matrixFrobenius(matrix);
-    if (!finite(scale) || scale === 0) {
-      var zeroError = new RangeError("singular shifted system");
-      zeroError.code = "SINGULAR_SHIFT";
-      throw zeroError;
-    }
-    var a = matrix[0][0] / scale;
-    var b = matrix[0][1] / scale;
-    var c = matrix[1][0] / scale;
-    var d = matrix[1][1] / scale;
-    var determinant = a * d - b * c;
-    if (Math.abs(determinant) <= relativeTolerance(1, SOLVE_RELATIVE_TOLERANCE)) {
-      var singularError = new RangeError("singular shifted system");
-      singularError.code = "SINGULAR_SHIFT";
-      throw singularError;
-    }
-    return [
-      (d * (right[0] / scale) - b * (right[1] / scale)) / determinant,
-      (-c * (right[0] / scale) + a * (right[1] / scale)) / determinant
-    ];
-  }
-
-  function isSymmetric(matrix) {
-    var scale = matrixFrobenius(matrix);
-    return scale === 0 || Math.abs((matrix[0][1] - matrix[1][0]) / scale) <=
-      relativeTolerance(1, CLASSIFICATION_RELATIVE_TOLERANCE);
-  }
-
-  function isNormal(matrix) {
-    var scale = matrixFrobenius(matrix);
-    if (scale === 0) return true;
-    var normalized = matrix.map(function (row) {
-      return row.map(function (value) { return value / scale; });
-    });
-    var left = matMul(normalized, transpose(normalized));
-    var right = matMul(transpose(normalized), normalized);
-    return matrixFrobenius(subtractMatrices(left, right)) <=
-      relativeTolerance(1, CLASSIFICATION_RELATIVE_TOLERANCE);
-  }
-
-  function matrixClass(matrix) {
-    return isSymmetric(matrix) ? "symmetric" : isNormal(matrix) ? "normal" : "nonnormal";
-  }
-
-  function eigenvalues2(matrix) {
-    var scale = matrixFrobenius(matrix);
-    if (scale === 0) {
-      return { real: true, values: [0, 0], discriminant: 0 };
-    }
-    var a = matrix[0][0] / scale;
-    var b = matrix[0][1] / scale;
-    var c = matrix[1][0] / scale;
-    var d = matrix[1][1] / scale;
-    var trace = a + d;
-    var determinant = a * d - b * c;
-    var discriminant = trace * trace - 4 * determinant;
-    var discriminantScale = Math.max(trace * trace, 4 * Math.abs(determinant));
-    var discriminantTolerance = relativeTolerance(discriminantScale, DISCRIMINANT_RELATIVE_TOLERANCE);
-    if (discriminant < -discriminantTolerance) {
-      var imaginary = Math.sqrt(-discriminant) / 2 * scale;
-      return {
-        real: false,
-        values: [
-          { real: trace / 2 * scale, imag: imaginary },
-          { real: trace / 2 * scale, imag: -imaginary }
-        ],
-        discriminant: discriminant * scale * scale
-      };
-    }
-    var radius = Math.sqrt(Math.max(0, discriminant)) / 2 * scale;
-    return {
-      real: true,
-      values: [trace / 2 * scale + radius, trace / 2 * scale - radius],
-      discriminant: discriminant * scale * scale
-    };
-  }
-
-  function eigenvector2(matrix, eigenvalue) {
-    var candidates = [
-      [matrix[0][1], eigenvalue - matrix[0][0]],
-      [eigenvalue - matrix[1][1], matrix[1][0]]
-    ];
-    for (var index = 0; index < candidates.length; index += 1) {
-      if (norm(candidates[index]) > 0) return normalize(candidates[index]);
-    }
-    return null;
-  }
-
-  function spectralInfo(matrix, targetIndex) {
-    var spectrum = eigenvalues2(matrix);
-    var kind = matrixClass(matrix);
-    var target = spectrum.real && targetIndex !== null && targetIndex !== undefined
-      ? spectrum.values[targetIndex]
-      : null;
-    var targetVector = target === null ? null : eigenvector2(matrix, target);
-    var gap = null;
-    if (target !== null) {
-      gap = Math.min.apply(null, spectrum.values.map(function (value, index) {
-        return index === targetIndex ? Infinity : Math.abs(target - value);
-      }));
-    }
-    return {
-      kind: kind,
-      normal: kind === "symmetric" || kind === "normal",
-      spectrum: spectrum,
-      targetIndex: targetIndex === undefined ? null : targetIndex,
-      targetEigenvalue: target,
-      targetVector: targetVector,
-      gap: gap
-    };
-  }
-
-  function defaultTargetIndex(matrix, targetIndex) {
-    if (targetIndex !== undefined) return targetIndex;
-    return eigenvalues2(matrix).real ? 0 : null;
-  }
-
-  function nearestRealEigenvalueIndex(spectrum, value, fallback) {
-    if (!spectrum.real || !finite(value)) return null;
-    var selected = fallback === null || fallback === undefined ? 0 : fallback;
-    var distance = Infinity;
-    spectrum.values.forEach(function (candidate, index) {
-      var currentDistance = Math.abs(candidate - value);
-      if (currentDistance < distance) {
-        distance = currentDistance;
-        selected = index;
-      }
-    });
-    return selected;
-  }
-
-  function targetIndexForEstimate(matrix, estimate, fallback) {
-    return nearestRealEigenvalueIndex(eigenvalues2(matrix), estimate, fallback);
-  }
-
-  function angleBetween(left, right) {
-    if (!left || !right) return null;
-    var denominator = norm(left) * norm(right);
-    if (denominator === 0) return null;
-    return Math.acos(clamp(Math.abs(dot(left, right) / denominator), -1, 1));
-  }
-
-  function rayleighQuotient(matrix, vector) {
-    var denominator = dot(vector, vector);
-    if (denominator === 0) return null;
-    return dot(vector, matVec(matrix, vector)) / denominator;
-  }
-
-  function residualNorm(matrix, vector, eigenvalueEstimate) {
-    return norm(subtractVectors(matVec(matrix, vector), scaleVector(vector, eigenvalueEstimate)));
-  }
-
-  function exactResidualTolerance(matrix, eigenvalueEstimate) {
-    return relativeTolerance(matrixFrobenius(matrix) + Math.abs(eigenvalueEstimate), 1e-12);
-  }
-
-  function isExactEigenpair(matrix, vector, eigenvalueEstimate) {
-    return finite(eigenvalueEstimate) && residualNorm(matrix, vector, eigenvalueEstimate) <=
-      exactResidualTolerance(matrix, eigenvalueEstimate);
-  }
-
-  function measurement(matrix, vector, eigenvalueEstimate, info, iteration, method) {
-    var residual = residualNorm(matrix, vector, eigenvalueEstimate);
-    var angle = angleBetween(vector, info.targetVector);
-    var separation = info.spectrum.real && info.targetIndex !== null && info.targetIndex !== undefined
-      ? Math.min.apply(null, info.spectrum.values.map(function (value, index) {
-        return index === info.targetIndex ? Infinity : Math.abs(value - eigenvalueEstimate);
-      }))
-      : null;
-    var certificate = info.normal && separation !== null && separation > 0
-      ? Math.min(1, residual / separation)
-      : null;
-    return {
-      iteration: iteration,
-      method: method,
-      vector: copy(vector),
-      eigenvalue: eigenvalueEstimate,
-      residual: residual,
-      angle: angle,
-      angleDeg: angle === null ? null : angle * 180 / Math.PI,
-      sinAngle: angle === null ? null : Math.sin(angle),
-      gap: info.gap,
-      separation: separation,
-      certificateBound: certificate,
-      targetIndex: info.targetIndex,
-      targetEigenvalue: info.targetEigenvalue
-    };
-  }
-
-  function dynamicMeasurement(matrix, vector, eigenvalueEstimate, fallbackTarget, iteration, method) {
-    var targetIndex = targetIndexForEstimate(matrix, eigenvalueEstimate, fallbackTarget);
-    return measurement(matrix, vector, eigenvalueEstimate, spectralInfo(matrix, targetIndex), iteration, method);
-  }
-
-  function initialVector(input) {
-    if (input && Array.isArray(input.x0)) return normalize(input.x0.map(Number));
-    var degrees = input && finite(Number(input.initialAngle)) ? Number(input.initialAngle) : 19;
-    var radians = degrees * Math.PI / 180;
-    return [Math.cos(radians), Math.sin(radians)];
-  }
-
-  function powerIteration(matrix, x0, steps, targetIndex) {
-    var selectedTarget = defaultTargetIndex(matrix, targetIndex);
-    var info = spectralInfo(matrix, selectedTarget);
-    var vector = normalize(x0);
-    var rows = [measurement(matrix, vector, rayleighQuotient(matrix, vector), info, 0, "power")];
-    var status = "complete";
-    for (var iteration = 1; iteration <= steps; iteration += 1) {
-      var next = matVec(matrix, vector);
-      if (norm(next) === 0) {
-        status = "stalled";
-        break;
-      }
-      vector = normalize(next);
-      rows.push(measurement(matrix, vector, rayleighQuotient(matrix, vector), info, iteration, "power"));
-    }
-    return { method: "power", rows: rows, status: status };
-  }
-
-  function inverseIteration(matrix, shift, x0, steps, targetIndex) {
-    var spectrum = eigenvalues2(matrix);
-    var requestedTarget = defaultTargetIndex(matrix, targetIndex);
-    var selectedTarget = spectrum.real ? nearestRealEigenvalueIndex(spectrum, shift, requestedTarget) : null;
-    var vector = normalize(x0);
-    var initialEstimate = rayleighQuotient(matrix, vector);
-    var rows = [dynamicMeasurement(matrix, vector, initialEstimate, selectedTarget, 0, "inverse")];
-    var status = "complete";
-    for (var iteration = 1; iteration <= steps; iteration += 1) {
-      try {
-        vector = normalize(solve2([
-          [matrix[0][0] - shift, matrix[0][1]],
-          [matrix[1][0], matrix[1][1] - shift]
-        ], vector));
-      } catch (error) {
-        status = "singular-shift";
-        break;
-      }
-      var estimate = rayleighQuotient(matrix, vector);
-      rows.push(dynamicMeasurement(matrix, vector, estimate, selectedTarget, iteration, "inverse"));
-    }
-    return {
-      method: "inverse",
-      shift: shift,
-      targetIndex: rows[rows.length - 1].targetIndex,
-      targetEigenvalue: rows[rows.length - 1].targetEigenvalue,
-      rows: rows,
-      status: status
-    };
-  }
-
-  function rayleighIteration(matrix, x0, steps, targetIndex) {
-    var selectedTarget = defaultTargetIndex(matrix, targetIndex);
-    var vector = normalize(x0);
-    var initialEstimate = rayleighQuotient(matrix, vector);
-    var rows = [dynamicMeasurement(matrix, vector, initialEstimate, selectedTarget, 0, "rayleigh")];
-    var status = isExactEigenpair(matrix, vector, initialEstimate) ? "exact-convergence" : "complete";
-    for (var iteration = 1; iteration <= steps; iteration += 1) {
-      if (status === "exact-convergence") break;
-      var shift = rayleighQuotient(matrix, vector);
-      if (isExactEigenpair(matrix, vector, shift)) {
-        status = "exact-convergence";
-        break;
-      }
-      try {
-        vector = normalize(solve2([
-          [matrix[0][0] - shift, matrix[0][1]],
-          [matrix[1][0], matrix[1][1] - shift]
-        ], vector));
-      } catch (error) {
-        status = "singular-shift";
-        break;
-      }
-      var estimate = rayleighQuotient(matrix, vector);
-      rows.push(dynamicMeasurement(matrix, vector, estimate, selectedTarget, iteration, "rayleigh"));
-      if (isExactEigenpair(matrix, vector, estimate)) {
-        status = "exact-convergence";
-        break;
-      }
-    }
-    return {
-      method: "rayleigh",
-      targetIndex: rows[rows.length - 1].targetIndex,
-      targetEigenvalue: rows[rows.length - 1].targetEigenvalue,
-      rows: rows,
-      status: status
-    };
-  }
-
-  function qrDecompose(matrix) {
-    var rows = matrix.length;
-    var columns = matrix[0].length;
-    var R = copy(matrix);
-    var Q = identity(rows);
-    var matrixScale = matrixFrobenius(matrix);
-    var zeroThreshold = ULP_FACTOR * ulp(matrixScale);
-    var limit = Math.min(rows, columns);
-    for (var pivot = 0; pivot < limit; pivot += 1) {
-      var vector = [];
-      for (var row = pivot; row < rows; row += 1) vector.push(R[row][pivot]);
-      var length = norm(vector);
-      if (length <= zeroThreshold) {
-        for (var zeroRow = pivot + 1; zeroRow < rows; zeroRow += 1) R[zeroRow][pivot] = 0;
-        continue;
-      }
-      var sign = vector[0] < 0 ? -1 : 1;
-      vector[0] += sign * length;
-      var reflectorNorm = dot(vector, vector);
-      if (reflectorNorm === 0) continue;
-      for (var column = pivot; column < columns; column += 1) {
-        var projection = 0;
-        for (var sourceRow = pivot; sourceRow < rows; sourceRow += 1) {
-          projection += vector[sourceRow - pivot] * R[sourceRow][column];
-        }
-        projection = 2 * projection / reflectorNorm;
-        for (var targetRow = pivot; targetRow < rows; targetRow += 1) {
-          R[targetRow][column] -= projection * vector[targetRow - pivot];
-        }
-      }
-      for (var qRow = 0; qRow < rows; qRow += 1) {
-        var qProjection = 0;
-        for (var qColumn = pivot; qColumn < rows; qColumn += 1) {
-          qProjection += Q[qRow][qColumn] * vector[qColumn - pivot];
-        }
-        qProjection = 2 * qProjection / reflectorNorm;
-        for (var qTarget = pivot; qTarget < rows; qTarget += 1) {
-          Q[qRow][qTarget] -= qProjection * vector[qTarget - pivot];
-        }
-      }
-      for (var cleanupRow = pivot + 1; cleanupRow < rows; cleanupRow += 1) R[cleanupRow][pivot] = 0;
-    }
-    return { Q: Q, R: R };
-  }
-
-  function strictLowerNorm(matrix) {
-    var values = [];
-    matrix.forEach(function (row, rowIndex) {
-      row.forEach(function (value, columnIndex) {
-        if (rowIndex > columnIndex) values.push(value);
-      });
-    });
-    return norm(values);
-  }
-
-  function fullOffDiagonalNorm(matrix) {
-    var values = [];
-    matrix.forEach(function (row, rowIndex) {
-      row.forEach(function (value, columnIndex) {
-        if (rowIndex !== columnIndex) values.push(value);
-      });
-    });
-    return norm(values);
-  }
-
-  function qrPairing(diagonal, spectrum) {
-    if (!spectrum.real) return null;
-    var direct = Math.abs(diagonal[0] - spectrum.values[0]) + Math.abs(diagonal[1] - spectrum.values[1]);
-    var swapped = Math.abs(diagonal[0] - spectrum.values[1]) + Math.abs(diagonal[1] - spectrum.values[0]);
-    return swapped < direct ? [1, 0] : [0, 1];
-  }
-
-  function qrIteration(matrix, steps, targetIndex) {
-    var initial = copy(matrix);
-    var selectedTarget = defaultTargetIndex(initial, targetIndex);
-    var info = spectralInfo(initial, selectedTarget);
-    var current = copy(initial);
-    var accumulated = identity(initial.length);
-    var rows = [];
-    for (var iteration = 0; iteration <= steps; iteration += 1) {
-      var diagonal = current.map(function (row, index) { return row[index]; });
-      var vectors = [];
-      for (var column = 0; column < accumulated[0].length; column += 1) {
-        vectors.push(accumulated.map(function (row) { return row[column]; }));
-      }
-      var pairing = qrPairing(diagonal, info.spectrum);
-      var actualTarget = selectedTarget === null || pairing === null ? null : pairing[selectedTarget];
-      var targetVector = actualTarget === null ? null : eigenvector2(initial, info.spectrum.values[actualTarget]);
-      var targetGap = actualTarget === null ? null : Math.min.apply(null, info.spectrum.values.map(function (value, index) {
-        return index === actualTarget ? Infinity : Math.abs(info.spectrum.values[actualTarget] - value);
-      }));
-      var targetAngle = selectedTarget === null || targetVector === null ? null :
-        angleBetween(vectors[selectedTarget], targetVector);
-      var targetEstimate = selectedTarget === null ? null : diagonal[selectedTarget];
-      var residual = selectedTarget === null ? null :
-        norm(subtractVectors(matVec(initial, vectors[selectedTarget]), scaleVector(vectors[selectedTarget], targetEstimate)));
-      var separation = info.spectrum.real && actualTarget !== null
-        ? Math.min.apply(null, info.spectrum.values.map(function (value, index) {
-          return index === actualTarget ? Infinity : Math.abs(value - targetEstimate);
-        }))
-        : null;
-      rows.push({
-        iteration: iteration,
-        method: "qr",
-        diagonal: copy(diagonal),
-        subdiagonal: strictLowerNorm(current),
-        offDiagonal: fullOffDiagonalNorm(current),
-        eigenvalueError: info.spectrum.real ? Math.min(
-          Math.abs(diagonal[0] - info.spectrum.values[0]) + Math.abs(diagonal[1] - info.spectrum.values[1]),
-          Math.abs(diagonal[0] - info.spectrum.values[1]) + Math.abs(diagonal[1] - info.spectrum.values[0])
-        ) : null,
-        eigenvalue: targetEstimate,
-        targetIndex: actualTarget,
-        targetEigenvalue: actualTarget === null ? null : info.spectrum.values[actualTarget],
-        residual: residual,
-        angle: targetAngle,
-        angleDeg: targetAngle === null ? null : targetAngle * 180 / Math.PI,
-        sinAngle: targetAngle === null ? null : Math.sin(targetAngle),
-        gap: targetGap,
-        separation: separation,
-        certificateBound: info.normal && separation !== null && separation > 0 && residual !== null
-          ? Math.min(1, residual / separation)
-          : null,
-        vectors: copy(vectors)
-      });
-      if (iteration === steps) break;
-      var decomposition = qrDecompose(current);
-      current = matMul(decomposition.R, decomposition.Q);
-      accumulated = matMul(accumulated, decomposition.Q);
-    }
-    return {
-      method: "qr",
-      targetIndex: rows[rows.length - 1].targetIndex,
-      targetEigenvalue: rows[rows.length - 1].targetEigenvalue,
-      rows: rows,
-      status: "complete",
-      finalMatrix: current
-    };
-  }
-
-  function presetById(id) {
-    for (var index = 0; index < PRESETS.length; index += 1) {
-      if (PRESETS[index].id === id) return PRESETS[index];
-    }
-    return PRESETS[0];
-  }
-
-  function compute(input) {
-    var source = input || {};
-    var preset = presetById(source.presetId || DEFAULT.presetId);
-    var matrix = source.matrix ? copy(source.matrix) : copy(preset.matrix);
-    if (!Array.isArray(matrix) || matrix.length !== 2 || matrix.some(function (row) {
-      return !Array.isArray(row) || row.length !== 2 || row.some(function (value) { return !finite(Number(value)); });
-    })) throw new RangeError("matrix must be a finite 2x2 array");
-    matrix = matrix.map(function (row) { return row.map(Number); });
-    var targetIndex = source.targetIndex === undefined ? preset.targetIndex : source.targetIndex;
-    var info = spectralInfo(matrix, targetIndex);
-    var steps = Math.round(clamp(source.steps === undefined ? DEFAULT.steps : Number(source.steps), 1, 16));
-    var vector = initialVector(source.initialAngle === undefined && source.x0 === undefined
-      ? { initialAngle: preset.initialAngle }
-      : source);
-    var shift = source.shift === undefined ? preset.shift : Number(source.shift);
-    if (!finite(shift)) shift = preset.shift;
-    var power = powerIteration(matrix, vector, steps, targetIndex);
-    var inverse = inverseIteration(matrix, shift, vector, steps, targetIndex);
-    var rayleigh = rayleighIteration(matrix, vector, steps, targetIndex);
-    var qr = qrIteration(matrix, steps, targetIndex);
-    return {
-      presetId: preset.id,
-      label: preset.label,
-      matrix: matrix,
-      matrixClass: info.kind,
-      normalGuarantee: info.normal,
-      spectrum: info.spectrum,
-      targetIndex: targetIndex,
-      targetEigenvalue: info.targetEigenvalue,
-      targetVector: info.targetVector,
-      spectralGap: info.gap,
-      steps: steps,
-      initialVector: vector,
-      shift: shift,
-      power: power,
-      inverse: inverse,
-      inverseTargetIndex: inverse.targetIndex,
-      inverseTargetEigenvalue: inverse.targetEigenvalue,
-      rayleigh: rayleigh,
-      qr: qr,
-      qrTargetIndex: qr.targetIndex,
-      qrTargetEigenvalue: qr.targetEigenvalue
-    };
-  }
-
-  function lastRow(result) {
-    return result.rows[result.rows.length - 1];
-  }
-
-  function format(value, digits) {
-    if (value === null || value === undefined) return "—";
-    if (!finite(value)) return "∞";
-    var places = digits === undefined ? 4 : digits;
-    if (Math.abs(value) > 0 && (Math.abs(value) < 0.001 || Math.abs(value) >= 10000)) {
-      return value.toExponential(Math.min(places, 4));
-    }
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function element(doc, tag, attrs, children) {
-    var node = doc.createElement(tag);
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", value);
-      else if (key === "text") node.textContent = value;
-      else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, String(value));
-    });
-    append(node, children, doc);
-    return node;
-  }
-
-  function svgElement(doc, tag, attrs, children) {
-    var node = doc.createElementNS(SVG_NS, tag);
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (key === "className") key = "class";
-      if (value !== undefined && value !== null && value !== false) node.setAttribute(key, String(value));
-    });
-    append(node, children, doc);
-    return node;
-  }
-
-  function append(node, children, doc) {
-    if (children === undefined || children === null) return node;
-    (Array.isArray(children) ? children : [children]).forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child && child.nodeType ? child : doc.createTextNode(String(child)));
-    });
-    return node;
-  }
-
-  function clear(node) {
-    while (node.firstChild) node.removeChild(node.firstChild);
-  }
-
-  function installStyles(doc) {
-    if (doc.getElementById(STYLE_ID)) return;
-    var style = doc.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = STYLE_TEXT;
-    (doc.head || doc.documentElement).appendChild(style);
-  }
-
-  function metric(doc, label, value) {
-    return element(doc, "div", { className: "eigen-metric" }, [
-      element(doc, "span", { text: label }),
-      element(doc, "strong", { text: value })
-    ]);
-  }
-
-  function linePath(rows, field, x, y) {
-    var segments = [];
-    var current = [];
-    rows.forEach(function (row) {
-      if (finite(row[field])) {
-        current.push([x(row.iteration), y(row[field])]);
-      } else if (current.length) {
-        segments.push(current);
-        current = [];
-      }
-    });
-    if (current.length) segments.push(current);
-    return segments.map(function (points) {
-      return points.map(function (point, index) {
-        return (index ? "L" : "M") + point[0].toFixed(2) + " " + point[1].toFixed(2);
-      }).join(" ");
-    });
-  }
-
-  function drawConvergence(doc, svg, data, field, title, yLabel, uid, logarithmic) {
-    clear(svg);
-    var width = 760;
-    var height = 300;
-    var left = 62;
-    var right = 20;
-    var top = 38;
-    var bottom = 48;
-    var plotRight = width - right;
-    var plotBottom = height - bottom;
-    var methods = [
-      { key: "power", label: "幂法", className: "eigen-power" },
-      { key: "inverse", label: "反幂法", className: "eigen-inverse" },
-      { key: "rayleigh", label: "Rayleigh", className: "eigen-rayleigh" },
-      { key: "qr", label: "QR", className: "eigen-qr" }
-    ];
-    var values = [];
-    methods.forEach(function (method) {
-      data[method.key].rows.forEach(function (row) {
-        if (finite(row[field])) values.push(logarithmic ? Math.log10(Math.max(row[field], 1e-12)) : row[field]);
-      });
-    });
-    var minimum = values.length ? Math.min.apply(null, values) : 0;
-    var maximum = values.length ? Math.max.apply(null, values) : 1;
-    if (logarithmic) {
-      minimum = Math.min(-12, Math.floor(minimum));
-      maximum = Math.max(0, Math.ceil(maximum));
-    } else {
-      minimum = Math.min(0, minimum);
-      maximum = Math.max(1, maximum);
-    }
-    if (maximum - minimum < 1e-9) { maximum += 1; minimum -= 1; }
-    function x(value) { return left + value / data.steps * (plotRight - left); }
-    function y(value) {
-      var scaled = logarithmic ? Math.log10(Math.max(value, 1e-12)) : value;
-      return plotBottom - (scaled - minimum) / (maximum - minimum) * (plotBottom - top);
-    }
-    svg.setAttribute("viewBox", "0 0 " + width + " " + height);
-    svg.setAttribute("role", "img");
-    svg.appendChild(svgElement(doc, "title", { id: uid + "-title" }, title));
-    svg.appendChild(svgElement(doc, "desc", { id: uid + "-desc" },
-      "横轴是迭代次数；曲线分别显示幂法、反幂法、Rayleigh 商迭代和 QR 的 " + yLabel + "。"));
-    svg.setAttribute("aria-labelledby", uid + "-title " + uid + "-desc");
-    [0, 0.5, 1].forEach(function (fraction) {
-      var value = minimum + fraction * (maximum - minimum);
-      var yy = plotBottom - fraction * (plotBottom - top);
-      svg.appendChild(svgElement(doc, "line", {
-        x1: left, y1: yy, x2: plotRight, y2: yy,
-        className: fraction === 0 ? "eigen-axis" : "eigen-grid-line"
-      }));
-      svg.appendChild(svgElement(doc, "text", { x: left - 8, y: yy + 4, "text-anchor": "end", "font-size": 11 },
-        logarithmic ? "10^" + format(value, 0) : format(value, 2)));
-    });
-    [0, Math.round(data.steps / 2), data.steps].forEach(function (tick) {
-      svg.appendChild(svgElement(doc, "line", {
-        x1: x(tick), y1: top, x2: x(tick), y2: plotBottom, className: "eigen-grid-line"
-      }));
-      svg.appendChild(svgElement(doc, "text", { x: x(tick), y: plotBottom + 18, "text-anchor": "middle", "font-size": 11 },
-        String(tick)));
-    });
-    svg.appendChild(svgElement(doc, "line", { x1: left, y1: plotBottom, x2: plotRight, y2: plotBottom, className: "eigen-axis" }));
-    svg.appendChild(svgElement(doc, "line", { x1: left, y1: top, x2: left, y2: plotBottom, className: "eigen-axis" }));
-    methods.forEach(function (method, index) {
-      linePath(data[method.key].rows, field, x, y).forEach(function (path) {
-        svg.appendChild(svgElement(doc, "path", { d: path, className: method.className + " eigen-line" }));
-      });
-      var final = lastRow(data[method.key]);
-      if (finite(final[field])) {
-        svg.appendChild(svgElement(doc, "circle", {
-          cx: x(final.iteration), cy: y(final[field]), r: 4, className: method.className + " eigen-dot", fill: "currentColor"
-        }));
-      }
-      var legendX = left + index * 166;
-      svg.appendChild(svgElement(doc, "line", {
-        x1: legendX, y1: 18, x2: legendX + 22, y2: 18, className: method.className + " eigen-line"
-      }));
-      svg.appendChild(svgElement(doc, "text", { x: legendX + 28, y: 22, "font-size": 11 }, method.label));
-    });
-    svg.appendChild(svgElement(doc, "text", { x: left, y: 22, "font-size": 13, "font-weight": 750 }, title));
-    svg.appendChild(svgElement(doc, "text", { x: (left + plotRight) / 2, y: height - 10, "text-anchor": "middle", "font-size": 12 },
-      "迭代次数 k"));
-    return svg;
-  }
-
-  function drawQR(doc, svg, data, uid) {
-    clear(svg);
-    var rows = data.qr.rows;
-    var width = 760;
-    var height = 300;
-    var left = 62;
-    var right = 20;
-    var top = 38;
-    var bottom = 48;
-    var plotRight = width - right;
-    var plotBottom = height - bottom;
-    var values = rows.map(function (row) { return row.subdiagonal; });
-    var minimum = 0;
-    var maximum = Math.max(1e-9, Math.max.apply(null, values));
-    if (maximum === minimum) maximum = 1;
-    function x(value) { return left + value / data.steps * (plotRight - left); }
-    function y(value) { return plotBottom - value / maximum * (plotBottom - top); }
-    svg.setAttribute("viewBox", "0 0 " + width + " " + height);
-    svg.setAttribute("role", "img");
-    svg.appendChild(svgElement(doc, "title", { id: uid + "-title" }, "QR 的严格下三角范数"));
-    svg.appendChild(svgElement(doc, "desc", { id: uid + "-desc" },
-      "金色曲线是每轮 QR 后矩阵的严格下三角 Frobenius 范数；全非对角范数另列在 ledger 中。"));
-    svg.setAttribute("aria-labelledby", uid + "-title " + uid + "-desc");
-    [0, 0.5, 1].forEach(function (fraction) {
-      var yy = plotBottom - fraction * (plotBottom - top);
-      svg.appendChild(svgElement(doc, "line", { x1: left, y1: yy, x2: plotRight, y2: yy,
-        className: fraction === 0 ? "eigen-axis" : "eigen-grid-line" }));
-      svg.appendChild(svgElement(doc, "text", { x: left - 8, y: yy + 4, "text-anchor": "end", "font-size": 11 },
-        format(fraction * maximum, 3)));
-    });
-    [0, Math.round(data.steps / 2), data.steps].forEach(function (tick) {
-      svg.appendChild(svgElement(doc, "line", { x1: x(tick), y1: top, x2: x(tick), y2: plotBottom, className: "eigen-grid-line" }));
-      svg.appendChild(svgElement(doc, "text", { x: x(tick), y: plotBottom + 18, "text-anchor": "middle", "font-size": 11 }, String(tick)));
-    });
-    svg.appendChild(svgElement(doc, "line", { x1: left, y1: plotBottom, x2: plotRight, y2: plotBottom, className: "eigen-axis" }));
-    svg.appendChild(svgElement(doc, "line", { x1: left, y1: top, x2: left, y2: plotBottom, className: "eigen-axis" }));
-    var path = rows.map(function (row, index) {
-      return (index ? "L" : "M") + x(row.iteration).toFixed(2) + " " + y(row.subdiagonal).toFixed(2);
-    }).join(" ");
-    svg.appendChild(svgElement(doc, "path", { d: path, className: "eigen-qr eigen-line" }));
-    rows.forEach(function (row) {
-      svg.appendChild(svgElement(doc, "circle", {
-        cx: x(row.iteration), cy: y(row.subdiagonal), r: 4, className: "eigen-qr eigen-dot", fill: "currentColor"
-      }));
-    });
-    svg.appendChild(svgElement(doc, "text", { x: left, y: 22, "font-size": 13, "font-weight": 750 }, "QR 严格下三角范数"));
-    svg.appendChild(svgElement(doc, "text", { x: (left + plotRight) / 2, y: height - 10, "text-anchor": "middle", "font-size": 12 },
-      "迭代次数 k"));
-  }
-
-  function summaryTable(doc, data) {
-    var table = element(doc, "table", {});
-    table.appendChild(element(doc, "caption", { text: "最终残差、角度、谱隙与当前 separation 证书 ledger" }));
-    table.appendChild(element(doc, "thead", {}, element(doc, "tr", {}, [
-      element(doc, "th", { scope: "col", text: "方法" }),
-      element(doc, "th", { scope: "col", text: "轮数" }),
-      element(doc, "th", { scope: "col", text: "实际配对目标" }),
-      element(doc, "th", { scope: "col", text: "特征值估计" }),
-      element(doc, "th", { scope: "col", text: "残差 ||r||₂" }),
-      element(doc, "th", { scope: "col", text: "角度 θ" }),
-      element(doc, "th", { scope: "col", text: "gap / separation 证书" }),
-      element(doc, "th", { scope: "col", text: "状态" })
-    ])));
-    var body = element(doc, "tbody", {});
-    [
-      ["幂法", data.power],
-      ["反幂法", data.inverse],
-      ["Rayleigh 商", data.rayleigh],
-      ["QR", data.qr]
-    ].forEach(function (item) {
-      var row = lastRow(item[1]);
-      var certificate = row.certificateBound === null ? "不提供" :
-        "sin θ≤" + format(row.certificateBound, 4) + "（sep_i(ρ)=" + format(row.separation, 4) + "）";
-      body.appendChild(element(doc, "tr", {}, [
-        element(doc, "th", { scope: "row", text: item[0] }),
-        element(doc, "td", { text: String(row.iteration) }),
-        element(doc, "td", { text: row.targetEigenvalue === null ? "—" : "λ=" + format(row.targetEigenvalue, 6) }),
-        element(doc, "td", { text: format(row.eigenvalue, 6) }),
-        element(doc, "td", { text: format(row.residual, 6) }),
-        element(doc, "td", { text: row.angleDeg === null ? "—" : format(row.angleDeg, 4) + "°" }),
-        element(doc, "td", { className: row.certificateBound === null ? "eigen-bad" : "eigen-good", text: certificate }),
-        element(doc, "td", { text: item[1].status })
-      ]));
-    });
-    table.appendChild(body);
-    return table;
-  }
-
-  function qrTable(doc, data) {
-    var table = element(doc, "table", {});
-    table.appendChild(element(doc, "caption", { text: "QR 逐轮对角估计、严格下三角与全非对角范数" }));
-    table.appendChild(element(doc, "thead", {}, element(doc, "tr", {}, [
-      element(doc, "th", { scope: "col", text: "k" }),
-      element(doc, "th", { scope: "col", text: "实际配对目标" }),
-      element(doc, "th", { scope: "col", text: "对角估计" }),
-      element(doc, "th", { scope: "col", text: "严格下三角范数" }),
-      element(doc, "th", { scope: "col", text: "全非对角范数" }),
-      element(doc, "th", { scope: "col", text: "特征值误差" }),
-      element(doc, "th", { scope: "col", text: "目标角度" })
-    ])));
-    var body = element(doc, "tbody", {});
-    data.qr.rows.forEach(function (row) {
-      body.appendChild(element(doc, "tr", {}, [
-        element(doc, "th", { scope: "row", text: String(row.iteration) }),
-        element(doc, "td", { text: row.targetEigenvalue === null ? "—" : "λ=" + format(row.targetEigenvalue, 6) }),
-        element(doc, "td", { text: row.diagonal.map(function (value) { return format(value, 6); }).join(", ") }),
-        element(doc, "td", { text: format(row.subdiagonal, 7) }),
-        element(doc, "td", { text: format(row.offDiagonal, 7) }),
-        element(doc, "td", { text: format(row.eigenvalueError, 7) }),
-        element(doc, "td", { text: row.angleDeg === null ? "—" : format(row.angleDeg, 4) + "°" })
-      ]));
-    });
-    table.appendChild(body);
-    return table;
-  }
-
-  function mount(root, api) {
-    var doc = root.ownerDocument;
-    installStyles(doc);
-    var instanceId = "cl-eigen-" + (++INSTANCE);
-    var state = {
-      presetId: DEFAULT.presetId,
-      steps: DEFAULT.steps,
-      initialAngle: presetById(DEFAULT.presetId).initialAngle,
-      shift: presetById(DEFAULT.presetId).shift,
-      predictions: { fastest: null, certificate: null },
-      score: null,
-      revealed: false
-    };
-
-    function current() {
-      return compute({
-        presetId: state.presetId,
-        steps: state.steps,
-        initialAngle: state.initialAngle,
-        shift: state.shift
-      });
-    }
-
-    function choiceButton(group, value, label) {
-      var button = element(doc, "button", {
-        type: "button",
-        "aria-pressed": state.predictions[group] === value ? "true" : "false",
-        text: label
-      });
-      button.addEventListener("click", function () {
-        state.predictions[group] = value;
-        render();
-      });
-      return button;
-    }
-
-    function render() {
-      var data = current();
-      var shell = element(doc, "div", { className: "eigen-lab" });
-      shell.appendChild(element(doc, "h3", { text: "特征值迭代 ledger" }));
-      shell.appendChild(element(doc, "p", { className: "eigen-note", text:
-        "先选矩阵并作答；揭示后可拖动轮数、初始方向和反幂位移。残差、角度与谱隙始终分栏。" }));
-      var presetField = element(doc, "fieldset", {});
-      presetField.appendChild(element(doc, "legend", { text: "矩阵预设（切换会重新隐藏结果）" }));
-      var presetGrid = element(doc, "div", { className: "eigen-preset-grid", role: "group", "aria-label": "特征值矩阵预设" });
-      PRESETS.forEach(function (preset) {
-        var button = element(doc, "button", {
-          type: "button",
-          "aria-pressed": state.presetId === preset.id ? "true" : "false",
-          title: preset.label,
-          text: preset.label
-        });
-        button.addEventListener("click", function () {
-          state.presetId = preset.id;
-          state.initialAngle = preset.initialAngle;
-          state.shift = preset.shift;
-          state.predictions = { fastest: null, certificate: null };
-          state.score = null;
-          state.revealed = false;
-          render();
-        });
-        presetGrid.appendChild(button);
-      });
-      presetField.appendChild(presetGrid);
-      shell.appendChild(presetField);
-      if (!state.revealed) {
-        shell.appendChild(element(doc, "div", { className: "eigen-prompt" }, [
-          element(doc, "strong", { text: "预测门：" }),
-          element(doc, "span", { text: "先押注当前主示例的局部最快方法，再判断小残差是否足以证明角度准确。" })
-        ]));
-        var questions = element(doc, "div", { className: "eigen-question-list" });
-        questions.appendChild(element(doc, "div", { className: "eigen-question" }, [
-          element(doc, "strong", { text: "1. 在主示例（预设 A）上，谁最可能最快？" }),
-          element(doc, "div", { className: "eigen-choice-grid", role: "group", "aria-label": "收敛速度预测" }, [
-            choiceButton("fastest", "rayleigh", "Rayleigh 商迭代"),
-            choiceButton("fastest", "power", "幂法"),
-            choiceButton("fastest", "qr", "对称 QR")
-          ])
-        ]));
-        questions.appendChild(element(doc, "div", { className: "eigen-question" }, [
-          element(doc, "strong", { text: "2. 小残差能单独给出可靠的角度保证吗？" }),
-          element(doc, "div", { className: "eigen-choice-grid", role: "group", "aria-label": "残差证书预测" }, [
-            choiceButton("certificate", "yes", "可以"),
-            choiceButton("certificate", "no", "不可以，需要 gap/结构")
-          ])
-        ]));
-        shell.appendChild(questions);
-        var actions = element(doc, "div", { className: "eigen-actions" });
-        var check = element(doc, "button", { type: "button", className: "eigen-primary", text: "核对预测" });
-        var reset = element(doc, "button", { type: "button", text: "重置" });
-        var feedback = element(doc, "p", { className: "eigen-feedback", role: "status", "aria-live": "polite" });
-        check.addEventListener("click", function () {
-          if (!state.predictions.fastest || !state.predictions.certificate) {
-            feedback.className = "eigen-feedback eigen-warn";
-            feedback.textContent = "两项预测都要先选择。";
-            return;
-          }
-          var correct = (state.predictions.fastest === "rayleigh" ? 1 : 0) +
-            (state.predictions.certificate === "no" ? 1 : 0);
-          state.score = correct;
-          state.revealed = true;
-          render();
-          api && api.announce && api.announce(root, "预测已核对：" + correct + " / 2；迭代 ledger 已揭示。");
-        });
-        reset.addEventListener("click", function () {
-          state.presetId = DEFAULT.presetId;
-          state.steps = DEFAULT.steps;
-          state.initialAngle = presetById(DEFAULT.presetId).initialAngle;
-          state.shift = presetById(DEFAULT.presetId).shift;
-          state.predictions = { fastest: null, certificate: null };
-          state.score = null;
-          state.revealed = false;
-          render();
-          api && api.announce && api.announce(root, "已重置；结果重新隐藏。");
-        });
-        actions.appendChild(check);
-        actions.appendChild(reset);
-        shell.appendChild(actions);
-        shell.appendChild(feedback);
-      } else {
-        var panel = element(doc, "section", { className: "eigen-revealed", "aria-labelledby": instanceId + "-title" });
-        panel.appendChild(element(doc, "h4", { id: instanceId + "-title", text: "结果与可调 ledger" }));
-        var revealedActions = element(doc, "div", { className: "eigen-actions" });
-        var revealedReset = element(doc, "button", { type: "button", text: "重置并重新预测" });
-        revealedReset.addEventListener("click", function () {
-          state.presetId = DEFAULT.presetId;
-          state.steps = DEFAULT.steps;
-          state.initialAngle = presetById(DEFAULT.presetId).initialAngle;
-          state.shift = presetById(DEFAULT.presetId).shift;
-          state.predictions = { fastest: null, certificate: null };
-          state.score = null;
-          state.revealed = false;
-          render();
-          api && api.announce && api.announce(root, "已重置；结果重新隐藏。");
-        });
-        revealedActions.appendChild(revealedReset);
-        panel.appendChild(revealedActions);
-        panel.appendChild(element(doc, "p", { className: "eigen-note", text:
-          "当前矩阵：" + JSON.stringify(data.matrix) + "；幂法教学目标：" +
-          (data.targetEigenvalue === null ? "无实目标（复谱）" : "λ=" + format(data.targetEigenvalue, 6)) +
-          "；反幂法与 QR 的 ledger 按实际收敛谱点配对。对非正规预设，角度仍计算但证书刻意留空。" }));
-        var controls = element(doc, "div", { className: "eigen-controls" });
-        var stepsControl = element(doc, "div", { className: "eigen-control" }, [
-          element(doc, "label", { htmlFor: instanceId + "-steps", text: "迭代轮数" }),
-          element(doc, "input", { id: instanceId + "-steps", type: "range", min: 1, max: 16, step: 1, value: data.steps }),
-          element(doc, "output", { text: String(data.steps) })
-        ]);
-        var angleControl = element(doc, "div", { className: "eigen-control" }, [
-          element(doc, "label", { htmlFor: instanceId + "-angle", text: "初始方向角（度）" }),
-          element(doc, "input", { id: instanceId + "-angle", type: "range", min: -85, max: 85, step: 1, value: state.initialAngle }),
-          element(doc, "output", { text: format(state.initialAngle, 0) + "°" })
-        ]);
-        var shiftControl = element(doc, "div", { className: "eigen-control" }, [
-          element(doc, "label", { htmlFor: instanceId + "-shift", text: "反幂位移 μ" }),
-          element(doc, "input", { id: instanceId + "-shift", type: "number", min: -5, max: 5, step: 0.01, value: format(state.shift, 4) }),
-          element(doc, "output", { text: "最近谱点：" + (data.spectrum.real ? format(Math.min.apply(null, data.spectrum.values.map(function (value) {
-            return Math.abs(value - state.shift);
-          })), 4) : "复谱") })
-        ]);
-        controls.appendChild(stepsControl);
-        controls.appendChild(angleControl);
-        controls.appendChild(shiftControl);
-        panel.appendChild(controls);
-        stepsControl.querySelector("input").addEventListener("input", function (event) {
-          state.steps = Number(event.target.value);
-          render();
-        });
-        angleControl.querySelector("input").addEventListener("input", function (event) {
-          state.initialAngle = Number(event.target.value);
-          render();
-        });
-        shiftControl.querySelector("input").addEventListener("change", function (event) {
-          state.shift = Number(event.target.value);
-          render();
-        });
-        panel.appendChild(element(doc, "div", { className: "eigen-metrics" }, [
-          metric(doc, "预测得分", state.score === null ? "—" : state.score + " / 2"),
-          metric(doc, "矩阵类型", data.matrixClass === "nonnormal" ? "非正规" : data.matrixClass === "normal" ? "正规" : "对称"),
-          metric(doc, "幂法目标特征值", data.targetEigenvalue === null ? "复谱/无目标" : format(data.targetEigenvalue, 5)),
-          metric(doc, "谱隙 gap", data.spectralGap === null ? "—" : format(data.spectralGap, 5)),
-          metric(doc, "幂法最终残差", format(lastRow(data.power).residual, 5)),
-          metric(doc, "Rayleigh 最终残差", format(lastRow(data.rayleigh).residual, 5)),
-          metric(doc, "QR 严格下三角范数", format(lastRow(data.qr).subdiagonal, 5)),
-          metric(doc, "QR 全非对角范数", format(lastRow(data.qr).offDiagonal, 5))
-        ]));
-        var charts = element(doc, "div", { className: "eigen-chart-grid" });
-        var residualChart = element(doc, "div", { className: "eigen-chart" });
-        var residualSvg = svgElement(doc, "svg", { className: "eigen-svg" });
-        drawConvergence(doc, residualSvg, data, "residual", "残差 ||r||₂（log10）", "残差", instanceId + "-residual", true);
-        residualChart.appendChild(residualSvg);
-        charts.appendChild(residualChart);
-        var angleChart = element(doc, "div", { className: "eigen-chart" });
-        var angleSvg = svgElement(doc, "svg", { className: "eigen-svg" });
-        drawConvergence(doc, angleSvg, data, "angleDeg", "目标角度 θ", "角度", instanceId + "-angle", false);
-        angleChart.appendChild(angleSvg);
-        charts.appendChild(angleChart);
-        var qrChart = element(doc, "div", { className: "eigen-chart eigen-chart-wide" });
-        var qrSvg = svgElement(doc, "svg", { className: "eigen-svg" });
-        drawQR(doc, qrSvg, data, instanceId + "-qr");
-        qrChart.appendChild(qrSvg);
-        charts.appendChild(qrChart);
-        panel.appendChild(charts);
-        var summary = element(doc, "div", { className: "eigen-table-wrap" });
-        summary.appendChild(summaryTable(doc, data));
-        panel.appendChild(summary);
-        var qrLedger = element(doc, "div", { className: "eigen-table-wrap" });
-        qrLedger.appendChild(qrTable(doc, data));
-        panel.appendChild(qrLedger);
-        var interpretation = data.matrixClass === "nonnormal"
-          ? "非正规：残差和实际角度都能读，但 gap 证书被关闭；不能把对称/正规不等式当成普遍保证。"
-          : data.targetEigenvalue === null
-            ? "正规但为复谱：实向量角度没有对应的实特征方向，QR ledger 应读成 Schur/旋转行为而非实对角化。"
-            : data.spectralGap < 0.1
-              ? "小 gap：即使残差下降，单个方向仍敏感；先看 gap 再解释角度。"
-              : "对称且有 gap：残差、角度和 gap 可以一起形成可解释的误差账，但仍不是对任意矩阵的承诺。";
-        panel.appendChild(element(doc, "p", { className: "eigen-interpretation", text: interpretation }));
-        shell.appendChild(panel);
-      }
-      root.replaceChildren(shell);
-    }
-    render();
-  }
-
-  function selfTest() {
-    var checks = 0;
-    function assert(condition, message) {
-      checks += 1;
-      if (!condition) throw new Error(message);
-    }
-    var large = compute({ presetId: "symmetric-gap", steps: 8 });
-    assert(large.matrixClass === "symmetric" && large.normalGuarantee, "symmetric classification");
-    assert(large.spectrum.real && near(large.spectrum.values[0], 3 + Math.sqrt(2), 1e-9), "symmetric eigenvalue");
-    assert(near(large.spectralGap, 2 * Math.sqrt(2), 1e-9), "symmetric spectral gap");
-    assert(lastRow(large.power).residual < large.power.rows[0].residual, "power residual decreases");
-    assert(lastRow(large.inverse).residual < large.inverse.rows[0].residual, "inverse residual decreases");
-    assert(lastRow(large.rayleigh).residual < large.rayleigh.rows[0].residual, "Rayleigh residual decreases");
-    assert(lastRow(large.qr).offDiagonal < large.qr.rows[0].offDiagonal, "QR off diagonal decreases");
-    assert(lastRow(large.qr).subdiagonal < large.qr.rows[0].subdiagonal, "QR strict lower decreases");
-    assert(lastRow(large.rayleigh).certificateBound !== null, "symmetric angle certificate");
-    assert(lastRow(large.qr).eigenvalueError < large.qr.rows[0].eigenvalueError, "QR eigenvalue error decreases");
-    assert(large.targetVector && near(norm(large.targetVector), 1, 1e-10), "target vector normalized");
-
-    var tinyDiagonal = [[2e-6, 0], [0, 1e-6]];
-    var tinyDiagonalSpectrum = eigenvalues2(tinyDiagonal);
-    assert(matrixClass(tinyDiagonal) === "symmetric" && isNormal(tinyDiagonal), "tiny diagonal remains normal");
-    assert(tinyDiagonalSpectrum.real && near(tinyDiagonalSpectrum.values[0], 2e-6, 1e-10) &&
-      near(tinyDiagonalSpectrum.values[1], 1e-6, 1e-10), "tiny diagonal spectrum");
-    var tinySolution = solve2(tinyDiagonal, [2e-6, 1e-6]);
-    assert(near(tinySolution[0], 1, 1e-10) && near(tinySolution[1], 1, 1e-10), "relative tiny solve");
-    var tinyRotation = [[0, -1e-6], [1e-6, 0]];
-    assert(isNormal(tinyRotation) && !eigenvalues2(tinyRotation).real, "tiny rotation stays complex normal");
-    var scaledNonnormal = [[0, 1e-6], [0, 0]];
-    assert(matrixClass(scaledNonnormal) === "nonnormal" && !isNormal(scaledNonnormal),
-      "scaled nonnormal classification");
-    var singularSolve = false;
-    try {
-      solve2([[1, 0], [0, 0]], [1, 0]);
-    } catch (error) {
-      singularSolve = error.code === "SINGULAR_SHIFT";
-    }
-    assert(singularSolve, "singular solve is reported");
-
-    var small = compute({ presetId: "symmetric-small-gap", steps: 8 });
-    assert(small.matrixClass === "symmetric" && small.spectralGap < large.spectralGap, "small gap classification");
-    assert(lastRow(small.rayleigh).certificateBound !== null, "small gap still has formal certificate");
-    assert(small.spectralGap > 0, "small gap is separated");
-
-    var nonnormal = compute({ presetId: "nonnormal", steps: 8 });
-    assert(nonnormal.matrixClass === "nonnormal" && !nonnormal.normalGuarantee, "nonnormal classification");
-    assert(lastRow(nonnormal.power).certificateBound === null, "nonnormal power has no angle certificate");
-    assert(lastRow(nonnormal.inverse).certificateBound === null, "nonnormal inverse has no angle certificate");
-    assert(finite(lastRow(nonnormal.power).residual) && finite(lastRow(nonnormal.power).angleDeg),
-      "nonnormal residual and angle remain measurable");
-    assert(nonnormal.spectrum.real && near(nonnormal.targetEigenvalue, 2, 1e-10), "nonnormal real target");
-
-    var rotation = compute({ presetId: "normal-rotation", steps: 6 });
-    assert(rotation.matrixClass === "normal" && rotation.normalGuarantee, "normal rotation classification");
-    assert(!rotation.spectrum.real && rotation.targetEigenvalue === null, "normal complex spectrum");
-    assert(lastRow(rotation.power).angleDeg === null && lastRow(rotation.qr).angleDeg === null,
-      "complex spectrum has no real target angle");
-    assert(finite(lastRow(rotation.qr).offDiagonal), "normal QR remains finite");
-
-    var qr = qrDecompose([[4, 1], [1, 2]]);
-    assert(matrixFrobenius(subtractMatrices(matMul(transpose(qr.Q), qr.Q), identity(2))) < 1e-8,
-      "QR columns orthonormal");
-    assert(matrixFrobenius(subtractMatrices(matMul(qr.Q, qr.R), [[4, 1], [1, 2]])) < 1e-8,
-      "QR factorization reconstructs");
-    var rankDeficient = [[1, 0], [0, 0]];
-    var rankQr = qrDecompose(rankDeficient);
-    assert(rankQr.R[1][1] === 0, "rank deficient QR keeps zero diagonal");
-    assert(matrixFrobenius(subtractMatrices(matMul(rankQr.Q, rankQr.R), rankDeficient)) < 1e-12,
-      "rank deficient QR reconstructs");
-    var rankIteration = qrIteration(rankDeficient, 4, 0);
-    assert(near(lastRow(rankIteration).diagonal[0], 1, 1e-12) &&
-      near(lastRow(rankIteration).diagonal[1], 0, 1e-12) &&
-      near(lastRow(rankIteration).eigenvalueError, 0, 1e-12), "rank deficient QR preserves spectrum");
-    var qrNorms = qrIteration([[0, 2], [3, 4]], 0, 0).rows[0];
-    assert(near(qrNorms.subdiagonal, 3, 1e-12) && near(qrNorms.offDiagonal, Math.sqrt(13), 1e-12),
-      "QR lower and full norms differ correctly");
-    assert(near(rayleighQuotient([[4, 1], [1, 2]], [1, 0]), 4, 1e-10), "Rayleigh quotient");
-    var exact = inverseIteration([[4, 1], [1, 2]], 4.15, [1, 0.35], 6, 0);
-    assert(lastRow(exact).residual < exact.rows[0].residual, "custom inverse iteration");
-    var lowerTarget = inverseIteration([[4, 1], [1, 2]], 1.6, [1, 0.35], 8, 0);
-    assert(lastRow(lowerTarget).targetIndex === 1 &&
-      near(lastRow(lowerTarget).targetEigenvalue, 3 - Math.sqrt(2), 1e-10),
-      "inverse target follows actual lower convergence");
-    var lowerComputed = compute({ presetId: "symmetric-gap", shift: 1.6, steps: 8 });
-    assert(lowerComputed.inverseTargetIndex === 1 &&
-      near(lowerComputed.inverseTargetEigenvalue, 3 - Math.sqrt(2), 1e-10),
-      "compute exposes inverse target pairing");
-    var signedQr = qrIteration([[-3, 0], [0, 2]], 3, 0);
-    assert(lastRow(signedQr).targetIndex === 1 && near(lastRow(signedQr).targetEigenvalue, -3, 1e-12),
-      "QR target follows actual diagonal pairing");
-    var exactRayleigh = rayleighIteration([[2, 0], [0, 1]], [1, 0], 4, 0);
-    assert(exactRayleigh.status === "exact-convergence" && exactRayleigh.rows.length === 1,
-      "Rayleigh exact convergence is distinct");
-    var singularRayleigh = rayleighIteration([[2, 6], [0, 1]], [1, 6], 4, 0);
-    assert(singularRayleigh.status === "singular-shift" && lastRow(singularRayleigh).residual > 1,
-      "Rayleigh singular shift is a failure");
-    assert(PRESETS.every(function (preset) { return /^预设 [A-D]$/.test(preset.label); }),
-      "preset labels do not disclose answers");
-    assert(STYLE_TEXT.indexOf("min-height:44px") !== -1, "controls keep 44px target");
-    PRESETS.forEach(function (preset) {
-      var result = compute({ presetId: preset.id, steps: 4 });
-      assert(result.qr.rows.length === 5, preset.id + " QR row count");
-      assert(result.power.rows.length >= 1 && result.inverse.rows.length >= 1, preset.id + " iteration rows");
-      assert(result.matrixClass === "symmetric" || result.matrixClass === "normal" || result.matrixClass === "nonnormal",
-        preset.id + " classification");
-    });
-    return { checks: checks, presets: PRESETS.length };
-  }
-
-  return {
-    DEFAULT: DEFAULT,
-    PRESETS: PRESETS,
-    dot: dot,
-    norm: norm,
-    normalize: normalize,
-    matVec: matVec,
-    matMul: matMul,
-    solve2: solve2,
-    isSymmetric: isSymmetric,
-    isNormal: isNormal,
-    eigenvalues2: eigenvalues2,
-    eigenvector2: eigenvector2,
-    spectralInfo: spectralInfo,
-    rayleighQuotient: rayleighQuotient,
-    powerIteration: powerIteration,
-    inverseIteration: inverseIteration,
-    rayleighIteration: rayleighIteration,
-    qrDecompose: qrDecompose,
-    strictLowerNorm: strictLowerNorm,
-    fullOffDiagonalNorm: fullOffDiagonalNorm,
-    qrIteration: qrIteration,
-    symmetricQrIteration: qrIteration,
-    compute: compute,
-    mount: mount,
-    selfTest: selfTest
-  };
+function selfTest(){
+ let checks=0;const ck=(v,m)=>{checks++;if(!v)throw Error(m);};
+ ck(fmt(0)==="0"&&fmt(10)==="10"&&fmt(-10)==="-10","integer display");
+ let p=snapshot({axisAngle:0,gap:5,initialAngle:35,steps:64}).result;ck(p.info.dominant===1&&p.methods[0].final.targetValue===-3,"maximum modulus negative eigenvalue");
+ p=snapshot({axisAngle:0,gap:1,initialAngle:90}).result;ck(p.methods[0].final.targetValue===1&&p.methods[0].expectedIndex===0,"missing initial projection");
+ ck(snapshot({gap:0}).result.methods.every(m=>m.final.angle===null),"repeated direction undefined");
+ ck(snapshot({kind:"rotation"}).result.methods.every(m=>m.final.certificate===null),"complex spectrum no real direction certificate");
+ ck(snapshot({kind:"nonnormal"}).result.methods.every(m=>m.rows.every(r=>r.certificate===null)),"nonnormal no normal theorem");
+ ck(snapshot({axisAngle:0,gap:1,shift:2}).result.methods[1].status==="singular-shift","singular fixed shift preserved");
+ ck(snapshot({mode:"qr",coupling:0}).result.methods.every(m=>m.stepsTaken===0&&m.status==="deflated"),"diagonal input");
+ p=snapshot({mode:"qr",center:0,steps:32}).result;ck(p.methods[0].status==="iteration-budget"&&p.methods[1].status==="deflated","positive negative modulus tie");
+ p=snapshot({mode:"sensitivity",gamma:20}).result.result;ck(p.sigmaMin<.013&&p.distance===.5,"nonnormal small perturbation far from spectrum");
+ ck(snapshot({mode:"sensitivity",z:2}).result.result.sigmaMin===0,"true zero not floored");
+ return{status:"PASS",checks};
+}
+return{DEFAULTS,PRESETS,QUESTIONS,num,config,snapshot,norm,dot,transpose,mm,mv,sub,msub,zeros,eye,fro,off,copy,givensQR,wilkinson,qrChain,qrRun,qrModel,unitAngle,normalize,matrixFamily,linearSolve2,nearest,measure,vectorRun,iterationModel,pseudospectralPoint,sensitivityModel,plots,ledgers,fmt,svg,mount,selfTest};
 });
