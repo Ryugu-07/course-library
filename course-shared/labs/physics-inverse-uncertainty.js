@@ -96,6 +96,13 @@ function repeatedRisk(Ktrue,truth,m0,sigmaData,post){
  const rows=truth.map((x,i)=>({i,truth:x,expected:mean[i],bias:bias[i],biasSquared:bias[i]**2,samplingVariance:covariance[i][i],mse:bias[i]**2+covariance[i][i],posteriorVariance:post.covariance[i][i]}));
  return{mean,bias,covariance,rows,biasSquared:sum(rows.map(v=>v.biasSquared))/truth.length,variance:sum(rows.map(v=>v.samplingVariance))/truth.length,mse:sum(rows.map(v=>v.mse))/truth.length,posteriorVariance:sum(rows.map(v=>v.posteriorVariance))/truth.length};
 }
+function scanWithCurrent(values,current){
+ // The same power of ten can differ by an ulp between libm/V8 builds.
+ // Keep the exact current input and coalesce only an ulp-scale grid neighbour.
+ const i=values.findIndex(x=>Math.abs(x-current)<=8*Number.EPSILON*Math.max(Math.abs(x),Math.abs(current)));
+ if(i<0)values.push(current);else values[i]=current;
+ return values.sort((a,b)=>a-b);
+}
 function contrastModel(s){
  const k=s.transmission,K=[[(1+k)/2,(1-k)/2],[(1-k)/2,(1+k)/2]],truth=[1+s.contrast,1-s.contrast],m0=[s.priorMean+s.priorContrast,s.priorMean-s.priorContrast],g=noiseStream(s.seed),clean=matvec(K,truth);
  const data=clean.map((v,i)=>v+s.sigmaData*g.normal("data",i)),post=posterior(K,eye(2),data,m0,s.sigmaFit,s.lambda);post.K=K;
@@ -105,7 +112,7 @@ function contrastModel(s){
   return{i,transmission,data:yt[i],truth:xt[i],prior:pt[i],mean:mt[i],analyticMean:(transmission*yt[i]+s.lambda*s.sigmaFit**2*pt[i])/denominator,variance,gain,resolution:transmission*gain,leastSquares:transmission===0?null:yt[i]/transmission};
  });
  const family=Array.from({length:65},(_,i)=>{const c=-2+i/16,x=[1+c,1-c],y=matvec(K,x);return{i,contrast:c,x0:x[0],x1:x[1],y0:y[0],y1:y[1]};});
- const transmissions=Array.from({length:49},(_,i)=>10**(-6+i/8));if(k>0&&!transmissions.includes(k))transmissions.push(k);transmissions.sort((a,b)=>a-b);
+ const grid=Array.from({length:49},(_,i)=>10**(-6+i/8)),transmissions=k>0?scanWithCurrent(grid,k):grid;
  const study=transmissions.map(k=>({k,leastSquaresGain:1/k,regularizedGain:k/(k*k+s.lambda*s.sigmaFit*s.sigmaFit),resolution:k*k/(k*k+s.lambda*s.sigmaFit*s.sigmaFit)}));
  return{K,truth,m0,clean,data,post,modes,family,study,predictive:predictive(K,post,s.sigmaFit),risk:repeatedRisk(K,truth,m0,s.sigmaData,post),noise:g.rows,calls:g.calls,lastState:g.state};
 }
@@ -124,7 +131,7 @@ function fieldModel(s){
  }
  const ppc={rows:drawRows,samples,hits,draws:s.draws,pValue:hits/s.draws,observedMean:sum(drawRows.map(v=>v.observed))/s.draws,replicatedMean:sum(drawRows.map(v=>v.replicated))/s.draws,
   expectedObserved:(dot(post.residuals,post.residuals)+sum(prediction.map(v=>v.latentVariance)))/(n*s.sigmaFit*s.sigmaFit),expectedReplicated:1};
- const lambdas=Array.from({length:29},(_,i)=>10**(-5+i/4));if(!lambdas.includes(s.lambda))lambdas.push(s.lambda);lambdas.sort((a,b)=>a-b);
+ const lambdas=scanWithCurrent(Array.from({length:29},(_,i)=>10**(-5+i/4)),s.lambda);
  const study=lambdas.map(lambda=>{
   const p=posterior(K,R,data,m0,s.sigmaFit,lambda);p.K=K;const r=repeatedRisk(Ktrue,truth,m0,s.sigmaData,p),differences=matvec(D,p.shift);
   return{lambda,residualNorm:p.residualNorm,differenceNorm:Math.sqrt(dot(differences,differences)),penaltyNorm:Math.sqrt(p.penalty),biasSquared:r.biasSquared,variance:r.variance,mse:r.mse,posteriorVariance:r.posteriorVariance,actualMSE:sum(p.mean.map((v,i)=>(v-truth[i])**2))/n};
@@ -363,5 +370,5 @@ function selfTest(){
  ck(fmt(1000)==="1000","integer formatting");
  return{status:"PASS",checks};
 }
-return{DEFAULTS,PRESETS,QUESTIONS,config,num,sum,dot,transpose,matvec,matmul,eye,cholesky,forward,backward,solve,householder,noiseStream,kernel,regularizer,trueSource,posterior,predictive,repeatedRisk,contrastModel,fieldModel,snapshot,evaluate:snapshot,plots,ledgers,fmt,svg,mount,selfTest};
+return{DEFAULTS,PRESETS,QUESTIONS,config,num,sum,dot,transpose,matvec,matmul,eye,cholesky,forward,backward,solve,householder,noiseStream,kernel,regularizer,trueSource,posterior,predictive,repeatedRisk,scanWithCurrent,contrastModel,fieldModel,snapshot,evaluate:snapshot,plots,ledgers,fmt,svg,mount,selfTest};
 });

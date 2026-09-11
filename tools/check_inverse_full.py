@@ -9,6 +9,19 @@ const a=require(process.argv[1]),configs=[...a.PRESETS];
 for(const transmission of [0,1e-6,1])for(const lambda of [1e-5,100])configs.push({mode:"contrast",transmission,lambda,sigmaFit:.01,seed:0,priorContrast:1});
 for(const order of [0,1,2])for(const widthFit of [.06,.25])for(const sigmaFit of [.01,.2])configs.push({order,widthFit,sigmaFit,lambda:1e-5,draws:16,seed:4294967295});
 configs.push({mode:"risk",sigmaData:.001,sigmaFit:.2,widthTrue:.25,order:2,draws:128,priorMean:1});
+configs.push({lambda:1e-5*(1+Number.EPSILON)},{lambda:.03*(1+Number.EPSILON)},{mode:"contrast",transmission:1e-6*(1+Number.EPSILON)},{mode:"contrast",transmission:.05*(1+Number.EPSILON)});
+let gridChecks=0;
+for(const grid of [Array.from({length:49},(_,i)=>10**(-6+i/8)),Array.from({length:29},(_,i)=>10**(-5+i/4))]){
+ for(let j=0;j<grid.length;j++)for(const sign of [-1,1]){
+  const current=grid[j],perturbed=grid.slice();perturbed[j]=current*(1+sign*Number.EPSILON);
+  const result=a.scanWithCurrent(perturbed,current);
+  if(result.length!==grid.length||result[j]!==current||result.some((v,i)=>v!==grid[i]))throw Error("ulp coalescing contract");
+  gridChecks++;
+ }
+ const far=grid[1]*(1+100*Number.EPSILON),result=a.scanWithCurrent(grid.slice(),far);
+ if(result.length!==grid.length+1||!result.includes(far))throw Error("distinct close node must survive");
+ gridChecks++;
+}
 let invalid=0;
 for(const mode of ["contrast","inverse","risk"]){
  const fields=["sigmaData","sigmaFit","lambda","priorMean","seed",...(mode==="contrast"?["transmission","contrast","priorContrast"]:["widthTrue","widthFit","order","draws"])];
@@ -21,7 +34,7 @@ for(const c of [{mode:"x"},{lambda:0},{lambda:101},{lambda:1e-6},{sigmaFit:0},{s
 }
 a.snapshot({mode:"contrast",widthTrue:"",widthFit:null,draws:0,order:4});
 a.snapshot({mode:"inverse",transmission:"",contrast:null,priorContrast:[]});
-console.log(JSON.stringify({states:configs.map(c=>{const d=a.snapshot(c),plots=a.plots(d);return{...d,plots,ledgers:a.ledgers(d),svgs:plots.map(a.svg)};}),invalid,self:a.selfTest()}));
+console.log(JSON.stringify({states:configs.map(c=>{const d=a.snapshot(c),plots=a.plots(d);return{...d,plots,ledgers:a.ledgers(d),svgs:plots.map(a.svg)};}),invalid,gridChecks,self:a.selfTest()}));
 '''
 data=json.loads(subprocess.check_output(PREFIX+['node','-e',script,str(JS.resolve())],text=True))
 checks=0;worst={}
@@ -37,6 +50,12 @@ def matrix(x,y,label,rtol=3e-7,atol=2e-9):
  ck(len(x)==len(y),label+' rows')
  for a,b in zip(x,y):vector(a,b,label,rtol,atol)
 def D(x):return Decimal(int(x))if isinstance(x,bool)else Decimal(str(x))
+def expected_grid(grid,current):
+ near=[i for i,x in enumerate(grid)if abs(x-current)<=8*sys.float_info.epsilon*max(abs(x),abs(current))]
+ ck(len(near)<=1,'at most one ulp-neighbour')
+ if near:grid[near[0]]=current
+ else:grid.append(current)
+ return sorted(grid)
 def transpose(A):return list(map(list,zip(*A)))
 def mv(A,x):return[sum(a*b for a,b in zip(row,x))for row in A]
 def mm(A,B):return[[sum(a*b for a,b in zip(row,col))for col in zip(*B)]for row in A]
@@ -149,7 +168,9 @@ def verify_state(d):
    k=D(row['k']);den=k*k+D(s['lambda'])*D(s['sigmaFit'])**2
    vector([row['leastSquaresGain'],row['regularizedGain'],row['resolution']],[1/k,k/den,k*k/den],'transmission study')
   grid=[10**(-6+i/8)for i in range(49)]
-  if s['transmission']>0 and not any(abs(x-s['transmission'])<1e-14 for x in grid):grid.append(s['transmission'])
+  if s['transmission']>0:
+   grid=expected_grid(grid,s['transmission'])
+   ck(s['transmission']in [x['k']for x in v['study']],'exact current transmission retained')
   vector([x['k']for x in v['study']],sorted(grid),'complete transmission grid',rtol=1e-12,atol=1e-15)
   return
  heldPos=[(i+.5)/15 for i in range(15)];Kh=kernel(s['widthFit'],heldPos);Kht=kernel(s['widthTrue'],heldPos);heldY=[a+D(s['sigmaData'])*D(z)for a,z in zip(mv(Kht,truth),normal[16:31])]
@@ -192,7 +213,8 @@ def verify_state(d):
   diff=mv(DD,rr['shift']);actual=sum((a-b)**2 for a,b in zip(rr['mu'],truth))/16
   for key,val in [('residualNorm',rr['resNorm']),('differenceNorm',sum(a*a for a in diff).sqrt()),('penaltyNorm',rr['pen'].sqrt()),('biasSquared',rk['biasSquared']),('variance',rk['variance']),('mse',rk['mse']),('posteriorVariance',rk['posteriorVariance']),('actualMSE',actual)]:close(row[key],val,'full lambda study '+key)
  grid=[10**(-5+i/4)for i in range(29)]
- if not any(abs(x-s['lambda'])<1e-14 for x in grid):grid.append(s['lambda'])
+ grid=expected_grid(grid,s['lambda'])
+ ck(s['lambda']in [x['lambda']for x in v['study']],'exact current lambda retained')
  vector([x['lambda']for x in v['study']],sorted(grid),'complete lambda grid',rtol=1e-12,atol=1e-14)
 
 def verify_views(d):
@@ -272,6 +294,7 @@ with localcontext()as ctx:
  ctx.prec=60
  for d in data['states']:verify_state(d);verify_views(d)
 ck(data['invalid']>=300,'strict input coverage')
+ck(data['gridChecks']==158,'ulp grid and distinct-node controls')
 if len(sys.argv)==1:
  from html.parser import HTMLParser
  src=(ROOT/'physics-course/lectures/comp-05-inverse-uncertainty.md').read_text();site=(ROOT/'physics-course/site/comp-05-inverse-uncertainty.html').read_text()
@@ -344,4 +367,4 @@ if len(sys.argv)==1:
  for v,w in zip(vals,refs):close(v,w,'fallback')
  print('formulas',len(formulas))
 
-print(json.dumps(dict(status='PASS',checks=checks,states=len(data['states']),invalid=data['invalid'],self=data['self'])))
+print(json.dumps(dict(status='PASS',checks=checks,states=len(data['states']),invalid=data['invalid'],gridChecks=data['gridChecks'],self=data['self'])))
