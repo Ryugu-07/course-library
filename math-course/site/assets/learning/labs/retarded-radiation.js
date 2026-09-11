@@ -1,707 +1,104 @@
-(function (root, factory) {
-  "use strict";
+(function(host){"use strict";
+'use strict';
+const DEFAULTS={waveform:'harmonic',amplitude:'1',omega:'1',duration:'2',start:'0',time:'5',radius:'1',angle:'60',speed:'1'};
+function config(input){if(input===undefined)input={};if(!input||typeof input!=='object'||Array.isArray(input))throw Error('参数须为对象');for(const k of Object.keys(input))if(!Object.hasOwn(DEFAULTS,k))throw Error('未知参数：'+k);const c={...DEFAULTS,...input};for(const k of Object.keys(c))if(typeof c[k]!=='string')throw Error('参数必须为字符串');if(!['harmonic','pulse'].includes(c.waveform))throw Error('请选择谐波或有限脉冲');for(const[k,lo,hi]of[['amplitude',-2,2],['omega',0,4],['duration',.5,4],['start',-2,2],['time',-4,24],['radius',.1,8],['angle',0,180],['speed',.5,2]])if(c[k].length>20||!/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(c[k])||+c[k]<lo||+c[k]>hi)throw Error(k+'须为'+lo+'至'+hi+'的普通十进制数');return c;}
+function sum(xs){let t=0,c=0;for(const x of xs){const y=x-c,n=t+y;c=(n-t)-y;t=n;}return t;}
+const PULSE_COEFFICIENTS=[0,0,0,0,256,-1024,1536,-1024,256];
+function polynomialDerivative(coeff,x,order){let total=0;for(let n=coeff.length-1;n>=order;n--){let factor=1;for(let j=0;j<order;j++)factor*=n-j;total=total*x+coeff[n]*factor;}return total;}
+function source(c,tau){const A=+c.amplitude,omega=+c.omega;if(c.waveform==='harmonic')return{time:tau,p:A*Math.cos(omega*tau),first:-A*omega*Math.sin(omega*tau),second:-A*omega*omega*Math.cos(omega*tau),third:A*omega**3*Math.sin(omega*tau),phase:omega*tau,normalizedTime:null,active:true};const duration=+c.duration,s=(tau-+c.start)/duration,active=s>0&&s<1;if(!active)return{time:tau,p:0,first:0,second:0,third:0,phase:null,normalizedTime:s,active:false};const v=1-s;return{time:tau,p:256*A*s**4*v**4,first:1024*A*s**3*v**3*(1-2*s)/duration,second:1024*A*s*s*v*v*(3-14*s+14*s*s)/duration**2,third:6144*A*s*v*(1-2*s)*(1-7*s+7*s*s)/duration**3,phase:null,normalizedTime:s,active:true};}
+function field(c,r,theta,t){if(!(r>0)||!Number.isFinite(r)||!Number.isFinite(theta)||!Number.isFinite(t))throw Error('观测点须有限且r>0，源点奇异');const speed=+c.speed,tau=t-r/speed,h=source(c,tau),sin=theta===0||theta===Math.PI?0:Math.sin(theta),cos=theta===Math.PI/2?0:Math.cos(theta),near=h.p/r**3,induction=h.first/(speed*r*r),radiation=h.second/(speed*speed*r),erNear=2*cos*near,erInduction=2*cos*induction,etNear=sin*near,etInduction=sin*induction,etRadiation=sin*radiation,bInduction=sin*h.first/(speed*speed*r*r),bRadiation=sin*h.second/(speed**3*r),er=erNear+erInduction,et=etNear+etInduction+etRadiation,b=bInduction+bRadiation,mu=4*Math.PI/(speed*speed),epsilon=1/(4*Math.PI),sr=et*b/mu,st=-er*b/mu,radialRadiationFlux=etRadiation*bRadiation/mu,potential=cos*(h.p/(r*r)+h.first/(speed*r)),az=h.first/(speed*speed*r),energyDensity=(epsilon*(er*er+et*et)+b*b/mu)/2;
+return{radius:r,theta,time:t,retardedTime:tau,source:h,angular:{sin,cos},scales:{near,induction,radiation},components:{erNear,erInduction,etNear,etInduction,etRadiation,bInduction,bRadiation,er,et,b},cartesian:{x:er*sin+et*cos,z:er*cos-et*sin,by:b},potential,az,flux:{radial:sr,polar:st,radiationRadial:radialRadiationFlux,differentialPower:r*r*sr,radiationDifferentialPower:r*r*radialRadiationFlux},energyDensity};}
+function sphere(c,r,t){const speed=+c.speed,h=source(c,t-r/speed),mu=4*Math.PI/speed**2,n=32,du=2/n,rows=[];for(let j=0;j<=n;j++){const u=-1+du*j,theta=Math.acos(u),f=field(c,r,theta,t),weight=j===0||j===n?1:j%2?4:2,integrand=2*Math.PI*r*r*f.flux.radial;rows.push({index:j,u,theta,weight,integrand,contribution:du/3*weight*integrand,field:f});}const numerical=sum(rows.map(r=>r.contribution)),radiation=2*h.second*h.second/(3*speed**3),cross=4*h.first*h.second/(3*speed*speed*r),induction=2*(h.first*h.first+h.p*h.second)/(3*speed*r*r),near=2*h.p*h.first/(3*r**3),reactive=cross+induction+near,closed=radiation+reactive,primitive=2/3*(h.first*h.first/(speed*speed*r)+h.p*h.first/(speed*r*r)+h.p*h.p/(2*r**3));return{radius:r,time:t,retardedTime:t-r/speed,source:h,rows,numerical,radiation,terms:{cross,induction,near},reactive,closed,residual:numerical-closed,reactivePrimitive:primitive,scope:'球面积分在u=cosθ上用32段Simpson；理想轴偶极的角因子是二次多项式，算术精确性仅受浮点舍入限制。反应项是所列原函数的时间导数。'};}
+function pulseRadiatedEnergy(c){const A=+c.amplitude,D=+c.duration,speed=+c.speed,coeff=PULSE_COEFFICIENTS.map((v,n)=>n>=2?v*n*(n-1):0).slice(2),square=Array(coeff.length*2-1).fill(0);for(let i=0;i<coeff.length;i++)for(let j=0;j<coeff.length;j++)square[i+j]+=coeff[i]*coeff[j];let numerator=0n,denominator=360360n;for(let i=0;i<square.length;i++)numerator+=BigInt(square[i])*(denominator/BigInt(i+1));const gcd=(a,b)=>b===0n?a:gcd(b,a%b),factor=gcd(numerator,denominator);numerator/=factor;denominator/=factor;const integralTerms=square.map((v,n)=>v/(n+1)),polynomialIntegral=Number(numerator)/Number(denominator),closed=2/(3*speed**3)*A*A/D**3*polynomialIntegral,n=256,dt=D/n,rows=[];for(let j=0;j<=n;j++){const tau=+c.start+D*j/n,h=source({...c,waveform:'pulse'},tau),weight=j===0||j===n?1:j%2?4:2,integrand=2*h.second*h.second/(3*speed**3);rows.push({index:j,tau,second:h.second,weight,integrand,contribution:dt/3*weight*integrand});}const numerical=sum(rows.map(r=>r.contribution)),cumulative=[],areas=[];const base=128n,den=360360n*base**13n,scale=2*A*A/(3*speed**3*D**3);for(let j=0;j<=128;j++){let num=0n;for(let k=0;k<square.length;k++)num+=BigInt(square[k])*(360360n/BigInt(k+1))*BigInt(j)**BigInt(k+1)*base**BigInt(12-k);const g=gcd(num,den),reference=scale*Number(num/g)/Number(den/g),interval=j===0?0:dt/3*(rows[2*j-2].integrand+4*rows[2*j-1].integrand+rows[2*j].integrand);if(j)areas.push(interval);const value=sum(areas);cumulative.push({index:j,tau:+c.start+D*j/128,interval,value,reference,error:value-reference,exactNormalizedIntegral:{numerator:String(num/g),denominator:String(den/g)}});}return{rows,cumulative,secondCoefficients:coeff,squareCoefficients:square,integralTerms,polynomialIntegral,exactIntegral:{numerator:String(numerator),denominator:String(denominator)},closed,numerical,error:numerical-closed,scope:'闭式由有限多项式按精确分数逐项积分；256段Simpson给独立有限近似。与某个时刻的球面瞬时功率不同。'};}
+function timeNodes(c,begin,end,r){const times=Array.from({length:129},(_,j)=>begin+(end-begin)*j/128);if(c.waveform==="pulse")for(let j=0;j<=64;j++){const sourceTime=+c.start+(+c.duration)*j/64;times.push(sourceTime,sourceTime+r/(+c.speed));}return [...new Set(times)].sort((a,b)=>a-b);}
+function snapshot(input){const c=config(input),r=+c.radius,theta=+c.angle*Math.PI/180,t=+c.time,speed=+c.speed,omega=+c.omega,pulse=c.waveform==='pulse',point=field(c,r,theta,t),power=sphere(c,r,t),period=!pulse&&omega>0?2*Math.PI/omega:null,begin=pulse?+c.start-+c.duration:(period===null?t-2:t-period/2),end=pulse?+c.start+2*+c.duration+r/speed:(period===null?t+2:t+period/2),timeSeries=timeNodes(c,begin,end,r).map(time=>({field:field(c,r,theta,time),power:sphereSummary(c,r,time)})),angles=Array.from({length:65},(_,j)=>field(c,r,Math.PI*j/64,t)),radii=Array.from({length:49},(_,j)=>.1*Math.pow(80,j/48)),radiusScan=radii.map(radius=>({radius,sameObservation:sphereSummary(c,radius,t),sameSource:sphereSummary(c,radius,point.retardedTime+radius/speed),field:field(c,radius,theta,t)})),meanReference=pulse?null:(+c.amplitude)**2*omega**4/(3*speed**3),averages=[];
+if(!pulse)for(const radius of[.1,.2,.5,1,2,4,8,r]){const rows=Array.from({length:32},(_,j)=>{const phase=2*Math.PI*j/32,time=omega>0?phase/omega+radius/speed:t;const angularNodes=[-1/Math.sqrt(3),1/Math.sqrt(3)].map(u=>{const f=field(c,radius,Math.acos(u),time);return{u,weight:1,field:f,contribution:2*Math.PI*radius*radius*f.flux.radial};});return{index:j,phase:omega>0?phase:null,field:field(c,radius,theta,time),power:sphereSummary(c,radius,time),angularNodes,angularIntegral:sum(angularNodes.map(v=>v.contribution))};}),mean=sum(rows.map(v=>v.power.closed))/32,meanNumericalAngular=sum(rows.map(v=>v.angularIntegral))/32;averages.push({radius,period,rows,mean,meanNumericalAngular,reference:meanReference,error:mean-meanReference,scope:omega>0?'32个等间隔相位的全场平均；每个相位用两节点Gauss角积分，全部节点保留。':'ω=0为静态，无有限周期；32次相同静态读数均给零通量。'});}
+const events=[1,2,4,r].map(distance=>({distance,travelTime:distance/speed,sourceStart:+c.start,arrival:+c.start+distance/speed,retardedTime:t-distance/speed,frontArrived:t>=+c.start+distance/speed,meaning:pulse?'脉冲从start开始，前沿处场仍连续为0':'只是标记事件；谐波在所有过去时刻已存在，不能把start当成开机时刻'}));return{version:165,parameters:c,units:{k:1,epsilon0:1/(4*Math.PI),mu0:4*Math.PI/speed**2,speed},point,power,timeSeries,angles,radiusScan,averages,meanReference,pulseEnergy:pulse?pulseRadiatedEnergy(c):null,events,sourceCoefficients:pulse?PULSE_COEFFICIENTS.slice():null,scope:'r>0处理想点偶极外部场。实际有限源还须源尺寸远小于观察距离与变化的传播长度；不计算点源自能、自力或完整运动点电荷场。'};}
+function sphereSummary(c,r,t){const speed=+c.speed,h=source(c,t-r/speed),radiation=2*h.second*h.second/(3*speed**3),cross=4*h.first*h.second/(3*speed*speed*r),induction=2*(h.first*h.first+h.p*h.second)/(3*speed*r*r),near=2*h.p*h.first/(3*r**3),reactive=cross+induction+near;return{radius:r,time:t,retardedTime:t-r/speed,source:h,radiation,terms:{cross,induction,near},reactive,closed:radiation+reactive,reactivePrimitive:2/3*(h.first*h.first/(speed*speed*r)+h.p*h.first/(speed*r*r)+h.p*h.p/(2*r**3))};}
 
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("retarded-radiation", exported.mount);
-  }
-  if (
-    typeof module === "object" &&
-    module.exports &&
-    typeof require === "function" &&
-    require.main === module
-  ) {
-    try {
-      var report = exported.selfTest();
-      console.log(
-        "retarded-radiation self-test: PASS (" +
-          report.checks +
-          " checks, " +
-          report.presets +
-          " presets)"
-      );
-    } catch (error) {
-      console.error("retarded-radiation self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
-  }
-})(typeof window !== "undefined" ? window : null, function (host) {
-  "use strict";
+const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fmt(v){if(v===null)return'不适用';if(typeof v==='number'){if(!Number.isFinite(v))throw Error('非有限显示值');if(v===0)return'0';if(Number.isInteger(v))return String(v);return Math.abs(v)<1e-5||Math.abs(v)>=1e6?v.toExponential(7):String(Number(v.toPrecision(9)));}return Array.isArray(v)?v.map(fmt).join(', '):String(v);}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=1e5?v.toExponential(3):String(Number(v.toPrecision(5)));
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "cl-retarded-radiation-styles";
-  var INSTANCE = 0;
-  var EPS = 1e-10;
-  var PI = Math.PI;
-  var DEFAULT = {
-    presetId: "radiation",
-    kr: 8,
-    theta: PI / 3,
-    observationTime: 5,
-    sourceEventTime: 2
-  };
+function plots(s){const out=[],c=s.parameters,pulse=c.waveform==='pulse',series=s.timeSeries;
+ function add(key,title,caption,xLabel,yLabel,lines){const xs=lines.flatMap(r=>r.points.map(v=>v[0])),ys=lines.flatMap(r=>r.points.map(v=>v[1]));let xMin=Math.min(...xs),xMax=Math.max(...xs),yMin=Math.min(0,...ys),yMax=Math.max(0,...ys);if(xMin===xMax)xMax=xMin+1;const pad=(yMax-yMin)*.08||1;yMin-=pad;yMax+=pad;out.push({key,title,caption,width:900,height:460,xLabel,yLabel,xMin,xMax,yMin,yMax,series:lines.map((r,i)=>({...r,color:['#256c91','#ae6017','#687981','#26705b'][i%4]}))});}
+ const comp=k=>series.map(r=>[r.field.time,r.field.components[k]]),power=k=>series.map(r=>[r.power.time,r.power[k]]);
+ add('delay','先追时间：观察者读取源的过去','橙线是源在同一时刻的状态；蓝线是此观察点实际读取的推迟状态。','观察时刻 t','偶极矩 p',[{label:'p(t−r/c)',points:series.map(r=>[r.field.time,r.field.source.p])},{label:'源p(t)',points:series.map(r=>[r.field.time,source(c,r.field.time).p])}]);
+ add('electric-theta','有方向的电场：θ分量逐项相加','θ基矢沿极角增大的方向。负值保留；平方后的功率不能检查整体方向。','观察时刻 t','电场 Eθ',[{label:'完整Eθ',points:comp('et')},{label:'1/r³项',points:comp('etNear')},{label:'1/r²项',points:comp('etInduction')},{label:'1/r辐射项',points:comp('etRadiation')}]);
+ add('electric-radial','径向电场：没有1/r辐射项','从推迟势求导，径向的1/r项恰好相消；轴向也可能仍有近场。','观察时刻 t','电场 Er',[{label:'完整Er',points:comp('er')},{label:'1/r³项',points:comp('erNear')},{label:'1/r²项',points:comp('erInduction')}]);
+ add('magnetic','磁场：感应项与辐射项','只有辐射部分满足Bφ=Eθ/c；完整近场不能直接套平面波关系。','观察时刻 t','磁场 Bφ',[{label:'完整Bφ',points:comp('b')},{label:'1/r²感应项',points:comp('bInduction')},{label:'1/r辐射项',points:comp('bRadiation')}]);
+ add('angular','当前时刻的角功率：全场可以向内','纵轴为r²Sr，保留符号；辐射项单独向外，完整近场还含能量交换。','极角 θ（度）','角功率 dP/dΩ',[{label:'完整场r²Sr',points:s.angles.map(r=>[r.theta*180/Math.PI,r.flux.differentialPower])},{label:'只取辐射项',points:s.angles.map(r=>[r.theta*180/Math.PI,r.flux.radiationDifferentialPower])}]);
+ add('power','球面瞬时功率：辐射与反应性部分','蓝线=橙线+灰线。灰线是Wᵣ的时间导数，周期平均或完整脉冲积分为0。','观察时刻 t','球面功率 P',[{label:'完整球面功率',points:power('closed')},{label:'辐射项',points:power('radiation')},{label:'反应性部分',points:power('reactive')}]);
+ add('radius','跨距离比较：先固定哪一个时间','同观察时刻会读取不同源历史；同源时刻的辐射功率相同，全场仍可不同。','观察半径 r','球面功率 P',[{label:'同观察t：完整功率',points:s.radiusScan.map(r=>[r.radius,r.sameObservation.closed])},{label:'同源τ：完整功率',points:s.radiusScan.map(r=>[r.radius,r.sameSource.closed])},{label:'同源τ：辐射功率',points:s.radiusScan.map(r=>[r.radius,r.sameSource.radiation])}]);
+ const outer=s.radiusScan.filter(r=>r.radius>=1);add('radius-detail','较大半径细看：避免近区大幅度遮住差异','取上一图r≥1的原始数据单独显示；r=1是显示选择，不是近远场的物理边界。','观察半径 r（r≥1子集）','球面功率 P',[{label:'同观察t：完整功率',points:outer.map(r=>[r.radius,r.sameObservation.closed])},{label:'同源τ：完整功率',points:outer.map(r=>[r.radius,r.sameSource.closed])},{label:'同源τ：辐射功率',points:outer.map(r=>[r.radius,r.sameSource.radiation])}]);
+ if(pulse){const e=s.pulseEnergy;add('energy','完整脉冲能量：累计的量有不同单位','积分对象为p̈²的辐射功率。数值积分和多项式精确积分分别计算。','源时刻 τ','累计辐射能量',[{label:'Simpson累计能量',points:e.cumulative.map(r=>[r.tau,r.value])},{label:'精确多项式积分',points:e.cumulative.map(r=>[r.tau,r.reference])},{label:'完整脉冲能量',points:e.cumulative.map(r=>[r.tau,e.closed])}]);}
+ else{const rows=s.averages.slice().sort((a,b)=>a.radius-b.radius);add('mean','完整场的平均功率：各半径一起核对',+c.omega===0?'ω=0是静态，没有有限周期；全部重复读数均给零能流。':'按32个相位平均完整场；两节点角求积与解析球面积分独立核对。','观察半径 r','平均球面功率',[{label:'完整场相位平均',points:rows.map(r=>[r.radius,r.mean])},{label:'角求积再平均',points:rows.map(r=>[r.radius,r.meanNumericalAngular])},{label:'解析平均功率',points:rows.map(r=>[r.radius,r.reference])}]);}return out;}
+function ledgers(s){const out=[],add=(key,title,headers,rows)=>out.push({key,title,headers,rows}),c=s.parameters,f=s.point;
+ add('summary','当前条件与不同能量量纲',['项目','值'],[['波形',c.waveform],['偶极振幅A',+c.amplitude],['角频率（仅谐波）',c.waveform==='harmonic'?+c.omega:null],['脉冲持续D（仅脉冲）',c.waveform==='pulse'?+c.duration:null],['脉冲起点/谐波标记时刻',+c.start],['观察时刻',+c.time],['观察半径',+c.radius],['观察角（度）',+c.angle],['速度c',+c.speed],['推迟源时刻',f.retardedTime],['当前源偶极矩',f.source.p],['完整径向能流Sr',f.flux.radial],['完整球面瞬时功率',s.power.numerical],['辐射部分瞬时功率',s.power.radiation],['反应性部分瞬时功率',s.power.reactive],['谐波/静态平均功率',s.meanReference],['完整脉冲净能量',s.pulseEnergy?s.pulseEnergy.closed:null],['范围',s.scope]]);
+ const fieldHeaders=['位置','t','r','θ(rad)','τ','p','ṗ','p̈','p三阶导','V','Az','Er近','Er感应','Eθ近','Eθ感应','Eθ辐射','Bφ感应','Bφ辐射','Er','Eθ','Bφ','Ex','Ez','By','Sr','Sθ','Sr辐射','角功率','辐射角功率','能量密度'],fieldRow=(tag,r)=>[tag,r.time,r.radius,r.theta,r.retardedTime,r.source.p,r.source.first,r.source.second,r.source.third,r.potential,r.az,...['erNear','erInduction','etNear','etInduction','etRadiation','bInduction','bRadiation','er','et','b'].map(k=>r.components[k]),r.cartesian.x,r.cartesian.z,r.cartesian.by,r.flux.radial,r.flux.polar,r.flux.radiationRadial,r.flux.differentialPower,r.flux.radiationDifferentialPower,r.energyDensity];
+ add('point','当前点的完整场贡献',fieldHeaders,[fieldRow('当前点',f)]);
+ add('events','全部传播时间标记',['距离','传播时间','源起点/标记','到达时刻','当前推迟时刻','前沿/标记已到达','解释'],s.events.map(r=>[r.distance,r.travelTime,r.sourceStart,r.arrival,r.retardedTime,r.frontArrived,r.meaning]));
+ add('time-fields','时间扫描：全部完整场',fieldHeaders,s.timeSeries.map((r,j)=>fieldRow(j,r.field)));
+ add('angle-fields','角扫描：全部完整场',fieldHeaders,s.angles.map((r,j)=>fieldRow(j,r)));
+ const powerHeaders=['位置','r','t','τ','p','ṗ','p̈','辐射功率','交叉项','感应项','近场项','反应性和','完整功率','W原函数'],powerRow=(tag,r)=>[tag,r.radius,r.time,r.retardedTime,r.source.p,r.source.first,r.source.second,r.radiation,r.terms.cross,r.terms.induction,r.terms.near,r.reactive,r.closed,r.reactivePrimitive];
+ add('time-power','时间扫描：全部球面功率',powerHeaders,s.timeSeries.map((r,j)=>powerRow(j,r.power)));
+ add('radius-power','跨距离：两种时间对齐的全部功率',powerHeaders,s.radiusScan.flatMap((r,j)=>[powerRow(j+' 同观察t',r.sameObservation),powerRow(j+' 同源τ',r.sameSource)]));
+ add('radius-fields','同观察时刻：全部半径完整场',fieldHeaders,s.radiusScan.map((r,j)=>fieldRow(j,r.field)));
+ add('sphere-quadrature','当前球面：全部Simpson节点',['j','u=cosθ','θ(rad)','权重','角积分函数','加权贡献'],s.power.rows.map(r=>[r.index,r.u,r.theta,r.weight,r.integrand,r.contribution]));
+ add('sphere-fields','当前球面求积：全部节点场',fieldHeaders,s.power.rows.map(r=>fieldRow(r.index,r.field)));
+ if(s.averages.length){add('means','全部半径的相位平均',['序号','r','周期（静态不适用）','全场平均','角求积再平均','解析平均','差','说明'],s.averages.map((r,j)=>[j,r.radius,r.period,r.mean,r.meanNumericalAngular,r.reference,r.error,r.scope]));
+ add('mean-phases','全部平均相位与功率',powerHeaders.concat(['相位','两节点角积分']),s.averages.flatMap((r,j)=>r.rows.map(t=>powerRow(j+' / '+t.index,t.power).concat([t.phase,t.angularIntegral]))));
+ add('mean-fields','全部平均相位的观察角场',fieldHeaders,s.averages.flatMap((r,j)=>r.rows.map(t=>fieldRow(j+' / '+t.index,t.field))));
+ add('mean-angle-nodes','全部平均相位的Gauss角节点场',fieldHeaders.concat(['u','权重','积分贡献']),s.averages.flatMap((r,j)=>r.rows.flatMap(t=>t.angularNodes.map((v,k)=>fieldRow(j+' / '+t.index+' / '+k,v.field).concat([v.u,v.weight,v.contribution])))));}
+ if(s.pulseEnergy){const e=s.pulseEnergy;add('pulse-integral','脉冲辐射能量：全部时间求积节点',['j','τ','p̈','Simpson权重','辐射功率','加权能量贡献'],e.rows.map(r=>[r.index,r.tau,r.second,r.weight,r.integrand,r.contribution]));add('pulse-cumulative','全部完整Simpson小区间与累计能量',['j','τ','本区间能量','累计能量','精确参考','差','归一化精确积分分子','归一化精确积分分母'],e.cumulative.map(r=>[r.index,r.tau,r.interval,r.value,r.reference,r.error,r.exactNormalizedIntegral.numerator,r.exactNormalizedIntegral.denominator]));add('pulse-coefficients','归一化脉冲二阶导数平方的全部系数',['幂次','p二阶导系数','平方后系数','0至1逐项积分浮点值'],e.squareCoefficients.map((v,j)=>[j,e.secondCoefficients[j]??0,v,e.integralTerms[j]]));}
+ return out;}
+function svg(p){const left=104,right=866,top=101,bottom=360,x=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top);let out='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="460" viewBox="0 0 900 460" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><desc>'+esc(p.caption)+'</desc><rect width="900" height="460" fill="#fff"/>';const text=(xx,yy,t,size=13,anchor='start',fill='#283b46')=>'<text x="'+xx+'" y="'+yy+'" font-family="system-ui,sans-serif" font-size="'+size+'" text-anchor="'+anchor+'" fill="'+fill+'">'+esc(t)+'</text>';
+ out+=text(22,30,p.title,19)+text(22,441,p.caption,12);p.series.forEach((s,i)=>{out+='<line x1="'+(25+217*i)+'" y1="57" x2="'+(49+217*i)+'" y2="57" stroke="'+s.color+'" stroke-width="3"'+(i>=2?' stroke-dasharray="5 4"':'')+'/>'+text(56+217*i,62,s.label,12);});
+ for(let j=0;j<=5;j++){const yy=top+(bottom-top)*j/5,v=p.yMax-(p.yMax-p.yMin)*j/5;out+='<line x1="'+left+'" x2="'+right+'" y1="'+yy+'" y2="'+yy+'" stroke="#e1e6e8"/>'+text(left-8,yy+4,axisFmt(v),11,'end');}
+ const xTicks=p.xDegenerate?[p.xMin]:p.integerX?Array.from({length:Math.floor(p.xMax)-Math.ceil(p.xMin)+1},(_,i)=>Math.ceil(p.xMin)+i):Array.from({length:6},(_,j)=>p.xMin+(p.xMax-p.xMin)*j/5);for(const v of xTicks)out+=text(x(v),bottom+22,axisFmt(v),11,'middle');out+='<path d="M '+left+' '+top+' V '+bottom+' H '+right+'" fill="none" stroke="#283b46"/>'+text(25,84,p.yLabel,12)+text((left+right)/2,410,p.xLabel+(p.selected!==undefined?'（虚线：当前 L='+p.selected+'）':''),13,'middle');
+ for(let i=p.series.length-1;i>=0;i--){const s=p.series[i];out+='<polyline data-series="'+i+'" points="'+s.points.map(q=>x(q[0])+','+y(q[1])).join(' ')+'" fill="none" stroke="'+s.color+'" stroke-width="'+(i===0?2:1.6)+'"'+(i>=2?' stroke-dasharray="5 4"':'')+'/>';if(s.points.length<=128)for(const q of s.points)out+='<circle cx="'+x(q[0])+'" cy="'+y(q[1])+'" r="3" fill="'+s.color+'"/>';}
+ if(p.selected!==undefined){const xx=x(p.selected);out+='<line x1="'+xx+'" x2="'+xx+'" y1="'+top+'" y2="'+bottom+'" stroke="#283b46" stroke-dasharray="2 5"/>';}return out+'</svg>';
+}
 
-  var PRESETS = [
-    { id: "near", label: "近场 kr=0.2", kr: 0.2, note: "1/r^3 反应性项显著。" },
-    { id: "induction", label: "感应区 kr=1", kr: 1, note: "1/r^3、1/r^2 与 1/r 项处在过渡竞争区。" },
-    { id: "radiation", label: "辐射区 kr=8", kr: 8, note: "除方向图节点外，1/r 项主导，适合局部辨认远场。" }
-  ];
+const PRESETS=[
+{id:'default',label:'谐波：全部场',values:{}},
+{id:'far',label:'谐波远场',values:{radius:'8',time:'8'}},
+{id:'return',label:'近场瞬时回流',values:{radius:'0.2',time:'0.2',angle:'90'}},
+{id:'axis',label:'北轴：有近场，无辐射',values:{angle:'0'}},
+{id:'south',label:'南轴180°',values:{angle:'180'}},
+{id:'equator',label:'赤道90°',values:{angle:'90'}},
+{id:'zero',label:'振幅为零',values:{amplitude:'0'}},
+{id:'static',label:'ω=0静态极限',values:{omega:'0'}},
+{id:'fast',label:'快速振荡与低传播速度',values:{omega:'4',speed:'0.5',radius:'0.1',time:'0.2'}},
+{id:'pulse',label:'有限脉冲：中点',values:{waveform:'pulse',time:'2'}},
+{id:'before',label:'脉冲尚未到达',values:{waveform:'pulse',radius:'4',time:'3'}},
+{id:'front',label:'恰在脉冲前沿',values:{waveform:'pulse',radius:'4',time:'4'}},
+{id:'pulse-peak',label:'远处收到脉冲峰',values:{waveform:'pulse',radius:'4',time:'5'}},
+{id:'after',label:'脉冲已全部通过',values:{waveform:'pulse',radius:'4',time:'6'}},
+{id:'negative',label:'反向偶极脉冲',values:{waveform:'pulse',amplitude:'-2',time:'2',angle:'90'}},
+{id:'narrow',label:'短脉冲',values:{waveform:'pulse',duration:'0.5',start:'-2',radius:'0.1',time:'-1.65'}},
+{id:'wide',label:'宽脉冲与较快传播',values:{waveform:'pulse',duration:'4',radius:'8',speed:'2',time:'6'}},
+{id:'pulse-zero',label:'零振幅脉冲',values:{waveform:'pulse',amplitude:'0',time:'2'}},
+{id:'delayed-short',label:'长距离短脉冲',values:{waveform:'pulse',duration:'0.5',radius:'8',speed:'0.5',time:'16.25'}}
+];
+const QUESTIONS=[
+['时刻t在距离r处读取哪一个源时刻？',['t+r/c','t−r/c'],1,'推迟时刻为τ=t−r/c；源的不同位置有各自的传播距离。'],
+['n沿+x、p̈沿+z时，辐射电场沿哪边？',['+z','−z'],1,'n×(n×p̈)=n(n·p̈)−p̈，在这个例子中沿−z；功率平方不能检查这个符号。'],
+['近区完整Poynting流能否在某个时刻向内？',['可以','不可以'],0,'完整场包含反应性能量交换，瞬时径向能流可为负，周期平均仍可向外。'],
+['不同半径在同一观察时刻是否看见同一个源事件？',['总是相同','一般不同'],1,'同一个源事件τ对应t=τ+r/c。距离改变时，观察时刻也要相应平移。']
+];
 
-  var STYLE_TEXT = [
-    ".rr-lab{--rr-blue:var(--cl-blue,#315f9d);--rr-gold:var(--cl-gold,#9b6a12);--rr-green:var(--cl-green,#39734d);--rr-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;}.rr-lab *,.rr-lab *::before,.rr-lab *::after{box-sizing:border-box;}.rr-lab [hidden]{display:none!important;}.rr-lab h3,.rr-lab h4{margin:0;color:var(--fg);}.rr-lab h3{font-size:1.18rem;}.rr-lab h4{margin-top:16px;font-size:1rem;}",
-    ".rr-lab button,.rr-lab input{font:inherit;}.rr-lab button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);line-height:1.35;cursor:pointer;overflow-wrap:anywhere;}.rr-lab button:hover{border-color:var(--accent);}.rr-lab button[aria-pressed=\"true\"],.rr-lab button.rr-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:700;}.rr-lab button:disabled{cursor:not-allowed;opacity:.55;}.rr-lab button:focus-visible,.rr-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px;}.rr-lab .rr-note,.rr-lab .rr-feedback{color:var(--fg-soft);font-size:13px;line-height:1.65;overflow-wrap:anywhere;}.rr-lab .rr-prompt{margin:14px 0;padding:12px 14px;border-left:3px solid var(--rr-gold);background:var(--bg);}.rr-lab fieldset{min-width:0;margin:0;padding:0;border:0;}.rr-lab legend{margin-bottom:8px;color:var(--fg-soft);font-size:13px;font-weight:750;}.rr-lab .rr-question-list{display:grid;gap:12px;}.rr-lab .rr-question{min-width:0;padding:10px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);}.rr-lab .rr-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}.rr-lab .rr-choice-grid button{font-size:12px;}.rr-lab .rr-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}.rr-lab .rr-actions>*{flex:1 1 170px;}.rr-lab .rr-feedback{min-height:2em;margin:8px 0 0;font-weight:700;}.rr-lab .rr-pass{color:var(--rr-green);}.rr-lab .rr-warn{color:var(--rr-red);}",
-    ".rr-lab .rr-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.rr-lab .rr-layout{display:grid;grid-template-columns:minmax(210px,.72fr) minmax(0,1.28fr);gap:16px;align-items:start;min-width:0;}.rr-lab .rr-controls,.rr-lab .rr-stage{min-width:0;}.rr-lab .rr-controls{display:grid;gap:12px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}.rr-lab .rr-control{display:grid;gap:5px;min-width:0;}.rr-lab .rr-control label,.rr-lab .rr-control-title{color:var(--fg-soft);font-size:13px;font-weight:700;}.rr-lab .rr-control output{color:var(--accent);font-variant-numeric:tabular-nums;}.rr-lab .rr-control input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent);}.rr-lab .rr-option-grid,.rr-lab .rr-preset-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}.rr-lab .rr-option-grid button,.rr-lab .rr-preset-grid button{font-size:12px;}",
-    ".rr-lab .rr-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(122px,1fr));gap:8px;margin:12px 0;}.rr-lab .rr-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.rr-lab .rr-metric:nth-child(3n+1){border-top-color:var(--rr-blue);}.rr-lab .rr-metric:nth-child(3n+2){border-top-color:var(--rr-gold);}.rr-lab .rr-metric:nth-child(3n){border-top-color:var(--rr-red);}.rr-lab .rr-metric span{display:block;color:var(--fg-soft);font-size:11.5px;line-height:1.4;}.rr-lab .rr-metric strong{display:block;margin-top:3px;color:var(--fg);font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}.rr-lab .rr-frame{min-width:0;padding:9px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}.rr-lab .rr-svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg);}.rr-lab .rr-svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.rr-lab .rr-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.68;}.rr-lab .rr-axis{stroke:currentColor;stroke-width:1.2;stroke-opacity:.72;}.rr-lab .rr-curve{fill:none;stroke:var(--rr-blue);stroke-width:3;}.rr-lab .rr-current{fill:var(--rr-red);stroke:var(--bg);stroke-width:2;}.rr-lab .rr-source{stroke:var(--rr-gold);stroke-width:2;stroke-dasharray:5 4;}.rr-lab .rr-observe{stroke:var(--rr-green);stroke-width:2;}.rr-lab .rr-zone-near{fill:var(--rr-red);}.rr-lab .rr-zone-induction{fill:var(--rr-gold);}.rr-lab .rr-zone-radiation{fill:var(--rr-green);}",
-    ".rr-lab .rr-table-wrap{max-width:100%;margin-top:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.rr-lab table{width:100%;min-width:760px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.rr-lab caption{padding:0 0 7px;text-align:left;color:var(--fg-soft);font-size:12px;}.rr-lab th,.rr-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}.rr-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750;}.rr-lab .rr-interpretation{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--rr-green);background:var(--bg);font-size:13px;line-height:1.7;overflow-wrap:anywhere;}",
-    "@media(max-width:900px){.rr-lab .rr-layout{grid-template-columns:minmax(0,1fr);}}@media(max-width:760px){.rr-lab .rr-choice-grid{grid-template-columns:minmax(0,1fr);}.rr-lab .rr-preset-grid{grid-template-columns:minmax(0,1fr);}}@media(max-width:420px){.rr-lab .rr-frame{padding:6px;}.rr-lab table{font-size:11.5px;}.rr-lab th,.rr-lab td{padding-left:5px;padding-right:5px;}}@media(prefers-reduced-motion:reduce){.rr-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important;}}"
-  ].join("\n");
+const STYLE='.radiation165{color:var(--fg);min-width:0;overflow-wrap:anywhere}.radiation165 *{box-sizing:border-box}.radiation165 [hidden]{display:none!important}.radiation165 button,.radiation165 input,.radiation165 select{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--border);border-radius:5px;min-height:44px;padding:8px;max-width:100%}.radiation165 button{margin:4px 4px 4px 0;cursor:pointer;white-space:normal}.radiation165 button:disabled{opacity:.5;cursor:default}.radiation165 button[aria-pressed=true]{outline:2px solid var(--accent);background:var(--block-bg)}.radiation165 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}.radiation-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}.radiation-controls label{display:grid;gap:6px;min-width:0}.radiation165 fieldset{border:1px solid var(--border);margin:12px 0;min-width:0}.radiation165 legend{max-width:100%;font-weight:600}.radiation165 p{line-height:1.7}.radiation-error{color:var(--cl-red,#b64335)}.radiation-scroll{overflow:auto;max-width:100%;min-width:0;border:1px solid var(--border);margin:10px 0}.radiation-scroll svg{display:block;min-width:900px;width:900px;height:460px;max-width:none}.radiation-scroll table{border-collapse:collapse;min-width:900px;width:max-content;max-width:none;font-size:12px}.radiation-scroll th,.radiation-scroll td{padding:7px;vertical-align:top;text-align:left;border:1px solid var(--border);min-width:40px;max-width:550px;white-space:normal;overflow-wrap:anywhere}.radiation165 details{border:1px solid var(--border);padding:10px;margin:10px 0;min-width:0}.radiation165 summary{cursor:pointer;min-height:44px;line-height:1.7}.radiation165 .radiation-summary{padding:12px;border-left:3px solid var(--accent);background:var(--block-bg)}@media(max-width:680px){.radiation-controls{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){.radiation165 *{scroll-behavior:auto!important}}';
+function tableHTML(t){return '<table data-table="'+esc(t.key)+'"><caption>'+esc(t.title)+'</caption><thead><tr>'+t.headers.map(h=>'<th scope="col">'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+t.rows.map(r=>'<tr>'+r.map(v=>'<td>'+esc(fmt(v))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';}
+const mounted=new WeakMap();
+function mount(container){if(mounted.has(container))mounted.get(container)();const doc=container.ownerDocument,win=doc.defaultView;if(!doc.getElementById('radiation165-style')){const st=doc.createElement('style');st.id='radiation165-style';st.textContent=STYLE;doc.head.appendChild(st);}const field=(k,label)=>'<label>'+label+'<input type="text" data-key="'+k+'"></label>',select=(k,label,options)=>'<label>'+label+'<select data-key="'+k+'">'+options.map(([value,text])=>'<option value="'+value+'">'+esc(text)+'</option>').join('')+'</select></label>';
+ container.innerHTML='<div class="radiation165"><h3>推迟辐射：场方向、瞬时能流与平均功率</h3><p>先完成四项预测，再核对完整偶极场。单位k=1、ε₀=1/(4π)、μ₀=4π/c²。</p><div>'+PRESETS.map(p=>'<button type="button" data-preset="'+p.id+'">'+esc(p.label)+'</button>').join('')+'</div><div class="radiation-controls">'+select('waveform','源波形',[['harmonic','永久谐波（ω=0为静态）'],['pulse','有限C³脉冲']])+field('amplitude','偶极矩振幅A（−2至2）')+field('omega','角频率ω（0至4；仅谐波）')+field('duration','持续D（0.5至4；仅脉冲）')+field('start','脉冲起点/谐波标记（−2至2）')+field('time','观察时刻t（−4至24）')+field('radius','观察半径r（0.1至8）')+field('angle','极角θ（0至180°）')+field('speed','传播速度c（0.5至2）')+'</div><p>谐波在全部过去时刻已存在，start只是标记事件；脉冲才有实际前沿。A是偶极矩，不能读作粒子速度。不同图的电场、磁场、功率、能量分别标单位。</p>' +QUESTIONS.map((q,i)=>'<fieldset data-question="'+i+'"><legend>'+(i+1)+'. '+esc(q[0])+'</legend>'+q[1].map((v,j)=>'<button type="button" data-choice="'+j+'" aria-pressed="false">'+esc(v)+'</button>').join('')+'</fieldset>').join('')+'<button type="button" data-action="reveal">核对预测并展示结果</button><button type="button" data-action="reset">重置实验</button><p class="radiation-error" role="alert"></p><p role="status"></p><div class="radiation-results" hidden></div></div>';
+ const shell=container.querySelector('.radiation165'),inputs=[...shell.querySelectorAll('[data-key]')],result=shell.querySelector('.radiation-results'),reveal=shell.querySelector('[data-action=reveal]'),error=shell.querySelector('[role=alert]'),status=shell.querySelector('[role=status]');let choices=QUESTIONS.map(()=>null),d=null,url=null;
+ const values=()=>Object.fromEntries(inputs.map(e=>[e.dataset.key,e.value]));function set(v){inputs.forEach(e=>e.value=String({...DEFAULTS,...v}[e.dataset.key]));}function cleanup(){if(url){win.URL.revokeObjectURL(url);url=null;}result.hidden=true;result.replaceChildren();}mounted.set(container,cleanup);
+ function update(){cleanup();try{d=snapshot(values());error.textContent='';}catch(e){d=null;error.textContent=e.message;}reveal.disabled=!d||choices.some(x=>x===null);status.textContent=!d?'请修正参数后再核对。':choices.some(x=>x===null)?'先完成四项预测。':'预测已记录，请揭晓核对。';}
+ function render(){if(!d)return;cleanup();result.hidden=false;const tables=ledgers(d);result.innerHTML='<div class="radiation-summary">'+esc('极角='+fmt(+d.parameters.angle)+'°；推迟时刻τ='+fmt(d.point.retardedTime)+'；Eθ='+fmt(d.point.components.et)+'；Sr='+fmt(d.point.flux.radial)+'。球面完整瞬时功率='+fmt(d.power.numerical)+'；辐射部分='+fmt(d.power.radiation)+'；'+(d.pulseEnergy?'完整脉冲净能量='+fmt(d.pulseEnergy.closed):'谐波/静态平均功率='+fmt(d.meanReference))+'。')+'</div><ol>'+QUESTIONS.map((q,i)=>'<li>'+esc((choices[i]===q[2]?'预测正确。':'需要修正。')+q[3])+'</li>').join('')+'</ol><p><a data-download download="retarded-radiation-run.json">下载本次数值与完整账本(JSON)</a></p>'+plots(d).map((p,i)=>'<div class="radiation-scroll" role="region" tabindex="0" aria-label="图'+(i+1)+'：'+esc(p.title)+'">'+svg(p)+'</div>').join('')+'<p>每张表展开后显示全部行，宽表与图可以用方向键滚动。表格为阅读做显示舍入；JSON保留全部计算数值。</p><p>'+esc(d.scope)+'</p>'+tables.map(t=>'<details data-ledger="'+t.key+'"><summary>'+esc(t.title)+'（'+t.rows.length+'行）</summary><div class="radiation-scroll" role="region" tabindex="0" aria-label="'+esc(t.title)+'"></div></details>').join('');url=win.URL.createObjectURL(new win.Blob([JSON.stringify(d,null,2)+'\n'],{type:'application/json'}));result.querySelector('[data-download]').href=url;for(const t of tables){const detail=result.querySelector('[data-ledger="'+t.key+'"]');detail.addEventListener('toggle',()=>{if(detail.open&&!detail.querySelector('table'))detail.querySelector('[role=region]').innerHTML=tableHTML(t);});}status.textContent=choices.filter((v,i)=>v===QUESTIONS[i][2]).length+' / 4；请结合场方向、传播时间与能量守恒解释结果。';}
+ inputs.forEach(e=>e.addEventListener(e.tagName==='SELECT'?'change':'input',update));shell.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{set(PRESETS.find(p=>p.id===b.dataset.preset).values);update();}));shell.querySelectorAll('[data-question]').forEach((f,i)=>f.querySelectorAll('[data-choice]').forEach(b=>b.addEventListener('click',()=>{choices[i]=+b.dataset.choice;f.querySelectorAll('button').forEach(q=>q.setAttribute('aria-pressed',String(q===b)));if(!result.hidden)render();else update();})));reveal.addEventListener('click',render);shell.querySelector('[data-action=reset]').addEventListener('click',()=>{choices=QUESTIONS.map(()=>null);shell.querySelectorAll('[data-choice]').forEach(b=>b.setAttribute('aria-pressed','false'));set(DEFAULTS);update();shell.querySelector('[data-choice]').focus();});set(DEFAULTS);update();
+}
+function selfTest(){let checks=0;const ck=(v,m)=>{checks++;if(!v)throw Error(m);};for(const p of PRESETS){const s=snapshot(p.values);ck(s.timeSeries.length>=129,p.id+' time nodes');ck(Math.abs(s.power.residual)<1e-8*(1+Math.abs(s.power.closed)),p.id+' angular integral');ck(plots(s).every(q=>q.series.every(r=>r.points.every(v=>v.every(Number.isFinite)&&v[0]>=q.xMin&&v[0]<=q.xMax&&v[1]>=q.yMin&&v[1]<=q.yMax))),p.id+' plot bounds');ck(ledgers(s).every(t=>t.rows.every(r=>r.length===t.headers.length)),p.id+' table columns');}ck(fmt(10)==='10'&&fmt(90)==='90'&&fmt(180)==='180','angle display');return{status:'PASS',checks,presets:PRESETS.length};}
 
-  function finite(value) {
-    return typeof value === "number" && isFinite(value);
-  }
-
-  function near(left, right, tolerance) {
-    var scale = Math.max(1, Math.abs(left), Math.abs(right));
-    return Math.abs(left - right) <= (tolerance || EPS) * scale;
-  }
-
-  function clamp(value, minimum, maximum) {
-    return Math.max(minimum, Math.min(maximum, value));
-  }
-
-  function retardedTime(observationTime, distance, speed) {
-    if (!finite(observationTime) || !finite(distance) || distance < 0) {
-      throw new RangeError("observation time and nonnegative distance are required");
-    }
-    if (!finite(speed) || speed <= 0) throw new RangeError("speed must be positive");
-    return observationTime - distance / speed;
-  }
-
-  function causalLedger(options) {
-    var settings = options || {};
-    var observationTime = Number(settings.observationTime === undefined ? 5 : settings.observationTime);
-    var sourceEventTime = Number(settings.sourceEventTime === undefined ? 2 : settings.sourceEventTime);
-    var speed = Number(settings.speed === undefined ? 1 : settings.speed);
-    var distances = settings.distances || [1, 2, 4];
-    return distances.map(function (distance) {
-      var numericDistance = Number(distance);
-      var travelTime = numericDistance / speed;
-      var arrivalTime = sourceEventTime + travelTime;
-      return {
-        distance: numericDistance,
-        travelTime: travelTime,
-        retardedSourceTime: retardedTime(observationTime, numericDistance, speed),
-        arrivalTime: arrivalTime,
-        eventSeen: arrivalTime <= observationTime + EPS
-      };
-    });
-  }
-
-  function zoneOf(kr) {
-    var value = Math.max(0, Number(kr));
-    if (value < 0.3) {
-      return { id: "near", label: "近场", note: "kr 很小；1/r^3 反应性项显著。" };
-    }
-    if (value < 3) {
-      return { id: "induction", label: "感应区", note: "kr 约为 1；1/r^3、1/r^2 与 1/r 项共同过渡。" };
-    }
-    return { id: "radiation", label: "辐射区", note: "kr 较大；除角分布节点外，1/r 辐射项主导。" };
-  }
-
-  function zoneScalings(kr) {
-    var value = Math.max(Number(kr), 1e-9);
-    return {
-      near: 1 / Math.pow(value, 3),
-      induction: 1 / Math.pow(value, 2),
-      radiation: 1 / value,
-      reference: "相对于同一谐偶极尺度的教学标度；不是全场精确系数。"
-    };
-  }
-
-  function angularFactor(theta) {
-    return Math.pow(Math.sin(Number(theta)), 2);
-  }
-
-  function instantaneousDifferentialPower(pddot, theta, epsilon0, speed) {
-    var eps = epsilon0 === undefined ? 1 : Number(epsilon0);
-    var c = speed === undefined ? 1 : Number(speed);
-    return Math.pow(Number(pddot), 2) * angularFactor(theta) / (16 * Math.pow(PI, 2) * eps * Math.pow(c, 3));
-  }
-
-  function larmorPower(charge, acceleration, epsilon0, speed) {
-    var eps = epsilon0 === undefined ? 1 : Number(epsilon0);
-    var c = speed === undefined ? 1 : Number(speed);
-    return Math.pow(Number(charge) * Number(acceleration), 2) / (6 * PI * eps * Math.pow(c, 3));
-  }
-
-  function harmonicDifferentialPower(amplitude, omega, theta, epsilon0, speed) {
-    var eps = epsilon0 === undefined ? 1 : Number(epsilon0);
-    var c = speed === undefined ? 1 : Number(speed);
-    return Math.pow(Number(amplitude), 2) * Math.pow(Number(omega), 4) * angularFactor(theta) /
-      (32 * Math.pow(PI, 2) * eps * Math.pow(c, 3));
-  }
-
-  function harmonicPower(amplitude, omega, epsilon0, speed) {
-    var eps = epsilon0 === undefined ? 1 : Number(epsilon0);
-    var c = speed === undefined ? 1 : Number(speed);
-    return Math.pow(Number(amplitude), 2) * Math.pow(Number(omega), 4) / (12 * PI * eps * Math.pow(c, 3));
-  }
-
-  function radiationFieldAmplitude(amplitude, omega, radius, theta, epsilon0, speed) {
-    var eps = epsilon0 === undefined ? 1 : Number(epsilon0);
-    var c = speed === undefined ? 1 : Number(speed);
-    return Math.abs(Number(amplitude) * Math.pow(Number(omega), 2) * Math.sin(Number(theta))) /
-      (4 * PI * eps * Math.pow(c, 2) * Number(radius));
-  }
-
-  function evaluate(options) {
-    var settings = options || {};
-    var c = Number(settings.speed === undefined ? 1 : settings.speed);
-    var epsilon0 = Number(settings.epsilon0 === undefined ? 1 : settings.epsilon0);
-    var amplitude = Number(settings.amplitude === undefined ? 1 : settings.amplitude);
-    var omega = Number(settings.omega === undefined ? 1 : settings.omega);
-    var theta = Number(settings.theta === undefined ? PI / 3 : settings.theta);
-    var kr = Math.max(0, Number(settings.kr === undefined ? DEFAULT.kr : settings.kr));
-    var radius = omega > 0 ? kr * c / omega : Infinity;
-    var pddotAmplitude = amplitude * Math.pow(omega, 2);
-    var zone = zoneOf(kr);
-    var ledger = causalLedger({
-      observationTime: settings.observationTime === undefined ? DEFAULT.observationTime : settings.observationTime,
-      sourceEventTime: settings.sourceEventTime === undefined ? DEFAULT.sourceEventTime : settings.sourceEventTime,
-      speed: c
-    });
-    return {
-      speed: c,
-      epsilon0: epsilon0,
-      amplitude: amplitude,
-      omega: omega,
-      theta: theta,
-      kr: kr,
-      radius: radius,
-      pddotAmplitude: pddotAmplitude,
-      zone: zone,
-      scalings: zoneScalings(kr),
-      ledger: ledger,
-      angleFactor: angularFactor(theta),
-      instantaneousPeakPower: instantaneousDifferentialPower(pddotAmplitude, theta, epsilon0, c),
-      harmonicDifferentialPower: harmonicDifferentialPower(amplitude, omega, theta, epsilon0, c),
-      harmonicTotalPower: harmonicPower(amplitude, omega, epsilon0, c),
-      larmorPower: larmorPower(1, pddotAmplitude, epsilon0, c),
-      fieldAmplitude: radiationFieldAmplitude(amplitude, omega, radius, theta, epsilon0, c),
-      fluxScaling: 1 / Math.pow(radius, 2),
-      modelScope: "非相对论、短偶极、远场/谐稳态功率账；不含完整 Liénard–Wiechert 或自力方程。"
-    };
-  }
-
-  function format(value, digits) {
-    if (value === null || value === undefined || !finite(value)) return "—";
-    var places = digits === undefined ? 4 : digits;
-    if (Math.abs(value) > 0 && Math.abs(value) < 0.0005) return value.toExponential(Math.min(places, 4));
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function setAttributes(node, attrs) {
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", String(value));
-      else if (key === "htmlFor") node.setAttribute("for", String(value));
-      else if (key === "text") node.textContent = String(value);
-      else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, String(value));
-    });
-    return node;
-  }
-
-  function appendChildren(node, children) {
-    var list = Array.isArray(children) ? children : [children];
-    list.forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child && child.nodeType ? child : node.ownerDocument.createTextNode(String(child)));
-    });
-    return node;
-  }
-
-  function element(doc, tag, attrs, children) {
-    return appendChildren(setAttributes(doc.createElement(tag), attrs || {}), children || []);
-  }
-
-  function svgElement(doc, tag, attrs, children) {
-    return appendChildren(setAttributes(doc.createElementNS(SVG_NS, tag), attrs || {}), children || []);
-  }
-
-  function clear(node) {
-    while (node && node.firstChild) node.removeChild(node.firstChild);
-  }
-
-  function installStyles(doc) {
-    if (!doc || !doc.head || doc.getElementById(STYLE_ID)) return;
-    var style = doc.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = STYLE_TEXT;
-    doc.head.appendChild(style);
-  }
-
-  function metric(doc, label, value) {
-    return element(doc, "div", { className: "rr-metric" }, [
-      element(doc, "span", {}, [label]),
-      element(doc, "strong", {}, [value])
-    ]);
-  }
-
-  function tableElement(doc, captionText, headers, rows) {
-    var head = element(doc, "tr", {}, headers.map(function (header) {
-      return element(doc, "th", { scope: "col" }, [header]);
-    }));
-    var body = element(doc, "tbody", {}, rows.map(function (row) {
-      return element(doc, "tr", {}, row.map(function (cell, index) {
-        return element(doc, index === 0 ? "th" : "td", index === 0 ? { scope: "row" } : {}, [cell]);
-      }));
-    }));
-    return element(doc, "table", {}, [
-      element(doc, "caption", {}, [captionText]),
-      element(doc, "thead", {}, [head]),
-      body
-    ]);
-  }
-
-  function drawSvg(doc, data, uid) {
-    var svg = svgElement(doc, "svg", {
-      className: "rr-svg",
-      viewBox: "0 0 720 360",
-      role: "img",
-      "aria-labelledby": uid + "-title " + uid + "-desc"
-    }, []);
-    svg.appendChild(svgElement(doc, "title", { id: uid + "-title" }, ["推迟时间、偶极角分布与区域标尺"]));
-    svg.appendChild(svgElement(doc, "desc", { id: uid + "-desc" }, [
-      "左侧为源事件、传播路径和观测时刻的因果时间线；右侧为 sin² theta 角分布和近场、感应区、辐射区标尺。"
-    ]));
-    var left = 48;
-    var right = 350;
-    var top = 70;
-    var bottom = 220;
-    var times = data.ledger.reduce(function (values, row) {
-      return values.concat([row.arrivalTime, row.retardedSourceTime]);
-    }, [data.observationTime, data.sourceEventTime]);
-    var minTime = Math.min.apply(null, times) - 0.5;
-    var maxTime = Math.max.apply(null, times) + 0.5;
-    var mapTime = function (time) { return left + (right - left) * (time - minTime) / (maxTime - minTime); };
-    svg.appendChild(svgElement(doc, "text", { x: left, y: 25, "font-size": 12, "font-weight": 700 }, ["因果时间线"]));
-    svg.appendChild(svgElement(doc, "line", { x1: left, y1: 150, x2: right, y2: 150, class: "rr-axis" }, []));
-    svg.appendChild(svgElement(doc, "line", { x1: mapTime(data.sourceEventTime), y1: top, x2: mapTime(data.sourceEventTime), y2: bottom, class: "rr-source" }, []));
-    svg.appendChild(svgElement(doc, "line", { x1: mapTime(data.observationTime), y1: top, x2: mapTime(data.observationTime), y2: bottom, class: "rr-observe" }, []));
-    svg.appendChild(svgElement(doc, "text", { x: mapTime(data.sourceEventTime), y: 52, "text-anchor": "middle", "font-size": 11 }, ["源事件 t=" + format(data.sourceEventTime, 1)]));
-    svg.appendChild(svgElement(doc, "text", { x: mapTime(data.observationTime), y: 52, "text-anchor": "middle", "font-size": 11 }, ["观测 t=" + format(data.observationTime, 1)]));
-    data.ledger.forEach(function (row, index) {
-      var y = 92 + index * 34;
-      var xRet = mapTime(row.retardedSourceTime);
-      var xArr = mapTime(row.arrivalTime);
-      var xObs = mapTime(data.observationTime);
-      var xEvent = mapTime(data.sourceEventTime);
-      svg.appendChild(svgElement(doc, "line", { x1: xRet, y1: y - 3, x2: xObs, y2: y - 3, class: "rr-observe" }, []));
-      svg.appendChild(svgElement(doc, "line", { x1: xEvent, y1: y + 3, x2: xArr, y2: y + 3, class: "rr-source" }, []));
-      svg.appendChild(svgElement(doc, "circle", { cx: xRet, cy: y - 3, r: 4, fill: "var(--rr-gold)" }, []));
-      svg.appendChild(svgElement(doc, "circle", { cx: xArr, cy: y + 3, r: 4, fill: row.eventSeen ? "var(--rr-green)" : "var(--rr-red)" }, []));
-      svg.appendChild(svgElement(doc, "text", { x: left, y: y - 8, "font-size": 10.5 }, ["R=" + format(row.distance, 1) + "  t_ret=" + format(row.retardedSourceTime, 2)]));
-    });
-    svg.appendChild(svgElement(doc, "text", { x: left, y: bottom + 22, "font-size": 10.5 }, ["上轨：t_ret → t_obs；下轨：t_event → t_arr"]));
-
-    var chartLeft = 432;
-    var chartRight = 684;
-    var chartTop = 70;
-    var chartBottom = 210;
-    var mapAngleX = function (theta) { return chartLeft + (chartRight - chartLeft) * theta / PI; };
-    var mapAngleY = function (value) { return chartBottom - (chartBottom - chartTop) * value; };
-    svg.appendChild(svgElement(doc, "text", { x: chartLeft, y: 25, "font-size": 12, "font-weight": 700 }, ["远场角分布 sin²θ"]));
-    [0, 0.5, 1].forEach(function (value) {
-      var yGrid = mapAngleY(value);
-      svg.appendChild(svgElement(doc, "line", { x1: chartLeft, y1: yGrid, x2: chartRight, y2: yGrid, class: "rr-grid" }, []));
-    });
-    svg.appendChild(svgElement(doc, "line", { x1: chartLeft, y1: chartBottom, x2: chartRight, y2: chartBottom, class: "rr-axis" }, []));
-    var points = [];
-    for (var index = 0; index <= 40; index += 1) {
-      var angle = PI * index / 40;
-      points.push((index === 0 ? "M" : "L") + mapAngleX(angle) + " " + mapAngleY(Math.pow(Math.sin(angle), 2)));
-    }
-    svg.appendChild(svgElement(doc, "path", { d: points.join(" "), class: "rr-curve" }, []));
-    svg.appendChild(svgElement(doc, "circle", {
-      cx: mapAngleX(data.theta),
-      cy: mapAngleY(data.angleFactor),
-      r: 5,
-      class: "rr-current"
-    }, []));
-    svg.appendChild(svgElement(doc, "text", { x: chartLeft, y: chartBottom + 18, "font-size": 10.5 }, ["θ=0"]));
-    svg.appendChild(svgElement(doc, "text", { x: chartRight, y: chartBottom + 18, "text-anchor": "end", "font-size": 10.5 }, ["θ=π"]));
-    svg.appendChild(svgElement(doc, "text", { x: (chartLeft + chartRight) / 2, y: chartBottom + 18, "text-anchor": "middle", "font-size": 10.5 }, ["赤道面最强"]));
-    var zoneY = 285;
-    var zoneWidth = (chartRight - chartLeft) / 3;
-    ["near", "induction", "radiation"].forEach(function (id, zoneIndex) {
-      svg.appendChild(svgElement(doc, "rect", {
-        x: chartLeft + zoneWidth * zoneIndex,
-        y: zoneY,
-        width: zoneWidth - 2,
-        height: 18,
-        class: "rr-zone-" + id
-      }, []));
-      svg.appendChild(svgElement(doc, "text", {
-        x: chartLeft + zoneWidth * (zoneIndex + 0.5),
-        y: zoneY + 13,
-        "text-anchor": "middle",
-        "font-size": 10.5
-      }, [id === "near" ? "近场" : id === "induction" ? "感应区" : "辐射区"]));
-    });
-    svg.appendChild(svgElement(doc, "text", { x: chartLeft, y: zoneY - 8, "font-size": 10.5 }, ["kr 区域标尺"]));
-    return svg;
-  }
-
-  function buttonGroup(doc, label, choices, selected, onSelect, className) {
-    var fieldset = element(doc, "fieldset", {});
-    fieldset.appendChild(element(doc, "legend", {}, [label]));
-    var grid = element(doc, "div", {
-      className: className || "rr-option-grid",
-      role: "group",
-      "aria-label": label
-    }, []);
-    choices.forEach(function (choice) {
-      var button = element(doc, "button", {
-        type: "button",
-        "data-choice-value": choice.value,
-        "aria-pressed": selected === choice.value ? "true" : "false"
-      }, [choice.label]);
-      button.addEventListener("click", function () { onSelect(choice.value); });
-      grid.appendChild(button);
-    });
-    fieldset.appendChild(grid);
-    return fieldset;
-  }
-
-  function mount(root, api) {
-    if (!root || !root.ownerDocument || !root.appendChild) return;
-    var doc = root.ownerDocument;
-    installStyles(doc);
-    INSTANCE += 1;
-    var uid = "cl-rr-" + INSTANCE;
-    var state = {
-      presetId: DEFAULT.presetId,
-      kr: DEFAULT.kr,
-      theta: DEFAULT.theta,
-      observationTime: DEFAULT.observationTime,
-      sourceEventTime: DEFAULT.sourceEventTime
-    };
-    var prediction = { causal: null, axis: null, zone: null, frequency: null, scaling: null };
-    var revealed = false;
-    var score = 0;
-    var shell = element(doc, "div", { className: "rr-lab" }, []);
-    root.replaceChildren(shell);
-
-    function announce(message) {
-      if (api && typeof api.announce === "function") api.announce(root, message);
-    }
-
-    function predictionComplete() {
-      return Object.keys(prediction).every(function (key) { return prediction[key] !== null; });
-    }
-
-    function addPrediction(container, key, prompt, options) {
-      var fieldset = element(doc, "fieldset", { className: "rr-question" }, [
-        element(doc, "legend", {}, [prompt])
-      ]);
-      var grid = element(doc, "div", { className: "rr-choice-grid", role: "group", "aria-label": prompt }, []);
-      options.forEach(function (option) {
-        var button = element(doc, "button", {
-          type: "button",
-          "aria-pressed": prediction[key] === option.value ? "true" : "false",
-          disabled: revealed
-        }, [option.label]);
-        button.addEventListener("click", function () {
-          if (!revealed) {
-            prediction[key] = option.value;
-            renderGate();
-          }
-        });
-        grid.appendChild(button);
-      });
-      fieldset.appendChild(grid);
-      container.appendChild(fieldset);
-    }
-
-    function renderGate() {
-      clear(shell);
-      shell.appendChild(element(doc, "h3", {}, ["推迟辐射审计：时间戳、区域与角分布"]));
-      shell.appendChild(element(doc, "p", { className: "rr-note" }, [
-        revealed
-          ? "预测已提交；可以改变 kr、角度和观测时刻，重算因果与偶极账本。"
-          : "先完成五项预测。提交前不显示时间线、区域系数或辐射功率。"
-      ]));
-      shell.appendChild(element(doc, "div", { className: "rr-prompt" }, [
-        revealed
-          ? "当前模型只覆盖非相对论短偶极：远场功率与推迟时间分开审计。"
-          : "预测门：先决定源的过去状态，再决定哪些场项可被叫作辐射。"
-      ]));
-      var questions = element(doc, "div", { className: "rr-question-list" }, []);
-      addPrediction(questions, "causal", "1 · 观测时刻 t 对应的源时间？", [
-        { value: "retarded", label: "t−R/c" },
-        { value: "advanced", label: "t+R/c" },
-        { value: "same", label: "t" }
-      ]);
-      addPrediction(questions, "axis", "2 · 偶极轴向 θ=0 的远场功率？", [
-        { value: "zero", label: "零" },
-        { value: "max", label: "最大" },
-        { value: "same", label: "不变" }
-      ]);
-      addPrediction(questions, "zone", "3 · kr≫1 主要读哪一层？", [
-        { value: "radiation", label: "辐射区 1/r" },
-        { value: "near", label: "近场 1/r³" },
-        { value: "induction", label: "感应区 1/r²" }
-      ]);
-      addPrediction(questions, "frequency", "4 · 固定 p₀ 的谐稳态功率？", [
-        { value: "omega4", label: "ω⁴" },
-        { value: "omega2", label: "ω²" },
-        { value: "none", label: "不依赖 ω" }
-      ]);
-      addPrediction(questions, "scaling", "5 · 远场幅度/平均通量随 r？", [
-        { value: "one/two", label: "1/r；1/r²" },
-        { value: "two/one", label: "1/r²；1/r" },
-        { value: "same", label: "都不变" }
-      ]);
-      shell.appendChild(questions);
-      var actions = element(doc, "div", { className: "rr-actions" }, []);
-      var reveal = element(doc, "button", {
-        type: "button",
-        className: "rr-primary",
-        disabled: revealed || !predictionComplete()
-      }, [revealed ? "账本已揭示" : "提交预测并揭示"]);
-      reveal.addEventListener("click", function () {
-        if (!predictionComplete()) return;
-        var answers = {
-          causal: "retarded",
-          axis: "zero",
-          zone: "radiation",
-          frequency: "omega4",
-          scaling: "one/two"
-        };
-        score = Object.keys(answers).reduce(function (total, key) {
-          return total + (prediction[key] === answers[key] ? 1 : 0);
-        }, 0);
-        revealed = true;
-        renderGate();
-        announce("预测已提交；推迟时间、区域、角分布和功率账本已揭示。");
-      });
-      var reset = element(doc, "button", { type: "button" }, [revealed ? "重新预测" : "重置"]);
-      reset.addEventListener("click", resetToGate);
-      actions.appendChild(reveal);
-      actions.appendChild(reset);
-      shell.appendChild(actions);
-      shell.appendChild(element(doc, "p", {
-        className: "rr-feedback " + (revealed ? (score === 5 ? "rr-pass" : "rr-warn") : ""),
-        "aria-live": "polite"
-      }, [
-        !predictionComplete()
-          ? "请为五个判断各选一项。"
-          : revealed
-            ? "预测得分 " + score + "/5；下面打开因果与辐射账本。"
-            : "五项预测已记录，点击提交后才显示结果。"
-      ]));
-      if (revealed) buildRevealed();
-    }
-
-    function buildRevealed() {
-      var panel = element(doc, "section", { className: "rr-revealed" }, [
-        element(doc, "h4", {}, ["结果与透明账本"]),
-        element(doc, "p", { className: "rr-note" }, [
-          "数值采用 c=ε0=p0=ω=1 的归一化教学单位；区域是连续的尺度判断，不是场的硬切换。"
-        ])
-      ]);
-      var layout = element(doc, "div", { className: "rr-layout" }, []);
-      var controls = element(doc, "div", { className: "rr-controls" }, []);
-      var stage = element(doc, "div", { className: "rr-stage" }, []);
-      controls.appendChild(buttonGroup(
-        doc,
-        "观察区域预设",
-        PRESETS.map(function (preset) { return { value: preset.id, label: preset.label }; }),
-        state.presetId,
-        function (value) {
-          state.presetId = value;
-          state.kr = PRESETS.filter(function (preset) { return preset.id === value; })[0].kr;
-          renderGate();
-        },
-        "rr-preset-grid"
-      ));
-      addRange(controls, "kr", "无量纲距离 kr", "0.1", "12", "0.1", state.kr, function (value) {
-        state.kr = value;
-        state.presetId = "custom";
-        Array.prototype.forEach.call(controls.querySelectorAll(".rr-preset-grid button"), function (button) {
-          button.setAttribute("aria-pressed", "false");
-        });
-        renderResults();
-      }, function (value) { return format(value, 1); });
-      addRange(controls, "theta", "观察角 θ", "0", "180", "1", state.theta * 180 / PI, function (value) {
-        state.theta = value * PI / 180;
-        renderResults();
-      }, function (value) { return format(value, 0) + "°"; });
-      addRange(controls, "observationTime", "观测时刻 t", "1", "8", "0.5", state.observationTime, function (value) {
-        state.observationTime = value;
-        renderResults();
-      }, function (value) { return format(value, 1); });
-      addRange(controls, "sourceEventTime", "源事件时刻", "-1", "5", "0.5", state.sourceEventTime, function (value) {
-        state.sourceEventTime = value;
-        renderResults();
-      }, function (value) { return format(value, 1); });
-      var reset = element(doc, "button", { type: "button" }, ["重置实验"]);
-      reset.addEventListener("click", resetToGate);
-      controls.appendChild(reset);
-      layout.appendChild(controls);
-      layout.appendChild(stage);
-      panel.appendChild(layout);
-      shell.appendChild(panel);
-      renderResults();
-
-      function addRange(container, key, label, minimum, maximum, step, initialValue, onChange, formatter) {
-        var id = uid + "-" + key;
-        var output = element(doc, "output", { for: id }, [formatter(initialValue)]);
-        var input = element(doc, "input", {
-          id: id,
-          type: "range",
-          min: minimum,
-          max: maximum,
-          step: step,
-          value: String(initialValue),
-          "aria-label": label
-        });
-        input.addEventListener("input", function () {
-          var value = Number(input.value);
-          output.textContent = formatter(value);
-          onChange(value);
-        });
-        container.appendChild(element(doc, "div", { className: "rr-control" }, [
-          element(doc, "label", { htmlFor: id }, [label + " = ", output]),
-          input
-        ]));
-      }
-
-      function renderResults() {
-        var data = evaluate({
-          kr: state.kr,
-          theta: state.theta,
-          observationTime: state.observationTime,
-          sourceEventTime: state.sourceEventTime
-        });
-        clear(stage);
-        var selectedRetarded = data.ledger[1].retardedSourceTime;
-        stage.appendChild(element(doc, "div", { className: "rr-metrics" }, [
-          metric(doc, "区域", data.zone.label),
-          metric(doc, "t_ret (R=2)", format(selectedRetarded, 3)),
-          metric(doc, "sin²θ", format(data.angleFactor, 5)),
-          metric(doc, "平均 dP/dΩ", format(data.harmonicDifferentialPower, 7)),
-          metric(doc, "平均 P", format(data.harmonicTotalPower, 7)),
-          metric(doc, "远场 |E|", format(data.fieldAmplitude, 7)),
-          metric(doc, "⟨S⟩ 的 r 标度", "1/r²")
-        ]));
-        var frame = element(doc, "div", { className: "rr-frame" }, []);
-        frame.appendChild(drawSvg(doc, {
-          ledger: data.ledger,
-          observationTime: state.observationTime,
-          sourceEventTime: state.sourceEventTime,
-          theta: state.theta,
-          angleFactor: data.angleFactor
-        }, uid));
-        stage.appendChild(frame);
-        var rows = data.ledger.map(function (row) {
-          return [
-            "R=" + format(row.distance, 2),
-            format(row.travelTime, 3),
-            format(row.retardedSourceTime, 3),
-            format(row.arrivalTime, 3),
-            row.eventSeen ? "已到达" : "尚未到达"
-          ];
-        });
-        rows.push(["区域项", format(data.scalings.near, 5) + " / " + format(data.scalings.induction, 5) + " / " + format(data.scalings.radiation, 5), "近 / 感应 / 辐射", data.zone.label, "教学标度"]);
-        rows.push(["角分布", "sin²θ=" + format(data.angleFactor, 5), "轴向零点", "赤道面最大", "远场式"]);
-        rows.push(["功率", "Larmor=" + format(data.larmorPower, 7), "平均偶极=" + format(data.harmonicTotalPower, 7), "ω⁴", "固定 p₀、短偶极、非相对论"]);
-        stage.appendChild(element(doc, "div", { className: "rr-table-wrap" }, [
-          tableElement(doc, "推迟时间与辐射账本", ["检查", "传播/读数", "源时间或项", "结果", "条件"], rows)
-        ]));
-        stage.appendChild(element(doc, "p", { className: "rr-interpretation", "aria-live": "polite" }, [
-          data.zone.id === "radiation"
-            ? "当前 kr 进入辐射区：1/r 项主导，平均远场通量可以读成净辐射；推迟时间仍单独由 t−R/c 决定。"
-            : "当前未进入纯辐射区：近场或感应项仍显著，不能把局部瞬时能流直接当作总辐射功率。"
-        ]));
-      }
-    }
-
-    function resetToGate() {
-      state = {
-        presetId: DEFAULT.presetId,
-        kr: DEFAULT.kr,
-        theta: DEFAULT.theta,
-        observationTime: DEFAULT.observationTime,
-        sourceEventTime: DEFAULT.sourceEventTime
-      };
-      prediction = { causal: null, axis: null, zone: null, frequency: null, scaling: null };
-      revealed = false;
-      score = 0;
-      renderGate();
-      announce("推迟辐射实验已重置；请重新完成五项预测。");
-    }
-
-    renderGate();
-  }
-
-  function selfTest() {
-    var checks = 0;
-    function assert(condition, message) {
-      checks += 1;
-      if (!condition) throw new Error(message);
-    }
-    assert(near(retardedTime(5, 2, 1), 3, 1e-12), "retarded time");
-    var ledger = causalLedger({ observationTime: 5, sourceEventTime: 2, speed: 1, distances: [1, 2, 4] });
-    assert(near(ledger[0].arrivalTime, 3, 1e-12), "arrival R one");
-    assert(near(ledger[1].retardedSourceTime, 3, 1e-12), "retarded R two");
-    assert(!ledger[2].eventSeen, "far event not arrived");
-    assert(zoneOf(0.2).id === "near", "near zone");
-    assert(zoneOf(1).id === "induction", "induction zone");
-    assert(zoneOf(8).id === "radiation", "radiation zone");
-    assert(near(angularFactor(0), 0, 1e-12), "axis angular node");
-    assert(near(angularFactor(PI / 2), 1, 1e-12), "equator angular maximum");
-    var instantaneous = instantaneousDifferentialPower(1, PI / 2, 1, 1);
-    assert(near(larmorPower(1, 1, 1, 1) / instantaneous, 8 * PI / 3, 1e-12), "angular integral factor");
-    assert(near(harmonicPower(1, 2, 1, 1) / harmonicPower(1, 1, 1, 1), 16, 1e-12), "omega four scaling");
-    assert(near(harmonicPower(2, 1, 1, 1) / harmonicPower(1, 1, 1, 1), 4, 1e-12), "dipole amplitude squared scaling");
-    assert(near(
-      harmonicDifferentialPower(2, 3, PI / 2, 1, 1),
-      0.5 * instantaneousDifferentialPower(2 * 9, PI / 2, 1, 1),
-      1e-12
-    ), "harmonic average is half the peak instantaneous power");
-    assert(near(
-      radiationFieldAmplitude(1, 1, 2, PI / 2, 1, 1) /
-      radiationFieldAmplitude(1, 1, 1, PI / 2, 1, 1),
-      0.5,
-      1e-12
-    ), "far field one over r");
-    var result = evaluate({ kr: 8, theta: PI / 3, observationTime: 5, sourceEventTime: 2 });
-    assert(result.zone.id === "radiation", "evaluate radiation zone");
-    assert(near(result.angleFactor, 0.75, 1e-12), "evaluate angle");
-    assert(result.modelScope.indexOf("Liénard") !== -1, "scope boundary");
-    assert(result.scalings.radiation > result.scalings.induction && result.scalings.induction > result.scalings.near, "zone scaling order");
-    return { checks: checks, presets: PRESETS.length };
-  }
-
-  return {
-    DEFAULT: DEFAULT,
-    PRESETS: PRESETS,
-    retardedTime: retardedTime,
-    causalLedger: causalLedger,
-    zoneOf: zoneOf,
-    zoneScalings: zoneScalings,
-    angularFactor: angularFactor,
-    instantaneousDifferentialPower: instantaneousDifferentialPower,
-    larmorPower: larmorPower,
-    harmonicDifferentialPower: harmonicDifferentialPower,
-    harmonicPower: harmonicPower,
-    radiationFieldAmplitude: radiationFieldAmplitude,
-    evaluate: evaluate,
-    mount: mount,
-    selfTest: selfTest
-  };
-});
+const api={DEFAULTS,PRESETS,QUESTIONS,config,snapshot,plots,ledgers,svg,fmt,tableHTML,mount,selfTest};if(typeof module!=="undefined"&&module.exports)module.exports=api;if(host&&host.CourseLearning&&typeof host.CourseLearning.register==="function")host.CourseLearning.register("retarded-radiation",mount);})(typeof window!=="undefined"?window:globalThis);

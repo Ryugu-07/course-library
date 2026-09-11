@@ -332,6 +332,8 @@ def sync_learning_assets(md_names):
         shutil.copytree(SHARED / "projects" / "heat-inverse", destination / "projects" / "heat-inverse")
     if "image-charge-boundary" in names:
         shutil.copytree(SHARED / "projects" / "image-charge-boundary", destination / "projects" / "image-charge-boundary")
+    if "retarded-radiation" in names:
+        shutil.copytree(SHARED / "projects" / "retarded-radiation", destination / "projects" / "retarded-radiation")
 
 
 def previous_build_time(out: Path, fallback: str) -> str:
