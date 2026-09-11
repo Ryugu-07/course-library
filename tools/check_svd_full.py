@@ -2,7 +2,7 @@
 from pathlib import Path
 from fractions import Fraction as F
 from decimal import Decimal as D, localcontext
-import subprocess,shutil,json,math,sys,re,html,xml.etree.ElementTree as ET
+import subprocess,shutil,json,math,sys,re,html,hashlib,xml.etree.ElementTree as ET
 ROOT=Path(__file__).resolve().parents[1];PREFIX=['rtk','proxy']if shutil.which('rtk')else[]
 JS=Path(sys.argv[1])if len(sys.argv)>1 else ROOT/'course-shared/labs/svd-perturbation.js'
 code=r'''
@@ -292,6 +292,23 @@ with localcontext()as ctx:
 ck(data['invalid']>=100,'strict active controls');ck(data['self']['status']=='PASS'and data['self']['checks']==8,'self tests')
 if len(sys.argv)==1:
  from html.parser import HTMLParser
+ fixture=ROOT/'course-shared/projects/svd-stability/qr-snapshot.json'
+ frozen=json.loads(fixture.read_text());ck(frozen['schema']==1,'snapshot schema')
+ provenance=frozen['provenance']
+ ck(provenance['labSha256']==hashlib.sha256(JS.read_bytes()).hexdigest(),'snapshot implementation provenance')
+ ck(provenance['runtime']=='v24.14.0'and provenance['platform']=='darwin'and provenance['arch']=='arm64'and provenance['capturedOn']=='2026-09-11','explicit recorded environment')
+ ck((ROOT/'grad-math/site/assets/learning/projects/svd-stability/qr-snapshot.json').read_bytes()==fixture.read_bytes(),'public snapshot exact copy')
+ for name,delta,rho in [('defaultQR',.0001,0),('figureQR',1e-8,1)]:
+  v=frozen[name];ck(v['config']['mode']=='qr'and v['config']['delta']==delta and v['config']['rho']==rho and v['config']['noise']==0,'specified snapshot input')
+  check_qr(v['config'],v['result'])
+ scan={}
+ for d in frozen['scan']:
+  check_qr(d['config'],d['result']);s=d['config'];scan[s['delta'],s['rho'],s['noise']]=d['result']
+ ck(len(scan)==len(frozen['scan'])==len(frozen['figureQR']['result']['study']),'every frozen plotted scan point')
+ for row in frozen['figureQR']['result']['study']:
+  v=scan[row['delta'],1,0]
+  for key in ['condition','dataFormation','referenceResidual']:ck(row[key]==v[key],'frozen plotted scalar')
+  for a,b in zip(row['methods'],v['methods']):ck(all(a[key]==b[key]for key in a),'frozen plotted method independently checked')
  src=(ROOT/'grad-math/lectures/nla-01-svd-stability.md').read_text();site=(ROOT/'grad-math/site/nla-01-svd-stability.html').read_text()
  formulas=[(a or b).strip()for a,b in re.findall(r'\$\$(.*?)\$\$|(?<!\\)\$(?!\$)(.*?)(?<!\\)\$(?!\$)',src,re.S)]
  actual=[html.unescape(a or b).strip()for a,b in re.findall(r'<(?:span|div) class="arithmatex">(?:\\\((.*?)\\\)|\\\[(.*?)\\\])</(?:span|div)>',site,re.S)]
@@ -314,8 +331,8 @@ if len(sys.argv)==1:
  image=ROOT/'grad-math/images/nla-01-stability-ledgers.svg'
  ck(image.read_bytes()==(ROOT/'grad-math/site/assets/img/nla-01-stability-ledgers.svg').read_bytes(),'SVG mirror')
  panels=ET.parse(image).getroot().findall('.//{http://www.w3.org/2000/svg}svg');ck(len(panels)==4,'four static panels')
- code="const a=require(process.argv[1]);console.log(JSON.stringify([a.plots(a.snapshot({eta:2}))[1],a.plots(a.snapshot({second:2.95}))[4],a.plots(a.snapshot({mode:'qr',delta:1e-8,rho:1}))[2],a.plots(a.snapshot({mode:'backward',delta:1e-8}))[2]].map(a.svg)))"
- expected=json.loads(subprocess.check_output(PREFIX+['node','-e',code,str(JS.resolve())],text=True))
+ code="const a=require(process.argv[1]),f=JSON.parse(require('fs').readFileSync(process.argv[2],'utf8'));console.log(JSON.stringify([a.plots(a.snapshot({eta:2}))[1],a.plots(a.snapshot({second:2.95}))[4],a.plots(f.figureQR)[2],a.plots(a.snapshot({mode:'backward',delta:1e-8}))[2]].map(a.svg)))"
+ expected=json.loads(subprocess.check_output(PREFIX+['node','-e',code,str(JS.resolve()),str(fixture)],text=True))
  # Math transcendental results can differ by a few ulps across Node/CPU builds.
  # Compare every SVG node and attribute, allowing only sub-nanopixel geometry
  # differences. Text, labels, series identities and point counts remain exact.
@@ -357,7 +374,7 @@ if len(sys.argv)==1:
  table=re.search(r'data-learning-lab="svd-perturbation".*?<tbody>(.*?)</tbody>',site,re.S).group(1)
  vals=[float(html.unescape(x))for x in re.findall(r'<tr>\s*<td>.*?</td>\s*<td[^>]*>(.*?)</td>\s*</tr>',table,re.S)]
  code="const a=require(process.argv[1]);console.log(JSON.stringify([a.snapshot({}).result,a.snapshot({mode:'qr'}).result,a.snapshot({mode:'backward',delta:1e-8}).result]))"
- t,q,b=json.loads(subprocess.check_output(PREFIX+['node','-e',code,str(JS.resolve())],text=True))
+ t,_,b=json.loads(subprocess.check_output(PREFIX+['node','-e',code,str(JS.resolve())],text=True));q=frozen['defaultQR']['result']
  refs=[t['large'],t['small'],*t['singular'],t['angle'],t['certificate'],t['truncations'][1]['spectral'],t['truncations'][0]['frobenius'],q['condition'],*[z['forward']for z in q['methods']],*[z['orthogonality']for z in q['methods'][:3]],b['eta'],b['forward']]
  ck(len(vals)==len(refs)==18,'fallback complete')
  for v,w in zip(vals,refs):close(v,w,'fallback',rtol=2e-11,atol=1e-25)
