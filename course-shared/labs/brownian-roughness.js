@@ -1,755 +1,107 @@
-(function () {
-  "use strict";
+(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;if(root&&root.CourseLearning)root.CourseLearning.register('brownian-roughness',api.mount);})(typeof window!=='undefined'?window:typeof globalThis!=='undefined'?globalThis:this,function(){
+'use strict';
+const DEFAULTS={method:'levy',seed:'20260722',maxLevel:'8',level:'6',pathView:'paths',delta:'0.01',theta:'1'};
+function config(input){if(input===undefined)input={};if(input===null||typeof input!=='object'||Array.isArray(input))throw Error('参数须为对象');for(const k of Object.keys(input))if(!Object.hasOwn(DEFAULTS,k))throw Error('未知参数：'+k);const c={...DEFAULTS,...input};for(const k of Object.keys(c))if(typeof c[k]!=='string')throw Error('所有参数必须是字符串');if(!['levy','aggregate'].includes(c.method))throw Error('构造只能选levy或aggregate');if(!['paths','hats'].includes(c.pathView))throw Error('路径视图只能选paths或hats');for(const [k,lo,hi]of [['seed',0,4294967295],['maxLevel',2,10],['level',0,14]])if(!/^(?:0|[1-9]\d*)$/.test(c[k])||c[k].length>10||Number(c[k])<lo||Number(c[k])>hi)throw Error(k+'须为'+lo+'至'+hi+'的整数');if(Number(c.level)>Number(c.maxLevel)+4)throw Error('当前层最多比最高生成层多4层；超出的层是冻结折线细分');for(const k of ['delta','theta'])if(c[k].length>24||! /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(c[k]))throw Error(k+'须为普通十进制数');if(!(Number(c.delta)>=1e-9&&Number(c.delta)<=0.25))throw Error('尾概率delta须在0.000000001至0.25之间');if(Math.abs(Number(c.theta))>4)throw Error('指数鞅参数theta绝对值须不超过4');return c;}
+function randomNormals(seed){let state=seed>>>0;const records=[];function word(){state=(state+0x6D2B79F5)|0;let t=Math.imul(state^(state>>>15),1|state);t=(t+Math.imul(t^(t>>>7),61|t))^t;return (t^(t>>>14))>>>0;}function next(){const a=word(),b=word(),u=(a+.5)/4294967296,v=(b+.5)/4294967296,z=Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);records.push({index:records.length,word1:a,word2:b,u1:u,u2:v,z});return z;}return{next,records};}
+function sum(xs){let s=0,c=0;for(const v of xs){const y=v-c,t=s+y;c=(t-s)-y;s=t;}return s;}
+function sinPi(x){const r=((x%2)+2)%2;if(r===0||r===1)return 0;if(r===.5)return 1;if(r===1.5)return-1;return Math.sin(Math.PI*x);}
+const smooth=t=>.75*sinPi(2*t)+.25*sinPi(6*t);
+function metrics(path){const increments=path.slice(1).map((v,i)=>v-path[i]),squares=increments.map(v=>v*v),cumulativeQ=[0];let q=0,c=0;for(const v of squares){const y=v-c,t=q+y;c=(t-q)-y;q=t;cumulativeQ.push(q);}return{increments,cumulativeQ,totalVariation:sum(increments.map(Math.abs)),quadraticVariation:sum(squares),maxIncrement:Math.max(...increments.map(Math.abs))};}
+function hat(m,k,t){const u=2**m*t-k;return u<=0||u>=1?0:u<=.5?2*u:2*(1-u);}
+function phi(m,k,t){return 2**(-(m+2)/2)*hat(m,k,t);}
+function covariance(M){const n=2**M,j=Math.floor(n/3),denominator=4*n,ticks=[...new Set([0,denominator,denominator/2,...Array.from({length:9},(_,k)=>4*j+k)])].filter(k=>k>=0&&k<=denominator).sort((a,b)=>a-b),times=ticks.map(k=>k/denominator),rows=[];for(let i=0;i<times.length;i++)for(let j=0;j<times.length;j++){const s=times[i],t=times[j],terms=[s*t];for(let m=0;m<M;m++){const k=Math.floor(2**m*Math.min(s,t));if(k<2**m)terms.push(phi(m,k,s)*phi(m,k,t));}const actual=sum(terms),lo=Math.min(s,t),hi=Math.max(s,t),cell=Math.floor(n*lo),missing=cell<n&&hi<=(cell+1)/n?(lo-cell/n)*(1-n*(hi-cell/n)):0,expected=lo-missing;rows.push({i,j,lcCovariance:actual,brownianCovariance:lo,missingBridgeCovariance:missing,interpolationCovariance:expected,residual:actual-expected});}return{denominator,ticks,times,rows};}
+const cache=new Map();
+function sample(c){const key=c.method+'|'+c.seed+'|'+c.maxLevel;if(cache.has(key))return cache.get(key);const M=Number(c.maxLevel),N=2**M,rng=randomNormals(Number(c.seed)),coefficients=[];let fine;
+ if(c.method==='levy'){let path=[0,rng.next()];for(let m=0;m<M;m++){const next=Array(2*path.length-1);for(let k=0;k<path.length;k++)next[2*k]=path[k];for(let k=0;k<2**m;k++){const scale=2**(-(m+2)/2),z=rng.next(),mean=(path[k]+path[k+1])/2,amplitude=scale*z,midpoint=mean+amplitude;next[2*k+1]=midpoint;coefficients.push({m,k,left:path[k],right:path[k+1],midpoint,mean,scale,z,amplitude,normalIndex:rng.records.length-1});}path=next;}fine=path;
+ }else{fine=[0];for(let j=0;j<N;j++)fine.push(fine[j]+rng.next()/Math.sqrt(N));for(let m=0;m<M;m++){const step=2**(M-m);for(let k=0;k<2**m;k++){const left=fine[k*step],right=fine[(k+1)*step],midpoint=fine[k*step+step/2],mean=(left+right)/2,scale=2**(-(m+2)/2),amplitude=midpoint-mean;coefficients.push({m,k,left,right,midpoint,mean,scale,z:amplitude/scale,amplitude,normalIndex:null});}}}
+ const fineMetrics=metrics(fine),levels=[];for(let L=0;L<=M+4;L++){const n=2**L;let path;if(L<=M){const step=2**(M-L);path=Array.from({length:n+1},(_,i)=>fine[i*step]);}else{const q=2**(L-M);path=Array.from({length:n+1},(_,i)=>{const k=Math.floor(i/q),r=i%q;return r===0?fine[k]:fine[k]+(r/q)*(fine[k+1]-fine[k]);});}const smoothPath=Array.from({length:n+1},(_,i)=>smooth(i/n)),actual=metrics(path),control=metrics(smoothPath),scale=2**Math.min(0,M-L),theory={expectedQ:scale,varianceQ:2**(1-Math.min(L,M))*scale*scale,expectedV:Math.sqrt(2**(Math.min(L,M)+1)/Math.PI),varianceV:1-2/Math.PI};levels.push({level:L,count:n,kind:L<=M?'brownian-grid':'frozen-polygon',path,smoothPath,actual,control,theory,frozenIdentity:L>M?{qExpected:scale*fineMetrics.quadraticVariation,vExpected:fineMetrics.totalVariation,maxExpected:scale*fineMetrics.maxIncrement,qResidual:actual.quadraticVariation-scale*fineMetrics.quadraticVariation,vResidual:actual.totalVariation-fineMetrics.totalVariation,maxResidual:actual.maxIncrement-scale*fineMetrics.maxIncrement}:null});}
+ for(const row of levels){const l=Math.min(row.level,M),energy=sum([fine[N]*fine[N],...coefficients.filter(t=>t.m<l).map(t=>t.z*t.z)]),expectedQ=energy/2**l*2**Math.min(0,M-row.level);row.parseval={coefficientEnergy:energy,expectedQ,residual:row.actual.quadraticVariation-expectedQ};}
+ const reconstructed=Array.from({length:N+1},(_,j)=>{const t=j/N,terms=[fine[N]*t];for(let m=0;m<M;m++){const k=Math.floor(2**m*t);if(k<2**m)terms.push(coefficients[2**m-1+k].amplitude*hat(m,k,t));}return sum(terms);}),residuals=reconstructed.map((v,i)=>v-fine[i]);const layers=Array.from({length:M},(_,m)=>{const cs=coefficients.filter(t=>t.m===m);return{m,count:cs.length,maxAbsNormal:Math.max(...cs.map(t=>Math.abs(t.z))),supAmplitude:Math.max(...cs.map(t=>Math.abs(t.amplitude))),coefficients:cs.map(t=>2**m-1+t.k)};});const s={method:c.method,seed:Number(c.seed),maxLevel:M,normalDraws:rng.records,endpoint:fine[N],coefficients,layers,levels,reconstruction:{values:reconstructed,residuals,maxAbsResidual:Math.max(...residuals.map(Math.abs))},covariance:covariance(M)};if(cache.size>=6)cache.delete(cache.keys().next().value);cache.set(key,s);return s;
+}
+function snapshot(input){const c=config(input),b=sample(c),M=b.maxLevel,L=Number(c.level),delta=Number(c.delta),theta=Number(c.theta),ratio=2**(-.5),a=2*((M+2)*Math.log(2)+Math.log(1/delta)),slope=4*Math.log(2),tailBound=2**(-(M+2)/2)*Math.sqrt(a/(1-ratio)**2+slope*ratio/(1-ratio)**3),tailRows=Array.from({length:16},(_,j)=>{const m=M+j,probabilityAllocation=delta*2**(-j-1),normalThreshold=Math.sqrt(a+slope*j),hatScale=2**(-(m+2)/2);return{m,probabilityAllocation,normalThreshold,hatScale,layerBound:normalThreshold*hatScale,unionBound:2**(m+1)*Math.exp(-(normalThreshold**2)/2)};}),fine=b.levels[M],martingales=fine.path.map((x,j)=>{const t=j/fine.count;return{j,t,B:x,centeredSquare:x*x-t,exponential:Math.exp(theta*x-.5*theta*theta*t)};});return{version:161,parameters:c,record:JSON.parse(JSON.stringify(b)),selectedLevel:L,selectedHatLayer:Math.min(M-1,Math.max(0,L-1)),tail:{delta,firstOmittedLayer:M,ratio,a,slope,analyticUpperBoundApproximation:tailBound,rows:tailRows,remainingProbabilityAfterRows:delta*2**-16,scope:'无限独立高斯延伸的概率界；数字为浮点参考，不是当前有限样本的确定误差。'},martingales:{theta,scope:'只列生成网格上的三种鞅样本值；单条路径不必平坦，冻结网格外不冒称布朗鞅。',rows:martingales}};}
 
-  if (
-    typeof window === "undefined" ||
-    !window.CourseLearning ||
-    typeof window.CourseLearning.register !== "function"
-  ) {
-    return;
-  }
+const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fmt(v){if(v===null)return'不适用';if(typeof v==='number'){if(!Number.isFinite(v))throw Error('非有限显示值');if(v===0)return'0';if(Number.isInteger(v))return String(v);return Math.abs(v)<1e-5||Math.abs(v)>=1e6?v.toExponential(7):String(Number(v.toPrecision(9)));}return Array.isArray(v)?v.map(fmt).join(', '):String(v);}
+const methodName=m=>m==='levy'?'Lévy从粗到细':'最细采样后聚合';
+const kindName=k=>k==='brownian-grid'?'生成网格':'冻结折线细分';
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=1e5?v.toExponential(3):String(Number(v.toPrecision(5)));
+function plots(s){const r=s.record,M=r.maxLevel,L=s.selectedLevel,sel=r.levels[L],ps=[];const colors=['#256c91','#ae6017','#687981','#26705b'];
+ function add(key,title,caption,xLabel,yLabel,series,opts={}){const xs=series.flatMap(t=>t.points.map(p=>p[0])),ys=series.flatMap(t=>t.points.map(p=>p[1]));let xMin=Math.min(...xs),xMax=Math.max(...xs),yMin=Math.min(0,...ys),yMax=Math.max(0,...ys);if(xMin===xMax)xMax=xMin+1;let pad=(yMax-yMin)*.08||1;yMin-=pad;yMax+=pad;const p={key,title,caption,width:900,height:460,xLabel,yLabel,xMin,xMax,yMin,yMax,series:series.map((t,i)=>({...t,color:colors[i%colors.length]})),...opts};ps.push(p);}
+ const pathPoints=ys=>ys.map((y,j)=>[j/(ys.length-1),y]);
+ if(s.parameters.pathView==='paths')add('paths','同一有限样本：生成层 M='+M+'，测量层 L='+L,'蓝：当前节点连线；橙：相同网格的光滑对照；灰：已生成的最细折线。','时间 t','路径值',[{label:'当前 '+kindName(sel.kind),points:pathPoints(sel.path)},{label:'光滑函数的采样连线',points:pathPoints(sel.smoothPath)},{label:'M层已生成折线',points:pathPoints(r.levels[M].path)}]);
+ else{const m=s.selectedHatLayer,n=2**(m+1),base=r.levels[m].path,after=r.levels[m+1].path,coarse=Array.from({length:n+1},(_,j)=>j%2?(base[(j-1)/2]+base[(j+1)/2])/2:base[j/2]);add('hats','第 m='+m+' 层帽子：中点噪声怎样加入？','蓝：加入后；橙：旧节点直线；灰：两者之差。旧节点差严格为0。','时间 t','路径值／本层增量',[{label:'加入第m层后',points:pathPoints(after)},{label:'加入前的折线',points:pathPoints(coarse)},{label:'本层帽函数之和',points:pathPoints(after.map((v,j)=>v-coarse[j]))}]);}
+ const specs=[['quadraticVariation','q','平方变差 Q：继续细分冻结折线会下降','平方增量和 Q','expectedQ'],['totalVariation','v','线性变差 V：冻结后总长度账本保持不变','绝对增量和 V','expectedV'],['maxIncrement','max','最大增量：冻结后每细分一级减半','最大绝对增量',null]];
+ for(const [metric,key,title,yLabel,mean]of specs){const series=[{label:'实际样本',points:r.levels.map(t=>[t.level,t.actual[metric]])},{label:'光滑对照',points:r.levels.map(t=>[t.level,t.control[metric]])}];if(mean)series.push({label:'理想高斯模型均值',points:r.levels.map(t=>[t.level,t.theory[mean]])});add(key,title,'竖线左侧含新生成节点；右侧为固定M层折线的细分。实际值由每层节点重新计算。','测量层 L',yLabel,series,{frozenAfter:M,selected:L});}
+ add('cumulative-q','当前网格的累计平方变差','L≤M时均值为t；L>M时灰线按实际冻结网格给出均值参考，不再标为t。','时间 t','累计平方变差',[{label:'实际累计Q',points:pathPoints(sel.actual.cumulativeQ)},{label:'光滑对照累计Q',points:pathPoints(sel.control.cumulativeQ)},{label:'本有限网格的均值',points:sel.path.map((_,j)=>[j/sel.count,j/sel.count*sel.theory.expectedQ])}]);
+ const cv=r.covariance,n=2**M,a=Math.floor(n/3)/n,fixed=a+1/(4*n),i=cv.times.indexOf(fixed),rows=cv.rows.filter(t=>t.i===i&&cv.times[t.j]>=a&&cv.times[t.j]<=a+2/n);add('missing-bridge','有限折线缺少的桥协方差：固定 s='+fmt(fixed),'纵轴为 min(s,t)−K_M(s,t)。它在节点为0，在同一网格段内部通常为正。','另一时刻 t','缺少的协方差',[{label:'帽函数计算的缺差',points:rows.map(t=>[cv.times[t.j],t.brownianCovariance-t.lcCovariance])},{label:'解析桥协方差',points:rows.map(t=>[cv.times[t.j],t.missingBridgeCovariance])}]);return ps;
+}
+function svg(p){const left=104,right=866,top=101,bottom=360,x=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top);let out='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="460" viewBox="0 0 900 460" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><desc>'+esc(p.caption)+'</desc><rect width="900" height="460" fill="#fff"/>';const text=(xx,yy,t,size=13,anchor='start',fill='#283b46')=>'<text x="'+xx+'" y="'+yy+'" font-family="system-ui,sans-serif" font-size="'+size+'" text-anchor="'+anchor+'" fill="'+fill+'">'+esc(t)+'</text>';
+ out+=text(22,30,p.title,19)+text(22,441,p.caption,12);p.series.forEach((s,i)=>{out+='<line x1="'+(25+280*i)+'" y1="57" x2="'+(53+280*i)+'" y2="57" stroke="'+s.color+'" stroke-width="3"'+(i===2?' stroke-dasharray="5 4"':'')+'/>'+text(61+280*i,62,s.label,12);});
+ if(p.frozenAfter!==undefined){const xx=x(p.frozenAfter);out+='<rect x="'+xx+'" y="'+top+'" width="'+(right-xx)+'" height="'+(bottom-top)+'" fill="#fff0d7"/><line x1="'+xx+'" x2="'+xx+'" y1="'+top+'" y2="'+bottom+'" stroke="#94621f" stroke-dasharray="4 4"/>'+text(xx+8,94,'M='+p.frozenAfter+' 后：冻结细分',12);}
+ for(let j=0;j<=5;j++){const yy=top+(bottom-top)*j/5,v=p.yMax-(p.yMax-p.yMin)*j/5;out+='<line x1="'+left+'" x2="'+right+'" y1="'+yy+'" y2="'+yy+'" stroke="#e1e6e8"/>'+text(left-8,yy+4,axisFmt(v),11,'end');}
+ const xTicks=p.frozenAfter!==undefined?Array.from({length:p.xMax+1},(_,i)=>i):Array.from({length:6},(_,j)=>p.xMin+(p.xMax-p.xMin)*j/5);for(const v of xTicks)out+=text(x(v),bottom+22,axisFmt(v),11,'middle');
+ out+='<path d="M '+left+' '+top+' V '+bottom+' H '+right+'" fill="none" stroke="#283b46"/>'+text(25,84,p.yLabel,12)+text((left+right)/2,410,p.xLabel+(p.selected!==undefined?'（虚线：当前 L='+p.selected+'）':''),13,'middle');
+ // Draw the fine/reference series first; the selected path remains visible on top.
+ for(let i=p.series.length-1;i>=0;i--){const s=p.series[i];out+='<polyline data-series="'+i+'" points="'+s.points.map(q=>x(q[0])+','+y(q[1])).join(' ')+'" fill="none" stroke="'+s.color+'" stroke-width="'+(i===0?2:1.6)+'"'+(i===2?' stroke-dasharray="5 4"':'')+'/>';if(s.points.length<=20)for(const q of s.points)out+='<circle cx="'+x(q[0])+'" cy="'+y(q[1])+'" r="3" fill="'+s.color+'"/>';}
+ if(p.selected!==undefined){const xx=x(p.selected);out+='<line x1="'+xx+'" x2="'+xx+'" y1="'+top+'" y2="'+bottom+'" stroke="#283b46" stroke-dasharray="2 5"/>';}return out+'</svg>';
+}
+function ledgers(s){const r=s.record,L=s.selectedLevel,M=r.maxLevel,v=r.levels[L],out=[],add=(key,title,headers,rows)=>out.push({key,title,headers,rows});
+ add('summary','当前实验与适用范围',['项目','值'],[['构造',methodName(r.method)],['种子',r.seed],['生成层M',M],['测量层L',L],['当前网格',kindName(v.kind)],['区间数',v.count],['当前V',v.actual.totalVariation],['当前Q',v.actual.quadraticVariation],['当前最大增量',v.actual.maxIncrement],['光滑V',v.control.totalVariation],['光滑Q',v.control.quadraticVariation],['光滑最大增量',v.control.maxIncrement],['解析尾界浮点参考',s.tail.analyticUpperBoundApproximation],['尾部失败概率δ',s.tail.delta],['尾界范围',s.tail.scope],['帽函数重建最大残差',r.reconstruction.maxAbsResidual],['随机数约定','Mulberry32字；u=(word+0.5)/2^32；Box–Muller余弦分量；确定性伪随机，非真正独立高斯'],['改变生成层',r.method==='levy'?'同一种子保留旧节点，继续加入新帽子':'重新分配全部细增量；改变M不表示同一路径延伸']]);
+ add('levels','全部生成层与冻结细分层',['L','类别','区间数','实际V','实际Q','实际最大增量','光滑V','光滑Q','光滑最大增量','模型E[Q]','模型Var(Q)','模型E[V]','模型Var(V)','Parseval能量','Parseval预期Q','Parseval残差'],r.levels.map(t=>[t.level,kindName(t.kind),t.count,t.actual.totalVariation,t.actual.quadraticVariation,t.actual.maxIncrement,t.control.totalVariation,t.control.quadraticVariation,t.control.maxIncrement,t.theory.expectedQ,t.theory.varianceQ,t.theory.expectedV,t.theory.varianceV,t.parseval.coefficientEnergy,t.parseval.expectedQ,t.parseval.residual]));
+ add('selected-grid','当前网格全部节点与增量',['j','t','路径B','光滑值','从上一节点的ΔB','光滑增量','累计Q','光滑累计Q'],v.path.map((b,j)=>[j,j/v.count,b,v.smoothPath[j],j?v.actual.increments[j-1]:null,j?v.control.increments[j-1]:null,v.actual.cumulativeQ[j],v.control.cumulativeQ[j]]));
+ add('frozen','冻结折线恒等式与实际残差',['L','预期Q','实际Q−预期','预期V','实际V−预期','预期最大增量','实际最大增量−预期'],r.levels.filter(t=>t.frozenIdentity).map(t=>[t.level,t.frozenIdentity.qExpected,t.frozenIdentity.qResidual,t.frozenIdentity.vExpected,t.frozenIdentity.vResidual,t.frozenIdentity.maxExpected,t.frozenIdentity.maxResidual]));
+ add('normals','全部伪随机高斯抽样记录',['抽样编号','整数word1','整数word2','开区间u1','开区间u2','Box–Muller Z'],r.normalDraws.map(t=>[t.index,t.word1,t.word2,t.u1,t.u2,t.z]));
+ add('hats','全部帽函数系数与中点',['m','k','左端','右端','两端平均','噪声标准差','标准化系数Z','帽子峰值','实际中点','直接抽样编号'],r.coefficients.map(t=>[t.m,t.k,t.left,t.right,t.mean,t.scale,t.z,t.amplitude,t.midpoint,t.normalIndex]));
+ add('layers','各层幅度与统一范数',['m','帽子数','最大|Z|','该层统一范数','系数记录编号'],r.layers.map(t=>[t.m,t.count,t.maxAbsNormal,t.supAmplitude,t.coefficients]));
+ add('reconstruction','最细网格：直接帽函数和的重建',['j','t','实际节点','直接帽函数和','重建残差'],r.reconstruction.values.map((x,j)=>[j,j/2**M,r.levels[M].path[j],x,r.reconstruction.residuals[j]]));
+ add('covariance','完整测试时刻对的协方差',['s','t','帽函数协方差K','布朗min(s,t)','缺少的桥协方差','节点插值协方差','两路线残差'],r.covariance.rows.map(t=>[r.covariance.times[t.i],r.covariance.times[t.j],t.lcCovariance,t.brownianCovariance,t.missingBridgeCovariance,t.interpolationCovariance,t.residual]));
+ add('tail','无限未生成尾部：前16层概率分配',['未生成层m','失败概率分配','标准高斯阈值','帽函数标准差','该层幅度界','高斯联合界参考'],s.tail.rows.map(t=>[t.m,t.probabilityAllocation,t.normalThreshold,t.hatScale,t.layerBound,t.unionBound]));
+ add('tail-summary','尾界常数与剩余概率',['项目','值'],[['a',s.tail.a],['b',s.tail.slope],['r',s.tail.ratio],['16层之后尚余概率分配',s.tail.remainingProbabilityAfterRows],['解析总幅度上界浮点参考',s.tail.analyticUpperBoundApproximation],['适用范围',s.tail.scope]]);
+ add('martingales','生成网格：三种鞅的单条样本值',['j','t','B','B²−t','exp(θB−θ²t/2)'],s.martingales.rows.map(t=>[t.j,t.t,t.B,t.centeredSquare,t.exponential]));return out;
+}
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var MAX_LEVEL = 10;
-  var INSTANCE = 0;
-  var STYLE_ID = "cl-brownian-roughness-style";
-  var PRESETS = [
-    { label: "样本 A · seed 20260722", seed: 20260722 },
-    { label: "样本 B · seed 31415926", seed: 31415926 },
-    { label: "样本 C · seed 27182818", seed: 27182818 }
-  ];
-  var LEVEL_PRESETS = [2, 4, 6, 8, 10];
+const PRESETS=[
+ {id:'default',label:'A：Lévy中等分辨率',values:{}},
+ {id:'b',label:'B：检查光滑曲线范围',values:{seed:'31415926'}},
+ {id:'c',label:'C：另一样本',values:{seed:'27182818'}},
+ {id:'coarse',label:'最粗一段 L=0',values:{level:'0'}},
+ {id:'alias',label:'L=1：光滑零点混叠',values:{level:'1'}},
+ {id:'midpoint',label:'第一次加入帽子',values:{maxLevel:'2',level:'1',pathView:'hats'}},
+ {id:'hats',label:'查看第5层帽子',values:{pathView:'hats'}},
+ {id:'generated',label:'读到最细生成层',values:{level:'8'}},
+ {id:'freeze-one',label:'冻结后再细分一级',values:{level:'9'}},
+ {id:'freeze-four',label:'冻结后细分四级',values:{level:'12'}},
+ {id:'aggregate',label:'同种子改为细增量聚合',values:{method:'aggregate'}},
+ {id:'aggregate-frozen',label:'聚合样本冻结细分',values:{method:'aggregate',level:'12'}},
+ {id:'zero-seed',label:'零种子也是合法种子',values:{seed:'0',maxLevel:'2',level:'6'}},
+ {id:'max-seed',label:'最大32位种子',values:{seed:'4294967295',maxLevel:'4',level:'4'}},
+ {id:'high',label:'最高生成层 M=10',values:{maxLevel:'10',level:'10'}},
+ {id:'high-frozen',label:'最高冻结细分 L=14',values:{maxLevel:'10',level:'14'}},
+ {id:'strict-tail',label:'较小尾部失败概率',values:{delta:'0.000000001'}},
+ {id:'loose-tail',label:'较大尾部失败概率',values:{delta:'0.25'}},
+ {id:'zero-theta',label:'θ=0：指数鞅恒为1',values:{theta:'0'}},
+ {id:'negative-theta',label:'θ=−4：另一指数鞅',values:{theta:'-4'}},
+ {id:'positive-theta',label:'θ=4：指数鞅涨落',values:{theta:'4'}}
+];
+const QUESTIONS=[
+ ['固定M层折线，每段均分16份后，Q会怎样？',['变为原来的1/16','仍必须等于1','变为原来的16倍'],0,'每个d替换为16个d/16，平方和为d²/16。'],
+ ['继续加入Lévy帽子时，旧节点怎样变化？',['全部重新抽样','严格保留旧节点','只在平均意义保留'],1,'新帽子在旧节点为零；同种子提升生成层也保留已生成节点。'],
+ ['同种子用于两种算法，最细层Q相同意味着什么？',['路径一定相同','两个算法之一错误','能量相同，路径仍可不同'],2,'同一组高斯数的平方和不变；它们分别作为细增量或帽系数，不能据此识别路径。'],
+ ['尾界图表里的浮点上界是在描述什么？',['无限独立高斯延伸的概率界','当前折线的确定误差','有限图已经证明布朗处处不可微'],0,'先有无限高斯模型和联合概率证明，再计算解析表达式的参考值；有限伪随机图不替代证明。']
+];
 
-  var STYLE_TEXT = [
-    ".brownian-roughness-lab { --br-brownian: var(--accent, #315f9d); --br-smooth: var(--cl-gold, #9b6a12); --br-target: var(--cl-green, #39734d); --br-muted: var(--fg-soft, #6f6a60); --br-grid: currentColor; line-height: 1.5; }",
-    "html[data-theme='dark'] .brownian-roughness-lab { --br-brownian: #83c8ff; --br-smooth: #e2b458; --br-target: #72bd8b; --br-muted: #b8b2a7; }",
-    ".brownian-roughness-lab .br-layout { display: grid; grid-template-columns: minmax(220px, .72fr) minmax(0, 1.7fr); gap: 18px; align-items: start; }",
-    ".brownian-roughness-lab .br-controls, .brownian-roughness-lab .br-stage { min-width: 0; }",
-    ".brownian-roughness-lab .br-controls { display: grid; gap: 13px; }",
-    ".brownian-roughness-lab .br-control { display: grid; gap: 6px; min-width: 0; }",
-    ".brownian-roughness-lab .br-control > label, .brownian-roughness-lab .br-label { color: var(--fg-soft); font-size: 13px; font-weight: 650; }",
-    ".brownian-roughness-lab .br-control output { color: var(--accent); font-variant-numeric: tabular-nums; }",
-    ".brownian-roughness-lab .br-heading { margin: 0; }",
-    ".brownian-roughness-lab select, .brownian-roughness-lab button { min-height: 44px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--fg); font: inherit; line-height: 1.35; }",
-    ".brownian-roughness-lab select { width: 100%; padding: 7px 10px; }",
-    ".brownian-roughness-lab input[type='range'] { display: block; width: 100%; min-height: 44px; margin: 0; accent-color: var(--accent); }",
-    ".brownian-roughness-lab button { padding: 8px 11px; cursor: pointer; }",
-    ".brownian-roughness-lab button:hover { border-color: var(--accent); }",
-    ".brownian-roughness-lab button[aria-pressed='true'], .brownian-roughness-lab .br-primary { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 700; }",
-    ".brownian-roughness-lab select:focus-visible, .brownian-roughness-lab input:focus-visible, .brownian-roughness-lab button:focus-visible { outline: 3px solid var(--cl-focus, #1769aa); outline-offset: 2px; }",
-    ".brownian-roughness-lab .br-level-buttons { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }",
-    ".brownian-roughness-lab .br-level-buttons button { min-width: 0; padding-left: 5px; padding-right: 5px; font-size: 12.5px; }",
-    ".brownian-roughness-lab .br-note, .brownian-roughness-lab .br-status { margin: 0; color: var(--br-muted); font-size: 13px; line-height: 1.65; overflow-wrap: anywhere; }",
-    ".brownian-roughness-lab .br-status { min-height: 1.65em; color: var(--fg); font-weight: 650; }",
-    ".brownian-roughness-lab .br-stage-frame { padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); overflow: hidden; }",
-    ".brownian-roughness-lab .br-stage-title { display: flex; justify-content: space-between; gap: 10px; margin: 0 0 8px; color: var(--br-muted); font-size: 13px; }",
-    ".brownian-roughness-lab .br-svg { display: block; width: 100%; height: auto; color: var(--fg); }",
-    ".brownian-roughness-lab .br-svg text { fill: currentColor; font-family: inherit; letter-spacing: 0; }",
-    ".brownian-roughness-lab .br-panel { fill: var(--bg); stroke: var(--border); stroke-width: 1.2; }",
-    ".brownian-roughness-lab .br-grid { stroke: var(--br-grid); stroke-opacity: .14; stroke-width: 1; }",
-    ".brownian-roughness-lab .br-zero { stroke: var(--br-grid); stroke-opacity: .45; stroke-width: 1.3; }",
-    ".brownian-roughness-lab .br-axis { stroke: var(--br-grid); stroke-opacity: .58; stroke-width: 1.2; }",
-    ".brownian-roughness-lab .br-target { stroke: var(--br-target); stroke-opacity: .78; stroke-width: 1.5; stroke-dasharray: 5 4; }",
-    ".brownian-roughness-lab .br-level { fill: none; stroke: var(--br-brownian); stroke-width: 1.05; stroke-linecap: round; stroke-linejoin: round; opacity: .12; }",
-    ".brownian-roughness-lab .br-level-current { stroke-width: 2.8; opacity: .95; }",
-    ".brownian-roughness-lab .br-smooth-line { fill: none; stroke: var(--br-smooth); stroke-width: 2.1; stroke-dasharray: 7 4; stroke-linecap: round; stroke-linejoin: round; opacity: .92; }",
-    ".brownian-roughness-lab .br-brownian-line, .brownian-roughness-lab .br-qv-line { fill: none; stroke: var(--br-brownian); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }",
-    ".brownian-roughness-lab .br-qv-smooth-line { fill: none; stroke: var(--br-smooth); stroke-width: 2.1; stroke-dasharray: 7 4; stroke-linecap: round; stroke-linejoin: round; }",
-    ".brownian-roughness-lab .br-dot { fill: var(--br-brownian); stroke: var(--bg); stroke-width: 1.6; }",
-    ".brownian-roughness-lab .br-dot-smooth { fill: var(--br-smooth); stroke: var(--bg); stroke-width: 1.5; }",
-    ".brownian-roughness-lab .br-dot-current { r: 4.7; }",
-    ".brownian-roughness-lab .br-axis-label, .brownian-roughness-lab .br-caption { fill: var(--br-muted) !important; font-size: 11px; }",
-    ".brownian-roughness-lab .br-chart-label { fill: var(--fg) !important; font-size: 12px; font-weight: 700; }",
-    ".brownian-roughness-lab .br-legend { display: flex; flex-wrap: wrap; gap: 7px 15px; margin: 8px 2px 0; color: var(--br-muted); font-size: 12px; }",
-    ".brownian-roughness-lab .br-legend-item { display: inline-flex; align-items: center; gap: 6px; }",
-    ".brownian-roughness-lab .br-swatch { display: inline-block; width: 25px; height: 0; border-top: 3px solid currentColor; }",
-    ".brownian-roughness-lab .br-swatch-brownian { color: var(--br-brownian); }",
-    ".brownian-roughness-lab .br-swatch-smooth { color: var(--br-smooth); border-top-style: dashed; }",
-    ".brownian-roughness-lab .br-swatch-target { color: var(--br-target); border-top-style: dashed; }",
-    ".brownian-roughness-lab .br-ledger-title { margin: 15px 0 7px; color: var(--fg); font-size: 14px; font-weight: 700; }",
-    ".brownian-roughness-lab .br-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }",
-    ".brownian-roughness-lab .br-ledger { width: 100%; min-width: 390px; border-collapse: separate; border-spacing: 0; font-size: 13px; font-variant-numeric: tabular-nums; }",
-    ".brownian-roughness-lab .br-ledger th, .brownian-roughness-lab .br-ledger td { padding: 8px 9px; border-bottom: 1px solid var(--border); text-align: right; }",
-    ".brownian-roughness-lab .br-ledger th:first-child, .brownian-roughness-lab .br-ledger td:first-child { text-align: left; }",
-    ".brownian-roughness-lab .br-ledger th { color: var(--br-muted); font-size: 12px; font-weight: 650; }",
-    ".brownian-roughness-lab .br-ledger td:nth-child(2) { color: var(--br-brownian); font-weight: 700; }",
-    ".brownian-roughness-lab .br-ledger td:nth-child(3) { color: var(--br-smooth); font-weight: 700; }",
-    ".brownian-roughness-lab .br-footnote { margin: 10px 0 0; padding: 8px 10px; border-left: 3px solid var(--br-target); background: var(--block-bg, var(--bg)); color: var(--br-muted); font-size: 12.5px; line-height: 1.65; }",
-    "@media (max-width: 760px) { .brownian-roughness-lab .br-layout { grid-template-columns: minmax(0, 1fr); } }",
-    "@media (max-width: 500px) { .brownian-roughness-lab .br-stage-frame { padding: 5px; } .brownian-roughness-lab .br-level-buttons { grid-template-columns: repeat(3, minmax(0, 1fr)); } .brownian-roughness-lab .br-svg { min-width: 620px; max-width: none; } .brownian-roughness-lab .br-stage-frame { overflow-x: auto; -webkit-overflow-scrolling: touch; } }",
-    "@media (prefers-reduced-motion: reduce) { .brownian-roughness-lab * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }"
-  ].join("\n");
+const STYLE='.brownian161{color:var(--fg);min-width:0;overflow-wrap:anywhere}.brownian161 *{box-sizing:border-box}.brownian161 [hidden]{display:none!important}.brownian161 button,.brownian161 input,.brownian161 select{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--border);border-radius:5px;min-height:44px;padding:8px;max-width:100%}.brownian161 button{margin:4px 4px 4px 0;cursor:pointer;white-space:normal}.brownian161 button:disabled{opacity:.5;cursor:default}.brownian161 button[aria-pressed=true]{outline:2px solid var(--accent);background:var(--block-bg)}.brownian161 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}.brownian-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}.brownian-controls label{display:grid;gap:6px;min-width:0}.brownian161 fieldset{border:1px solid var(--border);margin:12px 0;min-width:0}.brownian161 legend{max-width:100%;font-weight:600}.brownian161 p{line-height:1.7}.brownian-error{color:var(--cl-red,#b64335)}.brownian-scroll{overflow:auto;max-width:100%;min-width:0;border:1px solid var(--border);margin:10px 0}.brownian-scroll svg{display:block;min-width:900px;width:900px;height:460px;max-width:none}.brownian-scroll table{border-collapse:collapse;min-width:900px;width:max-content;max-width:none;font-size:12px}.brownian-scroll th,.brownian-scroll td{padding:7px;vertical-align:top;text-align:left;border:1px solid var(--border);min-width:40px;max-width:550px;white-space:normal;overflow-wrap:anywhere}.brownian161 details{border:1px solid var(--border);padding:10px;margin:10px 0;min-width:0}.brownian161 summary{cursor:pointer;min-height:44px;line-height:1.7}.brownian161 .brownian-summary{padding:12px;border-left:3px solid var(--accent);background:var(--block-bg)}@media(max-width:680px){.brownian-controls{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){.brownian161 *{scroll-behavior:auto!important}}';
+function tableHTML(t){return '<table data-table="'+esc(t.key)+'"><caption>'+esc(t.title)+'</caption><thead><tr>'+t.headers.map(h=>'<th scope="col">'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+t.rows.map(r=>'<tr>'+r.map(v=>'<td>'+esc(fmt(v))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';}
+const mounted=new WeakMap();
+function mount(container){if(mounted.has(container))mounted.get(container)();const doc=container.ownerDocument,win=doc.defaultView;if(!doc.getElementById('brownian161-style')){const st=doc.createElement('style');st.id='brownian161-style';st.textContent=STYLE;doc.head.appendChild(st);}const field=(k,label)=>'<label>'+label+'<input type="text" data-key="'+k+'"></label>',select=(k,label,options)=>'<label>'+label+'<select data-key="'+k+'">'+options.map(([value,text])=>'<option value="'+value+'">'+esc(text)+'</option>').join('')+'</select></label>';
+ container.innerHTML='<div class="brownian161"><h3>布朗路径实验：生成层与测量层分开看</h3><p>先选场景，记录四项预测，再揭晓图和全部记录。M决定生成多少随机细节；L决定读哪一级网格。L超过M时，只细分已有直线段。</p><div>'+PRESETS.map(p=>'<button type="button" data-preset="'+p.id+'">'+esc(p.label)+'</button>').join('')+'</div><div class="brownian-controls">'+select('method','构造方法',[['levy','Lévy：从粗到细加帽子'],['aggregate','聚合：最细增量采样后合并']])+field('seed','32位种子（0至4294967295）')+field('maxLevel','最高生成层 M（2至10）')+field('level','测量层 L（0至M+4）')+select('pathView','第一幅图',[['paths','当前路径与光滑对照'],['hats','当前所对应的一层帽子']])+field('delta','无限尾部失败概率 δ（0.000000001至0.25）')+field('theta','指数鞅参数 θ（−4至4）')+'</div><p>同种子提升M时，Lévy构造保留已有节点；聚合法会重新分配细增量，不能当作原路径延伸。数值记录使用确定性伪随机数和浮点运算。</p>'+QUESTIONS.map((q,i)=>'<fieldset data-question="'+i+'"><legend>'+(i+1)+'. '+esc(q[0])+'</legend>'+q[1].map((v,j)=>'<button type="button" data-choice="'+j+'" aria-pressed="false">'+esc(v)+'</button>').join('')+'</fieldset>').join('')+'<button type="button" data-action="reveal">核对预测并展示结果</button><button type="button" data-action="reset">重置实验</button><p class="brownian-error" role="alert"></p><p role="status"></p><div class="brownian-results" hidden></div></div>';
+ const shell=container.querySelector('.brownian161'),inputs=[...shell.querySelectorAll('[data-key]')],result=shell.querySelector('.brownian-results'),reveal=shell.querySelector('[data-action=reveal]'),error=shell.querySelector('[role=alert]'),status=shell.querySelector('[role=status]');let choices=QUESTIONS.map(()=>null),d=null,url=null;
+ const values=()=>Object.fromEntries(inputs.map(e=>[e.dataset.key,e.value]));function set(v){inputs.forEach(e=>e.value=String({...DEFAULTS,...v}[e.dataset.key]));}function cleanup(){if(url){win.URL.revokeObjectURL(url);url=null;}result.hidden=true;result.replaceChildren();}mounted.set(container,cleanup);
+ function update(){cleanup();try{d=snapshot(values());error.textContent='';}catch(e){d=null;error.textContent=e.message;}reveal.disabled=!d||choices.some(x=>x===null);status.textContent=!d?'请修正参数后再核对。':choices.some(x=>x===null)?'先完成四项预测。':'预测已记录，请揭晓核对。';}
+ function render(){if(!d)return;cleanup();result.hidden=false;const r=d.record,v=r.levels[d.selectedLevel],tables=ledgers(d);result.innerHTML='<div class="brownian-summary">'+esc(methodName(r.method)+'；M='+r.maxLevel+'，L='+v.level+'：'+kindName(v.kind)+'。V='+fmt(v.actual.totalVariation)+'，Q='+fmt(v.actual.quadraticVariation)+'，最大增量='+fmt(v.actual.maxIncrement)+'。')+'</div><ol>'+QUESTIONS.map((q,i)=>'<li>'+esc((choices[i]===q[2]?'预测正确。':'需要修正。')+q[3])+'</li>').join('')+'</ol><p><a data-download download="brownian-roughness-run.json">下载本次完整数值记录(JSON)</a></p>'+plots(d).map((p,i)=>'<div class="brownian-scroll" role="region" tabindex="0" aria-label="图'+(i+1)+'：'+esc(p.title)+'">'+svg(p)+'</div>').join('')+'<p>图的横向滚动区可用方向键移动。每张表展开后显示全部行；当前细分网格最多16385个节点。JSON保留全部层的节点与增量，表中数值只为阅读做显示舍入。</p><p>'+esc(d.tail.scope)+' '+esc(d.martingales.scope)+'</p>'+tables.map(t=>'<details data-ledger="'+t.key+'"><summary>'+esc(t.title)+'（'+t.rows.length+'行）</summary><div class="brownian-scroll" role="region" tabindex="0" aria-label="'+esc(t.title)+'"></div></details>').join('');url=win.URL.createObjectURL(new win.Blob([JSON.stringify(d,null,2)+'\n'],{type:'application/json'}));result.querySelector('[data-download]').href=url;for(const t of tables){const detail=result.querySelector('[data-ledger="'+t.key+'"]');detail.addEventListener('toggle',()=>{if(detail.open&&!detail.querySelector('table'))detail.querySelector('[role=region]').innerHTML=tableHTML(t);});}status.textContent=choices.filter((v,i)=>v===QUESTIONS[i][2]).length+' / 4；请结合公式解释每个结果。';}
+ inputs.forEach(e=>e.addEventListener(e.tagName==='SELECT'?'change':'input',update));shell.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{set(PRESETS.find(p=>p.id===b.dataset.preset).values);update();}));shell.querySelectorAll('[data-question]').forEach((f,i)=>f.querySelectorAll('[data-choice]').forEach(b=>b.addEventListener('click',()=>{choices[i]=+b.dataset.choice;f.querySelectorAll('button').forEach(q=>q.setAttribute('aria-pressed',String(q===b)));if(!result.hidden)render();else update();})));reveal.addEventListener('click',render);shell.querySelector('[data-action=reset]').addEventListener('click',()=>{choices=QUESTIONS.map(()=>null);shell.querySelectorAll('[data-choice]').forEach(b=>b.setAttribute('aria-pressed','false'));set(DEFAULTS);update();shell.querySelector('[data-choice]').focus();});set(DEFAULTS);update();
+}
+function selfTest(){let checks=0;const ck=(v,m)=>{checks++;if(!v)throw Error(m);};for(const p of PRESETS){const s=snapshot(p.values),r=s.record,L=s.selectedLevel,M=r.maxLevel;ck(r.normalDraws.length===2**M,p.id+' draws');ck(r.coefficients.length===2**M-1,p.id+' hats');ck(r.levels[L].path.length===2**L+1,p.id+' nodes');ck(plots(s).every(t=>t.series.every(c=>c.points.every(q=>Number.isFinite(q[0])&&Number.isFinite(q[1])&&q[0]>=t.xMin&&q[0]<=t.xMax&&q[1]>=t.yMin&&q[1]<=t.yMax))),p.id+' bounds');}ck(fmt(10)==='10'&&fmt(100)==='100'&&fmt(0)==='0','integer format');return{status:'PASS',checks,presets:PRESETS.length};}
 
-  function installStyles() {
-    if (document.getElementById(STYLE_ID)) {
-      return;
-    }
-    var style = document.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = STYLE_TEXT;
-    document.head.appendChild(style);
-  }
-
-  function appendChildren(node, children) {
-    if (children === undefined || children === null) {
-      return node;
-    }
-    var list = Array.isArray(children) ? children : [children];
-    list.forEach(function (child) {
-      if (child === undefined || child === null || child === false) {
-        return;
-      }
-      node.appendChild(
-        child && child.nodeType ? child : document.createTextNode(String(child))
-      );
-    });
-    return node;
-  }
-
-  function makeElement(api, tag, attrs, children) {
-    if (api && typeof api.el === "function") {
-      return api.el(tag, attrs || {}, children);
-    }
-    return appendChildren(setAttributes(document.createElement(tag), attrs || {}), children);
-  }
-
-  function makeSvg(api, tag, attrs, children) {
-    if (api && typeof api.svg === "function") {
-      return api.svg(tag, attrs || {}, children);
-    }
-    return appendChildren(
-      setAttributes(document.createElementNS(SVG_NS, tag), attrs || {}),
-      children
-    );
-  }
-
-  function setAttributes(node, attrs) {
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) {
-        return;
-      }
-      if (key === "className") {
-        node.setAttribute("class", String(value));
-      } else if (key === "htmlFor") {
-        node.setAttribute("for", String(value));
-      } else if (key === "text") {
-        node.textContent = String(value);
-      } else if (key.slice(0, 2) === "on" && typeof value === "function") {
-        node.addEventListener(key.slice(2).toLowerCase(), value);
-      } else if (value === true) {
-        node.setAttribute(key, "");
-      } else {
-        node.setAttribute(key, String(value));
-      }
-    });
-    return node;
-  }
-
-  function clear(node) {
-    while (node && node.firstChild) {
-      node.removeChild(node.firstChild);
-    }
-  }
-
-  function replaceChildren(node, children) {
-    if (node && typeof node.replaceChildren === "function") {
-      node.replaceChildren.apply(node, Array.isArray(children) ? children : [children]);
-      return;
-    }
-    clear(node);
-    appendChildren(node, children);
-  }
-
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-  }
-
-  function formatNumber(api, value, digits) {
-    if (!Number.isFinite(value)) {
-      return "—";
-    }
-    if (api && typeof api.format === "function") {
-      return api.format(value, digits);
-    }
-    var places = digits === undefined ? 3 : digits;
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function makeRng(seed) {
-    var state = seed >>> 0;
-    return function () {
-      state = (state + 0x6D2B79F5) | 0;
-      var t = Math.imul(state ^ (state >>> 15), 1 | state);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-
-  function gaussian(rng) {
-    var u = 0;
-    while (u === 0) {
-      u = rng();
-    }
-    var v = rng();
-    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-  }
-
-  function smoothValue(t) {
-    return 0.75 * Math.sin(2 * Math.PI * t) + 0.25 * Math.sin(6 * Math.PI * t);
-  }
-
-  function ledger(path, smoothPath) {
-    var totalVariation = 0;
-    var quadraticVariation = 0;
-    var maxIncrement = 0;
-    var smoothTotalVariation = 0;
-    var smoothQuadraticVariation = 0;
-    var smoothMaxIncrement = 0;
-    for (var i = 1; i < path.length; i += 1) {
-      var delta = path[i] - path[i - 1];
-      var smoothDelta = smoothPath[i] - smoothPath[i - 1];
-      totalVariation += Math.abs(delta);
-      quadraticVariation += delta * delta;
-      maxIncrement = Math.max(maxIncrement, Math.abs(delta));
-      smoothTotalVariation += Math.abs(smoothDelta);
-      smoothQuadraticVariation += smoothDelta * smoothDelta;
-      smoothMaxIncrement = Math.max(smoothMaxIncrement, Math.abs(smoothDelta));
-    }
-    return {
-      totalVariation: totalVariation,
-      quadraticVariation: quadraticVariation,
-      maxIncrement: maxIncrement,
-      smoothTotalVariation: smoothTotalVariation,
-      smoothQuadraticVariation: smoothQuadraticVariation,
-      smoothMaxIncrement: smoothMaxIncrement
-    };
-  }
-
-  function makeSample(seed) {
-    var finestCount = 1 << MAX_LEVEL;
-    var rng = makeRng(seed);
-    var fineIncrements = [];
-    var finePath = [0];
-    var standardDeviation = 1 / Math.sqrt(finestCount);
-    for (var i = 0; i < finestCount; i += 1) {
-      fineIncrements.push(standardDeviation * gaussian(rng));
-      finePath.push(finePath[finePath.length - 1] + fineIncrements[i]);
-    }
-
-    var levels = [];
-    for (var level = 0; level <= MAX_LEVEL; level += 1) {
-      var blockSize = 1 << (MAX_LEVEL - level);
-      var path = [0];
-      for (var j = 0; j < (1 << level); j += 1) {
-        var blockSum = 0;
-        var start = j * blockSize;
-        for (var r = start; r < start + blockSize; r += 1) {
-          blockSum += fineIncrements[r];
-        }
-        path.push(path[path.length - 1] + blockSum);
-      }
-      var smoothPath = path.map(function (_value, index) {
-        return smoothValue(index / (path.length - 1));
-      });
-      levels.push({
-        level: level,
-        path: path,
-        smoothPath: smoothPath,
-        ledger: ledger(path, smoothPath)
-      });
-    }
-
-    var values = finePath.slice();
-    for (var s = 0; s <= finestCount; s += 1) {
-      values.push(smoothValue(s / finestCount));
-    }
-    var min = Math.min.apply(Math, values);
-    var max = Math.max.apply(Math, values);
-    var padding = Math.max(0.14, (max - min) * 0.12);
-    return {
-      seed: seed,
-      levels: levels,
-      finePath: finePath,
-      yMin: min - padding,
-      yMax: max + padding
-    };
-  }
-
-  function pointPath(values, xMap, yMap) {
-    return values.map(function (value, index) {
-      return (index === 0 ? "M" : "L") +
-        xMap(index, values.length).toFixed(2) + "," +
-        yMap(value).toFixed(2);
-    }).join(" ");
-  }
-
-  function text(api, x, y, value, attrs) {
-    var merged = Object.assign({
-      x: x,
-      y: y,
-      "font-size": "12",
-      "text-anchor": "middle",
-      fill: "currentColor"
-    }, attrs || {});
-    return makeSvg(api, "text", merged, [value]);
-  }
-
-  function line(api, x1, y1, x2, y2, className) {
-    return makeSvg(api, "line", {
-      x1: x1,
-      y1: y1,
-      x2: x2,
-      y2: y2,
-      className: className
-    });
-  }
-
-  function circle(api, cx, cy, radius, className) {
-    return makeSvg(api, "circle", {
-      cx: cx,
-      cy: cy,
-      r: radius,
-      className: className
-    });
-  }
-
-  function chartFrame(api, width, height, titleText, descriptionText, uid) {
-    var svg = makeSvg(api, "svg", {
-      className: "br-svg",
-      viewBox: "0 0 " + width + " " + height,
-      role: "img",
-      "aria-labelledby": uid + "-title " + uid + "-desc"
-    });
-    svg.appendChild(makeSvg(api, "title", { id: uid + "-title" }, [titleText]));
-    svg.appendChild(makeSvg(api, "desc", { id: uid + "-desc" }, [descriptionText]));
-    return svg;
-  }
-
-  function drawPathChart(api, sample, selectedLevel, uid) {
-    var width = 760;
-    var height = 330;
-    var left = 52;
-    var right = 18;
-    var top = 26;
-    var bottom = 34;
-    var plotWidth = width - left - right;
-    var plotHeight = height - top - bottom;
-    var range = sample.yMax - sample.yMin;
-    var xMap = function (index, count) {
-      return left + (index / (count - 1)) * plotWidth;
-    };
-    var yMap = function (value) {
-      return top + ((sample.yMax - value) / range) * plotHeight;
-    };
-    var svg = chartFrame(
-      api,
-      width,
-      height,
-      "布朗路径逐层折线",
-      "浅色实线是不同 dyadic 层的同一固定布朗样本，粗线是当前层，虚线是光滑对照函数。",
-      uid + "-path"
-    );
-    svg.appendChild(makeSvg(api, "rect", {
-      x: left,
-      y: top,
-      width: plotWidth,
-      height: plotHeight,
-      className: "br-panel"
-    }));
-
-    for (var gy = 0; gy <= 4; gy += 1) {
-      var value = sample.yMin + (sample.yMax - sample.yMin) * gy / 4;
-      var y = yMap(value);
-      svg.appendChild(line(api, left, y, width - right, y, "br-grid"));
-      svg.appendChild(text(api, left - 8, y + 4, formatNumber(api, value, 2), {
-        className: "br-axis-label",
-        "text-anchor": "end"
-      }));
-    }
-    var zeroY = yMap(0);
-    if (zeroY >= top && zeroY <= top + plotHeight) {
-      svg.appendChild(line(api, left, zeroY, width - right, zeroY, "br-zero"));
-    }
-    svg.appendChild(line(api, left, top + plotHeight, width - right, top + plotHeight, "br-axis"));
-    [0, 0.5, 1].forEach(function (tick) {
-      var x = left + tick * plotWidth;
-      svg.appendChild(line(api, x, top + plotHeight, x, top + plotHeight + 5, "br-axis"));
-      svg.appendChild(text(api, x, height - 10, String(tick), {
-        className: "br-axis-label"
-      }));
-    });
-    svg.appendChild(text(api, left, 15, "B(t)", {
-      className: "br-chart-label",
-      "text-anchor": "start"
-    }));
-    svg.appendChild(text(api, width - right, height - 10, "t", {
-      className: "br-axis-label",
-      "text-anchor": "end"
-    }));
-
-    for (var level = 0; level <= MAX_LEVEL; level += 1) {
-      var levelData = sample.levels[level];
-      svg.appendChild(makeSvg(api, "path", {
-        d: pointPath(levelData.path, xMap, yMap),
-        className: level === selectedLevel ? "br-level br-level-current" : "br-level"
-      }));
-    }
-    var current = sample.levels[selectedLevel];
-    svg.appendChild(makeSvg(api, "path", {
-      d: pointPath(current.smoothPath, xMap, yMap),
-      className: "br-smooth-line"
-    }));
-    svg.appendChild(circle(api, left, yMap(current.path[0]), 4, "br-dot"));
-    svg.appendChild(circle(api, left + plotWidth, yMap(current.path[current.path.length - 1]), 4, "br-dot"));
-    svg.appendChild(text(api, width - right - 2, top + 17, "当前 L=" + selectedLevel, {
-      className: "br-axis-label",
-      "text-anchor": "end"
-    }));
-    return svg;
-  }
-
-  function seriesPath(values, xMap, yMap) {
-    return values.map(function (value, index) {
-      return (index === 0 ? "M" : "L") +
-        xMap(index).toFixed(2) + "," + yMap(value).toFixed(2);
-    }).join(" ");
-  }
-
-  function drawQuadraticChart(api, sample, selectedLevel, uid) {
-    var width = 760;
-    var height = 250;
-    var left = 52;
-    var right = 18;
-    var top = 25;
-    var bottom = 34;
-    var plotWidth = width - left - right;
-    var plotHeight = height - top - bottom;
-    var brownValues = sample.levels.map(function (item) {
-      return item.ledger.quadraticVariation;
-    });
-    var smoothValues = sample.levels.map(function (item) {
-      return item.ledger.smoothQuadraticVariation;
-    });
-    var yMax = Math.max(1.25, Math.max.apply(Math, brownValues) * 1.12);
-    var xMap = function (level) {
-      return left + (level / MAX_LEVEL) * plotWidth;
-    };
-    var yMap = function (value) {
-      return top + ((yMax - value) / yMax) * plotHeight;
-    };
-    var svg = chartFrame(
-      api,
-      width,
-      height,
-      "二次变差逐层收敛图",
-      "蓝线是布朗样本的二次变差，金色虚线是光滑函数，绿色虚线是目标值一。",
-      uid + "-qv"
-    );
-    svg.appendChild(makeSvg(api, "rect", {
-      x: left,
-      y: top,
-      width: plotWidth,
-      height: plotHeight,
-      className: "br-panel"
-    }));
-    for (var gy = 0; gy <= 4; gy += 1) {
-      var value = yMax * gy / 4;
-      var y = yMap(value);
-      svg.appendChild(line(api, left, y, width - right, y, "br-grid"));
-      svg.appendChild(text(api, left - 8, y + 4, formatNumber(api, value, 2), {
-        className: "br-axis-label",
-        "text-anchor": "end"
-      }));
-    }
-    svg.appendChild(line(api, left, yMap(1), width - right, yMap(1), "br-target"));
-    svg.appendChild(line(api, left, top + plotHeight, width - right, top + plotHeight, "br-axis"));
-    for (var level = 0; level <= MAX_LEVEL; level += 2) {
-      var x = xMap(level);
-      svg.appendChild(line(api, x, top + plotHeight, x, top + plotHeight + 5, "br-axis"));
-      svg.appendChild(text(api, x, height - 10, "L=" + level, {
-        className: "br-axis-label"
-      }));
-    }
-    svg.appendChild(text(api, left, 15, "Q_L", {
-      className: "br-chart-label",
-      "text-anchor": "start"
-    }));
-    svg.appendChild(text(api, width - right, height - 10, "分割层数 L", {
-      className: "br-axis-label",
-      "text-anchor": "end"
-    }));
-    svg.appendChild(makeSvg(api, "path", {
-      d: seriesPath(brownValues, xMap, yMap),
-      className: "br-qv-line"
-    }));
-    svg.appendChild(makeSvg(api, "path", {
-      d: seriesPath(smoothValues, xMap, yMap),
-      className: "br-qv-smooth-line"
-    }));
-    for (var pointLevel = 0; pointLevel <= MAX_LEVEL; pointLevel += 1) {
-      svg.appendChild(circle(
-        api,
-        xMap(pointLevel),
-        yMap(brownValues[pointLevel]),
-        pointLevel === selectedLevel ? 4.7 : 2.5,
-        pointLevel === selectedLevel ? "br-dot br-dot-current" : "br-dot"
-      ));
-      svg.appendChild(circle(
-        api,
-        xMap(pointLevel),
-        yMap(smoothValues[pointLevel]),
-        2.2,
-        "br-dot-smooth"
-      ));
-    }
-    svg.appendChild(text(api, width - right - 2, yMap(1) - 7, "目标 1", {
-      className: "br-axis-label",
-      "text-anchor": "end"
-    }));
-    return svg;
-  }
-
-  function metricRow(api, label, brownValue, smoothValue) {
-    return makeElement(api, "tr", {}, [
-      makeElement(api, "th", { scope: "row" }, [label]),
-      makeElement(api, "td", {}, [brownValue]),
-      makeElement(api, "td", {}, [smoothValue])
-    ]);
-  }
-
-  function legendItem(api, className, label) {
-    return makeElement(api, "span", { className: "br-legend-item" }, [
-      makeElement(api, "span", {
-        className: "br-swatch " + className,
-        "aria-hidden": "true"
-      }),
-      label
-    ]);
-  }
-
-  window.CourseLearning.register("brownian-roughness", function (root, api) {
-    if (!root || typeof document === "undefined") {
-      return;
-    }
-
-    installStyles();
-    var uid = "cl-brownian-" + (INSTANCE += 1);
-    var state = { preset: 0, level: 6 };
-    var cache = Object.create(null);
-    var refs = {};
-
-    function getSample() {
-      var preset = PRESETS[state.preset];
-      if (!cache[preset.seed]) {
-        cache[preset.seed] = makeSample(preset.seed);
-      }
-      return cache[preset.seed];
-    }
-
-    function setLevel(level) {
-      state.level = clamp(Number(level), 0, MAX_LEVEL);
-      render();
-    }
-
-    var heading = makeElement(api, "h3", { className: "br-heading" }, [
-      "布朗粗糙度实验：三笔账，两个极限"
-    ]);
-    var intro = makeElement(api, "p", { className: "br-note" }, [
-      "固定种子只用于复现同一份样本；每个分辨率都从最高层增量聚合而来。浅线显示逐层折线，当前层加粗，下面的账本同时列出布朗样本与光滑函数。"
-    ]);
-
-    var presetLabel = makeElement(api, "label", { htmlFor: uid + "-preset" }, [
-      "固定样本"
-    ]);
-    var presetSelect = makeElement(api, "select", {
-      id: uid + "-preset",
-      "aria-label": "选择固定布朗样本",
-      onchange: function () {
-        state.preset = clamp(Number(presetSelect.value), 0, PRESETS.length - 1);
-        render();
-      }
-    });
-    PRESETS.forEach(function (preset, index) {
-      presetSelect.appendChild(makeElement(api, "option", {
-        value: String(index)
-      }, [preset.label]));
-    });
-
-    var levelOutput = makeElement(api, "output", {
-      htmlFor: uid + "-level"
-    }, ["6"]);
-    var levelLabel = makeElement(api, "label", { htmlFor: uid + "-level" }, [
-      "分割层数 L = ",
-      levelOutput
-    ]);
-    var levelInput = makeElement(api, "input", {
-      id: uid + "-level",
-      type: "range",
-      min: "0",
-      max: String(MAX_LEVEL),
-      step: "1",
-      value: String(state.level),
-      "aria-label": "选择 dyadic 分割层数",
-      oninput: function () {
-        setLevel(levelInput.value);
-      }
-    });
-    var levelButtonRow = makeElement(api, "div", {
-      className: "br-level-buttons",
-      role: "group",
-      "aria-label": "常用分割层数"
-    });
-    var levelButtons = [];
-    LEVEL_PRESETS.forEach(function (level) {
-      var button = makeElement(api, "button", {
-        type: "button",
-        text: "L=" + level,
-        "aria-label": "选择分割层数 " + level,
-        onclick: function () {
-          setLevel(level);
-        }
-      });
-      levelButtons.push({ level: level, node: button });
-      levelButtonRow.appendChild(button);
-    });
-
-    refs.presetSelect = presetSelect;
-    refs.levelInput = levelInput;
-    refs.levelOutput = levelOutput;
-    refs.levelButtons = levelButtons;
-
-    var controls = makeElement(api, "section", {
-      className: "br-controls",
-      "aria-labelledby": uid + "-controls-title"
-    }, [
-      makeElement(api, "h4", { id: uid + "-controls-title" }, ["参数"]),
-      makeElement(api, "div", { className: "br-control" }, [
-        presetLabel,
-        presetSelect
-      ]),
-      makeElement(api, "div", { className: "br-control" }, [
-        levelLabel,
-        levelInput,
-        levelButtonRow
-      ]),
-      makeElement(api, "p", { className: "br-note" }, [
-        "最高层固定为 M=" + MAX_LEVEL + "；N=2^L 个等长小段。没有重新抽样按钮：换层只聚合同一份细增量。"
-      ]),
-      makeElement(api, "p", {
-        className: "br-status",
-        "aria-live": "polite"
-      }, [""])
-    ]);
-    refs.status = controls.querySelector(".br-status");
-
-    var pathHost = makeElement(api, "div", { className: "br-stage-frame" });
-    var qvHost = makeElement(api, "div", { className: "br-stage-frame" });
-    refs.pathHost = pathHost;
-    refs.qvHost = qvHost;
-
-    var ledgerTitle = makeElement(api, "div", {
-      className: "br-ledger-title"
-    }, ["同一分割上的三笔账"]);
-    var ledgerTable = makeElement(api, "table", {
-      className: "br-ledger"
-    }, [
-      makeElement(api, "thead", {}, [
-        makeElement(api, "tr", {}, [
-          makeElement(api, "th", { scope: "col" }, ["量"]),
-          makeElement(api, "th", { scope: "col" }, ["布朗样本"]),
-          makeElement(api, "th", { scope: "col" }, ["光滑对照"])
-        ])
-      ]),
-      makeElement(api, "tbody", {})
-    ]);
-    refs.ledgerBody = ledgerTable.querySelector("tbody");
-
-    var legend = makeElement(api, "div", {
-      className: "br-legend",
-      "aria-label": "图例"
-    }, [
-      legendItem(api, "br-swatch-brownian", "蓝：布朗样本（粗线为当前层）"),
-      legendItem(api, "br-swatch-smooth", "金色虚线：光滑函数"),
-      legendItem(api, "br-swatch-target", "绿色虚线：二次变差目标 1")
-    ]);
-    var footnote = makeElement(api, "p", { className: "br-footnote" }, [
-      "读法边界：图中每一条有限折线都是样本；定理说的是随机变量在确定性分割加细时的收敛。单个样本的有限层波动不构成“几乎处处”的证明。"
-    ]);
-
-    var stage = makeElement(api, "section", {
-      className: "br-stage",
-      "aria-labelledby": uid + "-stage-title"
-    }, [
-      makeElement(api, "div", {
-        className: "br-stage-title",
-        id: uid + "-stage-title"
-      }, [
-        makeElement(api, "span", {}, ["逐层路径"]),
-        makeElement(api, "span", { className: "br-note" }, ["[0,1]"])
-      ]),
-      pathHost,
-      legend,
-      qvHost,
-      ledgerTitle,
-      makeElement(api, "div", { className: "br-table-wrap" }, [ledgerTable]),
-      footnote
-    ]);
-
-    clear(root);
-    root.classList.add("brownian-roughness-lab");
-    root.appendChild(heading);
-    root.appendChild(intro);
-    root.appendChild(makeElement(api, "div", { className: "br-layout" }, [
-      controls,
-      stage
-    ]));
-
-    function render() {
-      var sample = getSample();
-      var current = sample.levels[state.level];
-      var preset = PRESETS[state.preset];
-      refs.presetSelect.value = String(state.preset);
-      refs.levelInput.value = String(state.level);
-      refs.levelOutput.textContent = String(state.level);
-      refs.levelButtons.forEach(function (item) {
-        item.node.setAttribute("aria-pressed", item.level === state.level ? "true" : "false");
-      });
-      refs.status.textContent =
-        preset.label + "，L=" + state.level + "（N=" + (1 << state.level) +
-        "）：Q=" + formatNumber(api, current.ledger.quadraticVariation, 3) +
-        "；最大增量=" + formatNumber(api, current.ledger.maxIncrement, 3);
-      replaceChildren(refs.pathHost, [
-        makeElement(api, "div", { className: "br-stage-title" }, [
-          makeElement(api, "span", {}, ["路径账本"]),
-          makeElement(api, "span", { className: "br-note" }, [
-            "seed " + preset.seed + " · L=" + state.level
-          ])
-        ]),
-        drawPathChart(api, sample, state.level, uid)
-      ]);
-      replaceChildren(refs.qvHost, [
-        makeElement(api, "div", { className: "br-stage-title" }, [
-          makeElement(api, "span", {}, ["二次变差收敛图"]),
-          makeElement(api, "span", { className: "br-note" }, [
-            "目标：Q_L→1"
-          ])
-        ]),
-        drawQuadraticChart(api, sample, state.level, uid)
-      ]);
-      replaceChildren(refs.ledgerBody, [
-        metricRow(api, "线性变差 Σ|Δ|",
-          formatNumber(api, current.ledger.totalVariation, 3),
-          formatNumber(api, current.ledger.smoothTotalVariation, 3)),
-        metricRow(api, "二次变差 Σ(Δ)^2",
-          formatNumber(api, current.ledger.quadraticVariation, 3),
-          formatNumber(api, current.ledger.smoothQuadraticVariation, 3)),
-        metricRow(api, "最大增量 max|Δ|",
-          formatNumber(api, current.ledger.maxIncrement, 3),
-          formatNumber(api, current.ledger.smoothMaxIncrement, 3))
-      ]);
-    }
-
-    render();
-  });
-}());
+return {DEFAULTS,PRESETS,QUESTIONS,config,snapshot,plots,svg,ledgers,fmt,tableHTML,mount,selfTest};
+});

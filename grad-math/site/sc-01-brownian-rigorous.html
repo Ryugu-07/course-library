@@ -52,209 +52,321 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-12 00:43</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：一条路径怎样把粗糙写进账本？</a><ul>
-<li><a href="#1-dt">1. 具体谜题：同一把尺子，哪条路径会留下 \(dt\)？</a></li>
-<li><a href="#2">2. 先预测，再动手</a></li>
-<li><a href="#3">3. 最小模型：先生成细网格，再聚合</a></li>
-<li><a href="#4">4. 操作：让图形先回答，再让定理收尾</a></li>
-<li><a href="#5">5. 边界：实验没有替定理签字</a></li>
-<li><a href="#6">6. 回到定理：把图上的量翻译成随机分析</a></li>
-<li><a href="#7">7. 迁移问题：换掉名字，哪些条件仍然必要？</a></li>
-</ul>
-</li>
-<li><a href="#1">1. 定义与存在性</a></li>
-<li><a href="#2_1">2. 路径性质：光滑世界的全面失效</a></li>
-<li><a href="#3_1">3. 布朗运动的鞅家族（工作接口）</a></li>
-<li><a href="#4_1">4. 练习与要点</a></li>
+<li><a href="#_1">学习层：把尺子换细，还是给路径增加新细节？</a></li>
+<li><a href="#1">1. 定义里为什么必须单独写连续性</a></li>
+<li><a href="#2-h4">2. 一个中点为什么需要 h/4 的方差</a></li>
+<li><a href="#3-levyciesielski">3. Lévy–Ciesielski 构造：每一层只加入新的帽子</a></li>
+<li><a href="#4">4. 可求和的层幅度，给出连续的无限极限</a></li>
+<li><a href="#5-12holder">5. 连续有多强：任意小于1/2的Hölder指数</a></li>
+<li><a href="#6">6. 处处不可微：怎样处理不可数多个候选点</a></li>
+<li><a href="#7">7. 二次变差：先算随机变量的误差，再谈路径极限</a></li>
+<li><a href="#8">8. 三笔账与两个不能交换的极限</a></li>
+<li><a href="#9">9. 从条件高斯分布得到三种鞅</a></li>
+<li><a href="#10-markov">10. 停在随机时刻：强Markov与首达时间</a></li>
+<li><a href="#11">11. 四道练习：把图形直觉写成可以检查的式子</a></li>
+<li><a href="#12-ito">12. 从路径构造走向 Itô 积分</a></li>
 </ul>
 </div>
 </details>
-<h1 id="i">随机分析 I · 布朗运动的严格构造<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<h1 id="i">随机分析 I · 布朗运动：从高斯中点到粗糙路径<a class="headerlink" href="#i" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Øksendal §2 / Karatzas–Shreve §2.2 ｜ <strong>前置</strong>：mt-01–04、本科随机过程 IV、本科 sde 三页
-本科页把布朗运动当公理用；本页回答三个严格性问题：<strong>它存在吗</strong>（Lévy–Ciesielski 构造）、<strong>路径有多糙</strong>（连续但处处不可微、二次变差非零——为什么必须发明新微积分）、<strong>它有哪些鞅</strong>（随机分析的工作接口）。</p>
+<p><strong>前置</strong>：<a href="mt-01-measure-expectation.html">测度与期望</a>、<a href="mt-02-lln.html">大数律与Borel–Cantelli</a>、<a href="mt-03-conditional-martingale.html">条件期望与停止时间</a>、<a href="mt-04-martingale-convergence.html">鞅收敛</a>。本讲构造布朗运动，证明其基本路径性质，并解释有限模拟究竟保留了什么。</p>
 </blockquote>
-<div data-learning-page></div>
-
+<div class="brownian-course">
+<style>.brownian-course .learning-lab{margin-left:0;margin-right:0;width:100%}.brownian-course .fallback-scroll{overflow:auto;max-width:100%}.brownian-course .fallback-scroll td{overflow-wrap:anywhere}.brownian-course .fallback-scroll td:last-child{white-space:nowrap;font-variant-numeric:tabular-nums;font-size:.8em}</style>
+<noscript>
+<style>.brownian-course span.arithmatex{overflow-wrap:anywhere;white-space:normal}</style>
+</noscript>
+<div data-learning-page="data-learning-page"></div>
 <section class="learning-layer">
-<h2 id="_1">学习层：一条路径怎样把粗糙写进账本？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="1-dt">1. 具体谜题：同一把尺子，哪条路径会留下 <span class="arithmatex">\(dt\)</span>？<a class="headerlink" href="#1-dt" title="Permanent link"></a></h3>
-<p>把时间区间固定为 <span class="arithmatex">\([0,1]\)</span>，在分割</p>
-<div class="arithmatex">\[
-\pi_L=\{j2^{-L}:j=0,1,\ldots,2^L\}
-\]</div>
-<p>上给一条路径记三笔账：</p>
-<div class="arithmatex">\[
-V_L=\sum_j|\Delta X_j|,\qquad
-Q_L=\sum_j(\Delta X_j)^2,\qquad
-M_L=\max_j|\Delta X_j|.
-\]</div>
-<p>先想象两条曲线：一条是布朗样本，另一条是同一网格上的光滑函数。谜题是：当 <span class="arithmatex">\(L\)</span> 增大，为什么第一条路径的 <span class="arithmatex">\(Q_L\)</span> 会留下一个非零极限，而光滑函数的 <span class="arithmatex">\(Q_L\)</span> 会归零？如果 <span class="arithmatex">\(Q_L\)</span> 留下了 <span class="arithmatex">\(1\)</span>，这是否意味着我们已经“证明”了二次变差定理？</p>
-<h3 id="2">2. 先预测，再动手<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>在打开实验前，分别预测 <span class="arithmatex">\(V_L,Q_L,M_L\)</span> 的趋势：</p>
-<ul>
-<li>光滑函数的 <span class="arithmatex">\(M_L\)</span> 应该趋向哪里？它的 <span class="arithmatex">\(Q_L\)</span> 会不会稳定在一个正数？</li>
-<li>对布朗路径，增量的典型大小是 <span class="arithmatex">\(\sqrt{2^{-L}}\)</span>。把它乘上增量数 <span class="arithmatex">\(2^L\)</span>，你会猜 <span class="arithmatex">\(V_L\)</span> 怎样增长？把它平方后再相加，为什么量级反而保持在 <span class="arithmatex">\(1\)</span>？</li>
-<li>若把同一份最高分辨率的增量聚合成粗网格，粗、细两条路径之间哪些点必须相同？</li>
-</ul>
-<p>把预测写成一句自己的话：<strong>“二次变差是在记录什么，有限变差又排除了什么？”</strong></p>
-<h3 id="3">3. 最小模型：先生成细网格，再聚合<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>实验只用一个固定的伪随机种子。令最高层为 <span class="arithmatex">\(M\)</span>，取独立的 <span class="arithmatex">\(\zeta_r\sim N(0,1)\)</span>，并在最细网格上定义</p>
-<div class="arithmatex">\[
-\Delta B_{M,r}=2^{-M/2}\zeta_r,\qquad
-B_{M,j}=\sum_{r&lt;j}\Delta B_{M,r}.
-\]</div>
-<p>层 <span class="arithmatex">\(L\le M\)</span> 的一个增量不是重新抽样，而是聚合最高层的同一批增量：</p>
-<div class="arithmatex">\[
-\Delta B_{L,j}
-=\sum_{r=j2^{M-L}}^{(j+1)2^{M-L}-1}\Delta B_{M,r}.
-\]</div>
-<p>因此同一固定样本在不同 <span class="arithmatex">\(L\)</span> 上可比较；每个粗增量仍服从 <span class="arithmatex">\(N(0,2^{-L})\)</span>。对照曲线取</p>
-<div class="arithmatex">\[
-f(t)=0.75\sin(2\pi t)+0.25\sin(6\pi t),
-\]</div>
-<p>在完全相同的分割上记同样三笔账。这里的有限层数组是一个可复现的样本账本，不是把有限数组冒充成无限时间过程。</p>
-<h3 id="4">4. 操作：让图形先回答，再让定理收尾<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>在下方实验中切换固定样本和分割层数 <span class="arithmatex">\(L\)</span>。路径图会叠放若干层的折线，并突出当前层；二次变差图把布朗样本、光滑函数和目标线 <span class="arithmatex">\(t=1\)</span> 放在同一坐标中。读完一次后，口头完成三步：</p>
-<ol>
-<li>指出哪一笔账最能区分两条曲线，并说出你看到的数值证据；</li>
-<li>解释为什么“最高层生成、低层聚合”比每次换 <span class="arithmatex">\(L\)</span> 都重新抽样更适合比较；</li>
-<li>用 <span class="arithmatex">\(M_L\to0\)</span> 与 <span class="arithmatex">\(Q_L\to1\)</span> 写出你认为最接近定理的两句话。</li>
-</ol>
-<h3 id="5">5. 边界：实验没有替定理签字<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<ul>
-<li>一条固定的有限离散路径只是一个样本，而且只看到了 <span class="arithmatex">\(L\le M\)</span> 的有限层；它不能证明“几乎处处”，也不能把一个样本的趋势当作所有样本的极限。</li>
-<li><span class="arithmatex">\(Q_L\to1\)</span> 的严格陈述针对<strong>确定性分割</strong>的 <span class="arithmatex">\(L^2\)</span>（因而概率）收敛；沿 dyadic 分割还可用可加的尾概率升级为几乎处处收敛。若分割依赖路径，必须重新检查假设。</li>
-<li>光滑曲线的 <span class="arithmatex">\(Q_L\to0\)</span> 来自有限变差和连续性；这不是说任何连续函数的二次变差都为零。</li>
-<li>“<span class="arithmatex">\(V_L\)</span> 变大”不是单独的证明。有限变差函数满足 <span class="arithmatex">\(Q_L\le M_LV\to0\)</span>，而布朗路径沿 dyadic 分割有正的二次变差，才推出有限变差不可能发生。</li>
-</ul>
-<h3 id="6">6. 回到定理：把图上的量翻译成随机分析<a class="headerlink" href="#6" title="Permanent link"></a></h3>
-<p>实验对应的是</p>
-<div class="arithmatex">\[
-Q_t(\pi_n)=\sum_j(B_{t_{j+1}}-B_{t_j})^2
-\xrightarrow{L^2}t
-\]</div>
-<p>这一随机收敛陈述的一个有限层影像；它不是对某条图形的逐点断言。正是 <span class="arithmatex">\(Q_t\)</span> 不为零、而路径又连续且没有经典导数，才使 <span class="arithmatex">\((dB_t)^2=dt\)</span> 成为 Itô 计算的记账规则。下一页会把这个规则升级为简单过程上的 <span class="arithmatex">\(L^2\)</span> 积分构造。</p>
-<h3 id="7">7. 迁移问题：换掉名字，哪些条件仍然必要？<a class="headerlink" href="#7" title="Permanent link"></a></h3>
-<p>设 <span class="arithmatex">\(M\)</span> 是适应于过滤 <span class="arithmatex">\((\mathcal F_t)\)</span> 的过程。只知道它是连续鞅，能否断言它是布朗运动？还缺哪一个“账本”？如果给出 <span class="arithmatex">\(M_0=0\)</span>、连续局部鞅以及 <span class="arithmatex">\(\langle M\rangle_t=t\)</span>，你会怎样用 Lévy 刻画定理回答？最后思考：若二次变差是 <span class="arithmatex">\(\int_0^t a_s\,ds\)</span> 而不是 <span class="arithmatex">\(t\)</span>，你预期哪一种时间变换或随机积分会出现？</p>
-<div class="learning-lab" data-learning-lab="brownian-roughness" markdown="1">
-<p><strong>无 JavaScript 时的静态读法：</strong>固定 <span class="arithmatex">\(f(t)=0.75\sin(2\pi t)+0.25\sin(6\pi t)\)</span>，在 <span class="arithmatex">\(\pi_L\)</span> 上分别计算 <span class="arithmatex">\(V_L,Q_L,M_L\)</span>。布朗样本在最高层生成独立 <span class="arithmatex">\(N(0,2^{-M})\)</span> 增量，低层把相邻细增量相加，所以换层时保留同一条 dyadic 路径；预期布朗的 <span class="arithmatex">\(Q_L\)</span> 在有限层附近围绕 <span class="arithmatex">\(1\)</span> 波动，光滑函数的 <span class="arithmatex">\(Q_L\)</span> 下降到 <span class="arithmatex">\(0\)</span>，而单个样本的图形不能替代定理中的 <span class="arithmatex">\(L^2\)</span>/概率收敛。脚本加载后可切换固定样本、分割层数、逐层路径和二次变差图。</p>
+<h2 id="_1">学习层：把尺子换细，还是给路径增加新细节？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>画出一条随机折线后，把每个线段再均分成十六段。图形没有变化，平方增量的总和却变成原来的十六分之一：一个增量d被换成十六个d/16，所以平方和从d²变为d²/16。</p>
+<p>这看起来与“布朗运动的二次变差是1”冲突，原因是我们做了两种不同的极限。<strong>给一条固定折线加密测量网格</strong>，与<strong>在旧节点之间继续生成新的布朗细节</strong>，不是同一个操作。实验会把生成层M与测量层L分开；L超过M以后，背景说明会明确标出“冻结折线细分”。</p>
+<div class="learning-lab" data-learning-lab="brownian-roughness">
+<p><strong>无脚本读法。</strong> 对照固定记录，先检查旧节点是否保留，再比较线性变差、平方变差和最大增量。静态表中的概率上界参考值针对尚未生成的无限高斯延伸，不是对一条已画折线的确定误差。</p>
+<figure class="plot">
+<p><a href="assets/img/sc-01-brownian-ledgers.svg"><img alt="四个固定场景：中点、生成网格、冻结细分与缺少的桥" src="assets/img/sc-01-brownian-ledgers.svg" /></a></p>
+<figcaption>图1.1：打开原图可对照中点噪声、生成层、冻结细分与缺少的桥。</figcaption>
+</figure>
+<div aria-label="布朗运动固定数值记录" class="fallback-scroll" role="region" tabindex="0">
+<table>
+<thead>
+<tr>
+<th scope="col">项目</th>
+<th scope="col">固定记录值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>生成样本的M</td>
+<td>4</td>
+</tr>
+<tr>
+<td>生成网格L</td>
+<td>4</td>
+</tr>
+<tr>
+<td>生成网格V</td>
+<td>3.436449000311592</td>
+</tr>
+<tr>
+<td>生成网格Q</td>
+<td>1.302582507473014</td>
+</tr>
+<tr>
+<td>生成网格最大增量</td>
+<td>0.8427738557289294</td>
+</tr>
+<tr>
+<td>冻结细分L</td>
+<td>8</td>
+</tr>
+<tr>
+<td>冻结细分V</td>
+<td>3.436449000311592</td>
+</tr>
+<tr>
+<td>冻结细分Q</td>
+<td>0.08141140671706336</td>
+</tr>
+<tr>
+<td>冻结细分最大增量</td>
+<td>0.05267336598305816</td>
+</tr>
+<tr>
+<td>冻结Q的预期比例</td>
+<td>0.0625</td>
+</tr>
+<tr>
+<td>冻结Q恒等式残差</td>
+<td>-1.3877787807814457e-17</td>
+</tr>
+<tr>
+<td>首个帽子层m</td>
+<td>0</td>
+</tr>
+<tr>
+<td>首个帽子的标准差</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>首个帽子的标准化系数Z</td>
+<td>-0.996492448658309</td>
+</tr>
+<tr>
+<td>首个帽子的峰值</td>
+<td>-0.4982462243291545</td>
+</tr>
+<tr>
+<td>首个帽子的实际中点</td>
+<td>-0.8812968309498883</td>
+</tr>
+<tr>
+<td>尾部失败概率δ</td>
+<td>0.01</td>
+</tr>
+<tr>
+<td>解析尾界浮点参考</td>
+<td>2.100406028609584</td>
+</tr>
+<tr>
+<td>前16层之后的概率分配</td>
+<td>1.52587890625e-7</td>
+</tr>
+<tr>
+<td>帽函数重建最大残差</td>
+<td>2.220446049250313e-16</td>
+</tr>
+</tbody>
+</table>
 </div>
+<p><a href="assets/learning/projects/brownian-roughness/run-snapshot.json">下载四个场景的完整固定记录(JSON)</a>。三个M=4场景使用同一种子20260722；中点图使用M=2、L=1。表内保留JSON中的数值，图上刻度为便于阅读做了舍入。</p>
+</div>
+<p>推荐先用从粗到细的Lévy构造，观察中点怎样偏离两端的平均值；然后固定M，把L调到M+4。最后切换“最细层采样后聚合”：两种方法具有相同的理想高斯分布，但相同种子不意味着路径相同。完整记录保留实际使用的随机数、各层节点、增量、三笔账和帽函数系数，便于独立复算。</p>
 </section>
-<h2 id="1">1. 定义与存在性<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>定义</strong> 标准布朗运动 <span class="arithmatex">\((B_t)_{t\geq0}\)</span> 是满足下列条件的过程：<span class="arithmatex">\(B_0=0\)</span>；对 <span class="arithmatex">\(0\le s&lt;t\)</span>，增量 <span class="arithmatex">\(B_t-B_s\sim N(0,t-s)\)</span>；不相交时间区间上的增量相互独立；路径 <span class="arithmatex">\(t\mapsto B_t(\omega)\)</span> 几乎处处连续。前面三项确定有限维分布，连续性是要补上的路径级要求。</p>
-<p><strong>定理（存在性）</strong> 满足上述条件的过程存在。</p>
-<p><strong>【骨架】（Lévy–Ciesielski 构造，归一化写清）</strong> 先在 <span class="arithmatex">\([0,1]\)</span> 上构造。令标准帽函数</p>
-<div class="arithmatex">\[
-\psi(u)=
-\begin{cases}
-2u,&amp;0\le u\le \tfrac12,\\
-2(1-u),&amp;\tfrac12&lt;u\le1,\\
-0,&amp;\text{其他 }u,
-\end{cases}
-\]</div>
-<p>它在 <span class="arithmatex">\([0,1]\)</span> 上的峰值为 <span class="arithmatex">\(1\)</span>。取相互独立的标准高斯 <span class="arithmatex">\(\xi_\varnothing\)</span> 与 <span class="arithmatex">\(\xi_{m,k}\)</span>（<span class="arithmatex">\(m\ge0,\ 0\le k&lt;2^m\)</span>），定义</p>
-<div class="arithmatex">\[
-\phi_{m,k}(t)=2^{-(m+2)/2}\psi(2^m t-k),
-\]</div>
-<p>以及</p>
-<div class="arithmatex">\[
-B^{(K)}_t
-=\xi_\varnothing t
-+\sum_{m=0}^{K}\sum_{k=0}^{2^m-1}\xi_{m,k}\phi_{m,k}(t).
-\]</div>
-<p>第 <span class="arithmatex">\(m\)</span> 层帽函数支撑在 <span class="arithmatex">\([k2^{-m},(k+1)2^{-m}]\)</span>，峰值系数的标准差为 <span class="arithmatex">\(2^{-(m+2)/2}=2^{-m/2}/2\)</span>；这正是长度 <span class="arithmatex">\(2^{-m}\)</span> 的 Brownian bridge 在中点的条件标准差。故 <span class="arithmatex">\(B^{(K)}\)</span> 是在 dyadic 网格上的逐层桥接折线，网格加密时只在各小段中点加入独立高斯桥残差。</p>
-<p>高斯尾界与 Borel–Cantelli 给出</p>
-<div class="arithmatex">\[
-\max_{0\le k&lt;2^m}|\xi_{m,k}|=O(\sqrt m)\quad\text{a.s.},
-\]</div>
-<p>于是第 <span class="arithmatex">\(m\)</span> 层的统一范数为 <span class="arithmatex">\(O(\sqrt m\,2^{-m/2})\)</span>，可求和。因此 <span class="arithmatex">\(B^{(K)}\)</span> 几乎处处一致收敛到连续极限。每个 dyadic 网格上的桥接递推给出正确的联合高斯分布；dyadic 点稠密，加上一致收敛，极限具有协方差 <span class="arithmatex">\(E[B_sB_t]=s\wedge t\)</span> 和布朗运动的独立增量，遂得所需过程。先在 <span class="arithmatex">\([0,1]\)</span> 构造，再用独立副本逐段拼接到 <span class="arithmatex">\([0,\infty)\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p>（另一条路【引用】：Kolmogorov 延拓定理先造有限维分布，再用 <strong>Kolmogorov–Chentsov 连续性判据</strong>。对高斯增量，</p>
-<div class="arithmatex">\[
-E|B_t-B_s|^4=3|t-s|^2
-\]</div>
-<p>足以得到连续修正；这条四阶矩估计给出存在性，但单靠这一次估计并不负责最优的 <span class="arithmatex">\(&lt;\frac12\)</span> Hölder 指数。）</p>
-<h2 id="2_1">2. 路径性质：光滑世界的全面失效<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p><strong>定理（不可微性，Paley–Wiener–Zygmund）</strong> 布朗运动路径几乎处处在每个内点不可微；端点的一侧导数也几乎处处不存在。</p>
-<p><strong>【证明骨架——关键估计，不冒充完整证明】</strong> 若在某点有有限导数，则对某个 <span class="arithmatex">\(M&lt;\infty\)</span>，足够小的邻域内增量都被 <span class="arithmatex">\(M\)</span> 倍的时间长度控制。取 <span class="arithmatex">\(h=2^{-m}\)</span> 的 dyadic 网格，在该点附近挑出三个互不相交的相邻网格小段；导数界会迫使这三个增量都满足 <span class="arithmatex">\(|\Delta B|\le C_Mh\)</span>。单个增量的标准化后为 <span class="arithmatex">\(N(0,1)\)</span>，所以</p>
-<div class="arithmatex">\[
-P(|\Delta B|\le C_Mh)=P(|N(0,1)|\le C_M\sqrt h)=O_M(\sqrt h).
-\]</div>
-<p>三个独立小段同时发生的概率是 <span class="arithmatex">\(O_M(h^{3/2})\)</span>，而一层至多有 <span class="arithmatex">\(O(h^{-1})\)</span> 个候选三连段，故该层概率为 <span class="arithmatex">\(O_M(h^{1/2})\)</span>，对 <span class="arithmatex">\(m\)</span> 可求和。Borel–Cantelli 排除“某个有限斜率界在所有细层持续成立”的嵌套三连段；对 <span class="arithmatex">\(M\in\mathbb N\)</span> 求并，再处理网格对齐和端点 bookkeeping，得到上述结论。这是 PWZ 证明的概率骨架；只看固定点或只做一次 union bound 都不足以自动推出“处处”。</p>
-<p><strong>定理（二次变差）</strong> 固定 <span class="arithmatex">\(t&gt;0\)</span>，令</p>
-<div class="arithmatex">\[
-\pi_n:\ 0=t_0^{(n)}&lt;\cdots&lt;t_{N_n}^{(n)}=t
-\]</div>
-<p>是<strong>确定性</strong>分割，网格 <span class="arithmatex">\(|\pi_n|=\max_j(t_{j+1}^{(n)}-t_j^{(n)})\to0\)</span>。记</p>
-<div class="arithmatex">\[
-Q_t(\pi_n)=\sum_j\big(B_{t_{j+1}^{(n)}}-B_{t_j^{(n)}}\big)^2.
-\]</div>
-<p>独立高斯增量给出</p>
-<div class="arithmatex">\[
-EQ_t(\pi_n)=t,\qquad
-\operatorname{Var}(Q_t(\pi_n))
-=2\sum_j(\Delta t_j^{(n)})^2
-\le 2t|\pi_n|\longrightarrow0.
-\]</div>
-<p>所以 <span class="arithmatex">\(Q_t(\pi_n)\to t\)</span> <strong>在 <span class="arithmatex">\(L^2\)</span> 中，因而在概率中</strong>收敛。对 dyadic 分割，方差形成可求和序列，Chebyshev 加 Borel–Cantelli 还能得到几乎处处收敛；一般确定性分割至少有上述 <span class="arithmatex">\(L^2\)</span>/概率结论，并可从中抽取几乎处处收敛子列。若分割随机且依赖路径，以上独立增量计算不能直接照搬。</p>
-<p>这正是二次变差的严格含义：</p>
-<div class="arithmatex">\[
-[B]_t=\langle B\rangle_t=t,
-\]</div>
-<p>其中这里的等式通过指定的分割极限理解，而不是把 <span class="arithmatex">\((dB)^2=dt\)</span> 当作先验代数规则。</p>
-<p><strong>后果：有限变差必须排除。</strong> 若连续函数 <span class="arithmatex">\(x\)</span> 在 <span class="arithmatex">\([0,t]\)</span> 上总变差有限，记为 <span class="arithmatex">\(V_{[0,t]}(x)\)</span>，则对任意网格趋于零的分割</p>
-<div class="arithmatex">\[
-\sum_j(\Delta x_j)^2
-\le \Big(\max_j|\Delta x_j|\Big)V_{[0,t]}(x)\longrightarrow0.
-\]</div>
-<p>布朗运动沿 dyadic 分割的二次变差却几乎处处趋于 <span class="arithmatex">\(t&gt;0\)</span>，所以对每个固定 <span class="arithmatex">\(t&gt;0\)</span>，它在 <span class="arithmatex">\([0,t]\)</span> 上具有有限总变差的概率为零；对有理端点取可数交，还得到几乎处处在每个非平凡区间上总变差无限。因而经典有限变差 Riemann–Stieltjes 理论不能直接把 <span class="arithmatex">\(dB\)</span> 当作普通积分器；Itô 积分要改用 <span class="arithmatex">\(L^2\)</span> 完备化（下一页）。</p>
-<p><strong>其余名性质速览【引用】</strong>：标度不变</p>
-<div class="arithmatex">\[
-c^{-1/2}B_{ct}\overset d=B_t;
-\]</div>
-<p>时间反演 <span class="arithmatex">\(tB_{1/t}\)</span>（在 <span class="arithmatex">\(t&gt;0\)</span> 定义并以 <span class="arithmatex">\(0\)</span> 连续延拓）仍是布朗运动；重对数律</p>
-<div class="arithmatex">\[
-\limsup_{t\to\infty}\frac{B_t}{\sqrt{2t\log\log t}}=1\quad\text{a.s.}
-\]</div>
-<p>给出增长速度的精确刻画。路径在每个紧时间区间上几乎处处对所有 <span class="arithmatex">\(\alpha&lt;\frac12\)</span> 都是 Hölder-<span class="arithmatex">\(\alpha\)</span> 的：存在随机常数 <span class="arithmatex">\(C_{\alpha,T}\)</span> 使</p>
-<div class="arithmatex">\[
-|B_t-B_s|\le C_{\alpha,T}|t-s|^\alpha,\qquad s,t\in[0,T].
-\]</div>
-<p>这个指数只能说“任意小于 <span class="arithmatex">\(1/2\)</span>”；布朗路径几乎处处不是 <span class="arithmatex">\(1/2\)</span>-Hölder 的（更不可能是更高指数）。</p>
-<h2 id="3_1">3. 布朗运动的鞅家族（工作接口）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p>对自然过滤 <span class="arithmatex">\(\mathcal F_t=\sigma(B_s:s\le t)\)</span>（通常取其通常增广），以下过程皆为鞅：</p>
-<ol>
-<li><span class="arithmatex">\(B_t\)</span>（独立增量 + 零均值）；</li>
-<li><span class="arithmatex">\(B_t^2-t\)</span>（条件二阶矩 <span class="arithmatex">\(E[(B_t-B_s)^2\mid\mathcal F_s]=t-s\)</span> 展开）；</li>
-<li><strong>指数鞅</strong> <span class="arithmatex">\(\exp(\theta B_t-\frac{\theta^2}{2}t)\)</span>，其中 <span class="arithmatex">\(\theta\in\mathbb R\)</span>（高斯矩母函数 <span class="arithmatex">\(Ee^{\theta\Delta B}=e^{\theta^2\Delta t/2}\)</span>）。</li>
-</ol>
-<p>这三个鞅是随机分析的“三件套接口”：②的积分版导向二次变差与 Itô 等距（sc-02）；③是 Girsanov 与期权定价的种子（sc-04）；配合 OST（mt-03）可收割首达时结果。</p>
-<p><strong>Lévy 刻画定理【引用，sc-03 用】</strong>：设 <span class="arithmatex">\(M\)</span> 适应于过滤 <span class="arithmatex">\((\mathcal F_t)\)</span>，<span class="arithmatex">\(M_0=0\)</span> a.s.，<span class="arithmatex">\(M\)</span> 是连续局部鞅，并且其可预测二次变差满足</p>
-<div class="arithmatex">\[
-\langle M\rangle_t=t\quad\text{a.s. for every }t\ge0.
-\]</div>
-<p>则 <span class="arithmatex">\(M\)</span> 是相对于该过滤的标准布朗运动；反过来标准布朗运动满足这些条件。关键不是“连续鞅”四个字——连续鞅有很多，决定其为标准 Brownian noise 的是初值、连续局部鞅结构与精确的二次变差。</p>
-<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（构造的体感）</strong> 用 Lévy–Ciesielski 的帽函数逐层加密折线，或在最高 dyadic 层生成独立 <span class="arithmatex">\(N(0,2^{-M})\)</span> 增量再聚合，得到可复现的 BM 网格样本。这是 Brownian bridge 采样的实践版本：理论构造也给出期权 Monte Carlo 中“先粗后细”的抽样接口。注意有限最高层不是无限过程的证明。</p>
-<p><strong>例 2（OST + 指数鞅收割首达时）</strong> 令 <span class="arithmatex">\(\tau_a=\inf\{t\ge0:B_t=a\}\)</span>，<span class="arithmatex">\(a&gt;0\)</span>。对指数鞅在 <span class="arithmatex">\(\tau_a\wedge n\)</span> 停止，并用标准极限论证，取 <span class="arithmatex">\(\theta=\sqrt{2\lambda}\)</span> 得</p>
-<div class="arithmatex">\[
-E\exp(-\lambda\tau_a)=e^{-a\sqrt{2\lambda}},\qquad \lambda\ge0.
-\]</div>
-<p>反演知 <span class="arithmatex">\(\tau_a\)</span> 服从 <span class="arithmatex">\(1/2\)</span>-稳定律，特别 <span class="arithmatex">\(E\tau_a=\infty\)</span>——mt-03 中“必胜但平均等候时间无限”的定量版。</p>
-<p><strong>例 3（二次变差的金融读法）</strong> 对连续半鞅价格过程 <span class="arithmatex">\(S\)</span>，高频对数收益的已实现二次变差</p>
-<div class="arithmatex">\[
-\sum_j(\log S_{t_{j+1}}-\log S_{t_j})^2
-\]</div>
-<p>在适当的确定性或满足条件的采样分割下，估计的是 <span class="arithmatex">\([\log S]_t\)</span>（扩散模型中常写作 <span class="arithmatex">\(\int_0^t\sigma_s^2\,ds\)</span>）；布朗页的定理是已实现波动率的数学原型。采样规则与跳跃项会改变结论，不能把一个理想 BM 模拟直接当作金融数据定理。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：对布朗运动积分——Itô 积分的 <span class="arithmatex">\(L^2\)</span> 构造：简单过程、等距、稠密延拓，三步走完。</em></p>
+<h2 id="1">1. 定义里为什么必须单独写连续性<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>标准布朗运动是同一概率空间上的过程 <span class="arithmatex">\((B_t)_{t\ge0}\)</span>，满足 <span class="arithmatex">\(B_0=0\)</span>；任意不相交时间区间上的增量相互独立；对 <span class="arithmatex">\(0\le s\lt t\)</span>，</p>
+<div class="arithmatex">\[B_t-B_s\sim N(0,t-s);\]</div>
+<p>并且存在一个概率为1的事件，使其中每条路径 <span class="arithmatex">\(t\mapsto B_t(\omega)\)</span> 都连续。这里方差是时间长度，标准差是其平方根。</p>
+<p>前三项确定全部有限维分布，却不自动确定连续样本路径。一个具体反例是：在布朗运动之外取独立的均匀随机时间U∈(0,1)，定义</p>
+<div class="arithmatex">\[\widetilde B_t=B_t+\mathbf1_{\{t=U\}}.\]</div>
+<p>对任何预先选好的有限个时间，U命中其中之一的概率为0，所以这两过程的有限维分布完全相同。但是每条修改后的路径都在自己的随机时间U突然多出1，因而不连续。不能把“每个固定时间都以概率1相等”直接换成“以概率1在所有时间同时相等”。若两个版本都连续，则在有理时刻取可数交，再用稠密性，才可得到所有时间同时相等。</p>
+<p>关于信息，我们先使用自然过滤 <span class="arithmatex">\(\mathcal F_t^0=\sigma(B_s:0\le s\le t)\)</span>。布朗增量独立于过去信息，是独立增量条件从有限个过去时刻通过单调类延伸的结果。以后说“相对于某过滤的布朗运动”，还要求这个独立性与适应性；任意加入未来信息的更大过滤可能破坏它。</p>
+<h2 id="2-h4">2. 一个中点为什么需要 h/4 的方差<a class="headerlink" href="#2-h4" title="Permanent link"></a></h2>
+<p>先看长度h的一段。若两个半段增量X、Y独立且均服从N(0,h/2)，定义总增量与中点残差</p>
+<div class="arithmatex">\[S=X+Y,\qquad R=\frac{X-Y}{2}.\]</div>
+<p>直接算出</p>
+<div class="arithmatex">\[\operatorname{Var}(S)=h,\quad\operatorname{Var}(R)=h/4,\quad\operatorname{Cov}(S,R)=0.\]</div>
+<p>S、R是联合高斯，所以不相关即独立。这个高斯特有的结论可从特征函数看出：均值μ、协方差Σ的高斯向量满足</p>
+<div class="arithmatex">\[\mathbb E e^{iu^{\mathsf T}X}=\exp\!\left(iu^{\mathsf T}\mu-\tfrac12u^{\mathsf T}\Sigma u\right);\]</div>
+<p>协方差矩阵分块对角时，特征函数分解为各块的乘积，便得到独立性。一般非高斯向量不能只靠协方差为0得出独立。</p>
+<p>因此，给定两个端点值a、b，中点可以按</p>
+<div class="arithmatex">\[\text{中点}=\frac{a+b}{2}+\frac{\sqrt h}{2}Z,\qquad Z\sim N(0,1)\]</div>
+<p>生成，其中Z独立于已知端点信息。其条件均值是直线中点，条件方差是h/4。把标准差误写成√h，会使新细节方差放大四倍。</p>
+<p>反过来，若S∼N(0,h)、Z∼N(0,1)独立，令R=√h·Z/2，两个新增量S/2+R与S/2−R均有方差h/2，协方差为h/4−h/4=0，故独立。这条反向计算让我们能从粗到细构造整个过程。</p>
+<h2 id="3-levyciesielski">3. Lévy–Ciesielski 构造：每一层只加入新的帽子<a class="headerlink" href="#3-levyciesielski" title="Permanent link"></a></h2>
+<p>在可数乘积概率空间上取相互独立的标准高斯变量 <span class="arithmatex">\(Z_*\)</span> 和 <span class="arithmatex">\(Z_{m,k}\)</span>，其中 <span class="arithmatex">\(m\ge0\)</span>、<span class="arithmatex">\(0\le k\lt2^m\)</span>。定义峰值为1的帽函数</p>
+<div class="arithmatex">\[\psi(u)=\begin{cases}2u,&amp;0\le u\le1/2,\\2(1-u),&amp;1/2\lt u\le1,\\0,&amp;\text{其余位置},\end{cases}\qquad
+\phi_{m,k}(t)=2^{-(m+2)/2}\psi(2^m t-k).\]</div>
+<p>最高生成网格为M时，有限折线为</p>
+<div class="arithmatex">\[B^{[M]}_t=Z_*t+\sum_{m=0}^{M-1}\sum_{k=0}^{2^m-1}Z_{m,k}\phi_{m,k}(t).\]</div>
+<p>M=0时只有从0到Z*的线段；M=1时加入中点；每提升一级，加入一层帽子。第m层帽子的支撑长度为2⁻ᵐ、峰值标准差为 <span class="arithmatex">\(2^{-m/2}/2\)</span>，恰好符合上一节的h/4条件方差。旧dyadic节点位于新帽子的零点，因此保留不变。</p>
+<p>用归纳证明每一级网格分布正确。假设粗网格各段增量独立且服从对应长度的中心高斯。对每一段加入独立的新Z；同一段的两个半增量由上一节可知独立，不同粗段则使用相互独立的旧增量与新变量。因此全部半段增量仍相互独立，方差为新的段长。起点M=0的增量Z*符合条件，归纳完成。</p>
+<p>这证明了全部有限dyadic网格的分布，却还没有完成无限过程的构造。还必须证明帽子叠加会收敛到连续函数。</p>
+<h2 id="4">4. 可求和的层幅度，给出连续的无限极限<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>标准高斯的矩母函数为 <span class="arithmatex">\(\mathbb E e^{\lambda Z}=e^{\lambda^2/2}\)</span>。对λ=u&gt;0用Markov不等式，再对负尾同样处理，得到</p>
+<div class="arithmatex">\[\mathbb P(|Z|\gt u)\le2e^{-u^2/2}.\]</div>
+<p>第m层有2ᵐ个系数。选择常数C使 <span class="arithmatex">\(C^2/2\gt\log2\)</span>，联合界给出</p>
+<div class="arithmatex">\[\mathbb P\!\left(\max_{k\lt2^m}|Z_{m,k}|\gt C\sqrt{m+1}\right)
+\le2^{m+1}e^{-C^2(m+1)/2}.\]</div>
+<p>右边关于m可求和。Borel–Cantelli因此保证：在一个共同的概率1事件上，只有有限层超出阈值。把这些有限层吸收到一个随机有限常数Cω中，便有所有层同时满足的界</p>
+<div class="arithmatex">\[\max_k|Z_{m,k}|\le C_\omega\sqrt{m+1}.\]</div>
+<p>同一层的帽子支撑内部互不重叠，所以该层函数 <span class="arithmatex">\(F_m=\sum_k Z_{m,k}\phi_{m,k}\)</span> 的统一范数恰为最大峰值，因而</p>
+<div class="arithmatex">\[\|F_m\|_\infty\le C_\omega\sqrt{m+1}\,2^{-(m+2)/2},\qquad
+\sum_{m\ge0}\|F_m\|_\infty\lt\infty.\]</div>
+<p>连续函数的级数由此一致收敛到连续极限B。在概率0的坏事件上统一定义B为零路径即可。每条有限折线是有限个随机变量的可测函数；C[0,1]的统一范数可以在有理点上取上确界，所以其极限也是可测的连续函数值随机变量。这同时给出了单时刻可测性和路径解释。</p>
+<p>在任一固定dyadic网格上，足够后面的帽子全为零，因此极限的节点值早已固定，具有第3节证明的高斯增量分布。对一般时间 <span class="arithmatex">\(t_1\lt\cdots\lt t_r\)</span>，选有序dyadic近似趋近它们。连续性使增量向量几乎处处收敛；特征函数的模恒为1，可用有界收敛传递极限，得到</p>
+<div class="arithmatex">\[\mathbb E\exp\!\left(i\sum_{j=1}^{r-1}u_j(B_{t_{j+1}}-B_{t_j})\right)
+=\exp\!\left(-\frac12\sum_{j=1}^{r-1}u_j^2(t_{j+1}-t_j)\right).\]</div>
+<p>这正是独立中心高斯增量的联合特征函数。我们没有在没有一致可积性依据时直接交换二阶矩与随机极限。至此[0,1]上的布朗运动存在。再取独立副本逐个区间拼接，并在每段加上此前终点的累计值，即得到[0,∞)上的连续布朗运动。</p>
+<p><strong>还没采样的尾部能说多少？</strong> 若停止于M，给第m=M+j层分配失败概率εⱼ=δ·2⁻ʲ⁻¹，令</p>
+<div class="arithmatex">\[c_{M+j}=\sqrt{2\big((M+2j+2)\log2+\log(1/\delta)\big)}.\]</div>
+<p>上述联合界使该层最大系数超过c的概率不大于εⱼ。再次对全部未生成层求并，总失败概率不大于δ；成功事件上</p>
+<div class="arithmatex">\[\|B-B^{[M]}\|_\infty\le\sum_{j\ge0}2^{-(M+j+2)/2}\sqrt{a+bj},\quad
+a=2((M+2)\log2+\log(1/\delta)),\quad b=4\log2.\]</div>
+<p>令 <span class="arithmatex">\(r=2^{-1/2}\)</span>。Cauchy–Schwarz与几何级数给出这串和的解析上界</p>
+<div class="arithmatex">\[2^{-(M+2)/2}\sqrt{\frac{a}{(1-r)^2}+\frac{br}{(1-r)^3}}.\]</div>
+<p>它描述无限独立高斯延伸的概率，不保证某个已画样本的实际尾巴恰好小于该值。实验显示的是这个解析表达式的浮点参考值，没有将计算机对数和平方根的舍入结果冒称为严格区间算术证书。</p>
+<h2 id="5-12holder">5. 连续有多强：任意小于1/2的Hölder指数<a class="headerlink" href="#5-12holder" title="Permanent link"></a></h2>
+<p>第m层是分段线性的，斜率绝对值不超过 <span class="arithmatex">\(2^{m+1}\|F_m\|_\infty\)</span>；即使经过折点，分段相加仍给出相同Lipschitz界。设h=|t−s|，选n使 <span class="arithmatex">\(2^{-n-1}\lt h\le2^{-n}\)</span>。把层分成粗、细两部分：</p>
+<div class="arithmatex">\[|B_t-B_s|\le |Z_*|h+
+h\sum_{m\lt n}2^{m+1}\|F_m\|_\infty+
+2\sum_{m\ge n}\|F_m\|_\infty.\]</div>
+<p>粗层的斜率虽增加，却只积到n；细层虽无限多，幅度却几何衰减。用上一节的界，第一串和不超过常数倍 <span class="arithmatex">\(h\sqrt{n+1}\,2^{n/2}\)</span>，第二串不超过常数倍 <span class="arithmatex">\(\sqrt{n+1}\,2^{-n/2}\)</span>。它们都不超过随机常数倍</p>
+<div class="arithmatex">\[\sqrt{h\log(e/h)}.\]</div>
+<p>例如细层的估计可写m=n+j，用 <span class="arithmatex">\(\sqrt{n+j+1}\le\sqrt{n+1}\sqrt{j+1}\)</span>，剩下可求和的几何衰减级数。粗层从最大m向后编号，也得到可求和几何级数。因此对每个0&lt;α&lt;1/2，因为 <span class="arithmatex">\(h^{1/2-\alpha}\sqrt{\log(e/h)}\)</span> 在(0,1]上有界，路径是α-Hölder的。用有理α的可数集合和指数间的包含关系，可以让所有0&lt;α&lt;1/2在同一个概率1事件上成立。</p>
+<p>为什么不能把“&lt;”换成“≤”？若整段[0,1]存在常数K，使 <span class="arithmatex">\(|B_t-B_s|\le K|t-s|^{1/2}\)</span>，则任何第m级网格的全部标准化增量都不超过K。它们是2ᵐ个独立标准高斯，所以这件事的概率不超过</p>
+<div class="arithmatex">\[\big(\mathbb P(|Z|\le K)\big)^{2^m}\longrightarrow0.\]</div>
+<p>对整数K取可数并，便排除了区间上的一致1/2-Hölder性；缩放并对有理端点取交，可排除每个非平凡区间。这里说的是<strong>整个区间统一控制所有点对</strong>，不能进一步偷换成“每个随机点都不具有局部1/2-Hölder性质”。后者涉及更细的异常点理论。</p>
+<h2 id="6">6. 处处不可微：怎样处理不可数多个候选点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>只证明某个固定t的差商不收敛，不能自动对所有t同时下结论。我们把不可数个t压缩成每层有限个“三连段”事件。</p>
+<p>假设某条路径在t∈[0,1)有有限右导数，则存在整数K和δ&gt;0，使 <span class="arithmatex">\(|B_{t+u}-B_t|\le Ku\)</span> 对0≤u≤δ成立。取h=2⁻ᵐ，设j=⌊t/h⌋+1；当m充分大时，右侧三个完整网格段</p>
+<div class="arithmatex">\[[jh,(j+1)h],\quad[(j+1)h,(j+2)h],\quad[(j+2)h,(j+3)h]\]</div>
+<p>都在[0,1]内且端点距t不超过4h。三角不等式使每段增量绝对值不超过7Kh。即使t恰好落在网格点上，这个选法仍有效。在t=1若有有限左导数，改取末尾三个网格段，也得到不超过7Kh的界。</p>
+<p>一个长度h的布朗增量满足</p>
+<div class="arithmatex">\[\mathbb P(|\Delta B|\le7Kh)=\mathbb P(|Z|\le7K\sqrt h)
+\le\sqrt{\frac2\pi}\,7K\sqrt h,\]</div>
+<p>其中用到了标准高斯密度的最大值。三个不相交段的增量独立，联合概率至多是该界的三次方；一层至多有h⁻¹个候选起点，所以“存在一个合格三连段”的概率至多</p>
+<div class="arithmatex">\[h^{-1}\left(\sqrt{\frac2\pi}\,7K\sqrt h\right)^3
+=\left(7K\sqrt{\frac2\pi}\right)^3 2^{-m/2}.\]</div>
+<p>这个上界关于m可求和。Borel–Cantelli排除了三连段事件发生无穷多次；任何一个有有限导数的t却会迫使所有充分细层都发生该事件，矛盾。再对整数K取可数并，便同时排除所有候选点。因此，以概率1，布朗样本路径在每一点都不可微；两个端点的相应一侧有限导数也被排除。对整数时间区间拼接，同样得到任意有限时间范围的结论。</p>
+<p>这里排除的是有限的经典导数。没有把这个证明扩张为对全部单侧Dini导数取值的完整分类。</p>
+<h2 id="7">7. 二次变差：先算随机变量的误差，再谈路径极限<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>固定t&gt;0，取确定性分割 <span class="arithmatex">\(\pi:0=t_0\lt\cdots\lt t_n=t\)</span>，令hⱼ=tⱼ₊₁−tⱼ。各增量独立，服从N(0,hⱼ)。由标准高斯的二阶矩1、四阶矩3可得</p>
+<div class="arithmatex">\[\mathbb E Q_t(\pi)=t,\qquad
+\operatorname{Var}(Q_t(\pi))=2\sum_j h_j^2\le2t|\pi|,\qquad
+Q_t(\pi)=\sum_j(B_{t_{j+1}}-B_{t_j})^2.\]</div>
+<p>因此，只要确定性分割的最大段长|π|趋于0，Q就以L²、从而以概率趋于t。这个结论不要求这些分割互相嵌套。</p>
+<p>要得到几乎处处收敛，还需再走一步。对于把[0,t]均分成2ᴸ段的dyadic分割，方差为2t²·2⁻ᴸ。对任意ε&gt;0，Chebyshev界</p>
+<div class="arithmatex">\[\sum_{L\ge0}\mathbb P(|Q_L-t|\gt\varepsilon)
+\le\frac{2t^2}{\varepsilon^2}\sum_{L\ge0}2^{-L}\lt\infty\]</div>
+<p>使Borel–Cantelli适用。先对ε=1/r、r∈N取可数交，就得到Qᴸ→t几乎处处。对有理端点区间也可这样做，并再次取可数交。</p>
+<p>不能把这一步概括成“任何网格变细都逐路径收敛”。一般确定性分割有前述L²结论；某些更强的分割条件可以给出几乎处处结论，但需要相应证明。若分割由路径的未来行为选择，上面的独立高斯计算也不能原样套用。</p>
+<p>还有一个读图陷阱：Qᴸ不是单调量。将一个粗增量d拆成d₁+d₂，粗平方与细平方之差为</p>
+<div class="arithmatex">\[d^2-(d_1^2+d_2^2)=2d_1d_2.\]</div>
+<p>两半增量同号或异号会给出不同方向；单个样本的Q可以上下波动。均值为t也不要求每个样本在每一层恰好等于t。实验把实际值、理想高斯模型的均值和方差分开记录。</p>
+<h2 id="8">8. 三笔账与两个不能交换的极限<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>在[0,1]的dyadic网格上，另外记</p>
+<div class="arithmatex">\[V_L=\sum_j|\Delta B_{L,j}|,\qquad M_L=\max_j|\Delta B_{L,j}|.\]</div>
+<p>三角不等式使Vᴸ随嵌套网格加密而不减；路径连续使Mᴸ趋于0。若某条连续路径的总变差V有限，那么</p>
+<div class="arithmatex">\[Q_L\le M_LV\longrightarrow0.\]</div>
+<p>布朗路径却在共同的概率1事件上有Qᴸ→1，所以它不可能有有限总变差。对所有有理端点的非平凡子区间重复这个论证，就得到几乎必然在每个非平凡区间上总变差无限。</p>
+<p>增长量级也可以核算。对N=2ᴸ个独立N(0,1/N)增量，利用半正态分布的均值和方差，</p>
+<div class="arithmatex">\[\mathbb E V_L=\sqrt{\frac{2N}{\pi}},\qquad
+\operatorname{Var}(V_L)=1-\frac2\pi.\]</div>
+<p>因此 <span class="arithmatex">\(V_L/\sqrt N\)</span> 以L²趋于√(2/π)，沿dyadic层还可用同样的可加尾概率得到几乎处处收敛。这里的线性变差V增长，平方变差Q稳定在非零量级，最大增量M缩小；把三者混在同一纵轴上，反而不容易看清。</p>
+<p>现在固定一条M层有限折线，继续把每个线段分成q=2ᴸ⁻ᴹ段，L&gt;M。每个新增量只是旧增量的1/q，因此严格的实数恒等式是</p>
+<div class="arithmatex">\[V_L(B^{[M]})=V_M(B^{[M]}),\quad
+Q_L(B^{[M]})=2^{M-L}Q_M(B^{[M]}),\quad
+M_L(B^{[M]})=2^{M-L}M_M(B^{[M]}).\]</div>
+<p>程序用实际节点重新计算三笔账，同时列出这些关系的浮点残差；没有把预期恒等式直接填进实际结果栏。对共同的Lévy构造，可以把两个极限次序明确写出：</p>
+<div class="arithmatex">\[\lim_{M\to\infty}\lim_{L\to\infty}Q_L(B^{[M]})=0,\qquad
+\lim_{L\to\infty}\lim_{M\to\infty}Q_L(B^{[M]})=1\quad\text{a.s.}\]</div>
+<p>第一个先把固定折线看得无限细；第二个先在固定测量网格上让真实布朗节点稳定下来，再加密测量。实验最多生成有限个高斯系数，不能用画面代替任一无限极限的证明。</p>
+<p><strong>同一组数还藏着一条能量恒等式。</strong> 在第m层把粗增量d分成d/2+a与d/2−a，两平方之和为d²/2+2a²；此处 <span class="arithmatex">\(a=2^{-(m+2)/2}Z_{m,k}\)</span>。逐层相加、乘上相应2的幂，得到</p>
+<div class="arithmatex">\[2^LQ_L=Z_*^2+\sum_{m=0}^{L-1}\sum_k Z_{m,k}^2,\qquad L\le M.\]</div>
+<p>这就是本构造中的Parseval恒等式，也能解释一个容易误读的实验现象：两种算法若使用同一组N个高斯数，最细层Q都会是它们平方和除以N；但一个把这些数当细增量，另一个把它们当帽系数，路径一般不同。相同的一个统计量不能证明两条路径相同。</p>
+<h2 id="9">9. 从条件高斯分布得到三种鞅<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>记W=Bₜ−Bₛ，它独立于过去信息、均值0、方差t−s。于是</p>
+<div class="arithmatex">\[\mathbb E[B_t\mid\mathcal F_s]=B_s,\]</div>
+<div class="arithmatex">\[\mathbb E[B_t^2-t\mid\mathcal F_s]
+=B_s^2+\mathbb E[W^2]-(t-s)-s=B_s^2-s.\]</div>
+<p>对任意实数θ，高斯矩母函数还给出</p>
+<div class="arithmatex">\[\mathbb E\!\left[e^{\theta B_t-\theta^2t/2}\mid\mathcal F_s\right]
+=e^{\theta B_s-\theta^2s/2}\,
+\mathbb E e^{\theta W-\theta^2(t-s)/2}
+=e^{\theta B_s-\theta^2s/2}.\]</div>
+<p>各随机变量可积，因此Bₜ、Bₜ²−t、指数过程都是鞅。它们不是三条必须水平的样本曲线：“鞅”的内容是给定过去后的条件平均，不是每个实现都没有涨跌。</p>
+<p>以后默认使用自然过滤的通常增广：先补零概率事件，再取右连续化。为什么独立增量仍成立？固定s，增广后的Fₛ包含于每个稍晚的已完备过去Fₛ₊ε；从s+ε开始的未来增量独立于它。令ε↓0，路径连续让有限个增量收敛，用有界连续函数传递独立性，再通过单调类扩展到全部相关事件。补入零概率事件也不改变条件期望的几乎处处等式。</p>
+<p><strong>有界停止时间也需要证明桥梁。</strong> 若连续鞅在固定有限时间H满足二阶矩条件，可先在有限dyadic网格使用离散Doob L²不等式，再让网格稠密；连续性与单调收敛给出</p>
+<div class="arithmatex">\[\mathbb E\sup_{t\le H}|M_t|^2\le4\mathbb E|M_H|^2.\]</div>
+<p>对有界停止时间T，用dyadic上取整Tₙ↓T，将Tₙ限制在一个略大的固定时间范围；离散有界OST给出<span class="arithmatex">\(\mathbb E[M_{T_n}]=\mathbb E[M_0]\)</span>。上面的可积统一上界与连续性允许用支配收敛令n→∞。这为下一节使用连续指数鞅的有界OST提供依据；指数鞅在有限时间的二阶矩确实有限，因为高斯变量有全部实指数矩。</p>
+<h2 id="10-markov">10. 停在随机时刻：强Markov与首达时间<a class="headerlink" href="#10-markov" title="Permanent link"></a></h2>
+<p>确定时刻之后的增量独立，不自动等于任意随机时刻之后也独立。停止时间的条件保证：是否已经停止，只需看当时及过去的信息。</p>
+<p>设T几乎处处有限，定义严格向上取整</p>
+<div class="arithmatex">\[T_n=2^{-n}\big(\lfloor2^nT\rfloor+1\big)\downarrow T.\]</div>
+<p>这是只取可数个确定时刻的停止时间，且 <span class="arithmatex">\(\mathcal F_T\subseteq\mathcal F_{T_n}\)</span>。对 <span class="arithmatex">\(A\in\mathcal F_T\)</span>，在各事件{Tₙ=k2⁻ⁿ}上分开条件；这些事件与A的交属于确定时刻k2⁻ⁿ的过去。于是对任意有界连续函数g和固定未来时间u₁,…,uᵣ，</p>
+<div class="arithmatex">\[\mathbb E\!\left[\mathbf1_A\,g(B_{T_n+u_1}-B_{T_n},\ldots,B_{T_n+u_r}-B_{T_n})\right]
+=\mathbb P(A)\,\mathbb E g(B_{u_1},\ldots,B_{u_r}).\]</div>
+<p>可数求和合法，因为g有界。路径连续与有界收敛允许n→∞；再用单调类把g扩展为有界可测函数，得到T之后的整个有限维增量分布是标准布朗分布且独立于 <span class="arithmatex">\(\mathcal F_T\)</span>。路径连续、时间有理点可数且稠密，进一步将此提升为连续路径值随机变量的独立性。这就是强Markov性质。</p>
+<p>一个会用到它的例子是<strong>反射原则</strong>。在停止时刻T之后把增量变号：由于新的布朗增量与过去独立，且B与−B同分布，拼接后的过程仍与原过程同分布。若T可能无限，先在固定观察范围H内使用T∧H，便得到所需的有限时间结论。</p>
+<p>取a&gt;0，令 <span class="arithmatex">\(\tau_a=\inf\{t\ge0:B_t=a\}\)</span>，<span class="arithmatex">\(M_t=\max_{0\le s\le t}B_s\)</span>。路径连续保证τₐ为停止时间。在第一次达到a之后反射，将“到过a、但终点低于a”的路径与“终点高于a”的路径配对；终点恰为a的概率为0。因此</p>
+<div class="arithmatex">\[\mathbb P(\tau_a\le t)=\mathbb P(M_t\ge a)
+=2\mathbb P(B_t\ge a)=2\big(1-\Phi(a/\sqrt t)\big).\]</div>
+<p>这里Φ是标准高斯分布函数。t→∞时右边趋于1，所以τₐ几乎处处有限。对t求导，得到密度</p>
+<div class="arithmatex">\[f_{\tau_a}(t)=\frac{a}{\sqrt{2\pi}}t^{-3/2}e^{-a^2/(2t)},\qquad t&gt;0.\]</div>
+<p>“最终一定到达”并不意味着平均等候时间有限：t充分大时指数因子有正的常数下界，而 <span class="arithmatex">\(\int_1^\infty t\,t^{-3/2}\,dt=\infty\)</span>，故Eτₐ=∞。</p>
+<p>指数鞅还给出另一种可核对的结果。对λ&gt;0取θ=√(2λ)，在τₐ∧n处停止。停止前B<a，停止时B=a，因此停止后的指数变量不超过<span class="arithmatex">\(e^{\theta a}\)</span>；在{τₐ>n}上，它甚至不超过 <span class="arithmatex">\(e^{\theta a-\lambda n}\)</span>。利用有界OST和支配收敛，</p>
+<div class="arithmatex">\[1=e^{\theta a}\mathbb E e^{-\lambda\tau_a},\qquad
+\mathbb E e^{-\lambda\tau_a}=e^{-a\sqrt{2\lambda}}.\]</div>
+<p>即使尚未用反射证明τₐ有限，也可先约定 <span class="arithmatex">\(e^{-\lambda\infty}=0\)</span> 得到这条式子，再令λ↓0，由单调收敛推出P(τₐ&lt;∞)=1。这说明极限步骤不需要循环假设“首达时间已经有限”。λ=0由这个极限补上。</p>
+<h2 id="11">11. 四道练习：把图形直觉写成可以检查的式子<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>练习一：在长度1/4的区间里生成中点，噪声标准差是多少？</summary>
+<p>区间长度h=1/4，条件方差h/4=1/16，标准差1/4。因此两端点a、b给定时，中点为(a+b)/2+Z/4。若父增量S=b−a在构造中服从N(0,1/4)，并独立于Z，则两个半增量为S/2+Z/4与S/2−Z/4。每个方差为1/16+1/16=1/8，协方差为1/16−1/16=0；联合高斯保证它们独立。误用标准差1/2时，方差会变成1/16+1/4=5/16，已经不是所需1/8。</p>
+</details>
+<details class="answer">
+<summary>练习二：找出平方变差细分时增加、减少的两个简单例子</summary>
+<p>粗增量2拆成1、1，粗Q=4、细Q=2，下降；粗增量0拆成1、−1，粗Q=0、细Q=2，上升。两例都满足差值2d₁d₂。线性变差则分别为2→2与0→2，均不下降，符合三角不等式。不能根据某一层Q的上升或下降判断模拟是否正确；应检查相同节点、增量关系、实际平方和以及跨层的分布结论。</p>
+</details>
+<details class="answer">
+<summary>练习三：固定M层折线，再细分四层，三笔账如何变化？</summary>
+<p>每段变成16段，各新增量是旧增量的1/16。总绝对值和保持不变；平方和变为1/16；最大增量也变为1/16。若M层的Q为q，则新Q为q/16。继续细分同一折线，Q最终趋于0，完全不违反真正布朗路径的dyadic二次变差定理，因为后者每一级读取的是含有新随机细节的同一无限过程。</p>
+<p>实验中的光滑对照也有一个提醒：在很粗的L=0、1网格上，它恰好只被采到零点，账本可能全零；提高分辨率后出现非零值，是采样混叠被解除，并不表示光滑函数突然变得不连续。确定零点用三角函数的确切周期关系处理，其余浮点小值不按随意阈值清零。</p>
+</details>
+<details class="answer">
+<summary>练习四：从首达密度判断哪些正阶矩有限</summary>
+<p>对p&gt;0，计算E[τₐᵖ]就是积分tᵖf(t)。当t→0，指数因子 <span class="arithmatex">\(e^{-a^2/(2t)}\)</span> 比任何幂都衰减得快，换元u=1/t可见这一端可积。当t→∞，指数因子趋于1，幂次为 <span class="arithmatex">\(t^{p-3/2}\)</span>。尾部积分有限当且仅当p−3/2&lt;−1，即p&lt;1/2。因此所有0&lt;p&lt;1/2的正阶矩有限，而p≥1/2的正阶矩发散；特别平均时间p=1无限。</p>
+<p>这与拉普拉斯变换在λ=0附近的非线性平方根行为一致。不能因为每个λ&gt;0都有有限的<span class="arithmatex">\(\mathbb E[e^{-\lambda\tau_a}]\)</span>，就推断Eτ有限；前者的被积函数本来就被1控制。</p>
+</details>
+<h2 id="12-ito">12. 从路径构造走向 Itô 积分<a class="headerlink" href="#12-ito" title="Permanent link"></a></h2>
+<p>实验的有限最高层M提供了一个准确的有限高斯模型。其帽函数协方差为</p>
+<div class="arithmatex">\[K_M(s,t)=st+\sum_{m=0}^{M-1}\sum_k\phi_{m,k}(s)\phi_{m,k}(t).\]</div>
+<p>在M层网格节点上，它等于min(s,t)。若s≤t位于同一最细小段[a,a+h]内部，线性插值却给出</p>
+<div class="arithmatex">\[K_M(s,t)=a+\frac{(s-a)(t-a)}h,\qquad
+\min(s,t)-K_M(s,t)=\frac{(s-a)(a+h-t)}h.\]</div>
+<p>右边正是尚未加入的桥的协方差。实验用实际帽函数求和和节点线性插值两条路线计算它，明确展示有限折线缺少的内容。</p>
+<p>真正布朗运动连续、具有非零二次变差而总变差无限。这解释了为什么以有限变差为条件的经典Riemann–Stieltjes理论不能直接解决一般布朗积分；下一讲会从适应简单过程开始，证明Itô等距，再做L²完备化。符号 <span class="arithmatex">\((dB)^2=dt\)</span> 是这些极限定理支持的计算记号，不是新加的一条普通代数公理。</p>
+<p>再往后，Lévy刻画将说明：从0出发的连续局部鞅，若二次变差为t，就是相对于该过滤的布朗运动。<strong>这条刻画在本页作为后续定理引用</strong>，其证明要用已经建立的随机积分或等价的鞅工具；本页的存在性和不可微性没有借它循环论证。重对数律、精确连续模、局部时和SLE也各有额外内容，不能由有限模拟图自动推出。</p>
+<p><strong>参考与继续阅读。</strong> <a href="https://www.mi.uni-koeln.de/~moerters/book/book.pdf">Mörters–Peres, Brownian Motion，作者提供的书稿</a>，第1章的构造与路径性质、第2章的强Markov和反射原则。下一页：<a href="sc-02-ito-integral.html">Itô积分的L²构造</a>。</p>
+</div>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="hdp-04-chaining.html"><span class="pager-label">上一页</span>高维概率 IV · 链式法与经验过程</a>
