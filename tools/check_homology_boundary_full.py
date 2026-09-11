@@ -54,7 +54,7 @@ def input_model(p):
   # Incidence determined by set inclusion; missing vertex gives the sign.
   for k in range(1,4):D.append({'rows':dims[k-1],'cols':dims[k],'data':[[0 if not set(face)<set(top)else (-1)**next(i for i,v in enumerate(top)if v not in face)for top in cells[k]]for face in cells[k-1]]})
  elif p['mode']=='cellular':
-  m=int(p['m']);dims,rows={'rp2':([1,1,1,0],['','2','']),'torus':([1,2,1,0],['','','']),'klein':([1,2,1,0],['','2;0','']),'moore':([1,1,1,0],['',str(m),'']),'sphere3':([1,0,0,1],['','','']),'lens':([1,1,1,1],['',str(m),''])}[p['model']];cells=None
+  m=int(p['m']);dims,rows={'rp2':([1,1,1,0],['','2','']),'torus':([1,2,1,0],['','','']),'klein':([1,2,1,0],['',';'.join(str('abAb'.count(g)-'abAb'.count(g.upper()))for g in 'ab'),'']),'moore':([1,1,1,0],['',str(m),'']),'sphere3':([1,0,0,1],['','','']),'lens':([1,1,1,1],['',str(m),''])}[p['model']];cells=None
  else:dims=list(map(int,p['dimensions'].split(',')));rows=[p['d1'],p['d2'],p['d3']];cells=None
  if cells is None:
   cells=[['c'+str(k)+'_'+str(i)for i in range(n)]for k,n in enumerate(dims)];D=[{'rows':0,'cols':dims[0],'data':[]}]
@@ -121,6 +121,7 @@ def main():
    u,v,t=rng.randint(-2,2),rng.randint(-2,2),rng.randint(-3,3);extra.append({'mode':'custom','dimensions':'1,2,1,0','d1':str(u)+','+str(v),'d2':str(t*v)+';'+str(-t*u),'chain':str(v)+';'+str(-u)})
   for p in extra:p['chain']=p['chain'].replace(';',',')
   extra += [{'mode':'cellular','model':'moore','m':str(m),'chain':str(c),'coefficient':p}for m in [-8,-3,0,1,2,5,8]for c,p in [(0,'Z'),(2,'2'),(-1,'3')]]
+  extra += [dict(mode='cellular',model='klein',coefficient=p,chain=c)for p in ['Z','2','3','5']for c in ['1,0','0,1','0,2','1,1']]
   code="const a=require(process.argv[1]);console.log(JSON.stringify(a.PRESETS.map(p=>p.values).concat(JSON.parse(process.argv[2])).map(a.snapshot)))"
   data=json.loads(subprocess.check_output(PREFIX+['node','-e',code,str(JS),json.dumps(extra)]))
  for d in data:verify(d)
@@ -216,13 +217,13 @@ for(const v of [null,true,[],{},'','9','-9','1.5','1e0'])bad({mode:'cellular',mo
 console.log(JSON.stringify({invalid,self:a.selfTest(),data:data.map(d=>{const plots=a.plots(d);return{plots,ledgers:a.ledgers(d),svgs:plots.map(a.svg)}})}));"""
 bundle=json.loads(subprocess.check_output(PREFIX+['node','-e',code,str(JS.resolve()),str(FIXTURE.resolve())],input=json.dumps(data).encode()))
 for d,v in zip(data,bundle['data']):view_contract(d,v['plots'],v['ledgers'],v['svgs'])
-ck(bundle['invalid']==83);ck(bundle['self']=={'status':'PASS','checks':12})
+ck(bundle['invalid']==83);ck(bundle['self']=={'status':'PASS','checks':15})
 print(json.dumps({'status':'PASS','states':len(data),'checks':checks,'invalid':bundle['invalid'],'self':bundle['self']['checks']}))
 
 data=[{**d,**v}for d,v in zip(data,bundle["data"])]
 f=json.loads(FIXTURE.read_text());ck(f['schema']==1 and f['provenance']['jsSha256']==hashlib.sha256(JS.read_bytes()).hexdigest(),'fixed full snapshot provenance')
 ck(f['provenance']=={'date':'2026-09-11','node':'v24.14.0','platform':'darwin','arch':'arm64','jsSha256':hashlib.sha256(JS.read_bytes()).hexdigest()},'fixed environment')
-ck(bundle['invalid']==83 and bundle['self']['status']=='PASS'and bundle['self']['checks']==12,'invalid and self checks')
+ck(bundle['invalid']==83 and bundle['self']['status']=='PASS'and bundle['self']['checks']==15,'invalid and self checks')
 if len(sys.argv)==1:
  from html.parser import HTMLParser
  src=(ROOT/'grad-math/lectures/at-03-homology.md').read_text();site=(ROOT/'grad-math/site/at-03-homology.html').read_text()
