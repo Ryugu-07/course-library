@@ -52,103 +52,289 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 04:59</div>
+    <div class="build-time">构建于 2026-09-11 23:54</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#insolvability-learning-title">学习层：一个模素数分解型，究竟能判决多少？</a><ul>
-<li><a href="#1">1. 具体实例：给五次方程收集几张“群元素证书”</a></li>
-<li><a href="#2">2. 先预测：证书、判决和数值算法不是一回事</a></li>
-<li><a href="#3">3. 正式桥：从约化分解到可解性判决</a></li>
-<li><a href="#4">4. 动手揭示：先交预测，再看有限域账本</a></li>
-<li><a href="#5">5. 定理与失败边界：每张证书都要写清量词</a></li>
-</ul>
-</li>
-<li><a href="#1_1">1. 根式可解的正式定义</a></li>
-<li><a href="#2_1">2. 主定理：根式塔 ⟺ 可解群</a></li>
-<li><a href="#3-s_5">3. 判决：\(S_5\) 登场</a></li>
-<li><a href="#4_1">4. 收官的收官：这个证明的历史体重</a></li>
-<li><a href="#5_1">5. 练习与要点</a></li>
-<li><a href="#_1">研究生讲义库 · 全站落成</a></li>
+<li><a href="#_1">学习层：看到一种对称操作，不等于知道全部对称</a></li>
+<li><a href="#1">1. 根式公式究竟允许做什么</a></li>
+<li><a href="#2-lagrange">2. 单层的准确翻译：单位根与Lagrange预解式</a></li>
+<li><a href="#3">3. 可解群如何产生根式塔</a></li>
+<li><a href="#4">4. 根式塔如何进入一个可解的正规扩张</a></li>
+<li><a href="#5">5. 一个具体的不可解五次：每一环都有短证明</a></li>
+<li><a href="#6">6. 为什么传递五次群只有五种</a></li>
+<li><a href="#7">7. 有理因式分解与判别式：两种精确证据</a></li>
+<li><a href="#8">8. 模素数分解如何变成根的置换</a></li>
+<li><a href="#9-sturm">9. 实根不是屏幕上的近似点：Sturm证书</a></li>
+<li><a href="#10-a5">10. 两个确实可解的五次，与一个A₅反例</a></li>
+<li><a href="#11">11. 四道练习：写出证据，而不是只报群名</a></li>
+<li><a href="#12">12. “一般五次没有公式”中的“一般”如何严格化</a></li>
 </ul>
 </div>
 </details>
-<h1 id="iii">代数进阶 III · 五次方程的不可解性<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<h1 id="ii">抽象代数 II · 根式可解与五次方程：怎样证明一个“不可能”<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Dummit &amp; Foote §14.7 / Artin §16.10 ｜ <strong>前置</strong>：alg2-01/02、本科抽代 I–II、高代 I
-全站最后一张欠条：高代 I 说"五次以上无求根公式"、nla-02 用它解释特征值必须迭代、本科抽代 II 山顶眺望过它——本页正式销账。论证链只有三环：<strong>根式塔 ⟹ 可解群</strong>（Galois 翻译）、<strong><span class="arithmatex">\(S_5\)</span> 不可解</strong>（alg2-01 已备）、<strong>存在 Galois 群为 <span class="arithmatex">\(S_5\)</span> 的五次方程</strong>（构造）。</p>
+<p><strong>前置</strong>：<a href="alg2-01-groups-advanced.html">群作用与可解群</a>、<a href="alg2-02-galois.html">有限Galois对应</a>、多项式除法、不可约性与实函数的单调性。本讲先证明“根式塔与可解群”的双向定理，再把它用于具体五次；实验中的有限证据若不够，就保留未定结论。</p>
 </blockquote>
-<div data-learning-page></div>
-
-<section aria-labelledby="insolvability-learning-title" class="learning-layer">
-<h2 id="insolvability-learning-title">学习层：一个模素数分解型，究竟能判决多少？<a class="headerlink" href="#insolvability-learning-title" title="Permanent link"></a></h2>
-<h3 id="1">1. 具体实例：给五次方程收集几张“群元素证书”<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>从具体多项式</p>
-<div class="arithmatex">\[
-f(x)=x^5-6x+3
-\]</div>
-<p>开始。把它模一个不使约化式出现重因子的素数 <span class="arithmatex">\(p\)</span>，若约化式分解成次数 <span class="arithmatex">\(1,4\)</span>，你会把这张账理解成 Galois 群里出现了一个 <span class="arithmatex">\(1\)</span>-循环和一个 <span class="arithmatex">\(4\)</span>-循环；若分解成次数 <span class="arithmatex">\(2,3\)</span>，则对应一个 <span class="arithmatex">\(2\)</span>-循环和一个 <span class="arithmatex">\(3\)</span>-循环。它们是 Frobenius 元素的<strong>循环型证书</strong>，不是“软件已经输出整个 Galois 群”。</p>
-<h3 id="2">2. 先预测：证书、判决和数值算法不是一回事<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>打开实验前先猜：</p>
-<ol>
-<li>看到一个模 <span class="arithmatex">\(p\)</span> 分解型 <span class="arithmatex">\((1,4)\)</span>，是否可以单凭这一行断言 <span class="arithmatex">\(\operatorname{Gal}(f/\mathbb Q)=S_5\)</span>？</li>
-<li>收集多个不重复素数的分解型，最直接得到的是群中若干元素的循环型，还是一个自动完成的群同构证明？</li>
-<li>牛顿法把五个根都算到很多位，是否就等价于给出了有限层根式公式？</li>
-</ol>
-<h3 id="3">3. 正式桥：从约化分解到可解性判决<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>令 <span class="arithmatex">\(K\)</span> 是 <span class="arithmatex">\(f\)</span> 在 <span class="arithmatex">\(\mathbb Q\)</span> 上的分裂域，<span class="arithmatex">\(G=\operatorname{Gal}(K/\mathbb Q)\)</span> 作用在五个根上。若素数 <span class="arithmatex">\(p\)</span> 是好素数，例如约化式 <span class="arithmatex">\(\bar f\)</span> 无重因子，则 Dedekind--Frobenius 字典把</p>
-<div class="arithmatex">\[
-\bar f=\bar f_1\cdots\bar f_r,
-\qquad \deg \bar f_i=d_i
-\]</div>
-<p>翻译成 <span class="arithmatex">\(G\)</span> 中一个元素的循环型 <span class="arithmatex">\((d_1,\ldots,d_r)\)</span>。实验逐项做有限域上的精确分解，所以它提供的是一组可复核的<strong>证书</strong>；要判定整个群，还需把不可约性、判别式、多个素数证书以及群论分类接起来。重复因子的素数只能提醒你“这里不是无分歧循环型证书”，不能被当成普通一行数据。</p>
-<p>在特征 <span class="arithmatex">\(0\)</span> 的语境中，多项式自动可分。对特征 <span class="arithmatex">\(0\)</span> 或满足相应可分性、单位根等假设的根式理论，分裂域的根能由根式得到，当且仅当 Galois 群是可解群。<span class="arithmatex">\(S_5\)</span> 的非交换正规列障碍来自 <span class="arithmatex">\(A_5\)</span> 的单性和非交换性，因此一个确实满足 <span class="arithmatex">\(\operatorname{Gal}(f/\mathbb Q)=S_5\)</span> 的具体五次不可由根式解出。</p>
-<p>但“<span class="arithmatex">\(S_5\)</span> 不可解”“一般五次没有统一根式公式”和“某个具体五次不可根式解”是三句话：前者是群论事实，第二句是一般性推论，第三句必须为具体多项式建立 Galois 群证书。相反，<span class="arithmatex">\(x^5-2\)</span> 的分裂域 Galois 群是可解的半直积，不能把所有五次一概说成不可解。数值根只是近似算法输出，也不承诺任何根式表达式。</p>
-<h3 id="4">4. 动手揭示：先交预测，再看有限域账本<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>下方可切换具体五次和素数。先完成三道预测，点击“揭示证书”后才显示模 <span class="arithmatex">\(p\)</span> 因子、分解型、平方自由检查、SVG 循环块和跨素数表格；重置会回到同一个多项式、素数和隐藏结果。</p>
+<div class="insolvability-course">
+<style>.insolvability-course .learning-lab{margin-left:0;margin-right:0;width:100%}.insolvability-course .fallback-scroll{overflow:auto;max-width:100%}.insolvability-course .fallback-scroll td{overflow-wrap:anywhere}.insolvability-course .fallback-scroll td:last-child{white-space:nowrap;font-variant-numeric:tabular-nums;font-size:.8em}</style>
+<noscript>
+<style>.insolvability-course span.arithmatex{overflow-wrap:anywhere;white-space:normal}</style>
+</noscript>
+<div data-learning-page="data-learning-page"></div>
+<section class="learning-layer">
+<h2 id="_1">学习层：看到一种对称操作，不等于知道全部对称<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>把五个根看作五个尚未贴上具体复数坐标的点。模素数分解可以告诉我们，某个对称操作把四个点循环移动、留下一个点不动。这排除了若干群，却还没有证明群是S₅：一个可解的二十阶群里也有这种操作。</p>
+<p>现在多加一条证据，例如出现了一个三循环和一个二循环同时作用的型。把这个操作做三次，三循环归位，二循环还在。配合不可约性，这次就足以证明是S₅。<strong>区别不在“又多算了一行”，而在新证据补上了哪一步推理。</strong></p>
 <div class="learning-lab" data-learning-lab="galois-insolvability">
-<p><strong>无 JavaScript 时的静态后备：</strong>固定 <span class="arithmatex">\(f(x)=x^5-6x+3\)</span>，实验只在小素数上做模素数多项式除法。对每个好素数，因子的次数串是一个 Frobenius 循环型证书；它说明 Galois 群含有相应循环型的元素，不单独等于群的完整判定。完整的不可解性结论还要在 <span class="arithmatex">\(\mathbb Q\)</span> 上证明不可约、确认分裂域的 Galois 群确为 <span class="arithmatex">\(S_5\)</span>，并使用“特征 <span class="arithmatex">\(0\)</span> 且可分时根式可解当且仅当群可解”的定理。数值迭代得到近似根不等于根式公式；<span class="arithmatex">\(x^5-2\)</span> 也说明具体五次可以落在可解群一侧。</p>
+<p><strong>无脚本读法。</strong> 四份固定运行分别呈现证据不足、已证不可解、可解的二项式控制例和平方判别式的A₅例。完整记录保留因式分解、有理搜索范围、判别式消元、Sturm区间树、候选群及每次排除的理由。</p>
+<figure class="plot">
+<p><a href="assets/img/alg2-03-insolvability-ledgers.svg"><img alt="五次方程的候选筛选、根区间与可解性证据" src="assets/img/alg2-03-insolvability-ledgers.svg" /></a></p>
+<figcaption>图1.1：四个固定对照。可打开原图检查剩余候选、精确区间端点与导出群阶。</figcaption>
+</figure>
+<div class="fallback-scroll">
+<p>固定运行：2026-09-11，Node 24.14.0 / darwin arm64。<a href="assets/learning/projects/galois-insolvability/run-snapshot.json">下载四份完整精确记录</a>。默认例为x⁵−6x+3，精度8位；“证据不足”例仅启用p=2，关闭其余证据；根式例为x⁵−2；A₅例为x⁵+20x+16，显示p=7分解。默认、根式与A₅例均启用p=2,3,5,7,11、实根、判别式与范围内的显式构造。</p>
+<table>
+<thead>
+<tr>
+<th>固定参数下的量</th>
+<th style="text-align: right;">参考值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>只用p=2时多项式次数</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td>只用p=2时保留的全部候选</td>
+<td style="text-align: right;">F20、S5</td>
+</tr>
+<tr>
+<td>只用p=2时根式结论</td>
+<td style="text-align: right;">证据不足</td>
+</tr>
+<tr>
+<td>默认例不同实根个数</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td>默认例V(−∞)</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td>默认例V(+∞)</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>默认例判别式</td>
+<td style="text-align: right;">-1737531</td>
+</tr>
+<tr>
+<td>默认例确定群</td>
+<td style="text-align: right;">S5</td>
+</tr>
+<tr>
+<td>默认例是否根式可解</td>
+<td style="text-align: right;">否</td>
+</tr>
+<tr>
+<td>x⁵−2所有根所在域次数</td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td>x⁵−2实际构造的不同根数</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr>
+<td>x⁵−2确定群</td>
+<td style="text-align: right;">F20</td>
+</tr>
+<tr>
+<td>x⁵−2是否根式可解</td>
+<td style="text-align: right;">是</td>
+</tr>
+<tr>
+<td>A₅例判别式</td>
+<td style="text-align: right;">1024000000</td>
+</tr>
+<tr>
+<td>A₅例判别式的正平方根</td>
+<td style="text-align: right;">32000</td>
+</tr>
+<tr>
+<td>A₅例确定群</td>
+<td style="text-align: right;">A5</td>
+</tr>
+<tr>
+<td>A₅例是否根式可解</td>
+<td style="text-align: right;">否</td>
+</tr>
+<tr>
+<td>默认例实根1隔离区间（左不含右含）</td>
+<td style="text-align: right;">(-3423/2048, -427/256]</td>
+</tr>
+<tr>
+<td>默认例实根2隔离区间（左不含右含）</td>
+<td style="text-align: right;">(1029/2048, 259/512]</td>
+</tr>
+<tr>
+<td>默认例实根3隔离区间（左不含右含）</td>
+<td style="text-align: right;">(1435/1024, 2877/2048]</td>
+</tr>
+</tbody>
+</table>
+<p>无脚本也可比较第一组的两个候选与第三组的实际根式构造。根区间提供误差界，不能将其误称为根式公式；坏素数的重复因子不能直接作Frobenius证据。</p>
 </div>
-<h3 id="5">5. 定理与失败边界：每张证书都要写清量词<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<ul>
-<li>约化分解型需要好素数条件；出现重因子时，不能把次数串直接当作无分歧 Frobenius 的循环型。</li>
-<li>一组有限域证书是 Galois 群中元素的证据集合，不是自动的群识别器；还要补不可约性、判别式和必要的有限群分类论证。</li>
-<li>根式可解与 Galois 群可解的“当且仅当”依赖特征 <span class="arithmatex">\(0\)</span> 或相应的可分性和根式理论语境；在任意特征的任意域上省略假设会改变命题。</li>
-<li><span class="arithmatex">\(S_5\)</span> 不可解不等于每个五次方程都不可由根式解；“一般五次不存在统一根式公式”也不等于已为某个指定五次完成了 Galois 群判定。</li>
-<li>数值找根、符号因式分解和有限层根式公式是不同的输出类型；精度、可计算性与代数表达能力不能互换。</li>
-</ul>
+</div>
+<p>多项式按常数项到最高次输入，例如<code>3,-6,0,0,0,1</code>表示 <span class="arithmatex">\(x^5-6x+3\)</span>。当前素数决定展示哪一行分解；证据素数列表决定哪些行参与筛选。实根计数、判别式和显式分裂域构造可以分别暂不用于筛选，以比较它们提供了什么信息。证据开关改变的是当前采用的论证，不会改变原方程的真实Galois群。</p>
+<p>实验接受2至5次首一整数多项式、系数绝对值不超过32。它会在这个范围内完整分解有理因子；对不可约五次，依据下文证明的五种传递群进行排除。未剩唯一群时，只有剩余候选的可解性全部相同，才会给出相应判定。</p>
 </section>
-<h2 id="1_1">1. 根式可解的正式定义<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p><span class="arithmatex">\(f\)</span>（特征 0 域 <span class="arithmatex">\(F\)</span> 上）<strong>根式可解</strong>：其根可由系数经四则 + 逐层开方到达——即存在<strong>根式塔</strong></p>
-<div class="arithmatex">\[
-F = F_0 \subset F_1 \subset \cdots \subset F_m, \qquad F_{i+1} = F_i(\sqrt[n_i]{a_i}),\ a_i \in F_i
-\]</div>
-<p>使分裂域 <span class="arithmatex">\(K \subseteq F_m\)</span>。（二次公式的 <span class="arithmatex">\(\sqrt{b^2 - 4ac}\)</span>、Cardano 公式的嵌套立方根都是塔的实例——定义忠实于"公式"的直觉。）</p>
-<h2 id="2_1">2. 主定理：根式塔 ⟺ 可解群<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p><strong>定理（Galois）</strong> <span class="arithmatex">\(f\)</span> 根式可解 <span class="arithmatex">\(\iff\)</span> <span class="arithmatex">\(\mathrm{Gal}(K/F)\)</span> 是<strong>可解群</strong>（alg2-01 的定义在此兑现它的名字）。</p>
-<p><strong>【证明骨架（⟸ 方向的三步机器，⟹ 同机器倒放）】</strong>
-<strong>① 单层翻译（Kummer 理论的核心格）</strong>：含 <span class="arithmatex">\(n\)</span> 次单位根的域上，<span class="arithmatex">\(F_{i+1} = F_i(\sqrt[n]{a})\)</span> 是 Galois 扩张且 <span class="arithmatex">\(\mathrm{Gal}(F_{i+1}/F_i)\)</span> <strong>循环</strong>（自同构由 <span class="arithmatex">\(\sqrt[n]a \mapsto \zeta^k\sqrt[n]a\)</span> 决定——嵌入 <span class="arithmatex">\(\mathbb{Z}_n\)</span>）【证明级】；预备层：添加单位根本身给交换（分圆）扩张（alg2-02 例 2）。
-<strong>② 塔的翻译</strong>：根式塔（先补单位根）对应 Galois 群的正规列，逐层商 = 各层的 Galois 群 = 循环/交换（Galois 对应的"正规扩张 ↔ 正规子群 + 商群"精确搬运，alg2-02 主定理的第三条在此全额出力）；
-<strong>③ 收口</strong>：逐层交换商的正规列 = 可解群的定义。⟹ 方向：可解群的正规列反向搭出根式塔（每个循环商用 Lagrange 预解式造出对应的开方层【骨架】）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>读法</strong>："开 <span class="arithmatex">\(n\)</span> 次方"这个分析动作与"循环群 <span class="arithmatex">\(\mathbb{Z}_n\)</span>"这个代数对象<strong>精确互译</strong>——公式的嵌套结构 = 群的正规列结构。翻译定理立好后，判决只剩群论。</p>
-<h2 id="3-s_5">3. 判决：<span class="arithmatex">\(S_5\)</span> 登场<a class="headerlink" href="#3-s_5" title="Permanent link"></a></h2>
-<p><strong>引理（构造具体的坏方程）</strong> <span class="arithmatex">\(f(x) = x^5 - 6x + 3 \in \mathbb{Q}[x]\)</span> 的 Galois 群是 <span class="arithmatex">\(S_5\)</span>。
-<strong>【证明】</strong> ① 不可约（Eisenstein 判别法，<span class="arithmatex">\(p = 3\)</span>——高代 I 的判据实战）；② 实根计数：<span class="arithmatex">\(f' = 5x^4 - 6\)</span> 两个实临界点、函数值异号 ⇒ <strong>恰三个实根、一对共轭复根</strong>（数分 II 的单调性分析干的活）；③ 于是复共轭 ∈ <span class="arithmatex">\(\mathrm{Gal}\)</span> 是一个<strong>对换</strong>（交换两复根、固定三实根）；④ 5 次不可约 ⇒ <span class="arithmatex">\(5 \mid \lvert\mathrm{Gal}\rvert\)</span> ⇒（Cauchy，alg2-01）含 <strong>5-循环</strong>；⑤ 群论引理：<strong><span class="arithmatex">\(S_5\)</span> 中"一个对换 + 一个 5-循环"生成全群</strong>（5 素数：5-循环的幂把对换搬遍所有相邻位置，相邻对换生成 <span class="arithmatex">\(S_5\)</span>——高代 I 置换群基本事实）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>定理（Abel–Ruffini–Galois）</strong> 该五次方程不根式可解；从而<strong>不存在一般五次求根公式</strong>。
-<strong>【证明】</strong> <span class="arithmatex">\(\mathrm{Gal} = S_5\)</span> 不可解（alg2-01：<span class="arithmatex">\(A_5\)</span> 单且非交换）⟹ 主定理判无根式塔。一般公式若存在，将对每个具体方程给出根式解——单个反例即处决。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>尾注三则</strong>：<span class="arithmatex">\(n \geq 5\)</span> 同理（<span class="arithmatex">\(S_n \supseteq A_n\)</span> 单）；<strong>二三四次公式存在的原因</strong>同框解释——<span class="arithmatex">\(S_2, S_3, S_4\)</span> 可解（alg2-01 例 2 的正规列：<span class="arithmatex">\(S_4 \trianglerighteq A_4 \trianglerighteq V_4\)</span>——Cardano/Ferrari 公式的嵌套结构逐层对应此列，公式与正规列的互译在低次是<strong>构造性</strong>的）；个别五次方程当然可解。例如 <span class="arithmatex">\(x^5-2\)</span> 的分裂域是 <span class="arithmatex">\(\mathbb Q(\sqrt[5]2,\zeta_5)\)</span>，Galois 群阶为 <span class="arithmatex">\(20\)</span>，同构于非交换但可解的半直积 <span class="arithmatex">\(C_5\rtimes C_4\)</span>，并非循环群——不可解的是"一般"。</p>
-<h2 id="4_1">4. 收官的收官：这个证明的历史体重<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p>1824–1832 年，Abel 与 Galois 用"结构"终结了三百年的公式狩猎——<strong>数学史上第一次用"对称性的语言"证明"不可能"</strong>：不是没找到，是不存在。方法的遗产远比结论重：群 → 域的翻译学（本页）→ 覆盖空间（at-02）→ 微分方程的 Galois 理论、数论的 Galois 表示【立牌】——"把问题翻译成结构、由结构宣判命运"从此成为数学的中央方法。本站两站 124 页反复出现的三大主题——<strong>不变量分类、对偶互译、结构宣判</strong>——在这最后一页会师谢幕。</p>
-<h2 id="5_1">5. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<p><strong>例 1（低次的正面验证）</strong> 用 §2 机器正向走一遍三次方程：<span class="arithmatex">\(S_3 \trianglerighteq A_3 \trianglerighteq \{e\}\)</span>，商 <span class="arithmatex">\(\mathbb{Z}_2, \mathbb{Z}_3\)</span> ⇒ 塔 = 先开平方（判别式 <span class="arithmatex">\(\sqrt\Delta\)</span>——<span class="arithmatex">\(\mathbb{Z}_2\)</span> 层）再开立方（Cardano 的 <span class="arithmatex">\(\sqrt[3]{\cdot}\)</span>——<span class="arithmatex">\(\mathbb{Z}_3\)</span> 层）——<strong>Cardano 公式的结构被群论完全预言</strong>：读懂这个对应，本页即毕业。</p>
-<p><strong>例 2（判 Galois 群的实战套路）</strong> <span class="arithmatex">\(x^5 - 4x + 2\)</span>：Eisenstein(<span class="arithmatex">\(p=2\)</span>) ✓、实根三个 ✓（同 §3 分析）⇒ <span class="arithmatex">\(\mathrm{Gal} = S_5\)</span> ⇒ 不可根式解——套路化的"验尸三步"（不可约 + 实根计数 + 对换与 <span class="arithmatex">\(p\)</span>-循环生成）。</p>
-<p><strong>例 3（辨析题）</strong> "计算机能数值解五次方程，与本定理矛盾吗？"——不矛盾：定理禁止的是<strong>有限层根式的封闭公式</strong>，数值迭代（nla-02 的 QR/牛顿）不受限——<strong>"不可解"针对表达式的代数结构，非计算可行性</strong>；这恰是 nla-02"特征值必须迭代"引用本定理的准确含义。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<h2 id="_1">研究生讲义库 · 全站落成<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<p>十五门课、52 页、五条学科线至此全部完工。方法论遗产一句话：<strong>地基（测度/泛函/高代）→ 发动机（压缩映像/集中不等式/对称化/群作用）→ 判决（存在唯一/收敛速率/可学性/可解性）</strong>——每门课都是这三层的一次实例化。与本科站 124 页合璧，从鸢尾花的分类到五次方程的不可解，这套讲义库的每一页都在互相引用中站稳。祝复习顺利、常回来查。</p>
+<h2 id="1">1. 根式公式究竟允许做什么<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>固定特征0的域F，在一个代数闭包中讨论。多项式f在F上根式可解，指存在有限塔</p>
+<div class="arithmatex">\[F=F_0\subseteq F_1\subseteq\cdots\subseteq F_m,\qquad F_{i+1}=F_i(\alpha_i),\quad \alpha_i^{n_i}=a_i\in F_i,\]</div>
+<p>使f的全部根都在Fₘ中。每一步允许四则运算和选择某个n次根；可以经过复数中间量，不要求每一步只取实数主值。根式塔中可能有多余层，某层次数也可能小于nᵢ。若aᵢ=0，该层平凡，可删除。</p>
+<p>这个定义把“有限层根式表达”变成域的包含关系。它没有要求最终分裂域本身恰好是一座根式塔，只要求它包含在某座塔内。也没有把任意代数函数、特殊函数或无限级数算成根式运算。</p>
+<p>若f有重因子，先用 <span class="arithmatex">\(h=f/\gcd(f,f')\)</span> 保留所有不同的根；f与h的分裂域相同，可解性问题也相同。特征0保证的是<strong>不可约多项式可分</strong>，并不保证任意多项式没有重根，例如 <span class="arithmatex">\((x-1)^5\)</span> 仍有重根。</p>
+<p>本讲要证明的精确命题是：若K为f在F上的分裂域，则</p>
+<div class="arithmatex">\[f\text{ 在F上根式可解}\iff \operatorname{Gal}(K/F)\text{ 可解}.\]</div>
+<p>两个方向需要不同的构造。特别是，不能因为塔中每层正规，就断言塔顶对最底层正规：Q⊂Q(√2)⊂Q(⁴√2)两层都是二次Galois，塔顶却是实数域，没有包含其余非实共轭根。</p>
+<h2 id="2-lagrange">2. 单层的准确翻译：单位根与Lagrange预解式<a class="headerlink" href="#2-lagrange" title="Permanent link"></a></h2>
+<p>先设F包含全部n次单位根，取本原单位根ζ。若αⁿ=a∈F且a≠0，所有根ζʲα都在E=F(α)中。特征0下 <span class="arithmatex">\(x^n-a\)</span> 无重根，E是其分裂域，故E/F是Galois。映射</p>
+<div class="arithmatex">\[\operatorname{Gal}(E/F)\longrightarrow\mu_n,\qquad \sigma\longmapsto\frac{\sigma(\alpha)}{\alpha}\]</div>
+<p>是单射同态：它的值是n次单位根；F中的单位根被σ固定，所以复合对应相乘；像为1的σ固定α，便固定整个E。因此群循环，阶<strong>整除n</strong>。例如在含√2的域中再加入满足α⁴=4的α=√2，得到的是平凡层，不是四次层。</p>
+<p>反方向同样重要。设E/F循环Galois，次数n，生成元为σ，且ζ∈F。上一讲证明了不同域同态在E系数下线性独立，因此算子</p>
+<div class="arithmatex">\[L(b)=\sum_{j=0}^{n-1}\zeta^{-j}\sigma^j(b)\]</div>
+<p>不可能对全部b∈E都为零。选择b使v=L(b)≠0。将求和指标移动一位，并使用σⁿ=1与ζⁿ=1，得到</p>
+<div class="arithmatex">\[\sigma(v)=\zeta v,\qquad \sigma(v^n)=v^n.\]</div>
+<p>所以vⁿ∈F；v的n个像ζʲv不同，故[F(v):F]=n，E=F(v)。这就是用Lagrange预解式把一个循环扩张实现为一个根式层。它证明了所需v存在，也解释了为什么随便选b可能失败：某些b的预解式确实为零。</p>
+<p>还要补单位根这层。F(ζₙ)/F是 <span class="arithmatex">\(x^n-1\)</span> 的分裂域，其自同构由ζₙ↦ζₙᵃ决定，a为模n单位；因此群嵌入交换群 <span class="arithmatex">\((\mathbb Z/n\mathbb Z)^\times\)</span>。这层本身也是根式层，因为ζₙⁿ=1。</p>
+<h2 id="3">3. 可解群如何产生根式塔<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>设K/F的Galois群G可解。若G平凡，根已在F中；否则令N=|G|，先加入本原N次单位根，记<span class="arithmatex">\(F'=F(\zeta_N)\)</span>、<span class="arithmatex">\(K'=KF'\)</span>。</p>
+<p>K′/F′仍是f的分裂域。把它的自同构限制到K，得到Gal(K′/F′)→G的单射：限制确实保持K，因为自同构排列f的根；若它固定K又固定F′，就固定合成域K′。所以新群G′是可解群的子群，也可解。</p>
+<p>有限可解群有一列</p>
+<div class="arithmatex">\[G'=G_0\trianglerighteq G_1\trianglerighteq\cdots\trianglerighteq G_r=1\]</div>
+<p>使每个Gᵢ₊₁在Gᵢ中正规，且每个商循环、阶为素数。可从导出列开始，将各有限交换商逐次细化：非平凡有限交换群有极大真子群，商为有限单交换群，必为素数阶循环群；反复拉回这些子群即可。注意这里只要求<strong>相邻层正规</strong>。</p>
+<p>取 <span class="arithmatex">\(E_i=(K')^{G_i}\)</span>，由Galois对应，Eᵢ₊₁/Eᵢ为循环素数阶扩张。这些素数阶都整除|G′|，进而整除N，因此所需单位根已经在F′中。上一节为每层提供vᵢ，使</p>
+<div class="arithmatex">\[E_{i+1}=E_i(v_i),\qquad v_i^{[E_{i+1}:E_i]}\in E_i.\]</div>
+<p>把F⊂F′这一层加在前面，就得到包含K的根式塔。这个方向证明的是存在性；要真的写出某个方程的短公式，还要选择和计算适当的预解式。</p>
+<h2 id="4">4. 根式塔如何进入一个可解的正规扩张<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>现在反过来，已知第1节的根式塔包含K。令N为各nᵢ的乘积，先取 <span class="arithmatex">\(M_0=F(\zeta_N)\)</span>。它对F是有限Galois，群交换。我们归纳构造Mᵢ，要求它包含Fᵢ，并且Mᵢ/F是Galois且群可解。</p>
+<p>假设Mᵢ已构造，下一层需要加入αᵢ，满足 <span class="arithmatex">\(\alpha_i^{n_i}=a_i\in F_i\subseteq M_i\)</span>。对Mᵢ/F的每个自同构τ，同时考虑</p>
+<div class="arithmatex">\[x^{n_i}-\tau(a_i).\]</div>
+<p>在同一个代数闭包中，把这些多项式的<strong>全部根</strong>加入Mᵢ，得到Mᵢ₊₁。恒等τ对应的多项式包含原αᵢ，因此新域包含Fᵢ₊₁。</p>
+<p>为什么新域对F正规？Mᵢ/F的任意F嵌入仍是自同构，并把集合{τ(aᵢ)}排列；所以任一F嵌入会把新加入的全部根送到同一根集合中，并保持Mᵢ。这说明它把Mᵢ₊₁送回自身。有限维单射为满射，故Mᵢ₊₁/F正规；特征0又保证可分。</p>
+<p>为什么群仍可解？Mᵢ已经包含全部nᵢ次单位根。对每个τ选择一个根βτ，其他根由单位根相乘得到；一个Mᵢ自同构的全部信息由各比值σ(βτ)/βτ确定，因而</p>
+<div class="arithmatex">\[\operatorname{Gal}(M_{i+1}/M_i)\hookrightarrow\prod_{\tau}\mu_{n_i}\]</div>
+<p>是单射同态，核群交换。限制映射给出满射Gal(Mᵢ₊₁/F)→Gal(Mᵢ/F)，其核正是这个交换群；满射性来自嵌入延伸。交换群对可解群的扩张仍可解：若商的第r个导出群平凡，原群第r个导出群已落在交换核中，再导出一次就平凡。</p>
+<p>归纳完成后Mₘ包含K。K/F是分裂域扩张，正规且可分，因此Gal(K/F)是Gal(Mₘ/F)的商，可解性传给商，定理证毕。此处真正补齐的步骤是“所有共轭的开方层”，而不是把原根式塔误认成已经对F正规。</p>
+<h2 id="5">5. 一个具体的不可解五次：每一环都有短证明<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>取</p>
+<div class="arithmatex">\[f(x)=x^5-6x+3.\]</div>
+<p>它满足素数3的Eisenstein条件：所有非首项系数被3整除，常数项不被9整除，故在Q上不可约。其Galois群G忠实且传递地作用于五个根：根生成分裂域保证忠实；不可约保证一个根的共轭轨道包含全部五根。</p>
+<p>实根数也可不用近似求根就确认。f在−2、−1、0、1、2处的值分别为−17、8、3、−2、23；介值定理在(−2,−1)、(0,1)、(1,2)各给一根。导数 <span class="arithmatex">\(f'(x)=5x^4-6\)</span> 只有两个实零点，Rolle定理说明f至多有三个不同实根。因此恰有三实根，剩余两根为一对非实共轭根。复共轭在五根上就是一个对换。</p>
+<p>由传递性，5整除|G|；Cauchy定理给出一个5阶元素，在S₅中它必为5循环。最后需要一个群论引理：<strong>素数p阶循环与任意对换一起生成Sₚ。</strong> 给点编号为Fₚ，使循环为x↦x+1。若对换交换a、b，把它用循环各次幂共轭，得到连接x与x+(b−a)的边对换。b−a非零，其加法生成整个Fₚ，故这张图连通。</p>
+<p>连通图的边对换生成全部置换：沿路径v₀,…,vₖ，把相邻边对换通过共轭逐次组合，可得到端点对换；再用任意对换生成对称群。因此G=S₅。这里的边不必是原编号下的相邻点，真正起作用的是素数条件保证的连通性。</p>
+<p>上一讲已证明S₅的导出列先到A₅，再稳定在非平凡A₅；A₅单且非交换，故不可解。结合本讲双向定理，f不能由根式解。这个结论不禁止有理区间逼近、数值迭代或使用更广的特殊函数。</p>
+<h2 id="6">6. 为什么传递五次群只有五种<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>实验不是从几个常见群中随意挑选。这里证明候选表完整。传递性与Lagrange定理把群阶限制为5、10、15、20、30、40、60、120。设P由一个5循环生成，将五点编号为 <span class="arithmatex">\(\mathbb F_5\)</span>。</p>
+<p>P在S₅中的正规化子恰为仿射置换</p>
+<div class="arithmatex">\[x\longmapsto ax+b,\qquad a\in\mathbb F_5^\times,\ b\in\mathbb F_5.\]</div>
+<p>因为正规化P的置换σ必须将平移x↦x+1共轭成某个x↦x+a，故σ(x+1)=σ(x)+a，递推得到上述形式；反过来每个这种置换都正规化P。因此正规化子有20个元素，商N(P)/P是四阶循环群。平移是偶置换，而乘以2在非零四点上作四循环，是奇置换，故N(P)∩A₅有10个元素。</p>
+<p>逐一排除其余可能：</p>
+<ul>
+<li><strong>阶15</strong>：Sylow计数要求5-Sylow子群的数目整除3且模5余1，只能为1。因此群包含于20阶正规化子，与15不整除20矛盾。</li>
+<li><strong>阶30</strong>：若群包含于A₅，它是指数2正规子群，与A₅单性矛盾；否则与A₅的交有阶15，刚刚已经排除。</li>
+<li><strong>阶40</strong>：指数为3，S₅作用于它的三个左陪集，给出S₅→S₃。限制到单群A₅，核只能平凡或整个A₅；前者要求60阶群嵌入6阶群，不可能，后者则使A₅固定原陪集，从而包含于40阶子群，也不可能。</li>
+<li><strong>阶60</strong>：指数2，商交换，所以包含S₅的导出群A₅，次数相同，恰为A₅。</li>
+</ul>
+<p>阶5、10、20时，Sylow计数使P正规，群包含于N(P)，也包含P。由商群对应，N(P)/P≅C₄的相应子群各只有一个，因此得到C₅、D₅、F₂₀；这里D₅表示正五边形的10阶对称群，F₂₀表示全部20个仿射置换。阶120当然给出S₅。这样，共轭意义下的完整列表就是</p>
+<div class="arithmatex">\[C_5,\quad D_5,\quad F_{20},\quad A_5,\quad S_5.\]</div>
+<p>前三者的导出群阶分别沿5→1、10→5→1、20→5→1下降；后两者分别稳定在60与120→60。实验从实际置换计算乘法、换位子和导出子群，完整表可展开核对。</p>
+<p><strong>筛选的逻辑方向。</strong> 看见一个循环型，只说明G含有这种元素。大群也可能含有同样元素，因此这种正面证据通常擅长证明群很大，却不能仅凭“暂时没看到某种循环型”证明群很小。只看到四循环时，F₂₀和S₅都仍可能；实验应保留“证据不足”，不能以看起来较简单为由选择前者。</p>
+<h2 id="7">7. 有理因式分解与判别式：两种精确证据<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>实验接受2–5次首一整数多项式，系数绝对值不超过32。这是可完整检查的教学范围。它不是任意次数或任意实数系数的Galois群求解器。</p>
+<p>先证明有理因式分解的搜索为什么能结束。Gauss引理说：本原整数多项式的乘积仍本原。若某素数整除乘积的全部系数，模该素数后两个非零多项式的乘积为零，与有限域多项式环无零因子矛盾。清除有理分母并约去内容，由此推出首一整数多项式的首一有理因子仍有整数系数。</p>
+<p>设A为所有非首项系数绝对值的最大值，B=1+A。若A&gt;0且|z|≥B，则</p>
+<div class="arithmatex">\[\left|\sum_{j=0}^{n-1}a_jz^j\right|\le A\sum_{j=0}^{n-1}|z|^j&lt;|z|^n,\]</div>
+<p>所以z不可能是根；A=0时只有根0。于是所有根都在|z|&lt;B内。次数至多5的可约多项式必有一次或二次因子：若至少两个不可约因子都次数≥3，总次数便≥6。</p>
+<p>因此程序先检查−B到B的全部整数根；若剩余次数至少4且没有整数根，再检查所有可能的首一二次因子 <span class="arithmatex">\(x^2+bx+c\)</span>。常数c是原常数项的有符号约数；若二次根为u、v，则|b|=|u+v|&lt;2B。有限枚举整数b∈[−2B,2B]与这些c，并逐个做精确多项式除法，便覆盖全部可能。找到因子后递归处理；没有找到时，才得到不可约结论。常数为零会在整数根步骤先取出x，不会进入“零的约数”搜索。</p>
+<p>另一条证据来自判别式。设f首一、根互异，令</p>
+<div class="arithmatex">\[\Delta=\prod_{i&lt;j}(\alpha_i-\alpha_j),\qquad \operatorname{Disc}(f)=\Delta^2.\]</div>
+<p>交换两个根使Δ变号，故σ(Δ)=sgn(σ)Δ。如果G全部是偶置换，Δ被全部G固定，属于Q，所以判别式是有理数平方。反过来，若Disc(f)=d²且d∈Q，则域中(Δ−d)(Δ+d)=0，所以Δ=±d∈Q；Δ非零迫使全部σ为偶置换。因此</p>
+<div class="arithmatex">\[\operatorname{Disc}(f)\in(\mathbb Q^\times)^2\iff G\subseteq A_n.\]</div>
+<p>判别式为零时根不互异，不能使用这个等价式。整数判别式若为有理平方，约分后分母必须为1，因此只需精确整数开平方检验。</p>
+<p>实验通过Sylvester矩阵算resultant，再用</p>
+<div class="arithmatex">\[\operatorname{Disc}(f)=(-1)^{n(n-1)/2}\operatorname{Res}(f,f')\]</div>
+<p>得到首一f的判别式。Sylvester矩阵将“某次数界内的uf+vf′”写成系数矩阵；其行列式等于 <span class="arithmatex">\(\prod_i f'(\alpha_i)\)</span>，将各根差配对即得上式。每次整数Bareiss消元的主元和矩阵都保存在完整记录里，避免浮点行列式把平方或零判断错。</p>
+<h2 id="8">8. 模素数分解如何变成根的置换<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>设首一f∈Z[x]模p无重根，分解为不同首一不可约因子，次数为d₁,…,dᵣ。要证明的是：<strong>有理数上的Galois群含有循环长度为d₁,…,dᵣ的元素。</strong> 不是说两个分裂域相同，也不是把整数自同构直接“模p”就自动得到满射。</p>
+<p>令K为Q上的分裂域，A=Z[α₁,…,αₙ]。各根满足首一整数关系，约化高次幂可知A是有限生成Z模，所以其中每个元素都是代数整数。一个有理代数整数若写成互素a/b，将其代入首一方程并乘b的次数次幂可得b整除a的幂，故b=1。因此1/p不在A中，pA是真理想。</p>
+<p>有限非零环A/pA有极大理想；拉回得到A的极大理想P，其与Z的交为pZ。商k=A/P是有限域，且由各根的像生成，是约化多项式的分裂域。模p无重根保证这些根的像互不相同。</p>
+<p>令D为G中保持P的自同构。它作用于k，得到</p>
+<div class="arithmatex">\[D\longrightarrow\operatorname{Gal}(k/\mathbb F_p).\]</div>
+<p>这是单射：若σ在剩余域上恒等，αᵢ与σ(αᵢ)的像相同；根像互异，迫使σ固定每一个αᵢ，故σ=1。还要证明满射，才能把Frobenius提回去。</p>
+<p>取非零元素ā生成k/Fₚ，记m=[k:Fₚ]。不同极大理想两两互素，中国剩余定理允许选b∈A，使它模P等于ā，模全部其他共轭理想σ⁻¹P等于0。考虑</p>
+<div class="arithmatex">\[H(T)=\prod_{\sigma\in G}(T-\sigma(b)).\]</div>
+<p>系数被G固定而属于Q，又是代数整数，因此属于Z。模P后，D以外的σ(b)全部为0，得到</p>
+<div class="arithmatex">\[\overline H(T)=T^{|G|-|D|}\prod_{\sigma\in D}(T-\overline\sigma(\bar a)).\]</div>
+<p>ā在Fₚ上的极小多项式次数m、常数非零。它整除这个乘积，且与T互素，故整除右边次数|D|的非零根因子，因此m≤|D|。另一方面，前面的单射与有限域自同构群阶m给出|D|≤m。两者相等，映射为同构。</p>
+<p>于是k的Frobenius x↦xᵖ对应某个σ∈D。有限域不可约d次因子的根恰好构成一个长度d的Frobenius轨道，故σ在全部根上的循环长度正是各因子的次数，命题得证。</p>
+<p>实验用gcd(f̄,f̄′)=1检查“好素数”。有重因子的行仍显示因式分解，但明确禁止把这一行当作上述普通Frobenius证据。例如x⁵−6x+3在p=3满足Eisenstein，却约化成x⁵：这个素数适合证明有理不可约，不能在同一行提供无重根循环型。</p>
+<h2 id="9-sturm">9. 实根不是屏幕上的近似点：Sturm证书<a class="headerlink" href="#9-sturm" title="Permanent link"></a></h2>
+<p>先取h=f/gcd(f,f′)，它与f有相同的不同根。Sturm序列从h、h′开始，每一项是前两项除法余式的负值，直到非零常数；若h为常数则没有根。记V(t)为各项在t处的符号变化数，忽略零项。</p>
+<p>为什么V能数根？在中间项为零的位置，除法关系说明它两边相邻项的值互为相反数，所以跨过这个零点时，整个序列的变化数不变。在h的简单根处，h′非零；根左侧h与h′异号，右侧同号，所以V恰好下降1。除此以外符号局部不变。因此</p>
+<div class="arithmatex">\[\#\{x\in(a,b]:h(x)=0\}=V(a)-V(b).\]</div>
+<p>端点恰为根时，“忽略零项”给出右侧极限，所以这里必须用(a,b]，不能不加说明写成闭区间或开区间。在无穷远，各多项式的符号由首项系数、次数及方向决定。</p>
+<p>实验从(−B,B]开始做有理二分，保存每个节点的端点、完整符号串、V值、根数与子节点。只有根数为1、宽度不超过 <span class="arithmatex">\(2^{-b}\)</span> 的区间才作为最终隔离区间；b由精度栏选择。根数为0的区间也保留为排除证据。所有端点和除法使用精确分数，画图位置才转成屏幕坐标。</p>
+<p>若平方自由部分次数d，有r个实根，剩下(d−r)/2对非实共轭根。复共轭的循环型因此为r个1循环与(d−r)/2个2循环。可约或有重根时，这仍描述不同根的置换，但实验不会把它送进“不可约五次的五群分类”。</p>
+<h2 id="10-a5">10. 两个确实可解的五次，与一个A₅反例<a class="headerlink" href="#10-a5" title="Permanent link"></a></h2>
+<p><strong>二项式 x⁵−2。</strong> Eisenstein证明不可约。取α=⁵√2、ζ为本原五次单位根，五根为αζʲ，j=0,…,4。K=Q(α,ζ)的次数至多20，又因包含次数5和4的两个子域而同时被5、4整除，故恰为20。全部映射</p>
+<div class="arithmatex">\[\alpha\longmapsto\alpha\zeta^b,\qquad\zeta\longmapsto\zeta^a\quad(a\ne0\bmod5)\]</div>
+<p>给出20个自同构，作用于根的编号为j↦aj+b。因此G=F₂₀，可解。实验在基 <span class="arithmatex">\(\alpha^i\zeta^j\)</span>（0≤i&lt;5，0≤j&lt;4）中实际计算五根的乘积多项式，并核对生成元r、s的关系r⁵=s⁴=1与srs⁻¹=r²。根式塔可直接取Q⊂Q(ζ)⊂Q(ζ,α)，其中ζ⁵=1、α⁵=2。选择本原单位根是定义允许的复数根选择，不是限定取1的主值。</p>
+<p><strong>实圆分五次。</strong> 令ζ为本原11次单位根，v=ζ+ζ⁻¹，则</p>
+<div class="arithmatex">\[v^5+v^4-4v^3-3v^2+3v+1=0.\]</div>
+<p>Φ₁₁(T+1)满足Eisenstein，故Q(ζ)/Q次数10，其Galois群为模11单位群C₁₀。复共轭对应−1，固定域为Q(v)：ζ满足T²−vT+1，且ζ非实而Q(v)为实域，二次恰好。商C₁₀/{±1}=C₅，五根为ζᵏ+ζ⁻ᵏ（k=1,…,5）。实验在十维圆分域中逐项相乘、求v的首次幂关系，并计算五个自同构在1,v,…,v⁴上的限制矩阵。这给出正面的C₅证明。只观察几个素数都出现五循环，并不能排除A₅；应打开“显式构造”证据，才能使用这条额外证明。</p>
+<p><strong>平方判别式仍可能不可解。</strong> 对x⁵+20x+16，模3分解不可约，故有理不可约；判别式为32000²，因此G⊂A₅。模7因子次数为1、1、3，提供3循环；C₅和D₅没有3阶元素，完整分类只剩A₅。它不可解。判别式为平方说明置换全偶，并不说明根式可解。</p>
+<h2 id="11">11. 四道练习：写出证据，而不是只报群名<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<details class="answer" markdown="1">
+<summary>练习一：证明 x⁵−4x+2 不能用根式解</summary>
+<p>素数2满足Eisenstein：非首项系数皆被2整除，常数2不被4整除，所以不可约。它在−2、−1、0、1、2的值为−22、5、2、−1、26，三个互不相交区间(−2,−1)、(0,1)、(1,2)各有根。导数5x⁴−4只有两个实根，Rolle定理排除第四个实根。因此复共轭给出一个对换。传递五次群含5循环，结合第5节连通图论证，群为S₅。S₅不可解，由双向定理排除根式解。数值计算仍可用第9节区间逐次逼近，每次得到的是有理误差界。</p>
+</details>
+<details class="answer">
+<summary>练习二：为什么一行四循环证据还不够？再加哪一行就够？</summary>
+<p>对x⁵−6x+3，仅启用p=2，关闭实根、判别式和显式构造证据。模2因子次数1、4，所以群含四循环。五群中F₂₀和S₅均有这种元素，前者可解而后者不可解，不能判定。</p>
+<p>再加入p=11，它的因子次数2、3，给出一对互不相交的2循环与3循环之积σ。σ³保留2循环、消去3循环，成为对换。已经知道有理不可约，所以存在5循环，群便是S₅。也可直接从完整群元素表看到F₂₀没有2、3循环型而被排除。这两种论证应给出同一结论。</p>
+</details>
+<details class="answer">
+<summary>练习三：给出 x⁵−2 的根式解证据，并解释“没有看到别的循环型”为什么不够</summary>
+<p>取任一本原五次单位根ζ与任一满足α⁵=2的根α。全部五根为α、αζ、αζ²、αζ³、αζ⁴，因为它们互不相同，且各自五次方为2。域Q(α,ζ)次数20，理由是塔次数至多5·4而又同时是5、4的倍数。生成元r固定ζ并送α到αζ；s固定α并送ζ到ζ²。直接计算srs⁻¹(α)=αζ²、srs⁻¹(ζ)=ζ，得到srs⁻¹=r²。所得20阶群为F₂₀，导出列20→5→1。</p>
+<p>有限个好素数没有显示某个循环型，不能证明该型在G中不存在；S₅仍包含F₂₀的全部循环型。这里确定F₂₀靠的是完整根所在域及其次数、自同构构造，不靠“扫描足够久”的感觉。</p>
+</details>
+<details class="answer">
+<summary>练习四：每一步都Galois，为什么塔顶还可能不正规？怎样修复？</summary>
+<p>在Q⊂Q(√2)⊂Q(⁴√2)中，每一步都是二次可分正规扩张。可是塔顶只含实数，x⁴−2的根i⁴√2不在其中，所以塔顶对Q不正规。加入i后得到分裂域Q(⁴√2,i)，次数8：实子域次数4，再加入非实i为二次。其根置换群是上一讲实际构造的D₄，导出列8→2→1，可解。</p>
+<p>一般根式塔不能只照抄这一个“加i”动作；第4节同时加入各开方系数的全部共轭的根，才保证每一步构造出的Mᵢ都对最底层正规。这个例子说明证明中需要补的究竟是哪一条条件。</p>
+</details>
+<h2 id="12">12. “一般五次没有公式”中的“一般”如何严格化<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<p>一个具体不可解五次已经证明“并非每个五次都根式可解”。要证明通用系数方程也没有根式公式，可以直接建立它的Galois群，避免用特殊取值时公式分母可能为零的漏洞。</p>
+<p>取代数独立变量X₁,…,Xₙ，令E=Q(X₁,…,Xₙ)，Sₙ通过置换变量作用。设eᵢ为基本对称多项式。先证明</p>
+<div class="arithmatex">\[E^{S_n}=\mathbb Q(e_1,\ldots,e_n).\]</div>
+<p>对称多项式定理可由消去首项证明。在固定总次数内按字典序排列单项式；对称多项式的首项指数必满足a₁≥a₂≥⋯≥aₙ，否则交换逆序的一对变量会产生更大的项。乘积</p>
+<div class="arithmatex">\[e_1^{a_1-a_2}e_2^{a_2-a_3}\cdots e_{n-1}^{a_{n-1}-a_n}e_n^{a_n}\]</div>
+<p>恰有这个首项，减去适当倍数就消掉它。每次首项下降，同次单项式有限，逐次结束；分次处理非齐次多项式即可。于是所有对称多项式都在Q[e₁,…,eₙ]中。</p>
+<p>若R=g/h为对称有理函数，取 <span class="arithmatex">\(H=\prod_{\sigma\in S_n}\sigma(h)\)</span>。H是非零对称多项式，RH也是多项式且对称，因此R属于Q(e₁,…,eₙ)，得到固定域等式。eᵢ还代数独立：单项式 <span class="arithmatex">\(e_1^{d_1}\cdots e_n^{d_n}\)</span> 的首项指数是</p>
+<div class="arithmatex">\[(d_1+\cdots+d_n,\ d_2+\cdots+d_n,\ \ldots,\ d_n),\]</div>
+<p>这个对应可逐项作差恢复所有dᵢ，所以不同e单项式的首项不同。任一非零多项式关系中取最大的首项，都不可能被其他项抵消。</p>
+<p>因此eᵢ真能作为独立的通用系数。上一讲的Artin定理给出E/Q(e₁,…,eₙ)为Galois、群恰为Sₙ；而E就是</p>
+<div class="arithmatex">\[\prod_{i=1}^n(T-X_i)=T^n-e_1T^{n-1}+e_2T^{n-2}-\cdots+(-1)^ne_n\]</div>
+<p>的分裂域。当n≥5，Sₙ含有不可解子群S₅；可解群的子群可解，所以Sₙ不可解。由本讲定理，通用n次方程不能根式解。低于五次时G是可解群Sₙ的子群，因而根式可解；这给出存在性，并不意味着本讲已逐式推导Cardano或Ferrari的具体公式。</p>
+<p>从这里可继续走向覆盖空间的单值化群、微分Galois理论和精确计算证书；它们各有新的对象和定理，不能仅凭“也是对称性”就套用本讲结论。当前实验完成的是小次数整数多项式的可核对证据链，并允许最终仍为“证据不足”。</p>
+<p><strong>参考与继续阅读。</strong> <a href="https://www.jmilne.org/math/CourseNotes/FT.pdf">J. S. Milne, Fields and Galois Theory</a> 的循环扩张、根式可解性、Dedekind定理与对称函数章节；前置证明可回看<a href="alg2-01-groups-advanced.html">群作用与Sylow</a>和<a href="alg2-02-galois.html">Galois对应</a>。</p>
+</div>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="alg2-02-galois.html"><span class="pager-label">上一页</span>代数进阶 II · Galois 对应</a>

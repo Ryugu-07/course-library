@@ -1,707 +1,195 @@
-(function (root, factory) {
-  "use strict";
+(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;if(root&&root.CourseLearning)root.CourseLearning.register('galois-insolvability',api.mount);})(typeof window!=='undefined'?window:typeof globalThis!=='undefined'?globalThis:this,function(){
+const A=(()=>{
+'use strict';
+const abs=x=>x<0n?-x:x;
+function gcd(a,b){a=abs(a);b=abs(b);while(b){const t=a%b;a=b;b=t;}return a;}
+function coefficients(p=0){if(![0,2,3,5,7].includes(p))throw Error("系数特征只允许0、2、3、5、7");const P=BigInt(p);function norm(n,d=1n){if(!d)throw Error('零分母');if(d<0n){n=-n;d=-d;}if(P){n=(n%P+P)%P;d=(d%P+P)%P;if(!d)throw Error('分母在该特征下为零');let inverse=1n;while(d*inverse%P!==1n)inverse++;return [n*inverse%P,1n];}const g=gcd(n,d);return [n/g,d/g];}const z=()=>[0n,1n],one=()=>[1n,1n],add=(a,b)=>norm(a[0]*b[1]+b[0]*a[1],a[1]*b[1]),neg=a=>norm(-a[0],a[1]),sub=(a,b)=>add(a,neg(b)),mul=(a,b)=>norm(a[0]*b[0],a[1]*b[1]),div=(a,b)=>norm(a[0]*b[1],a[1]*b[0]),zero=a=>a[0]===0n,eq=(a,b)=>a[0]*b[1]===b[0]*a[1],pack=a=>String(a[0])+(a[1]===1n?'':'/'+String(a[1]));function read(s,limit=12){if(typeof s!=='string'||! /^-?(?:0|[1-9]\d*)(?:\/[1-9]\d*)?$/.test(s))throw Error('系数须为无空格整数或分数');const v=s.split('/').map(BigInt);if(abs(v[0])>BigInt(limit)||(v[1]||1n)>BigInt(limit))throw Error('系数分子绝对值及分母最多'+limit);return norm(v[0],v[1]||1n);}return {p,norm,z,one,add,neg,sub,mul,div,zero,eq,pack,read};}
+const vector=(n,C)=>Array.from({length:n},C.z),unit=(n,i,C)=>Array.from({length:n},(_,j)=>j===i?C.one():C.z()),matrix=(m,n,C)=>Array.from({length:m},()=>vector(n,C));
+const packVector=(v,C)=>v.map(C.pack),packMatrix=(a,n,C)=>({rows:a.length,cols:n,data:a.map(r=>packVector(r,C))});
+function rref(input,n,C){const a=input.map(r=>r.map(v=>v.slice())),m=a.length,U=Array.from({length:m},(_,i)=>unit(m,i,C)),pivots=[],operations=[];let k=0;
+ function swap(i,j){[a[i],a[j]]=[a[j],a[i]];[U[i],U[j]]=[U[j],U[i]];operations.push({kind:'swap',i,j});}
+ function scale(i,q){a[i]=a[i].map(v=>C.mul(v,q));U[i]=U[i].map(v=>C.mul(v,q));operations.push({kind:'scale',i,multiple:C.pack(q)});}
+ function add(i,j,q){a[i]=a[i].map((v,l)=>C.add(v,C.mul(q,a[j][l])));U[i]=U[i].map((v,l)=>C.add(v,C.mul(q,U[j][l])));operations.push({kind:'add',i,j,multiple:C.pack(q)});}
+ for(let j=0;j<n&&k<m;j++){const found=a.findIndex((r,i)=>i>=k&&!C.zero(r[j]));if(found<0)continue;if(found!==k)swap(k,found);if(!C.eq(a[k][j],C.one()))scale(k,C.div(C.one(),a[k][j]));for(let i=0;i<m;i++)if(i!==k&&!C.zero(a[i][j]))add(i,k,C.neg(a[i][j]));pivots.push(j);k++;}
+ const kernel=[];for(let j=0;j<n;j++)if(!pivots.includes(j)){const v=unit(n,j,C);pivots.forEach((col,i)=>v[col]=C.neg(a[i][j]));kernel.push(v);}
+ return {matrix:a,left:U,pivots,rank:k,kernel,operations};
+}
+function solve(A,b,n,C){const q=rref(A.map((r,i)=>r.concat([b[i]])),n+1,C);if(q.pivots.includes(n))return null;const out=vector(n,C);q.pivots.forEach((j,i)=>out[j]=q.matrix[i][n]);return out;}
+function determinant(A,C){const a=A.map(r=>r.map(v=>v.slice()));let d=C.one();for(let k=0;k<a.length;k++){const i=a.findIndex((r,j)=>j>=k&&!C.zero(r[k]));if(i<0)return C.z();if(i!==k){[a[i],a[k]]=[a[k],a[i]];d=C.neg(d);}const pivot=a[k][k];d=C.mul(d,pivot);for(let j=k+1;j<a.length;j++){const q=C.div(a[j][k],pivot);for(let col=k;col<a.length;col++)a[j][col]=C.sub(a[j][col],C.mul(q,a[k][col]));}}return d;}
+function matVec(A,v,C){return A.map(r=>r.reduce((s,x,i)=>C.add(s,C.mul(x,v[i])),C.z()));}
+function matMul(A,B,cols,C){return A.map(r=>Array.from({length:cols},(_,j)=>r.reduce((s,x,i)=>C.add(s,C.mul(x,B[i][j])),C.z())));}
+function coordinate(basis,v,C){return solve(v.map((_,i)=>basis.map(b=>b[i])),v,basis.length,C);}
+function reducedPowers(f,limit,C){const n=f.length-1,out=[];for(let k=0;k<=limit;k++){if(k<n){out.push(unit(n,k,C));continue;}const prev=out[k-1],v=vector(n,C);for(let i=1;i<n;i++)v[i]=prev[i-1];for(let i=0;i<n;i++)v[i]=C.sub(v[i],C.mul(prev[n-1],f[i]));out.push(v);}return out;}
+function algebra(fx,fy,C){const nx=fx.length-1,ny=fy.length-1,n=nx*ny,px=reducedPowers(fx,2*nx-2,C),py=reducedPowers(fy,2*ny-2,C),structure=Array.from({length:n},(_,a)=>Array.from({length:n},(_,b)=>{const v=vector(n,C),x=px[a%nx+b%nx],y=py[Math.floor(a/nx)+Math.floor(b/nx)];for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)v[i+nx*j]=C.mul(x[i],y[j]);return v;}));
+ const zero=()=>vector(n,C),one=()=>unit(n,0,C),add=(a,b)=>a.map((x,i)=>C.add(x,b[i])),neg=a=>a.map(C.neg),sub=(a,b)=>add(a,neg(b)),scale=(a,c)=>a.map(x=>C.mul(x,c)),isZero=a=>a.every(C.zero),equal=(a,b)=>a.length===b.length&&a.every((x,i)=>C.eq(x,b[i]));
+ function mul(a,b){let v=zero();for(let i=0;i<n;i++)if(!C.zero(a[i]))for(let j=0;j<n;j++)if(!C.zero(b[j]))v=add(v,scale(structure[i][j],C.mul(a[i],b[j])));return v;}
+ function pow(v,k){if(!Number.isSafeInteger(k)||k<0)throw Error("幂指数须为非负安全整数");let q=one(),x=v;for(let t=BigInt(k);t;t>>=1n,x=mul(x,x))if(t&1n)q=mul(q,x);return q;}
+ function multiplication(v){const columns=Array.from({length:n},(_,i)=>mul(v,unit(n,i,C)));return Array.from({length:n},(_,i)=>columns.map(c=>c[i]));}
+ function inverse(v){const w=solve(multiplication(v),one(),n,C);if(!w)throw Error('该元素没有乘法逆');return w;}
+ function minimal(v){const powers=[one()];for(let k=1;k<=n;k++){powers.push(mul(powers[k-1],v));const relation=coordinate(powers.slice(0,k),powers[k],C);if(relation)return {degree:k,coefficients:relation.map(C.neg).concat([C.one()]),powers};}throw Error('未找到有限维代数的幂关系');}
+ function imageMatrix(x,y){const columns=[];for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)columns.push(mul(pow(x,i),pow(y,j)));return Array.from({length:n},(_,i)=>columns.map(v=>v[i]));}
+ function polynomial(f,x){let v=zero();for(let i=f.length-1;i>=0;i--)v=add(mul(v,x),scale(one(),f[i]));return v;}
+ const X=polynomialCoordinate(fx,C),Y=polynomialCoordinate(fy,C);const x=zero(),y=zero();for(let i=0;i<nx;i++)x[i]=X[i];for(let j=0;j<ny;j++)y[nx*j]=Y[j];
+ return {C,n,nx,ny,fx,fy,structure,zero,one,x,y,add,neg,sub,scale,mul,pow,isZero,equal,multiplication,inverse,minimal,imageMatrix,polynomial};
+}
+function polynomialCoordinate(f,C){const n=f.length-1;if(n===1)return[C.neg(f[0])];return unit(n,1,C);}
+function finiteIrreducibility(input,p){const C=coefficients(p),norm=a=>{const b=a.slice();while(b.length>1&&C.zero(b.at(-1)))b.pop();return b;},sub=(a,b)=>norm(Array.from({length:Math.max(a.length,b.length)},(_,i)=>C.sub(a[i]||C.z(),b[i]||C.z())));
+ function rem(a,b){let r=norm(a);if(b.every(C.zero))throw Error('零多项式除数');while(r.length>=b.length&&!r.every(C.zero)){const k=r.length-b.length,q=C.div(r.at(-1),b.at(-1));for(let j=0;j<b.length;j++)r[k+j]=C.sub(r[k+j],C.mul(q,b[j]));r=norm(r);}return r;}
+ function multiply(a,b,f){const v=vector(a.length+b.length-1,C);for(let i=0;i<a.length;i++)for(let j=0;j<b.length;j++)v[i+j]=C.add(v[i+j],C.mul(a[i],b[j]));return rem(v,f);}
+ function power(a,k,f){let v=[C.one()],x=a;for(let t=BigInt(k);t;t>>=1n,x=multiply(x,x,f))if(t&1n)v=multiply(v,x,f);return v;}
+ function polynomialGcd(a,b){while(!b.every(C.zero)){const r=rem(a,b);a=b;b=r;}return a.map(v=>C.div(v,a.at(-1)));}
+ const f=input.map(v=>C.norm(BigInt(v))),n=f.length-1,x=rem([C.z(),C.one()],f),powers=[x];for(let k=1;k<=n;k++)powers.push(power(powers[k-1],p,f));const primes=[];for(let q=2,t=n;q<=t;q++)if(t%q===0){primes.push(q);while(t%q===0)t/=q;}
+ const tests=primes.map(q=>{const difference=sub(powers[n/q],x),g=polynomialGcd(f,difference);return {primeDivisor:q,iteration:n/q,difference:packVector(difference,C),gcd:packVector(g,C),unit:g.length===1&&!C.zero(g[0])};});
+ const terminal=sub(powers[n],x),valid=terminal.every(C.zero)&&tests.every(t=>t.unit);
+ return {prime:p,degree:n,polynomial:packVector(f,C),frobeniusRemainders:powers.map(v=>packVector(v,C)),tests,terminalDifference:packVector(terminal,C),irreducible:valid};
+}
+return {coefficients,vector,unit,matrix,packVector,packMatrix,rref,solve,determinant,matVec,matMul,coordinate,algebra,finiteIrreducibility};
 
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("galois-insolvability", exported.mount);
-  }
-  if (
-    typeof module === "object" &&
-    module.exports &&
-    typeof require === "function" &&
-    require.main === module
-  ) {
-    try {
-      var report = exported.selfTest();
-      console.log(
-        "galois-insolvability self-test: PASS (" +
-          report.checks +
-          " checks, " +
-          report.examples +
-          " examples, " +
-          report.primes +
-          " primes)"
-      );
-    } catch (error) {
-      console.error("galois-insolvability self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
-  }
-})(
-  typeof window !== "undefined"
-    ? window
-    : typeof globalThis !== "undefined"
-      ? globalThis
-      : this,
-  function (host) {
-    "use strict";
+})();
+const P=(()=>{
+'use strict';
+const abs=x=>x<0n?-x:x;
+function gcd(a,b){a=abs(a);b=abs(b);while(b){const t=a%b;a=b;b=t;}return a;}
+function coefficients(p=0){if(![0,2,3,5,7,11,13,17,19,23,29].includes(p))throw Error("系数特征只允许0 或受支持的素数");const P=BigInt(p);function norm(n,d=1n){if(!d)throw Error('零分母');if(d<0n){n=-n;d=-d;}if(P){n=(n%P+P)%P;d=(d%P+P)%P;if(!d)throw Error('分母在该特征下为零');let inverse=1n;while(d*inverse%P!==1n)inverse++;return [n*inverse%P,1n];}const g=gcd(n,d);return [n/g,d/g];}const z=()=>[0n,1n],one=()=>[1n,1n],add=(a,b)=>norm(a[0]*b[1]+b[0]*a[1],a[1]*b[1]),neg=a=>norm(-a[0],a[1]),sub=(a,b)=>add(a,neg(b)),mul=(a,b)=>norm(a[0]*b[0],a[1]*b[1]),div=(a,b)=>norm(a[0]*b[1],a[1]*b[0]),zero=a=>a[0]===0n,eq=(a,b)=>a[0]*b[1]===b[0]*a[1],pack=a=>String(a[0])+(a[1]===1n?'':'/'+String(a[1]));function read(s,limit=12){if(typeof s!=='string'||! /^-?(?:0|[1-9]\d*)(?:\/[1-9]\d*)?$/.test(s))throw Error('系数须为无空格整数或分数');const v=s.split('/').map(BigInt);if(abs(v[0])>BigInt(limit)||(v[1]||1n)>BigInt(limit))throw Error('系数分子绝对值及分母最多'+limit);return norm(v[0],v[1]||1n);}return {p,norm,z,one,add,neg,sub,mul,div,zero,eq,pack,read};}
+function polynomialOps(C){const trim=a=>{const b=a.map(v=>v.slice());while(b.length>1&&C.zero(b.at(-1)))b.pop();return b;},zero=a=>a.every(C.zero),add=(a,b)=>trim(Array.from({length:Math.max(a.length,b.length)},(_,i)=>C.add(a[i]||C.z(),b[i]||C.z()))),neg=a=>a.map(C.neg),sub=(a,b)=>add(a,neg(b)),scale=(a,c)=>trim(a.map(v=>C.mul(v,c))),pack=a=>a.map(C.pack);
+ function mul(a,b){const v=Array.from({length:a.length+b.length-1},C.z);for(let i=0;i<a.length;i++)for(let j=0;j<b.length;j++)v[i+j]=C.add(v[i+j],C.mul(a[i],b[j]));return trim(v);}
+ function divide(a,b){if(zero(b))throw Error('零多项式除数');let r=trim(a);const q=Array.from({length:Math.max(1,a.length-b.length+1)},C.z);while(!zero(r)&&r.length>=b.length){const k=r.length-b.length,c=C.div(r.at(-1),b.at(-1));q[k]=C.add(q[k],c);for(let j=0;j<b.length;j++)r[k+j]=C.sub(r[k+j],C.mul(c,b[j]));r=trim(r);}return{quotient:trim(q),remainder:r};}
+ function monic(a){return zero(a)?[C.z()]:scale(a,C.div(C.one(),a.at(-1)));}
+ function gcdRecord(a,b){let u=trim(a),v=trim(b);const steps=[];while(!zero(v)){const d=divide(u,v);steps.push({dividend:pack(u),divisor:pack(v),quotient:pack(d.quotient),remainder:pack(d.remainder)});u=v;v=d.remainder;}return{gcd:monic(u),steps};}
+ function evaluate(a,x){let v=C.z();for(let i=a.length-1;i>=0;i--)v=C.add(C.mul(v,x),a[i]);return v;}
+ const derivative=a=>a.length===1?[C.z()]:trim(a.slice(1).map((v,i)=>C.mul(C.norm(BigInt(i+1)),v)));
+ function powerMod(a,k,f){if(!Number.isSafeInteger(k)||k<0)throw Error('非负整数幂');let v=[C.one()],x=divide(a,f).remainder;for(let t=BigInt(k);t;t>>=1n,x=divide(mul(x,x),f).remainder)if(t&1n)v=divide(mul(v,x),f).remainder;return v;}
+ return{C,trim,zero,add,neg,sub,scale,pack,mul,divide,monic,gcdRecord,evaluate,derivative,powerMod};
+}
+function integerSquare(n){if(n<0n)return{square:false,root:null};if(n<2n)return{square:true,root:String(n)};let x=n,y=(x+1n)/2n;while(y<x){x=y;y=(x+n/x)/2n;}return{square:x*x===n,root:String(x)};}
+function determinantInteger(input){const a=input.map(r=>r.slice()),steps=[];let sign=1n,last=1n;for(let k=0;k<a.length-1;k++){let pivot=k;while(pivot<a.length&&a[pivot][k]===0n)pivot++;if(pivot===a.length)return{value:0n,steps};if(pivot!==k){[a[pivot],a[k]]=[a[k],a[pivot]];sign=-sign;}const d=a[k][k];for(let i=k+1;i<a.length;i++)for(let j=k+1;j<a.length;j++){const numerator=d*a[i][j]-a[i][k]*a[k][j];if(numerator%last!==0n)throw Error('Bareiss未整除');a[i][j]=numerator/last;}for(let i=k+1;i<a.length;i++)a[i][k]=0n;steps.push({column:k,swappedWith:pivot,pivot:String(d),previousPivot:String(last),matrix:a.map(r=>r.map(String))});last=d;}return{value:sign*(a.length?a.at(-1).at(-1):1n),steps};}
+function discriminant(f){const n=f.length-1,g=f.slice(1).map((c,i)=>c*BigInt(i+1)),m=g.length-1,rows=[];for(let i=0;i<m;i++)rows.push(Array.from({length:n+m},(_,j)=>j>=i&&j<=i+n?f[n-(j-i)]:0n));for(let i=0;i<n;i++)rows.push(Array.from({length:n+m},(_,j)=>j>=i&&j<=i+m?g[m-(j-i)]:0n));const d=determinantInteger(rows),value=(n*(n-1)/2%2?-d.value:d.value)/f.at(-1);return {value:String(value),square:integerSquare(value),sylvester:rows.map(r=>r.map(String)),resultant:String(d.value),bareiss:d.steps};}
+function finiteFactorization(ints,p){const C=coefficients(p),P=polynomialOps(C),f=ints.map(x=>C.norm(BigInt(x))),divisions=[],terminal=[];
+ function split(a){if(a.length<=2){terminal.push(a);return;}for(let deg=1;deg<=Math.floor((a.length-1)/2);deg++)for(let id=0;id<p**deg;id++){let v=id;const b=[];for(let i=0;i<deg;i++){b.push(C.norm(BigInt(v%p)));v=Math.floor(v/p);}b.push(C.one());const d=P.divide(a,b);if(P.zero(d.remainder)){divisions.push({dividend:P.pack(a),factor:P.pack(b),quotient:P.pack(d.quotient)});split(b);split(d.quotient);return;}}terminal.push(a);}
+ split(f);terminal.sort((a,b)=>a.length-b.length||P.pack(a).join(',').localeCompare(P.pack(b).join(',')));const certificates=terminal.map(a=>{const n=a.length-1,x=P.divide([C.z(),C.one()],a).remainder,remainders=[x];for(let k=1;k<=n;k++)remainders.push(P.powerMod(remainders[k-1],p,a));const primeDivisors=[];for(let q=2,t=n;q<=t;q++)if(t%q===0){primeDivisors.push(q);while(t%q===0)t/=q;}const tests=primeDivisors.map(q=>{const difference=P.sub(remainders[n/q],x),g=P.gcdRecord(a,difference);return{divisor:q,iteration:n/q,difference:P.pack(difference),gcd:P.pack(g.gcd),steps:g.steps};});return{factor:P.pack(a),frobeniusRemainders:remainders.map(P.pack),terminalDifference:P.pack(P.sub(remainders[n],x)),tests};});const derivative=P.derivative(f),gcd=P.gcdRecord(f,derivative),good=gcd.gcd.length===1,product=terminal.reduce(P.mul,[C.one()]);return {prime:p,reduced:P.pack(f),derivative:P.pack(derivative),gcd:P.pack(gcd.gcd),gcdSteps:gcd.steps,good,factors:terminal.map(P.pack),degrees:terminal.map(a=>a.length-1),divisions,irreducibilityCertificates:certificates,product:P.pack(product),cycleType:good?terminal.map(a=>a.length-1).join(','):null};}
+function rationalFactorization(ints){const C=coefficients(),P=polynomialOps(C),bound=1+Math.max(...ints.slice(0,-1).map(v=>Math.abs(Number(v)))),records=[],factors=[];
+ function split(f){if(f.length<=2){factors.push(f);return;}const trials=[],quadratics=[];for(let z=-bound;z<=bound;z++){const value=P.evaluate(f,C.norm(BigInt(z)));trials.push({root:String(z),value:C.pack(value)});if(C.zero(value)){const factor=[C.norm(BigInt(-z)),C.one()],d=P.divide(f,factor);records.push({polynomial:P.pack(f),bound,linearTrials:trials,quadraticTrials:quadratics,found:P.pack(factor),quotient:P.pack(d.quotient)});split(factor);split(d.quotient);return;}}
+ if(f.length>=5){const constant=abs(f[0][0]);if(f[0][1]!==1n||constant===0n)throw Error('整数常数项条件');const cs=[];for(let k=1n;k<=constant;k++)if(constant%k===0n){cs.push(-k,k);}for(let b=-2*bound;b<=2*bound;b++)for(const c of cs){const factor=[C.norm(c),C.norm(BigInt(b)),C.one()],d=P.divide(f,factor);quadratics.push({linearCoefficient:b,constant:String(c),remainder:P.pack(d.remainder)});if(P.zero(d.remainder)){records.push({polynomial:P.pack(f),bound,linearTrials:trials,quadraticTrials:quadratics,found:P.pack(factor),quotient:P.pack(d.quotient)});split(factor);split(d.quotient);return;}}}
+ records.push({polynomial:P.pack(f),bound,linearTrials:trials,quadraticTrials:quadratics,found:null,quotient:null});factors.push(f);}
+ split(ints.map(v=>C.norm(BigInt(v))));factors.sort((a,b)=>a.length-b.length||P.pack(a).join(',').localeCompare(P.pack(b).join(',')));return {bound,factors:factors.map(P.pack),degrees:factors.map(a=>a.length-1),irreducible:factors.length===1,searches:records,product:P.pack(factors.reduce(P.mul,[C.one()]))};}
+function sturm(ints,bits=8){const C=coefficients(),P=polynomialOps(C),f=ints.map(v=>C.norm(BigInt(v))),common=P.gcdRecord(f,P.derivative(f)),sf=P.divide(f,common.gcd).quotient,sequence=[sf,P.derivative(sf)],divisions=[];while(!P.zero(sequence.at(-1))){const a=sequence.at(-2),b=sequence.at(-1),d=P.divide(a,b);divisions.push({dividend:P.pack(a),divisor:P.pack(b),quotient:P.pack(d.quotient),remainder:P.pack(d.remainder)});if(P.zero(d.remainder))break;sequence.push(P.neg(d.remainder));}const signsAt=x=>sequence.map(a=>{const v=P.evaluate(a,x)[0];return v<0n?-1:v>0n?1:0;}),variation=signs=>{const s=signs.filter(v=>v!==0);return s.slice(1).reduce((v,x,i)=>v+(x!==s[i]?1:0),0);},infinity=direction=>sequence.map(a=>{const s=a.at(-1)[0]<0n?-1:1;return direction<0&&(a.length-1)%2?-s:s;}),leftInfinity=infinity(-1),rightInfinity=infinity(1),rootCount=variation(leftInfinity)-variation(rightInfinity),bound=1+Math.max(...ints.slice(0,-1).map(v=>Math.abs(Number(v))));const nodes=[],leaves=[];
+ function cell(lo,hi,parent){const left=signsAt(lo),right=signsAt(hi),vl=variation(left),vr=variation(right),r={id:nodes.length,parent,left:C.pack(lo),right:C.pack(hi),leftSigns:left,rightSigns:right,leftVariation:vl,rightVariation:vr,count:vl-vr,children:[]};nodes.push(r);return r;}
+ const root=cell(C.norm(BigInt(-bound)),C.norm(BigInt(bound)),null),queue=[root];for(let k=0;k<queue.length;k++){if(nodes.length>20000)throw Error('根隔离超过资源边界');const r=queue[k];if(!r.count)continue;const read=s=>{const[n,d='1']=s.split('/');return C.norm(BigInt(n),BigInt(d));},lo=read(r.left),hi=read(r.right),width=C.sub(hi,lo);if(r.count===1&&width[0]*(1n<<BigInt(bits))<=width[1]){leaves.push(r.id);continue;}const mid=C.div(C.add(lo,hi),C.norm(2n)),a=cell(lo,mid,r.id),b=cell(mid,hi,r.id);r.children=[a.id,b.id];queue.push(a,b);}
+ leaves.sort((i,j)=>{const a=nodes[i],b=nodes[j];const read=s=>{const[n,d='1']=s.split('/');return C.norm(BigInt(n),BigInt(d));};const v=C.sub(read(a.left),read(b.left))[0];return v<0n?-1:v>0n?1:0;});return {squareFreePart:P.pack(sf),gcd:P.pack(common.gcd),gcdSteps:common.steps,sequence:sequence.map(P.pack),divisions,leftInfinity,rightInfinity,leftVariation:variation(leftInfinity),rightVariation:variation(rightInfinity),rootCount,bound,bits,intervalConvention:'(left,right]',nodes,leaves};}
+return {coefficients,polynomialOps,integerSquare,determinantInteger,discriminant,finiteFactorization,rationalFactorization,sturm};
 
-    var SVG_NS = "http://www.w3.org/2000/svg";
-    var STYLE_ID = "galois-insolvability-lab-styles";
-    var INSTANCE = 0;
-    var PRIMES = [2, 3, 5, 7, 11];
-    var PRESETS = [
-      {
-        id: "s5-main",
-        label: "x^5 - 6x + 3",
-        expression: "x^5 - 6x + 3",
-        coefficients: [3, -6, 0, 0, 0, 1],
-        context: "具体五次的 S5 证书练习；实验本身不替代完整 Galois 群证明。"
-      },
-      {
-        id: "radical-control",
-        label: "x^5 - 2",
-        expression: "x^5 - 2",
-        coefficients: [-2, 0, 0, 0, 0, 1],
-        context: "可解群控制例；五次次数本身不等于不可根式解。"
-      },
-      {
-        id: "s5-second",
-        label: "x^5 - 4x + 2",
-        expression: "x^5 - 4x + 2",
-        coefficients: [2, -4, 0, 0, 0, 1],
-        context: "另一个具体五次；p=2 的重因子演示坏素数不能直接给循环型证书。"
-      }
-    ];
+})();
+const G=(()=>{
+'use strict';
+function permutations(xs){if(!xs.length)return[[]];return xs.flatMap((x,i)=>permutations(xs.filter((_,j)=>i!==j)).map(q=>[x,...q]));}
+const compose=(a,b)=>b.map(i=>a[i]),key=p=>p.join(','),parity=p=>{let n=0;for(let i=0;i<p.length;i++)for(let j=i+1;j<p.length;j++)if(p[i]>p[j])n++;return n%2?-1:1;};
+function cycles(p){const seen=new Set(),out=[];for(let i=0;i<p.length;i++)if(!seen.has(i)){const c=[];for(let j=i;!seen.has(j);j=p[j]){c.push(j);seen.add(j);}out.push(c);}return out;}
+const cycleType=p=>cycles(p).map(c=>c.length).sort((a,b)=>a-b).join(',');
+function model(id){let ps;if(id==='C5'||id==='D5'||id==='F20'){const aa=id==='C5'?[1]:id==='D5'?[1,4]:[1,2,3,4];ps=aa.flatMap(a=>Array.from({length:5},(_,b)=>Array.from({length:5},(_,x)=>(a*x+b)%5)));}else ps=permutations([0,1,2,3,4]).filter(p=>id==='S5'||parity(p)===1);ps.sort((a,b)=>key(a).localeCompare(key(b)));const keys=ps.map(key),table=ps.map(a=>ps.map(b=>keys.indexOf(key(compose(a,b))))),inverse=table.map((row,i)=>row.findIndex((x,j)=>x===0&&table[j][i]===0));if(table.some(r=>r.includes(-1))||inverse.includes(-1))throw Error('群闭包失败');
+ function closure(gens){const word={0:[]},queue=[0];for(let i=0;i<queue.length;i++)for(const g of gens){const z=table[queue[i]][g];if(word[z]===undefined){word[z]=word[queue[i]].concat(g);queue.push(z);}}return{elements:queue.sort((a,b)=>a-b),words:word};}
+ let current=ps.map((_,i)=>i),stages=[];while(true){const triples=[];for(const a of current)for(const b of current)triples.push([a,b,table[table[table[a][b]][inverse[a]]][inverse[b]]]);const generators=[...new Set(triples.map(t=>t[2]))].sort((a,b)=>a-b),next=closure(generators);stages.push({elements:current,commutators:triples,generators,next:next.elements,words:next.words});if(current.length===1||current.join(',')===next.elements.join(','))break;current=next.elements;}return{id,order:ps.length,permutations:ps,labels:ps.map(p=>cycles(p).filter(c=>c.length>1).map(c=>'('+c.map(x=>x+1).join(' ')+')').join('')||'()'),multiplication:table,inverses:inverse,cycleTypes:ps.map(cycleType),availableTypes:[...new Set(ps.map(cycleType))].sort(),even:ps.every(p=>parity(p)===1),derived:stages,solvable:stages.at(-1).elements.length===1,affine:id==='C5'||id==='D5'||id==='F20'};}
+const cache=new Map();function models(){return ['C5','D5','F20','A5','S5'].map(id=>{if(!cache.has(id))cache.set(id,model(id));return cache.get(id);});}
+function filter(evidence){const gs=models(),steps=[];let remaining=gs.map(g=>g.id);for(const e of evidence){const before=remaining.slice(),excluded=[];remaining=remaining.filter(id=>{const g=gs.find(g=>g.id===id),pass=e.kind==='construction'?id===e.group:e.kind==='parity'?g.even===e.square:g.availableTypes.includes(e.type);if(!pass)excluded.push({group:id,reason:e.kind==='construction'?'显式分裂域构造给出另一群':e.kind==='parity'?'判别式平方性与符号像不相容':'群中没有该循环型'});return pass;});steps.push({evidence:e,before,remaining:remaining.slice(),excluded});}return{steps,remaining,solvable:remaining.length&&remaining.every(id=>gs.find(g=>g.id===id).solvable)?true:remaining.length&&remaining.every(id=>!gs.find(g=>g.id===id).solvable)?false:null};}
+return {permutations,compose,parity,cycles,cycleType,model,models,filter};
 
-    var PREDICTIONS = [
-      {
-        id: "single",
-        prompt: "一个好素数的分解型最直接提供什么？",
-        options: [
-          { id: "certificate", label: "群中一个元素的循环型证书" },
-          { id: "whole-group", label: "整个 Galois 群的完整同构" },
-          { id: "root-formula", label: "一条根式公式" }
-        ],
-        answer: "certificate"
-      },
-      {
-        id: "many",
-        prompt: "收集多个素数的证书后，仍然需要什么？",
-        options: [
-          { id: "group-proof", label: "不可约性、判别式和群论收口" },
-          { id: "nothing", label: "不需要任何额外假设" },
-          { id: "numeric-only", label: "只要更多小数位" }
-        ],
-        answer: "group-proof"
-      },
-      {
-        id: "numeric",
-        prompt: "数值算法找到五个近似根，是否等于根式公式？",
-        options: [
-          { id: "different", label: "不等于；数值近似和根式表达不同" },
-          { id: "same", label: "等于；精度足够就自动成为根式" },
-          { id: "s5", label: "等于 Galois 群为 S5" }
-        ],
-        answer: "different"
-      }
-    ];
+})();
+const RC=(()=>{
+'use strict';
 
-    var STYLE_TEXT = [
-      ".gi-lab{box-sizing:border-box;max-width:100%;min-width:0;color:var(--fg,#1f2933);font-size:14px;line-height:1.55;}",
-      ".gi-lab *{box-sizing:border-box;}",
-      ".gi-lab [hidden]{display:none!important;}",
-      ".gi-lab button,.gi-lab select{font:inherit;}",
-      ".gi-lab button{min-height:46px;padding:9px 12px;border:1px solid var(--border,#bbc7d1);border-radius:6px;background:var(--bg,#fff);color:inherit;cursor:pointer;}",
-      ".gi-lab button:hover:not(:disabled){border-color:var(--accent,#1769aa);}",
-      ".gi-lab button:focus-visible,.gi-lab select:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px;}",
-      ".gi-lab button[aria-pressed=true],.gi-lab .gi-primary{border-color:var(--accent,#1769aa);background:var(--accent,#1769aa);color:#fff;font-weight:700;}",
-      ".gi-lab button:disabled{cursor:not-allowed;opacity:.55;}",
-      ".gi-lab .gi-heading{margin:0 0 5px;font-size:1.18rem;line-height:1.35;}",
-      ".gi-lab .gi-note,.gi-lab .gi-feedback,.gi-lab .gi-disclaimer{margin:7px 0;color:var(--fg-soft,#52606d);}",
-      ".gi-lab .gi-controls,.gi-lab .gi-preset-grid,.gi-lab .gi-action-row{display:flex;flex-wrap:wrap;gap:8px;}",
-      ".gi-lab .gi-controls{align-items:end;margin:13px 0;}",
-      ".gi-lab .gi-control{display:grid;flex:1 1 220px;min-width:180px;gap:5px;}",
-      ".gi-lab .gi-control label{color:var(--fg-soft,#52606d);font-size:12px;font-weight:700;}",
-      ".gi-lab select{min-height:46px;width:100%;padding:8px 10px;border:1px solid var(--border,#bbc7d1);border-radius:6px;background:var(--bg,#fff);color:inherit;}",
-      ".gi-lab .gi-preset-grid{margin:12px 0;}",
-      ".gi-lab .gi-preset-grid button{flex:1 1 170px;text-align:left;}",
-      ".gi-lab .gi-preset-grid small{display:block;margin-top:3px;color:var(--fg-soft,#52606d);font-size:11px;font-weight:400;line-height:1.3;}",
-      ".gi-lab .gi-preset-grid button[aria-pressed=true] small{color:#e7f3fb;}",
-      ".gi-lab .gi-predict{margin:14px 0;padding:12px 14px;border-left:3px solid var(--cl-gold,#b7791f);background:var(--bg-soft,#f5f7f9);}",
-      ".gi-lab .gi-predict-title{margin:0 0 8px;font-weight:700;}",
-      ".gi-lab .gi-question{margin:12px 0 0;padding:0;border:0;}",
-      ".gi-lab .gi-question legend{margin-bottom:7px;color:var(--fg,#1f2933);font-weight:700;}",
-      ".gi-lab .gi-choice{display:flex;flex-wrap:wrap;gap:8px;}",
-      ".gi-lab .gi-choice button{flex:1 1 190px;min-width:0;text-align:left;}",
-      ".gi-lab .gi-feedback{min-height:1.7em;font-weight:700;}",
-      ".gi-lab .gi-pass{color:var(--cl-green,#087f5b);}",
-      ".gi-lab .gi-warn{color:var(--cl-red,#b42318);}",
-      ".gi-lab .gi-result{margin-top:16px;padding-top:14px;border-top:1px solid var(--border,#bbc7d1);}",
-      ".gi-lab .gi-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0;}",
-      ".gi-lab .gi-metric{min-width:0;padding:9px;border-top:2px solid var(--border,#bbc7d1);background:var(--bg-soft,#f5f7f9);}",
-      ".gi-lab .gi-metric span{display:block;color:var(--fg-soft,#52606d);font-size:11px;}",
-      ".gi-lab .gi-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
-      ".gi-lab .gi-result-grid{display:grid;grid-template-columns:minmax(220px,.9fr) minmax(0,1.1fr);gap:14px;align-items:start;}",
-      ".gi-lab svg{display:block;width:100%;height:auto;border:1px solid var(--border,#bbc7d1);border-radius:6px;background:var(--bg-soft,#f5f7f9);}",
-      ".gi-lab svg text{fill:var(--fg,#1f2933);font-family:inherit;letter-spacing:0;}",
-      ".gi-lab .gi-group-0{fill:var(--cl-blue-soft,#dceef8);stroke:var(--accent,#1769aa);}",
-      ".gi-lab .gi-group-1{fill:#fbe4d5;stroke:#c05621;}",
-      ".gi-lab .gi-group-2{fill:#e5f4e3;stroke:#2f855a;}",
-      ".gi-lab .gi-group-3{fill:#eee5f8;stroke:#805ad5;}",
-      ".gi-lab .gi-group{stroke-width:2;}",
-      ".gi-lab .gi-root{fill:var(--bg,#fff);stroke:var(--fg,#1f2933);stroke-width:1.5;}",
-      ".gi-lab .gi-ledger{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:14px;}",
-      ".gi-lab table{width:100%;min-width:720px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}",
-      ".gi-lab th,.gi-lab td{padding:7px 8px;border-bottom:1px solid var(--border,#bbc7d1);text-align:left;vertical-align:top;}",
-      ".gi-lab th{color:var(--fg-soft,#52606d);font-size:11px;}",
-      ".gi-lab .gi-formula{margin:10px 0;padding:10px 12px;overflow:auto;background:var(--bg-soft,#f5f7f9);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;}",
-      ".gi-lab .gi-check{margin:10px 0;padding:9px 11px;border-left:3px solid var(--cl-green,#087f5b);background:var(--bg-soft,#f5f7f9);}",
-      "@media(max-width:760px){.gi-lab .gi-result-grid{grid-template-columns:minmax(0,1fr);}.gi-lab .gi-metrics{grid-template-columns:repeat(2,minmax(0,1fr));}}",
-      "@media(max-width:430px){.gi-lab .gi-metrics{grid-template-columns:minmax(0,1fr);}.gi-lab .gi-choice button{flex-basis:100%;}.gi-lab table{font-size:11px;}}",
-      "@media(prefers-reduced-motion:reduce){.gi-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important;}}"
-    ].join("\n");
+function radicalConstruction(ints,irreducible){if(!irreducible||ints.length!==6)return null;const C=A.coefficients(),polynomialProduct=(K,roots)=>{let cs=[K.one()];for(const root of roots){const out=Array.from({length:cs.length+1},K.zero);cs.forEach((v,i)=>{out[i]=K.sub(out[i],K.mul(v,root));out[i+1]=K.add(out[i+1],v);});cs=out;}return cs;},pack=(v)=>A.packVector(v,C),identity=n=>Array.from({length:n},(_,i)=>A.unit(n,i,C)),matrixPower=(M,k)=>{let q=identity(M.length);for(let i=0;i<k;i++)q=A.matMul(q,M,M.length,C);return q;},same=(a,b)=>JSON.stringify(a.map(pack))===JSON.stringify(b.map(pack));
+ if(ints.slice(1,-1).every(v=>v===0)&&ints[0]!==0){const a=-ints[0],K=A.algebra(ints.map(v=>C.norm(BigInt(v))),[1,1,1,1,1].map(v=>C.norm(BigInt(v))),C),roots=Array.from({length:5},(_,j)=>K.mul(K.x,K.pow(K.y,j))),product=polynomialProduct(K,roots),r=K.imageMatrix(K.mul(K.x,K.y),K.y),s=K.imageMatrix(K.x,K.pow(K.y,2));if(!same(matrixPower(r,5),identity(20))||!same(matrixPower(s,4),identity(20))||!same(A.matMul(A.matMul(s,r,20,C),matrixPower(s,3),20,C),matrixPower(r,2)))throw Error('仿射生成元关系错误');if(product.some((v,i)=>!K.equal(v,K.scale(K.one(),C.norm(BigInt(ints[i]))))))throw Error('根式乘积不等于输入');return{kind:'binomial-quintic',group:'F20',radicand:a,ambientDegree:20,relations:{alpha:ints,zeta:[1,1,1,1,1]},basis:Array.from({length:20},(_,i)=>({alphaExponent:i%5,zetaExponent:Math.floor(i/5)})),roots:roots.map(pack),polynomialProduct:product.map(pack),generators:[{label:'r: α↦αζ；ζ↦ζ',matrix:A.packMatrix(r,20,C)},{label:'s: α↦α；ζ↦ζ²',matrix:A.packMatrix(s,20,C)}],relationsVerified:['r^5=1','s^4=1','s r s^-1=r^2'],tower:[{generator:'ζ',power:5,radicand:'1',degree:4,condition:'取本原五次单位根'},{generator:'α',power:5,radicand:String(a),degree:5,condition:'取α^5=a的任意根'}]};}
+ if(ints.join(',')==='1,3,-3,-4,1,1'){const K=A.algebra(Array(11).fill(C.one()),[C.z(),C.one()],C),v=K.add(K.x,K.pow(K.x,10)),minimal=K.minimal(v),roots=Array.from({length:5},(_,j)=>K.add(K.pow(K.x,j+1),K.pow(K.x,10-j))),product=polynomialProduct(K,roots),basis=minimal.powers.slice(0,5);if(minimal.degree!==5||minimal.coefficients.map(C.pack).join(',')!==ints.join(','))throw Error('十一分圆实子域极小多项式错误');if(product.some((w,i)=>!K.equal(w,K.scale(K.one(),C.norm(BigInt(ints[i]))))))throw Error('分圆实根乘积错误');const restrictions=roots.map(w=>{const columns=Array.from({length:5},(_,i)=>A.coordinate(basis,K.pow(w,i),C));if(columns.some(v=>v===null))throw Error('实子域没有保持');return A.packMatrix(Array.from({length:5},(_,i)=>columns.map(v=>v[i])),5,C);}),table=Array.from({length:5},(_,i)=>Array.from({length:5},(_,j)=>{const a=(i+1)*(j+1)%11;return Math.min(a,11-a)-1;}));return{kind:'real-cyclotomic-eleven',group:'C5',ambientDegree:10,cyclotomicPolynomial:Array(11).fill(1),element:pack(v),minimalPolynomial:{degree:5,coefficients:minimal.coefficients.map(C.pack),powers:minimal.powers.map(pack)},roots:roots.map(pack),polynomialProduct:product.map(pack),fixedBasis:basis.map(pack),quotientRepresentatives:[1,2,3,4,5],quotientMultiplication:table,restrictions,tower:[{generator:'ζ',power:11,radicand:'1',degree:10,condition:'取本原十一次单位根；根为ζ^k+ζ^-k，k=1,…,5'}]};}
+ return null;
+}
+return {radicalConstruction};
 
-    function fail(message) {
-      throw new Error("galois-insolvability: " + message);
-    }
+})();
+'use strict';
+const {radicalConstruction}=RC;
 
-    function mod(value, prime) {
-      var result = Number(value) % prime;
-      return result < 0 ? result + prime : result;
-    }
+const PRIMES=[2,3,5,7,11,13,17,19,23,29];
+const DEFAULTS={coefficients:'3,-6,0,0,0,1',prime:'2',evidencePrimes:'2,3,5,7,11',useReal:'yes',useDiscriminant:'yes',useConstruction:'yes',bits:'8'};
+function config(input){if(input===undefined)input={};if(input===null||typeof input!=='object'||Array.isArray(input))throw Error('参数必须是对象');for(const k of Object.keys(input))if(!Object.hasOwn(DEFAULTS,k))throw Error('未知参数：'+k);const c={...DEFAULTS,...input};if(typeof c.coefficients!=='string'||c.coefficients.length>180||! /^-?(?:0|[1-9]\d*)(?:,-?(?:0|[1-9]\d*))*$/.test(c.coefficients))throw Error('系数须为无空格整数，按常数项到最高次以逗号分隔');const f=c.coefficients.split(',').map(Number);if(f.length<3||f.length>6||f.at(-1)!==1||f.some(v=>!Number.isSafeInteger(v)||Math.abs(v)>32))throw Error('仅接受2–5次首一整数多项式，系数绝对值≤32');if(!PRIMES.map(String).includes(c.prime))throw Error('请选择2至29中的预设素数');if(typeof c.evidencePrimes!=='string'||c.evidencePrimes.length>80||c.evidencePrimes!==''&&! /^(?:[1-9]\d*)(?:,[1-9]\d*)*$/.test(c.evidencePrimes))throw Error('证据素数以逗号分隔；空串表示不用模素数证据');const es=c.evidencePrimes===''?[]:c.evidencePrimes.split(',');if(new Set(es).size!==es.length||es.some(p=>!PRIMES.map(String).includes(p)))throw Error('证据素数须在预设范围内且不重复');if(!['yes','no'].includes(c.useReal)||!['yes','no'].includes(c.useDiscriminant)||!['yes','no'].includes(c.useConstruction))throw Error('证据开关只接受yes/no');if(typeof c.bits!=='string'||! /^(?:[4-9]|1[0-2])$/.test(c.bits))throw Error('根区间精度位数只能取4–12');return c;}
+const cache=new Map();
+function base(c){const key=c.coefficients+'|'+c.bits;if(cache.has(key))return cache.get(key);const f=c.coefficients.split(',').map(Number),rational=P.rationalFactorization(f),discriminant=P.discriminant(f.map(BigInt)),real=P.sturm(f,Number(c.bits)),reductions=PRIMES.map(p=>P.finiteFactorization(f,p)),eisenstein=PRIMES.map(p=>({prime:p,divisible:f.slice(0,-1).map(v=>v%p===0),constantNotDivisibleBySquare:f[0]%(p*p)!==0,valid:f.slice(0,-1).every(v=>v%p===0)&&f[0]%(p*p)!==0}));const construction=radicalConstruction(f,rational.irreducible);const b={coefficients:f,degree:f.length-1,rational,discriminant,real,reductions,eisenstein,construction};if(cache.size>=12)cache.delete(cache.keys().next().value);cache.set(key,b);return b;}
+function snapshot(input){const c=config(input),b=base(c),evidence=[],unused=[];const selectedPrimes=c.evidencePrimes===''?[]:c.evidencePrimes.split(',').map(Number);for(const p of selectedPrimes){const r=b.reductions.find(r=>r.prime===p);if(r.good)evidence.push({kind:'cycle',source:'prime',prime:p,type:r.cycleType});else unused.push({prime:p,reason:'约化有重因子，不能用此行作普通Frobenius循环型证据'});}const rootDegree=b.real.squareFreePart.length-1,realCount=b.real.rootCount,complexPairs=(rootDegree-realCount)/2;if(!Number.isInteger(complexPairs)||complexPairs<0)throw Error('实根计数与共轭成对条件不符');const realType=Array(realCount).fill(1).concat(Array(complexPairs).fill(2)).join(',');if(c.useReal==='yes')evidence.push({kind:'cycle',source:'complex-conjugation',type:realType,realRoots:realCount,complexPairs});if(c.useDiscriminant==='yes'&&b.discriminant.value!=='0')evidence.push({kind:'parity',source:'discriminant',square:b.discriminant.square.square});if(c.useConstruction==='yes'&&b.construction)evidence.push({kind:'construction',source:b.construction.kind,group:b.construction.group});const transitiveQuintic=b.degree===5&&b.rational.irreducible;let classification;if(transitiveQuintic){const filtered=G.filter(evidence);if(filtered.remaining.length===0)throw Error('证据互相矛盾：未剩下任何传递五次群');classification={applicable:true,...filtered,exactGroup:filtered.remaining.length===1?filtered.remaining[0]:null,reason:filtered.solvable===null?'剩余候选同时含可解群与不可解群，证据不足':filtered.solvable?'全部剩余候选可解，因此可由根式解':'全部剩余候选不可解，因此不能由根式解'};}else classification={applicable:false,steps:[],remaining:[],exactGroup:null,solvable:true,reason:'有理不可约因子均不超过四次；其根分别可由根式得到。此时不使用传递五次群分类。'};return {version:160,parameters:c,polynomial:JSON.parse(JSON.stringify(b)),selectedPrime:Number(c.prime),evidence,unusedEvidence:unused,realConjugation:{rootDegree,realCount,complexPairs,type:realType},classification,candidateModels:JSON.parse(JSON.stringify(G.models()))};}
 
-    function isPrime(value) {
-      var number = Math.floor(Number(value));
-      var divisor;
-      if (number < 2 || number !== Number(value)) return false;
-      for (divisor = 2; divisor * divisor <= number; divisor += 1) {
-        if (number % divisor === 0) return false;
-      }
-      return true;
-    }
+const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=v=>v===null?'不适用／未确定':typeof v==='boolean'?(v?'是':'否'):Array.isArray(v)?'['+v.map(fmt).join(', ')+']':v&&typeof v==='object'?JSON.stringify(v):String(v);
+const poly=a=>a.map((v,i)=>({v:String(v),i})).reverse().filter(t=>t.v!=='0').map(t=>(t.v==='1'&&t.i?'':t.v==='-1'&&t.i?'−':t.v)+(t.i?'x'+(['','','²','³','⁴','⁵'][t.i]||''):'')).join(' + ').replace(/\+ -/g,'− ').replace(/\+ −/g,'− ')||'0';
+const verdict=s=>s.classification.solvable===null?'证据不足':s.classification.solvable?'可由根式解':'不能由根式解';
+function evidenceLabel(e){return e.source==='prime'?'p='+e.prime+'：'+e.type:e.source==='complex-conjugation'?'复共轭：'+e.type:e.source==='discriminant'?'判别式'+(e.square?'为平方':'非平方'):'显式构造：'+e.group;}
+function plots(s){const ps=[],ink='#283b46',blue='#256c91',gold='#ad6015',green='#26705b';function panel(key,title,caption){const p={key,title,caption,width:900,height:460,items:[]};p.items.push({tag:'text',x:25,y:30,text:title,size:19,fill:ink},{tag:'text',x:25,y:439,text:caption,size:13,fill:ink});ps.push(p);return p;}const b=s.polynomial,r=b.reductions.find(r=>r.prime===s.selectedPrime);
+ const p=panel('factor-cycles','模素数因子次数 → 一个可能的根置换',r.good?'各圆点是抽象根编号；循环型确定，不给出复平面位置或全群。':'约化有重因子：本图只画次数账本，不声称存在对应Frobenius元素。');p.items.push({tag:'text',x:25,y:65,text:'p='+r.prime+'；'+poly(r.reduced)+'；gcd(f,f′)='+poly(r.gcd),size:16,fill:ink});let start=0;for(let k=0;k<r.factors.length;k++){const n=r.degrees[k],cx=90+(start+n/2)*140,cy=210,rad=n===1?0:49;const points=Array.from({length:n},(_,i)=>({x:cx+rad*Math.cos(-Math.PI/2+2*Math.PI*i/n),y:cy+rad*Math.sin(-Math.PI/2+2*Math.PI*i/n)}));if(r.good&&n>1)points.forEach((a,i)=>{const z=points[(i+1)%n];p.items.push({tag:'line',x1:a.x,y1:a.y,x2:z.x,y2:z.y,stroke:blue,strokeWidth:2});});points.forEach((a,i)=>p.items.push({tag:'circle',cx:a.x,cy:a.y,r:16,fill:r.good?'#deedf4':'#f4e5d2',stroke:r.good?blue:gold,strokeWidth:2},{tag:'text',x:a.x,y:a.y+5,text:String(start+i+1),size:14,anchor:'middle',fill:ink}));p.items.push({tag:'text',x:cx,y:310,text:'因子 '+(k+1)+'：次数 '+n,size:14,anchor:'middle',fill:ink},{tag:'text',x:cx,y:338,text:poly(r.factors[k]),size:13,anchor:'middle',fill:ink});start+=n;}
+ const q=panel('candidate-filter','证据逐行加入：还剩哪些传递五次群？',s.classification.applicable?'蓝色表示仍相容；灰色表示已排除。没有观察到某型，不构成排除证据。':'此例不是不可约五次；五群分类不适用，各有理不可约因子次数≤4。');const gs=s.candidateModels;gs.forEach((g,j)=>q.items.push({tag:'text',x:365+j*107,y:67,text:g.id,size:16,anchor:'middle',fill:ink}));if(s.classification.applicable){const stages=[{label:'开始：五种候选',remaining:gs.map(g=>g.id)},...s.classification.steps.map(t=>({label:evidenceLabel(t.evidence),remaining:t.remaining}))],height=Math.min(34,320/stages.length);stages.forEach((t,i)=>{const y=87+i*height;q.items.push({tag:'text',x:25,y:y+height*.68,text:t.label,size:13,fill:ink});gs.forEach((g,j)=>{const active=t.remaining.includes(g.id);q.items.push({tag:'rect',x:320+j*107,y,width:90,height:height-3,fill:active?'#deedf4':'#eeeeee',stroke:active?blue:'#bbbbbb',strokeWidth:1},{tag:'text',x:365+j*107,y:y+height*.68,text:active?'保留':'排除',size:12,anchor:'middle',fill:ink});});});}else q.items.push({tag:'text',x:50,y:190,text:'Q上因子次数：'+b.rational.degrees.join(' + ')+'；本表不启用。',size:22,fill:ink});
+ const z=panel('real-intervals','每条短轴只放大一个实根隔离区间','每行独立放大；左端空心不含，右端实心包含；宽度比较请读精确分数。');z.items.push({tag:'text',x:25,y:66,text:'不同实根 '+b.real.rootCount+'；V(−∞)='+b.real.leftVariation+'，V(+∞)='+b.real.rightVariation+'；宽度≤2的−'+b.real.bits+'次方',size:16,fill:ink});if(!b.real.leaves.length)z.items.push({tag:'text',x:220,y:225,text:'V(−∞)−V(+∞)=0：没有实根。',size:23,fill:ink});b.real.leaves.forEach((id,i)=>{const c=b.real.nodes[id],y=113+i*61;z.items.push({tag:'text',x:25,y:y+5,text:'根 '+(i+1)+'：('+c.left+', '+c.right+']',size:14,fill:ink},{tag:'line',x1:505,y1:y,x2:800,y2:y,stroke:blue,strokeWidth:3},{tag:'circle',cx:505,cy:y,r:6,fill:'#ffffff',stroke:blue,strokeWidth:2},{tag:'circle',cx:800,cy:y,r:6,fill:blue,stroke:blue,strokeWidth:2},{tag:'text',x:650,y:y+26,text:'V：'+c.leftVariation+' → '+c.rightVariation+'；恰有1根',size:13,anchor:'middle',fill:ink});});
+ const t=panel('derived-series','根式可解性：导出群最终能否降到1？','节点数字是导出群阶。稳定在非平凡群时不可解；高亮为当前剩余候选。');t.items.push({tag:'text',x:25,y:65,text:b.construction?'已计算根所在域：'+(b.construction.kind==='binomial-quintic'?'二项式根式域':'十一分圆域')+'，次数 '+b.construction.ambientDegree:'当前没有启用范围内的显式分裂域构造。',size:14,fill:ink});gs.forEach((g,i)=>{const y=115+i*61,active=s.classification.remaining.includes(g.id);t.items.push({tag:'text',x:100,y:y+5,text:g.id,size:17,anchor:'end',fill:ink});const orders=g.derived.map(t=>t.elements.length);orders.forEach((n,j)=>{const x=215+j*145;if(j)t.items.push({tag:'line',x1:x-116,y1:y,x2:x-29,y2:y,stroke:ink,strokeWidth:2});t.items.push({tag:'rect',x:x-29,y:y-18,width:58,height:36,rx:5,fill:active?'#fff0d4':'#eaf2f5',stroke:active?gold:blue,strokeWidth:2},{tag:'text',x,y:y+5,text:String(n),size:17,anchor:'middle',fill:ink});});t.items.push({tag:'text',x:685,y:y+5,text:g.solvable?'到1：可解':'稳定：不可解',size:16,fill:g.solvable?green:gold});});return ps;
+}
+function svg(p){return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+p.width+' '+p.height+'" width="'+p.width+'" height="'+p.height+'" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><desc>'+esc(p.caption)+'</desc><rect width="900" height="460" fill="#ffffff"/>'+p.items.map(it=>{const a={...it};delete a.tag;delete a.text;for(const [k,n]of [['size','font-size'],['anchor','text-anchor'],['strokeWidth','stroke-width']])if(a[k]!==undefined){a[n]=a[k];delete a[k];}if(it.tag==='text')a['font-family']='system-ui,sans-serif';return '<'+it.tag+' '+Object.entries(a).map(([k,v])=>k+'="'+esc(v)+'"').join(' ')+'>'+(it.tag==='text'?esc(it.text):'')+'</'+it.tag+'>';}).join('')+'</svg>';}
+function ledgers(s){const b=s.polynomial,out=[],add=(key,title,headers,rows)=>out.push({key,title,headers,rows});add('conclusion','结论与适用范围',['项目','值'],[['输入',poly(b.coefficients)],['系数（常数到最高次）',b.coefficients],['Q上不可约',b.rational.irreducible],['有理因子次数',b.rational.degrees],['启用五群分类',s.classification.applicable],['剩余群',s.classification.remaining],['确定群',s.classification.exactGroup],['根式结论',verdict(s)],['理由',s.classification.reason],['显示的素数',s.selectedPrime],['用于筛选的素数',s.parameters.evidencePrimes],['重复根的最大公因子',b.real.gcd]]);
+ add('rational-factors','Q上完整不可约因子',['编号','多项式','低次到高次系数'],b.rational.factors.map((f,i)=>[i,poly(f),f]));
+ add('rational-linear','有理分解：实际检查的全部整数根',['递归步骤','被除多项式','候选根','精确值'],b.rational.searches.flatMap((r,i)=>r.linearTrials.map(t=>[i,poly(r.polynomial),t.root,t.value])));
+ add('rational-quadratic','有理分解：实际检查的全部二次因子',['递归步骤','被除多项式','一次系数b','常数c','余式'],b.rational.searches.flatMap((r,i)=>r.quadraticTrials.map(t=>[i,poly(r.polynomial),t.linearCoefficient,t.constant,t.remainder])));
+ add('rational-searches','有理分解：搜索边界与找到的因子',['步骤','根界B','被检查多项式','找到因子','商'],b.rational.searches.map((r,i)=>[i,r.bound,r.polynomial,r.found,r.quotient]));
+ add('eisenstein','所有预设素数的Eisenstein检验',['p','非首项逐个被p整除','常数不被p²整除','通过'],b.eisenstein.map(r=>[r.prime,r.divisible,r.constantNotDivisibleBySquare,r.valid]));
+ add('reductions','十个素数的完整分解',['p','约化多项式','全部因子','因子次数','gcd(f,f′)','可用循环型','已选为证据'],b.reductions.map(r=>[r.prime,poly(r.reduced),r.factors.map(poly),r.degrees,r.gcd,r.cycleType,s.parameters.evidencePrimes.split(',').includes(String(r.prime))&&r.good]));
+ const r=b.reductions.find(r=>r.prime===s.selectedPrime);add('finite-divisions','当前素数：找到因子的除法',['步','被除式','因子','商'],r.divisions.map((t,i)=>[i,t.dividend,t.factor,t.quotient]));add('finite-certificates','当前素数：每个不可约因子的Frobenius证书',['因子编号','因子','逐次x的p次幂余式','最终差','各素因子次数检验'],r.irreducibilityCertificates.map((t,i)=>[i,t.factor,t.frobeniusRemainders,t.terminalDifference,t.tests]));add('finite-gcd','当前素数：无重根Euclid检验',['步','被除式','除式','商','余式'],r.gcdSteps.map((t,i)=>[i,t.dividend,t.divisor,t.quotient,t.remainder]));
+ add('discriminant','判别式精确值',['项目','值'],[['判别式',b.discriminant.value],['非负整数平方',b.discriminant.square.square],['非负时的平方根下取整',b.discriminant.square.root],['resultant',b.discriminant.resultant]]);add('sylvester','Sylvester矩阵全部行',['行',...b.discriminant.sylvester.map((_,i)=>i)],b.discriminant.sylvester.map((r,i)=>[i,...r]));add('bareiss','Bareiss每步主元与全部矩阵行',['步','列','换行','主元','上一主元','矩阵行','内容'],b.discriminant.bareiss.flatMap((t,i)=>t.matrix.map((r,j)=>[i,t.column,t.swappedWith,t.pivot,t.previousPivot,j,r])));
+ add('sturm-sequence','Sturm序列与无穷远符号',['编号','多项式','系数','−∞符号','+∞符号'],b.real.sequence.map((t,i)=>[i,poly(t),t,b.real.leftInfinity[i],b.real.rightInfinity[i]]));add('sturm-divisions','Sturm全部带余除法',['步','被除式','除式','商','余式（下一项取负）'],b.real.divisions.map((t,i)=>[i,t.dividend,t.divisor,t.quotient,t.remainder]));add('sturm-tree','全部二分节点：包括零根区间',['编号','父','左端不含','右端包含','左符号串','右符号串','V左','V右','根数','子节点','最终隔离'],b.real.nodes.map(t=>[t.id,t.parent,t.left,t.right,t.leftSigns,t.rightSigns,t.leftVariation,t.rightVariation,t.count,t.children,b.real.leaves.includes(t.id)]));
+ add('evidence','实际筛选每一步',['步','证据','之前','之后','逐群排除理由'],s.classification.steps.map((t,i)=>[i,evidenceLabel(t.evidence),t.before,t.remaining,t.excluded]));add('unused','选中但不可作为循环型的素数',['p','原因'],s.unusedEvidence.map(r=>[r.prime,r.reason]));add('group-summary','完整五群候选表',['群','阶','全部循环型','全偶','导出群阶','可解'],s.candidateModels.map(g=>[g.id,g.order,g.availableTypes,g.even,g.derived.map(t=>t.elements.length),g.solvable]));
+ for(const g of s.candidateModels){add('elements-'+g.id,g.id+'全部置换',['编号','循环记号（1至5）','像数组（0至4）','循环型','逆元编号'],g.permutations.map((p,i)=>[i,g.labels[i],p,g.cycleTypes[i],g.inverses[i]]));add('multiplication-'+g.id,g.id+'完整乘法：列先作用',['左/右',...g.permutations.map((_,i)=>i)],g.multiplication.map((r,i)=>[i,...r]));add('derived-'+g.id,g.id+'完整导出子群元素',['层','全部元素编号','全部换位子生成元','下一导出群','已记录换位子数'],g.derived.map((t,i)=>[i,t.elements,t.generators,t.next,t.commutators.length]));}
+ if(b.construction){const c=b.construction;add('construction','显式根所在域与根式塔',['项目','值'],[['构造',c.kind],['确定群',c.group],['容纳所有根的域次数',c.ambientDegree],['根式塔',c.tower],['定义关系',c.relations||c.cyclotomicPolynomial]]);add('constructed-roots','实际构造的全部根坐标',['根编号','坐标'],c.roots.map((r,i)=>[i,r]));add('constructed-product','全部根相乘得到的多项式',['T幂次','系数在环境基中的坐标'],c.polynomialProduct.map((r,i)=>[i,r]));if(c.generators){add('construction-basis','根式环境域基',['编号','α指数','ζ指数'],c.basis.map((r,i)=>[i,r.alphaExponent,r.zetaExponent]));add('construction-generators','两生成元的完整矩阵',['生成元','矩阵行','坐标'],c.generators.flatMap(g=>g.matrix.data.map((r,i)=>[g.label,i,r])));}else{add('cyclotomic-fixed','实子域完整幂基',['幂次','ζ幂基坐标'],c.fixedBasis.map((r,i)=>[i,r]));add('cyclotomic-restrictions','实子域全部限制矩阵',['单位代表','矩阵行','v幂基坐标'],c.restrictions.flatMap((m,j)=>m.data.map((r,i)=>[c.quotientRepresentatives[j],i,r])));add('cyclotomic-quotient','模±1商群乘法',['左/右',...c.quotientRepresentatives],c.quotientMultiplication.map((r,i)=>[c.quotientRepresentatives[i],...r.map(j=>c.quotientRepresentatives[j])]));}}
+ return out;
+}
 
-    function normalize(poly, prime) {
-      var result = poly.map(function (coefficient) { return mod(coefficient, prime); });
-      while (result.length > 1 && result[result.length - 1] === 0) result.pop();
-      return result;
-    }
+const PRESETS=[
+ {id:'default',label:'三实根：S₅',values:{}},
+ {id:'one-prime',label:'只看p=2：证据不足',values:{evidencePrimes:'2',useReal:'no',useDiscriminant:'no',useConstruction:'no'}},
+ {id:'two-primes',label:'再加入p=11',values:{evidencePrimes:'2,11',prime:'11',useReal:'no',useDiscriminant:'no',useConstruction:'no'}},
+ {id:'real-only',label:'只用复共轭',values:{evidencePrimes:'',useDiscriminant:'no',useConstruction:'no'}},
+ {id:'disc-only',label:'只用非平方判别式',values:{evidencePrimes:'',useReal:'no',useConstruction:'no'}},
+ {id:'no-evidence',label:'暂不启用任何证据',values:{evidencePrimes:'',useReal:'no',useDiscriminant:'no',useConstruction:'no'}},
+ {id:'bad-prime',label:'p=3：有重因子',values:{prime:'3',evidencePrimes:'3',useReal:'no',useDiscriminant:'no',useConstruction:'no'}},
+ {id:'transposition',label:'p=17：直接出现对换',values:{prime:'17',evidencePrimes:'17',useReal:'no',useDiscriminant:'no',useConstruction:'no'}},
+ {id:'a5',label:'平方判别式：A₅仍不可解',values:{coefficients:'16,20,0,0,0,1',prime:'7'}},
+ {id:'a5-disc',label:'平方判别式单独不够',values:{coefficients:'16,20,0,0,0,1',evidencePrimes:'',useReal:'no',useConstruction:'no'}},
+ {id:'binomial',label:'显式根式：x⁵−2',values:{coefficients:'-2,0,0,0,0,1'}},
+ {id:'binomial-off',label:'x⁵−2：关闭构造',values:{coefficients:'-2,0,0,0,0,1',useConstruction:'no'}},
+ {id:'binomial-three',label:'显式根式：x⁵−3',values:{coefficients:'-3,0,0,0,0,1',prime:'29'}},
+ {id:'binomial-negative',label:'显式根式：x⁵+2',values:{coefficients:'2,0,0,0,0,1',prime:'13'}},
+ {id:'cyclotomic',label:'实圆分五次：C₅',values:{coefficients:'1,3,-3,-4,1,1',prime:'23'}},
+ {id:'cyclotomic-off',label:'实圆分：关闭构造',values:{coefficients:'1,3,-3,-4,1,1',useConstruction:'no'}},
+ {id:'exercise',label:'练习：x⁵−4x+2',values:{coefficients:'2,-4,0,0,0,1',prime:'19'}},
+ {id:'reducible',label:'五次但可约：x⁵−1',values:{coefficients:'-1,0,0,0,0,1'}},
+ {id:'five-real',label:'五个有理实根',values:{coefficients:'0,4,0,-5,0,1'}},
+ {id:'repeated',label:'重复根：(x−1)⁵',values:{coefficients:'-1,5,-10,10,-5,1'}},
+ {id:'quadratic-real',label:'二次：两个实根',values:{coefficients:'-2,0,1'}},
+ {id:'quadratic-complex',label:'二次：没有实根',values:{coefficients:'1,0,1'}},
+ {id:'cubic',label:'三次：一实根',values:{coefficients:'-2,0,0,1'}},
+ {id:'quartic',label:'四次：D₄前置例',values:{coefficients:'-2,0,0,0,1'}},
+ {id:'quadratic-factors',label:'没有整数根仍可约',values:{coefficients:'2,0,3,0,1'}},
+ {id:'zero-root',label:'只有一个不同根：x⁵',values:{coefficients:'0,0,0,0,0,1'}},
+ {id:'coarse',label:'区间精度：4位',values:{bits:'4'}},
+ {id:'fine',label:'区间精度：12位',values:{bits:'12'}}
+];
+const QUESTIONS=[
+ ['只在一个好素数下看到四循环，能断言S₅吗？',['不能；F₂₀也含四循环。','可以；四循环已经足够。']],
+ ['模素数后有重因子，这一行怎样使用？',['保留分解，但不作普通Frobenius证据。','照样把重复因子次数当循环型。']],
+ ['判别式是非零平方，能推出根式可解吗？',['不能；它只把群限制在Aₙ。','能；平方意味着群交换。']],
+ ['隔离到很窄的有理区间，是否给出了根式公式？',['没有；近似误差证书与有限根式是不同结论。','给出了；精度足够就等于根式。']]
+];
 
-    function degree(poly, prime) {
-      return normalize(poly, prime).length - 1;
-    }
+const STYLE='.insolvability160{color:var(--fg);min-width:0;overflow-wrap:anywhere}.insolvability160 *{box-sizing:border-box}.insolvability160 [hidden]{display:none!important}.insolvability160 button,.insolvability160 input,.insolvability160 select{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--border);border-radius:5px;min-height:44px;padding:8px;max-width:100%}.insolvability160 button{margin:4px 4px 4px 0;cursor:pointer;white-space:normal}.insolvability160 button:disabled{opacity:.5;cursor:default}.insolvability160 button[aria-pressed=true]{outline:2px solid var(--accent);background:var(--block-bg)}.insolvability160 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}.insolvability-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}.insolvability-controls label{display:grid;gap:6px;min-width:0}.insolvability160 fieldset{border:1px solid var(--border);margin:12px 0;min-width:0}.insolvability160 legend{max-width:100%;font-weight:600}.insolvability160 p{line-height:1.7}.insolvability-error{color:var(--cl-red,#b64335)}.insolvability-scroll{overflow:auto;max-width:100%;min-width:0;border:1px solid var(--border);margin:10px 0}.insolvability-scroll svg{display:block;min-width:900px;width:900px;height:460px;max-width:none}.insolvability-scroll table{border-collapse:collapse;min-width:900px;width:max-content;max-width:none;font-size:12px}.insolvability-scroll th,.insolvability-scroll td{padding:7px;vertical-align:top;text-align:left;border:1px solid var(--border);min-width:40px;max-width:550px;white-space:normal;overflow-wrap:anywhere}.insolvability160 details{border:1px solid var(--border);padding:10px;margin:10px 0;min-width:0}.insolvability160 summary{cursor:pointer;min-height:44px;line-height:1.7}.insolvability160 .insolvability-summary{padding:12px;border-left:3px solid var(--accent);background:var(--block-bg)}@media(max-width:680px){.insolvability-controls{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){.insolvability160 *{scroll-behavior:auto!important}}';
+function tableHTML(t){return '<table data-table="'+esc(t.key)+'"><caption>'+esc(t.title)+'</caption><thead><tr>'+t.headers.map(h=>'<th scope="col">'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+t.rows.map(r=>'<tr>'+r.map(v=>'<td>'+esc(fmt(v))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';}
+function mount(container){const doc=container.ownerDocument,win=doc.defaultView;if(!doc.getElementById('insolvability160-style')){const style=doc.createElement('style');style.id='insolvability160-style';style.textContent=STYLE;doc.head.appendChild(style);}const field=(k,label)=>'<label>'+label+'<input type="text" data-key="'+k+'"></label>',select=(k,label,options)=>'<label>'+label+'<select data-key="'+k+'">'+options.map(([value,text])=>'<option value="'+value+'">'+esc(text)+'</option>').join('')+'</select></label>';
+ container.innerHTML='<div class="insolvability160"><h3>五次方程：把每一条证据接到结论上</h3><p>先选一个例子，再逐项启用证据。显示某个素数的详细分解，与把它用于群筛选，是两个独立控制。</p><div>'+PRESETS.map(p=>'<button type="button" data-preset="'+p.id+'">'+esc(p.label)+'</button>').join('')+'</div><div class="insolvability-controls">'+field('coefficients','首一整数多项式：常数项到最高次系数')+select('prime','展开哪个素数的除法与证书',PRIMES.map(p=>[p,p]))+field('evidencePrimes','用于筛选的素数（逗号分隔；空=不用）')+select('bits','实根区间精度位数',Array.from({length:9},(_,i)=>[i+4,i+4]))+[['useReal','启用精确实根数与复共轭'],['useDiscriminant','启用判别式平方性'],['useConstruction','启用范围内的显式根构造']].map(([k,label])=>select(k,label,[['yes','启用'],['no','关闭']])).join('')+'</div><p>范围：2–5次，首一，整数系数绝对值≤32。系数不加空格；例如3,-6,0,0,0,1表示x⁵−6x+3。素数可取2、3、5、7、11、13、17、19、23、29。无法由当前证据区分时，保留“证据不足”。</p>'+QUESTIONS.map((q,i)=>'<fieldset data-question="'+i+'"><legend>'+(i+1)+'. '+esc(q[0])+'</legend>'+q[1].map((v,j)=>'<button type="button" data-choice="'+j+'" aria-pressed="false">'+esc(v)+'</button>').join('')+'</fieldset>').join('')+'<button type="button" data-action="reveal">核对预测并展示完整结果</button><button type="button" data-action="reset">重置实验</button><p class="insolvability-error" role="alert"></p><p role="status"></p><div class="insolvability-results" hidden></div></div>';
+ const shell=container.querySelector('.insolvability160'),inputs=[...shell.querySelectorAll('[data-key]')],result=shell.querySelector('.insolvability-results'),reveal=shell.querySelector('[data-action=reveal]'),error=shell.querySelector('[role=alert]'),status=shell.querySelector('[role=status]');let choices=[null,null,null,null],d=null,url=null;
+ const values=()=>Object.fromEntries(inputs.map(e=>[e.dataset.key,e.value]));function set(v){inputs.forEach(e=>e.value=String({...DEFAULTS,...v}[e.dataset.key]));}function cleanup(){if(url){win.URL.revokeObjectURL(url);url=null;}result.hidden=true;result.replaceChildren();}
+ function update(){cleanup();try{d=snapshot(values());error.textContent='';}catch(e){d=null;error.textContent=e.message;}reveal.disabled=!d||choices.some(x=>x===null);status.textContent=choices.some(x=>x===null)?'先完成四项预测。':'预测已记录，请揭晓核对。';}
+ function render(){if(!d)return;cleanup();result.hidden=false;const tables=ledgers(d),b=d.polynomial;result.innerHTML='<div class="insolvability-summary">'+esc(poly(b.coefficients)+'：'+verdict(d)+'。'+d.classification.reason+'；不同实根 '+b.real.rootCount+'；判别式 '+b.discriminant.value+'。')+'</div><p><a data-download download="galois-insolvability-run.json">下载本次全部精确记录(JSON)</a></p>'+plots(d).map((p,i)=>'<div class="insolvability-scroll" role="region" tabindex="0" aria-label="图'+(i+1)+'：'+esc(p.title)+'">'+svg(p)+'</div>').join('')+'<p>各表展开后显示全部行，宽表可用方向键横向滚动。JSON还保存全部群元素对的换位子及生成词、所有素数的不可约证书；可用这些记录独立复算。</p>'+tables.map(t=>'<details data-ledger="'+t.key+'"><summary>'+esc(t.title)+'（'+t.rows.length+'行）</summary><div class="insolvability-scroll" role="region" tabindex="0" aria-label="'+esc(t.title)+'"></div></details>').join('');url=win.URL.createObjectURL(new win.Blob([JSON.stringify(d,null,2)+'\n'],{type:'application/json'}));result.querySelector('[data-download]').href=url;for(const t of tables){const detail=result.querySelector('[data-ledger="'+t.key+'"]');detail.addEventListener('toggle',()=>{if(detail.open&&!detail.querySelector('table'))detail.querySelector('[role=region]').innerHTML=tableHTML(t);});}status.textContent=choices.filter(v=>v===0).length+' / 4；结果已显示。每题第一项为正确答案，请对照证据链解释原因。';}
+ inputs.forEach(e=>e.addEventListener(e.tagName==='SELECT'?'change':'input',update));shell.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{set(PRESETS.find(p=>p.id===b.dataset.preset).values);update();}));shell.querySelectorAll('[data-question]').forEach((f,i)=>f.querySelectorAll('[data-choice]').forEach(b=>b.addEventListener('click',()=>{choices[i]=+b.dataset.choice;f.querySelectorAll('button').forEach(q=>q.setAttribute('aria-pressed',String(q===b)));if(!result.hidden)render();else update();})));reveal.addEventListener('click',render);shell.querySelector('[data-action=reset]').addEventListener('click',()=>{choices=[null,null,null,null];shell.querySelectorAll('[data-choice]').forEach(b=>b.setAttribute('aria-pressed','false'));set(DEFAULTS);update();shell.querySelector('[data-choice]').focus();});set(DEFAULTS);update();
+}
+function selfTest(){let checks=0;const ck=(x,m)=>{checks++;if(!x)throw Error(m);};for(const p of PRESETS){const s=snapshot(p.values);ck(s.polynomial.real.leaves.length===s.polynomial.real.rootCount,p.id+' real roots');ck(!s.classification.applicable||s.classification.remaining.length>0,p.id+' candidates');}for(const [id,group,solvable]of [['default','S5',false],['one-prime',null,null],['two-primes','S5',false],['a5','A5',false],['binomial','F20',true],['cyclotomic','C5',true]]){const s=snapshot(PRESETS.find(p=>p.id===id).values);ck(s.classification.exactGroup===group&&s.classification.solvable===solvable,id+' verdict');}return{status:'PASS',checks,presets:PRESETS.length};}
 
-    function isZero(poly, prime) {
-      return normalize(poly, prime).length === 1 && normalize(poly, prime)[0] === 0;
-    }
-
-    function inverse(value, prime) {
-      var candidate;
-      var target = mod(value, prime);
-      for (candidate = 1; candidate < prime; candidate += 1) {
-        if (mod(target * candidate, prime) === 1) return candidate;
-      }
-      fail("nonzero modular inverse does not exist");
-    }
-
-    function monic(poly, prime) {
-      var normalized = normalize(poly, prime);
-      if (isZero(normalized, prime)) return [0];
-      var factor = inverse(normalized[normalized.length - 1], prime);
-      return normalized.map(function (coefficient) { return mod(coefficient * factor, prime); });
-    }
-
-    function subtract(left, right, prime) {
-      var length = Math.max(left.length, right.length);
-      var result = [];
-      var index;
-      for (index = 0; index < length; index += 1) {
-        result[index] = mod((left[index] || 0) - (right[index] || 0), prime);
-      }
-      return normalize(result, prime);
-    }
-
-    function multiply(left, right, prime) {
-      var result = [];
-      var i;
-      var j;
-      for (i = 0; i < left.length + right.length - 1; i += 1) result[i] = 0;
-      for (i = 0; i < left.length; i += 1) {
-        for (j = 0; j < right.length; j += 1) {
-          result[i + j] = mod(result[i + j] + left[i] * right[j], prime);
-        }
-      }
-      return normalize(result, prime);
-    }
-
-    function divide(left, right, prime) {
-      var remainder = normalize(left, prime);
-      var divisor = normalize(right, prime);
-      if (isZero(divisor, prime)) fail("division by zero polynomial");
-      var quotient = [];
-      var divisorDegree = divisor.length - 1;
-      var divisorLead = divisor[divisorDegree];
-      var index;
-      for (index = 0; index <= Math.max(0, remainder.length - divisor.length); index += 1) quotient[index] = 0;
-      while (!isZero(remainder, prime) && remainder.length - 1 >= divisorDegree) {
-        var shift = remainder.length - 1 - divisorDegree;
-        var factor = mod(remainder[remainder.length - 1] * inverse(divisorLead, prime), prime);
-        quotient[shift] = mod((quotient[shift] || 0) + factor, prime);
-        var term = [];
-        for (index = 0; index < shift; index += 1) term[index] = 0;
-        for (index = 0; index < divisor.length; index += 1) term[index + shift] = mod(divisor[index] * factor, prime);
-        remainder = subtract(remainder, term, prime);
-      }
-      return { quotient: normalize(quotient, prime), remainder: normalize(remainder, prime) };
-    }
-
-    function derivative(poly, prime) {
-      var result = [];
-      var index;
-      if (poly.length <= 1) return [0];
-      for (index = 1; index < poly.length; index += 1) result[index - 1] = mod(index * poly[index], prime);
-      return normalize(result, prime);
-    }
-
-    function gcd(left, right, prime) {
-      var a = normalize(left, prime);
-      var b = normalize(right, prime);
-      while (!isZero(b, prime)) {
-        var remainder = divide(a, b, prime).remainder;
-        a = b;
-        b = remainder;
-      }
-      return monic(a, prime);
-    }
-
-    function enumerateMonicDivisor(poly, divisorDegree, prime) {
-      var limit = Math.pow(prime, divisorDegree);
-      var code;
-      var coefficientIndex;
-      for (code = 0; code < limit; code += 1) {
-        var candidate = [];
-        var value = code;
-        for (coefficientIndex = 0; coefficientIndex < divisorDegree; coefficientIndex += 1) {
-          candidate[coefficientIndex] = value % prime;
-          value = Math.floor(value / prime);
-        }
-        candidate[divisorDegree] = 1;
-        var result = divide(poly, candidate, prime);
-        if (isZero(result.remainder, prime)) return candidate;
-      }
-      return null;
-    }
-
-    function findFactor(poly, prime) {
-      var polynomialDegree = degree(poly, prime);
-      var divisorDegree;
-      for (divisorDegree = 1; divisorDegree <= Math.floor(polynomialDegree / 2); divisorDegree += 1) {
-        var factor = enumerateMonicDivisor(poly, divisorDegree, prime);
-        if (factor) return factor;
-      }
-      return null;
-    }
-
-    function factorPolynomial(poly, prime) {
-      var normalized = monic(poly, prime);
-      if (degree(normalized, prime) <= 1) return [normalized];
-      var factor = findFactor(normalized, prime);
-      if (!factor) return [normalized];
-      var quotient = divide(normalized, factor, prime).quotient;
-      var factors = factorPolynomial(factor, prime).concat(factorPolynomial(quotient, prime));
-      factors.sort(function (left, right) { return degree(left, prime) - degree(right, prime); });
-      return factors;
-    }
-
-    function presetById(id) {
-      var index;
-      for (index = 0; index < PRESETS.length; index += 1) {
-        if (PRESETS[index].id === id) return PRESETS[index];
-      }
-      fail("unknown polynomial: " + id);
-    }
-
-    function factorType(factors, prime) {
-      return "(" + factors.map(function (factor) { return degree(factor, prime); }).join(",") + ")";
-    }
-
-    function formatPolynomial(poly, prime) {
-      var terms = [];
-      var index;
-      for (index = poly.length - 1; index >= 0; index -= 1) {
-        var coefficient = mod(poly[index], prime);
-        if (coefficient === 0) continue;
-        var monomial;
-        if (index === 0) monomial = String(coefficient);
-        else if (index === 1) monomial = (coefficient === 1 ? "" : coefficient + " ") + "x";
-        else monomial = (coefficient === 1 ? "" : coefficient + " ") + "x^" + index;
-        terms.push(monomial);
-      }
-      return terms.length ? terms.join(" + ") : "0";
-    }
-
-    function formatIntegerPolynomial(poly) {
-      var terms = [];
-      var index;
-      for (index = poly.length - 1; index >= 0; index -= 1) {
-        var coefficient = poly[index];
-        if (coefficient === 0) continue;
-        var absolute = Math.abs(coefficient);
-        var monomial;
-        if (index === 0) monomial = String(absolute);
-        else if (index === 1) monomial = (absolute === 1 ? "" : absolute + " ") + "x";
-        else monomial = (absolute === 1 ? "" : absolute + " ") + "x^" + index;
-        if (terms.length === 0) terms.push(coefficient < 0 ? "-" + monomial : monomial);
-        else terms.push((coefficient < 0 ? " - " : " + ") + monomial);
-      }
-      return terms.length ? terms.join("") : "0";
-    }
-
-    function samePolynomial(left, right, prime) {
-      var a = normalize(left, prime);
-      var b = normalize(right, prime);
-      if (a.length !== b.length) return false;
-      return a.every(function (coefficient, index) { return coefficient === b[index]; });
-    }
-
-    function analyze(id, prime) {
-      var preset = presetById(id);
-      var p = Math.floor(Number(prime));
-      if (!isPrime(p)) fail("prime must be prime");
-      var reduced = normalize(preset.coefficients, p);
-      var derivativePoly = derivative(reduced, p);
-      var repeated = degree(gcd(reduced, derivativePoly, p), p) > 0;
-      var factors = factorPolynomial(reduced, p);
-      var product = factors.reduce(function (left, right) { return multiply(left, right, p); }, [1]);
-      var goodPrime = !repeated;
-      return {
-        id: id,
-        expression: preset.expression,
-        context: preset.context,
-        prime: p,
-        reduced: reduced,
-        reducedText: formatPolynomial(reduced, p),
-        factors: factors,
-        factorTexts: factors.map(function (factor) { return formatPolynomial(factor, p); }),
-        factorization: factors.map(function (factor) { return "(" + formatPolynomial(factor, p) + ")"; }).join(" * "),
-        type: factorType(factors, p),
-        repeated: repeated,
-        squareFree: !repeated,
-        goodPrime: goodPrime,
-        productMatches: samePolynomial(product, reduced, p),
-        certificate: goodPrime ? "cycle-type certificate" : "bad-prime warning"
-      };
-    }
-
-    function ledger(id) {
-      return PRIMES.map(function (prime) { return analyze(id, prime); });
-    }
-
-    function element(doc, tag, className, text) {
-      var node = doc.createElement(tag);
-      if (className) node.className = className;
-      if (text !== undefined) node.textContent = text;
-      return node;
-    }
-
-    function svgElement(doc, tag, attributes, text) {
-      var node = doc.createElementNS(SVG_NS, tag);
-      Object.keys(attributes || {}).forEach(function (key) {
-        node.setAttribute(key, String(attributes[key]));
-      });
-      if (text !== undefined) node.textContent = text;
-      return node;
-    }
-
-    function installStyles(doc) {
-      if (doc.getElementById(STYLE_ID)) return;
-      var style = element(doc, "style");
-      style.id = STYLE_ID;
-      style.textContent = STYLE_TEXT;
-      (doc.head || doc.documentElement).appendChild(style);
-    }
-
-    function metric(doc, label, value) {
-      var node = element(doc, "div", "gi-metric");
-      node.appendChild(element(doc, "span", "", label));
-      node.appendChild(element(doc, "strong", "", value));
-      return node;
-    }
-
-    function announce(api, root, message) {
-      if (api && typeof api.announce === "function") api.announce(root, message);
-    }
-
-    function addOption(doc, select, value, label) {
-      var option = element(doc, "option", "", label);
-      option.value = value;
-      select.appendChild(option);
-    }
-
-    function buildSvg(doc, report) {
-      var svg = svgElement(doc, "svg", {
-        viewBox: "0 0 640 280",
-        role: "img",
-        "aria-label": report.expression + " 模素数 " + report.prime + " 的循环型分组"
-      });
-      svg.appendChild(svgElement(doc, "title", {}, report.expression + " 的 Frobenius 循环型证书"));
-      svg.appendChild(svgElement(doc, "text", { x: 28, y: 28, "font-size": 14, "font-weight": 700 }, "factor degrees = cycle lengths"));
-      svg.appendChild(svgElement(doc, "text", { x: 28, y: 51, "font-size": 12 }, "only a certificate when the reduction is square-free"));
-      var startX = 70;
-      var totalWidth = 510;
-      var cursor = startX;
-      var rootIndex = 1;
-      report.factors.forEach(function (factor, factorIndex) {
-        var size = degree(factor, report.prime);
-        var width = totalWidth * size / 5;
-        svg.appendChild(svgElement(doc, "rect", {
-          x: cursor,
-          y: 84,
-          width: width - 6,
-          height: 116,
-          rx: 6,
-          class: "gi-group gi-group-" + (factorIndex % 4)
-        }));
-        svg.appendChild(svgElement(doc, "text", {
-          x: cursor + (width - 6) / 2,
-          y: 105,
-          "text-anchor": "middle",
-          "font-size": 12,
-          "font-weight": 700
-        }, "degree " + size));
-        var pointIndex;
-        for (pointIndex = 0; pointIndex < size; pointIndex += 1) {
-          var centerX = cursor + (width - 6) * (pointIndex + 1) / (size + 1);
-          var centerY = 150;
-          svg.appendChild(svgElement(doc, "circle", { cx: centerX, cy: centerY, r: 18, class: "gi-root" }));
-          svg.appendChild(svgElement(doc, "text", {
-            x: centerX,
-            y: centerY + 4,
-            "text-anchor": "middle",
-            "font-size": 11
-          }, "a" + rootIndex));
-          rootIndex += 1;
-        }
-        cursor += width;
-      });
-      svg.appendChild(svgElement(doc, "text", { x: 28, y: 238, "font-size": 12 }, "当前型：" + report.type + "；群元素的循环型，不是整个群的标签"));
-      svg.appendChild(svgElement(doc, "text", { x: 28, y: 259, "font-size": 12 }, report.goodPrime ? "好素数：可作为 Frobenius 证书" : "重因子：此处不作为普通 Frobenius 证书"));
-      return svg;
-    }
-
-    function buildLedger(doc, reports) {
-      var wrapper = element(doc, "div", "gi-ledger");
-      var table = element(doc, "table");
-      var head = element(doc, "thead");
-      var headRow = element(doc, "tr");
-      ["素数 p", "模 p 分解", "分解型", "平方自由", "证书状态"].forEach(function (label) {
-        headRow.appendChild(element(doc, "th", "", label));
-      });
-      head.appendChild(headRow);
-      table.appendChild(head);
-      var body = element(doc, "tbody");
-      reports.forEach(function (report) {
-        var row = element(doc, "tr");
-        [
-          String(report.prime),
-          report.factorization,
-          report.type,
-          report.squareFree ? "是" : "否，有重因子",
-          report.goodPrime ? "循环型证书" : "不是普通证书"
-        ].forEach(function (value) { row.appendChild(element(doc, "td", "", value)); });
-        body.appendChild(row);
-      });
-      table.appendChild(body);
-      wrapper.appendChild(table);
-      return wrapper;
-    }
-
-    function buildResult(doc, report) {
-      var section = element(doc, "section", "gi-result");
-      section.appendChild(element(doc, "h4", "", "揭示后的有限域证书账本"));
-      var metrics = element(doc, "div", "gi-metrics");
-      metrics.appendChild(metric(doc, "当前素数 p", String(report.prime)));
-      metrics.appendChild(metric(doc, "模 p 分解型", report.type));
-      metrics.appendChild(metric(doc, "平方自由", report.squareFree ? "是" : "否"));
-      metrics.appendChild(metric(doc, "证书", report.goodPrime ? "可用" : "暂停"));
-      section.appendChild(metrics);
-      var resultGrid = element(doc, "div", "gi-result-grid");
-      resultGrid.appendChild(buildSvg(doc, report));
-      var textColumn = element(doc, "div");
-      textColumn.appendChild(element(doc, "div", "gi-formula", report.expression + "\nmod " + report.prime + ": " + report.reducedText + "\n" + report.factorization));
-      var interpretation;
-      if (report.goodPrime) {
-        interpretation = "好素数证书：分解型 " + report.type + " 只说明 Galois 群中存在一个相应循环型的元素。它是证据集合中的一张证书，不单独等于整个 Galois 群。";
-      } else {
-        interpretation = "失败边界：约化式有重因子，当前 p 不是无分歧的普通循环型证书；先换好素数，不能把这一行硬解释成 Frobenius 型。";
-      }
-      textColumn.appendChild(element(doc, "p", "gi-check", interpretation));
-      textColumn.appendChild(buildLedger(doc, ledger(report.id)));
-      textColumn.appendChild(element(doc, "p", "gi-disclaimer", "即使多张证书共同指向 S5，仍需不可约性、判别式和有限群论的收口；实验不执行数值求根，也不生成根式公式。"));
-      resultGrid.appendChild(textColumn);
-      section.appendChild(resultGrid);
-      return section;
-    }
-
-    function freshState() {
-      return { presetId: "s5-main", prime: 2, answers: {}, revealed: false };
-    }
-
-    function mount(root, api) {
-      if (!root || !root.ownerDocument) return;
-      var doc = root.ownerDocument;
-      INSTANCE += 1;
-      installStyles(doc);
-      var state = freshState();
-
-      function reset() {
-        state = freshState();
-        render();
-        announce(api, root, "已重置为默认五次和 p=2，证书重新隐藏。");
-      }
-
-      function choosePreset(id) {
-        state.presetId = id;
-        state.answers = {};
-        state.revealed = false;
-        render();
-        announce(api, root, "已切换具体多项式；请重新预测证书边界。");
-      }
-
-      function choosePrime(value) {
-        state.prime = Number(value);
-        state.answers = {};
-        state.revealed = false;
-        render();
-        announce(api, root, "已切换素数；请重新预测当前约化的证书含义。");
-      }
-
-      function render() {
-        var report = analyze(state.presetId, state.prime);
-        var shell = element(doc, "div", "gi-lab");
-        shell.appendChild(element(doc, "h3", "gi-heading", "不可解性：先押证书，再看群论边界"));
-        shell.appendChild(element(doc, "p", "gi-note", "有限域分解是精确的离散证据，但只显示群元素的循环型；结果揭示前不显示因子账本。"));
-
-        var presets = element(doc, "div", "gi-preset-grid");
-        PRESETS.forEach(function (item) {
-          var button = element(doc, "button", "", item.label);
-          button.type = "button";
-          button.setAttribute("aria-pressed", item.id === state.presetId ? "true" : "false");
-          button.setAttribute("aria-label", "选择" + item.label);
-          button.appendChild(element(doc, "small", "", item.context));
-          button.addEventListener("click", function () { choosePreset(item.id); });
-          presets.appendChild(button);
-        });
-        shell.appendChild(presets);
-
-        var controls = element(doc, "div", "gi-controls");
-        var polynomialControl = element(doc, "div", "gi-control");
-        polynomialControl.appendChild(element(doc, "label", "", "具体多项式"));
-        var polynomialSelect = element(doc, "select");
-        PRESETS.forEach(function (item) { addOption(doc, polynomialSelect, item.id, item.expression); });
-        polynomialSelect.value = state.presetId;
-        polynomialSelect.addEventListener("change", function (event) { choosePreset(event.target.value); });
-        polynomialControl.appendChild(polynomialSelect);
-        controls.appendChild(polynomialControl);
-
-        var primeControl = element(doc, "div", "gi-control");
-        primeControl.appendChild(element(doc, "label", "", "检验素数 p"));
-        var primeSelect = element(doc, "select");
-        PRIMES.forEach(function (prime) { addOption(doc, primeSelect, String(prime), "p = " + prime); });
-        primeSelect.value = String(state.prime);
-        primeSelect.addEventListener("change", function (event) { choosePrime(event.target.value); });
-        primeControl.appendChild(primeSelect);
-        controls.appendChild(primeControl);
-        shell.appendChild(controls);
-
-        var prediction = element(doc, "div", "gi-predict");
-        prediction.appendChild(element(doc, "p", "gi-predict-title", "先预测：三道题全部选择后，结果才可揭示。"));
-        PREDICTIONS.forEach(function (question, questionIndex) {
-          var fieldset = element(doc, "fieldset", "gi-question");
-          fieldset.appendChild(element(doc, "legend", "", (questionIndex + 1) + ". " + question.prompt));
-          var choices = element(doc, "div", "gi-choice");
-          question.options.forEach(function (option) {
-            var choice = element(doc, "button", "", option.label);
-            choice.type = "button";
-            choice.setAttribute("aria-pressed", state.answers[question.id] === option.id ? "true" : "false");
-            choice.addEventListener("click", function () {
-              state.answers[question.id] = option.id;
-              state.revealed = false;
-              render();
-            });
-            choices.appendChild(choice);
-          });
-          fieldset.appendChild(choices);
-          prediction.appendChild(fieldset);
-        });
-        shell.appendChild(prediction);
-
-        var complete = PREDICTIONS.every(function (question) { return state.answers[question.id]; });
-        var actionRow = element(doc, "div", "gi-action-row");
-        var reveal = element(doc, "button", "gi-primary", "揭示证书");
-        reveal.type = "button";
-        reveal.disabled = !complete;
-        reveal.addEventListener("click", function () {
-          if (!complete) return;
-          state.revealed = true;
-          render();
-          announce(api, root, "证书已揭示：请区分循环型、完整群判定和根式公式。");
-        });
-        actionRow.appendChild(reveal);
-        var resetButton = element(doc, "button", "", "重置");
-        resetButton.type = "button";
-        resetButton.addEventListener("click", reset);
-        actionRow.appendChild(resetButton);
-        shell.appendChild(actionRow);
-
-        var feedback = element(doc, "p", "gi-feedback");
-        if (!complete) feedback.textContent = "预测尚未完成，因子与循环型保持隐藏。";
-        else if (!state.revealed) feedback.textContent = "三道预测已提交；现在可以揭示证书账本。";
-        else {
-          var score = PREDICTIONS.reduce(function (total, question) {
-            return total + (state.answers[question.id] === question.answer ? 1 : 0);
-          }, 0);
-          feedback.className = "gi-feedback " + (score === PREDICTIONS.length ? "gi-pass" : "gi-warn");
-          feedback.textContent = "预测得分 " + score + "/" + PREDICTIONS.length + "；先读假设，再读分解型。";
-        }
-        shell.appendChild(feedback);
-        if (state.revealed) shell.appendChild(buildResult(doc, report));
-        else shell.appendChild(element(doc, "p", "gi-disclaimer", "结果锁定：提交预测后才能看到 SVG、因子和跨素数表格。"));
-        while (root.firstChild) root.removeChild(root.firstChild);
-        root.appendChild(shell);
-      }
-
-      render();
-    }
-
-    function selfTest() {
-      var checks = 0;
-      function check(condition, message) {
-        checks += 1;
-        if (!condition) fail(message);
-      }
-      check(PRESETS.length === 3, "three polynomial examples");
-      check(PRIMES.length === 5 && PRIMES.every(isPrime), "prime menu");
-      var mainAtTwo = analyze("s5-main", 2);
-      check(mainAtTwo.goodPrime, "main p=2 is square-free");
-      check(mainAtTwo.type === "(1,4)", "main p=2 gives (1,4)");
-      check(mainAtTwo.productMatches, "main factor reconstruction");
-      var mainLedger = ledger("s5-main");
-      check(mainLedger.every(function (report) { return report.factors.reduce(function (sum, factor) { return sum + degree(factor, report.prime); }, 0) === 5; }), "factor degrees sum to five");
-      check(mainLedger.some(function (report) { return report.goodPrime && report.type === "(2,3)"; }), "a second cycle type certificate exists");
-      var bad = analyze("s5-second", 2);
-      check(bad.repeated && !bad.goodPrime, "repeated factor is a bad-prime warning");
-      var radical = analyze("radical-control", 3);
-      check(radical.productMatches, "radical control reconstruction");
-      check(ledger("radical-control").length === PRIMES.length, "ledger covers all selected primes");
-      check(formatIntegerPolynomial([3, -6, 0, 0, 0, 1]) === "x^5 - 6 x + 3", "integer polynomial display");
-      check(formatPolynomial(mainAtTwo.reduced, 2).length > 0, "finite-field display");
-      return { ok: true, checks: checks, examples: PRESETS.length, primes: PRIMES.length };
-    }
-
-    var exported = {
-      PRIMES: PRIMES,
-      PRESETS: PRESETS,
-      PREDICTIONS: PREDICTIONS,
-      analyze: analyze,
-      factorPolynomial: factorPolynomial,
-      ledger: ledger,
-      formatPolynomial: formatPolynomial,
-      selfTest: selfTest,
-      mount: mount
-    };
-
-    return exported;
-  }
-);
+return {PRIMES,DEFAULTS,PRESETS,QUESTIONS,config,snapshot,plots,svg,ledgers,fmt,poly,verdict,evidenceLabel,tableHTML,mount,selfTest};
+});
