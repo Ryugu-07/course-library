@@ -336,6 +336,8 @@ def sync_learning_assets(md_names):
         shutil.copytree(SHARED / "projects" / "retarded-radiation", destination / "projects" / "retarded-radiation")
     if "quantum-symmetry" in names:
         shutil.copytree(SHARED / "projects" / "quantum-symmetry", destination / "projects" / "quantum-symmetry")
+    if "swave-scattering" in names:
+        shutil.copytree(SHARED / "projects" / "swave-scattering", destination / "projects" / "swave-scattering")
 
 
 def previous_build_time(out: Path, fallback: str) -> str:

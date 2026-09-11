@@ -1,190 +1,105 @@
-(function (host) {
-  "use strict";
+(function(host){"use strict";
+const DEFAULTS={depth:'0.25',k:'0.35',lmax:'3',eta:'1',angle:'60'};
+function config(raw={}){if(!raw||typeof raw!=='object'||Array.isArray(raw))throw Error('参数须为对象');const c={...DEFAULTS};for(const key of Object.keys(raw)){if(!Object.hasOwn(DEFAULTS,key))throw Error('未知参数 '+key);const v=raw[key];if(typeof v!=='string'||v.length>24||!/^[-+]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(v)||!Number.isFinite(+v))throw Error('须输入有限十进制数');c[key]=v;}for(const[key,min,max]of[['depth',0,25],['k',.02,2.5],['eta',0,1],['angle',0,180]])if(+c[key]<min||+c[key]>max)throw Error(key+'超出范围');if(!/^[0-6]$/.test(c.lmax))throw Error('L须为0至6整数');return c;}
+function sphericalJ(l,x){let pref=1;for(let j=1;j<=l;j++)pref*=x/(2*j+1);let term=1,sum=1;for(let n=1;n<=100;n++){term*= -x*x/(2*n*(2*l+2*n+1));sum+=term;if(Math.abs(term)<2e-17*Math.max(1,Math.abs(sum)))break;if(n===100)throw Error('Bessel级数未收敛');}return pref*sum;}
+function riccati(l,x){if(!(x>0))throw Error('Riccati自变量须为正');const j=sphericalJ(l,x),next=sphericalJ(l+1,x);let y0=-Math.cos(x)/x,y1=-Math.cos(x)/(x*x)-Math.sin(x)/x,y=y0,yn=y1;if(l>0){for(let n=1;n<=l;n++){const z=(2*n+1)*y1/x-y0;y0=y1;y1=z;}y=y0;yn=y1;}return{s:x*j,ds:(l+1)*j-x*next,c:-x*y,dc:-(l+1)*y+x*yn};}
+function partial(depth,k,l,eta){const q=Math.sqrt(k*k+depth),inside=riccati(l,q),outside=riccati(l,k),F=inside.s,Fp=q*inside.ds,s=outside.s,sp=k*outside.ds,c=outside.c,cp=k*outside.dc,a=Fp*c-F*cp,b=F*sp-Fp*s,norm=Math.hypot(a,b);let cos=a/norm,sin=b/norm;
+ // A zero potential is exactly free; avoid magnifying subtraction roundoff.
+ if(depth===0){cos=1;sin=0;}
+ const u=cos*s+sin*c,du=cos*sp+sin*cp,amplitude=(F*u+Fp*du)/(F*F+Fp*Fp),oneMinusSr=(1-eta)+2*eta*sin*sin,sr=1-oneMinusSr,si=eta*2*cos*sin,w=2*l+1,elastic=Math.PI*w*(oneMinusSr**2+si*si)/(k*k),reaction=Math.PI*w*(1-eta)*(1+eta)/(k*k),total=2*Math.PI*w*oneMinusSr/(k*k);
+ return{l,q,F,Fp,s,sp,c,cp,a,b,norm,cos,sin,delta:Math.atan2(sin,cos),amplitude,u,du,uInside:amplitude*F,duInside:amplitude*Fp,uResidual:amplitude*F-u,duResidual:amplitude*Fp-du,sr,si,oneMinusSr,modulusSquared:sr*sr+si*si,elastic,reaction,total,optical:total,unitarity:4*Math.PI*w/(k*k),wronskian:s*cp-sp*c};}
+function legendre(l,x){let p=1,q=x;if(l===0)return p;for(let j=1;j<l;j++){const t=((2*j+1)*x*q-j*p)/(j+1);p=q;q=t;}return q;}
+function amplitudeAt(partials,k,L,x){let real=0,imag=0;const terms=[];for(let l=0;l<=L;l++){const p=partials[l],P=legendre(l,x),re=(2*l+1)*p.si*P/(2*k),im=(2*l+1)*p.oneMinusSr*P/(2*k);real+=re;imag+=im;terms.push({l,P,real:re,imag:im});}return{x,real,imag,differential:real*real+imag*imag,terms};}
+function born(depth,k,x){const Q=k*Math.sqrt(Math.max(0,2*(1-x))),z=Q*Q;let shape;if(Q<.2){let term=1/3;shape=term;for(let n=1;n<=12;n++){term*= -z/(2*n*(2*n+3));shape+=term;}}else shape=(Math.sin(Q)-Q*Math.cos(Q))/(Q*Q*Q);return{Q,real:depth*shape,imag:0,differential:(depth*shape)**2};}
+function gauss(n){const rows=[];for(let i=1;i<=n;i++){let x=Math.cos(Math.PI*(i-.25)/(n+.5)),d;for(let j=0;j<30;j++){const p=legendre(n,x),p0=legendre(n-1,x);d=n*(x*p-p0)/(x*x-1);const step=p/d;x-=step;if(Math.abs(step)<2e-16)break;}d=n*(x*legendre(n,x)-legendre(n-1,x))/(x*x-1);rows.push({x,weight:2/((1-x*x)*d*d)});}return rows.sort((a,b)=>a.x-b.x);}
+function scatteringLength(depth){if(depth===0)return{x:0,numerator:0,denominator:1,value:0,nearPole:false};const x=Math.sqrt(depth),denominator=x*Math.cos(x);let numerator;if(x<.2){let term=-x*x*x/3;numerator=term;for(let n=2;n<=12;n++){term*= -x*x/((2*n-2)*(2*n+1));numerator+=term;}}else numerator=denominator-Math.sin(x);return{x,numerator,denominator,value:denominator===0?null:numerator/denominator,nearPole:Math.abs(denominator)<1e-10};}
+function summary(partials,k,L){const rows=[];let elastic=0,reaction=0,total=0;for(let l=0;l<partials.length;l++){const p=partials[l];elastic+=p.elastic;reaction+=p.reaction;total+=p.total;rows.push({l,elastic,reaction,total,increment:p.elastic});}const selected=rows[L],forward=amplitudeAt(partials,k,L,1),optical=4*Math.PI*forward.imag/k;return{...selected,optical,closure:selected.elastic+selected.reaction-selected.total,opticalResidual:optical-selected.total,forward,rows};}
+function depthGrid(k,current){const f=v=>{const q=Math.sqrt(k*k+v);return q*Math.cos(q)*Math.cos(k)+k*Math.sin(q)*Math.sin(k);},roots=[],points=new Set(Array.from({length:129},(_,i)=>25*i/128));points.add(current);
+ for(let i=0;i<512;i++){let a=25*i/512,b=25*(i+1)/512,fa=f(a),fb=f(b);if(fa===0)roots.push(a);if(fa*fb<0){for(let j=0;j<60;j++){const m=(a+b)/2,fm=f(m);if(fa*fm<=0){b=m;fb=fm;}else{a=m;fa=fm;}}roots.push((a+b)/2);}}
+ for(const r of roots){points.add(r);for(const width of [.02,.05,.1,.2,.4,.8,1.6,3.2])for(const sign of[-1,1]){const v=r+sign*k*width;if(v>0&&v<25)points.add(v);}}
+ return{roots,points:[...points].sort((a,b)=>a-b)};}
+function snapshot(raw={}){const parameters=config(raw),depth=+parameters.depth,k=+parameters.k,L=+parameters.lmax,eta=+parameters.eta,angle=+parameters.angle,partials=Array.from({length:7},(_,l)=>partial(depth,k,l,eta)),totals=summary(partials,k,L),s0=partials[0],radial=[];
+ for(let i=0;i<=64;i++){const r=i/64;radial.push({side:'inside',r,u:s0.amplitude*Math.sin(s0.q*r),du:s0.amplitude*s0.q*Math.cos(s0.q*r)});}for(let i=0;i<=128;i++){const r=1+11*i/128;radial.push({side:'outside',r,u:s0.cos*Math.sin(k*r)+s0.sin*Math.cos(k*r),du:k*(s0.cos*Math.cos(k*r)-s0.sin*Math.sin(k*r))});}
+ const angular=Array.from({length:129},(_,i)=>{const theta=i*180/128,x=Math.cos(theta*Math.PI/180);return{theta,...amplitudeAt(partials,k,L,x),born:born(depth,k,x)};}),selected={theta:angle,...amplitudeAt(partials,k,L,Math.cos(angle*Math.PI/180)),born:born(depth,k,Math.cos(angle*Math.PI/180))};
+ const quadrature=gauss(32).map((g,index)=>{const f=amplitudeAt(partials,k,L,g.x),b=born(depth,k,g.x);return{index,...g,f,born:b,elasticContribution:2*Math.PI*g.weight*f.differential,bornContribution:2*Math.PI*g.weight*b.differential};}),integratedElastic=quadrature.reduce((a,r)=>a+r.elasticContribution,0),integratedBorn=quadrature.reduce((a,r)=>a+r.bornContribution,0);
+ const energyScan=Array.from({length:65},(_,i)=>{const wave=.02+2.48*i/64,p=Array.from({length:7},(_,l)=>partial(depth,wave,l,eta));return{k:wave,partials:p,totals:summary(p,wave,L)};}),grid=depthGrid(k,depth),depthScan=grid.points.map(v=>{const p=partial(v,k,0,1);return{depth:v,partial:p,sinSquared:p.sin*p.sin};});
+ return{schema:1,parameters,scope:'R=1、2μ/ℏ²=1；实球方井分波0至6。η仅作用于所保留的有限通道，是现象学损失叠加；径向图仍为实方井s波参考。L外S=1，不提供无限分波尾项证明。',partials,totals,radial,angular,selected,quadrature,integratedElastic,integratedBorn,angularResidual:integratedElastic-totals.elastic,scatteringLength:scatteringLength(depth),energyScan,depthRoots:grid.roots,depthScan,bornForward:born(depth,k,1)};}
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "swave-scattering-styles";
-  var RADIUS = 1;
-  var PRESETS = [
-    { id: "weak", label: "弱吸引井", depth: 0.25, k: 0.35 },
-    { id: "resonance", label: "首个阈值共振", depth: 2.435, k: 0.18 },
-    { id: "suppression", label: "近散射零点", depth: 20.19, k: 0.25 },
-    { id: "finite", label: "有限能量中等散射", depth: 2, k: 1.1 }
-  ];
+const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fmt(v){if(v===null)return'不适用';if(typeof v==='number'){if(!Number.isFinite(v))throw Error('非有限显示值');if(v===0)return'0';if(Number.isInteger(v))return String(v);return Math.abs(v)<1e-5||Math.abs(v)>=1e6?v.toExponential(7):String(Number(v.toPrecision(9)));}return Array.isArray(v)?v.map(fmt).join(', '):String(v);}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=1e5?v.toExponential(3):String(Number(v.toPrecision(5)));
 
-  var STYLE_TEXT = [
-    ".sws-lab{max-width:100%;min-width:0;color:var(--fg);}",
-    ".sws-lab *{box-sizing:border-box;}",
-    ".sws-lab [hidden]{display:none!important;}",
-    ".sws-lab .sws-note,.sws-lab .sws-feedback{color:var(--fg-soft);font-size:13px;line-height:1.65;}",
-    ".sws-lab .sws-presets,.sws-lab .sws-choice,.sws-lab .sws-actions{display:flex;flex-wrap:wrap;gap:8px;}",
-    ".sws-lab button{min-height:44px;}",
-    ".sws-lab .sws-presets button{flex:1 1 135px;}",
-    ".sws-lab .sws-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 18px;margin:14px 0;}",
-    ".sws-lab .sws-control{display:grid;gap:4px;min-width:0;}",
-    ".sws-lab .sws-control label{color:var(--fg-soft);font-size:12.5px;font-weight:700;}",
-    ".sws-lab .sws-control output{color:var(--accent);font-variant-numeric:tabular-nums;}",
-    ".sws-lab .sws-predict{margin:14px 0;padding:12px 14px;border-left:3px solid var(--cl-gold);background:var(--bg);}",
-    ".sws-lab .sws-predict strong{display:block;margin-bottom:8px;font-size:13px;}",
-    ".sws-lab .sws-choice button{flex:1 1 145px;}",
-    ".sws-lab .sws-feedback{min-height:2em;margin:8px 0 0;font-weight:700;}",
-    ".sws-lab .sws-pass{color:var(--cl-green);}.sws-lab .sws-warn{color:var(--cl-red);}",
-    ".sws-lab .sws-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px;margin:14px 0;}",
-    ".sws-lab .sws-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}",
-    ".sws-lab .sws-metric span{display:block;color:var(--fg-soft);font-size:11.5px;}",
-    ".sws-lab .sws-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
-    ".sws-lab .sws-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;}",
-    ".sws-lab .sws-chart{min-width:0;}",
-    ".sws-lab svg{display:block;width:100%;height:auto;background:var(--bg);border:1px solid var(--border);border-radius:7px;}",
-    ".sws-lab svg text{fill:var(--fg);font-family:inherit;letter-spacing:0;}",
-    ".sws-lab .sws-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.55;}",
-    ".sws-lab .sws-boundary{stroke:var(--cl-red);stroke-width:1.4;stroke-dasharray:5 4;}",
-    ".sws-lab .sws-inside{stroke:var(--accent);stroke-width:3;fill:none;}",
-    ".sws-lab .sws-outside{stroke:var(--cl-gold);stroke-width:3;fill:none;}",
-    ".sws-lab .sws-cross{stroke:var(--accent);stroke-width:3;fill:none;}",
-    ".sws-lab .sws-limit{stroke:var(--cl-red);stroke-width:1.8;stroke-dasharray:6 4;fill:none;}",
-    ".sws-lab .sws-selected{fill:var(--cl-green);stroke:var(--bg);stroke-width:2;}",
-    ".sws-lab .sws-ledger{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:14px;}",
-    ".sws-lab table{width:100%;min-width:650px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}",
-    ".sws-lab th,.sws-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;}",
-    ".sws-lab th{color:var(--fg-soft);font-size:11.5px;}",
-    ".sws-lab button:focus-visible,.sws-lab input:focus-visible{outline:3px solid var(--cl-focus);outline-offset:2px;}",
-    "@media(max-width:760px){.sws-lab .sws-controls,.sws-lab .sws-charts{grid-template-columns:minmax(0,1fr);}}",
-    "@media(prefers-reduced-motion:reduce){.sws-lab *{animation:none!important;transition:none!important;}}"
-  ].join("\n");
+function plots(s){const out=[],k=+s.parameters.k,L=+s.parameters.lmax;
+ function add(key,title,caption,xLabel,yLabel,lines,extra={}){const xs=lines.flatMap(r=>r.points.map(v=>v[0])),ys=lines.flatMap(r=>r.points.map(v=>v[1]));let xMin=Math.min(...xs),xMax=Math.max(...xs),yMin=Math.min(0,...ys),yMax=Math.max(0,...ys);if(xMin===xMax)xMax=xMin+1;const pad=(yMax-yMin)*.08||1;yMin-=pad;yMax+=pad;out.push({key,title,caption,width:900,height:460,xLabel,yLabel,xMin,xMax,yMin,yMax,series:lines.map((r,i)=>({...r,color:['#256c91','#ae6017','#687981','#26705b'][i%4]})),...extra});}
+ const radial=(side,key)=>s.radial.filter(r=>r.side===side).map(r=>[r.r,r[key]]);
+ add('radial','实方井s波：在边界接起两段波','两侧都包含r=1；η改变时这仍是实方井参考，不是吸收势内波函数。','半径 r/R','约化径向 u',[{label:'井内匹配解',points:radial('inside','u')},{label:'井外单位振幅解',points:radial('outside','u')}],{boundary:1});
+ add('derivative','函数接上还不够：斜率也必须连续','蓝橙两段在r=1接合；边界两侧值与残差见分波表。','半径 r/R','径向导数 du/dr',[{label:'井内导数',points:radial('inside','du')},{label:'井外导数',points:radial('outside','du')}],{boundary:1});
+ add('angular','角分布：分波干涉与Born对照','蓝线为所选有限L模型；橙线始终是原实方井的一阶Born。','散射角 θ（度）','微分截面 dσ/dΩ',[{label:'有限分波 |f|²',points:s.angular.map(r=>[r.theta,r.differential])},{label:'实方井 |fB|²',points:s.angular.map(r=>[r.theta,r.born.differential])}]);
+ add('convergence','增加分波：总截面如何累积','η=1时检查实井截断；η小于1时增加L也改变损失模型。无无限尾项界。','最大分波 L','截面',[{label:'弹性',points:s.totals.rows.map(r=>[r.l,r.elastic])},{label:'反应/损失',points:s.totals.rows.map(r=>[r.l,r.reaction])},{label:'总截面',points:s.totals.rows.map(r=>[r.l,r.total])}],{integerX:true,selected:L});
+ add('energy','改变入射波数：保持势深与L固定','65个有限节点分别匹配；连线用于读图，不能保证捕捉每个窄共振。','波数 kR','截面',[{label:'有限L弹性',points:s.energyScan.map(r=>[r.k,r.totals.elastic])},{label:'有限L总截面',points:s.energyScan.map(r=>[r.k,r.totals.total])},{label:'实方井s波',points:s.energyScan.map(r=>[r.k,4*Math.PI*r.partials[0].sin**2/r.k**2])}]);
+ add('depth','井越深不一定散射越强','固定当前k；求出s波cosδ=0的井深，在峰附近加密，并加入当前井深。','井深 V₀','s波幺正上限占比',[{label:'sin²δ₀',points:s.depthScan.map(r=>[r.depth,r.sinSquared])}]);
+ add('s-elements','S元素：相位与返回流分开记录','η是保留通道的返回振幅模；Re和Im有符号，模平方为η²。','分波 ℓ','S元素',[{label:'Re Sℓ',points:s.partials.slice(0,L+1).map(r=>[r.l,r.sr])},{label:'Im Sℓ',points:s.partials.slice(0,L+1).map(r=>[r.l,r.si])},{label:'|Sℓ|²',points:s.partials.slice(0,L+1).map(r=>[r.l,r.modulusSquared])}],{integerX:true,xDegenerate:L===0});
+ add('amplitudes','相位不能只看平方：复振幅本身','实势一阶Born前向虚部为0；光学定理须与截面在相同微扰阶比较。','散射角 θ（度）','振幅',[{label:'Re f',points:s.angular.map(r=>[r.theta,r.real])},{label:'Im f',points:s.angular.map(r=>[r.theta,r.imag])},{label:'Re fB',points:s.angular.map(r=>[r.theta,r.born.real])}]);
+ return out;}
+function ledgers(s){const out=[],add=(key,title,headers,rows)=>out.push({key,title,headers,rows}),p=s.parameters,t=s.totals,a=s.scatteringLength;
+ add('summary','当前参数与守恒检查',['项目','值'],[['井深V₀',+p.depth],['波数k',+p.k],['截断L',+p.lmax],['损失振幅η',+p.eta],['选择角度',+p.angle],['角度余弦',s.selected.x],['当前Re f',s.selected.real],['当前Im f',s.selected.imag],['当前微分截面',s.selected.differential],['当前Born振幅',s.selected.born.real],['当前Born微分截面',s.selected.born.differential],['弹性截面',t.elastic],['反应截面',t.reaction],['总截面',t.total],['前向光学定理',t.optical],['角积分弹性截面',s.integratedElastic],['角积分差',s.angularResidual],['概率闭合差',t.closure],['光学定理差',t.opticalResidual],['前向Re f',t.forward.real],['前向Im f',t.forward.imag],['Born总弹性截面',s.integratedBorn],['Born前向实部',s.bornForward.real],['Born前向虚部',s.bornForward.imag],['零能x=√V₀',a.x],['散射长度分子',a.numerator],['散射长度分母',a.denominator],['散射长度机器值',a.value],['近极点提示',a.nearPole?'是：不把机器大数当作精确无穷':'否'],['范围',s.scope]]);
+ const ph=['ℓ','q','F','F′','s','s′','c','c′','a','b','相位范数','cosδ','sinδ','δ(rad)','A','u外','u′外','u内','u′内','u差','u′差','Re S','Im S','1−Re S','|S|²','σel','σreaction','σtotal','弹性上限','Wronskian'],pr=r=>['l','q','F','Fp','s','sp','c','cp','a','b','norm','cos','sin','delta','amplitude','u','du','uInside','duInside','uResidual','duResidual','sr','si','oneMinusSr','modulusSquared','elastic','reaction','total','unitarity','wronskian'].map(k=>r[k]);
+ add('partials','当前全部0至6分波；L之外用于累积检查',ph,s.partials.map(pr));
+ add('radial','实方井s波：两侧全部径向点',['侧','r','u','u′'],s.radial.map(r=>[r.side,r.r,r.u,r.du]));
+ add('angles','全部角分布与Born对照',['θ(度)','cosθ','Re f','Im f','|f|²','Q','Re fB','Im fB','|fB|²'],s.angular.map(r=>[r.theta,r.x,r.real,r.imag,r.differential,r.born.Q,r.born.real,r.born.imag,r.born.differential]));
+ const th=['点','ℓ','Pℓ','Re贡献','Im贡献'],tr=(tag,r)=>[tag,r.l,r.P,r.real,r.imag];add('angle-terms','全部角度的分波贡献',th,s.angular.flatMap(r=>r.terms.map(v=>tr(r.theta,v))));
+ add('selected-terms','当前角与前向的每项贡献',th,s.selected.terms.map(r=>tr('当前',r)).concat(t.forward.terms.map(r=>tr('前向',r))));
+ add('quadrature','32个Gauss节点：实际角积分',['j','cosθ','权重','Re f','Im f','|f|²','Q','fB','|fB|²','弹性积分贡献','Born积分贡献'],s.quadrature.map(r=>[r.index,r.x,r.weight,r.f.real,r.f.imag,r.f.differential,r.born.Q,r.born.real,r.born.differential,r.elasticContribution,r.bornContribution]));
+ add('quadrature-terms','全部Gauss节点的分波贡献',th,s.quadrature.flatMap(r=>r.f.terms.map(v=>tr(r.index,v))));
+ const sh=['L','σel','σreaction','σtotal','本阶弹性增量'],sr=r=>[r.l,r.elastic,r.reaction,r.total,r.increment];add('convergence','0至6累积截面',sh,t.rows.map(sr));
+ add('energy','65个波数节点的所选L结果',['k','L','σel','σreaction','σtotal','光学定理','概率差','光学差','Re f(0)','Im f(0)'],s.energyScan.map(r=>[r.k,r.totals.l,r.totals.elastic,r.totals.reaction,r.totals.total,r.totals.optical,r.totals.closure,r.totals.opticalResidual,r.totals.forward.real,r.totals.forward.imag]));
+ add('energy-partials','能量扫描的全部分波匹配',['k',...ph],s.energyScan.flatMap(r=>r.partials.map(v=>[r.k,...pr(v)])));
+ add('energy-convergence','能量扫描的全部L累积',['k',...sh],s.energyScan.flatMap(r=>r.totals.rows.map(v=>[r.k,...sr(v)])));
+ add('depth','井深扫描的全部实井s波匹配',['V₀','sin²δ₀',...ph],s.depthScan.map(r=>[r.depth,r.sinSquared,...pr(r.partial)]));return out;}
+function svg(p){const left=104,right=866,top=101,bottom=360,x=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top);let out='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="460" viewBox="0 0 900 460" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><desc>'+esc(p.caption)+'</desc><rect width="900" height="460" fill="#fff"/>';const text=(xx,yy,t,size=13,anchor='start',fill='#283b46')=>'<text x="'+xx+'" y="'+yy+'" font-family="system-ui,sans-serif" font-size="'+size+'" text-anchor="'+anchor+'" fill="'+fill+'">'+esc(t)+'</text>';
+ out+=text(22,30,p.title,19)+text(22,441,p.caption,12);p.series.forEach((s,i)=>{out+='<line x1="'+(25+217*i)+'" y1="57" x2="'+(49+217*i)+'" y2="57" stroke="'+s.color+'" stroke-width="3"'+(i>=2?' stroke-dasharray="5 4"':'')+'/>'+text(56+217*i,62,s.label,12);});
+ for(let j=0;j<=5;j++){const yy=top+(bottom-top)*j/5,v=p.yMax-(p.yMax-p.yMin)*j/5;out+='<line x1="'+left+'" x2="'+right+'" y1="'+yy+'" y2="'+yy+'" stroke="#e1e6e8"/>'+text(left-8,yy+4,axisFmt(v),11,'end');}
+ const xTicks=p.xDegenerate?[p.xMin]:p.integerX?Array.from({length:Math.floor(p.xMax)-Math.ceil(p.xMin)+1},(_,i)=>Math.ceil(p.xMin)+i):Array.from({length:6},(_,j)=>p.xMin+(p.xMax-p.xMin)*j/5);for(const v of xTicks)out+=text(x(v),bottom+22,axisFmt(v),11,'middle');out+='<path d="M '+left+' '+top+' V '+bottom+' H '+right+'" fill="none" stroke="#283b46"/>'+text(25,84,p.yLabel,12)+text((left+right)/2,410,p.xLabel+(p.selected!==undefined?'（虚线：当前 L='+p.selected+'）':''),13,'middle');
+ for(let i=p.series.length-1;i>=0;i--){const s=p.series[i];out+='<polyline data-series="'+i+'" points="'+s.points.map(q=>x(q[0])+','+y(q[1])).join(' ')+'" fill="none" stroke="'+s.color+'" stroke-width="'+(i===0?2:1.6)+'"'+(i>=2?' stroke-dasharray="5 4"':'')+'/>';if(s.points.length<=128)for(const q of s.points)out+='<circle cx="'+x(q[0])+'" cy="'+y(q[1])+'" r="3" fill="'+s.color+'"/>';}
+ if(p.selected!==undefined){const xx=x(p.selected);out+='<line x1="'+xx+'" x2="'+xx+'" y1="'+top+'" y2="'+bottom+'" stroke="#283b46" stroke-dasharray="2 5"/>';}if(p.boundary!==undefined){const xx=x(p.boundary);out+='<line x1="'+xx+'" x2="'+xx+'" y1="'+top+'" y2="'+bottom+'" stroke="#283b46" stroke-dasharray="2 5"/>'+text(xx+5,96,'R=1',11);}return out+'</svg>';
+}
 
-  function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
-  function copyPreset(preset) { return { id: preset.id, label: preset.label, depth: preset.depth, k: preset.k }; }
-  function scatteringLength(depth) {
-    var value = Math.max(0, Number(depth));
-    if (value < 1e-8) return -value / 3 - 2 * value * value / 15;
-    var x = Math.sqrt(value);
-    return RADIUS - Math.tan(x * RADIUS) / x;
-  }
-  function phaseData(depth, k) {
-    var energy = Math.max(1e-5, Number(k));
-    var well = Math.max(0, Number(depth));
-    var q = Math.sqrt(energy * energy + well);
-    var qR = q * RADIUS, kR = energy * RADIUS;
-    var vx = q * Math.cos(qR), vy = energy * Math.sin(qR);
-    var norm = Math.hypot(vx, vy);
-    var cosTheta = vx / norm, sinTheta = vy / norm;
-    var sinDelta = sinTheta * Math.cos(kR) - cosTheta * Math.sin(kR);
-    var cosDelta = cosTheta * Math.cos(kR) + sinTheta * Math.sin(kR);
-    var delta = Math.atan2(sinDelta, cosDelta);
-    var fraction = clamp(sinDelta * sinDelta, 0, 1);
-    var sigma = 4 * Math.PI * fraction / (energy * energy);
-    var amplitude = energy / norm;
-    var uInside = amplitude * Math.sin(qR), duInside = amplitude * q * Math.cos(qR);
-    var uOutside = Math.sin(kR + delta), duOutside = energy * Math.cos(kR + delta);
-    return {
-      depth: well, k: energy, q: q, delta: delta, sin2: fraction, sigma: sigma,
-      unitarity: 4 * Math.PI / (energy * energy), scatteringLength: scatteringLength(well),
-      insideAmplitude: amplitude, uResidual: uInside - uOutside, duResidual: duInside - duOutside,
-      uBoundary: uOutside, duBoundary: duOutside
-    };
-  }
-  function classify(data) { return data.sin2 >= 0.8 ? "unitarity" : data.sin2 < 0.1 ? "low" : "moderate"; }
-  function classLabel(value) { return value === "unitarity" ? "接近 s 波幺正上限" : value === "low" ? "受抑制 / 很小" : "中等截面"; }
-  function radialPoints(data) {
-    var maxR = Math.min(12, Math.max(4, 1 + 2 * Math.PI / data.k));
-    var points = [];
-    for (var i = 0; i <= 180; i += 1) {
-      var r = maxR * i / 180;
-      var inside = r <= RADIUS;
-      var u = inside ? data.insideAmplitude * Math.sin(data.q * r) : Math.sin(data.k * r + data.delta);
-      points.push({ r: r, u: u, inside: inside });
-    }
-    return { maxR: maxR, points: points };
-  }
-  function crossSectionCurve(depth) {
-    var points = [];
-    for (var i = 0; i <= 130; i += 1) {
-      var k = 0.04 + 2.46 * i / 130, data = phaseData(depth, k);
-      points.push({ k: k, sigmaScaled: data.sigma / (4 * Math.PI), limitScaled: 1 / (k * k) });
-    }
-    return points;
-  }
-  function format(value, digits) {
-    if (!Number.isFinite(value)) return value < 0 ? "−∞" : "∞";
-    if (Math.abs(value) < 5e-10) return "0";
-    if (Math.abs(value) >= 10000) return value.toExponential(2);
-    var text = value.toFixed(digits === undefined ? 3 : digits); return text.replace(/0+$/, "").replace(/\.$/, "");
-  }
-  function svgNode(doc, tag, attrs, value) {
-    var node = doc.createElementNS(SVG_NS, tag); Object.keys(attrs || {}).forEach(function (key) { node.setAttribute(key, String(attrs[key])); }); if (value !== undefined) node.textContent = value; return node;
-  }
-  function path(points, x, y) { return points.map(function (p, i) { return (i ? "L" : "M") + x(p) + " " + y(p); }).join(" "); }
-  function radialSvg(doc, data) {
-    var radial = radialPoints(data), svg = svgNode(doc, "svg", { viewBox: "0 0 420 330", role: "img", "aria-label": "球方井内外匹配的 s 波径向函数" });
-    svg.appendChild(svgNode(doc, "title", {}, "匹配后的约化径向波函数"));
-    var maxU = Math.max(1, radial.points.reduce(function (m, p) { return Math.max(m, Math.abs(p.u)); }, 0) * 1.1);
-    var mx = function (r) { return 42 + r / radial.maxR * 340; }, my = function (u) { return 170 - u / maxU * 118; };
-    svg.appendChild(svgNode(doc, "line", { x1: 42, y1: my(0), x2: 382, y2: my(0), class: "sws-grid" }));
-    var boundaryX = mx(1); svg.appendChild(svgNode(doc, "line", { x1: boundaryX, y1: 42, x2: boundaryX, y2: 292, class: "sws-boundary" }));
-    var inside = radial.points.filter(function (p) { return p.r <= 1 + 1e-9; }), outside = radial.points.filter(function (p) { return p.r >= 1 - radial.maxR / 180; });
-    svg.appendChild(svgNode(doc, "path", { d: path(inside, function (p) { return mx(p.r); }, function (p) { return my(p.u); }), class: "sws-inside" }));
-    svg.appendChild(svgNode(doc, "path", { d: path(outside, function (p) { return mx(p.r); }, function (p) { return my(p.u); }), class: "sws-outside" }));
-    svg.appendChild(svgNode(doc, "text", { x: 42, y: 25, "font-size": 13, "font-weight": 700 }, "u(r)：井内蓝，井外金"));
-    svg.appendChild(svgNode(doc, "text", { x: boundaryX + 5, y: 55, "font-size": 10 }, "R=1"));
-    svg.appendChild(svgNode(doc, "text", { x: 382, y: 312, "font-size": 10, "text-anchor": "end" }, "r"));
-    return svg;
-  }
-  function crossSvg(doc, depth, selected) {
-    var points = crossSectionCurve(depth), svg = svgNode(doc, "svg", { viewBox: "0 0 420 330", role: "img", "aria-label": "s 波截面随波数变化及幺正上限" });
-    svg.appendChild(svgNode(doc, "title", {}, "截面与 s 波幺正上限"));
-    var logs = points.map(function (p) { return Math.log10(Math.max(p.sigmaScaled, 1e-7)); });
-    var limitLogs = points.map(function (p) { return Math.log10(p.limitScaled); });
-    var minY = Math.max(-6, Math.min.apply(null, logs) - .25), maxY = Math.min(3, Math.max.apply(null, limitLogs) + .1);
-    var mx = function (k) { return 42 + (k - .04) / 2.46 * 340; }, my = function (v) { return 292 - (clamp(v, minY, maxY) - minY) / (maxY - minY) * 250; };
-    [0, .5, 1].forEach(function (q) { var v = minY + q * (maxY - minY), y = my(v); svg.appendChild(svgNode(doc, "line", { x1: 42, y1: y, x2: 382, y2: y, class: "sws-grid" })); svg.appendChild(svgNode(doc, "text", { x: 36, y: y + 4, "font-size": 10, "text-anchor": "end" }, format(v, 1))); });
-    svg.appendChild(svgNode(doc, "path", { d: path(points, function (p) { return mx(p.k); }, function (p) { return my(Math.log10(Math.max(p.sigmaScaled, 1e-7))); }), class: "sws-cross" }));
-    svg.appendChild(svgNode(doc, "path", { d: path(points, function (p) { return mx(p.k); }, function (p) { return my(Math.log10(p.limitScaled)); }), class: "sws-limit" }));
-    svg.appendChild(svgNode(doc, "circle", { cx: mx(selected.k), cy: my(Math.log10(Math.max(selected.sigma / (4 * Math.PI), 1e-7))), r: 5, class: "sws-selected" }));
-    svg.appendChild(svgNode(doc, "text", { x: 42, y: 25, "font-size": 13, "font-weight": 700 }, "log₁₀[σ₀/(4πR²)]"));
-    svg.appendChild(svgNode(doc, "text", { x: 378, y: 55, "font-size": 10, "text-anchor": "end" }, "红虚线：1/(kR)² 上限"));
-    svg.appendChild(svgNode(doc, "text", { x: 382, y: 312, "font-size": 10, "text-anchor": "end" }, "kR"));
-    return svg;
-  }
-  function element(doc, tag, className, value) { var node = doc.createElement(tag); if (className) node.className = className; if (value !== undefined) node.textContent = value; return node; }
-  function installStyles(doc) { if (doc.getElementById(STYLE_ID)) return; var style = element(doc, "style"); style.id = STYLE_ID; style.textContent = STYLE_TEXT; doc.head.appendChild(style); }
-  function metric(doc, label, value) { var box = element(doc, "div", "sws-metric"); box.appendChild(element(doc, "span", "", label)); box.appendChild(element(doc, "strong", "", value)); return box; }
-  function mount(root, api) {
-    var doc = root.ownerDocument; installStyles(doc);
-    var state = copyPreset(PRESETS[0]), prediction = null, revealed = false;
-    var shell = element(doc, "div", "sws-lab"); shell.appendChild(element(doc, "p", "sws-note", "固定 R=1、2μ/ℏ²=1。先猜截面占 s 波幺正上限的比例，再打开匹配账本。"));
-    var presets = element(doc, "div", "sws-presets"), presetButtons = [];
-    PRESETS.forEach(function (preset) { var button = element(doc, "button", "", preset.label); button.type = "button"; button.addEventListener("click", function () { state = copyPreset(preset); prediction = null; revealed = false; sync(); render(); }); presetButtons.push({ id: preset.id, node: button }); presets.appendChild(button); }); shell.appendChild(presets);
-    var controls = element(doc, "div", "sws-controls"), inputs = {};
-    [["depth", "井深 V₀", 0, 25, .01], ["k", "外部波数 k", .05, 2.5, .01]].forEach(function (spec) { var wrap = element(doc, "div", "sws-control"), label = element(doc, "label", "", spec[1] + "："), output = element(doc, "output"), input = element(doc, "input"); input.type = "range"; input.min = spec[2]; input.max = spec[3]; input.step = spec[4]; input.setAttribute("aria-label", spec[1]); input.addEventListener("input", function () { state[spec[0]] = Number(input.value); state.id = "custom"; prediction = null; revealed = false; render(); }); label.appendChild(output); wrap.appendChild(label); wrap.appendChild(input); controls.appendChild(wrap); inputs[spec[0]] = { input: input, output: output }; }); shell.appendChild(controls);
-    var predict = element(doc, "div", "sws-predict"); predict.appendChild(element(doc, "strong", "", "先预测：σ₀ 距离 4π/k² 有多近？")); var choices = element(doc, "div", "sws-choice"), choiceButtons = [];
-    [["low", "受抑制 / 很小"], ["moderate", "中等"], ["unitarity", "接近幺正上限"]].forEach(function (item) { var button = element(doc, "button", "", item[1]); button.type = "button"; button.addEventListener("click", function () { prediction = item[0]; renderPrediction(); }); choiceButtons.push({ value: item[0], node: button }); choices.appendChild(button); }); predict.appendChild(choices);
-    var actions = element(doc, "div", "sws-actions"), check = element(doc, "button", "cl-primary", "核对预测"), reset = element(doc, "button", "", "重置本预设"); check.type = reset.type = "button"; var feedback = element(doc, "p", "sws-feedback", "先选一个判断。"), results = element(doc, "div"); results.hidden = true;
-    check.addEventListener("click", function () { if (!prediction) { feedback.textContent = "请先作出预测。"; feedback.className = "sws-feedback sws-warn"; return; } revealed = true; render(); }); reset.addEventListener("click", function () { var preset = PRESETS.filter(function (p) { return p.id === state.id; })[0] || PRESETS[0]; state = copyPreset(preset); prediction = null; revealed = false; sync(); render(); }); actions.appendChild(check); actions.appendChild(reset); predict.appendChild(actions); predict.appendChild(feedback); shell.appendChild(predict); shell.appendChild(results); root.replaceChildren(shell);
-    function sync() { inputs.depth.input.value = state.depth; inputs.k.input.value = state.k; }
-    function renderPrediction() { choiceButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", prediction === item.value ? "true" : "false"); }); }
-    function render() {
-      sync(); inputs.depth.output.textContent = format(state.depth, 2); inputs.k.output.textContent = format(state.k, 2); presetButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", state.id === item.id ? "true" : "false"); }); renderPrediction();
-      var data = phaseData(state.depth, state.k), expected = classify(data);
-      if (!revealed) { results.hidden = true; feedback.textContent = prediction ? "预测已记录，点击“核对预测”查看匹配证据。" : "先选一个判断。"; feedback.className = "sws-feedback"; return; }
-      results.hidden = false; var correct = prediction === expected; feedback.textContent = (correct ? "预测命中。" : "看归一化截面。") + " sin²δ₀=" + format(data.sin2, 3) + "，判为“" + classLabel(expected) + "”。"; feedback.className = "sws-feedback " + (correct ? "sws-pass" : "sws-warn"); if (api && api.announce) api.announce(root, feedback.textContent);
-      results.replaceChildren(); var metrics = element(doc, "div", "sws-metrics"); metrics.appendChild(metric(doc, "井内波数 q", format(data.q, 3))); metrics.appendChild(metric(doc, "相移 δ₀", format(data.delta * 180 / Math.PI, 2) + "° (mod 180°)")); metrics.appendChild(metric(doc, "散射长度 aₛ", format(data.scatteringLength, 3))); metrics.appendChild(metric(doc, "σ₀", format(data.sigma, 3))); metrics.appendChild(metric(doc, "σ₀/(4π/k²)", format(data.sin2, 3))); metrics.appendChild(metric(doc, "匹配残差 max", format(Math.max(Math.abs(data.uResidual), Math.abs(data.duResidual)), 6))); results.appendChild(metrics);
-      var charts = element(doc, "div", "sws-charts"), a = element(doc, "div", "sws-chart"), b = element(doc, "div", "sws-chart"); a.appendChild(radialSvg(doc, data)); b.appendChild(crossSvg(doc, state.depth, data)); charts.appendChild(a); charts.appendChild(b); results.appendChild(charts);
-      var wrap = element(doc, "div", "sws-ledger"), table = element(doc, "table"); table.setAttribute("aria-label", "球方井 s 波匹配账本"); var head = element(doc, "tr"); ["检查", "井内", "井外", "残差 / 结论"].forEach(function (label) { var th = element(doc, "th", "", label); th.scope = "col"; head.appendChild(th); }); var thead = element(doc, "thead"); thead.appendChild(head); table.appendChild(thead); var body = element(doc, "tbody");
-      [["u(R) 连续", format(data.uBoundary + data.uResidual, 6), format(data.uBoundary, 6), format(data.uResidual, 7)], ["u′(R) 连续", format(data.duBoundary + data.duResidual, 6), format(data.duBoundary, 6), format(data.duResidual, 7)], ["相移账", "tan(kR+δ)=(k/q)tan(qR)", "δ 只定义到 mod π", "sin²δ 无分支跳变"], ["截面账", "dσ/dΩ=sin²δ/k²", "σ₀=4πsin²δ/k²", "上限 4π/k²"]].forEach(function (row) { var tr = element(doc, "tr"); row.forEach(function (value) { tr.appendChild(element(doc, "td", "", value)); }); body.appendChild(tr); }); table.appendChild(body); wrap.appendChild(table); results.appendChild(wrap); results.appendChild(element(doc, "p", "sws-note", "井外实径向波被约定为单位正弦振幅；井内振幅由 u 与 u′ 连续性确定。整体波函数归一化不影响相移与截面。"));
-    }
-    sync(); render();
-  }
-  function selfTest() {
-    var checks = 0; function assert(condition, message) { checks += 1; if (!condition) throw new Error(message); }
-    var free = phaseData(0, .7); assert(Math.abs(free.delta) < 1e-10, "free phase shift"); assert(free.sigma < 1e-18, "free cross section"); assert(Math.abs(scatteringLength(0)) < 1e-14, "free scattering length");
-    PRESETS.forEach(function (preset) { var data = phaseData(preset.depth, preset.k); assert(Math.abs(data.uResidual) < 1e-10, preset.id + " u match"); assert(Math.abs(data.duResidual) < 1e-10, preset.id + " derivative match"); assert(data.sin2 >= 0 && data.sin2 <= 1 + 1e-12, preset.id + " unitarity fraction"); assert(data.sigma <= data.unitarity + 1e-9, preset.id + " unitarity bound"); });
-    var below = scatteringLength(Math.pow(Math.PI / 2 - .01, 2)), above = scatteringLength(Math.pow(Math.PI / 2 + .01, 2)); assert(below < -20 && above > 20, "threshold resonance changes scattering-length sign");
-    var weak = scatteringLength(1e-6); assert(Math.abs(weak + 1e-6 / 3) < 1e-10, "weak-well expansion");
-    var branchA = phaseData(2.2, .4), branchB = phaseData(2.2, .4); assert(Math.abs(branchA.sin2 - branchB.sin2) < 1e-14, "branch-invariant observable");
-    return { checks: checks, presets: PRESETS.length };
-  }
-  var exported = { PRESETS: PRESETS, scatteringLength: scatteringLength, phaseData: phaseData, classify: classify, radialPoints: radialPoints, crossSectionCurve: crossSectionCurve, selfTest: selfTest };
-  if (typeof module !== "undefined" && module.exports) module.exports = exported;
-  if (host && host.CourseLearning && typeof host.CourseLearning.register === "function") host.CourseLearning.register("swave-scattering", mount);
-  if (typeof module !== "undefined" && module.exports && typeof require !== "undefined" && require.main === module) { try { var report = selfTest(); console.log("swave-scattering self-test: PASS (" + report.checks + " checks, " + report.presets + " presets)"); } catch (error) { console.error("swave-scattering self-test: FAIL\n" + error.stack); process.exitCode = 1; } }
-})(typeof window !== "undefined" ? window : null);
+const PRESETS=[
+ {id:'default',label:'弱吸引井',values:{}},
+ {id:'free',label:'零势与零截面',values:{depth:'0'}},
+ {id:'threshold',label:'首个阈值附近',values:{depth:'2.4674011002723395',k:'0.02'}},
+ {id:'below',label:'阈值之下',values:{depth:'2.4',k:'0.05'}},
+ {id:'above',label:'阈值之上',values:{depth:'2.55',k:'0.05'}},
+ {id:'zero-length',label:'散射长度近零',values:{depth:'20.19072855642663',k:'0.02'}},
+ {id:'finite',label:'有限能量',values:{depth:'2',k:'1.1'}},
+ {id:'deep',label:'深井高端',values:{depth:'25',k:'2.5',lmax:'6'}},
+ {id:'low',label:'深井低能',values:{depth:'25',k:'0.02',lmax:'6'}},
+ {id:'second-threshold',label:'第二阈值附近',values:{depth:'22.206609902451056',k:'0.02'}},
+ {id:'loss',label:'部分通道损失',values:{depth:'2',k:'1.1',eta:'0.4'}},
+ {id:'black',label:'完全损失模型',values:{depth:'2',k:'1.1',eta:'0'}},
+ {id:'s-wave',label:'只保留s波',values:{depth:'25',k:'2.5',lmax:'0'}},
+ {id:'all-waves',label:'同条件算到6阶',values:{depth:'25',k:'2.5',lmax:'6'}},
+ {id:'backward',label:'后向180度',values:{depth:'2',k:'1.1',angle:'180'}},
+ {id:'tiny',label:'极弱势',values:{depth:'0.00000001',k:'0.02'}}
+];
+const QUESTIONS=[
+ ['井深增加时，固定低能的散射截面一定增加吗？',['不一定，相位干涉可增强也可抑制','一定，吸引总会变强'],0],
+ ['保留通道η=0时，这些分波的弹性截面怎样？',['全部为0','仍有由S−1产生的弹性贡献'],1],
+ ['实势一阶Born前向振幅为实数，应怎样检查光学定理？',['直接用零虚部断言定理失败','将振幅和截面比较到相同微扰阶'],1],
+ ['δ增加π，会改变S=e^(2iδ)吗？',['不改变','改变符号'],0]
+];
+
+const STYLE='.scattering167{color:var(--fg);min-width:0;overflow-wrap:anywhere}.scattering167 *{box-sizing:border-box}.scattering167 [hidden]{display:none!important}.scattering167 button,.scattering167 input,.scattering167 select{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--border);border-radius:5px;min-height:44px;padding:8px;max-width:100%}.scattering167 button{margin:4px 4px 4px 0;cursor:pointer;white-space:normal}.scattering167 button:disabled{opacity:.5;cursor:default}.scattering167 button[aria-pressed=true]{outline:2px solid var(--accent);background:var(--block-bg)}.scattering167 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}.scattering-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}.scattering-controls label{display:grid;gap:6px;min-width:0}.scattering167 fieldset{border:1px solid var(--border);margin:12px 0;min-width:0}.scattering167 legend{max-width:100%;font-weight:600}.scattering167 p{line-height:1.7}.scattering-error{color:var(--cl-red,#b64335)}.scattering-scroll{overflow:auto;max-width:100%;min-width:0;border:1px solid var(--border);margin:10px 0}.scattering-scroll svg{display:block;min-width:900px;width:900px;height:460px;max-width:none}.scattering-scroll table{border-collapse:collapse;min-width:900px;width:max-content;max-width:none;font-size:12px}.scattering-scroll th,.scattering-scroll td{padding:7px;vertical-align:top;text-align:left;border:1px solid var(--border);min-width:40px;max-width:550px;white-space:normal;overflow-wrap:anywhere}.scattering167 details{border:1px solid var(--border);padding:10px;margin:10px 0;min-width:0}.scattering167 summary{cursor:pointer;min-height:44px;line-height:1.7}.scattering167 .scattering-summary{padding:12px;border-left:3px solid var(--accent);background:var(--block-bg)}@media(max-width:680px){.scattering-controls{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){.scattering167 *{scroll-behavior:auto!important}}';
+function tableHTML(t){return '<table data-table="'+esc(t.key)+'"><caption>'+esc(t.title)+'</caption><thead><tr>'+t.headers.map(h=>'<th scope="col">'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+t.rows.map(r=>'<tr>'+r.map(v=>'<td>'+esc(fmt(v))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';}
+const mounted=new WeakMap();
+function mount(container){if(mounted.has(container))mounted.get(container)();const doc=container.ownerDocument,win=doc.defaultView;if(!doc.getElementById('scattering167-style')){const st=doc.createElement('style');st.id='scattering167-style';st.textContent=STYLE;doc.head.appendChild(st);}const field=(k,label)=>'<label>'+label+'<input type="text" data-key="'+k+'"></label>',select=(k,label,options)=>'<label>'+label+'<select data-key="'+k+'">'+options.map(([value,text])=>'<option value="'+value+'">'+esc(text)+'</option>').join('')+'</select></label>';
+ container.innerHTML='<div class="scattering167"><h3>球方井实验：相位、截面与近似阶数</h3><p>先完成四项预测。固定R=1、2μ/ℏ²=1；实方井相位逐个匹配，所选L之外S=1。</p><div>'+PRESETS.map(p=>'<button type="button" data-preset="'+p.id+'">'+esc(p.label)+'</button>').join('')+'</div><div class="scattering-controls">'+field('depth','井深V₀（0至25）')+field('k','入射波数k（0.02至2.5）')+select('lmax','最大分波L',[['0','0：仅s波'],['1','1'],['2','2'],['3','3'],['4','4'],['5','5'],['6','6']])+field('eta','返回振幅模η（0至1）')+field('angle','选择散射角（0至180度）')+'</div><p>η=1是实方井；η小于1只给0至L通道加入现象学损失，不是求解复势。径向图与Born图始终保留原实方井模型。增加L没有提供无限分波尾项的严格误差界。</p>' +QUESTIONS.map((q,i)=>'<fieldset data-question="'+i+'"><legend>'+(i+1)+'. '+esc(q[0])+'</legend>'+q[1].map((v,j)=>'<button type="button" data-choice="'+j+'" aria-pressed="false">'+esc(v)+'</button>').join('')+'</fieldset>').join('')+'<button type="button" data-action="reveal">核对预测并展示结果</button><button type="button" data-action="reset">重置实验</button><p class="scattering-error" role="alert"></p><p role="status"></p><div class="scattering-results" hidden></div></div>';
+ const shell=container.querySelector('.scattering167'),inputs=[...shell.querySelectorAll('[data-key]')],result=shell.querySelector('.scattering-results'),reveal=shell.querySelector('[data-action=reveal]'),error=shell.querySelector('[role=alert]'),status=shell.querySelector('[role=status]');let choices=QUESTIONS.map(()=>null),d=null,url=null;
+ const values=()=>Object.fromEntries(inputs.map(e=>[e.dataset.key,e.value]));function set(v){inputs.forEach(e=>e.value=String({...DEFAULTS,...v}[e.dataset.key]));}function cleanup(){if(url){win.URL.revokeObjectURL(url);url=null;}result.hidden=true;result.replaceChildren();}mounted.set(container,cleanup);
+ function update(){cleanup();try{d=snapshot(values());error.textContent='';}catch(e){d=null;error.textContent=e.message;}reveal.disabled=!d||choices.some(x=>x===null);status.textContent=!d?'请修正参数后再核对。':choices.some(x=>x===null)?'先完成四项预测。':'预测已记录，请揭晓核对。';}
+ function render(){if(!d)return;cleanup();result.hidden=false;const tables=ledgers(d);result.innerHTML='<div class="scattering-summary">'+esc('当前θ='+fmt(d.selected.theta)+'度：Re f='+fmt(d.selected.real)+'，Im f='+fmt(d.selected.imag)+'，dσ/dΩ='+fmt(d.selected.differential)+'。弹性截面='+fmt(d.totals.elastic)+'；反应截面='+fmt(d.totals.reaction)+'；总截面='+fmt(d.totals.total)+'；前向光学定理='+fmt(d.totals.optical)+'。角积分残差='+fmt(d.angularResidual)+'。'+(d.scatteringLength.nearPole?'散射长度接近解析极点；机器大数不代表精确无穷。':''))+'</div><ol>'+QUESTIONS.map((q,i)=>'<li>'+esc((choices[i]===q[2]?'预测正确。':'需要修正。')+q[3])+'</li>').join('')+'</ol><p><a data-download download="partial-wave-scattering-run.json">下载本次数值与完整账本(JSON)</a></p>'+plots(d).map((p,i)=>'<div class="scattering-scroll" role="region" tabindex="0" aria-label="图'+(i+1)+'：'+esc(p.title)+'">'+svg(p)+'</div>').join('')+'<p>每张表展开后显示全部行，宽表与图可以用方向键滚动。表格为阅读做显示舍入；JSON保留全部计算数值。</p><p>'+esc(d.scope)+'</p>'+tables.map(t=>'<details data-ledger="'+t.key+'"><summary>'+esc(t.title)+'（'+t.rows.length+'行）</summary><div class="scattering-scroll" role="region" tabindex="0" aria-label="'+esc(t.title)+'"></div></details>').join('');url=win.URL.createObjectURL(new win.Blob([JSON.stringify(d,null,2)+'\n'],{type:'application/json'}));result.querySelector('[data-download]').href=url;for(const t of tables){const detail=result.querySelector('[data-ledger="'+t.key+'"]');detail.addEventListener('toggle',()=>{if(detail.open&&!detail.querySelector('table'))detail.querySelector('[role=region]').innerHTML=tableHTML(t);});}status.textContent=choices.filter((v,i)=>v===QUESTIONS[i][2]).length+' / 4；请结合边界匹配、概率流与近似阶数解释结果。';}
+ inputs.forEach(e=>e.addEventListener(e.tagName==='SELECT'?'change':'input',update));shell.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{set(PRESETS.find(p=>p.id===b.dataset.preset).values);update();}));shell.querySelectorAll('[data-question]').forEach((f,i)=>f.querySelectorAll('[data-choice]').forEach(b=>b.addEventListener('click',()=>{choices[i]=+b.dataset.choice;f.querySelectorAll('button').forEach(q=>q.setAttribute('aria-pressed',String(q===b)));if(!result.hidden)render();else update();})));reveal.addEventListener('click',render);shell.querySelector('[data-action=reset]').addEventListener('click',()=>{choices=QUESTIONS.map(()=>null);shell.querySelectorAll('[data-choice]').forEach(b=>b.setAttribute('aria-pressed','false'));set(DEFAULTS);update();shell.querySelector('[data-choice]').focus();});set(DEFAULTS);update();
+}
+function selfTest(){let checks=0;const ck=(v,m)=>{checks++;if(!v)throw Error(m);};for(const p of PRESETS){const s=snapshot(p.values);ck(s.partials.length===7,p.id+' seven partials');ck(Math.abs(s.totals.closure)<1e-8*Math.max(1,s.totals.total),p.id+' closure');ck(Math.abs(s.angularResidual)<1e-8*Math.max(1,s.totals.elastic),p.id+' angular integral');ck(s.partials.every(r=>Math.abs(r.uResidual)<1e-10&&Math.abs(r.duResidual)<1e-10),p.id+' boundary');ck(ledgers(s).every(t=>t.rows.every(r=>r.length===t.headers.length)),p.id+' columns');}return{status:'PASS',checks,presets:PRESETS.length};}
+
+const api={DEFAULTS,PRESETS,QUESTIONS,config,snapshot,plots,ledgers,svg,fmt,tableHTML,mount,selfTest};if(typeof module!=="undefined"&&module.exports)module.exports=api;if(host&&host.CourseLearning&&typeof host.CourseLearning.register==="function")host.CourseLearning.register("swave-scattering",mount);})(typeof window!=="undefined"?window:globalThis);
