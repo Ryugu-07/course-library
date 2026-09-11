@@ -24,6 +24,12 @@
   var MAX_TIME = 4 * PI;
   var STYLE_ID = "cl-rabi-control-styles";
   var SERIAL = 0;
+  var MOUNTS = new WeakMap();
+  var QUESTIONS = [
+      { key: "resonant", prompt: "共振 π pulse（Ω=1, Δ=0, t=π）结束时 Pₑ 是？", choices: [["one", "1：完全激发"], ["half", "1/2：一半激发"], ["zero", "0：回到基态"]] },
+      { key: "detuned", prompt: "失谐 Δ=Ω、同样 t=π 时，最关键的变化是？", choices: [["one", "仍可达到 1"], ["ceiling", "振幅上限降为 Ω²/(Ω²+Δ²)"], ["zero", "激发概率恒为 0"]] },
+      { key: "twoPi", prompt: "共振 2π pulse（Ω=1, Δ=0, t=2π）结束时 Pₑ 是？", choices: [["one", "1：仍在激发态"], ["half", "1/2：相位无关"], ["zero", "0：完成一周期回到基态"]] }
+    ];
   var DEFAULTS = { omega: 1, delta: 0, t: PI };
 
   var PRESETS = [
@@ -45,7 +51,7 @@
     ".rc-lab .rc-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}.rc-lab .rc-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:11px 0}.rc-lab .rc-presets button{font-size:12px}.rc-lab .rc-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 16px;margin:12px 0}.rc-lab .rc-control{display:grid;gap:5px;min-width:0}.rc-lab .rc-control label{color:var(--fg-soft);font-size:13px;font-weight:700}.rc-lab output{color:var(--accent);font-variant-numeric:tabular-nums}.rc-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent)}",
     ".rc-lab .rc-metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:12px 0}.rc-lab .rc-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg)}.rc-lab .rc-metric:nth-child(1),.rc-lab .rc-metric:nth-child(4){border-top-color:var(--rc-blue)}.rc-lab .rc-metric:nth-child(2),.rc-lab .rc-metric:nth-child(5){border-top-color:var(--rc-gold)}.rc-lab .rc-metric:nth-child(3),.rc-lab .rc-metric:nth-child(6){border-top-color:var(--rc-green)}.rc-lab .rc-metric span{display:block;color:var(--fg-soft);font-size:11.5px;line-height:1.4}.rc-lab .rc-metric strong{display:block;margin-top:3px;font-size:14px;line-height:1.45;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}",
     ".rc-lab .rc-chart{min-width:0;padding:7px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow-x:auto;-webkit-overflow-scrolling:touch}.rc-lab svg{display:block;width:100%;height:auto;min-width:620px;color:var(--fg)}.rc-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.rc-lab .rc-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.72}.rc-lab .rc-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.72}.rc-lab .rc-ceiling{stroke:var(--rc-gold);stroke-width:1.5;stroke-dasharray:5 4}.rc-lab .rc-curve{stroke:var(--rc-blue);fill:none;stroke-width:3}.rc-lab .rc-current{stroke:var(--rc-red);stroke-width:1.5;stroke-dasharray:5 4}.rc-lab .rc-point{fill:var(--rc-red);stroke:var(--bg);stroke-width:1.5}.rc-lab .rc-chart-label{font-size:11px}.rc-lab .rc-chart-title{font-size:13px;font-weight:750}",
-    ".rc-lab .rc-ledger{max-width:100%;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch}.rc-lab table{width:100%;min-width:820px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.rc-lab caption{padding:0 0 7px;text-align:left;color:var(--fg-soft);font-size:12px;line-height:1.55}.rc-lab th,.rc-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;white-space:nowrap}.rc-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750}.rc-lab .rc-good{color:var(--rc-green);font-weight:750}.rc-lab .rc-bad{color:var(--rc-red);font-weight:750}.rc-lab .rc-interpretation{margin:12px 0 0;padding:10px 12px;border-left:3px solid var(--rc-green);background:var(--bg);font-size:13px;line-height:1.7}",
+    ".rc-lab .rc-ledger{max-width:100%;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch}.rc-lab table{display:table;overflow:visible;max-width:none;width:100%;min-width:820px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.rc-lab caption{padding:0 0 7px;text-align:left;color:var(--fg-soft);font-size:12px;line-height:1.55}.rc-lab th,.rc-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;white-space:nowrap}.rc-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750}.rc-lab .rc-good{color:var(--rc-green);font-weight:750}.rc-lab .rc-bad{color:var(--rc-red);font-weight:750}.rc-lab .rc-interpretation{margin:12px 0 0;padding:10px 12px;border-left:3px solid var(--rc-green);background:var(--bg);font-size:13px;line-height:1.7}",
     "@media(max-width:920px){.rc-lab .rc-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}.rc-lab .rc-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.rc-lab .rc-choice-row{grid-template-columns:minmax(0,1fr)}}",
     "@media(max-width:650px){.rc-lab .rc-presets,.rc-lab .rc-controls{grid-template-columns:minmax(0,1fr)}.rc-lab .rc-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.rc-lab .rc-chart{padding:5px}}",
     "@media(prefers-reduced-motion:reduce){.rc-lab *{animation:none!important;transition:none!important}}"
@@ -80,20 +86,21 @@
   }
 
   function normalizeParams(input) {
-    var source = input || {};
-    return {
-      omega: clamp(number(source.omega, DEFAULTS.omega), 0, 3),
-      delta: clamp(number(source.delta, DEFAULTS.delta), -3, 3),
-      t: clamp(number(source.t, DEFAULTS.t), 0, MAX_TIME)
-    };
+    if(input===undefined)input={};
+    if(!input||typeof input!=='object'||Array.isArray(input))throw Error('参数需要对象');
+    var out=Object.assign({},DEFAULTS);
+    Object.keys(input).forEach(function(k){if(!Object.hasOwn(DEFAULTS,k))throw Error('未知参数');if(typeof input[k]!=='number'||!Number.isFinite(input[k]))throw Error('参数需要有限数');out[k]=input[k];});
+    if(out.omega<0||out.omega>3||out.delta< -3||out.delta>3||out.t<0||out.t>MAX_TIME)throw Error('参数超出实验范围');
+    return out;
   }
 
   function rabiProbability(omega, delta, t) {
     if (!finite(omega) || !finite(delta) || !finite(t)) throw new TypeError("Rabi 参数必须有限");
     if (omega < 0 || t < 0) throw new RangeError("Ω 与 t 不能为负");
     if (omega === 0) return 0;
-    var effective = Math.sqrt(omega * omega + delta * delta);
-    var amplitude = omega * omega / (omega * omega + delta * delta);
+    var effective = Math.hypot(omega, delta);
+    if(!Number.isFinite(effective*t/2))throw Error("相位超出有限数范围");
+    var amplitude = Math.pow(omega/effective,2);
     var value = amplitude * Math.pow(Math.sin(effective * t / 2), 2);
     return clamp(value, 0, 1);
   }
@@ -103,7 +110,7 @@
     if (near(params.delta, 0) && near(params.t, PI / params.omega, 1e-8)) return "共振 π pulse";
     if (near(params.delta, 0) && near(params.t, TWO_PI / params.omega, 1e-8)) return "共振 2π pulse";
     if (Math.abs(params.delta) > 1e-8) return "失谐 Rabi 振荡";
-    return probability > 0.5 ? "共振部分脉冲" : "共振短脉冲";
+    return "共振部分脉冲";
   }
 
   function evaluate(input) {
@@ -142,6 +149,10 @@
   function predictionAnswers() {
     return { resonant: "one", detuned: "ceiling", twoPi: "zero" };
   }
+
+  function amplitudes(omega,delta,t){if(!finite(omega)||!finite(delta)||!finite(t)||omega<0||t<0)throw Error('振幅参数无效');var E=Math.hypot(omega,delta);if(E===0)return{ground:[1,0],excited:[0,0],norm:1};var phase=E*t/2;if(!Number.isFinite(phase))throw Error('相位超出有限数范围');var sn=Math.sin(phase),co=Math.cos(phase),g=[co,-delta/E*sn],e=[0,-omega/E*sn];return{ground:g,excited:e,norm:g[0]*g[0]+g[1]*g[1]+e[1]*e[1]};}
+  function buildRecord(input){var result=evaluate(input),p=result.params,amp=amplitudes(p.omega,p.delta,p.t),coherence=[amp.ground[1]*amp.excited[1],-amp.ground[0]*amp.excited[1]],nodes=result.curve.map(function(n){return{t:n.t,probability:n.probability,amplitudes:amplitudes(p.omega,p.delta,n.t)};});return{version:170,scope:'相干二能级RWA，Δ=ωL−ω0，H/ℏ=[[Δ,Ω],[Ω,−Δ]]/2，基底(|g〉,|e〉)，初态|g〉。不含自发辐射、运动与冷却；时间单位是角频率单位的倒数。',result:result,amplitudes:amp,density:[[[1-result.probability,0],coherence],[[coherence[0],-coherence[1]],[result.probability,0]]],nodes:nodes,comparisons:PRESETS.map(function(q){var r=evaluate({omega:q.omega,delta:q.delta,t:q.t});return{id:q.id,parameters:r.params,effectiveOmega:r.effectiveOmega,amplitude:r.amplitude,probability:r.probability,amplitudes:amplitudes(q.omega,q.delta,q.t)};})};}
+  function questionFeedback(key,choice){var question=QUESTIONS.find(function(q){return q.key===key;});if(!question||!question.choices.some(function(c){return c[0]===choice;}))throw Error('无效预测');var explanations={resonant:'共振时振幅上限为1，t=π/Ω使sin²(Ωt/2)=1。这里是无耗散的相干模型。',detuned:'Δ=Ω时，上限降到1/2，同时有效频率升为√2Ω。同样t=π/Ω只得到约0.316564；振幅与相位因子都变了。',twoPi:'共振2π脉冲使sin²π=0，布居回到基态，但态矢量得到整体负号；单独布居测量看不到这一全局相位。'};return{correct:choice===predictionAnswers()[key],text:(choice===predictionAnswers()[key]?'预测正确。':'需要修正。')+explanations[key]};}
 
   function appendChildren(node, children, doc) {
     if (children === undefined || children === null) return node;
@@ -228,7 +239,7 @@
     svg.appendChild(makeSvg(api, doc, "line", { x1: left, y1: top, x2: left, y2: plotBottom, className: "rc-axis" }));
     svg.appendChild(svgText(api, doc, left, 18, "Pₑ(t)：精确二能级模型", { className: "rc-chart-title" }));
     svg.appendChild(svgText(api, doc, plotRight, 18, "蓝：Pₑ　金：Ω²/(Ω²+Δ²)　红：当前 t", { "text-anchor": "end" }));
-    svg.appendChild(svgText(api, doc, (left + plotRight) / 2, height - 10, "时间 t（角频率单位）", { "text-anchor": "middle" }));
+    svg.appendChild(svgText(api, doc, (left + plotRight) / 2, height - 10, "时间 t（角频率单位的倒数）", { "text-anchor": "middle" }));
     svg.appendChild(svgText(api, doc, 15, (top + plotBottom) / 2, "激发态概率", { transform: "rotate(-90 15 " + ((top + plotBottom) / 2) + ")", "text-anchor": "middle" }));
     return svg;
   }
@@ -252,6 +263,8 @@
     if (!root || !root.ownerDocument) return;
     var doc = root.ownerDocument;
     installStyles(doc);
+    var previous=MOUNTS.get(root);if(previous)previous();
+    var blobUrl=null,win=doc.defaultView;MOUNTS.set(root,function(){if(blobUrl)win.URL.revokeObjectURL(blobUrl);});
     var uid = "rc-" + (++SERIAL);
     var state = { omega: DEFAULTS.omega, delta: DEFAULTS.delta, t: DEFAULTS.t };
     var predictions = { resonant: null, detuned: null, twoPi: null };
@@ -295,12 +308,9 @@
 
     var form = makeElement(api, doc, "form", { className: "rc-prediction", "aria-labelledby": uid + "-prediction-title" });
     form.appendChild(makeElement(api, doc, "strong", { id: uid + "-prediction-title", text: "预测门：先写下三个脉冲的终点" }));
-    var questions = [
-      { key: "resonant", prompt: "共振 π pulse（Ω=1, Δ=0, t=π）结束时 Pₑ 是？", choices: [["one", "1：完全激发"], ["half", "1/2：一半激发"], ["zero", "0：回到基态"]] },
-      { key: "detuned", prompt: "失谐 Δ=Ω、同样 t=π 时，最关键的变化是？", choices: [["one", "仍可达到 1"], ["ceiling", "振幅上限降为 Ω²/(Ω²+Δ²)"], ["zero", "激发概率恒为 0"]] },
-      { key: "twoPi", prompt: "共振 2π pulse（Ω=1, Δ=0, t=2π）结束时 Pₑ 是？", choices: [["one", "1：仍在激发态"], ["half", "1/2：相位无关"], ["zero", "0：完成一周期回到基态"]] }
-    ];
+    var questions = QUESTIONS;
     var choiceButtons = [];
+    var questionReadouts = {};
     questions.forEach(function (question) {
       var fieldset = makeElement(api, doc, "fieldset", {});
       fieldset.appendChild(makeElement(api, doc, "legend", { text: question.prompt }));
@@ -311,11 +321,13 @@
           predictions[question.key] = choice[0];
           updatePredictionButtons();
           if (!revealed) feedback.textContent = "预测已记录，三项都选好后揭示账本。";
+          else renderFeedback();
         });
         choiceButtons.push({ key: question.key, value: choice[0], node: button });
         row.appendChild(button);
       });
       fieldset.appendChild(row);
+      var why=makeElement(api,doc,"p",{className:"rc-note","data-rc-feedback":question.key});questionReadouts[question.key]=why;fieldset.appendChild(why);
       form.appendChild(fieldset);
     });
     var actions = makeElement(api, doc, "div", { className: "rc-actions" });
@@ -330,8 +342,8 @@
 
     var revealedSection = makeElement(api, doc, "section", { className: "rc-revealed", hidden: "hidden", "aria-label": "Rabi 结果账本" });
     var metrics = makeElement(api, doc, "div", { className: "rc-metrics" });
-    var chart = makeElement(api, doc, "div", { className: "rc-chart" });
-    var ledgerWrap = makeElement(api, doc, "div", { className: "rc-ledger" });
+    var chart = makeElement(api, doc, "div", { className: "rc-chart",tabindex:"0",role:"region","aria-label":"Rabi 图表，可横向滚动" });
+    var ledgerWrap = makeElement(api, doc, "div", { className: "rc-ledger",tabindex:"0",role:"region","aria-label":"Rabi 数值表，可横向滚动" });
     var table = makeElement(api, doc, "table", {});
     table.appendChild(makeElement(api, doc, "caption", { text: "透明账本：Pₑ = 振幅上限 × sin²(有效角频率 × t / 2)。" }));
     table.appendChild(makeElement(api, doc, "thead", {}, [tableRow(api, doc, ["情形", "Ω", "Δ", "t", "Ω_eff", "振幅上限", "Pₑ", "读法"], false)]));
@@ -343,6 +355,7 @@
     revealedSection.appendChild(chart);
     revealedSection.appendChild(ledgerWrap);
     revealedSection.appendChild(interpretation);
+    var download=makeElement(api,doc,"a",{download:"rabi-record.json","data-rabi-download":""},"下载当前完整振幅与概率记录（JSON）");revealedSection.appendChild(download);
     shell.appendChild(revealedSection);
     root.replaceChildren(shell);
 
@@ -355,6 +368,8 @@
       predictions = { resonant: null, detuned: null, twoPi: null };
       updatePredictionButtons();
       revealedSection.setAttribute("hidden", "hidden");
+      Object.keys(questionReadouts).forEach(function(k){questionReadouts[k].textContent="";});
+      delete root.__rabiRecord;
       feedback.className = "rc-feedback";
       feedback.textContent = message || "请完成三项预测。";
       if (shouldAnnounce) announce(api, root, feedback.textContent);
@@ -370,6 +385,7 @@
         item.node.setAttribute("aria-pressed", near(item.preset.omega, state.omega, 1e-8) && near(item.preset.delta, state.delta, 1e-8) && near(item.preset.t, state.t, 1e-8) ? "true" : "false");
       });
       if (!revealed) return;
+      var record=buildRecord(state);root.__rabiRecord=record;if(blobUrl)win.URL.revokeObjectURL(blobUrl);blobUrl=win.URL.createObjectURL(new win.Blob([JSON.stringify(record,null,2)],{type:"application/json"}));download.href=blobUrl;
       metrics.replaceChildren(
         metric(api, doc, "分类", result.classification),
         metric(api, doc, "Ω_eff", format(result.effectiveOmega, 5)),
@@ -381,12 +397,13 @@
       chart.replaceChildren(probabilitySvg(api, doc, result, uid));
       tbody.replaceChildren();
       PRESETS.forEach(function (preset) {
-        var presetResult = evaluate(preset);
+        var presetResult = evaluate({omega:preset.omega,delta:preset.delta,t:preset.t});
         tbody.appendChild(tableRow(api, doc, [preset.label, format(preset.omega, 2), format(preset.delta, 2), format(preset.t, 4), format(presetResult.effectiveOmega, 4), format(presetResult.amplitude, 4), format(presetResult.probability, 5), preset.reading], true));
       });
       interpretation.textContent = "当前曲线和三行比较都来自精确公式 Pₑ(t)=Ω²/(Ω²+Δ²)·sin²(Ω_eff t/2)。它假设 rotating-wave、相干二能级、无自发辐射/退相干和无耗散；不是完整激光冷却、BEC 或光晶格动力学。";
     }
 
+    function renderFeedback(){var correct=0;questions.forEach(function(q){var answer=questionFeedback(q.key,predictions[q.key]);correct+=+answer.correct;questionReadouts[q.key].textContent=answer.text;});feedback.className="rc-feedback "+(correct===3?"rc-pass":"rc-warn");feedback.textContent="已揭示："+correct+"/3 项命中。三道题始终指题干给定的脉冲，不随当前旋钮改题。";}
     form.addEventListener("submit", function (event) {
       event.preventDefault();
       var missing = questions.filter(function (question) { return !predictions[question.key]; });
@@ -402,6 +419,7 @@
       render();
       feedback.className = "rc-feedback " + (correct === questions.length ? "rc-pass" : "rc-warn");
       feedback.textContent = "已揭示：" + correct + "/" + questions.length + " 项命中。振幅上限与相位因子已经分账。";
+      renderFeedback();
       announce(api, root, feedback.textContent);
     });
     reset.addEventListener("click", function () {
@@ -426,18 +444,17 @@
     assert(rabiProbability(1, 1, PI) <= 0.5 + 1e-12, "detuned amplitude ceiling");
     assert(rabiProbability(0, 2, 10) === 0, "zero coupling endpoint");
     assert(Math.abs(rabiProbability(1, -1, PI) - rabiProbability(1, 1, PI)) < 1e-12, "detuning sign symmetry");
-    assert(normalizeParams({ omega: -4, delta: Infinity, t: -1 }).omega === 0, "illegal omega clamp");
-    assert(normalizeParams({ omega: 99, delta: "bad", t: 99 }).omega === 3, "upper omega and invalid delta");
+    [{omega:-4},{delta:Infinity},{omega:99},{delta:"bad"},{t:99},{extra:1}].forEach(function(v){var rejected=false;try{normalizeParams(v);}catch(e){rejected=true;}assert(rejected,"invalid input rejection");});
     assert(normalizeParams({ omega: 1, delta: 0, t: 0 }).t === 0, "time lower endpoint");
-    assert(normalizeParams({ omega: 1, delta: 0, t: 99 }).t === MAX_TIME, "time upper endpoint");
+    assert(normalizeParams({ omega: 1, delta: 0, t: MAX_TIME }).t === MAX_TIME, "time upper endpoint");
     var threwType = false;
     var threwRange = false;
     try { rabiProbability(NaN, 0, 1); } catch (error) { threwType = error instanceof TypeError; }
     try { rabiProbability(-1, 0, 1); } catch (error) { threwRange = error instanceof RangeError; }
     assert(threwType && threwRange, "illegal direct formula inputs");
-    var piCase = evaluate(PRESETS[0]);
-    var detuned = evaluate(PRESETS[1]);
-    var twoPi = evaluate(PRESETS[2]);
+    var piCase = evaluate({omega:PRESETS[0].omega,delta:PRESETS[0].delta,t:PRESETS[0].t});
+    var detuned = evaluate({omega:PRESETS[1].omega,delta:PRESETS[1].delta,t:PRESETS[1].t});
+    var twoPi = evaluate({omega:PRESETS[2].omega,delta:PRESETS[2].delta,t:PRESETS[2].t});
     assert(Math.abs(piCase.probability - 1) < 1e-12 && piCase.classification === "共振 π pulse", "pi preset answer");
     assert(detuned.amplitude === 0.5 && detuned.probability < piCase.probability, "detuned preset answer");
     assert(Math.abs(twoPi.probability) < 1e-12 && twoPi.classification === "共振 2π pulse", "2pi preset answer");
@@ -454,6 +471,10 @@
     DEFAULTS: DEFAULTS,
     PRESETS: PRESETS,
     normalizeParams: normalizeParams,
+    QUESTIONS:QUESTIONS,
+    questionFeedback:questionFeedback,
+    amplitudes:amplitudes,
+    buildRecord:buildRecord,
     rabiProbability: rabiProbability,
     evaluate: evaluate,
     predictionAnswers: predictionAnswers,

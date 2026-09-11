@@ -342,6 +342,8 @@ def sync_learning_assets(md_names):
         shutil.copytree(SHARED / "projects" / "quantum-path-density", destination / "projects" / "quantum-path-density")
     if "lindblad-qubit" in names:
         shutil.copytree(SHARED / "projects" / "lindblad-qubit", destination / "projects" / "lindblad-qubit")
+    if "doppler-cooling" in names:
+        shutil.copytree(SHARED / "projects" / "cold-atoms", destination / "projects" / "cold-atoms")
 
 
 def previous_build_time(out: Path, fallback: str) -> str:

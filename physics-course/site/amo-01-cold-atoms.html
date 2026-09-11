@@ -56,189 +56,358 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-12 07:37</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#amo01-learning-title">学习层：一个二能级原子，脉冲到底控制了什么？</a><ul>
-<li><a href="#1">1. 先预测：共振、失谐与一个完整周期</a></li>
-<li><a href="#2">2. 公式账本：有效频率、上限、相位因子</a></li>
-<li><a href="#3-rabi-svg">3. 可运行实验：先预测，再打开 Rabi SVG 与比较表</a></li>
-<li><a href="#4">4. 假设、边界与反例</a></li>
-</ul>
-</li>
-<li><a href="#1_1">1. 为什么要把原子冷下来</a></li>
-<li><a href="#2_1">2. 激光冷却：用光子刹车</a></li>
-<li><a href="#3">3. 蒸发冷却与玻色–爱因斯坦凝聚</a></li>
-<li><a href="#4_1">4. 费米子与配对</a></li>
-<li><a href="#5">5. 光晶格与量子模拟</a></li>
-<li><a href="#6">6. 离子阱与精密测量</a></li>
-<li><a href="#7">7. 要点回顾</a></li>
+<li><a href="#amo170-title">学习层：一次激发与一团气体的降温，分别观察什么？</a></li>
+<li><a href="#1">1. 温度、漂移和量子简并是三个不同的问题</a></li>
+<li><a href="#2">2. 相干驱动：为什么激发概率还不是冷却量</a></li>
+<li><a href="#3">3. 两束光怎样产生平均阻力</a></li>
+<li><a href="#4">4. 平均反冲为零，为什么动量方差仍增长</a></li>
+<li><a href="#5">5. 从随机动量到温度演化</a></li>
+<li><a href="#6-doppler">6. Doppler 温度从哪个平衡得到</a></li>
+<li><a href="#7-doppler">7. 囚禁、亚 Doppler 与反冲温标</a></li>
+<li><a href="#8">8. 蒸发冷却：降温还要记录失去了多少原子</a></li>
+<li><a href="#9-bec">9. 均匀气体与谐振阱的 BEC 条件为何不同</a></li>
+<li><a href="#10">10. 飞行时间成像：窄峰怎样成为证据</a></li>
+<li><a href="#11">11. 费米气体、光晶格与精密操控</a></li>
+<li><a href="#12">12. 迁移题：从数字回到模型</a></li>
 </ul>
 </div>
 </details>
-<h1 id="_1">原子分子光物理 · 激光冷却与量子气体<a class="headerlink" href="#_1" title="Permanent link"></a></h1>
+<h1 id="_1">原子分子光物理 · 从相干控制到激光冷却与量子气体<a class="headerlink" href="#_1" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Foot《Atomic Physics》/ Metcalf &amp; van der Straten《Laser Cooling and Trapping》/ Pethick &amp; Smith《BEC in Dilute Gases》｜ <strong>本页自足</strong>：从"为什么要冷"讲起，不预设冷原子背景。
-这是一个用<strong>光</strong>把物质带入极低温量子气体区的领域——温度低到可以直接观察量子统计和相干性。它在三十年里贡献了多个诺贝尔奖，并把"量子力学"从计算变成了<strong>可以在桌面上直接摆弄的东西</strong>。</p>
+<p><strong>阅读路线</strong>：先分清内态激发、整体漂移与热运动，再逐个计算光子的平均动量和随机涨落，最后连接到囚禁、量子简并和多体模拟。需要二能级量子力学、导数和概率方差；不预设冷原子实验经验。</p>
 </blockquote>
 <div data-learning-page></div>
-
-<section aria-labelledby="amo01-learning-title" class="learning-layer">
-<h2 id="amo01-learning-title">学习层：一个二能级原子，脉冲到底控制了什么？<a class="headerlink" href="#amo01-learning-title" title="Permanent link"></a></h2>
-<h3 id="1">1. 先预测：共振、失谐与一个完整周期<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>先把完整冷原子装置收缩成一个相干二能级模型。驱动角频率为 <span class="arithmatex">\(\Omega\ge0\)</span>，失谐为 <span class="arithmatex">\(\Delta\)</span>，在 rotating-wave approximation 下，从基态出发的精确激发概率是</p>
-<div class="arithmatex">\[
-P_e(t)=\frac{\Omega^2}{\Omega^2+\Delta^2}
-\sin^2\!\left(\frac{\sqrt{\Omega^2+\Delta^2}\,t}{2}\right).
-\]</div>
-<p>在看图前预测：共振 <span class="arithmatex">\(\pi\)</span> pulse（<span class="arithmatex">\(\Omega=1,\Delta=0,t=\pi\)</span>）是否把 <span class="arithmatex">\(P_e\)</span> 推到 <span class="arithmatex">\(1\)</span>？同样时长但 <span class="arithmatex">\(\Delta=\Omega\)</span> 时，改变的是振荡频率、振幅上限，还是两者都改变？共振 <span class="arithmatex">\(2\pi\)</span> pulse 结束时是否仍留在激发态？</p>
-<p>答案提交前，实验只显示预测门；切换预设或拖动参数会重新上锁。</p>
-<h3 id="2">2. 公式账本：有效频率、上限、相位因子<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>把公式拆成三项：</p>
-<div class="arithmatex">\[
-\Omega_{\rm eff}=\sqrt{\Omega^2+\Delta^2},\qquad
-A=\frac{\Omega^2}{\Omega^2+\Delta^2},\qquad
-P_e=A\sin^2(\Omega_{\rm eff}t/2).
-\]</div>
-<p>共振时 <span class="arithmatex">\(A=1\)</span>、<span class="arithmatex">\(\Omega_{\rm eff}=\Omega\)</span>，所以 <span class="arithmatex">\(t=\pi/\Omega\)</span> 是理想 <span class="arithmatex">\(\pi\)</span> pulse，<span class="arithmatex">\(t=2\pi/\Omega\)</span> 完成一个 Rabi 周期并回到基态。失谐时 <span class="arithmatex">\(A&lt;1\)</span>，峰值被压低且周期由 <span class="arithmatex">\(\Omega_{\rm eff}\)</span> 改变；这不是“激光完全没有作用”。</p>
-<h3 id="3-rabi-svg">3. 可运行实验：先预测，再打开 Rabi SVG 与比较表<a class="headerlink" href="#3-rabi-svg" title="Permanent link"></a></h3>
-<p>实验提供三个规范预设，也允许调节 <span class="arithmatex">\(\Omega,\Delta,t\)</span>。揭示后，曲线显示当前 <span class="arithmatex">\(P_e(t)\)</span>、失谐振幅上限与当前脉冲时间；表格把共振 <span class="arithmatex">\(\pi\)</span>、失谐和共振 <span class="arithmatex">\(2\pi\)</span> 三种情形逐行对账。</p>
+<div class="amo170-course">
+<style>.amo170-course .learning-layer{max-width:none}.amo170-course .learning-lab{max-width:none;min-width:0}.amo170-course .amo170-static{overflow:auto;max-width:100%}.amo170-course .amo170-static td,.amo170-course .amo170-static th{white-space:nowrap}.amo170-course .amo170-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}</style>
+<noscript>
+<style>.amo170-course span.arithmatex{overflow-wrap:anywhere;word-break:break-word;white-space:normal}</style>
+</noscript>
+<section aria-labelledby="amo170-title" class="learning-layer">
+<h2 id="amo170-title">学习层：一次激发与一团气体的降温，分别观察什么？<a class="headerlink" href="#amo170-title" title="Permanent link"></a></h2>
+<p><strong>本页要完成的任务</strong>：能从两个散射率判断光压力方向；能解释“平均反冲为零”为什么仍有加热；能在明确假设下推导 Doppler 温度；能判断一个窄峰是否足以证明凝聚。</p>
+<p>先做相干脉冲实验。它只改变两能级内态，没有自发辐射，也没有速度分布。共振 <span class="arithmatex">\(\pi\)</span> 脉冲完全激发，失谐改变振幅和频率，<span class="arithmatex">\(2\pi\)</span> 脉冲使布居回到初值。揭示后可以下载包含复振幅、密度矩阵和全部时间节点的记录。</p>
 <div class="learning-lab" data-learning-lab="rabi-control">
-<p><strong>JavaScript 失效时的静态 fallback：</strong>以下均取 <span class="arithmatex">\(\Omega=1\)</span>。失谐行的数值保留解析结构，避免把一次脉冲当成经验拟合。</p>
+<p><strong>无脚本固定对照：</strong>先预测终点，再核对整条概率曲线。共振π与2π的驱动相同，曲线重合，但停止时刻不同。</p>
+<figure class="plot">
+<p><img alt="三个脉冲预设的激发概率，失谐同时改变振幅与频率。" src="assets/img/amo-01-rabi-ledgers.svg" /></p>
+<figcaption>图 amo-01.1：图画完整时间区间，表列各预设的脉冲终点；相位信息须读完整振幅记录，不能只看概率。</figcaption>
+</figure>
+<div aria-label="固定Rabi读数，可横向滚动" class="amo170-static" role="region" tabindex="0">
 <table>
 <thead>
 <tr>
-<th>情形</th>
-<th><span class="arithmatex">\((\Delta,t)\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(\Omega_{\rm eff}\)</span></th>
-<th style="text-align: right;">振幅上限 <span class="arithmatex">\(A\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(P_e(t)\)</span></th>
-<th>读法</th>
+<th>对照</th>
+<th style="text-align: right;">Ω</th>
+<th style="text-align: right;">Δ</th>
+<th style="text-align: right;">t</th>
+<th style="text-align: right;">Ωeff</th>
+<th style="text-align: right;">上限</th>
+<th style="text-align: right;">Pe</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>共振 <span class="arithmatex">\(\pi\)</span> pulse</td>
-<td><span class="arithmatex">\((0,\pi)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td>完全激发</td>
+<td>resonant-pi</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3.14159265</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td>失谐</td>
-<td><span class="arithmatex">\((1,\pi)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(\sqrt2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1/2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(\frac12\sin^2(\pi/\sqrt2)\approx0.316564\)</span></td>
-<td>上限和相位都改变</td>
+<td>detuned</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">3.14159265</td>
+<td style="text-align: right;">1.41421356</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">0.316563836</td>
 </tr>
 <tr>
-<td>共振 <span class="arithmatex">\(2\pi\)</span> pulse</td>
-<td><span class="arithmatex">\((0,2\pi)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
-<td>一周期回到基态</td>
+<td>resonant-two-pi</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">6.28318531</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.49975978e-32</td>
 </tr>
 </tbody>
 </table>
-<p>这里的稳定结论是端点 <span class="arithmatex">\(P_e(0)=0\)</span>、<span class="arithmatex">\(0\le P_e\le A\le1\)</span>，以及共振 <span class="arithmatex">\(\pi/2\)</span>、<span class="arithmatex">\(\pi\)</span>、<span class="arithmatex">\(2\pi\)</span> 脉冲的相位读法；不是完整激光冷却或量子气体实验的数值预测。</p>
 </div>
-<h3 id="4">4. 假设、边界与反例<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<ul>
-<li><strong>模型假设</strong>：两能级近似、rotating-wave approximation、初态为基态、相干演化、无自发辐射、无退相干、无耗散，并把 <span class="arithmatex">\(\Omega,\Delta\)</span> 当作外加经典驱动参数。若线宽、激光相位噪声、空间不均匀或原子运动不可忽略，应改用 optical Bloch 方程或更完整的开放系统模型。</li>
-<li><strong>不能越界到整门冷原子学</strong>：这个公式不代表 Doppler 冷却、MOT、蒸发冷却、BEC 形成或光晶格中的多体 Hubbard 动力学；它只审计一个受控二能级内态的相干 Rabi 摆动。</li>
-<li><strong>反例</strong>：若加入衰减率 <span class="arithmatex">\(\Gamma\)</span>，<span class="arithmatex">\(P_e(t)\)</span> 一般不再在理想共振 <span class="arithmatex">\(\pi\)</span> pulse 达到 <span class="arithmatex">\(1\)</span>；若有多能级、脉冲包络或 Doppler 分布，单一 <span class="arithmatex">\(\Delta\)</span> 也不够。</li>
-<li><strong>迁移提示</strong>：给模型加入 <span class="arithmatex">\(\dot\rho=-i[H,\rho]+\Gamma\,\mathcal D[\sigma_-]\rho\)</span>，比较 <span class="arithmatex">\(\Gamma/\Omega\)</span> 从小到大时的 <span class="arithmatex">\(\pi\)</span> pulse 保真度；再把 <span class="arithmatex">\(\Delta\)</span> 换成 <span class="arithmatex">\(\Delta-kv\)</span>，说明速度分布如何把单原子的 Rabi 曲线平均成冷却实验中的响应。</li>
-</ul>
-</section>
+<p><a href="assets/learning/projects/cold-atoms/run-snapshot.json">下载两项实验的完整固定记录</a>。本实验没有自发辐射或外部运动，不模拟冷却。</p>
+</div>
+<p>再做激光粘胶实验。这次要同时看平均力和动量方差。选择“弱一半”“共振”“关灯”“整体漂移”逐一对比；预测题讨论题干指定的条件，反馈不会随旋钮暗中改变答案。</p>
+<div class="learning-lab" data-learning-lab="doppler-cooling">
+<p><strong>无脚本固定对照：</strong>以下读数与图共享同一份记录。关灯保持初始分布；蓝失谐没有有限稳态。</p>
 <figure class="plot">
-<p><img alt="多普勒冷却的速度依赖力，以及 BEC 出现时的双峰速度分布。" src="assets/img/amo-01-cold-atoms.svg" /></p>
-<figcaption><span class="fig-id">图 amo-01.1</span>左：<strong>光学粘胶</strong>——两束对射的失谐激光给出正比于速度且方向相反的净力 \(F\approx-\alpha v\)，像粘稠介质一样阻尼原子运动。右：<strong>BEC 的常用支持性诊断</strong>——在给定陷阱、释放时间、相互作用和热云模型下，降温穿过临界区时宽的热分布中央可能长出尖锐峰，形成双峰结构。</figcaption>
+<p><img alt="光压力切线、光强减半、蓝失谐反例与红失谐温度扫描。" src="assets/img/amo-01-doppler-ledgers.svg" /></p>
+<figcaption>图 amo-01.2：实线是各自模型的确定性计算，不是实测数据。A保留弱光速度响应，B/C另取局部OU近似，D只画正光强的红失谐稳态。</figcaption>
 </figure>
-<h2 id="1_1">1. 为什么要把原子冷下来<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p><strong>温度就是无规运动。</strong> 室温下空气分子速度约 500 m/s，一个原子在你能观察它之前早已飞出视野。</p>
-<p>但更深的理由是量子的。每个粒子有一个<strong>德布罗意波长</strong></p>
-<div class="arithmatex">\[\lambda_{dB} = \frac{h}{\sqrt{2\pi m k_BT}}\]</div>
-<p><strong>温度越低，波长越长。</strong> 当 <span class="arithmatex">\(\lambda_{dB}\)</span> 增长到与粒子间距相当时，<strong>相邻原子的波包开始重叠</strong>——此时它们不再是"一群小球"，而必须作为<strong>全同粒子的量子多体系统</strong>来处理。</p>
-<p><strong>这个判据可以写成一个无量纲数</strong>（相空间密度）：</p>
-<div class="arithmatex">\[n\lambda_{dB}^3 \gtrsim 2.612\]</div>
-<p>这里的 <span class="arithmatex">\(2.612=\zeta(3/2)\)</span> 是<strong>均匀、理想、三维 Bose 气</strong>的临界相空间密度；谐振阱的密度分布、有限尺寸、相互作用和非平衡会修改临界条件，不能把它当作所有 BEC 装置的无条件判据。对典型稀薄原子气，这通常把实验带入微开尔文以下乃至更低的温区，具体尺度取决于密度、质量和阱。</p>
-<p><strong>所以"冷"不是目的，"让量子性显现"才是。</strong> 常规制冷（液氦约 4 K）差了六个数量级，必须用全新的办法。</p>
-<h2 id="2_1">2. 激光冷却：用光子刹车<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p><strong>核心思想出奇地简单</strong>：原子吸收一个光子会获得一份动量反冲（约 <span class="arithmatex">\(\hbar k\)</span>）；随后自发辐射把光子随机地朝各个方向吐出去，<strong>多次平均后自发辐射的反冲相消</strong>。<strong>净效果是：原子每吸收-发射一轮，就沿激光方向被推一下。</strong></p>
-<p><strong>但推动不等于冷却</strong>——需要让力<strong>总是与速度反向</strong>。技巧在于<strong>多普勒效应</strong>：</p>
-<ul>
-<li>把激光频率调到略<strong>低于</strong>原子共振（称为<strong>红失谐</strong>）；</li>
-<li><strong>迎着激光运动的原子</strong>看到的频率被蓝移，更接近共振 → 吸收强 → 被减速；</li>
-<li><strong>顺着激光运动的原子</strong>看到的频率被进一步红移 → 吸收弱。</li>
-</ul>
-<p><strong>从两个方向都打上这样的激光</strong>，净力就成为</p>
-<div class="arithmatex">\[F \approx -\alpha v\]</div>
-<p><strong>这是一个纯粹的阻尼力</strong>。原子仿佛陷入粘稠的介质中——因此得名<strong>光学粘胶（optical molasses）</strong>。三对正交激光即可在三维上冷却。</p>
-<p><strong>冷却有极限吗？有两个。</strong></p>
-<p><strong>多普勒极限</strong>：自发辐射的方向是随机的，每次都给原子一个随机反冲，构成"加热"。冷却与这种加热平衡于</p>
-<div class="arithmatex">\[k_BT_D = \frac{\hbar\Gamma}{2}\]</div>
-<p><span class="arithmatex">\(\Gamma\)</span> 是激发态的自然线宽。对钠原子约 240 μK。</p>
-<p><strong>一个漂亮的意外</strong>：1980 年代实验测到的温度<strong>低于</strong>多普勒极限。理论并没有错，而是<strong>遗漏了一个机制</strong>——原子在偏振梯度中运动时，会反复地"爬坡"损失动能（<strong>西西弗斯冷却</strong>），可达到<strong>反冲极限</strong></p>
-<div class="arithmatex">\[k_BT_r=E_r=\frac{\hbar^2k^2}{2m}\]</div>
-<p>其温标由原子质量与跃迁波数决定，不能脱离具体原子和光学跃迁笼统称为“微开量级”。<strong>这是实验超出理论预期、迫使理论补课的经典案例</strong>（1997 诺贝尔物理学奖）。</p>
-<p><strong>磁光阱（MOT）</strong>：光学粘胶只阻尼速度、不束缚位置。加上一个梯度磁场，使塞曼分裂随位置变化，则吸收也变成位置依赖的——<strong>同时得到冷却与囚禁</strong>。MOT 是几乎所有冷原子实验的第一步。</p>
-<h2 id="3">3. 蒸发冷却与玻色–爱因斯坦凝聚<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>激光冷却止步于微开，而 BEC 需要纳开。<strong>最后这一步靠一个非常"日常"的机制——蒸发</strong>。</p>
-<p>把原子囚禁在磁阱或光阱中，<strong>逐渐降低阱的深度</strong>，让能量最高的原子逃逸；剩下的原子通过碰撞重新达到热平衡，<strong>平均温度下降</strong>。<strong>这就是一杯热咖啡变凉的原理</strong>，只是被精确控制。代价是原子数大量损失（常损失 99% 以上），换来温度下降三个数量级。</p>
-<p><strong>当 <span class="arithmatex">\(n\lambda_{dB}^3\)</span> 越过临界值时会发生什么？</strong></p>
-<p>对<strong>玻色子</strong>，量子统计给出一个惊人的结果：<strong>基态的占据数变得宏观地大</strong>。</p>
-<div class="arithmatex">\[T_c = \frac{2\pi\hbar^2}{mk_B}\left(\frac{n}{2.612}\right)^{2/3}\]</div>
-<p>这个 <span class="arithmatex">\(T_c\)</span> 同样是<strong>均匀、理想 Bose 气</strong>的公式；谐振阱应改用相应的态密度和总粒子数关系，相互作用、有限尺寸与非平衡还会带来修正。</p>
-<p><strong>这不是普通的"都跑到最低能级"——它是纯粹的统计效应</strong>：玻色子倾向于占据同一个态，且这种倾向在低温下变成一场雪崩。<strong>爱因斯坦在 1925 年预言了它，七十年后才被实现</strong>（1995，2001 年诺贝尔奖）。</p>
-<p><strong>实验上如何确认</strong>：在已知的关阱时刻、飞行时间、成像标定以及可控碰撞/膨胀条件下，让原子云自由飞行后成像——飞行距离可把速度信息映射到位置。</p>
-<ul>
-<li><strong>热气体</strong>给出宽的高斯分布；</li>
-<li><strong>BEC 出现时</strong>，在合适的释放时间、阱几何和相互作用/膨胀模型下，宽分布中央可能长出一个<strong>尖锐的窄峰</strong>（图 amo-01.1 右）；</li>
-<li>峰的<strong>各向异性</strong>也依赖陷阱几何、释放过程和相互作用，热云的对比还需要校准。双峰与各向异性是常用的支持性证据，不能脱离这些条件当作唯一判据；还需结合相空间密度、凝聚分数、干涉/相干性等诊断。</li>
-</ul>
-<p><strong>BEC 是一个宏观量子体系</strong>：数十万个原子共享同一个波函数。两团 BEC 相互交叠会产生<strong>干涉条纹</strong>——<strong>物质波的杨氏双缝</strong>。</p>
-<h2 id="4_1">4. 费米子与配对<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p>对<strong>费米子</strong>（如 <span class="arithmatex">\(^{40}\)</span>K、<span class="arithmatex">\(^6\)</span>Li），泡利原理禁止占据同一态，故没有 BEC。降温后形成<strong>简并费米气</strong>：从最低能级往上填满至费米面——<strong>这是白矮星内部与金属中电子气的同一物理</strong>，只是可以在桌面上调节参数。</p>
-<p><strong>更有意思的是可调相互作用</strong>：利用<strong>Feshbach 共振</strong>，用磁场就能连续调节原子间散射长度，甚至改变符号。<strong>这带来了一个物理学上罕见的能力——把哈密顿量当旋钮拧。</strong></p>
-<p>由此可以实现 <strong>BEC–BCS 渡越</strong>：</p>
-<ul>
-<li>强吸引一侧：原子两两结合成分子，然后分子凝聚（BEC）；</li>
-<li>弱吸引一侧：形成弥散的 Cooper 对（与超导的 BCS 机制同类）；</li>
-<li><strong>中间是"幺正区"</strong>，散射长度 <span class="arithmatex">\(a\)</span> 退出有限尺度描述（<span class="arithmatex">\(|a|\to\infty\)</span>）；但密度、温度、陷阱尺度和有限有效程仍然提供物理尺度，普适性是在相应低能、稀薄和短程条件下的尺度律，不是“只剩一个长度尺度”。</li>
-</ul>
-<p><strong>这使得超导的核心物理可以在完全可控的系统中被逐点研究</strong>——冷原子因此成为凝聚态的"模拟器"。</p>
-<h2 id="5">5. 光晶格与量子模拟<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p>用互相干涉的激光可造出<strong>周期性的光学势阱</strong>——<strong>光晶格</strong>。原子在其中的行为，与电子在晶体中的行为遵守同一个哈密顿量（Hubbard 模型）：</p>
-<div class="arithmatex">\[H = -t\sum_{\langle ij\rangle}c_i^\dagger c_j + U\sum_i n_{i\uparrow}n_{i\downarrow}\]</div>
-<p><strong>但有一个决定性的差别：这里的 <span class="arithmatex">\(t\)</span> 和 <span class="arithmatex">\(U\)</span> 可以在平台允许的有限范围内通过晶格深度、散射长度和磁场等旋钮调节</strong>，而真实材料中它们通常是给定的；带宽、加热、损失、校准和寿命都会限制“可调”的范围，并非任意取值。</p>
-<p><strong>这就是"量子模拟"的思想</strong>（费曼 1982 年的提议）：<strong>用一个可控的量子系统去针对性地模拟另一个难以计算的强关联模型</strong>。它是特定哈密顿量、参数区间和观测量的实验工具，不是通用的经典求解器。</p>
-<p>已实现的标志性成果包括：<strong>超流–Mott 绝缘体相变</strong>的直接观测、<strong>量子气体显微镜</strong>（可对单个格点上的单个原子成像）。<strong>对于经典计算机难以求解的强关联问题，这提供了一条实验性的求解路径</strong>——虽然目前仍限于特定模型【前沿】。</p>
-<h2 id="6">6. 离子阱与精密测量<a class="headerlink" href="#6" title="Permanent link"></a></h2>
-<p><strong>离子阱</strong>是另一条主线：用电磁场囚禁带电离子，激光冷却到运动基态。</p>
-<ul>
-<li><strong>量子计算</strong>：离子的内态编码量子比特，<strong>共同的振动模式充当"数据总线"</strong>实现比特间耦合。离子阱是保真度最高的量子比特平台之一（相干时间长，见 🔗 oqs-01）；</li>
-<li><strong>光钟</strong>：以光学跃迁（而非微波）作为频率标准，既是精密计量工具，也能作为探测器研究广义相对论的<strong>引力红移</strong>（🔗 gr-01）、基本常数漂移和某些暗物质模型。具体不确定度与可分辨高度差取决于当代装置和校准条件，不在本页给出时效性纪录数字。</li>
-</ul>
-<p><strong>2012 年诺贝尔奖</strong>授予离子阱与腔量子电动力学中"操纵单个量子系统"的实验方法——<strong>它标志着单量子体系从思想实验变成了日常操作对象</strong>。</p>
-<h2 id="7">7. 要点回顾<a class="headerlink" href="#7" title="Permanent link"></a></h2>
-<ul>
-<li><strong>冷却的目的是让 <span class="arithmatex">\(n\lambda_{dB}^3\gtrsim2.612\)</span></strong>（均匀理想 Bose 气的基准），即让物质波交叠、量子统计显现；阱、相互作用和非平衡会修改实际判据；</li>
-<li><strong>激光冷却靠红失谐 + 多普勒效应，把光压变成阻尼力 <span class="arithmatex">\(F=-\alpha v\)</span></strong>；MOT 加磁梯度实现囚禁；</li>
-<li><strong>多普勒极限被实验突破</strong>，催生了西西弗斯冷却理论——实验领先理论的经典案例；</li>
-<li><strong>蒸发冷却完成最后几个数量级</strong>；<strong>飞行时间双峰与各向异性膨胀是带条件的支持性诊断，不是唯一判据</strong>；</li>
-<li><strong>Feshbach 共振使相互作用可调</strong>，实现 BEC–BCS 渡越——超导物理的可控实验室；</li>
-<li><strong>光晶格 = 可编程但受实验范围约束的 Hubbard 模型</strong>，量子模拟的主力平台；</li>
-<li><strong>离子阱与光钟把单量子操纵和频率计量推进到极高精度</strong>，并可用来探测引力红移和基本常数的微小变化。<span class="arithmatex">\(\blacksquare\)</span></li>
-</ul>
-<hr />
-<p><em>下一页：本站最后一页——了望塔。前面所有内容都有实验支撑；接下来要看的，是目前还没有实验能够判决的地带，以及如何诚实地对待它。</em></p>
+<div aria-label="固定冷却读数，可横向滚动" class="amo170-static" role="region" tabindex="0">
+<table>
+<thead>
+<tr>
+<th>对照</th>
+<th style="text-align: right;">δ</th>
+<th style="text-align: right;">s</th>
+<th style="text-align: right;">τ</th>
+<th style="text-align: right;">A</th>
+<th style="text-align: right;">d̄</th>
+<th style="text-align: right;">μ</th>
+<th style="text-align: right;">θ</th>
+<th style="text-align: right;">θeq</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>default</td>
+<td style="text-align: right;">-0.5</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">200</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">0.005</td>
+<td style="text-align: right;">0.00270670566</td>
+<td style="text-align: right;">0.527473458</td>
+<td style="text-align: right;">0.5</td>
+</tr>
+<tr>
+<td>weak</td>
+<td style="text-align: right;">-0.5</td>
+<td style="text-align: right;">0.005</td>
+<td style="text-align: right;">200</td>
+<td style="text-align: right;">0.005</td>
+<td style="text-align: right;">0.0025</td>
+<td style="text-align: right;">0.00735758882</td>
+<td style="text-align: right;">0.703002925</td>
+<td style="text-align: right;">0.5</td>
+</tr>
+<tr>
+<td>blue</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">50</td>
+<td style="text-align: right;">-0.01</td>
+<td style="text-align: right;">0.005</td>
+<td style="text-align: right;">0.0329744254</td>
+<td style="text-align: right;">6.29570457</td>
+<td style="text-align: right;">不适用</td>
+</tr>
+<tr>
+<td>off</td>
+<td style="text-align: right;">-0.5</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">200</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">不适用</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><a href="assets/learning/projects/cold-atoms/run-snapshot.json">下载两项实验的完整固定记录</a>。ε=0.001，θ₀=2，μ₀=0.02；总光强参数是每束s的6倍。</p>
+</div>
+<p>两个实验的参数各自独立。冷却实验的光压力曲线保留完整的弱光速度响应；高斯分布演化另用了零速附近的线性近似。它们不是同一精度的两个画法。每次改参数都要重新预测，避免把上一次的解释误读为新结果。</p>
+<p><strong>先修与继续</strong>：<a href="qm-01-framework.html">量子态与观测</a>、<a href="oqs-01-decoherence.html">开放系统与退相干</a>提供内态背景；本页第3—6节给出冷却模型的全部符号和近似。遇到新平台时，先确定可测量量与误差来源，再迁移模型。</p>
+</section>
+<h2 id="1">1. 温度、漂移和量子简并是三个不同的问题<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>一团原子可以整体快速飞行，同时在自身质心参考系里很冷。对一维经典平衡速度分量，温度由方差给出，而不是由平均速度给出：</p>
+<div class="arithmatex">\[
+k_BT_x=m\bigl(\langle v_x^2\rangle-\langle v_x\rangle^2\bigr),\qquad
+\frac m2\langle v_x^2\rangle=\frac{k_BT_x}{2}+\frac m2\langle v_x\rangle^2.
+\]</div>
+<p>对任意非平衡分布，右边的方差仍可定义一个“动能温标”，但未必存在描述所有观测量的热力学温度。实验中的局部高斯模型使这个区分可以逐项计算。</p>
+<p>低温让热德布罗意波长增大，密度则决定相邻粒子的距离。常用的无量纲量是相空间密度：</p>
+<div class="arithmatex">\[
+\lambda_{\mathrm{dB}}=\frac{h}{\sqrt{2\pi mk_BT}},\qquad \mathcal D=n\lambda_{\mathrm{dB}}^3.
+\]</div>
+<p>这说明只报温度不足以判断量子简并：稀释也会降低 <span class="arithmatex">\(\mathcal D\)</span>。全同粒子始终服从量子统计；当 <span class="arithmatex">\(\mathcal D\)</span> 不再很小时，经典稀薄气体近似开始失效。数值 <span class="arithmatex">\(\zeta(3/2)\approx2.612\)</span> 属于均匀、理想、三维 Bose 气的凝聚条件，第9节会推导，不能用于所有阱与所有粒子。</p>
+<h2 id="2">2. 相干驱动：为什么激发概率还不是冷却量<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>取基底 <span class="arithmatex">\((|g\rangle,|e\rangle)\)</span>，失谐统一定义为 <span class="arithmatex">\(\Delta=\omega_L-\omega_0\)</span>。令激发态以激光角频率旋转，并减去不影响观测的单位矩阵项，RWA 哈密顿量为</p>
+<div class="arithmatex">\[
+\frac{H_{\rm rot}}\hbar=\frac12
+\begin{pmatrix}\Delta&amp;\Omega\\\Omega&amp;-\Delta\end{pmatrix},\qquad
+E=\sqrt{\Omega^2+\Delta^2},\qquad H_{\rm rot}^2=\frac{\hbar^2E^2}{4}I.
+\]</div>
+<p>因此指数级数的偶数项与奇数项分别合成余弦与正弦。从基态出发，令 <span class="arithmatex">\(\phi=Et/2\)</span>：</p>
+<div class="arithmatex">\[
+c_g=\cos\phi-i\frac\Delta E\sin\phi,\qquad
+c_e=-i\frac\Omega E\sin\phi,\qquad
+P_e=\frac{\Omega^2}{E^2}\sin^2\phi.
+\]</div>
+<p><span class="arithmatex">\(E=0\)</span> 时直接用 <span class="arithmatex">\(c_g=1,c_e=0\)</span>，不用除以零。实验给出 <span class="arithmatex">\(\rho_{ij}=c_i c_j^*\)</span>，因而可以核对归一化以及概率没有包含的相位信息。共振 <span class="arithmatex">\(2\pi\)</span> 脉冲给出 <span class="arithmatex">\(-I\)</span>：单独测布居看不到整体负号；它与某个参考路径的相对相位是否可见，要由更大的干涉实验决定。</p>
+<p>这些结果假设近共振的 RWA、固定驱动、两能级和相干演化。加入自发辐射后应使用开放系统方程，再考虑光子动量与外部运动。将 <span class="arithmatex">\(\Delta\)</span> 换成速度相关失谐，只是开始建立运动模型，并不会自动产生完整的冷却理论。</p>
+<h2 id="3">3. 两束光怎样产生平均阻力<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>下面的冷却模型使用六束等强、独立的弱光，分别沿 <span class="arithmatex">\(\pm x,\pm y,\pm z\)</span>；原子用二能级响应近似，发射方向各向同性。忽略光束干涉、偏振梯度、多能级、磁场、碰撞和共同饱和修正。<span class="arithmatex">\(\Gamma\)</span> 是激发态布居衰减率，失谐 <span class="arithmatex">\(\Delta=\omega_L-\omega_0\)</span> 用角频率；每束的共振饱和参数记为 <span class="arithmatex">\(s\)</span>，只保留它的一阶项。</p>
+<p>为避免把单位换算混进物理，定义</p>
+<div class="arithmatex">\[
+\delta=\frac\Delta\Gamma,\quad u=\frac{kv_x}\Gamma,\quad
+\epsilon=\frac{\hbar k^2}{m\Gamma},\quad \tau=\epsilon\Gamma t,\quad
+\theta=\frac{k_BT}{\hbar\Gamma}.
+\]</div>
+<p>沿 <span class="arithmatex">\(x\)</span> 运动时，轴向两束的失谐分别为 <span class="arithmatex">\(\Delta\mp kv_x\)</span>；取 <span class="arithmatex">\(v_y=v_z=0\)</span> 的截面，四束横向光有同一个散射率。用 <span class="arithmatex">\(r=R/\Gamma\)</span>：</p>
+<div class="arithmatex">\[
+r_+(u)=\frac{s}{2[1+4(\delta-u)^2]},\qquad
+r_-(u)=\frac{s}{2[1+4(\delta+u)^2]},\qquad
+r_0=\frac{s}{2(1+4\delta^2)}.
+\]</div>
+<p>吸收正向光子的动量为 <span class="arithmatex">\(+\hbar k\)</span>，反向为 <span class="arithmatex">\(-\hbar k\)</span>，于是净平均力是</p>
+<div class="arithmatex">\[
+f(u)=\frac{F_x}{\hbar k\Gamma}=r_+(u)-r_-(u),\qquad
+f(u)=-Au+O(u^3),\qquad
+A=\frac{\alpha}{\hbar k^2}=\frac{-8s\delta}{(1+4\delta^2)^2}.
+\]</div>
+<p>红失谐给 <span class="arithmatex">\(A&gt;0\)</span>，零速附近 <span class="arithmatex">\(F_x=-\alpha v_x\)</span>；蓝失谐给反阻尼。曲线可以验证：远离零速时，真实的弱光响应不会沿这条切线无限增长。冷却实验显示切线与完整响应，目的就是让学习者看见近似从哪里开始偏离。</p>
+<h2 id="4">4. 平均反冲为零，为什么动量方差仍增长<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>把一小段时间内的散射次数视作独立 Poisson 计数。一个速率为 <span class="arithmatex">\(R\)</span>、每次动量增量为 <span class="arithmatex">\(q\)</span> 的过程，平均动量增长率为 <span class="arithmatex">\(Rq\)</span>，方差增长率为 <span class="arithmatex">\(Rq^2\)</span>。对于随机方向发射，<span class="arithmatex">\(\langle q_x\rangle=0\)</span>，但各向同性给 <span class="arithmatex">\(\langle q_x^2\rangle=(\hbar k)^2/3\)</span>。</p>
+<p>本页固定扩散系数约定为 <span class="arithmatex">\(d\operatorname{Var}(p_x)/dt=2D_p\)</span>（单独计算噪声项时）。轴向吸收与全部六束引发的发射分别贡献</p>
+<div class="arithmatex">\[
+\frac{2D_p^{\rm abs}}{(\hbar k)^2\Gamma}=r_++r_-,\qquad
+\frac{2D_p^{\rm em}}{(\hbar k)^2\Gamma}=\frac{r_++r_-+4r_0}{3}.
+\]</div>
+<p>四束横向光吸收时没有 <span class="arithmatex">\(x\)</span> 动量，发射时仍会贡献 <span class="arithmatex">\(x\)</span> 方向方差。吸收和发射的交叉项因发射的零均值而消失。在弱光独立散射近似下，两项相加得到</p>
+<div class="arithmatex">\[
+\bar d(u)=\frac{D_p(u)}{\hbar^2k^2\Gamma}
+=\frac{r_++r_-}{2}+\frac{r_++r_-+4r_0}{6},\qquad
+\bar d(0)=\frac{s}{1+4\delta^2}.
+\]</div>
+<p>只写“自发辐射反冲平均相消”会漏掉方差；只计算发射噪声，又会漏掉吸收次数涨落。零速六束等强时，两项恰好各占一半，但这不适用于任意几何、发射图样或速度。</p>
+<h2 id="5">5. 从随机动量到温度演化<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>进一步把力在零速线性化，并把扩散固定为零速值。用许多小反冲的连续近似，得到局部 Ornstein–Uhlenbeck（OU）过程及其 Fokker–Planck 方程：</p>
+<div class="arithmatex">\[
+du=-Au\,d\tau+\sqrt{2D}\,dW_\tau,\qquad
+D=\epsilon\bar d(0),\qquad
+\partial_\tau p=A\partial_u(up)+D\partial_u^2p.
+\]</div>
+<p><span class="arithmatex">\(W_\tau\)</span> 的增量方差为 <span class="arithmatex">\(d\tau\)</span>。将方程分别乘 <span class="arithmatex">\(u,u^2\)</span> 积分，或用 Itô 公式，可得均值和方差各自的闭合方程：</p>
+<div class="arithmatex">\[
+\dot\mu=-A\mu,\qquad \dot\sigma^2=-2A\sigma^2+2D.
+\]</div>
+<p>取初始高斯，均值 <span class="arithmatex">\(\mu_0\)</span>、方差 <span class="arithmatex">\(\epsilon\theta_0\)</span>。局部 OU 模型保持高斯，其精确解为</p>
+<div class="arithmatex">\[
+\mu(\tau)=\mu_0e^{-A\tau},\qquad
+\sigma^2(\tau)=\epsilon\theta_0e^{-2A\tau}
++\frac DA(1-e^{-2A\tau}).
+\]</div>
+<p><span class="arithmatex">\(A=0\)</span> 时用连续极限 <span class="arithmatex">\(\sigma^2=\epsilon\theta_0+2D\tau\)</span>。代码用 <code>expm1</code> 计算接近零的指数差，避免相减消失。<span class="arithmatex">\(s=0\)</span> 时同时 <span class="arithmatex">\(A=D=0\)</span>，分布保持初值；这不是把原子送到了某个唯一平衡温度。</p>
+<p>实验的温度读数为 <span class="arithmatex">\(\sigma^2/\epsilon\)</span>，含漂移的二阶矩为 <span class="arithmatex">\((\sigma^2+\mu^2)/\epsilon\)</span>。高斯图只画均值两侧各 <span class="arithmatex">\(4\sigma\)</span>，固定记录保留全部257个节点和梯形积分，既不重归一化，也不把它当作随机抽样误差。</p>
+<h2 id="6-doppler">6. Doppler 温度从哪个平衡得到<a class="headerlink" href="#6-doppler" title="Permanent link"></a></h2>
+<p>仅当 <span class="arithmatex">\(s&gt;0,\delta&lt;0\)</span> 时，<span class="arithmatex">\(A&gt;0\)</span>，局部高斯稳态可归一化。阻尼带走的随机动能与扩散补入的随机动能平衡：</p>
+<div class="arithmatex">\[
+k_BT_{\rm eq}=\frac{D_p(0)}\alpha,\qquad
+\theta_{\rm eq}=\frac{\bar d(0)}A
+=-\frac{1+4\delta^2}{8\delta}.
+\]</div>
+<p>令 <span class="arithmatex">\(x=-\delta&gt;0\)</span>，则 <span class="arithmatex">\(\theta_{\rm eq}=x/2+1/(8x)\)</span>，在 <span class="arithmatex">\(x=1/2\)</span> 最小：</p>
+<div class="arithmatex">\[
+\Delta=-\frac\Gamma2,\qquad k_BT_D=\frac{\hbar\Gamma}{2}.
+\]</div>
+<p>这是当前弱光、六束和局部半经典模型的最小值。光强在比值中相消，但接近平衡的时间尺度 <span class="arithmatex">\(1/A\)</span> 随光强减弱而增长。“先取长期极限再让光强趋零”与“直接关灯”不是同一个操作。有限饱和、多能级和额外加热会改变结果；对应实验和三维 Doppler 模型的比较可见 <a href="https://arxiv.org/abs/1409.2519">Chang 等的原始研究</a>。</p>
+<p>实验允许 <span class="arithmatex">\(-2\le\delta\le2\)</span>（非零绝对值至少0.01）、<span class="arithmatex">\(0\le s\le0.02\)</span>（非零至少0.001）、<span class="arithmatex">\(0.001\le\epsilon\le0.05\)</span>。这些是数值教学范围，不能当成物理阈值。六束总参数最多0.12，本模型依然只保留弱光一阶项，没有声称饱和误差为零。</p>
+<p>记录还给出 <span class="arithmatex">\((|\mu|+3\sigma)/(\sqrt{1+4\delta^2}/2)\)</span>，比较分布跨度与响应线宽尺度。这只是提醒检查局部近似的指标，不是严格误差界。蓝失谐下 OU 数学解仍可算，但分布迅速变宽后不能作为完整光压力模型的长期物理预测。反冲温标 <span class="arithmatex">\(k_BT_r=\hbar^2k^2/(2m)\)</span> 对应 <span class="arithmatex">\(\theta_r=\epsilon/2\)</span>；接近它时也需要检查连续动量近似。</p>
+<h2 id="7-doppler">7. 囚禁、亚 Doppler 与反冲温标<a class="headerlink" href="#7-doppler" title="Permanent link"></a></h2>
+<p>光学粘胶主要提供速度阻尼，不保证原子回到某个位置。MOT 结合合适的偏振、能级选择规则与磁场梯度，让塞曼位移改变两束光的局部失谐，中心附近可以同时出现</p>
+<div class="arithmatex">\[
+F_x\simeq-\alpha v_x-\kappa x,\qquad \alpha&gt;0,\quad\kappa&gt;0.
+\]</div>
+<p>仅说“加磁场就能困住”不够：恢复力的符号取决于这些配置，真实 MOT 还涉及捕获范围、光束大小与多能级光抽运。当前实验没有位置自由度，因此不能演示囚禁。</p>
+<p>多能级原子在偏振梯度中会经历光移势与光抽运循环，Sisyphus 图像用“爬势垒后被泵到较低势能支”解释能量损失。它超出了本页二能级独立光束模型，可以低于 Doppler 温标。反冲能量也不是所有冷却方法不可跨越的普适下界；速度选择暗态等机制需要显式量子动量态与不同散射选择规则。关于这些机制的实验背景，可读 <a href="https://www.nobelprize.org/prizes/physics/1997/press-release/">1997年诺贝尔奖官方说明</a>。</p>
+<h2 id="8">8. 蒸发冷却：降温还要记录失去了多少原子<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>降低阱深或选择性移除高能原子，只完成了“截去高能尾部”。剩余原子要通过弹性碰撞再热化，才可用新的平衡温度描述。若碰撞太慢、加热太强或非弹性损失太快，蒸发不会沿理想路线推进；不存在适用于所有装置的固定损失百分比与降温倍数。</p>
+<p>在经典、三维、固定谐振阱中，峰值相空间密度正比于 <span class="arithmatex">\(N(\hbar\bar\omega/k_BT)^3\)</span>。因此可用粒子数与温度的比值共同判断效率：</p>
+<div class="arithmatex">\[
+\frac{\mathcal D_{0,f}}{\mathcal D_{0,i}}
+=\frac{N_f}{N_i}\left(\frac{\bar\omega_f}{\bar\omega_i}\right)^3
+\left(\frac{T_i}{T_f}\right)^3.
+\]</div>
+<p>当光阱变浅时阱频也可能下降，所以不能只看 <span class="arithmatex">\(T\)</span>。这一经典缩放用来判断到达简并前的趋势，不能替代简并区的态方程与实际蒸发动力学。激光、蒸发与其他冷却方法如何接续，取决于原子、跃迁、密度与目标态，不能按固定“微开—纳开”分界安排所有实验。</p>
+<h2 id="9-bec">9. 均匀气体与谐振阱的 BEC 条件为何不同<a class="headerlink" href="#9-bec" title="Permanent link"></a></h2>
+<p>先取理想、均匀、三维 Bose 气，热力学极限下基态能量置零。凝聚临界点的化学势趋于0。用动量态数 <span class="arithmatex">\(V\,d^3p/(2\pi\hbar)^3\)</span> 积分激发态占据，代入 <span class="arithmatex">\(x=p^2/(2mk_BT)\)</span>，得到</p>
+<div class="arithmatex">\[
+n_{\rm ex}=\frac1{\lambda_{\rm dB}^3}\,\frac2{\sqrt\pi}
+\int_0^\infty\frac{x^{1/2}}{e^x-1}\,dx
+=\frac{\zeta(3/2)}{\lambda_{\rm dB}^3}.
+\]</div>
+<p>等式可由 <span class="arithmatex">\(1/(e^x-1)=\sum_{\ell\ge1}e^{-\ell x}\)</span> 逐项积分得到。激发态能容纳的密度有限；固定总密度超过它时，余下的粒子宏观占据基态。因此</p>
+<div class="arithmatex">\[
+T_c^{\rm uniform}=\frac{2\pi\hbar^2}{mk_B}
+\left[\frac n{\zeta(3/2)}\right]^{2/3}.
+\]</div>
+<p>三维谐振阱则有不同的态数。若 <span class="arithmatex">\(k_BT\gg\hbar\omega_i\)</span>，把量子数空间中的四面体体积近似为 <span class="arithmatex">\(G(E)=E^3/(6\hbar^3\omega_x\omega_y\omega_z)\)</span>，求导后积分：</p>
+<div class="arithmatex">\[
+g(E)=\frac{E^2}{2(\hbar\bar\omega)^3},\quad
+N_{\rm ex}=\zeta(3)\left(\frac{k_BT}{\hbar\bar\omega}\right)^3,\quad
+T_c^{\rm trap}=\frac{\hbar\bar\omega}{k_B}
+\left[\frac N{\zeta(3)}\right]^{1/3}.
+\]</div>
+<p>这里 <span class="arithmatex">\(\bar\omega=(\omega_x\omega_y\omega_z)^{1/3}\)</span>，能量已减去零点能。相应理想凝聚分数为均匀体系的 <span class="arithmatex">\(1-(T/T_c)^{3/2}\)</span> 与谐振阱的 <span class="arithmatex">\(1-(T/T_c)^3\)</span>。相互作用、有限尺寸、低维与非平衡会修改这些结论；凝聚也不能简单等同于任何体系的超流。</p>
+<h2 id="10">10. 飞行时间成像：窄峰怎样成为证据<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>在关阱后无力、无碰撞的弹道膨胀近似下，<span class="arithmatex">\(x(t)=x_0+v_0t\)</span>。方差自动保留初始尺寸以及位置—速度相关项：</p>
+<div class="arithmatex">\[
+\operatorname{Var}[x(t)]=\operatorname{Var}(x_0)
++2t\operatorname{Cov}(x_0,v_0)+t^2\operatorname{Var}(v_0).
+\]</div>
+<p>只有在相关项可忽略、初始尺寸已知或长飞行时间足以压低其相对影响时，云的宽度才能直接换成速度温度。用多个飞行时间拟合比只看一张图更能区分这些项；独立成像模糊还会向观测方差添加标定过的贡献。</p>
+<p>简并 Bose 云可能呈现热背景加窄凝聚分量，但凝聚体平均场能释放、碰撞与流体膨胀会改变形状和各向异性。双峰是带模型条件的支持性证据，应结合凝聚分数、密度与温度标定、相干性或干涉诊断。当前高斯冷却图完全没有凝聚态变量，不能从图变窄推断“已经形成BEC”。</p>
+<h2 id="11">11. 费米气体、光晶格与精密操控<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p>单个未配对费米原子不能宏观占据同一个单粒子态，但两种内态的费米原子可以配对。在均匀、两组分平衡气体中，若 <span class="arithmatex">\(n\)</span> 是两组分的总密度，则每组分 <span class="arithmatex">\(n/2=k_F^3/(6\pi^2)\)</span>，从而</p>
+<div class="arithmatex">\[
+k_F=(3\pi^2n)^{1/3},\qquad E_F=\frac{\hbar^2k_F^2}{2m},\qquad T_F=E_F/k_B.
+\]</div>
+<p>在宽共振、低能、短程且有效程修正小的常用描述中，用 <span class="arithmatex">\(1/(k_Fa)\)</span> 排列 BEC–BCS 渡越：<span class="arithmatex">\(a&gt;0\)</span> 的分子侧有浅束缚态并可形成分子凝聚；<span class="arithmatex">\(a&lt;0\)</span> 的弱吸引侧可形成 BCS 配对；<span class="arithmatex">\(a^{-1}=0\)</span> 为幺正点。仅把正负散射长度称作“强吸引/弱吸引”会丢失这一区别。密度、温度、阱与有效程仍提供尺度，幺正区不是没有任何尺度的气体。</p>
+<p>光晶格将周期势中的低能态投影到 Wannier 轨道。在单带、最近邻、短程相互作用等条件下，实跃迁幅度 <span class="arithmatex">\(J\)</span> 的两组分 Fermi–Hubbard 模型为</p>
+<div class="arithmatex">\[
+H_F=-J\sum_{\langle ij\rangle,\sigma}
+(c_{i\sigma}^\dagger c_{j\sigma}+c_{j\sigma}^\dagger c_{i\sigma})
++U\sum_i n_{i\uparrow}n_{i\downarrow}+\sum_iV_i n_i.
+\]</div>
+<p>每条无向邻边在求和中只出现一次，所以必须保留两个互为厄米共轭的跃迁项。单组分玻色子对应的在位相互作用则是 <span class="arithmatex">\(U n_i(n_i-1)/2\)</span>：一个格点上 <span class="arithmatex">\(n_i\)</span> 个粒子有 <span class="arithmatex">\(n_i(n_i-1)/2\)</span> 对。</p>
+<p>这些模型可连接到磁性、关联输运、淬火与量子气体显微测量，但“模型可调”仍需带隙、温度、损失、加热与有限寿命的校准。研究路线应给出制备误差、实际哈密顿量、观测量与可复核的基准，再讨论经典难算区域。离子阱的共同振动模提供内态间耦合，光钟把受控跃迁用于频率计量；二者同样需要相干控制与噪声表征，不能仅由本页冷却曲线评价整个平台。</p>
+<h2 id="12">12. 迁移题：从数字回到模型<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>1．共振 π 与 2π 脉冲各留下什么态？</summary>
+<p>取 <span class="arithmatex">\(\Omega=1,\Delta=0\)</span>。<span class="arithmatex">\(t=\pi\)</span> 时 <span class="arithmatex">\(c_g=0,c_e=-i\)</span>，完全激发；<span class="arithmatex">\(t=2\pi\)</span> 时 <span class="arithmatex">\(c_g=-1,c_e=0\)</span>，布居回到基态。记录中的密度矩阵可以验证单态整体相位不改变观测量。改成 <span class="arithmatex">\(\Delta=1,t=\pi\)</span> 后上限为 <span class="arithmatex">\(1/2\)</span>，实际 <span class="arithmatex">\(P_e=\frac12\sin^2(\pi/\sqrt2)\approx0.316564\)</span>，频率也变为 <span class="arithmatex">\(\sqrt2\)</span>。</p>
+</details>
+<details class="answer">
+<summary>2．在 δ=−1/2、s=0.01 时，噪声的两项各是多少？</summary>
+<p>零速每束 <span class="arithmatex">\(r_0=0.0025\)</span>。吸收项 <span class="arithmatex">\(\bar d_{\rm abs}=(2r_0)/2=0.0025\)</span>；发射项 <span class="arithmatex">\(\bar d_{\rm em}=(6r_0)/6=0.0025\)</span>，总 <span class="arithmatex">\(\bar d=0.005\)</span>。<span class="arithmatex">\(A=0.01\)</span>，所以 <span class="arithmatex">\(\theta_{\rm eq}=0.5\)</span>。若漏掉吸收噪声，就会错误地得到温度0.25。</p>
+</details>
+<details class="answer">
+<summary>3．默认参数在 τ=200 时，降下来的是什么？</summary>
+<p><span class="arithmatex">\(\epsilon=0.001,\theta_0=2,\mu_0=0.02,A=0.01\)</span>。均值为 <span class="arithmatex">\(0.02e^{-2}\)</span>，温度为 <span class="arithmatex">\(0.5+1.5e^{-4}\approx0.527473\)</span>。含漂移二阶矩为温度再加 <span class="arithmatex">\(0.4e^{-4}\)</span>。温度下降和漂移减弱同时发生，但它们分别来自方差与均值，不能互相替代。把初始温度设为0.5而保留漂移，可使温度保持不变、整体运动仍被阻尼。</p>
+</details>
+<details class="answer">
+<summary>4．为何零失谐有加热，而蓝失谐没有负温度稳态？</summary>
+<p>零失谐 <span class="arithmatex">\(A=0\)</span>，正光强时 <span class="arithmatex">\(D&gt;0\)</span>，因此均值不变、方差线性增长。蓝失谐 <span class="arithmatex">\(A&lt;0\)</span>，稳态形式 <span class="arithmatex">\(p\propto\exp[-Au^2/(2D)]\)</span> 随 <span class="arithmatex">\(|u|\)</span> 增大而增长，不能归一化。负的 <span class="arithmatex">\(D/A\)</span> 不是稳态方差，也与能谱有上界系统中的负绝对温度概念无关。关灯则 <span class="arithmatex">\(D=A=0\)</span>，保留任意初始分布。</p>
+</details>
+<details class="answer">
+<summary>5．原子数减半、温度减半，相空间密度一定增加8倍吗？</summary>
+<p>经典谐振阱频率不变时，比例是 <span class="arithmatex">\((1/2)\times2^3=4\)</span>。若几何平均阱频也减半，则还要乘 <span class="arithmatex">\((1/2)^3\)</span>，最终只有原来的 <span class="arithmatex">\(1/2\)</span>。因此蒸发效率必须同时记录粒子数、温度和约束强度。这是比例核算，不是声称某个蒸发程序一定实现这些变化。</p>
+</details>
+<details class="answer">
+<summary>6．为什么谐振阱凝聚分数的幂次是3？</summary>
+<p>三维谐振阱 <span class="arithmatex">\(g(E)\propto E^2\)</span>，积分中代入 <span class="arithmatex">\(E=k_BTx\)</span> 会产生 <span class="arithmatex">\(T^3\)</span>；均匀三维气体 <span class="arithmatex">\(g(E)\propto E^{1/2}\)</span>，产生 <span class="arithmatex">\(T^{3/2}\)</span>。因此理想气体在 <span class="arithmatex">\(T=T_c/2\)</span> 时，谐振阱凝聚分数为 <span class="arithmatex">\(7/8\)</span>，均匀体系为 <span class="arithmatex">\(1-2^{-3/2}\approx0.646447\)</span>。粒子统计相同，空间约束改变了激发态容量。</p>
+</details>
+<details class="answer">
+<summary>7．两张不同时间的云图总能精确求温度吗？</summary>
+<p>一般不能。方差是关于飞行时间的二次式，有初始方差、协方差、速度方差三个未知系数。只有额外知道协方差为零等条件，两个时间点才足以解两个未知数；实际还需重复测量与成像误差评估。相互作用膨胀不满足弹道假设时，不能直接套这个二次模型。</p>
+</details>
+<details class="answer">
+<summary>8．两格点只有 −J c₁†c₂，为什么不够？</summary>
+<p>在单粒子基底 <span class="arithmatex">\((|1\rangle,|2\rangle)\)</span> 中，这一项的矩阵是 <span class="arithmatex">\(\begin{pmatrix}0&amp;-J\\0&amp;0\end{pmatrix}\)</span>，当实 <span class="arithmatex">\(J\ne0\)</span> 时不厄米。加上 <span class="arithmatex">\(-Jc_2^\dagger c_1\)</span> 后得到 <span class="arithmatex">\(\begin{pmatrix}0&amp;-J\\-J&amp;0\end{pmatrix}\)</span>，本征值为 <span class="arithmatex">\(\pm J\)</span>，生成幺正演化。若跃迁带复相位，反向项的系数必须取复共轭。</p>
+</details>
+<p>下一步可将第5节的局部OU方程替换为速度相关漂移与扩散，先检查离散化、概率守恒和边界通量，再比较冷却时间。要研究 MOT、亚 Doppler 或多体凝聚，还必须添加相应自由度与机制；这也是从本页基础通往前沿实验时应先完成的模型升级。</p>
+</div>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="qi-03-error-correction.html"><span class="pager-label">上一页</span>量子信息 III · 量子纠错与 NISQ</a>
@@ -250,5 +419,6 @@ P_e=A\sin^2(\Omega_{\rm eff}t/2).
 <script defer src="assets/site.js"></script>
 <script defer src="assets/learning/learning.js"></script>
 <script defer src="assets/learning/labs/rabi-control.js"></script>
+<script defer src="assets/learning/labs/doppler-cooling.js"></script>
 </body>
 </html>
