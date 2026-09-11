@@ -56,170 +56,485 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-12 05:55</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#aqm03-jump-learning-title">学习层：一条量子跳跃轨迹怎样平均成 Lindblad 密度矩阵？</a><ul>
-<li><a href="#1">1. 具体问题：一次实验看到的是平滑衰减，还是突然跳跃？</a></li>
-<li><a href="#2-no-jump">2. 闭式推导：no-jump、跳跃与生存概率是一笔账</a></li>
-<li><a href="#3-lindblad-rho">3. 从阶跃平均到 Lindblad \(\rho\)：系综才恢复平滑曲线</a></li>
-<li><a href="#4">4. 术语边界：四个“轨迹”句子必须分开</a></li>
-<li><a href="#5">5. 实验读法：跳跃时间账本、删失与预测反馈</a></li>
-<li><a href="#6-aqm-03-oqs-01">6. 边界与 aqm-03 / oqs-01 的桥</a></li>
-<li><a href="#7">7. 迁移问题：换初态、换监测、换浴</a></li>
+<li><a href="#_1">学习层：同样画成路径，究竟在平均什么？</a><ul>
+<li><a href="#_2">实验一：虚时配置、切片数与样本数</a></li>
+<li><a href="#_3">实验二：光子计数、阶跃与删失</a></li>
 </ul>
 </li>
-<li><a href="#1_1">1. 路径积分：对一切历史求和</a></li>
-<li><a href="#2">2. 密度矩阵：混合态的语言</a></li>
-<li><a href="#3">3. 练习与要点</a></li>
+<li><a href="#1">1. 先算一个完整的传播子</a></li>
+<li><a href="#2">2. 时间切片：路径积分的测度从哪里来</a></li>
+<li><a href="#3">3. 驻相说明经典极限，但没有删掉其他路径</a></li>
+<li><a href="#4">4. 虚时核与配分函数：还差一次取迹</a></li>
+<li><a href="#5">5. 周期谐振子：把路径积分变成一个有限矩阵</a></li>
+<li><a href="#6">6. 不只比较配分函数：热能与相关函数也要闭合</a></li>
+<li><a href="#7">7. 实验一：先消除离散误差，还是先增加样本</a></li>
+<li><a href="#8">8. 密度矩阵：同一套语言容纳纯态、混合与热态</a></li>
+<li><a href="#9">9. 约化态与退相干：环境记录改变了什么</a></li>
+<li><a href="#10">10. 量子跳跃：未归一化分支与条件态分开算</a></li>
+<li><a href="#11">11. 实验二：窗口没有看到跳跃，不等于在窗口末端跳跃</a></li>
+<li><a href="#12">12. 练习：用一个可检验的结果判断自己是否理解</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iii">高量 III · 路径积分与密度矩阵<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Sakurai §2.6 / Feynman–Hibbs ｜ <strong>前置</strong>：mech-02（作用量）、qm-01、sc 线（数学站）
-高量收官的两件现代武器：<strong>路径积分</strong>——量子力学的第三种表述（对一切历史求和），场论与统计物理的通用语言；<strong>密度矩阵</strong>——混合态与开放系统的语言，量子信息（qi 线）的记号地基，顺手回答"经典世界从哪来"（退相干）。</p>
+<p><strong>前置</strong>：<a href="mech-02-lagrange.html">作用量与变分</a>、<a href="qm-01-framework.html">量子态与测量</a>、高斯积分和矩阵特征值。读完本页，应能从带归一化的短时核得到一个可计算的路径积分，区分离散误差与抽样误差，再解释条件轨迹怎样平均成密度矩阵。</p>
 </blockquote>
-<figure class="diagram">
-<p><img alt="路径积分：粒子的所有路径叠加，经典路径附近相位相长。" src="assets/img/aqm-03-path-integral.svg" /></p>
-<figcaption><span class="fig-id">图 aqm-03.1</span>路径积分：粒子的所有路径叠加，经典路径附近相位相长。</figcaption>
+<p>“把许多路径加起来”听起来很直观，但加什么、按什么权重加，决定了它是哪一种理论。本页始终区分三件事：</p>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>加起来的量</th>
+<th>本页实例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>实时间路径积分</td>
+<td>带相位的复振幅</td>
+<td>自由传播子与驻相近似</td>
+</tr>
+<tr>
+<td>欧氏路径积分</td>
+<td>本例中为正的高斯权重</td>
+<td>热平衡谐振子的周期虚时配置</td>
+</tr>
+<tr>
+<td>量子跳跃系综</td>
+<td>给定监测方案的记录概率</td>
+<td>光子计数下的一条阶跃及其平均</td>
+</tr>
+</tbody>
+</table>
+<p>后两个实验都有随机数，却不能互相解释成同一类“粒子走过的路线”。先弄清每个实验计算的对象，再读图。</p>
+<div class="path-density-course">
+<style>.path-density-course .learning-lab{margin-left:0;margin-right:0;width:100%}.path-density-course .fallback-scroll{overflow:auto;max-width:100%}.path-density-course .fallback-scroll td{overflow-wrap:anywhere}.path-density-course .fallback-scroll td:last-child{white-space:nowrap;font-variant-numeric:tabular-nums;font-size:.8em}</style>
+<noscript>
+<style>.path-density-course span.arithmatex{overflow-wrap:anywhere;white-space:normal}</style>
+</noscript>
+<div data-learning-page="data-learning-page"></div>
+<section class="learning-layer">
+<h2 id="_1">学习层：同样画成路径，究竟在平均什么？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p>先看两个实验的输入和预测题。第一个实验研究热平衡谐振子的周期虚时配置，对应第1—7节；第二个实验研究光子计数的条件记录，对应第8—12节。暂时无法判断时，沿正文找到相应推导，再回来核对。切换到速查模式时，这一实验区收起，完整推导与练习仍可阅读。</p>
+<h3 id="_2">实验一：虚时配置、切片数与样本数<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="euclidean-paths">
+<figure class="plot">
+<p><a href="assets/img/aqm-03-euclidean-paths.svg"><img alt="周期虚时的四个固定场景" src="assets/img/aqm-03-euclidean-paths.svg" /></a></p>
+<figcaption>图3.1：打开原图，分别比较切片数与样本数的作用。</figcaption>
 </figure>
-<div data-learning-page></div>
-
-<section aria-labelledby="aqm03-jump-learning-title" class="learning-layer">
-<h2 id="aqm03-jump-learning-title">学习层：一条量子跳跃轨迹怎样平均成 Lindblad 密度矩阵？<a class="headerlink" href="#aqm03-jump-learning-title" title="Permanent link"></a></h2>
-<h3 id="1">1. 具体问题：一次实验看到的是平滑衰减，还是突然跳跃？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>本节只研究一个可逐行核验的零温最小模型：初态是激发态 <span class="arithmatex">\(\lvert1\rangle\)</span>，基态是 <span class="arithmatex">\(\lvert0\rangle\)</span>，没有 Hamiltonian 相位进动，唯一的跳跃算符为</p>
-<div class="arithmatex">\[
-L=\sqrt{\gamma}\,\lvert0\rangle\langle1\rvert,\qquad \gamma\ge0.
-\]</div>
-<p>问题不是“波函数会不会神秘地变成一条经典路线”，而是：<strong>若环境被 photon-counting 方案监测，我们记录到的一次条件历史是什么？把许多同样制备的条件历史平均后，为什么得到同一个 Lindblad <span class="arithmatex">\(\rho(t)\)</span>？</strong> 先写下四个预测，再打开实验台：</p>
-<ol>
-<li>单条 <span class="arithmatex">\(p_1(t)\)</span> 是每条都平滑地 <span class="arithmatex">\(e^{-\gamma t}\)</span> 降，还是在某个 <span class="arithmatex">\(\tau\)</span> 处从 1 跳到 0？</li>
-<li><span class="arithmatex">\(N\)</span> 条轨迹平均的 <span class="arithmatex">\(P_1(t)\)</span> 应趋近 <span class="arithmatex">\(e^{-\gamma t}\)</span>，还是 <span class="arithmatex">\(1-e^{-\gamma t}\)</span>？</li>
-<li>观察窗到 <span class="arithmatex">\(T\)</span> 但尚未看到跳跃，应记 <span class="arithmatex">\(\tau=T\)</span>，还是记 <span class="arithmatex">\(\tau&gt;T\)</span>（右删失）？</li>
-<li>已知 no-jump 到 <span class="arithmatex">\(t\)</span>，条件态仍是 <span class="arithmatex">\(\lvert1\rangle\)</span>，还是仍保留一个未归一化因子？</li>
-</ol>
-<div class="learning-lab" data-learning-lab="quantum-jump">
-<p><strong>无 JavaScript 时的静态读法：</strong>取 <span class="arithmatex">\(\gamma=1\)</span>、<span class="arithmatex">\(N=4\)</span>、<span class="arithmatex">\(T=1\)</span>，用固定 seed 生成四个独立 <span class="arithmatex">\(u_i\in(0,1)\)</span>，再按 <span class="arithmatex">\(\tau_i=-\ln(1-u_i)/\gamma\)</span> 手算；在任意时刻 <span class="arithmatex">\(t\)</span>，只数 <span class="arithmatex">\(\tau_i&gt;t\)</span> 的轨迹，得到 <span class="arithmatex">\(\widehat P_1(t)=N^{-1}\sum_i\mathbf1_{\{\tau_i&gt;t\}}\)</span>。解析靶点是 <span class="arithmatex">\(P_1(t)=e^{-t}\)</span>，有限样本误差是 <span class="arithmatex">\(\widehat P_1(t)-e^{-t}\)</span>，不是“脚本出错”。想完全脱离随机数手算，可取 <span class="arithmatex">\(u=(1/4,1/2,3/4,7/8)\)</span>：此时 <span class="arithmatex">\(\tau=(\ln(4/3),\ln2,\ln4,\ln8)\)</span>，在 <span class="arithmatex">\(t=1\)</span> 有 <span class="arithmatex">\(\widehat P_1=1/2\)</span>，解析值是 <span class="arithmatex">\(e^{-1}\)</span>。</p>
+<div aria-label="周期虚时的四个固定场景固定记录" class="fallback-scroll" role="region" tabindex="0">
+<table>
+<thead>
+<tr>
+<th scope="col">项目</th>
+<th scope="col">固定记录值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>基准：N</td>
+<td>8</td>
+</tr>
+<tr>
+<td>基准：M</td>
+<td>32</td>
+</tr>
+<tr>
+<td>基准：ZN</td>
+<td>0.4269072194757818</td>
+</tr>
+<tr>
+<td>基准：热能EN</td>
+<td>0.6523800866955108</td>
+</tr>
+<tr>
+<td>基准：有限N方差</td>
+<td>0.6523800866955116</td>
+</tr>
+<tr>
+<td>基准：连续方差</td>
+<td>0.6565176427496657</td>
+</tr>
+<tr>
+<td>基准：样本方差估计</td>
+<td>0.7902335895539169</td>
+</tr>
+<tr>
+<td>基准：样本标准误</td>
+<td>0.1630950216738779</td>
+</tr>
+<tr>
+<td>单切片：ZN</td>
+<td>0.49999999999999994</td>
+</tr>
+<tr>
+<td>单切片：热能EN</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>较低温：log ZN</td>
+<td>-3.8492413939404737</td>
+</tr>
+<tr>
+<td>较低温：连续log Z</td>
+<td>-3.999664481091923</td>
+</tr>
+<tr>
+<td>软振子：有限N方差</td>
+<td>16.331613675423963</td>
+</tr>
+<tr>
+<td>软振子：样本方差估计</td>
+<td>11.295254530679161</td>
+</tr>
+</tbody>
+</table>
 </div>
-<h3 id="2-no-jump">2. 闭式推导：no-jump、跳跃与生存概率是一笔账<a class="headerlink" href="#2-no-jump" title="Permanent link"></a></h3>
-<p>把 Lindblad 生成元写成</p>
-<div class="arithmatex">\[
-\dot\rho=L\rho L^\dagger-\frac12\{L^\dagger L,\rho\},\qquad
-L^\dagger L=\gamma\lvert1\rangle\langle1\rvert.
-\]</div>
-<p>在 quantum-jump unraveling 中，<strong>未归一化 no-jump state</strong> 由有效 Hamiltonian 演化：</p>
-<div class="arithmatex">\[
-H_{\rm eff}= -\frac{i\hbar\gamma}{2}\lvert1\rangle\langle1\rvert,\qquad
-\lvert\widetilde\psi_0(t)\rangle=e^{-iH_{\rm eff}t/\hbar}\lvert1\rangle
-=e^{-\gamma t/2}\lvert1\rangle.
-\]</div>
-<p>它不是条件态，因为</p>
-<div class="arithmatex">\[
-\|\widetilde\psi_0(t)\|^2=e^{-\gamma t}\equiv S(t)
-\]</div>
-<p>还没有归一化；这个范数平方正好是“截至 <span class="arithmatex">\(t\)</span> 尚未发生跳跃”的<strong>生存概率</strong>。因此</p>
-<div class="arithmatex">\[
-f(\tau)=-\frac{dS}{d\tau}=\gamma e^{-\gamma\tau},\qquad
-F(t)=\Pr(\tau\le t)=1-e^{-\gamma t},\qquad
-\Pr(\tau&gt;t)=S(t)=e^{-\gamma t}.
-\]</div>
-<p>若实验条件明确告诉我们“到 <span class="arithmatex">\(t\)</span> 为止没有探测到光子”，就要归一化：</p>
-<div class="arithmatex">\[
-\lvert\psi_{\rm nj}(t)\rangle=\frac{\lvert\widetilde\psi_0(t)\rangle}{\sqrt{S(t)}}=\lvert1\rangle.
-\]</div>
-<p>所以本模型中 no-jump 条件态的 <span class="arithmatex">\(p_1\)</span> 仍为 1；指数因子属于<strong>未归一化的分支权重</strong>，不是条件态里还剩下的布居。</p>
-<p>若 <span class="arithmatex">\(\tau\)</span> 已发生，跳跃算符把激发态送到基态：</p>
-<div class="arithmatex">\[
-\frac{L\lvert\widetilde\psi_0(\tau)\rangle}{\|L\lvert\widetilde\psi_0(\tau)\rangle\|}=\lvert0\rangle,\qquad
-p_1^{(i)}(t)=\mathbf1_{\{\tau_i&gt;t\}}.
-\]</div>
-<p>第 <span class="arithmatex">\(i\)</span> 条单轨迹是一个随机阶跃：跳前 <span class="arithmatex">\(p_1=1\)</span>，跳后 <span class="arithmatex">\(p_1=0\)</span>，而不是一条逐点等于 <span class="arithmatex">\(e^{-\gamma t}\)</span> 的平滑曲线。注意 <span class="arithmatex">\(\tau\)</span> 的指数随机性来自监测记录；它不是把一个波包在经典时空中“拍摄”出的唯一客观历史。</p>
-<h3 id="3-lindblad-rho">3. 从阶跃平均到 Lindblad <span class="arithmatex">\(\rho\)</span>：系综才恢复平滑曲线<a class="headerlink" href="#3-lindblad-rho" title="Permanent link"></a></h3>
-<p>对 <span class="arithmatex">\(N\)</span> 条独立、同分布轨迹做样本平均：</p>
-<div class="arithmatex">\[
-\widehat P_1(t)=\frac1N\sum_{i=1}^N\mathbf1_{\{\tau_i&gt;t\}}
-\xrightarrow[N\to\infty]{\text{大数定律}}\Pr(\tau&gt;t)=e^{-\gamma t}.
-\]</div>
-<p>因而解析的非选择性密度矩阵为</p>
-<div class="arithmatex">\[
-\rho(t)=\mathbb E\big[\lvert\psi_{\tau}(t)\rangle\langle\psi_{\tau}(t)\rvert\big]
-=\bigl(1-e^{-\gamma t}\bigr)\lvert0\rangle\langle0\rvert+e^{-\gamma t}\lvert1\rangle\langle1\rvert,
-\]</div>
-<p>它满足上面的 Lindblad 方程，且</p>
-<div class="arithmatex">\[
-\rho_N(t)=\frac1N\sum_{i=1}^N\rho_{\tau_i}(t)
-=\operatorname{diag}\!\bigl(1-\widehat P_1(t),\,\widehat P_1(t)\bigr)
-\]</div>
-<p>只是有限样本估计。固定 seed 只保证同一账本可复现，<strong>不保证</strong> <span class="arithmatex">\(\widehat P_1=P_1\)</span>；样本平均的误差是 Bernoulli 误差：</p>
-<div class="arithmatex">\[
-\mathbb E[\widehat P_1(t)]=P_1(t),\qquad
-\operatorname{Var}[\widehat P_1(t)]=\frac{P_1(t)(1-P_1(t))}{N},\qquad
-\operatorname{SE}_{\rm analytic}=\sqrt{\frac{P_1(t)(1-P_1(t))}{N}}.
-\]</div>
-<p>在实验图里，金色曲线是选定的一条 <span class="arithmatex">\(0/1\)</span> 阶跃，蓝色阶梯是有限 <span class="arithmatex">\(N\)</span> 的平均，绿色虚线才是闭式 <span class="arithmatex">\(e^{-\gamma t}\)</span>。<span class="arithmatex">\(N=1\)</span> 时平均仍是一次 Bernoulli 结果；<span class="arithmatex">\(N\)</span> 小时偏差并不违反 Lindblad 方程。</p>
-<h3 id="4">4. 术语边界：四个“轨迹”句子必须分开<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<ul>
-<li><strong>未归一化 no-jump state</strong>：<span class="arithmatex">\(\lvert\widetilde\psi_0(t)\rangle=e^{-\gamma t/2}\lvert1\rangle\)</span>，范数平方是生存概率；它是分支振幅，不是已经给定 no-jump 条件后的物理态。</li>
-<li><strong>条件态</strong>：给定监测记录（例如“至今没有跳”）后再归一化的态；本例为 <span class="arithmatex">\(\lvert1\rangle\)</span>。给定“已跳”后则为 <span class="arithmatex">\(\lvert0\rangle\)</span>。</li>
-<li><strong>单轨迹随机性</strong>：<span class="arithmatex">\(\tau_i\)</span> 由指数分布抽样，决定某一条记录何时阶跃；它不是解析 <span class="arithmatex">\(P_1(t)\)</span> 本身。</li>
-<li><strong>系综密度矩阵</strong>：忽略记录、对所有条件分支按概率平均得到的 <span class="arithmatex">\(\rho(t)\)</span>；它才是非选择性实验的 Lindblad 对象。不要把一条条件态的纯投影直接叫作 <span class="arithmatex">\(\rho(t)\)</span>。</li>
-</ul>
-<p>“unraveling”指把同一主方程拆成带记录的条件演化方案。本台是 photon-counting / jump unraveling；用 homodyne 等连续弱测量会得到扩散型单轨迹，单轨迹形状与条件态更新不同，但在同一初态、同一 Lindblad 生成元和完整记录平均下，仍须恢复同一个 <span class="arithmatex">\(\rho(t)\)</span>。因此我们不宣称轨迹是唯一客观历史：它依赖于选择了什么观测通道、保留了什么记录以及采用了什么条件化描述。</p>
-<h3 id="5">5. 实验读法：跳跃时间账本、删失与预测反馈<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<p>每条轨迹先用 <span class="arithmatex">\(u_i\)</span> 生成</p>
-<div class="arithmatex">\[
-\tau_i=-\frac{\ln(1-u_i)}{\gamma},\qquad u_i\sim{\rm Uniform}(0,1).
-\]</div>
-<p>若只观察到 <span class="arithmatex">\(T\)</span>，则 <span class="arithmatex">\(\tau_i\le T\)</span> 的记录是“窗口内已观测跳跃”；若 <span class="arithmatex">\(\tau_i&gt;T\)</span>，我们只知道它晚于 <span class="arithmatex">\(T\)</span>，应写作 <strong><span class="arithmatex">\(\tau_i&gt;T\)</span>，右删失（right-censored）</strong>，不能把它伪装成在 <span class="arithmatex">\(T\)</span> 恰好跳跃。删失并没有改变模型的生存概率，只改变我们能从这段有限观察窗读到多少信息。</p>
-<p>可操作顺序是：先在四个问题上作答；选择“基准：32 条”“小样本：4 条”“窗口删失”或“边界：<span class="arithmatex">\(\gamma=0\)</span>”预设；再滑动 <span class="arithmatex">\(t\)</span>、<span class="arithmatex">\(N\)</span>、<span class="arithmatex">\(T\)</span>、<span class="arithmatex">\(\gamma\)</span> 和轨迹编号 <span class="arithmatex">\(k\)</span>。观察：</p>
-<ol>
-<li><span class="arithmatex">\(k\)</span> 条金色阶跃何时落下；</li>
-<li>蓝色 <span class="arithmatex">\(\widehat P_1(t)\)</span> 怎样以 <span class="arithmatex">\(1/N\)</span> 为台阶逼近绿色解析线；</li>
-<li>当前误差与解析 <span class="arithmatex">\(1\sigma\)</span> 参考如何随 <span class="arithmatex">\(N\)</span> 改变；</li>
-<li>下方矩阵怎样用 <span class="arithmatex">\(\widehat P_1(t)\)</span> 记账，而不是把单轨迹条件态冒充系综态。</li>
-</ol>
-<p>无脚本时仍可手算：<span class="arithmatex">\(\gamma=1\)</span>、<span class="arithmatex">\(u=1/2\)</span> 给 <span class="arithmatex">\(\tau=\ln2\)</span>；在 <span class="arithmatex">\(t&lt;\ln2\)</span> 时该轨迹 <span class="arithmatex">\(p_1=1\)</span>，在 <span class="arithmatex">\(t&gt;\ln2\)</span> 时 <span class="arithmatex">\(p_1=0\)</span>。若 <span class="arithmatex">\(T&lt;\ln2\)</span>，账本写 <span class="arithmatex">\(\tau&gt;T\)</span>，而不是 <span class="arithmatex">\(\tau=T\)</span>。</p>
-<h3 id="6-aqm-03-oqs-01">6. 边界与 aqm-03 / oqs-01 的桥<a class="headerlink" href="#6-aqm-03-oqs-01" title="Permanent link"></a></h3>
-<ul>
-<li><span class="arithmatex">\(\gamma=0\)</span> 时 <span class="arithmatex">\(L=0\)</span>，<span class="arithmatex">\(\tau=\infty\)</span>、<span class="arithmatex">\(S(t)=1\)</span>、<span class="arithmatex">\(\rho(t)=\lvert1\rangle\langle1\rvert\)</span>；这不是“抽样恰好没跳”，而是结构性的永不跳分支。代码把它单独记为 structural no-jump。</li>
-<li><span class="arithmatex">\(N=1\)</span> 或很小的 <span class="arithmatex">\(N\)</span> 时，经验曲线必然粗糙；<span class="arithmatex">\(\operatorname{SE}\)</span> 只是解析 Bernoulli 标尺，不是对当前一次 realization 的保证区间。</li>
-<li><span class="arithmatex">\(T=0\)</span> 时所有正率轨迹都右删失；当前 <span class="arithmatex">\(t\)</span> 自动限制在 <span class="arithmatex">\([0,T]\)</span>。</li>
-<li>这仍是零温、两能级、时间齐次 Markov、单跳跃通道的最小模型；有限温需要加入 <span class="arithmatex">\(\lvert1\rangle\langle0\rvert\)</span> 的向上跳跃，非 Markov 记忆也不应直接套用此指数生存律。</li>
-</ul>
-<p>本页前面的路径积分把“对所有历史求和”当作幅的组织方式；这里则把<strong>可记录的条件历史</strong>按概率平均，得到密度矩阵。它们不是同一个积分符号的直接替换：前者是相位相消的量子幅，后者是开放系统记录的概率平均。与 <strong>oqs-01</strong> 的桥在于：oqs-01 先给出 GKSL/Lindblad 的非选择性主方程与约化态；本节把其中的 <span class="arithmatex">\(L\rho L^\dagger\)</span> 拆成一次次跳跃记录，再平均回同一 <span class="arithmatex">\(\rho(t)\)</span>。</p>
-<h3 id="7">7. 迁移问题：换初态、换监测、换浴<a class="headerlink" href="#7" title="Permanent link"></a></h3>
-<ol>
-<li>若初态改为 <span class="arithmatex">\(\alpha\lvert0\rangle+\beta\lvert1\rangle\)</span>，仍用同一 <span class="arithmatex">\(L\)</span>：哪些分支保留相干项？先写出 no-jump 的未归一化振幅，再求跳跃分支的条件态。</li>
-<li>把 photon-counting 换成 homodyne unraveling：你预期单轨迹是阶跃、连续扩散，还是两者都可因测量方案而变？哪些量在完整记录平均后必须不变？</li>
-<li>若浴有限温，加入 <span class="arithmatex">\(L_\downarrow=\sqrt{\gamma_\downarrow}\lvert0\rangle\langle1\rvert\)</span> 与 <span class="arithmatex">\(L_\uparrow=\sqrt{\gamma_\uparrow}\lvert1\rangle\langle0\rvert\)</span>。长时间 <span class="arithmatex">\(p_1\)</span> 应趋向哪一个比率？原来的“跳后永远保持基态”哪一步失效？</li>
-</ol>
+<p><a href="assets/learning/projects/quantum-path-density/run-snapshot.json">下载两个实验的八组完整固定记录(JSON)</a>。路径实验取ℏ=1；四组种子均为20260912，样本数均32。各组参数写在图注，完整矩阵、随机整数、样本与所有收敛节点保存在JSON中。</p>
+</div>
+<h3 id="_3">实验二：光子计数、阶跃与删失<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<div class="learning-lab" data-learning-lab="quantum-jump">
+<figure class="plot">
+<p><a href="assets/img/aqm-03-quantum-jump.svg"><img alt="量子跳跃的两个固定场景" src="assets/img/aqm-03-quantum-jump.svg" /></a></p>
+<figcaption>图3.2：这里的时间是监测时间；它与前图的虚时含义不同。</figcaption>
+</figure>
+<div aria-label="量子跳跃的两个固定场景固定记录" class="fallback-scroll" role="region" tabindex="0">
+<table>
+<thead>
+<tr>
+<th scope="col">项目</th>
+<th scope="col">固定记录值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>基准：轨迹数</td>
+<td>32</td>
+</tr>
+<tr>
+<td>基准：窗口T</td>
+<td>4</td>
+</tr>
+<tr>
+<td>基准：当前t</td>
+<td>1.5</td>
+</tr>
+<tr>
+<td>基准：样本P1</td>
+<td>0.25</td>
+</tr>
+<tr>
+<td>基准：解析P1</td>
+<td>0.22313016014842982</td>
+</tr>
+<tr>
+<td>基准：解析标准误</td>
+<td>0.07360007892755743</td>
+</tr>
+<tr>
+<td>基准：窗口内事件数</td>
+<td>32</td>
+</tr>
+<tr>
+<td>基准：右删失数</td>
+<td>0</td>
+</tr>
+<tr>
+<td>零窗口：右删失数</td>
+<td>8</td>
+</tr>
+<tr>
+<td>零窗口：首个随机整数</td>
+<td>0</td>
+</tr>
+<tr>
+<td>零窗口：首个u</td>
+<td>1.1641532182693481e-10</td>
+</tr>
+<tr>
+<td>零窗口：完整τ</td>
+<td>1.1641532183371108e-10</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><a href="assets/learning/projects/quantum-path-density/run-snapshot.json">下载两个实验的八组完整固定记录(JSON)</a>。正率模型保存完整模拟τ和窗口内实际可用记录；零率结构性永不跳用null跳跃时间配合明确状态标记表示，不作为缺失数据。无脚本手算可取γ=1、u=1/2，得到τ=ln2；若T小于ln2，记录为右删失。</p>
+</div>
 </section>
-<h2 id="1_1">1. 路径积分：对一切历史求和<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p><strong>命题（Feynman）</strong> 传播子（<span class="arithmatex">\(t_a \to t_b\)</span> 的跃迁幅）：</p>
+<h2 id="1">1. 先算一个完整的传播子<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>传播子回答的是：已知初始波函数，怎样得到稍后的波函数？位置基采用通常的狄拉克归一化。对质量为正的自由粒子，在正时间间隔内插入动量完备关系：</p>
 <div class="arithmatex">\[
-K(b, a) = \int\mathcal{D}[x(t)]\;e^{iS[x]/\hbar}
+\psi(x_b,t)=\int_{\mathbb R}K_0(x_b,x_a;t)\psi(x_a,0)\,dx_a,
+\qquad
+K_0=\int_{\mathbb R}\frac{dp}{2\pi\hbar}
+\exp\!\left[\frac{i}{\hbar}p(x_b-x_a)-\frac{it}{2m\hbar}p^2\right]
+=\sqrt{\frac{m}{2\pi i\hbar t}}
+\exp\!\left[\frac{im(x_b-x_a)^2}{2\hbar t}\right].
 \]</div>
-<p>——<strong>对连接两端的一切路径求和，每条路径贡献相位 <span class="arithmatex">\(e^{iS/\hbar}\)</span></strong>（<span class="arithmatex">\(S\)</span> = 经典作用量，mech-02 的主角）。</p>
-<p><strong>【推导骨架（时间切片）】</strong> 把 <span class="arithmatex">\(e^{-i\hat Ht/\hbar}\)</span> 切成 <span class="arithmatex">\(N\)</span> 段、每段插入位置完备基 <span class="arithmatex">\(\int|x\rangle\langle x|dx\)</span>；单段幅用 <span class="arithmatex">\(\langle x'|e^{-i(\hat p^2/2m + V)\epsilon/\hbar}|x\rangle\)</span>（Trotter 分解 + 动量高斯积分）= <span class="arithmatex">\(e^{\frac{i\epsilon}{\hbar}[\frac{m}{2}(\frac{x'-x}{\epsilon})^2 - V]}\)</span>——指数上恰是 <span class="arithmatex">\(L\,\epsilon\)</span>；连乘取极限即 <span class="arithmatex">\(e^{iS/\hbar}\)</span> 的路径积分。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>经典极限的一行解释</strong>：<span class="arithmatex">\(\hbar \to 0\)</span> 时相位剧烈振荡、路径互相抵消，<strong>唯有 <span class="arithmatex">\(\delta S = 0\)</span> 的驻相路径幸存</strong>（mp-01 驻相法）——<strong>最小作用量原理（mech-02）是量子干涉的宏观残影</strong>：为什么自然界"走极值路径"的两百年之谜在此闭合。双缝干涉 = 两条路径的最小求和；AB 效应【引用】：矢势通过相位 <span class="arithmatex">\(\frac{q}{\hbar}\oint\mathbf A\cdot d\boldsymbol\ell\)</span> 影响干涉——规范势的物理实在性（pp-01 伏笔）。</p>
-<p><strong>Wick 转动（跨界之桥）</strong>：<span class="arithmatex">\(t \to -i\tau\)</span> 后 <span class="arithmatex">\(e^{iS/\hbar} \to e^{-S_E/\hbar}\)</span>——<strong>量子力学变成统计力学</strong>（虚时传播子 = 配分函数：<span class="arithmatex">\(Z = \mathrm{Tr}\,e^{-\beta\hat H}\)</span> 是周期虚时的路径积分,温度 = 虚时周期的倒数）。这座桥的交通流量：量子蒙卡（comp-01）、场论的欧几里得方法（qft-03）、以及数学站 sc 线的 Feynman–Kac（同一公式的概率语言——三个学科在此共用一条隧道）。</p>
-<h2 id="2">2. 密度矩阵：混合态的语言<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p>纯态不够用的两个场景：系综的统计混合（以概率 <span class="arithmatex">\(p_i\)</span> 制备 <span class="arithmatex">\(|\psi_i\rangle\)</span>）、<strong>纠缠系统的子系统</strong>。</p>
-<p><strong>定义</strong>：<span class="arithmatex">\(\hat\rho = \sum_i p_i|\psi_i\rangle\langle\psi_i|\)</span>；期望 <span class="arithmatex">\(\langle A\rangle = \mathrm{Tr}(\hat\rho\hat A)\)</span>；性质：自伴、<span class="arithmatex">\(\mathrm{Tr}\rho = 1\)</span>、半正定（矩阵分析 II 的 PSD 语言）。<strong>纯度判据</strong>：<span class="arithmatex">\(\mathrm{Tr}\rho^2 = 1 \iff\)</span> 纯态（<span class="arithmatex">\(\rho^2 = \rho\)</span> 即秩一投影）。演化：von Neumann 方程 <span class="arithmatex">\(i\hbar\dot\rho = [\hat H, \rho]\)</span>（经典 Liouville 的量子版——mech-03 再对账）。热平衡态：<span class="arithmatex">\(\rho = \frac{e^{-\beta\hat H}}{Z}\)</span>（sm-02 Boltzmann 的算符形态）。</p>
-<p><strong>约化密度矩阵（纠缠的接口）</strong>：复合系统 <span class="arithmatex">\(|\Psi\rangle_{AB}\)</span> 只看 A：<span class="arithmatex">\(\rho_A = \mathrm{Tr}_B|\Psi\rangle\langle\Psi|\)</span>——<strong>纠缠纯态的子系统是混合态</strong>（信息在关联里而不在局部——qi-01 的中心事实）；纠缠熵 <span class="arithmatex">\(S = -\mathrm{Tr}\rho_A\ln\rho_A\)</span>（von Neumann 熵——Shannon 熵（信息论线）的量子版：三条熵线在此三会）。</p>
-<p><strong>退相干（"经典世界从哪来"的半个答案）【机制级】</strong>：系统与环境纠缠 → 对环境取迹 → <span class="arithmatex">\(\rho_A\)</span> 的<strong>非对角元（相干项）指数衰减</strong>（环境"记录"了哪条路径 = 相位信息泄漏）；口袋里的猫态在 <span class="arithmatex">\(\sim10^{-23}\)</span> s 内退净【引用量级】——宏观叠加不是被禁止而是被<strong>极速泄密</strong>。测量问题的现代表述由此改写（残余的"选择基"问题仍开放——诚实边界）；量子计算的头号敌人（qi-03 纠错的对手）在此定性。</p>
-<h2 id="3">3. 练习与要点<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>例 1（自由粒子传播子亲算）</strong> 切片高斯积分逐层合成：<span class="arithmatex">\(K \propto e^{\frac{im(x_b - x_a)^2}{2\hbar t}}\)</span>——指数恰是自由粒子经典作用量 <span class="arithmatex">\(\frac{iS_{cl}}{\hbar}\)</span>（二次型拉氏量的普遍事实：路径积分 = 经典项 × 涨落行列式【引用】）。</p>
-<p><strong>例 2（Bell 态的约化）</strong> <span class="arithmatex">\(|\Psi\rangle = \frac{1}{\sqrt2}(|\!\uparrow\downarrow\rangle - |\!\downarrow\uparrow\rangle)\)</span>：<span class="arithmatex">\(\rho_A = \frac12 I\)</span>——<strong>最大混合</strong>（单看一边毫无信息）而全局是纯态：纠缠熵 <span class="arithmatex">\(\ln 2\)</span>（一个 ebit）——qi-01 的第一笔账在此预付。</p>
-<p><strong>例 3（Wick 桥体感）</strong> 谐振子配分函数：虚时路径积分 = 周期边界的高斯积分 ⇒ <span class="arithmatex">\(Z = \frac{1}{2\sinh(\beta\hbar\omega/2)}\)</span>——展开即 <span class="arithmatex">\(\sum e^{-\beta\hbar\omega(n+1/2)}\)</span> ✓（sm-02 的求和被一条积分再生产：桥是通车的）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一门：经典电动力学（Jackson 主干）——把 em 三页升到研究生规格：边值问题的兵器谱与辐射的完整理论。</em></p>
+<p>最后一步是配方后的振荡高斯积分，可先加一个趋于零的高斯阻尼再取极限。平方根的分支由从正时间连续延拓的自由演化固定。</p>
+<p>指数里的量确实是连接两点的经典自由粒子作用量，但前面的平方根同样重要。它保证传播子的合成律，也使短时间极限在分布意义下回到位置狄拉克函数。传播子是积分核，量纲为长度的倒数；不能把它单独的模平方当作一个已归一化的位置概率密度。</p>
+<h2 id="2">2. 时间切片：路径积分的测度从哪里来<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>现在令 Hamiltonian 为动能加局域势能。把总时间分成等长小段，在相邻演化算符之间插入位置完备关系。以左右对称的势能分裂为例：</p>
+<div class="arithmatex">\[
+e^{-i\epsilon(\hat T+\hat V)/\hbar}
+\simeq e^{-i\epsilon\hat V/(2\hbar)}e^{-i\epsilon\hat T/\hbar}e^{-i\epsilon\hat V/(2\hbar)},
+\qquad
+K_\epsilon(x',x)\simeq
+\sqrt{\frac{m}{2\pi i\hbar\epsilon}}
+\exp\!\left\{\frac{i}{\hbar}\left[
+\frac{m(x'-x)^2}{2\epsilon}-\frac{\epsilon}{2}\bigl(V(x')+V(x)\bigr)
+\right]\right\}.
+\]</div>
+<p>在足够光滑、相关算符运算有定义的情形，对称分裂的形式局部误差是三阶，固定总时间下对应二阶全局误差。对于无界算符，这不是一个不加定义域条件的统一算符范数断言；本页数值实验只处理可精确检查的谐振子。</p>
+<p>把这些短时核相乘，中间位置全部积分。记两端固定，便得到：</p>
+<div class="arithmatex">\[
+K(x_b,x_a;t)=\lim_{N\to\infty}
+\left(\frac{m}{2\pi i\hbar\epsilon}\right)^{N/2}
+\int_{\mathbb R^{N-1}}\prod_{j=1}^{N-1}dx_j\,
+\exp\!\left\{\frac{i}{\hbar}\sum_{j=0}^{N-1}
+\left[\frac{m(x_{j+1}-x_j)^2}{2\epsilon}
+-\frac{\epsilon}{2}\bigl(V(x_{j+1})+V(x_j)\bigr)\right]\right\},
+\quad \epsilon=\frac{t}{N},\ x_0=x_a,\ x_N=x_b.
+\]</div>
+<p>符号“路径测度”浓缩了积分、前因子和取极限的方法；它并不表示实时间路径空间上存在一个普通的均匀概率分布。忘掉每段的前因子，就会丢失传播子的归一化；只写作用量指数还不是完整计算。</p>
+<h2 id="3">3. 驻相说明经典极限，但没有删掉其他路径<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>在作用量相对普朗克常数很大的渐近问题中，邻近配置的相位通常变化很快。驻相点附近的一阶相位变化为零，因此这些区域可能给出主导贡献。对端点固定的变分，分部积分给出：</p>
+<div class="arithmatex">\[
+\delta S=\int_{t_a}^{t_b}
+\left(\frac{\partial L}{\partial x}-\frac{d}{dt}\frac{\partial L}{\partial\dot x}\right)\delta x\,dt,
+\qquad \delta S=0\ \Longrightarrow\
+\frac{d}{dt}\frac{\partial L}{\partial\dot x}=\frac{\partial L}{\partial x}.
+\]</div>
+<p>这解释了经典方程为何出现在量子振幅的近似计算中。有限普朗克常数下，非驻相区域没有被精确删除；驻相路径周围的涨落仍贡献前因子，还可能存在多个驻相点、焦散及隧穿问题。“最小”也不是普遍条件，经典作用量可以在鞍点驻定。</p>
+<p>双缝实验可以把全部路径按经过哪条缝分成两族，先在每族内求振幅，再把两族振幅相加；它并不是严格只剩两条细线。带电粒子的 Aharonov–Bohm 相位差还给出一个重要检查：闭合回路上的相位差由磁通决定，取模一个整周相位。</p>
+<div class="arithmatex">\[
+\Delta\phi=\frac{q}{\hbar}\oint\mathbf A\cdot d\boldsymbol\ell
+=\frac{q\Phi_B}{\hbar}\pmod{2\pi}.
+\]</div>
+<p>可观测的是适当比较后的规范不变干涉相位；矢势在某个规范下的数值本身不是规范不变量。</p>
+<h2 id="4">4. 虚时核与配分函数：还差一次取迹<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>对自伴、下有界的 Hamiltonian，可以研究由实时间演化延拓得到的热半群。物理虚时记为长度量纲为时间的变量，逆温度则有能量倒数的量纲：</p>
+<div class="arithmatex">\[
+K_E(x_b,x_a;\tau)=\langle x_b|e^{-\tau\hat H/\hbar}|x_a\rangle,
+\qquad \beta=\frac{1}{k_BT},\qquad
+Z(\beta)=\operatorname{Tr}e^{-\beta\hat H}
+=\int dx\,K_E(x,x;\beta\hbar).
+\]</div>
+<p>因此热配分函数对应首尾相接、周期为逆温度乘普朗克常数的路径积分。任意固定端点的虚时传播子并不等于配分函数。全直线自由粒子的取迹含有无限空间体积，不能直接当成有限的热配分函数；下面加入正频率谐振子势，使取迹有限。</p>
+<p>在本例中，虚时作用量的动能和势能都非负，权重可用于概率抽样。一般实时间振幅有相位振荡，费米体系等还可能出现符号问题；不能由这个正权重例子推出所有量子问题都已变成容易的经典随机模拟。</p>
+<h2 id="5">5. 周期谐振子：把路径积分变成一个有限矩阵<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>从这里到第7节，实验单位统一取普朗克常数为1。质量、频率和逆温度均为正，势能为二次势。短时核沿周期路径相乘后，每个位置的两个半份势能合成一份：</p>
+<div class="arithmatex">\[
+Z_N=\left(\frac{m}{2\pi\epsilon}\right)^{N/2}
+\int_{\mathbb R^N}d^Nx\,e^{-\frac12 x^TA_Nx},
+\qquad
+\frac12x^TA_Nx=\sum_{j=0}^{N-1}\left[
+\frac{m}{2\epsilon}(x_{j+1}-x_j)^2+
+\frac{\epsilon m\omega^2}{2}x_j^2\right],
+\quad \epsilon=\frac{\beta}{N},\ x_N=x_0.
+\]</div>
+<p>每条周期边贡献一个差分的平方。只有一个切片时，该边连接同一个变量，动能项正好为零；两个切片时，两条周期边连接同一对变量，但都是作用量中的独立项，不能漏掉其中一条。按边装配矩阵比机械套用“三对角矩阵”的印象更可靠。</p>
+<p>矩阵正定，所以多元高斯积分与协方差可直接计算：</p>
+<div class="arithmatex">\[
+Z_N=\frac{(m/\epsilon)^{N/2}}{\sqrt{\det A_N}},
+\qquad C_N=\langle xx^T\rangle_N=A_N^{-1},
+\qquad \lambda_p=\frac{m}{\epsilon}
+\left[4\sin^2\!\left(\frac{\pi p}{N}\right)+(\epsilon\omega)^2\right],
+\quad p=0,\ldots,N-1.
+\]</div>
+<p>特征值来自周期离散 Fourier 模式：平移一个格点，只把该模式乘上一个单位复相位。矩阵计算和谱模式计算是两种互相核对的方法。</p>
+<p>进一步设一个实数使双曲余弦匹配上面的特征值因子。用单位根分解多项式，可把整个乘积化简：</p>
+<div class="arithmatex">\[
+a=2\operatorname{arsinh}\frac{\epsilon\omega}{2},\qquad
+\prod_{p=0}^{N-1}\left(2\cosh a-2\cos\frac{2\pi p}{N}\right)
+=e^{-Na}(e^{Na}-1)^2=4\sinh^2\frac{Na}{2},
+\qquad
+Z_N=\frac{1}{2\sinh\!\left[N\operatorname{arsinh}\frac{\beta\omega}{2N}\right]}.
+\]</div>
+<p>这里每个因子可写成两个单位根因子的乘积再除以指数因子，因而乘积恒等式也适用于一个、两个切片。取切片数趋于无穷，就得到连续谐振子配分函数。它也等于按谐振子能级求和的几何级数：</p>
+<div class="arithmatex">\[
+Z=\frac{1}{2\sinh(\beta\omega/2)}
+=\sum_{n=0}^{\infty}e^{-\beta\omega(n+1/2)}.
+\]</div>
+<p>这一次，路径积分与能级求和真正算出了同一个数；相等不再只是一句类比。</p>
+<h2 id="6">6. 不只比较配分函数：热能与相关函数也要闭合<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>固定切片数求逆温度导数，得到离散近似对应的热能。记双曲函数的总自变量为一个新符号：</p>
+<div class="arithmatex">\[
+u_N=N\operatorname{arsinh}\frac{\beta\omega}{2N},\qquad
+E_N=-\frac{\partial\log Z_N}{\partial\beta}
+=\frac{\omega\coth u_N}{2\sqrt{1+(\beta\omega/2N)^2}},
+\qquad E=\frac{\omega}{2}\coth\frac{\beta\omega}{2}.
+\]</div>
+<p>也可以先对积分的前因子和作用量求导，再用协方差计算期望。这会得到同一个离散热能：</p>
+<div class="arithmatex">\[
+E_N=\frac{N}{2\beta}
+-\frac{mN}{2\beta^2}\sum_j\langle(x_{j+1}-x_j)^2\rangle_N
++\frac{m\omega^2}{2N}\sum_j\langle x_j^2\rangle_N.
+\]</div>
+<p>前两项分别可能很大，组合才有有限的连续极限。实验中的“动能部分”指这个热力学估计量的前两项，不把有限切片下的每一项都直接等同于连续理论的某个独立可观测量。</p>
+<p>相关函数进一步检查不同虚时位置的关联。连续热平均按给定的算符顺序定义；在本例中可用升降算符直接求得：</p>
+<div class="arithmatex">\[
+C(\tau)=\frac{\operatorname{Tr}\left[e^{-(\beta-\tau)\hat H}\hat x e^{-\tau\hat H}\hat x\right]}{Z}
+=\frac{\cosh[\omega(\beta/2-\tau)]}{2m\omega\sinh(\beta\omega/2)},
+\quad 0\le\tau\le\beta;
+\qquad
+(C_N)_{0j}=\frac1N\sum_{p=0}^{N-1}\frac{\cos(2\pi pj/N)}{\lambda_p}.
+\]</div>
+<p>令虚时为零就得到位置方差。高温下连续方差趋向经典的逆温度、质量与频率平方乘积的倒数；低温下保留零点涨落，不能趋于零。质量加倍而频率保持不变时，能级和配分函数不变，位置方差减半。这里保持频率固定也意味着势的劲度随质量变化。</p>
+<h2 id="7">7. 实验一：先消除离散误差，还是先增加样本<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>实验先用 Cholesky 分解求行列式与逆矩阵，算出有限切片的精确高斯积分；再从这个高斯分布抽样。若下三角因子满足作用量矩阵等于它与转置的乘积，只须解一个三角方程：</p>
+<div class="arithmatex">\[
+A_N=LL^T,\qquad z\sim\mathcal N(0,I),\qquad L^Tx=z
+\ \Longrightarrow\ \mathbb E[xx^T]=L^{-T}L^{-1}=A_N^{-1},
+\qquad \frac12x^TA_Nx=\frac12z^Tz.
+\]</div>
+<p>因此每条路径不需要 Markov 链就能直接抽到，且两种作用量计算可以逐条比较。本实验中的“独立样本”指目标抽样模型；固定种子的伪随机生成器用于可重复的数值演示，不等同于物理随机源。</p>
+<p>建议按以下顺序操作：</p>
+<ol>
+<li>选“只有一个时间切片”，再选“细化到32片”。看精确有限切片曲线怎样靠近连续解析曲线。此时改变的是积分近似。</li>
+<li>回到基准，只把样本数从8增到128。精确有限切片结果保持原位；样本曲线会改变，但不会自动消除切片误差。</li>
+<li>查看“样本逐个加入”。累计均值会向上或向下走，单次误差不保证随样本数单调变小。</li>
+<li>换种子，再看同样的差与标准误。标准误描述重复抽样的波动尺度，不是当前这一次误差的保证上界。</li>
+</ol>
+<p>样本相关函数采用已知理论均值为零的未中心化二阶矩。零均值高斯变量的四阶矩可分成三种配对，因此其解析标准误为：</p>
+<div class="arithmatex">\[
+\widehat C_{0j}=\frac1M\sum_{r=1}^{M}x_0^{(r)}x_j^{(r)},\qquad
+\operatorname{SE}(\widehat C_{0j})=
+\sqrt{\frac{(C_N)_{00}(C_N)_{jj}+(C_N)_{0j}^2}{M}},
+\qquad
+\widehat C_{0j}-C(\tau_j)=
+\bigl[\widehat C_{0j}-(C_N)_{0j}\bigr]+
+\bigl[(C_N)_{0j}-C(\tau_j)\bigr].
+\]</div>
+<p>等式右边分别是抽样误差与切片误差。把它们混成一项，会让人误以为“再多抽一些样本”能解决所有偏差。图中的折线只连接格点配置，虚时也不是实验钟表时间；不要把首尾相接的路径当作粒子运动录像。</p>
+<h2 id="8">8. 密度矩阵：同一套语言容纳纯态、混合与热态<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>若以给定概率制备不同纯态，观测量的平均可以写成一次迹运算：</p>
+<div class="arithmatex">\[
+\rho=\sum_r p_r|\psi_r\rangle\langle\psi_r|,
+\qquad p_r\ge0,\quad\sum_rp_r=1,
+\qquad
+\langle A\rangle=\sum_rp_r\langle\psi_r|A|\psi_r\rangle=\operatorname{Tr}(\rho A).
+\]</div>
+<p>密度矩阵自伴、半正定且迹为1。反过来，具有这些性质的矩阵可由谱分解解释成一个系综。它的纯度是特征概率平方的和，因此不大于1，等号当且仅当只有一个非零特征值。于是纯态等价于秩一投影。</p>
+<p>但系综分解并不唯一。例如二能级的半个单位矩阵，既可由基态和激发态各半制备，也可由两个相反的等幅叠加态各半制备。只拿到局部密度矩阵，不能唯一倒推出制备者“究竟选了哪一种纯态”。</p>
+<p>封闭系统的酉演化保持密度矩阵的全部特征值；热态则由热算符归一化而来：</p>
+<div class="arithmatex">\[
+\rho(t)=U(t)\rho(0)U(t)^\dagger,\qquad
+i\hbar\dot\rho=[H,\rho],\qquad
+\rho_\beta=\frac{e^{-\beta H}}{Z}.
+\]</div>
+<p>虚时热核常被称作“未归一化密度矩阵”；若要用它计算归一化热期望，就必须除以配分函数。对自由核和热核保留前因子的要求，在这里再次出现。</p>
+<h2 id="9">9. 约化态与退相干：环境记录改变了什么<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>复合系统处于纯态时，只观测其中一部分，需要对未观测部分取偏迹。以两量子比特的 Bell 态为例：</p>
+<div class="arithmatex">\[
+|\Psi\rangle=\frac{|00\rangle+|11\rangle}{\sqrt2},\qquad
+\rho_A=\sum_{b=0}^{1}\langle b|\Psi\rangle\langle\Psi|b\rangle
+=\frac12\bigl(|0\rangle\langle0|+|1\rangle\langle1|\bigr).
+\]</div>
+<p>全局纯度是1，局部纯度是二分之一，局部 von Neumann 熵为自然对数单位下的一个“ln 2”。这不矛盾：全局相干性保存在两部分之间的关联里。全局为纯态时，局部混合与两部分纠缠等价；全局本就混合时不能直接使用这个等价判据。</p>
+<p>更一般地，系统的两个分支分别把环境带到两个态：</p>
+<div class="arithmatex">\[
+|\Psi(t)\rangle=\alpha|0\rangle|e_0(t)\rangle+\beta_1|1\rangle|e_1(t)\rangle,
+\qquad
+\rho_A(t)=\begin{pmatrix}
+|\alpha|^2&amp;\alpha\beta_1^*\langle e_1(t)|e_0(t)\rangle\\
+\alpha^*\beta_1\langle e_0(t)|e_1(t)\rangle&amp;|\beta_1|^2
+\end{pmatrix}.
+\]</div>
+<p>环境越能区分两个分支，这个基底下的相干项就越小。这里把激发振幅写成带下标的符号，避免与逆温度混淆。若环境重叠恰好是一个随时间振荡的余弦，相干性就会消失后再恢复；所以“与环境纠缠”本身并不推出普遍的单调指数衰减。</p>
+<p>指数退相干需要相应模型与近似，速率依赖耦合、环境谱、温度以及讨论的基底。对环境取迹也没有单独选择出一次测量的唯一结果。它说明了局部干涉为何受抑制，不能替代对测量记录和条件化的说明。</p>
+<h2 id="10">10. 量子跳跃：未归一化分支与条件态分开算<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>第二个实验只研究零温、无驱动、初始激发的两能级系统，环境按理想光子计数方案监测。唯一跳跃算符把激发态送到基态，非选择性主方程为：</p>
+<div class="arithmatex">\[
+L=\sqrt\gamma\,|0\rangle\langle1|,\qquad
+\dot\rho=L\rho L^\dagger-\frac12\{L^\dagger L,\rho\},\qquad \gamma\ge0.
+\]</div>
+<p>对于尚未记录到光子的分支，有效 Hamiltonian 含有非厄米项。这个分支先保持未归一化，才能记录它发生的概率：</p>
+<div class="arithmatex">\[
+H_{\rm eff}=-\frac{i\hbar\gamma}{2}|1\rangle\langle1|,
+\qquad |\widetilde\psi_{\rm nj}(t)\rangle=e^{-\gamma t/2}|1\rangle,
+\qquad S(t)=\|\widetilde\psi_{\rm nj}(t)\|^2=e^{-\gamma t}.
+\]</div>
+<p>如果我们已经知道“截至当前没有光子”，必须把这个分支归一化，条件态仍是激发态，激发布居等于1。指数因子属于分支概率，不是归一化条件态里“还剩多少激发态”。</p>
+<p>若跳跃在某时刻发生，施加跳跃算符并归一化就得到基态，此后本模型没有再次激发。因而跳跃时间和一条条件轨迹满足：</p>
+<div class="arithmatex">\[
+f(\tau)=\gamma e^{-\gamma\tau},\qquad
+\Pr(\tau&gt;t)=e^{-\gamma t},\qquad
+p_1^{(r)}(t)=\mathbf1_{\{\tau_r&gt;t\}},\qquad
+\rho(t)=\mathbb E[|\psi_\tau(t)\rangle\langle\psi_\tau(t)|]
+=\begin{pmatrix}1-e^{-\gamma t}&amp;0\\0&amp;e^{-\gamma t}\end{pmatrix}.
+\]</div>
+<p>在数学上的跳跃时刻采用右连续约定，即该时刻已经跳到基态。单条记录是阶跃；忽略记录、按发生概率平均，才得到平滑的密度矩阵。零跳跃率是单独的边界：此时跳跃算符为零，跳跃时间为无穷，系统结构性地永不跳跃。</p>
+<h2 id="11">11. 实验二：窗口没有看到跳跃，不等于在窗口末端跳跃<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p>正跳跃率下，实验用逆分布抽样得到完整模拟时间。均匀变量由32位随机整数格点的中点构造，保证严格位于开区间；完整记录同时保存整数和变换后的数值：</p>
+<div class="arithmatex">\[
+u=\frac{J+1/2}{2^{32}},\quad J\in\{0,\ldots,2^{32}-1\},\qquad
+\tau=-\frac{\ln(1-u)}{\gamma},\qquad
+\widehat P_1(t)=\frac1M\sum_{r=1}^{M}\mathbf1_{\{\tau_r&gt;t\}},
+\quad \operatorname{SE}(\widehat P_1)=\sqrt{\frac{e^{-\gamma t}(1-e^{-\gamma t})}{M}}.
+\]</div>
+<p>这个整数生成器是有限精度的可重复近似，均匀变量不是连续分布的无限精度抽样。数值求跳跃时间使用稳定的对数形式；很小的失活概率也用稳定的指数差计算。此节公式用样本数区分于前面的切片数；量子跳跃控制面板沿用“轨迹数 N”的标记，它对应这里的样本数，不是虚时切片数。</p>
+<p>先选四项预测，再核对。金色曲线是一条条件记录，蓝色阶梯是有限样本平均，绿色虚线是解析生存概率。改动当前时刻或轨迹编号可以继续观察；改变跳跃率、轨迹数、观察窗后重新预测。</p>
+<p>如果完整模拟时间晚于观察窗末端，我们在这段记录中只知道“晚于窗口”，这是右删失。不能把它改写成窗口末端恰好发生跳跃。空心标记位于观察窗边缘，只表示删失；零跳跃率没有有限事件点。观察窗为零时，所有正率轨迹都右删失，图中只保留一个零刻度。</p>
+<p>账本同时写出当前时刻与窗口末端的激发布居。某条轨迹可能将在窗口内跳跃，但当前时刻还没有跳；这两个陈述不能混写。固定种子方便重放，仍不能保证某次样本平均恰好等于解析曲线。</p>
+<p>给定同一个初态和 Lindblad 生成元，不同的环境监测方式可给出不同的条件演化；例如光子计数的跳跃与 homodyne 的扩散型记录。完整平均后应恢复同一非选择性密度矩阵。本台没有模拟驱动、有限温向上跳跃、探测效率不足或非 Markov 记忆；这些变化都需要修改模型，而不只是换一个随机种子。</p>
+<h2 id="12">12. 练习：用一个可检验的结果判断自己是否理解<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<p><strong>题1：</strong>自由粒子的两个短时传播子合成后，为什么不能只保留作用量指数？</p>
+<details class="answer">
+<summary>答案：前因子随高斯积分一起合成</summary>
+<p>把两个自由传播核相乘，对中间位置积分。二次项的系数与两个时间间隔倒数之和成正比，高斯积分产生一个平方根因子。它和原来的两个前因子相乘，恰好得到总时间对应的一个前因子；指数配方后只剩两端点间的经典作用量。若开始就删除前因子，合成后的归一化与短时间狄拉克极限都无法成立。</p>
+</details>
+<p><strong>题2：</strong>实验只有一个虚时切片时，配分函数是什么？它为什么看起来像经典结果，却不能给出低温零点能？</p>
+<details class="answer">
+<summary>答案：自连接动能为零，但归一化还在</summary>
+<p>周期条件使位置差为零，矩阵只剩一个元素，即逆温度乘质量与频率平方。代入带前因子的高斯积分，配分函数等于逆温度乘频率的倒数，热能等于逆温度的倒数。它是这个单切片近似的精确值，也等于谐振子的经典相空间积分结果。低温连续量子结果却由基态能控制；必须细化切片才能恢复。这里“精确积分”只说明有限维积分算准了，不说明离散模型已等于原量子理论。</p>
+</details>
+<p><strong>题3：</strong>保持频率、逆温度和切片数不变，质量加倍。为什么配分函数不变，而位置方差减半？</p>
+<details class="answer">
+<summary>答案：行列式与前因子的质量幂抵消</summary>
+<p>作用量矩阵整体乘2，行列式乘以2的切片数次方，平方根因而乘以2的切片数一半次方。归一化前因子也乘同一个倍数，配分函数不变。逆矩阵则整体除以2，方差与相关函数随之减半。连续公式给出相同结论。若改为固定劲度而改变质量，频率也会改变，就不能套用这个结论。</p>
+</details>
+<p><strong>题4：</strong>Bell 态的一边是半个单位矩阵，是否能断言整体只是“有一半概率为00、一半概率为11”的经典混合？</p>
+<details class="answer">
+<summary>答案：相同局部态不决定全局关联</summary>
+<p>不能。Bell 纯态还包含两个分支之间的全局非对角项，经典混合没有。它们给出相同的单边密度矩阵，却可由联合测量区分。例如同时测量两边的 Pauli X，所用 Bell 态的乘积期望为1，而这个经典混合的乘积期望为0。偏迹保留了所有局部可观测信息，主动舍弃了仅在关联中可见的信息。</p>
+</details>
+<p><strong>题5：</strong>把量子跳跃初态改成一般纯叠加态，为什么“没有跳时仍保持原态”不再成立？</p>
+<details class="answer">
+<summary>答案：两个分量的未归一化衰减不同</summary>
+<p>基态振幅保持不变，激发振幅乘以指数衰减的平方根，所以归一化后两者的相对权重通常改变。令衰减因子为实数，完整的非选择性通道可以写成两个 Kraus 算符：</p>
+<div class="arithmatex">\[
+q=e^{-\gamma t},\qquad
+K_0=\begin{pmatrix}1&amp;0\\0&amp;\sqrt q\end{pmatrix},\qquad
+K_1=\begin{pmatrix}0&amp;\sqrt{1-q}\\0&amp;0\end{pmatrix},\qquad
+\rho(t)=K_0\rho(0)K_0^\dagger+K_1\rho(0)K_1^\dagger.
+\]</div>
+<p>两个算符的伴随乘积相加等于单位矩阵，保证保迹。未归一化无跳分支的范数平方变成基态初始概率加上激发初始概率乘衰减因子。跳跃分支仍到基态；总体相干项乘衰减因子的平方根，激发概率乘衰减因子。页面实验的“无跳条件激发布居始终为1”因此必须连同“初始就是激发态”一起使用。</p>
+</details>
+<p><strong>题6：</strong>有限温模型增加向上跳跃通道后，长期激发概率应该是多少？</p>
+<details class="answer">
+<summary>答案：由上下跃迁流平衡决定</summary>
+<p>设两个时间无关的非负速率分别控制向下、向上跳跃，且它们的和为正。激发概率满足一个带源项的速率方程：</p>
+<div class="arithmatex">\[
+\dot p_1=\gamma_\uparrow(1-p_1)-\gamma_\downarrow p_1,
+\qquad
+p_1(t)=\frac{\gamma_\uparrow}{\gamma_\uparrow+\gamma_\downarrow}
++\left[p_1(0)-\frac{\gamma_\uparrow}{\gamma_\uparrow+\gamma_\downarrow}\right]
+e^{-(\gamma_\uparrow+\gamma_\downarrow)t}.
+\]</div>
+<p>长期极限是向上速率占总速率的比例。跳到基态后仍可能再次向上跳，所以原来的单个指数等待时间加一次阶跃不够。要进一步称它为某温度的热平衡，还须让两个速率满足对应能隙的详细平衡关系。若两个速率都为零，状态保持初值，不能使用分母为零的稳态比例。</p>
+</details>
+<p><strong>继续阅读与研究接口。</strong>谐振子的有限虚时传播子也是研究高阶分裂算法的可解测试对象；<a href="https://arxiv.org/abs/2310.18809">Chin 的离散谐振子研究</a>讨论了更高阶短时传播子的结构与优化。本页只实现上面推导的基本对称分裂，不把高阶算法的收敛阶移植到当前实验。量子轨迹怎样与多体数值方法结合，可接着读 <a href="https://arxiv.org/abs/1405.6694">Daley 的量子轨迹综述</a>第III—IV节，再进入本站的开放量子系统课程。</p>
+<p>这两个方向各自有明确的下一步：前者改变短时近似并重新核对热量与相关函数；后者改变 Hamiltonian、跳跃通道或监测条件，并重新核对记录平均与主方程。先保留这两条可检验的联系，再扩展到更复杂模型。</p>
+</div>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="aqm-02-scattering.html"><span class="pager-label">上一页</span>高量 II · 散射理论</a>
@@ -230,6 +545,7 @@ K(b, a) = \int\mathcal{D}[x(t)]\;e^{iS[x]/\hbar}
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
 <script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/euclidean-paths.js"></script>
 <script defer src="assets/learning/labs/quantum-jump.js"></script>
 </body>
 </html>

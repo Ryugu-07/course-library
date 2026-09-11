@@ -338,6 +338,8 @@ def sync_learning_assets(md_names):
         shutil.copytree(SHARED / "projects" / "quantum-symmetry", destination / "projects" / "quantum-symmetry")
     if "swave-scattering" in names:
         shutil.copytree(SHARED / "projects" / "swave-scattering", destination / "projects" / "swave-scattering")
+    if "euclidean-paths" in names or "quantum-jump" in names:
+        shutil.copytree(SHARED / "projects" / "quantum-path-density", destination / "projects" / "quantum-path-density")
 
 
 def previous_build_time(out: Path, fallback: str) -> str:

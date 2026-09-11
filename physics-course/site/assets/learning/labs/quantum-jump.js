@@ -3,6 +3,7 @@
 
   var SVG_NS = "http://www.w3.org/2000/svg";
   var INSTANCE_COUNT = 0;
+  var MOUNTED = new WeakMap();
   var FLOAT_EPSILON = 2.220446049250313e-16;
   var DEFAULTS = {
     gamma: 1,
@@ -60,6 +61,53 @@
     }
   ];
 
+  var QUESTIONS = [
+      {
+        key: "single",
+        prompt: "单条轨迹的 p₁(t) 怎么走？",
+        choices: [
+          { key: "step", label: "在 τ 处由 1 跳到 0" },
+          { key: "smooth", label: "每条都平滑按 e⁻ᵞᵗ 降" }
+        ],
+        expected: "step",
+        explanation: "初始激发态在无光子记录时归一化后仍为激发态；探测到光子后才跳到基态。"
+      },
+      {
+        key: "average",
+        prompt: "N 很大时平均的 P₁(t) 是？",
+        choices: [
+          { key: "survival", label: "e⁻ᵞᵗ（生存概率）" },
+          { key: "cdf", label: "1−e⁻ᵞᵗ（跳跃 CDF）" }
+        ],
+        expected: "survival",
+        explanation: "对记录平均得到尚未跳跃的概率S(t)=e⁻ᵞᵗ；1−S(t)是已经跳跃的概率。"
+      },
+      {
+        key: "censor",
+        prompt: "若 τ>T，窗口账本应写？",
+        choices: [
+          { key: "right", label: ">T：右删失，尚未见跳" },
+          { key: "atT", label: "τ=T：把跳跃放在端点" }
+        ],
+        expected: "right",
+        explanation: "在T以前没有看到事件，只能记录τ>T。右删失不是τ=T，也不是γ=0的结构性永不跳。"
+      },
+      {
+        key: "conditional",
+        prompt: "已知 no-jump，到 t 的条件态是？",
+        choices: [
+          { key: "excited", label: "仍为 |1⟩（已归一化）" },
+          { key: "scaled", label: "e⁻ᵞᵗ/²|1⟩（仍未归一化）" }
+        ],
+        expected: "excited",
+        explanation: "指数因子的平方是无跳分支发生的概率；给定无跳记录后须归一化，本初态的激发布居仍为1。"
+      }
+    ];
+  function questionFeedback(q,choice){
+    if(!q || typeof q.explanation!=="string" || !q.explanation.trim() || !q.choices.some(function(c){return c.key===choice;}))throw Error("预测题或选项无效");
+    return (choice===q.expected?"预测正确。":"需要修正。")+q.explanation;
+  }
+
   function finite(value) {
     return Number.isFinite(value);
   }
@@ -108,71 +156,63 @@
     return Math.max(0, number(value, DEFAULTS.T));
   }
 
+  function strictNumber(value, label, min, max, integer) {
+    if (typeof value !== "number" || !Number.isFinite(value) || value < min || value > max || (integer && !Number.isInteger(value))) throw Error(label + "参数无效");
+    return value;
+  }
   function normalizeConfig(options) {
-    var input = options || {};
-    var T = normalizeModelWindow(input.T);
-    var N = normalizeModelCount(input.N);
-    return {
-      gamma: nonnegativeRate(input.gamma),
-      N: N,
-      T: T,
-      time: clamp(number(input.time, DEFAULTS.time), 0, T),
-      seed: normalizeSeed(input.seed),
-      trajectory: clamp(Math.round(number(input.trajectory, DEFAULTS.trajectory)), 1, N)
-    };
+    var input = options === undefined ? {} : options;
+    if (!input || typeof input !== "object" || Array.isArray(input)) throw Error("参数须为对象");
+    Object.keys(input).forEach(function (key) { if (!Object.hasOwn(DEFAULTS,key)) throw Error("未知参数："+key); });
+    var c = Object.assign({}, DEFAULTS, input);
+    strictNumber(c.gamma,"γ",0,LIMITS.gamma); strictNumber(c.N,"N",1,LIMITS.N,true);
+    strictNumber(c.T,"T",0,LIMITS.T); strictNumber(c.seed,"seed",0,4294967295,true);
+    if (!Object.hasOwn(input,"time")) c.time = Math.min(DEFAULTS.time,c.T);
+    strictNumber(c.time,"t",0,c.T); strictNumber(c.trajectory,"k",1,c.N,true);
+    return c;
   }
 
   // Mulberry32 is deliberately small and specified here rather than delegated
   // to Math.random(), so the same seed produces the same ledger in Node and DOM.
   function createRng(seed) {
-    var state = normalizeSeed(seed);
-    return function () {
-      var value;
+    var state = strictNumber(seed === undefined ? DEFAULTS.seed : seed,"seed",0,4294967295,true);
+    function next() {
       state = (state + 0x6d2b79f5) >>> 0;
-      value = state;
-      value = Math.imul(value ^ (value >>> 15), value | 1);
+      var value = Math.imul(state ^ (state >>> 15), state | 1);
       value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
-      return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
-    };
+      next.lastInteger = (value ^ (value >>> 14)) >>> 0;
+      return (next.lastInteger + 0.5) / 4294967296;
+    }
+    return next;
   }
-
   function uniformToJumpTime(gamma, uniform) {
-    var rate = nonnegativeRate(gamma, 0);
-    var u;
-    if (rate === 0) return Infinity;
-    u = clamp(number(uniform, 0.5), Number.MIN_VALUE, 1 - FLOAT_EPSILON);
-    return -Math.log1p(-u) / rate;
+    strictNumber(gamma,"γ",0,Number.MAX_VALUE);
+    if (gamma === 0) return Infinity;
+    if (typeof uniform !== "number" || !Number.isFinite(uniform) || !(uniform>0 && uniform<1)) throw Error("u须严格在(0,1)内");
+    return -Math.log1p(-uniform) / gamma;
   }
-
   function sampleJumpTime(gamma, rng) {
-    var source = typeof rng === "function" ? rng : createRng(DEFAULTS.seed);
-    return uniformToJumpTime(gamma, source());
+    strictNumber(gamma,"γ",0,Number.MAX_VALUE);
+    if (gamma === 0) return Infinity;
+    if (rng !== undefined && typeof rng !== "function") throw Error("rng须为函数");
+    return uniformToJumpTime(gamma,(rng || createRng(DEFAULTS.seed))());
   }
-
   function analyticP1(gamma, time) {
-    var rate = nonnegativeRate(gamma, 0);
-    var t = Math.max(0, number(time, 0));
-    return rate === 0 ? 1 : Math.exp(-rate * t);
+    strictNumber(gamma,"γ",0,Number.MAX_VALUE);strictNumber(time,"t",0,Number.MAX_VALUE);
+    return gamma === 0 ? 1 : Math.exp(-gamma*time);
   }
-
   function noJumpAmplitude(gamma, time) {
-    var rate = nonnegativeRate(gamma, 0);
-    var t = Math.max(0, number(time, 0));
-    return rate === 0 ? 1 : Math.exp(-0.5 * rate * t);
+    strictNumber(gamma,"γ",0,Number.MAX_VALUE);strictNumber(time,"t",0,Number.MAX_VALUE);
+    return gamma === 0 ? 1 : Math.exp(-0.5*gamma*time);
   }
-
-  function noJumpProbability(gamma, time) {
-    var amplitude = noJumpAmplitude(gamma, time);
-    return amplitude * amplitude;
-  }
-
+  function noJumpProbability(gamma, time) { return analyticP1(gamma,time); }
   function conditionalNoJumpP1(gamma, time) {
-    return noJumpProbability(gamma, time) > 0 ? 1 : null;
+    strictNumber(gamma,"γ",0,Number.MAX_VALUE);strictNumber(time,"t",0,Number.MAX_VALUE);
+    return 1; // Positive mathematical survival for every finite rate and time.
   }
-
   function trajectoryP1(jumpTime, time) {
-    var t = Math.max(0, number(time, 0));
-    return jumpTime > t ? 1 : 0;
+    if (jumpTime !== Infinity) strictNumber(jumpTime,"τ",0,Number.MAX_VALUE);
+    strictNumber(time,"t",0,Number.MAX_VALUE);return jumpTime > time ? 1 : 0;
   }
 
   function simulateEnsemble(options) {
@@ -205,6 +245,7 @@
       trajectories.push({
         index: index + 1,
         uniform: uniform,
+        uniformInteger: config.gamma === 0 ? null : rng.lastInteger,
         jumpTime: jumpTime,
         observed: observed,
         rightCensored: outcome === "right-censored",
@@ -229,7 +270,7 @@
 
   function empiricalP1(ensemble, time) {
     var trajectories = ensemble && ensemble.trajectories ? ensemble.trajectories : [];
-    var t = Math.max(0, number(time, 0));
+    var t = strictNumber(time,"t",0,Number.MAX_VALUE);
     var survivors = trajectories.filter(function (trajectory) {
       return trajectoryP1(trajectory.jumpTime, t) === 1;
     }).length;
@@ -237,11 +278,12 @@
   }
 
   function snapshot(ensemble, time) {
-    var t = clamp(Math.max(0, number(time, 0)), 0, ensemble.T);
+    var t = strictNumber(time,"t",0,ensemble.T);
     var sample = empiricalP1(ensemble, t);
     var analytic = analyticP1(ensemble.gamma, t);
     var error = sample - analytic;
-    var standardError = Math.sqrt(Math.max(0, analytic * (1 - analytic)) / ensemble.N);
+    var ground = -Math.expm1(-ensemble.gamma*t);
+    var standardError = Math.sqrt(analytic * ground / ensemble.N);
     return {
       time: t,
       empiricalP1: sample,
@@ -250,8 +292,21 @@
       absoluteError: Math.abs(error),
       standardError: standardError,
       empiricalGround: 1 - sample,
-      analyticGround: 1 - analytic
+      analyticGround: ground
     };
+  }
+
+  function frozenPlot(r){var e=r.ensemble;return{key:"jump-survival",title:"条件记录与系综：单条阶跃不等于解析衰减",caption:"零温激发初态、理想光子计数；实时间t，与周期虚时抽样不同。",width:900,height:460,xLabel:"观察时间 t",yLabel:"激发概率 p₁",xMin:0,xMax:e.T||1,yMin:-.08,yMax:1.08,xDegenerate:e.T===0,series:[{label:"有限样本平均",points:r.ensemblePoints,color:"#256c91"},{label:"选定单条记录",points:r.singlePoints,color:"#ae6017"},{label:"解析生存概率",points:r.analyticPoints,color:"#26705b"}]};}
+  function buildRecord(options) {
+    var e=simulateEnsemble(options),selected=e.trajectories[e.trajectory-1];
+    var times=Array.from(new Set(Array.from({length:129},function(_,i){return e.T*i/128;}).concat([e.time]))).sort(function(a,b){return a-b;});
+    var nodes=times.map(function(t){var r=snapshot(e,t);return Object.assign(r,{selectedP1:trajectoryP1(selected.jumpTime,t),noJumpAmplitude:noJumpAmplitude(e.gamma,t),noJumpProbability:noJumpProbability(e.gamma,t),conditionalNoJumpP1:1});});
+    var events=e.trajectories.filter(function(r){return r.observed;}).slice().sort(function(a,b){return a.jumpTime-b.jumpTime||a.index-b.index;});
+    var points=[[0,1]],remaining=e.N;
+    events.forEach(function(r){points.push([r.jumpTime,remaining/e.N]);remaining--;points.push([r.jumpTime,remaining/e.N]);});points.push([e.T,remaining/e.N]);
+    var single=selected.observed?[[0,1],[selected.jumpTime,1],[selected.jumpTime,0],[e.T,0]]:[[0,1],[e.T,1]];
+    var analyticPoints=Array.from({length:49},function(_,i){var t=e.T*i/48;return [t,analyticP1(e.gamma,t)];});
+    return {version:168,scope:"零温、无驱动、激发初态、理想光子计数；实时间条件记录按概率平均。null跳跃时间仅在structural-no-jump表示无穷，不是缺失观测。",ensemble:Object.assign({},e,{trajectories:e.trajectories.map(function(r){return Object.assign({},r,{jumpTime:r.jumpTime===Infinity?null:r.jumpTime,p1AtCurrent:trajectoryP1(r.jumpTime,e.time),p1AtWindow:trajectoryP1(r.jumpTime,e.T)});})}),nodes:nodes,analyticPoints:analyticPoints,ensemblePoints:points,singlePoints:single,reading:snapshot(e,e.time)};
   }
 
   function close(left, right, tolerance) {
@@ -319,6 +374,12 @@
       DEFAULTS: DEFAULTS,
       LIMITS: LIMITS,
       PRESETS: PRESETS,
+      QUESTIONS: QUESTIONS,
+      questionFeedback: questionFeedback,
+      normalizeConfig: normalizeConfig,
+      uniformToJumpTime: uniformToJumpTime,
+      buildRecord: buildRecord,
+      frozenPlot: frozenPlot,
       createRng: createRng,
       sampleJumpTime: sampleJumpTime,
       analyticP1: analyticP1,
@@ -385,7 +446,7 @@
     if (api && typeof api.format === "function") return api.format(value, places);
     if (Math.abs(value) < Math.pow(10, -places - 1)) value = 0;
     text = value.toFixed(places);
-    return text.replace(/0+$/, "").replace(/\.$/, "");
+    return text.indexOf(".")>=0?text.replace(/0+$/, "").replace(/\.$/, ""):text;
   }
 
   function svgText(api, doc, x, y, text, attrs) {
@@ -473,7 +534,8 @@
       ".qj-lab .qj-output{color:var(--qj-accent);font-variant-numeric:tabular-nums}",
       ".qj-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--qj-accent)}",
       ".qj-lab .qj-action-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:.8rem}",
-      ".qj-lab .qj-predictions{display:grid;gap:8px}",
+      ".qj-lab [hidden]{display:none!important}",
+      ".qj-lab .qj-explanation{grid-column:1/-1;margin:6px 0;line-height:1.7}.qj-lab .qj-predictions{display:grid;gap:8px}",
       ".qj-lab .qj-pred-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(92px,1fr) minmax(92px,1fr);gap:6px;align-items:stretch}",
       ".qj-lab .qj-pred-label{display:flex;align-items:center;min-width:0;color:var(--qj-muted);font-size:.88em;overflow-wrap:anywhere}",
       ".qj-lab .qj-status{min-height:1.55em;margin:.7rem 0 0;font-size:.88em}",
@@ -580,7 +642,7 @@
       svg.appendChild(line(api, doc, left, y, right, y, "qj-gridline"));
       svg.appendChild(svgText(api, doc, left - 7, y + 4, format(null, value, 1), { className: "qj-label-muted", "text-anchor": "end" }));
     });
-    [0, ensemble.T / 2, ensemble.T].forEach(function (value, tickIndex) {
+    (ensemble.T === 0 ? [0] : [0, ensemble.T / 2, ensemble.T]).forEach(function (value, tickIndex) {
       var x = xScale(value);
       svg.appendChild(line(api, doc, x, bottom, x, bottom + 5, "qj-axis"));
       svg.appendChild(svgText(api, doc, x, bottom + 18, tickIndex === 0 ? "0" : format(null, value, 2), { className: "qj-label-muted", "text-anchor": tickIndex === 0 ? "start" : tickIndex === 2 ? "end" : "middle" }));
@@ -589,75 +651,45 @@
     svg.appendChild(line(api, doc, left, top, left, bottom, "qj-axis"));
     svg.appendChild(svgText(api, doc, left, 25, "激发态布居 p₁", { className: "qj-label-main" }));
     svg.appendChild(svgText(api, doc, right, bottom + 32, "观察时间 t", { className: "qj-label-muted", "text-anchor": "end" }));
-    svg.appendChild(svgText(api, doc, left - 32, top - 2, "1", { className: "qj-label-muted" }));
+
     svg.appendChild(makeSvg(api, doc, "path", { d: analyticPath(ensemble.gamma, ensemble.T, xScale, yScale), className: "qj-analytic", "aria-label": "解析 P1(t)=exp(-gamma t)" }));
     svg.appendChild(makeSvg(api, doc, "path", { d: ensemblePath(ensemble, xScale, yScale), className: "qj-ensemble", "aria-label": "N 条轨迹的经验平均" }));
     svg.appendChild(makeSvg(api, doc, "path", { d: singlePath(selected, ensemble.T, xScale, yScale), className: "qj-single", "aria-label": "固定种子的第 " + selected.index + " 条单轨迹" }));
     svg.appendChild(line(api, doc, currentX, top, currentX, bottom, "qj-guide"));
-    svg.appendChild(svgText(api, doc, currentX, top - 7, "t", { className: "qj-label-muted", "text-anchor": currentX > right - 25 ? "end" : "start" }));
+    svg.appendChild(svgText(api, doc, currentX+(currentX>right-25?-5:5), top+17, "t", { className: "qj-label-muted", "text-anchor": currentX > right - 25 ? "end" : "start" }));
     if (selected.observed) {
       svg.appendChild(makeSvg(api, doc, "circle", { cx: xScale(selected.jumpTime), cy: yScale(0.5), r: 4.5, className: "qj-event-selected" }));
     }
-    svg.appendChild(svgText(api, doc, left, eventY - 11, "跳跃时刻 τ（窗口内）", { className: "qj-label-muted" }));
-    svg.appendChild(line(api, doc, left, eventY, right, eventY, "qj-axis"));
-    ensemble.trajectories.forEach(function (trajectory) {
-      var eventX = trajectory.observed ? xScale(trajectory.jumpTime) : right;
+    svg.appendChild(svgText(api, doc, left, eventY - 11, ensemble.gamma===0?"γ=0：结构性永不跳，无有限事件":"跳跃时刻 τ（窗口内）", { className: "qj-label-muted" }));
+    if(ensemble.gamma>0)svg.appendChild(line(api, doc, left, eventY, right, eventY, "qj-axis"));
+    ensemble.trajectories.slice().sort(function(a,b){return (a.index===selected.index?1:0)-(b.index===selected.index?1:0);}).forEach(function (trajectory) {
+      if (trajectory.structuralNoJump) return;
+      var eventX = trajectory.observed ? xScale(trajectory.jumpTime) : xScale(ensemble.T);
       svg.appendChild(makeSvg(api, doc, "circle", {
         cx: eventX,
         cy: eventY,
         r: trajectory.index === selected.index ? 4.3 : 2.2,
-        className: trajectory.index === selected.index ? "qj-event-selected" : trajectory.observed ? "qj-event" : "qj-event-censored"
+        className: trajectory.observed ? (trajectory.index === selected.index ? "qj-event-selected" : "qj-event") : "qj-event-censored",
+        "data-qj-event":trajectory.outcome,
+        "data-qj-index":trajectory.index
       }));
     });
-    svg.appendChild(svgText(api, doc, right, eventY + 18, "T", { className: "qj-label-muted", "text-anchor": "end" }));
+    if(ensemble.gamma>0)svg.appendChild(svgText(api, doc, xScale(ensemble.T), eventY + 18, ensemble.T === 0 ? "T=0" : "T", { className: "qj-label-muted", "text-anchor": ensemble.T === 0 ? "start" : "end" }));
     svg.appendChild(svgText(api, doc, left, height - 7, "实心：已观测跳跃；空心：窗口右删失", { className: "qj-label-muted" }));
   }
 
   function mount(root, api) {
+    if (MOUNTED.has(root)) MOUNTED.get(root)();
     var doc = root.ownerDocument || document;
     var serial;
     var ids;
     var state;
     var refs = {};
+    var presetButtons = Object.create(null);
+    var downloadUrl = null;
+    MOUNTED.set(root,function(){if(downloadUrl){doc.defaultView.URL.revokeObjectURL(downloadUrl);downloadUrl=null;}});
     var selfChecks = numericSelfChecks();
-    var predictionQuestions = [
-      {
-        key: "single",
-        prompt: "单条轨迹的 p₁(t) 怎么走？",
-        choices: [
-          { key: "step", label: "在 τ 处由 1 跳到 0" },
-          { key: "smooth", label: "每条都平滑按 e⁻ᵞᵗ 降" }
-        ],
-        expected: "step"
-      },
-      {
-        key: "average",
-        prompt: "N 很大时平均的 P₁(t) 是？",
-        choices: [
-          { key: "survival", label: "e⁻ᵞᵗ（生存概率）" },
-          { key: "cdf", label: "1−e⁻ᵞᵗ（跳跃 CDF）" }
-        ],
-        expected: "survival"
-      },
-      {
-        key: "censor",
-        prompt: "若 τ>T，窗口账本应写？",
-        choices: [
-          { key: "right", label: ">T：右删失，尚未见跳" },
-          { key: "atT", label: "τ=T：把跳跃放在端点" }
-        ],
-        expected: "right"
-      },
-      {
-        key: "conditional",
-        prompt: "已知 no-jump，到 t 的条件态是？",
-        choices: [
-          { key: "excited", label: "仍为 |1⟩（已归一化）" },
-          { key: "scaled", label: "e⁻ᵞᵗ/²|1⟩（仍未归一化）" }
-        ],
-        expected: "excited"
-      }
-    ];
+    var predictionQuestions = QUESTIONS;
 
     injectStyles(doc);
     root.classList.add("qj-lab");
@@ -713,7 +745,7 @@
         render();
         announce("已切换到“" + preset.label + "”；请先预测，再读固定种子账本。");
       });
-      preset.button = button;
+      presetButtons[preset.key] = button;
       presetGrid.appendChild(button);
     });
     presetSection.appendChild(presetGrid);
@@ -731,7 +763,8 @@
     parameterSection.appendChild(windowField.wrapper);
     parameterSection.appendChild(timeField.wrapper);
     parameterSection.appendChild(trajectoryField.wrapper);
-    parameterSection.appendChild(makeElement(api, doc, "p", { className: "qj-small", text: "固定 PRNG seed：" + state.seed + "；同一 seed、γ、N、T 会得到同一跳跃时间账本。" }));
+    refs.seed = makeElement(api, doc, "p", { className: "qj-small" });
+    parameterSection.appendChild(refs.seed);
     var actionRow = makeElement(api, doc, "div", { className: "qj-action-row" });
     refs.reset = makeElement(api, doc, "button", { type: "button", className: "qj-primary" }, "重置基准");
     refs.check = makeElement(api, doc, "button", { type: "button" }, "核对预测");
@@ -762,6 +795,7 @@
         });
         row.appendChild(button);
       });
+      row.appendChild(makeElement(api,doc,"p",{className:"qj-explanation",hidden:true}));
       predictionGrid.appendChild(row);
     });
     predictionSection.appendChild(predictionGrid);
@@ -835,14 +869,16 @@
 
     var ledgerCard = makeElement(api, doc, "section", { className: "qj-card" });
     ledgerCard.appendChild(makeElement(api, doc, "h4", { text: "跳跃时间 / 观察窗账本" }));
-    var tableWrap = makeElement(api, doc, "div", { className: "qj-table-wrap" });
+    var tableWrap = makeElement(api, doc, "div", { className: "qj-table-wrap",role:"region",tabindex:"0","aria-label":"跳跃时间账本，可横向滚动" });
     refs.ledger = makeElement(api, doc, "table", { className: "qj-table", "aria-label": "固定种子跳跃时间与删失账本" });
     refs.ledger.appendChild(makeElement(api, doc, "caption", { className: "qj-small", text: "真值 τ 是模拟器内部的完整时间；窗口记录只在 τ≤T 时可观测，否则写作 >T。" }));
     refs.ledger.appendChild(makeElement(api, doc, "thead", {}, makeElement(api, doc, "tr", {}, [
       makeElement(api, doc, "th", { scope: "col" }, "#"),
+      makeElement(api, doc, "th", { scope: "col" }, "随机整数"),
       makeElement(api, doc, "th", { scope: "col" }, "u"),
       makeElement(api, doc, "th", { scope: "col" }, "真值 τ"),
       makeElement(api, doc, "th", { scope: "col" }, "窗口记录"),
+      makeElement(api, doc, "th", { scope: "col" }, "p₁(t)"),
       makeElement(api, doc, "th", { scope: "col" }, "p₁(T)")
     ])));
     refs.ledgerBody = makeElement(api, doc, "tbody");
@@ -855,6 +891,8 @@
     frame.appendChild(refs.boundary);
     refs.checks = makeElement(api, doc, "p", { className: "qj-checks" });
     frame.appendChild(refs.checks);
+    refs.download=makeElement(api,doc,"a",{download:"quantum-jump-run.json","data-qj-download":""},"下载完整随机数、轨迹、曲线与读数(JSON)");
+    frame.appendChild(refs.download);
     stage.appendChild(frame);
     layout.appendChild(controls);
     layout.appendChild(stage);
@@ -882,6 +920,8 @@
     }
 
     function renderPredictions() {
+      stage.hidden = !state.checked;
+      predictionQuestions.forEach(function(q){var el=root.querySelector('[data-qj-question="'+q.key+'"] .qj-explanation');el.hidden=!state.checked;if(state.checked)el.textContent=questionFeedback(q,state.answers[q.key]);});
       Array.prototype.slice.call(root.querySelectorAll("[data-qj-pred]")).forEach(function (button) {
         var question = button.getAttribute("data-qj-pred");
         var choice = button.getAttribute("data-qj-choice");
@@ -909,13 +949,15 @@
         var windowState = trajectoryP1(trajectory.jumpTime, ensemble.T);
         [
           String(trajectory.index),
+          trajectory.uniformInteger === null ? "—" : String(trajectory.uniformInteger),
           trajectory.uniform === null ? "—" : format(api, trajectory.uniform, 5),
           trajectory.structuralNoJump ? "∞" : format(api, trajectory.jumpTime, 3),
           windowRecord,
+          format(api,trajectoryP1(trajectory.jumpTime,ensemble.time),0),
           format(api, windowState, 0)
         ].forEach(function (value, cellIndex) {
-          var cell = makeElement(api, doc, cellIndex === 3 ? "td" : "td", { text: value });
-          if (cellIndex === 3) cell.className = statusClass;
+          var cell = makeElement(api, doc, cellIndex === 4 ? "td" : "td", { text: value });
+          if (cellIndex === 4) cell.className = statusClass;
           row.appendChild(cell);
         });
         refs.ledgerBody.appendChild(row);
@@ -931,7 +973,12 @@
       var density;
       var complete;
       readInputs();
-      ensemble = simulateEnsemble(state);
+      var config = {gamma:state.gamma,N:state.N,T:state.T,time:state.time,seed:state.seed,trajectory:state.trajectory};
+      ensemble = simulateEnsemble(config);
+      refs.seed.textContent = "固定 PRNG seed："+ensemble.seed+"；u=(整数+½)/2³²严格位于(0,1)，同样参数可重放账本。";
+      if (downloadUrl) doc.defaultView.URL.revokeObjectURL(downloadUrl);
+      downloadUrl = doc.defaultView.URL.createObjectURL(new doc.defaultView.Blob([JSON.stringify(buildRecord(config),null,2)+"\n"],{type:"application/json"}));
+      refs.download.href = downloadUrl;
       state.N = ensemble.N;
       state.T = ensemble.T;
       state.time = ensemble.time;
@@ -961,7 +1008,7 @@
       trajectoryField.input.setAttribute("aria-valuetext", "第 " + state.trajectory + " 条轨迹，共 " + ensemble.N + " 条");
       refs.stageTitle.firstChild.textContent = "γ=" + format(api, ensemble.gamma, 2) + " · N=" + ensemble.N + " · T=" + format(api, ensemble.T, 2) + " · seed=" + ensemble.seed;
       PRESETS.forEach(function (preset) {
-        preset.button.setAttribute("aria-pressed", preset.key === state.presetKey ? "true" : "false");
+        presetButtons[preset.key].setAttribute("aria-pressed", preset.key === state.presetKey ? "true" : "false");
       });
       refs.metricSample.value.textContent = format(api, reading.empiricalP1, 3);
       refs.metricAnalytic.value.textContent = format(api, reading.analyticP1, 3);
@@ -970,7 +1017,7 @@
       refs.metricObserved.value.textContent = String(ensemble.observedJumpCount);
       refs.metricCensored.value.textContent = ensemble.gamma === 0 ? "0（结构性∞）" : String(ensemble.censoredCount);
       refs.noJumpFormula.textContent = "未归一化 no-jump：|ψ̃(t)⟩=" + format(api, noJumpAmplitude(ensemble.gamma, state.time), 3) + "|1⟩，‖ψ̃‖²=S(t)=e⁻ᵞᵗ=" + format(api, noJump, 3) + "；条件 no-jump：|ψ̃⟩/‖ψ̃‖=|1⟩（本模型 t 有限时）。";
-      refs.selectedReadout.textContent = "第 " + selected.index + " 条：" + (selected.observed ? "τ=" + format(api, selected.jumpTime, 3) + "，已在窗口内跳到 |0⟩。" : selected.structuralNoJump ? "τ=∞（γ=0），保持 |1⟩。" : "真值 τ=" + format(api, selected.jumpTime, 3) + ">T，窗口内只知道右删失；当前 p₁=" + selectedP1 + "。");
+      refs.selectedReadout.textContent = "第 " + selected.index + " 条：当前t="+format(api,state.time,3)+"，p₁="+selectedP1+"，条件态为|"+selectedP1+"⟩。"+(selected.structuralNoJump?"γ=0，结构性永不跳。":selected.observed?"整个观察窗内的跳跃时间τ="+format(api,selected.jumpTime,3)+(selectedP1?"；当前时刻尚未到达这次跳跃。":"；当前已经跳跃。"):"完整模拟真值τ="+format(api,selected.jumpTime,3)+">T；观察窗记录为右删失。");
       refs.matrixCells[0].textContent = format(api, density.rho00, 3);
       refs.matrixCells[1].textContent = "0";
       refs.matrixCells[2].textContent = "0";
@@ -987,7 +1034,7 @@
     [gammaField.input, countField.input, windowField.input, timeField.input, trajectoryField.input].forEach(function (input) {
       input.addEventListener("input", function () {
         state.presetKey = null;
-        resetPredictions();
+        if(input === gammaField.input || input === countField.input || input === windowField.input) resetPredictions();
         render();
       });
     });

@@ -1,0 +1,22 @@
+"""Render only committed fixed data; never generate a new numerical record."""
+from pathlib import Path
+import json,hashlib,html,subprocess,sys,shutil
+PREFIX=['rtk','proxy']if shutil.which('rtk')else[]
+pathJS,jumpJS,fixture,outPath,outJump,fallbackPath,fallbackJump=map(Path,sys.argv[1:8])
+f=json.loads(fixture.read_text());assert f['schema']==1
+for key,file in [('pathJsSha256',pathJS),('jumpJsSha256',jumpJS)]:assert f['provenance'][key]==hashlib.sha256(file.read_bytes()).hexdigest()
+code="""const fs=require('fs'),p=require(require('path').resolve(process.argv[1])),j=require(require('path').resolve(process.argv[2])),f=JSON.parse(fs.readFileSync(process.argv[3]));const panels=[['one',0],['default',1],['cold',2],['soft',5]].map(([key,index])=>p.svg(p.plots(f.path[key])[index]));const jump=['baseline','zero-window'].map(key=>p.svg(j.frozenPlot(f.jump[key])));const d=f.path.default,o=f.path.one,c=f.path.cold,s=f.path.soft,b=f.jump.baseline,z=f.jump['zero-window'];const pathRefs=[['基准：N',d.model.n],['基准：M',d.samples.count],['基准：ZN',d.model.Z],['基准：热能EN',d.model.energy],['基准：有限N方差',d.model.variance],['基准：连续方差',d.model.reference.variance],['基准：样本方差估计',d.samples.prefix.at(-1).value],['基准：样本标准误',d.samples.prefix.at(-1).standardError],['单切片：ZN',o.model.Z],['单切片：热能EN',o.model.energy],['较低温：log ZN',c.model.logZ],['较低温：连续log Z',c.model.reference.logZ],['软振子：有限N方差',s.model.variance],['软振子：样本方差估计',s.samples.prefix.at(-1).value]];const jumpRefs=[['基准：轨迹数',b.ensemble.N],['基准：窗口T',b.ensemble.T],['基准：当前t',b.ensemble.time],['基准：样本P1',b.reading.empiricalP1],['基准：解析P1',b.reading.analyticP1],['基准：解析标准误',b.reading.standardError],['基准：窗口内事件数',b.ensemble.observedJumpCount],['基准：右删失数',b.ensemble.censoredCount],['零窗口：右删失数',z.ensemble.censoredCount],['零窗口：首个随机整数',z.ensemble.trajectories[0].uniformInteger],['零窗口：首个u',z.ensemble.trajectories[0].uniform],['零窗口：完整τ',z.ensemble.trajectories[0].jumpTime]];console.log(JSON.stringify({panels,jump,pathRefs,jumpRefs}));"""
+d=json.loads(subprocess.check_output(PREFIX+['node','-e',code,str(pathJS),str(jumpJS),str(fixture)],text=True))
+def composite(panels,title,titles,captions):
+ height=555*len(panels)+80;result='<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="'+str(height)+'" viewBox="0 0 1000 '+str(height)+'" role="img"><title>'+html.escape(title)+'</title><desc>固定记录中的全部曲线节点；图中显示舍入，JSON保留完整数据。</desc><rect width="1000" height="'+str(height)+'" fill="#fff"/>'
+ for i,panel in enumerate(panels):
+  y=85+i*555;result+='<text x="50" y="'+str(y-24)+'" font-family="system-ui,sans-serif" font-size="19" fill="#283b46">'+html.escape(titles[i])+'</text>'+panel.replace('<svg ','<svg x="50" y="'+str(y)+'" ',1)+'<text x="50" y="'+str(y+490)+'" font-family="system-ui,sans-serif" font-size="14" fill="#283b46">'+html.escape(captions[i])+'</text>'
+ return result+'</svg>\n'
+outPath.write_text(composite(d['panels'],'周期虚时：归一化、切片误差与样本误差',['一、N=1：一条周期路径只剩一个位置变量','二、N=8：离散精确相关函数与样本估计','三、较低温：有限切片的配分函数偏差','四、软振子：累计样本均值并不单调接近靶点'],['m=1，ω=1，β=2，N=1，M=32，seed=20260912；首尾位置相同。','m=1，ω=1，β=2，N=8，M=32；蓝橙差为离散误差，灰蓝差为采样误差。','m=1，ω=2，β=4，N=8，M=32；横轴0至6对应1至64个切片。','m=0.5，ω=0.25，β=2，N=32，M=32；该固定样本的误差可以上下波动。']))
+outJump.write_text(composite(d['jump'],'量子跳跃：观察记录与密度矩阵',['一、基准记录：阶跃平均与Lindblad解析概率','二、零观察窗：所有正率记录均为右删失'],['γ=1，N=32，T=4，t=1.5，seed=20260714；图中选第1条记录。','γ=1，N=8，T=t=0，seed=2463401483；图上只有t=0，不能虚构窗口末端事件。']))
+def fallback(refs,filename,alt,caption,scope):
+ rows='\n'.join('<tr><td>'+html.escape(k)+'</td><td>'+str(v)+'</td></tr>'for k,v in refs)
+ return '<figure class="plot" markdown="1">\n[!['+alt+'](assets/img/'+filename+')](assets/img/'+filename+')\n<figcaption>'+caption+'</figcaption>\n</figure>\n\n<div class="fallback-scroll" role="region" tabindex="0" aria-label="'+alt+'固定记录">\n<table><thead><tr><th scope="col">项目</th><th scope="col">固定记录值</th></tr></thead><tbody>\n'+rows+'\n</tbody></table>\n</div>\n\n[下载两个实验的八组完整固定记录(JSON)](assets/learning/projects/quantum-path-density/run-snapshot.json)。'+scope+'\n'
+fallbackPath.write_text(fallback(d['pathRefs'],'aqm-03-euclidean-paths.svg','周期虚时的四个固定场景','图3.1：打开原图，分别比较切片数与样本数的作用。','路径实验取ℏ=1；四组种子均为20260912，样本数均32。各组参数写在图注，完整矩阵、随机整数、样本与所有收敛节点保存在JSON中。'))
+fallbackJump.write_text(fallback(d['jumpRefs'],'aqm-03-quantum-jump.svg','量子跳跃的两个固定场景','图3.2：这里的时间是监测时间；它与前图的虚时含义不同。','正率模型保存完整模拟τ和窗口内实际可用记录；零率结构性永不跳用null跳跃时间配合明确状态标记表示，不作为缺失数据。无脚本手算可取γ=1、u=1/2，得到τ=ln2；若T小于ln2，记录为右删失。'))
+print(json.dumps({'pathSVGBytes':outPath.stat().st_size,'jumpSVGBytes':outJump.stat().st_size,'pathValues':len(d['pathRefs']),'jumpValues':len(d['jumpRefs'])}))
