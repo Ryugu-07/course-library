@@ -1,331 +1,99 @@
-(function (root, factory) {
-  "use strict";
+(function(host){"use strict";
+'use strict';
+const DEFAULTS={geometry:'plane',q:'1',a:'1',gap:'1',Q:'0',farRatio:'2',order:'4',angle:'45'};
+function config(input){if(input===undefined)input={};if(!input||typeof input!=='object'||Array.isArray(input))throw Error('参数须为对象');for(const k of Object.keys(input))if(!Object.hasOwn(DEFAULTS,k))throw Error('未知参数：'+k);const c={...DEFAULTS,...input};for(const k of Object.keys(c))if(typeof c[k]!=='string')throw Error('参数必须为字符串');if(!['plane','grounded','isolated'].includes(c.geometry))throw Error('请选择有效导体模型');for(const[k,lo,hi]of[['q',-2,2],['a',.25,2],['gap',.05,4],['Q',-2,2],['farRatio',1.05,10],['angle',0,c.geometry==='plane'?90:180]])if(c[k].length>20||!/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(c[k])||+c[k]<lo||+c[k]>hi)throw Error(k+'须为'+lo+'至'+hi+'的普通十进制数');if(!/^(?:0|[1-9]\d*)$/.test(c.order)||+c.order>12)throw Error('多极阶数须为0至12整数');return c;}
+function sum(xs){let a=0,c=0;for(const v of xs){const y=v-c,t=a+y;c=(t-a)-y;a=t;}return a;}
+function model(c){const q=+c.q,a=+c.a,gap=+c.gap,d=c.geometry==='plane'?gap:a+gap,Q=+c.Q,qp=c.geometry==='plane'?-q:-q*a/d,b=c.geometry==='plane'?-d:a*a/d,q0=c.geometry==='isolated'?Q+q*a/d:0,sources=[{role:'real',q,z:d},{role:'image',q:qp,z:b}];if(c.geometry==='isolated')sources.push({role:'central-image',q:q0,z:0});return{geometry:c.geometry,q,a,gap,d,Q,qp,b,q0,sources,surfacePotential:c.geometry==='plane'?0:q0/a,surfaceCharge:c.geometry==='plane'?-q:qp+q0,physicalDomain:c.geometry==='plane'?'z>0，平面上V=0，远处V趋于0':'r>a，球面等势，远处V趋于0'+(c.geometry==='isolated'?'，球总电荷固定为Q':'，球面V=0')};}
+function fieldAt(x,z,sources){if(!Number.isFinite(x)||!Number.isFinite(z))throw Error('观测坐标必须有限');const terms=[];for(const s of sources){if(s.q===0)continue;const dz=z-s.z,r=Math.hypot(x,dz);if(r===0)throw Error('非零点电荷所在位置是奇点，不能赋有限场值');terms.push({role:s.role,distance:r,potential:s.q/r,ex:s.q*x/(r*r*r),ez:s.q*dz/(r*r*r)});}return{potential:sum(terms.map(t=>t.potential)),ex:sum(terms.map(t=>t.ex)),ez:sum(terms.map(t=>t.ez)),terms};}
+function boundary(m,u){const plane=m.geometry==='plane',angle=plane?null:u,x=plane?u*m.d:m.a*Math.sin(u),z=plane?0:m.a*Math.cos(u),normal=plane?[0,1]:[Math.sin(u),Math.cos(u)],tangent=plane?[1,0]:[Math.cos(u),-Math.sin(u)],f=fieldAt(x,z,m.sources),en=f.ex*normal[0]+f.ez*normal[1],et=f.ex*tangent[0]+f.ez*tangent[1],R=plane?Math.hypot(x,m.d):Math.sqrt(m.gap*m.gap+4*m.a*m.d*Math.sin(u/2)**2),expectedNormal=plane?-2*m.q*m.d/R**3:-m.q*(m.d*m.d-m.a*m.a)/(m.a*R**3)+m.q0/(m.a*m.a),density=en/(4*Math.PI),expectedDensity=expectedNormal/(4*Math.PI),cap=plane?-m.q*x*x/(R*(R+m.d)):-m.q*m.a*(m.d+m.a)*2*Math.sin(u/2)**2/(R*(R+m.gap))+m.q0*Math.sin(u/2)**2;return{coordinate:u,angle,x,z,normal,tangent,...f,normalField:en,tangentialField:et,expectedPotential:m.surfacePotential,potentialResidual:f.potential-m.surfacePotential,expectedNormal,normalResidual:en-expectedNormal,density,expectedDensity,capCharge:cap};}
+function integrate(f,a,b,tolerance,maxDepth=18){let evaluations=0;const leaves=[];function evalf(x){evaluations++;const y=f(x);if(!Number.isFinite(y))throw Error('积分函数非有限');return y;}const fa=evalf(a),fb=evalf(b),mid=(a+b)/2,fm=evalf(mid),whole=(b-a)*(fa+4*fm+fb)/6;
+ function recurse(a,b,fa,fm,fb,whole,tol,depth){const mid=(a+b)/2,lm=(a+mid)/2,rm=(mid+b)/2,fl=evalf(lm),fr=evalf(rm),left=(mid-a)*(fa+4*fl+fm)/6,right=(b-mid)*(fm+4*fr+fb)/6,delta=left+right-whole,error=Math.abs(delta)/15,corrected=left+right+delta/15,accepted=error<=tol;if(accepted||depth===0){leaves.push({a,b,fa,fm,fb,fl,fr,whole,left,right,delta,corrected,estimatedError:error,tolerance:tol,accepted,depthUsed:maxDepth-depth});return;}recurse(a,mid,fa,fl,fm,left,tol/2,depth-1);recurse(mid,b,fm,fr,fb,right,tol/2,depth-1);}
+ recurse(a,b,fa,fm,fb,whole,tolerance,maxDepth);return{value:sum(leaves.map(t=>t.corrected)),estimatedError:sum(leaves.map(t=>t.estimatedError)),evaluations,converged:leaves.every(t=>t.accepted),leaves,scope:'自适应Simpson差分为误差估计，不是严格误差上界；闭式对照另列。'};}
+function forceEnergy(m){const images=m.sources.filter(s=>s.role!=='real'),f=fieldAt(0,m.d,images),force=m.q*f.ez,plane=m.geometry==='plane',den=m.gap*(m.d+m.a),groundEnergy=plane?-m.q*m.q/(4*m.d):-m.q*m.q*m.a/(2*den),energy=m.geometry==='isolated'?m.q*m.Q/m.d-m.q*m.q*m.a**3/(2*m.d*m.d*den):groundEnergy,expectedForce=plane?-m.q*m.q/(4*m.d*m.d):-m.q*m.q*m.a*m.d/(den*den)+m.q*m.q0/(m.d*m.d);return{imageField:f,force,expectedForce,forceResidual:force-expectedForce,energy,groundEnergy,energyScope:'U(infty)=0的相互作用能；去除点源自能和与间距无关的导体自能。孤立球保持Q固定。'};}
+function legendre(x,N){const p=[1];if(N>0)p.push(x);for(let l=1;l<N;l++)p.push(((2*l+1)*x*p[l]-l*p[l-1])/(l+1));return p;}
+function multipole(m,r,theta,N){if(!(r>Math.max(...m.sources.map(s=>Math.abs(s.z)))))throw Error('多极观测半径须包围所有辅助源');const x=r*Math.sin(theta),z=r*Math.cos(theta),direct=fieldAt(x,z,m.sources),p=legendre(Math.cos(theta),N),orders=[];let partial=0,compensation=0;
+ for(let l=0;l<=N;l++){const sourceTerms=m.sources.map(s=>({role:s.role,charge:s.q,position:s.z,moment:s.q*s.z**l,contribution:s.q/r*(s.z/r)**l*p[l]})),moment=sum(sourceTerms.map(s=>s.moment)),term=sum(sourceTerms.map(s=>s.contribution)),y=term-compensation,next=partial+y;compensation=(next-partial)-y;partial=next;const tailTerms=m.sources.map(s=>Math.abs(s.q)/r*(Math.abs(s.z)/r)**(l+1)/(1-Math.abs(s.z)/r)),tailBound=sum(tailTerms);orders.push({order:l,P:p[l],moment,term,partial,direct:direct.potential,error:partial-direct.potential,absoluteError:Math.abs(partial-direct.potential),tailBound,sourceTerms,tailTerms});}return{radius:r,theta,x,z,direct,orders};}
+function snapshot(input){const c=config(input),m=model(c),plane=m.geometry==='plane',end=plane?8:Math.PI,rows=Array.from({length:65},(_,j)=>boundary(m,end*j/64)),integrand=u=>{const b=boundary(m,u);return plane?2*Math.PI*b.x*m.d*b.density:2*Math.PI*m.a*m.a*Math.sin(u)*b.density;},integrals=[],tolerance=1e-10*(1+Math.abs(m.q)+Math.abs(m.Q))/64;let cumulative=0,estimatedError=0;
+ for(let j=0;j<64;j++){const d=integrate(integrand,end*j/64,end*(j+1)/64,tolerance);cumulative+=d.value;estimatedError+=d.estimatedError;integrals.push({index:j,...d,cumulative,estimatedCumulativeError:estimatedError,exactCap:rows[j+1].capCharge,actualError:cumulative-rows[j+1].capCharge});}
+ const fe=forceEnergy(m),forceScan=Array.from({length:49},(_,j)=>{const gap=.05+(4-.05)*j/48,current=model({...c,gap:String(gap)}),r=forceEnergy(current),h=Math.min(1e-4*Math.max(current.d,1),gap/8),energies=[-2,-1,1,2].map(i=>forceEnergy(model({...c,gap:String(gap+i*h)})).energy),derivative=(energies[0]-8*energies[1]+8*energies[2]-energies[3])/(12*h);return{gap,d:current.d,force:r.force,energy:r.energy,step:h,energySamples:energies,negativeNumericalDerivative:-derivative,derivativeResidual:r.force+derivative};}),r=+c.farRatio*m.d,maxAngle=plane?Math.PI/2:Math.PI,far=Array.from({length:65},(_,j)=>multipole(m,r,maxAngle*j/64,12)),probe=multipole(m,r,+c.angle*Math.PI/180,12);
+ return{version:164,parameters:c,model:m,boundary:rows,quadrature:integrals,force:fe,forceScan,far,probe,selectedOrder:+c.order,quadratureStatus:{converged:integrals.every(t=>t.converged),estimatedError,total:cumulative,exactFinite:rows.at(-1).capCharge,infiniteOrFullCharge:m.surfaceCharge,remainingCharge:m.surfaceCharge-rows.at(-1).capCharge},units:'k=1；epsilon0=1/(4pi)。平面横坐标rho/d，球面横坐标theta；长度、势、场与电荷各自标明。',scope:'数学像只在指定物理域外辅助构造。边界采样不是唯一性证明；Simpson误差估计不是严格上界；多极绝对尾界来自完整源展开。'};}
 
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("image-charge-boundary", exported.mount);
-  }
-  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module) {
-    try {
-      var report = exported.selfTest();
-      console.log("image-charge-boundary self-test: PASS (" + report.checks + " checks, " + report.presets + " presets)");
-    } catch (error) {
-      console.error("image-charge-boundary self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
-  }
-})(typeof window !== "undefined" ? window : null, function (host) {
-  "use strict";
+const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fmt(v){if(v===null)return'不适用';if(typeof v==='number'){if(!Number.isFinite(v))throw Error('非有限显示值');if(v===0)return'0';if(Number.isInteger(v))return String(v);return Math.abs(v)<1e-5||Math.abs(v)>=1e6?v.toExponential(7):String(Number(v.toPrecision(9)));}return Array.isArray(v)?v.map(fmt).join(', '):String(v);}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=1e5?v.toExponential(3):String(Number(v.toPrecision(5)));
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "image-charge-boundary-lab-styles";
-  var INSTANCE = 0;
-  var EPS = 1e-10;
-  var K = 1;
-  var EPSILON0 = 1 / (4 * Math.PI);
-  var SAMPLE_RADII = [0, 0.5, 1, 2];
-  var PRESETS = [
-    { id: "unit-positive", label: "q=1，d=1", q: 1, d: 1, probeRadius: 1, note: "默认接地平面；总诱导电荷趋于 −q。" },
-    { id: "far-charge", label: "q=2，d=1.5", q: 2, d: 1.5, probeRadius: 1.5, note: "距离改变场的尺度，边界抵消仍逐点成立。" },
-    { id: "negative-charge", label: "q=−1，d=0.75", q: -1, d: 0.75, probeRadius: 1, note: "电荷换号，镜像与诱导电荷一起换号；力仍指向平面。" }
-  ];
-  var STYLE_TEXT = [
-    ".icb-lab{--icb-blue:var(--cl-blue,#315f9d);--icb-gold:var(--cl-gold,#95670d);--icb-green:var(--cl-green,#347247);--icb-red:var(--cl-red,#b13d32);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere}",
-    ".icb-lab *,.icb-lab *::before,.icb-lab *::after{box-sizing:border-box}.icb-lab [hidden]{display:none!important}.icb-lab h3,.icb-lab h4{margin:0;color:var(--fg);letter-spacing:0}.icb-lab h3{font-size:1.16rem}.icb-lab h4{margin-top:16px;font-size:1rem}.icb-lab p{margin:8px 0}.icb-lab .icb-intro,.icb-lab .icb-note,.icb-lab .icb-feedback{color:var(--fg-soft);font-size:13px;line-height:1.65}",
-    ".icb-lab fieldset{min-width:0;margin:10px 0;padding:9px 10px;border:1px solid var(--border)}.icb-lab legend{max-width:100%;padding:0 4px;font-size:13px;font-weight:750;line-height:1.5}.icb-lab .icb-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}",
-    ".icb-lab button,.icb-lab select,.icb-lab input{font:inherit}.icb-lab button{min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.icb-lab button:hover{border-color:var(--accent)}.icb-lab button:focus-visible,.icb-lab select:focus-visible,.icb-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.icb-lab button[aria-pressed=true],.icb-lab button.icb-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750}.icb-lab button:disabled{opacity:.55;cursor:not-allowed}",
-    ".icb-lab .icb-actions{display:flex;flex-wrap:wrap;gap:8px;margin:11px 0}.icb-lab .icb-actions>*{flex:1 1 170px}.icb-lab .icb-feedback{min-height:2em;margin:8px 0;font-weight:700}.icb-lab .icb-pass{color:var(--icb-green)}.icb-lab .icb-warn{color:var(--icb-red)}",
-    ".icb-lab .icb-layout{display:grid;grid-template-columns:minmax(215px,.64fr) minmax(0,1.36fr);gap:16px;align-items:start}.icb-lab .icb-controls,.icb-lab .icb-stage{min-width:0}.icb-lab .icb-controls{display:grid;gap:10px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg)}.icb-lab .icb-control{display:grid;gap:5px}.icb-lab .icb-control label{color:var(--fg-soft);font-size:12.5px;font-weight:700}.icb-lab .icb-control output{color:var(--accent);font-variant-numeric:tabular-nums}.icb-lab .icb-control select{width:100%;min-height:44px;padding:7px 9px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg)}.icb-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent)}",
-    ".icb-lab .icb-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden}.icb-lab .icb-svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg)}.icb-lab .icb-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.icb-lab .icb-plane{stroke:var(--icb-blue);stroke-width:4}.icb-lab .icb-region{fill:var(--icb-blue);fill-opacity:.06}.icb-lab .icb-axis{stroke:var(--border);stroke-width:1}.icb-lab .icb-source{fill:var(--icb-red);stroke:var(--bg);stroke-width:2}.icb-lab .icb-image{fill:none;stroke:var(--icb-gold);stroke-width:3;stroke-dasharray:6 4}.icb-lab .icb-link{stroke:var(--border);stroke-width:1.5;stroke-dasharray:4 4}.icb-lab .icb-arrow{stroke:var(--icb-green);stroke-width:3;fill:none}.icb-lab .icb-probe{fill:var(--icb-blue);stroke:var(--bg);stroke-width:2}.icb-lab .icb-probe-selected{fill:var(--icb-gold);stroke:var(--bg);stroke-width:2}.icb-lab .icb-label{font-size:11px;font-weight:700;paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round}.icb-lab .icb-small{font-size:10.5px;fill:var(--fg-soft)!important}",
-    ".icb-lab .icb-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;margin:12px 0}.icb-lab .icb-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg)}.icb-lab .icb-metric:nth-child(3n+1){border-color:var(--icb-blue)}.icb-lab .icb-metric:nth-child(3n+2){border-color:var(--icb-gold)}.icb-lab .icb-metric:nth-child(3n){border-color:var(--icb-green)}.icb-lab .icb-metric span{display:block;color:var(--fg-soft);font-size:11.5px}.icb-lab .icb-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-    ".icb-lab .icb-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}.icb-lab table{width:100%;min-width:760px;border-collapse:collapse;font-size:11.5px;font-variant-numeric:tabular-nums}.icb-lab th,.icb-lab td{padding:7px 6px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}.icb-lab th{color:var(--fg-soft);font-size:11px}.icb-lab td.icb-center,.icb-lab th.icb-center{text-align:center}.icb-lab .icb-certificate{margin-top:11px;padding:10px 12px;border-left:3px solid var(--icb-green);background:var(--block-bg,var(--bg));font-size:13px}.icb-lab .icb-checks{display:grid;gap:6px;margin:10px 0 0;padding:0;list-style:none}.icb-lab .icb-checks li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;align-items:start}.icb-lab .icb-check-pass{color:var(--icb-green);font-weight:800}.icb-lab .icb-check-fail{color:var(--icb-red);font-weight:800}",
-    "@media(max-width:900px){.icb-lab .icb-layout{grid-template-columns:minmax(0,1fr)}}@media(max-width:620px){.icb-lab .icb-choice-grid{grid-template-columns:minmax(0,1fr)}}@media(max-width:420px){.icb-lab .icb-frame{padding:4px}.icb-lab table{font-size:11px}.icb-lab th,.icb-lab td{padding-left:4px;padding-right:4px}}@media(prefers-reduced-motion:reduce){.icb-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
-  ].join("\n");
+function plots(s){const out=[],m=s.model,plane=m.geometry==='plane',coord=plane?'平面半径 ρ/d':'球面极角 θ（度）',xx=r=>plane?r.coordinate:r.coordinate*180/Math.PI;
+ function add(key,title,caption,xLabel,yLabel,series,extra={}){const xs=series.flatMap(r=>r.points.map(v=>v[0])),ys=series.flatMap(r=>r.points.map(v=>v[1]));let xMin=Math.min(...xs),xMax=Math.max(...xs),yMin=Math.min(0,...ys),yMax=Math.max(0,...ys);if(xMin===xMax)xMax=xMin+1;const pad=(yMax-yMin)*.08||1;yMin-=pad;yMax+=pad;out.push({key,title,caption,width:900,height:460,xLabel,yLabel,xMin,xMax,yMin,yMax,series:series.map((r,i)=>({...r,color:['#256c91','#ae6017','#687981','#26705b'][i%4]})),...extra});}
+ const extent=plane?m.d:Math.max(m.d,m.a),boundaryPoints=plane?[[-extent,0],[extent,0]]:Array.from({length:129},(_,j)=>[m.a*Math.sin(2*Math.PI*j/128),m.a*Math.cos(2*Math.PI*j/128)]),sources=m.sources.map(r=>({label:(r.role==='real'?'真实源':r.role==='image'?'离心像':'中心像')+' q='+fmt(r.q),points:[[0,r.z]]}));
+ add('geometry','真实空间与数学辅助源','蓝点是真实源的位置；像只用于外部解。零电荷仍标位置，图中不画虚构场箭头。','横向坐标 x','轴向坐标 z',[...sources,{label:plane?'接地平面；物理域z>0':'球面；物理域r>a',points:boundaryPoints}]);
+ const geo=out[0],yc=(geo.yMin+geo.yMax)/2,span=Math.max((geo.yMax-geo.yMin)*1.06,2*extent*259/762*1.1);geo.yMin=yc-span/2;geo.yMax=yc+span/2;geo.xMin=-span*762/259/2;geo.xMax=-geo.xMin;if(plane)geo.series.at(-1).points=Array.from({length:129},(_,j)=>[geo.xMin+(geo.xMax-geo.xMin)*j/128,0]);
+ const pairs=k=>s.boundary.map(r=>[xx(r),r[k]]),scan=k=>s.forceScan.map(r=>[r.gap,r[k]]);
+ add('potential','边界电位：叠加值与规定值','孤立球固定Q，球面电位可随外部电荷位置改变。残差与切向场逐点列在账表。',coord,'电位 V',[{label:'实际叠加势',points:pairs('potential')},{label:'边界目标势',points:pairs('expectedPotential')}]);
+ add('density','表面电荷：从外侧法向电场读取','法向从导体指向外部；σ=ε₀Eₙ。近接触峰值可很尖，折线仅连接采样点。',coord,'面电荷密度 σ',[{label:'向量场投影所得',points:pairs('density')},{label:'闭式密度',points:pairs('expectedDensity')}]);
+ const charges=[[0,0],...s.quadrature.map((r,j)=>[xx(s.boundary[j+1]),r.cumulative])];
+ add('charge','积分到哪里，就累计到哪里',plane?'这里只积分到ρ=8d，尚未包含整个无限平面；灰线是无限平面总量。':'积分到θ=180°才覆盖整个球面；估计误差与闭式差分别列出。',coord,'累计表面电荷',[{label:'自适应数值积分',points:charges},{label:'有限区域闭式',points:pairs('capCharge')},{label:'完整导体总电荷',points:s.boundary.map(r=>[xx(r),m.surfaceCharge])}]);
+ add('force','力与能量导数：固定同一物理条件','孤立球扫描时Q固定；导数用四个邻近能量值实际差分，未直接填入解析力。','真实源到表面的间隙','轴向力 Fz',[{label:'像场作用于真实q',points:scan('force')},{label:'−数值 dU/dd',points:scan('negativeNumericalDerivative')}]);
+ add('energy','相互作用能：以无穷远为零点','已扣除点源自能和不随间距变化的导体自能；负值不表示总场能密度为负。','真实源到表面的间隙','相互作用能 U',[{label:'当前边界条件下的U',points:scan('energy')}]);
+ add('multipole','远场势：直接求和与截断展开','观测半径r='+fmt(s.probe.radius)+'，严格包围全部辅助源。阶数L='+s.selectedOrder+'。','极角 θ（度）','电位 V',[{label:'直接源叠加',points:s.far.map(r=>[r.theta*180/Math.PI,r.direct.potential])},{label:'截断到L='+s.selectedOrder,points:s.far.map(r=>[r.theta*180/Math.PI,r.orders[s.selectedOrder].partial])}]);
+ add('tail','逐阶误差与严格绝对尾界','绝对尾界来自Legendre级数；数值舍入另计。真实势为零时也可读，不能改成相对误差。','截断阶数 L','电位的绝对误差/界',[{label:'探针实际绝对误差',points:s.probe.orders.map(r=>[r.order,r.absoluteError])},{label:'级数尾部绝对上界',points:s.probe.orders.map(r=>[r.order,r.tailBound])}],{integerX:true});return out;}
+function ledgers(s){const out=[],add=(key,title,headers,rows)=>out.push({key,title,headers,rows}),m=s.model,b=s.boundary;
+ add('summary','物理条件与总量',['项目','值'],[['模型',m.geometry],['真实电荷q',m.q],['球半径a（平面不适用）',m.geometry==='plane'?null:m.a],['间隙',m.gap],['真实源坐标d',m.d],['固定Q（仅孤立球）',m.geometry==='isolated'?m.Q:null],['边界势',m.surfacePotential],['完整导体电荷',m.surfaceCharge],['有限区域积分',s.quadratureStatus.total],['有限区域闭式',s.quadratureStatus.exactFinite],['未覆盖区域电荷',s.quadratureStatus.remainingCharge],['Simpson误差估计',s.quadratureStatus.estimatedError],['所有积分叶子达到容差',s.quadratureStatus.converged],['真实源受力',s.force.force],['力闭式',s.force.expectedForce],['力残差',s.force.forceResidual],['相互作用能',s.force.energy],['物理域',m.physicalDomain],['单位',s.units],['解释范围',s.scope]]);
+ add('sources','辅助问题全部源',['角色','电荷','轴向位置'],m.sources.map(r=>[r.role,r.q,r.z]));
+ add('boundary','全部边界采样：电位与法向/切向场',['j','坐标u或θ(rad)','x','z','V','目标V','势残差','Ex','Ez','En','闭式En','法向残差','Et','σ','闭式σ','闭式帽/盘电荷'],b.map((r,j)=>[j,r.coordinate,r.x,r.z,r.potential,r.expectedPotential,r.potentialResidual,r.ex,r.ez,r.normalField,r.expectedNormal,r.normalResidual,r.tangentialField,r.density,r.expectedDensity,r.capCharge]));
+ add('boundary-sources','边界全部非零源贡献',['边界j','源角色','距离','势贡献','Ex贡献','Ez贡献'],b.flatMap((r,j)=>r.terms.map(t=>[j,t.role,t.distance,t.potential,t.ex,t.ez])));
+ add('integrals','全部积分区间与累计误差',['j','左端','右端','数值积分','累计积分','闭式累计','累计实际差','区间估计误差','累计估计误差','函数计算次数','通过容差','叶子数'],s.quadrature.map((r,j)=>[j,b[j].coordinate,b[j+1].coordinate,r.value,r.cumulative,r.exactCap,r.actualError,r.estimatedError,r.estimatedCumulativeError,r.evaluations,r.converged,r.leaves.length]));
+ add('leaves','自适应积分的全部最终叶子',['区间j','叶子j','a','b','f(a)','f(mid)','f(b)','f(leftmid)','f(rightmid)','粗Simpson','左Simpson','右Simpson','细−粗','修正值','误差估计','分配容差','通过','深度'],s.quadrature.flatMap((r,j)=>r.leaves.map((t,k)=>[j,k,t.a,t.b,t.fa,t.fm,t.fb,t.fl,t.fr,t.whole,t.left,t.right,t.delta,t.corrected,t.estimatedError,t.tolerance,t.accepted,t.depthUsed])));
+ add('force-scan','全部力能量扫描与四点差分',['gap','d','实际力','U','差分步长h','U(d−2h)','U(d−h)','U(d+h)','U(d+2h)','−数值导数','力−负导数'],s.forceScan.map(r=>[r.gap,r.d,r.force,r.energy,r.step,...r.energySamples,r.negativeNumericalDerivative,r.derivativeResidual]));
+ add('force-sources','真实源处的非零像场贡献；排除自场',['角色','距离','势','Ex','Ez'],s.force.imageField.terms.map(t=>[t.role,t.distance,t.potential,t.ex,t.ez]));
+ const orderHeaders=['角度rad','r','L','P_L','轴向矩','本阶贡献','累计势','直接势','截断−直接','绝对误差','严格尾界'],row=(r,t)=>[r.theta,r.radius,t.order,t.P,t.moment,t.term,t.partial,t.direct,t.error,t.absoluteError,t.tailBound];
+ add('probe','探针全部阶数',orderHeaders,s.probe.orders.map(t=>row(s.probe,t)));
+ add('far','全部65角度与全部13阶',orderHeaders,s.far.flatMap(r=>r.orders.map(t=>row(r,t))));
+ add('multipole-sources','全部角度/探针的每阶单源贡献',['位置','角度rad','L','角色','电荷','源位置','源矩','势贡献','源尾界'],[...s.far,s.probe].flatMap((r,j)=>r.orders.flatMap(t=>t.sourceTerms.map((v,i)=>[j===65?'探针':j,r.theta,t.order,v.role,v.charge,v.position,v.moment,v.contribution,t.tailTerms[i]]))));
+ add('far-fields','全部远场及探针的直接源场',['位置','角度rad','r','x','z','直接V','直接Ex','直接Ez','角色','距离','势贡献','Ex贡献','Ez贡献'],[...s.far,s.probe].flatMap((r,j)=>r.direct.terms.map(t=>[j===65?'探针':j,r.theta,r.radius,r.x,r.z,r.direct.potential,r.direct.ex,r.direct.ez,t.role,t.distance,t.potential,t.ex,t.ez])));return out;}
+function svg(p){const left=104,right=866,top=101,bottom=360,x=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top);let out='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="460" viewBox="0 0 900 460" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><desc>'+esc(p.caption)+'</desc><rect width="900" height="460" fill="#fff"/>';const text=(xx,yy,t,size=13,anchor='start',fill='#283b46')=>'<text x="'+xx+'" y="'+yy+'" font-family="system-ui,sans-serif" font-size="'+size+'" text-anchor="'+anchor+'" fill="'+fill+'">'+esc(t)+'</text>';
+ out+=text(22,30,p.title,19)+text(22,441,p.caption,12);p.series.forEach((s,i)=>{out+='<line x1="'+(25+217*i)+'" y1="57" x2="'+(49+217*i)+'" y2="57" stroke="'+s.color+'" stroke-width="3"'+(i>=2?' stroke-dasharray="5 4"':'')+'/>'+text(56+217*i,62,s.label,12);});
+ for(let j=0;j<=5;j++){const yy=top+(bottom-top)*j/5,v=p.yMax-(p.yMax-p.yMin)*j/5;out+='<line x1="'+left+'" x2="'+right+'" y1="'+yy+'" y2="'+yy+'" stroke="#e1e6e8"/>'+text(left-8,yy+4,axisFmt(v),11,'end');}
+ const xTicks=p.xDegenerate?[p.xMin]:p.integerX?Array.from({length:Math.floor(p.xMax)-Math.ceil(p.xMin)+1},(_,i)=>Math.ceil(p.xMin)+i):Array.from({length:6},(_,j)=>p.xMin+(p.xMax-p.xMin)*j/5);for(const v of xTicks)out+=text(x(v),bottom+22,axisFmt(v),11,'middle');out+='<path d="M '+left+' '+top+' V '+bottom+' H '+right+'" fill="none" stroke="#283b46"/>'+text(25,84,p.yLabel,12)+text((left+right)/2,410,p.xLabel+(p.selected!==undefined?'（虚线：当前 L='+p.selected+'）':''),13,'middle');
+ for(let i=p.series.length-1;i>=0;i--){const s=p.series[i];out+='<polyline data-series="'+i+'" points="'+s.points.map(q=>x(q[0])+','+y(q[1])).join(' ')+'" fill="none" stroke="'+s.color+'" stroke-width="'+(i===0?2:1.6)+'"'+(i>=2?' stroke-dasharray="5 4"':'')+'/>';if(s.points.length<=128)for(const q of s.points)out+='<circle cx="'+x(q[0])+'" cy="'+y(q[1])+'" r="3" fill="'+s.color+'"/>';}
+ if(p.selected!==undefined){const xx=x(p.selected);out+='<line x1="'+xx+'" x2="'+xx+'" y1="'+top+'" y2="'+bottom+'" stroke="#283b46" stroke-dasharray="2 5"/>';}return out+'</svg>';
+}
 
-  function finite(value) { return typeof value === "number" && isFinite(value); }
-  function near(a, b, tolerance) { return Math.abs(a - b) <= (tolerance || EPS) * Math.max(1, Math.abs(a), Math.abs(b)); }
-  function fail(message) { throw new Error("image-charge-boundary: " + message); }
-  function cloneConfig(config) { return { id: config.id, label: config.label, note: config.note, q: Number(config.q), d: Number(config.d), probeRadius: config.probeRadius === undefined ? 1 : Number(config.probeRadius) }; }
-  function presetById(id) {
-    for (var i = 0; i < PRESETS.length; i += 1) if (PRESETS[i].id === id) return PRESETS[i];
-    fail("unknown preset: " + id);
-  }
-  function validateConfig(config) {
-    if (!config || !finite(Number(config.q))) fail("q must be finite");
-    if (!finite(Number(config.d)) || Number(config.d) <= 0) fail("d must be positive");
-    if (config.probeRadius !== undefined && (!finite(Number(config.probeRadius)) || Number(config.probeRadius) <= 0)) fail("probe radius must be positive");
-    return config;
-  }
-  function distance(point, source) {
-    var dx = point.x - source.x, dy = point.y - source.y, dz = point.z - source.z;
-    return Math.sqrt(dx * dx + dy * dy + dz * dz);
-  }
-  function sourcePoints(config) {
-    return { real: { q: config.q, x: 0, y: 0, z: config.d }, image: { q: -config.q, x: 0, y: 0, z: -config.d } };
-  }
-  function potential(point, input) {
-    var config = input && input.config ? input.config : input;
-    validateConfig(config);
-    var sources = sourcePoints(config), realDistance = distance(point, sources.real), imageDistance = distance(point, sources.image);
-    if (realDistance === 0 || imageDistance === 0) return Infinity;
-    return K * sources.real.q / realDistance + K * sources.image.q / imageDistance;
-  }
-  function field(point, input) {
-    var config = input && input.config ? input.config : input;
-    validateConfig(config);
-    var sources = sourcePoints(config), result = { x: 0, y: 0, z: 0 };
-    [sources.real, sources.image].forEach(function (source) {
-      var dx = point.x - source.x, dy = point.y - source.y, dz = point.z - source.z;
-      var radius = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      if (radius === 0) return;
-      var factor = K * source.q / (radius * radius * radius);
-      result.x += factor * dx; result.y += factor * dy; result.z += factor * dz;
-    });
-    return result;
-  }
-  function expectedNormalField(rho, config) { return -2 * K * config.q * config.d / Math.pow(rho * rho + config.d * config.d, 1.5); }
-  function surfaceChargeDensity(rho, input) {
-    var config = input && input.config ? input.config : input;
-    validateConfig(config);
-    return EPSILON0 * expectedNormalField(Number(rho), config);
-  }
-  function inducedChargeWithin(radius, input) {
-    var config = input && input.config ? input.config : input;
-    validateConfig(config);
-    var R = Number(radius);
-    if (R === Infinity) return -config.q;
-    if (!finite(R) || R < 0) fail("induced-charge radius must be nonnegative or infinity");
-    return -config.q * (1 - config.d / Math.sqrt(R * R + config.d * config.d));
-  }
-  function forceOnCharge(input) {
-    var config = input && input.config ? input.config : input;
-    validateConfig(config);
-    return { x: 0, y: 0, z: -K * config.q * config.q / (4 * config.d * config.d) };
-  }
-  function boundaryAudit(input, radii) {
-    var config = input && input.config ? input.config : input;
-    validateConfig(config);
-    var values = radii || SAMPLE_RADII;
-    if (!Array.isArray(values) || values.length === 0) fail("boundary audit needs sample radii");
-    return values.map(function (rhoValue) {
-      var rho = Number(rhoValue);
-      if (!finite(rho) || rho < 0) fail("sample rho must be nonnegative");
-      var point = { x: rho, y: 0, z: 0 }, E = field(point, config), expectedEz = expectedNormalField(rho, config);
-      return {
-        rho: rho,
-        potential: potential(point, config),
-        tangentialField: Math.sqrt(E.x * E.x + E.y * E.y),
-        normalField: E.z,
-        expectedNormalField: expectedEz,
-        potentialError: potential(point, config),
-        normalError: E.z - expectedEz,
-        sigma: surfaceChargeDensity(rho, config),
-        inducedWithin: inducedChargeWithin(rho, config)
-      };
-    });
-  }
-  function solve(input) {
-    var source = input && input.config ? input.config : (input || PRESETS[0]);
-    var config = cloneConfig(source); validateConfig(config);
-    var rows = boundaryAudit(config, SAMPLE_RADII), force = forceOnCharge(config);
-    return {
-      config: config,
-      rows: rows,
-      force: force,
-      image: { q: -config.q, x: 0, y: 0, z: -config.d, physical: false },
-      inducedWithinProbe: inducedChargeWithin(config.probeRadius, config),
-      inducedTotal: inducedChargeWithin(Infinity, config),
-      maxPotentialError: Math.max.apply(null, rows.map(function (row) { return Math.abs(row.potentialError); })),
-      maxTangentialField: Math.max.apply(null, rows.map(function (row) { return Math.abs(row.tangentialField); })),
-      maxNormalError: Math.max.apply(null, rows.map(function (row) { return Math.abs(row.normalError); })),
-      uniqueness: "z>0；z=0 上的 Dirichlet 值固定为 0；无穷远按衰减条件选取。",
-      imageIsPhysical: false
-    };
-  }
-  function formatNumber(value, digits) {
-    if (!finite(value)) return "—";
-    var text = Number(value).toFixed(digits === undefined ? 6 : digits);
-    return text.replace(/0+$/, "").replace(/\.$/, "") || "0";
-  }
-  function assert(condition, message) { if (!condition) fail(message); }
-  function selfTest() {
-    var checks = 0;
-    var unit = solve(PRESETS[0]);
-    assert(unit.rows.every(function (row) { return Math.abs(row.potential) < 1e-12; }), "grounded boundary potential must vanish"); checks += 1;
-    assert(unit.rows.every(function (row) { return row.tangentialField < 1e-12; }), "tangential boundary field must vanish"); checks += 1;
-    assert(unit.rows.every(function (row) { return Math.abs(row.normalError) < 1e-12; }), "normal field closed form mismatch"); checks += 1;
-    assert(near(unit.force.z, -0.25), "image-force magnitude mismatch"); checks += 1;
-    assert(near(unit.inducedWithinProbe, -(1 - 1 / Math.sqrt(2))), "finite induced charge mismatch"); checks += 1;
-    assert(near(unit.inducedTotal, -1), "total induced charge must be -q"); checks += 1;
-    assert(unit.image.q === -1 && unit.image.physical === false && !unit.imageIsPhysical, "image must be marked mathematical"); checks += 1;
-    var negative = solve(PRESETS[2]);
-    assert(near(negative.inducedTotal, 1) && near(negative.force.z, -1 / (4 * 0.75 * 0.75)), "charge sign/distance scaling mismatch"); checks += 1;
-    var offPlane = potential({ x: 0, y: 0, z: 2 }, PRESETS[0]);
-    assert(near(offPlane, 2 / 3), "off-boundary potential mismatch"); checks += 1;
-    var rejected = false;
-    try { solve({ q: 1, d: 0, probeRadius: 1 }); } catch (error) { rejected = true; }
-    assert(rejected, "zero source distance must be rejected"); checks += 1;
-    return { checks: checks, presets: PRESETS.length };
-  }
+const PRESETS=[
+ {id:'default',label:'接地平面',values:{}},
+ {id:'grounded',label:'接地球',values:{geometry:'grounded'}},
+ {id:'neutral',label:'孤立中性球',values:{geometry:'isolated'}},
+ {id:'charged',label:'孤立带正电球',values:{geometry:'isolated',Q:'2',gap:'3'}},
+ {id:'negative',label:'负真实电荷',values:{geometry:'isolated',q:'-2',Q:'1'}},
+ {id:'zero',label:'所有电荷为零',values:{q:'0'}},
+ {id:'charged-zero',label:'无外源的带电球',values:{geometry:'isolated',q:'0',Q:'2'}},
+ {id:'close',label:'接地球近接触',values:{geometry:'grounded',q:'2',a:'2',gap:'0.05'}},
+ {id:'neutral-close',label:'中性球近接触',values:{geometry:'isolated',q:'-2',a:'2',gap:'0.05'}},
+ {id:'small',label:'小球远处',values:{geometry:'grounded',a:'0.25',gap:'4',farRatio:'10'}},
+ {id:'slow',label:'紧包围：慢收敛',values:{geometry:'grounded',farRatio:'1.05',order:'12',angle:'0'}},
+ {id:'plane-zero-potential',label:'平面上的势零点',values:{angle:'90',order:'0',farRatio:'1.05'}},
+ {id:'back',label:'孤立球背面远场',values:{geometry:'isolated',Q:'-2',angle:'180',order:'12'}},
+ {id:'monopole',label:'只保留单极项',values:{geometry:'grounded',order:'0'}},
+ {id:'dipole',label:'平面偶极近似',values:{order:'1',farRatio:'4'}},
+ {id:'center-cancel',label:'中心像恰好为零',values:{geometry:'isolated',Q:'-0.5'}}
+];
+const QUESTIONS=[
+ ['像电荷放在哪里，才不会给真实求解域增加假源？',['可以放在真实域内','必须放在真实域外'],1,'像位于被排除的导体区域；外部解还须核对真实源、边界与无穷远条件。'],
+ ['孤立球的总电荷固定后，球面电位是否必须为零？',['必须为零','可以非零且随外源位置变化'],1,'孤立条件固定总电荷Q，球面仍等势，但其常数值一般不等于接地值0。'],
+ ['计算真实q的受力时，应怎样处理q自己的场？',['排除自场，只用导体响应的场','把点源奇点当成零后加入'],0,'点源自场在自身位置无有限值；受力由导体响应的外场计算。'],
+ ['多极实验的误差说明中，哪一项是严格级数尾界？',['自适应Simpson细粗差','各源Legendre尾级数的绝对界'],1,'多极尾界用|P_l|≤1及几何级数得到；Simpson细粗差只作数值误差估计。']
+];
 
-  function setAttributes(node, attributes) {
-    Object.keys(attributes || {}).forEach(function (key) {
-      var value = attributes[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", String(value));
-      else if (key === "text") node.textContent = String(value);
-      else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, String(value));
-    });
-    return node;
-  }
-  function appendChildren(node, children, doc) {
-    if (children === undefined || children === null) return node;
-    (Array.isArray(children) ? children : [children]).forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child && child.nodeType ? child : doc.createTextNode(String(child)));
-    });
-    return node;
-  }
-  function element(doc, tag, attributes, children) { return appendChildren(setAttributes(doc.createElement(tag), attributes), children, doc); }
-  function svgElement(doc, tag, attributes, children) { return appendChildren(setAttributes(doc.createElementNS(SVG_NS, tag), attributes), children, doc); }
-  function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
-  function installStyles(doc) {
-    if (doc.getElementById && doc.getElementById(STYLE_ID)) return;
-    var style = doc.createElement("style"); style.id = STYLE_ID; style.textContent = STYLE_TEXT; (doc.head || doc.documentElement).appendChild(style);
-  }
-  function announce(api, root, message) { if (api && typeof api.announce === "function") api.announce(root, message); }
-  function metric(doc, label) { var value = element(doc, "strong", { text: "—" }); return { node: element(doc, "div", { className: "icb-metric" }, [element(doc, "span", { text: label }), value]), value: value }; }
-  function questionSpecs() {
-    return [
-      { key: "potential", prompt: "接地平面 z=0 上的电势，逐点应是什么？", expected: "zero", choices: [{ value: "zero", label: "严格为 0" }, { value: "nonzero", label: "随 ρ 变化但非零" }, { value: "unknown", label: "只能抽样估计" }] },
-      { key: "image", prompt: "为抵消 z=0 上的势，数学镜像电荷应取什么？", expected: "opposite", choices: [{ value: "opposite", label: "−q，位于 −d" }, { value: "same", label: "+q，位于 −d" }, { value: "surface", label: "把它当表面真实电荷" }] },
-      { key: "induced", prompt: "把诱导面电荷积分到无穷远，结果是什么？", expected: "minus", choices: [{ value: "minus", label: "−q" }, { value: "plus", label: "+q" }, { value: "zero", label: "0" }] }
-    ];
-  }
-  function renderPredictions(state, refs) {
-    var specs = questionSpecs();
-    refs.questions.forEach(function (questionRef, index) {
-      var spec = specs[index];
-      questionRef.buttons.forEach(function (buttonRef) {
-        var selected = state.predictions[spec.key] === buttonRef.value;
-        buttonRef.node.setAttribute("aria-pressed", selected ? "true" : "false");
-        if (state.revealed) {
-          var correct = buttonRef.value === spec.expected;
-          buttonRef.node.textContent = (correct ? "✓ " : "") + buttonRef.label;
-          buttonRef.node.className = correct ? "icb-pass" : (selected ? "icb-warn" : "");
-        } else { buttonRef.node.textContent = buttonRef.label; buttonRef.node.className = ""; }
-      });
-    });
-  }
-  function drawScene(doc, svg, result, uid) {
-    clear(svg);
-    var width = 720, planeY = 205, centerX = 360, scale = 78 / Math.max(result.config.d, 0.75);
-    function xFor(rho) { return centerX + rho * scale; }
-    var defs = svgElement(doc, "defs", {});
-    var marker = svgElement(doc, "marker", { id: uid + "-arrow", markerWidth: "8", markerHeight: "8", refX: "7", refY: "3.5", orient: "auto", markerUnits: "strokeWidth" });
-    marker.appendChild(svgElement(doc, "path", { d: "M0,0 L0,7 L7,3.5 z", fill: "var(--icb-green)" })); defs.appendChild(marker); svg.appendChild(defs);
-    svg.appendChild(svgElement(doc, "desc", {}, "接地平面上方的真实点电荷、下方数学镜像与边界探针；虚线圆表示镜像不是物理电荷。"));
-    svg.appendChild(svgElement(doc, "rect", { x: "35", y: String(planeY), width: String(width - 70), height: "95", class: "icb-region" }));
-    svg.appendChild(svgElement(doc, "line", { x1: "35", y1: planeY, x2: width - 35, y2: planeY, class: "icb-plane" }));
-    svg.appendChild(svgElement(doc, "line", { x1: centerX, y1: "36", x2: centerX, y2: "304", class: "icb-link" }));
-    var realY = planeY - Math.min(120, result.config.d * scale), imageY = planeY + Math.min(95, result.config.d * scale);
-    svg.appendChild(svgElement(doc, "circle", { cx: centerX, cy: realY, r: "13", class: "icb-source" }));
-    svg.appendChild(svgElement(doc, "text", { x: centerX + 20, y: realY + 4, class: "icb-label" }, "真实 q（物理）"));
-    svg.appendChild(svgElement(doc, "circle", { cx: centerX, cy: imageY, r: "13", class: "icb-image" }));
-    svg.appendChild(svgElement(doc, "text", { x: centerX + 20, y: imageY + 4, class: "icb-label" }, "−q（数学像，不是物理电荷）"));
-    svg.appendChild(svgElement(doc, "text", { x: "48", y: planeY - 9, class: "icb-small" }, "z=0：接地导体，V=0"));
-    svg.appendChild(svgElement(doc, "text", { x: "48", y: "31", class: "icb-small" }, "物理区域 z>0"));
-    result.rows.forEach(function (row) {
-      var px = xFor(row.rho), selected = near(row.rho, result.config.probeRadius, 1e-8);
-      if (px < width - 40) svg.appendChild(svgElement(doc, "circle", { cx: px, cy: planeY, r: selected ? "6" : "4", class: selected ? "icb-probe-selected" : "icb-probe" }));
-    });
-    var probeX = Math.min(width - 50, xFor(result.config.probeRadius));
-    var sign = result.config.q >= 0 ? 1 : -1;
-    svg.appendChild(svgElement(doc, "line", { x1: probeX, y1: planeY - sign * 28, x2: probeX, y2: planeY + sign * 28, class: "icb-arrow", "marker-end": "url(#" + uid + "-arrow)" }));
-    svg.appendChild(svgElement(doc, "text", { x: probeX + 9, y: planeY - sign * 34, class: "icb-label" }, "E_n(ρ=" + formatNumber(result.config.probeRadius, 2) + ")"));
-    svg.appendChild(svgElement(doc, "text", { x: "555", y: planeY - 9, class: "icb-small" }, "ρ 方向"));
-  }
-  function renderTable(doc, hostNode, result) {
-    var body = element(doc, "tbody", {});
-    result.rows.forEach(function (row) {
-      body.appendChild(element(doc, "tr", {}, [
-        element(doc, "th", { text: formatNumber(row.rho, 2) }),
-        element(doc, "td", { text: formatNumber(row.potential, 10) }),
-        element(doc, "td", { text: formatNumber(row.tangentialField, 10) }),
-        element(doc, "td", { text: formatNumber(row.normalField, 8) }),
-        element(doc, "td", { text: formatNumber(row.expectedNormalField, 8) }),
-        element(doc, "td", { text: formatNumber(row.normalError, 10) }),
-        element(doc, "td", { text: formatNumber(row.sigma, 8) })
-      ]));
-    });
-    clear(hostNode); hostNode.appendChild(element(doc, "table", {}, [
-      element(doc, "caption", { text: "z=0 边界电势、场分量、闭式法向场和诱导密度" }),
-      element(doc, "thead", {}, [element(doc, "tr", {}, [element(doc, "th", { text: "ρ" }), element(doc, "th", { text: "V" }), element(doc, "th", { text: "|E_t|" }), element(doc, "th", { text: "E_z 数值" }), element(doc, "th", { text: "E_z 闭式" }), element(doc, "th", { text: "误差" }), element(doc, "th", { text: "σ(ρ)" })])]), body
-    ]));
-  }
-  function renderChecks(doc, hostNode, result) {
-    var checks = [
-      [result.maxPotentialError < 1e-10, "边界电势逐点为 0（浮点误差内）。"],
-      [result.maxTangentialField < 1e-10, "切向电场逐点为 0；导体表面保持等势。"],
-      [result.maxNormalError < 1e-10, "法向场与 −2kqd/(ρ²+d²)^(3/2) 逐点相等。"],
-      [near(result.force.z, -K * result.config.q * result.config.q / (4 * result.config.d * result.config.d)), "镜像场给出的力为 −kq²/(4d²)，方向指向平面。"],
-      [near(result.inducedTotal, -result.config.q), "诱导面电荷全平面积分为 −q。"],
-      [result.imageIsPhysical === false, "镜像只是假想源；物理响应由导体表面的 σ 记录。"]
-    ];
-    clear(hostNode); hostNode.appendChild(element(doc, "ul", { className: "icb-checks" }, checks.map(function (check) { return element(doc, "li", {}, [element(doc, "span", { className: check[0] ? "icb-check-pass" : "icb-check-fail", text: check[0] ? "✓" : "×" }), element(doc, "span", { text: check[1] })]); })));
-  }
-  function mount(root, api) {
-    if (!root || !root.ownerDocument) return;
-    var doc = root.ownerDocument; installStyles(doc); var uid = "icb-" + (++INSTANCE);
-    var state = { config: cloneConfig(PRESETS[0]), revealed: false, predictions: {}, feedback: "" }, refs = { questions: [] };
-    var shell = element(doc, "div", { className: "icb-lab" });
-    shell.appendChild(element(doc, "h3", { text: "镜像电荷边界账：先预测，再核对场与力" }));
-    shell.appendChild(element(doc, "p", { className: "icb-intro", text: "接地平面 z=0 上方放置 q；下方 −q 只作为数学构造。揭晓后逐点核对 V、E、σ、力与唯一性条件。" }));
-    var prediction = element(doc, "div", {}); prediction.appendChild(element(doc, "p", { className: "icb-intro", text: "先预测边界电势、镜像符号和总诱导电荷。" }));
-    questionSpecs().forEach(function (spec) {
-      var fieldset = element(doc, "fieldset", {}); fieldset.appendChild(element(doc, "legend", { text: spec.prompt })); var grid = element(doc, "div", { className: "icb-choice-grid" }); var questionRef = { key: spec.key, buttons: [] };
-      spec.choices.forEach(function (choice) { var button = element(doc, "button", { type: "button", text: choice.label, "aria-pressed": "false" }); button.addEventListener("click", function () { state.predictions[spec.key] = choice.value; state.feedback = ""; render(); }); questionRef.buttons.push({ value: choice.value, label: choice.label, node: button }); grid.appendChild(button); });
-      fieldset.appendChild(grid); prediction.appendChild(fieldset); refs.questions.push(questionRef);
-    });
-    var actions = element(doc, "div", { className: "icb-actions" }); var reveal = element(doc, "button", { type: "button", className: "icb-primary", text: "核对预测并揭晓" }); var reset = element(doc, "button", { type: "button", text: "重置预测" }); var feedback = element(doc, "p", { className: "icb-feedback", "aria-live": "polite" }); actions.appendChild(reveal); actions.appendChild(reset);
-    var resultShell = element(doc, "div", { hidden: true }); var presetSelect = element(doc, "select", { "aria-label": "镜像电荷预设" }, PRESETS.map(function (preset) { return element(doc, "option", { value: preset.id, text: preset.label }); }));
-    var qInput = element(doc, "input", { type: "range", min: "-2", max: "2", step: "0.25", value: "1", "aria-label": "真实电荷 q" }); var qOutput = element(doc, "output", { text: "1" });
-    var dInput = element(doc, "input", { type: "range", min: "0.5", max: "2.5", step: "0.05", value: "1", "aria-label": "电荷高度 d" }); var dOutput = element(doc, "output", { text: "1" });
-    var radiusInput = element(doc, "input", { type: "range", min: "0.25", max: "4", step: "0.25", value: "1", "aria-label": "诱导电荷积分半径 R" }); var radiusOutput = element(doc, "output", { text: "1" });
-    var controls = element(doc, "div", { className: "icb-controls" }, [element(doc, "div", { className: "icb-control" }, [element(doc, "label", { text: "预设" }), presetSelect]), element(doc, "div", { className: "icb-control" }, [element(doc, "label", {}, ["真实电荷 q = ", qOutput]), qInput]), element(doc, "div", { className: "icb-control" }, [element(doc, "label", {}, ["高度 d = ", dOutput]), dInput]), element(doc, "div", { className: "icb-control" }, [element(doc, "label", {}, ["圆盘积分半径 R = ", radiusOutput]), radiusInput]), element(doc, "p", { className: "icb-note", text: "改变参数会重新锁住预测。物理区域始终是 z>0；镜像圆点只为构造势。" })]);
-    var svg = svgElement(doc, "svg", { className: "icb-svg", viewBox: "0 0 720 330", role: "img", "aria-label": "接地平面与镜像电荷剖面图" }); var frame = element(doc, "div", { className: "icb-frame" }, [svg]); var metricsHost = element(doc, "div", { className: "icb-metrics" }); var tableHost = element(doc, "div", { className: "icb-table-wrap" }); var checksHost = element(doc, "div"); var certificateHost = element(doc, "p", { className: "icb-certificate" });
-    resultShell.appendChild(element(doc, "div", { className: "icb-layout" }, [controls, element(doc, "div", { className: "icb-stage" }, [frame, metricsHost, tableHost, checksHost, certificateHost])])); shell.appendChild(prediction); shell.appendChild(actions); shell.appendChild(feedback); shell.appendChild(resultShell); clear(root); root.appendChild(shell);
-    function lockConfig(next) { state.config = cloneConfig(next); state.revealed = false; state.predictions = {}; state.feedback = ""; render(); }
-    presetSelect.addEventListener("change", function () { lockConfig(presetById(presetSelect.value)); });
-    qInput.addEventListener("input", function () { var next = cloneConfig(state.config); next.q = Number(qInput.value); lockConfig(next); });
-    dInput.addEventListener("input", function () { var next = cloneConfig(state.config); next.d = Number(dInput.value); lockConfig(next); });
-    radiusInput.addEventListener("input", function () { var next = cloneConfig(state.config); next.probeRadius = Number(radiusInput.value); lockConfig(next); });
-    reveal.addEventListener("click", function () { var specs = questionSpecs(); if (!specs.every(function (spec) { return state.predictions[spec.key] !== undefined; })) { state.feedback = "请先完成三项预测。"; render(); return; } var correct = specs.filter(function (spec) { return state.predictions[spec.key] === spec.expected; }).length; state.revealed = true; state.feedback = "已揭晓：" + correct + "/" + specs.length + " 命中；现在读边界与唯一性证书。"; render(); announce(api, root, state.feedback); });
-    reset.addEventListener("click", function () { state = { config: cloneConfig(PRESETS[0]), revealed: false, predictions: {}, feedback: "" }; render(); announce(api, root, "镜像电荷预测与边界账已重置。"); });
-    function render() {
-      var result = solve({ config: state.config }); presetSelect.value = state.config.id; qInput.value = String(state.config.q); qOutput.textContent = formatNumber(state.config.q, 2); dInput.value = String(state.config.d); dOutput.textContent = formatNumber(state.config.d, 2); radiusInput.value = String(state.config.probeRadius); radiusOutput.textContent = formatNumber(state.config.probeRadius, 2); feedback.textContent = state.feedback || ""; feedback.className = "icb-feedback" + (state.feedback.indexOf("请先") === 0 ? " icb-warn" : ""); renderPredictions(state, refs); resultShell.hidden = !state.revealed; if (!state.revealed) return;
-      drawScene(doc, svg, result, uid);
-      var metrics = [metric(doc, "max |V(ρ,0)|"), metric(doc, "max |E_t|"), metric(doc, "max 法向误差"), metric(doc, "力 F_z"), metric(doc, "Q_ind(<R)"), metric(doc, "Q_ind(全平面)")]; clear(metricsHost); metrics.forEach(function (item) { metricsHost.appendChild(item.node); }); metrics[0].value.textContent = formatNumber(result.maxPotentialError, 10); metrics[1].value.textContent = formatNumber(result.maxTangentialField, 10); metrics[2].value.textContent = formatNumber(result.maxNormalError, 10); metrics[3].value.textContent = formatNumber(result.force.z, 8); metrics[4].value.textContent = formatNumber(result.inducedWithinProbe, 8); metrics[5].value.textContent = formatNumber(result.inducedTotal, 8);
-      renderTable(doc, tableHost, result); renderChecks(doc, checksHost, result); certificateHost.textContent = "唯一性条件：" + result.uniqueness + " 在这些条件下，验证 V=0 的镜像构造就是物理半空间内的唯一解。镜像 q'=" + formatNumber(result.image.q, 4) + " 位于 z=" + formatNumber(result.image.z, 4) + "，但 imageIsPhysical=false；力只是用镜像场计算真实 q 的受力。有限采样和有限 R 仍不是一般边值证明。";
-    }
-    render();
-  }
+const STYLE='.boundary164{color:var(--fg);min-width:0;overflow-wrap:anywhere}.boundary164 *{box-sizing:border-box}.boundary164 [hidden]{display:none!important}.boundary164 button,.boundary164 input,.boundary164 select{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--border);border-radius:5px;min-height:44px;padding:8px;max-width:100%}.boundary164 button{margin:4px 4px 4px 0;cursor:pointer;white-space:normal}.boundary164 button:disabled{opacity:.5;cursor:default}.boundary164 button[aria-pressed=true]{outline:2px solid var(--accent);background:var(--block-bg)}.boundary164 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}.boundary-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}.boundary-controls label{display:grid;gap:6px;min-width:0}.boundary164 fieldset{border:1px solid var(--border);margin:12px 0;min-width:0}.boundary164 legend{max-width:100%;font-weight:600}.boundary164 p{line-height:1.7}.boundary-error{color:var(--cl-red,#b64335)}.boundary-scroll{overflow:auto;max-width:100%;min-width:0;border:1px solid var(--border);margin:10px 0}.boundary-scroll svg{display:block;min-width:900px;width:900px;height:460px;max-width:none}.boundary-scroll table{border-collapse:collapse;min-width:900px;width:max-content;max-width:none;font-size:12px}.boundary-scroll th,.boundary-scroll td{padding:7px;vertical-align:top;text-align:left;border:1px solid var(--border);min-width:40px;max-width:550px;white-space:normal;overflow-wrap:anywhere}.boundary164 details{border:1px solid var(--border);padding:10px;margin:10px 0;min-width:0}.boundary164 summary{cursor:pointer;min-height:44px;line-height:1.7}.boundary164 .boundary-summary{padding:12px;border-left:3px solid var(--accent);background:var(--block-bg)}@media(max-width:680px){.boundary-controls{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){.boundary164 *{scroll-behavior:auto!important}}';
+function tableHTML(t){return '<table data-table="'+esc(t.key)+'"><caption>'+esc(t.title)+'</caption><thead><tr>'+t.headers.map(h=>'<th scope="col">'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+t.rows.map(r=>'<tr>'+r.map(v=>'<td>'+esc(fmt(v))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';}
+const mounted=new WeakMap();
+function mount(container){if(mounted.has(container))mounted.get(container)();const doc=container.ownerDocument,win=doc.defaultView;if(!doc.getElementById('boundary164-style')){const st=doc.createElement('style');st.id='boundary164-style';st.textContent=STYLE;doc.head.appendChild(st);}const field=(k,label)=>'<label>'+label+'<input type="text" data-key="'+k+'"></label>',select=(k,label,options)=>'<label>'+label+'<select data-key="'+k+'">'+options.map(([value,text])=>'<option value="'+value+'">'+esc(text)+'</option>').join('')+'</select></label>';
+ container.innerHTML='<div class="boundary164"><h3>边值实验：平面、接地球与孤立球</h3><p>先预测，再逐项核对边界、表面电荷、力能量与多极误差。单位取k=1、ε₀=1/(4π)。</p><div>'+PRESETS.map(p=>'<button type="button" data-preset="'+p.id+'">'+esc(p.label)+'</button>').join('')+'</div><div class="boundary-controls">'+select('geometry','导体条件',[['plane','接地平面'],['grounded','接地球'],['isolated','孤立球：固定Q']])+field('q','真实电荷q（−2至2）')+field('a','球半径a（0.25至2；平面忽略）')+field('gap','到表面的间隙（0.05至4）')+field('Q','球总电荷Q（−2至2；仅孤立球）')+field('farRatio','远场半径r/d（1.05至10）')+field('order','截断阶数L（0至12整数）')+field('angle','探针极角（平面0至90°；球0至180°）')+'</div><p>平面d=间隙；球面d=a+间隙。远场半径始终大于d。切换模型后，超出对应范围的参数会提示修正。</p>' +QUESTIONS.map((q,i)=>'<fieldset data-question="'+i+'"><legend>'+(i+1)+'. '+esc(q[0])+'</legend>'+q[1].map((v,j)=>'<button type="button" data-choice="'+j+'" aria-pressed="false">'+esc(v)+'</button>').join('')+'</fieldset>').join('')+'<button type="button" data-action="reveal">核对预测并展示结果</button><button type="button" data-action="reset">重置实验</button><p class="boundary-error" role="alert"></p><p role="status"></p><div class="boundary-results" hidden></div></div>';
+ const shell=container.querySelector('.boundary164'),inputs=[...shell.querySelectorAll('[data-key]')],result=shell.querySelector('.boundary-results'),reveal=shell.querySelector('[data-action=reveal]'),error=shell.querySelector('[role=alert]'),status=shell.querySelector('[role=status]');let choices=QUESTIONS.map(()=>null),d=null,url=null;
+ const values=()=>Object.fromEntries(inputs.map(e=>[e.dataset.key,e.value]));function set(v){inputs.forEach(e=>e.value=String({...DEFAULTS,...v}[e.dataset.key]));}function cleanup(){if(url){win.URL.revokeObjectURL(url);url=null;}result.hidden=true;result.replaceChildren();}mounted.set(container,cleanup);
+ function update(){cleanup();try{d=snapshot(values());error.textContent='';}catch(e){d=null;error.textContent=e.message;}reveal.disabled=!d||choices.some(x=>x===null);status.textContent=!d?'请修正参数后再核对。':choices.some(x=>x===null)?'先完成四项预测。':'预测已记录，请揭晓核对。';}
+ function render(){if(!d)return;cleanup();result.hidden=false;const tables=ledgers(d);result.innerHTML='<div class="boundary-summary">'+esc('边界势='+fmt(d.model.surfacePotential)+'；完整导体电荷='+fmt(d.model.surfaceCharge)+'；当前有限区域积分='+fmt(d.quadratureStatus.total)+'。真实源受力='+fmt(d.force.force)+'；相互作用能='+fmt(d.force.energy)+'；积分容差全部通过='+fmt(d.quadratureStatus.converged)+'。')+'</div><ol>'+QUESTIONS.map((q,i)=>'<li>'+esc((choices[i]===q[2]?'预测正确。':'需要修正。')+q[3])+'</li>').join('')+'</ol><p><a data-download download="image-charge-boundary-run.json">下载本次数值与完整账本(JSON)</a></p>'+plots(d).map((p,i)=>'<div class="boundary-scroll" role="region" tabindex="0" aria-label="图'+(i+1)+'：'+esc(p.title)+'">'+svg(p)+'</div>').join('')+'<p>每张表展开后显示全部行，宽表与图可以用方向键滚动。表格为阅读做显示舍入；JSON保留全部计算数值。</p><p>'+esc(d.scope)+'</p>'+tables.map(t=>'<details data-ledger="'+t.key+'"><summary>'+esc(t.title)+'（'+t.rows.length+'行）</summary><div class="boundary-scroll" role="region" tabindex="0" aria-label="'+esc(t.title)+'"></div></details>').join('');url=win.URL.createObjectURL(new win.Blob([JSON.stringify(d,null,2)+'\n'],{type:'application/json'}));result.querySelector('[data-download]').href=url;for(const t of tables){const detail=result.querySelector('[data-ledger="'+t.key+'"]');detail.addEventListener('toggle',()=>{if(detail.open&&!detail.querySelector('table'))detail.querySelector('[role=region]').innerHTML=tableHTML(t);});}status.textContent=choices.filter((v,i)=>v===QUESTIONS[i][2]).length+' / 4；请结合物理域、边界条件与误差来源解释结果。';}
+ inputs.forEach(e=>e.addEventListener(e.tagName==='SELECT'?'change':'input',update));shell.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{set(PRESETS.find(p=>p.id===b.dataset.preset).values);update();}));shell.querySelectorAll('[data-question]').forEach((f,i)=>f.querySelectorAll('[data-choice]').forEach(b=>b.addEventListener('click',()=>{choices[i]=+b.dataset.choice;f.querySelectorAll('button').forEach(q=>q.setAttribute('aria-pressed',String(q===b)));if(!result.hidden)render();else update();})));reveal.addEventListener('click',render);shell.querySelector('[data-action=reset]').addEventListener('click',()=>{choices=QUESTIONS.map(()=>null);shell.querySelectorAll('[data-choice]').forEach(b=>b.setAttribute('aria-pressed','false'));set(DEFAULTS);update();shell.querySelector('[data-choice]').focus();});set(DEFAULTS);update();
+}
+function selfTest(){let checks=0;const ck=(v,m)=>{checks++;if(!v)throw Error(m);};for(const p of PRESETS){const s=snapshot(p.values);ck(s.boundary.length===65,p.id+' boundary');ck(s.quadratureStatus.converged,p.id+' quadrature');ck(plots(s).every(q=>q.series.every(r=>r.points.every(v=>v.every(Number.isFinite)&&v[0]>=q.xMin&&v[0]<=q.xMax&&v[1]>=q.yMin&&v[1]<=q.yMax))),p.id+' bounds');const g=plots(s)[0];ck(Math.abs((g.xMax-g.xMin)/762-(g.yMax-g.yMin)/259)<1e-12,p.id+' equal scale');}ck(fmt(10)==='10'&&fmt(100)==='100','integer display');return{status:'PASS',checks,presets:PRESETS.length};}
 
-  return {
-    K: K,
-    EPSILON0: EPSILON0,
-    PRESETS: PRESETS,
-    potential: potential,
-    field: field,
-    expectedNormalField: expectedNormalField,
-    surfaceChargeDensity: surfaceChargeDensity,
-    inducedChargeWithin: inducedChargeWithin,
-    forceOnCharge: forceOnCharge,
-    boundaryAudit: boundaryAudit,
-    solve: solve,
-    selfTest: selfTest,
-    mount: mount
-  };
-});
+const api={DEFAULTS,PRESETS,QUESTIONS,config,snapshot,plots,ledgers,svg,fmt,tableHTML,mount,selfTest,fieldAt};if(typeof module!=="undefined"&&module.exports)module.exports=api;if(host&&host.CourseLearning&&typeof host.CourseLearning.register==="function")host.CourseLearning.register("image-charge-boundary",mount);})(typeof window!=="undefined"?window:globalThis);
