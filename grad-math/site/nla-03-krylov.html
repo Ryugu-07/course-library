@@ -52,282 +52,461 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 04:59</div>
+    <div class="build-time">构建于 2026-09-11 11:50</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#nla-krylov-learning-title">学习层：CG 的收敛，到底是 κ 还是谱的形状？</a><ul>
-<li><a href="#1">1. 具体谜题：同一个条件数，为什么实际步数可以差很多？</a></li>
-<li><a href="#2">2. 先预测，再展开账本</a></li>
-<li><a href="#3-a-">3. 最小模型：误差多项式、A-范数与真残差</a></li>
-<li><a href="#4-chebyshev">4. Chebyshev 界：最坏情形，不是预测器</a></li>
-<li><a href="#5">5. 透明预条件：改变有效谱，而不是隐藏捷径</a></li>
-<li><a href="#6-n">6. 边界、有限精度与“n 步精确”的准确说法</a></li>
+<li><a href="#_1">学习层：曲线下降之前，先读纵轴的名字</a><ul>
+<li><a href="#nla-krylov-learning-title">同一组方程，可以有几种不同的“进步”</a></li>
 </ul>
 </li>
-<li><a href="#1-krylov">1. Krylov 子空间</a></li>
-<li><a href="#2-cg">2. CG 的收敛性（主菜，证明结构完整）</a></li>
-<li><a href="#3">3. 预条件：实战的灵魂</a></li>
-<li><a href="#4">4. 随机化数值线代一瞥（现代附录）</a></li>
-<li><a href="#5_1">5. 练习与要点</a></li>
+<li><a href="#1">1. 乘出来的子空间：先说明允许使用什么信息</a></li>
+<li><a href="#2-cg">2. CG最小化的是能量误差</a></li>
+<li><a href="#3">3. 短递推怎样保持搜索方向</a></li>
+<li><a href="#4">4. 把误差变成多项式问题</a></li>
+<li><a href="#5-chebyshev">5. Chebyshev界：只知道谱区间时的保证</a></li>
+<li><a href="#6-cg">6. 预条件CG：改变几何也要保留正定性</a></li>
+<li><a href="#7-arnoldi">7. Arnoldi：把大残差问题投影成小问题</a></li>
+<li><a href="#8-gmres">8. 重启GMRES：节约历史信息也会失去它的好处</a></li>
+<li><a href="#9">9. 左右预条件：同一个解，不同的最小化范数</a></li>
+<li><a href="#10">10. 浮点停止、递推偏差与实际工作量</a></li>
+<li><a href="#11">11. 四道迁移题与完整答案</a><ul>
+<li><a href="#cg">题一：CG的残差上升是否违反最优性？</a></li>
+<li><a href="#_2">题二：三个谱点与三个谱簇有什么不同？</a></li>
+<li><a href="#gmres1">题三：为何可逆旋转也会使GMRES(1)永久停滞？</a></li>
+<li><a href="#_3">题四：预条件后残差很小，应该用哪一个量验收？</a></li>
+</ul>
+</li>
+<li><a href="#12">12. 将小模型的判断带到更大的计算</a></li>
 </ul>
 </div>
 </details>
-<h1 id="iii-krylov">数值线代 III · Krylov 子空间方法<a class="headerlink" href="#iii-krylov" title="Permanent link"></a></h1>
+<h1 id="iii-krylov">数值线代 III · Krylov方法、重启与真实残差<a class="headerlink" href="#iii-krylov" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Trefethen &amp; Bau Lectures 32–40 ｜ <strong>前置</strong>：nla-01/02、本科数值 II、优化 II（CG 预告）
-当 <span class="arithmatex">\(n\)</span> 到百万级、矩阵稀疏（只有 <span class="arithmatex">\(O(n)\)</span> 个非零），分解法（<span class="arithmatex">\(O(n^3)\)</span>）出局——唯一买得起的操作是<strong>矩阵乘向量</strong>。Krylov 方法的纲领：只用乘向量，在"乘出来的子空间"里找最优解。CG 的收敛性证明是本页主菜，预条件是本页的实战灵魂。</p>
+<p><strong>本页问题</strong>：同样的条件数，为什么CG可能走出完全不同的轨迹？一个叫“最小残差”的算法，究竟把哪一种残差变小了？</p>
+<p>前置：<a href="nla-01-svd-stability.html">SVD、QR与后向误差</a>、<a href="nla-02-eigen.html">特征值迭代与残差证据</a>、正定矩阵与正交投影。先在小矩阵上看清几何，再讨论大规模计算的成本。</p>
 </blockquote>
 <div data-learning-page></div>
 
 <section aria-labelledby="nla-krylov-learning-title" class="learning-layer">
-<h2 id="nla-krylov-learning-title">学习层：CG 的收敛，到底是 κ 还是谱的形状？<a class="headerlink" href="#nla-krylov-learning-title" title="Permanent link"></a></h2>
-<h3 id="1">1. 具体谜题：同一个条件数，为什么实际步数可以差很多？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>先把“系统很大”的干扰拿掉，只看一个完全可复核的对角 SPD 教学模型：</p>
-<div class="arithmatex">\[
-A=\operatorname{diag}(\lambda_1,\ldots,\lambda_n),\qquad b=Ax_*,\qquad x_0=0.
-\]</div>
-<p>比较下面两组 <span class="arithmatex">\(n=12\)</span> 的谱：</p>
-<div class="arithmatex">\[
-\begin{aligned}
-\Lambda_{\rm uniform}&amp;=\{1,\tfrac{35}{11},\tfrac{59}{11},\ldots,\tfrac{275}{11}\},\\
-\Lambda_{\rm cluster}&amp;=\{1,1,1,1,8,8,8,8,25,25,25,25\}.
-\end{aligned}
-\]</div>
-<p>两者都有</p>
-<div class="arithmatex">\[
-\kappa(A)=\frac{\lambda_{\max}}{\lambda_{\min}}=\frac{25}{1}=25,
-\]</div>
-<p>但第一组把谱铺满 <span class="arithmatex">\([1,25]\)</span>，第二组只有三个不同特征值。取 <span class="arithmatex">\(x_*=(1,\ldots,1)^\top\)</span>，先不要运行：你预测哪一个更早让 <span class="arithmatex">\(\|e_k\|_A\)</span> 接近零？再问一个更尖锐的问题：若矩阵和 κ 都不变，只把 <span class="arithmatex">\(e_0=x_*-x_0\)</span> 改成只含最小、最大两个特征向量方向，实际步数会不会也改变？</p>
-<h3 id="2">2. 先预测，再展开账本<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>下面的实验只构造 <span class="arithmatex">\(n\leq12\)</span> 的<strong>对角</strong>系统，不生成稠密大矩阵、不抽样、不把百万维数据伪装成 benchmark。每个预设都固定 <span class="arithmatex">\(A\)</span>、<span class="arithmatex">\(b\)</span> 和 <span class="arithmatex">\(x_0\)</span>，只让你切换已经写进账本的教学问题：</p>
-<ol>
-<li><strong>同 κ：均匀谱 vs 三簇谱</strong>——预期三簇谱只需要消灭三个有效特征值方向，明显早于均匀谱。</li>
-<li><strong>同谱：初始方向权重</strong>——预期只含两个端点方向的误差在两步内结束；这不是 κ 变好了，而是其余特征向量方向的初始权重为零。</li>
-<li><strong>透明预条件：分组对角 <span class="arithmatex">\(M\)</span></strong>——预期 PCG 看到的是 <span class="arithmatex">\(\mu_i=\lambda_i/m_i\)</span> 的三档有效谱，条件数和实际步数都下降；<span class="arithmatex">\(M\)</span> 的每个对角条目在实验中公开列出。</li>
-<li><strong>边界：<span class="arithmatex">\(\kappa=1\)</span> 与零残差</strong>——<span class="arithmatex">\(A=7I\)</span> 的非零误差一步结束；若 <span class="arithmatex">\(r_0=0\)</span>，根本不应计算 <span class="arithmatex">\(\alpha_0\)</span>，零步已经是答案。</li>
-</ol>
-<p>拖动“逐步展开到第 <span class="arithmatex">\(k\)</span> 步”时，蓝线是归一化 <span class="arithmatex">\(A\)</span>-范数误差
-<span class="arithmatex">\(\|e_k\|_A/\|e_0\|_A\)</span>，红色虚线是归一化的<strong>真</strong>残差
-<span class="arithmatex">\(\|b-Ax_k\|_2/\|r_0\|_2\)</span>，金色点线是 Chebyshev 条件数上界。下方再看有效谱、初始能量权重、残差多项式滤波值和逐行 recurrence 账本。先在心里押一个答案，再点“核对预测”；反馈只针对当前这个小模型，不把定理界说成步数预言。</p>
-<div class="learning-lab" data-learning-lab="cg-spectrum">
-<p><strong>JavaScript 失效时的静态 fallback（可手算 2×2）：</strong>取</p>
-<div class="arithmatex">\[
-A=\begin{pmatrix}1&amp;0\\0&amp;4\end{pmatrix},\qquad
-x_*=(1,1)^\top,\qquad x_0=(0,0)^\top,\qquad b=(1,4)^\top.
-\]</div>
-<p>于是 <span class="arithmatex">\(r_0=b-Ax_0=(1,4)^\top\)</span>、<span class="arithmatex">\(p_0=r_0\)</span>，并且</p>
-<div class="arithmatex">\[
-\alpha_0=\frac{r_0^\top r_0}{p_0^\top Ap_0}=\frac{17}{65},\qquad
-x_1=\left(\frac{17}{65},\frac{68}{65}\right)^\top.
-\]</div>
-<p>用 recurrence 得</p>
-<div class="arithmatex">\[
-r_1=r_0-\alpha_0Ap_0=\left(\frac{48}{65},-\frac{12}{65}\right)^\top,
-\]</div>
-<p>而直接重算也给</p>
-<div class="arithmatex">\[
-b-Ax_1=\left(1-\frac{17}{65},4-\frac{272}{65}\right)^\top
-=\left(\frac{48}{65},-\frac{12}{65}\right)^\top.
-\]</div>
-<p>这就是本实验要求的“recurrence 与显式真残差对账”。接着</p>
-<div class="arithmatex">\[
-\beta_0=\frac{r_1^\top r_1}{r_0^\top r_0}=\frac{144}{4225},
-\qquad
-p_1=r_1+\beta_0p_0=\left(\frac{3264}{4225},-\frac{204}{4225}\right)^\top,
-\]</div>
-<p>再算</p>
-<div class="arithmatex">\[
-\alpha_1=\frac{r_1^\top r_1}{p_1^\top Ap_1}=\frac{65}{68},
-\qquad r_2=0,\qquad x_2=x_*.
-\]</div>
-<p>所以 <span class="arithmatex">\(\kappa=4\)</span> 的这个 2×2 例子在两步内精确结束。逐步读数为</p>
+<h2 id="_1">学习层：曲线下降之前，先读纵轴的名字<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h3 id="nla-krylov-learning-title">同一组方程，可以有几种不同的“进步”<a class="headerlink" href="#nla-krylov-learning-title" title="Permanent link"></a></h3>
+<p>CG每一步希望让一种能量误差变小；GMRES希望在当前搜索空间里把残差变小。但加入预条件器后，程序最小化的可能是经过重新加权的残差。把这些曲线都叫作“误差”，会掩盖它们回答的是不同问题。</p>
+<p>下面使用最多12维的透明模型。矩阵、预条件器、起点和每一步向量全部可以查看；它们帮助理解算法，没有承担百万维性能测试的角色。</p>
 <table>
 <thead>
 <tr>
-<th style="text-align: right;"><span class="arithmatex">\(k\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(\|e_k\|_A/\|e_0\|_A\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(\|r_k\|_2/\|r_0\|_2\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(2((\sqrt4-1)/(\sqrt4+1))^k\)</span>（截到 1）</th>
+<th>对照</th>
+<th>实际比较</th>
+<th>一个不能略过的边界</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td>CG与PCG</td>
+<td>谱形状、初始方向、预条件和真实残差</td>
+<td>能量误差下降，残差二范数仍可上升</td>
 </tr>
 <tr>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;"><span class="arithmatex">\(6/\sqrt{325}\approx0.3328\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(12/65\approx0.1846\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(2/3\)</span></td>
+<td>完整与重启GMRES</td>
+<td>保留全部基，或每隔几步重新开始</td>
+<td>可逆旋转矩阵上，GMRES(1)可以一直停滞</td>
 </tr>
 <tr>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(2/9\)</span></td>
+<td>左、右预条件GMRES</td>
+<td>最小化加权残差，或原始残差</td>
+<td>加权残差下降不能替代原方程的停止检查</td>
 </tr>
 </tbody>
 </table>
-<p>这里 CG 的 <span class="arithmatex">\(A\)</span>-范数误差按嵌套 Krylov 空间最小化；残差二范数只是另一个读数，不能从这个例子的下降就推出“残差二范数总是单调”。</p>
+<div class="learning-lab" data-learning-lab="cg-spectrum">
+<p><strong>关闭JavaScript也能核对。</strong> 以下数值来自固定运行记录；现场交互重新执行实际运算。接近机器精度的末位可能依环境变化，停止原因与计算量的定义也在记录中保留。</p>
+<p>固定运行：2026-09-11，Node 24.14.0 / darwin arm64。<a href="assets/learning/projects/krylov-methods/run-snapshot.json">下载完整参数、向量与运算记录</a>。CG采用默认均匀谱κ=25和透明分组M；残差反例为diag(1,100)；旋转采用重启长度1；加权反例采用六维Grcar族γ=0、M对角从1到100、重启长度1。均为零初值、共同尺度1、24步预算与10⁻¹²原始相对残差阈值。</p>
+<table>
+<thead>
+<tr>
+<th>固定参数下的量</th>
+<th style="text-align: right;">参考值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CG末步数</td>
+<td style="text-align: right;">12</td>
+</tr>
+<tr>
+<td>CG末步归一A误差</td>
+<td style="text-align: right;">2.60549635317e-16</td>
+</tr>
+<tr>
+<td>CG末步相对真残差</td>
+<td style="text-align: right;">2.51977281813e-16</td>
+</tr>
+<tr>
+<td>PCG末步数</td>
+<td style="text-align: right;">3</td>
+</tr>
+<tr>
+<td>PCG末步归一A误差</td>
+<td style="text-align: right;">9.26091187261e-17</td>
+</tr>
+<tr>
+<td>PCG末步相对真残差</td>
+<td style="text-align: right;">1.02392660361e-16</td>
+</tr>
+<tr>
+<td>二维CG首步α</td>
+<td style="text-align: right;">0.505</td>
+</tr>
+<tr>
+<td>二维CG首步相对真残差</td>
+<td style="text-align: right;">4.95</td>
+</tr>
+<tr>
+<td>二维CG首步归一A误差</td>
+<td style="text-align: right;">0.700000714214</td>
+</tr>
+<tr>
+<td>二维CG首步rho</td>
+<td style="text-align: right;">24.747525</td>
+</tr>
+<tr>
+<td>完整GMRES实际步数</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td>完整GMRES末步相对真残差</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>GMRES(1)实际步数</td>
+<td style="text-align: right;">24</td>
+</tr>
+<tr>
+<td>GMRES(1)末步相对真残差</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>左预条件第1步原始相对残差</td>
+<td style="text-align: right;">1.08106682657</td>
+</tr>
+<tr>
+<td>左预条件第1步加权相对残差</td>
+<td style="text-align: right;">0.599062531832</td>
+</tr>
+<tr>
+<td>左预条件第3步原始相对残差</td>
+<td style="text-align: right;">1.22074840762</td>
+</tr>
+<tr>
+<td>左预条件第3步加权相对残差</td>
+<td style="text-align: right;">0.301577125242</td>
+</tr>
+</tbody>
+</table>
+<p>默认CG、PCG均按真实残差达到阈值停止；旋转的完整GMRES浮点真残差为0，GMRES(1)预算结束且相对残差仍为1。左预条件反例的目标下降不替代原始残差验收。这里的浮点零不是精确算术证明。</p>
 </div>
-<h3 id="3-a-">3. 最小模型：误差多项式、A-范数与真残差<a class="headerlink" href="#3-a-" title="Permanent link"></a></h3>
-<p>令 <span class="arithmatex">\(e_k=x_*-x_k\)</span>。对称正定 <span class="arithmatex">\(A\)</span> 给出内积</p>
-<div class="arithmatex">\[
-\langle u,v\rangle_A=u^\top Av,\qquad \|u\|_A=\sqrt{u^\top Au}.
-\]</div>
-<p>CG 的精确算术目标不是“每一步都让任意范数下降”，而是</p>
-<div class="arithmatex">\[
-x_k=\arg\min_{x\in x_0+\mathcal K_k(A,r_0)}\|x_*-x\|_A,
-\qquad
-\|e_k\|_A\leq\|e_{k-1}\|_A.
-\]</div>
-<p>在对角谱坐标里，<span class="arithmatex">\(e_k=p_k(A)e_0\)</span>，其中 <span class="arithmatex">\(p_k(0)=1\)</span>。因此第 <span class="arithmatex">\(i\)</span> 个特征方向的误差被 <span class="arithmatex">\(p_k(\lambda_i)\)</span> 乘上；而</p>
-<div class="arithmatex">\[
-r_k=b-Ax_k=Ae_k,
-\]</div>
-<p>所以实验可以同时显示“方向权重 × 多项式滤波”。某个方向若 <span class="arithmatex">\(e_{0,i}=0\)</span>，它虽然属于 <span class="arithmatex">\(\operatorname{spec}(A)\)</span>，却不在这一次具体问题的有效误差里；实际收敛依赖这些权重，而不只依赖一个 κ。</p>
-<p>标准 CG 的三项 recurrence 是</p>
-<div class="arithmatex">\[
-\begin{aligned}
-r_k&amp;=b-Ax_k, &amp; p_0&amp;=r_0,\\
-\alpha_k&amp;=\frac{r_k^\top r_k}{p_k^\top Ap_k}, &amp; x_{k+1}&amp;=x_k+\alpha_kp_k,\\
-r_{k+1}&amp;=r_k-\alpha_kAp_k, &amp;
-\beta_k&amp;=\frac{r_{k+1}^\top r_{k+1}}{r_k^\top r_k},\\
-p_{k+1}&amp;=r_{k+1}+\beta_kp_k.
-\end{aligned}
-\]</div>
-<p>实验对每一行同时保留 recurrence 得到的 <span class="arithmatex">\(r_k\)</span> 和显式 <span class="arithmatex">\(b-Ax_k\)</span>，用
-<span class="arithmatex">\(\|r_k^{\rm rec}-(b-Ax_k)\|_2\)</span> 做断言。这样“残差很小”不会因为只维护一条递推而失去可审计性。</p>
-<h3 id="4-chebyshev">4. Chebyshev 界：最坏情形，不是预测器<a class="headerlink" href="#4-chebyshev" title="Permanent link"></a></h3>
-<p>记 <span class="arithmatex">\(\kappa=\lambda_{\max}/\lambda_{\min}\)</span>。归一化的经典界为</p>
-<div class="arithmatex">\[
-\frac{\|e_k\|_A}{\|e_0\|_A}
-\leq \min\left\{1,\,2\left(\frac{\sqrt\kappa-1}{\sqrt\kappa+1}\right)^k\right\}.
-\]</div>
-<p>它只知道一个谱区间，故必须把它读成<strong>所有允许初始方向和谱形状中的最坏情形上界</strong>。三簇谱的实际多项式只需在三个点附近变小，可能远低于这个区间界；但“界很松”不等于定理错，也不等于下一次任意问题都会三步结束。</p>
-<p>边界 <span class="arithmatex">\(\kappa=1\)</span> 要单独处理：<span class="arithmatex">\(A=\lambda I\)</span> 时 <span class="arithmatex">\(r_0\neq0\)</span> 的 CG 一步精确，不能把
-<span class="arithmatex">\(((\sqrt\kappa-1)/(\sqrt\kappa+1))^k\)</span> 的 <span class="arithmatex">\(0^0\)</span> 当作普通数值表达式。<span class="arithmatex">\(r_0=0\)</span> 时 <span class="arithmatex">\(x_0=x_*\)</span>，应在 <span class="arithmatex">\(k=0\)</span> 停止；否则 <span class="arithmatex">\(\alpha_0\)</span> 的分母和 <span class="arithmatex">\(\beta_0\)</span> 的分母可能被错误地写成零。</p>
-<h3 id="5">5. 透明预条件：改变有效谱，而不是隐藏捷径<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<p>预条件 CG 用一个易解的 SPD <span class="arithmatex">\(M\)</span> 改善几何。对本实验的对角模型，<span class="arithmatex">\(M=\operatorname{diag}(m_i)\)</span>，所以</p>
-<div class="arithmatex">\[
-z_k=M^{-1}r_k,\qquad \rho_k=r_k^\top z_k,
-\]</div>
-<p>并把标准公式中的 <span class="arithmatex">\(r_k^\top r_k\)</span> 换成 <span class="arithmatex">\(r_k^\top z_k\)</span>。有效谱是</p>
-<div class="arithmatex">\[
-\mu_i=\frac{\lambda_i}{m_i},\qquad
-\kappa_{\rm eff}=\frac{\max_i\mu_i}{\min_i\mu_i}.
-\]</div>
-<p>实验的预设把 12 个均匀谱条目分成三组，公开选择 <span class="arithmatex">\(m_i\)</span> 使三组 <span class="arithmatex">\(\mu_i\)</span> 分别落在 <span class="arithmatex">\(1,1.25,1.5\)</span>；因此原始 <span class="arithmatex">\(\kappa=25\)</span>，但 <span class="arithmatex">\(\kappa_{\rm eff}=1.5\)</span>，而且有效谱只有三档。这里的“预条件有效”来自谱结构的透明重标度，不是把答案直接塞进 <span class="arithmatex">\(x_*\)</span>；账本仍然显示原始真残差 <span class="arithmatex">\(b-Ax_k\)</span>。</p>
-<h3 id="6-n">6. 边界、有限精度与“n 步精确”的准确说法<a class="headerlink" href="#6-n" title="Permanent link"></a></h3>
-<ul>
-<li>精确算术中，CG 至多在最小多项式次数步结束；一般上界是 <span class="arithmatex">\(n\)</span>，但重复特征值、有效初始方向和聚集谱都可能让实际次数小于 <span class="arithmatex">\(n\)</span>。</li>
-<li>浮点算术会损失 <span class="arithmatex">\(A\)</span>-共轭方向的精确正交性，故“第 <span class="arithmatex">\(n\)</span> 步一定得到机器精确解”不是可交付的工程承诺。实验把达到容差和显式残差 gap 分开显示，不把浮点结果写成理论精确。</li>
-<li><span class="arithmatex">\(\|e_k\|_A\)</span> 是 CG 的最小化对象；<span class="arithmatex">\(\|r_k\|_2\)</span> 没有同样的单调保证，甚至可以出现小幅回升。预条件改变的是有效几何，不会自动保证每个未预条件的残差读数都按同一比例下降。</li>
-<li>真实大问题的成本取决于稀疏矩阵-向量乘、预条件器求解、内存和并行通信；本实验故意只做小型、可逐项断言的模型，不能从它外推“百万维需要几步”或壁钟性能。</li>
-</ul>
+<p><a href="assets/img/nla-03-krylov-ledgers.svg"><img alt="CG能量与残差、重启停滞及左右预条件的数值对照" src="assets/img/nla-03-krylov-ledgers.svg" /></a></p>
+<p>插图可打开原尺寸。对数图只画严格正的数；真实0、失败与未定义值留在完整表中。超过1的归一残差仍按真实大小绘出。</p>
 </section>
-<h2 id="1-krylov">1. Krylov 子空间<a class="headerlink" href="#1-krylov" title="Permanent link"></a></h2>
+<h2 id="1">1. 乘出来的子空间：先说明允许使用什么信息<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>求解 <span class="arithmatex">\(Ax=b\)</span>，给定起点 <span class="arithmatex">\(x_0\)</span> 与初始残差 <span class="arithmatex">\(r_0=b-Ax_0\)</span>。第 <span class="arithmatex">\(k\)</span> 个Krylov空间为</p>
 <div class="arithmatex">\[
-\mathcal{K}_k(A, b) = \mathrm{span}\{b,\ Ab,\ A^2b,\ \dots,\ A^{k-1}b\}
+\mathcal K_k(A,r_0)
+=\operatorname{span}\{r_0,Ar_0,\ldots,A^{k-1}r_0\}.
 \]</div>
-<p>——<span class="arithmatex">\(k\)</span> 次乘向量能触及的全部信息（信息论式的下界视角：任何"只乘向量"的方法第 <span class="arithmatex">\(k\)</span> 步的解必在其中 + 平移）。Krylov 方法 = 在 <span class="arithmatex">\(\mathcal{K}_k\)</span> 中按某种最优性选解：</p>
+<p>设算法从这一个残差出发，只反复应用<strong>同一个固定算子</strong> <span class="arithmatex">\(A\)</span>，并对已有向量作线性组合，那么它得到的修正就落在相应Krylov空间中。这是关于具体运算模型的说明，不是“任何只调用矩阵乘向量的程序”都必须满足的普遍断言。额外起点、块方法、非线性操作或变化的预条件器都会改变讨论对象。</p>
+<p>小空间的意义在于：不必先求整个逆矩阵，就能在</p>
+<div class="arithmatex">\[
+x_0+\mathcal K_k(A,r_0)
+\]</div>
+<p>中挑选一个有明确最优性的候选解。不同方法的区别，首先在于“最优”指什么。</p>
 <table>
 <thead>
 <tr>
 <th>方法</th>
-<th>适用</th>
-<th>最优性</th>
+<th>经典条件</th>
+<th>精确算术中的选择</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>CG</strong></td>
-<td>对称正定</td>
-<td><span class="arithmatex">\(A\)</span>-范数误差最小</td>
+<td>CG</td>
+<td>实对称正定</td>
+<td>当前空间中最小的 <span class="arithmatex">\(A\)</span>-范数误差</td>
 </tr>
 <tr>
 <td>MINRES</td>
-<td>对称不定</td>
-<td>残差最小</td>
+<td>实对称，允许不定</td>
+<td>当前空间中最小的残差二范数</td>
 </tr>
 <tr>
-<td><strong>GMRES</strong></td>
-<td>一般</td>
-<td>残差最小（需存全基 → 重启版实用）</td>
+<td>GMRES</td>
+<td>一般方阵</td>
+<td>当前空间中最小的残差二范数</td>
 </tr>
 <tr>
-<td>Lanczos/Arnoldi</td>
-<td>特征值</td>
-<td>Krylov 基上的投影谱（Ritz 值）</td>
+<td>Arnoldi或Lanczos</td>
+<td>构造投影空间</td>
+<td>用小矩阵描述算子在空间上的作用</td>
 </tr>
 </tbody>
 </table>
-<p>（Arnoldi = 对 Krylov 基做 Gram–Schmidt 得 Hessenberg 小矩阵；对称时退化为三项递推 Lanczos——<strong>短递推是对称世界的厚礼</strong>：不用存全基，CG 因此每步 <span class="arithmatex">\(O(n)\)</span> 内存。）</p>
-<h2 id="2-cg">2. CG 的收敛性（主菜，证明结构完整）<a class="headerlink" href="#2-cg" title="Permanent link"></a></h2>
-<p><strong>观察</strong>：<span class="arithmatex">\(\mathcal{K}_k\)</span> 中的任何向量 = <span class="arithmatex">\(p(A)b\)</span>（<span class="arithmatex">\(p\)</span> 为次数 <span class="arithmatex">\(&lt; k\)</span> 的多项式）⇒ CG 的误差</p>
+<p>对大型问题，稀疏矩阵乘向量、正交化、内存和通信都可能是主要成本。稀疏直接分解的成本还取决于填充、排列和结构，不能一律按稠密 <span class="arithmatex">\(O(n^3)\)</span> 判出局。</p>
+<h2 id="2-cg">2. CG最小化的是能量误差<a class="headerlink" href="#2-cg" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(A=A^T\succ0\)</span>，定义</p>
 <div class="arithmatex">\[
-\|e_k\|_A = \min_{\deg p \leq k,\ p(0)=1}\ \|p(A)\,e_0\|_A \leq \min_p\ \max_{\lambda\in\mathrm{spec}(A)}|p(\lambda)|\cdot\|e_0\|_A
+f(x)=\tfrac12x^TAx-b^Tx,\qquad x_*=A^{-1}b.
 \]</div>
-<p>（谱分解把矩阵多项式化成"多项式在特征值上的最大值"——高代 V 干活。）<strong>求解器问题变成了逼近论问题</strong>：找 <span class="arithmatex">\([\lambda_{\min}, \lambda_{\max}]\)</span> 上小、且 <span class="arithmatex">\(p(0) = 1\)</span> 的多项式——答案正是<strong>Chebyshev 多项式</strong>（本科数值 III"最优逼近 = Chebyshev"的承诺在此兑付）：</p>
-<p><strong>定理（CG 收敛率）</strong></p>
+<p>将 <span class="arithmatex">\(x=x_*+h\)</span> 代入，利用 <span class="arithmatex">\(Ax_*=b\)</span>，交叉项消失：</p>
 <div class="arithmatex">\[
-\|e_k\|_A \;\leq\; 2\left(\frac{\sqrt\kappa - 1}{\sqrt\kappa + 1}\right)^k \|e_0\|_A
+f(x)-f(x_*)=\tfrac12h^TAh
+=\tfrac12\|x-x_*\|_A^2.
 \]</div>
-<p><strong>【证明骨架】</strong> 取平移缩放的 Chebyshev <span class="arithmatex">\(p = T_k\big(\frac{2\lambda - \lambda_{\max} - \lambda_{\min}}{\lambda_{\max} - \lambda_{\min}}\big)/T_k(\cdot)\)</span>，区间上 <span class="arithmatex">\(|T_k| \leq 1\)</span>、<span class="arithmatex">\(T_k\)</span> 在区间外的增长给出分母 <span class="arithmatex">\(T_k\big(\frac{\kappa+1}{\kappa-1}\big) \geq \frac12\big(\frac{\sqrt\kappa+1}{\sqrt\kappa-1}\big)^k\)</span>（Chebyshev 的双曲余弦表示一行）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>三个读出</strong>：<strong><span class="arithmatex">\(\sqrt\kappa\)</span></strong>——比梯度下降的 <span class="arithmatex">\(\kappa\)</span>（优化 II）好一个开方（CG 是"加速的"一阶法：与 Nesterov 的 <span class="arithmatex">\(\sqrt\kappa\)</span> 同阶非巧合——二次情形两者同源【引用】）；<strong>谱聚集比条件数更真</strong>：特征值聚成几簇时，<span class="arithmatex">\(p\)</span> 只需在簇上取零——<strong>几步即收敛</strong>（谱尾部孤立大特征值先被"消灭"）；<strong>有限步精确</strong>（<span class="arithmatex">\(n\)</span> 步理论收敛——但浮点世界这条不作数，CG 实为迭代法，Lanczos 正交性损失【引用】）。</p>
-<h2 id="3">3. 预条件：实战的灵魂<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>思想：解 <span class="arithmatex">\(M^{-1}Ax = M^{-1}b\)</span>——<strong>选 <span class="arithmatex">\(M \approx A\)</span> 且 <span class="arithmatex">\(M\)</span> 易解</strong>，让有效谱聚集。</p>
-<table>
-<thead>
-<tr>
-<th>预条件器</th>
-<th>思路</th>
-<th>场景</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Jacobi（对角）</td>
-<td><span class="arithmatex">\(M = \mathrm{diag}(A)\)</span></td>
-<td>便宜的保底</td>
-</tr>
-<tr>
-<td>不完全分解 IC/ILU</td>
-<td>按稀疏模式截断的 Cholesky/LU</td>
-<td>通用主力</td>
-</tr>
-<tr>
-<td>多重网格 AMG</td>
-<td>分层消除各频率误差</td>
-<td>椭圆 PDE 之王（pde2 线的 FEM 系统）</td>
-</tr>
-<tr>
-<td>问题特制</td>
-<td>用物理/结构近似算子</td>
-<td>上限最高</td>
-</tr>
-</tbody>
-</table>
-<p><strong>读法</strong>：<strong>"好的预条件器 = 对问题结构的洞察"</strong>——Krylov 框架是通用引擎，预条件是领域知识的接口；工业界解大问题的时间九成花在这里。（🔗 优化 II 的"Adam ≈ 对角预条件"、BatchNorm 改善条件数——同一思想在深度学习的方言。）</p>
-<h2 id="4">4. 随机化数值线代一瞥（现代附录）<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>随机 SVD</strong>【骨架】：<span class="arithmatex">\(Y = A\Omega\)</span>（<span class="arithmatex">\(\Omega\)</span> 为 <span class="arithmatex">\(n\times(k{+}p)\)</span> 高斯随机阵）→ QR 得 <span class="arithmatex">\(Q\)</span> → 对小矩阵 <span class="arithmatex">\(Q^\top A\)</span> 做精确 SVD——<strong>用随机投影抓列空间</strong>（hdp-02 JL 引理的直系应用），误差以高概率 <span class="arithmatex">\(\lesssim \sigma_{k+1}\)</span>【引用 Halko–Martinsson–Tropp】。大数据低秩近似的默认起手式（sklearn <code>randomized_svd</code> 即它）——<strong>hdp 线与 nla 线在此正式握手</strong>。</p>
-<h2 id="5_1">5. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<p><strong>例 1（谱聚集实验设计）</strong> 两个 <span class="arithmatex">\(\kappa = 10^4\)</span> 的 SPD 矩阵：谱均匀分布 vs 聚成 3 簇——CG 迭代数前者 ~数百、后者 ~10（各簇一根多项式零点）；<strong>报告 CG 性能时"谱形状"比"条件数"信息量大</strong>。</p>
-<p><strong>例 2（Chebyshev 界亲算）</strong> <span class="arithmatex">\(\kappa = 100\)</span>：收缩因子 <span class="arithmatex">\(\frac{9}{11} \approx 0.818\)</span>。要让定理上界 <span class="arithmatex">\(2(9/11)^k\le10^{-6}\)</span>，需</p>
+<p>因此在一个仿射空间 <span class="arithmatex">\(x_0+\mathcal S\)</span> 上最小化二次函数，就等价于最小化能量误差。沿任意 <span class="arithmatex">\(v\in\mathcal S\)</span> 的导数为</p>
 <div class="arithmatex">\[
-k\ge \frac{\ln(2\cdot10^6)}{\ln(11/9)}\approx72.3,
+\left.\frac{d}{dt}f(x+tv)\right|_{t=0}
+=v^T(Ax-b).
 \]</div>
-<p>即至少 73 步。对照采用最优固定步长的梯度下降，同题的因子是 <span class="arithmatex">\(99/101\)</span>，解 <span class="arithmatex">\((99/101)^k\le10^{-6}\)</span> 得 <span class="arithmatex">\(k\approx690.8\)</span>，即约 691 步。两者仍清楚展示 <span class="arithmatex">\(\sqrt\kappa\)</span> 对比 <span class="arithmatex">\(\kappa\)</span> 的量级差异；这些是最坏情形界，不是实际 CG 步数预言。</p>
-<p><strong>例 3（何时不用 Krylov）</strong> <span class="arithmatex">\(n = 500\)</span> 稠密良态系统：直接 Cholesky（<span class="arithmatex">\(O(n^3)\)</span> 但常数小、稳定、可复用分解）完胜迭代——<strong>"大稀疏用 Krylov、小稠密用分解"</strong>：方法选型的第一分岔（数值 II 的表在研究生版续订）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一门：矩阵分析——把"矩阵的分析学"补全：范数与谱半径的精确关系、扰动定理、非负矩阵的 Perron–Frobenius。</em></p>
+<p>极小点满足残差的Galerkin条件</p>
+<div class="arithmatex">\[
+r=b-Ax\perp\mathcal S.
+\]</div>
+<p>严格正定性保证这个极小点唯一。CG在精确算术中取 <span class="arithmatex">\(\mathcal S=\mathcal K_k(A,r_0)\)</span>，所以</p>
+<div class="arithmatex">\[
+x_k=\arg\min_{x\in x_0+\mathcal K_k(A,r_0)}
+\|x_*-x\|_A.
+\]</div>
+<p>空间随 <span class="arithmatex">\(k\)</span> 嵌套，最小能量误差自然不增。但 <span class="arithmatex">\(r_k=A(x_*-x_k)\)</span>，不同特征方向会被不同的特征值再次放大；这没有推出 <span class="arithmatex">\(\|r_k\|_2\)</span> 同样单调。</p>
+<h2 id="3">3. 短递推怎样保持搜索方向<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>标准CG从 <span class="arithmatex">\(p_0=r_0\)</span> 开始，使用</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\alpha_k&amp;=\frac{r_k^Tr_k}{p_k^TAp_k},&amp;
+x_{k+1}&amp;=x_k+\alpha_kp_k,\\
+r_{k+1}&amp;=r_k-\alpha_kAp_k,&amp;
+\beta_k&amp;=\frac{r_{k+1}^Tr_{k+1}}{r_k^Tr_k},\\
+p_{k+1}&amp;=r_{k+1}+\beta_kp_k.
+\end{aligned}
+\]</div>
+<p>这些系数不是经验学习率。假设前面的搜索方向已经 <span class="arithmatex">\(A\)</span>-共轭，即 <span class="arithmatex">\(p_i^TAp_j=0\)</span>（<span class="arithmatex">\(i\ne j\)</span>），并且残差正交于已搜索空间。沿 <span class="arithmatex">\(p_k\)</span> 作精确线搜索给出</p>
+<div class="arithmatex">\[
+\alpha_k=\frac{r_k^Tp_k}{p_k^TAp_k}.
+\]</div>
+<p>由于 <span class="arithmatex">\(p_k=r_k+\beta_{k-1}p_{k-1}\)</span> 且 <span class="arithmatex">\(r_k\perp p_{k-1}\)</span>，分子恰为 <span class="arithmatex">\(r_k^Tr_k\)</span>。这一步让新残差与 <span class="arithmatex">\(p_k\)</span> 正交，同时由共轭性保持它与更早方向正交。</p>
+<p>再要求 <span class="arithmatex">\(p_{k+1}^TAp_k=0\)</span>，得到</p>
+<div class="arithmatex">\[
+\beta_k=-\frac{r_{k+1}^TAp_k}{p_k^TAp_k}.
+\]</div>
+<p>利用 <span class="arithmatex">\(Ap_k=(r_k-r_{k+1})/\alpha_k\)</span> 与 <span class="arithmatex">\(r_{k+1}\perp r_k\)</span>，就化为上面的残差平方比。对更早的 <span class="arithmatex">\(p_j\)</span>，有 <span class="arithmatex">\(Ap_j\in\mathcal K_{j+2}\)</span>；新残差对已搜索空间的正交性，加上已有方向之间的共轭性，使这些更早的共轭条件继续成立。由此完成逐步归纳，而不必每轮存下并正交化全部历史方向。</p>
+<p>浮点计算中的正交与共轭只会近似保持。实验记录每个实际 <span class="arithmatex">\(x,r,z,p,Ap,\alpha,\beta\)</span>，并另报方向的归一化共轭内积，不能把理论上的零直接填进表格。</p>
+<h2 id="4">4. 把误差变成多项式问题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>空间中的修正可写成 <span class="arithmatex">\(q_{k-1}(A)r_0\)</span>，其中多项式次数至多 <span class="arithmatex">\(k-1\)</span>。因为 <span class="arithmatex">\(r_0=Ae_0\)</span>，<span class="arithmatex">\(e_0=x_*-x_0\)</span>，所以</p>
+<div class="arithmatex">\[
+e_k=p_k(A)e_0,\qquad
+p_k(t)=1-tq_{k-1}(t),\qquad p_k(0)=1.
+\]</div>
+<p>在正交特征基中写 <span class="arithmatex">\(e_0=\sum_i c_iv_i\)</span>，便有</p>
+<div class="arithmatex">\[
+\|p_k(A)e_0\|_A^2
+=\sum_i\lambda_i|c_i|^2|p_k(\lambda_i)|^2.
+\]</div>
+<p>这解释了同一个条件数为什么可以对应不同轨迹：实际问题同时取决于离散谱点的位置和初始方向权重。</p>
+<p>若有效误差只覆盖 <span class="arithmatex">\(d\)</span> 个不同的正特征值，选择</p>
+<div class="arithmatex">\[
+p_d(t)=\prod_{\lambda\in\Lambda_{\rm active}}
+\left(1-\frac t\lambda\right)
+\]</div>
+<p>就能把这些方向全部消去。因此精确算术至多需要 <span class="arithmatex">\(d\)</span> 步，一般有 <span class="arithmatex">\(d\le n\)</span>。但“只分布在三个点”与“挤在三个有宽度的簇中”不是同一件事：在簇中心取零，不能把簇内所有不同谱点精确消灭。</p>
+<p>实验同时保留重复三值谱与有宽度的近簇谱；初值为零的方向记为无可定义的误差比，不因其分量很小就擅自删除。对角系统的参考解由实际 <span class="arithmatex">\(b_i/\lambda_i\)</span> 单独计算，生成数据时使用的向量另列，避免不一致的“已知解”冒充参考。</p>
+<h2 id="5-chebyshev">5. Chebyshev界：只知道谱区间时的保证<a class="headerlink" href="#5-chebyshev" title="Permanent link"></a></h2>
+<p>设谱位于 <span class="arithmatex">\([a,b]\)</span>，<span class="arithmatex">\(0\lt a\lt b\)</span>，<span class="arithmatex">\(\kappa=b/a\)</span>。CG的最优性给出</p>
+<div class="arithmatex">\[
+\frac{\|e_k\|_A}{\|e_0\|_A}
+\le
+\min_{\deg p\le k,\ p(0)=1}
+\max_{t\in[a,b]}|p(t)|.
+\]</div>
+<p>选取归一化Chebyshev多项式</p>
+<div class="arithmatex">\[
+p(t)=
+\frac{T_k\!\left(\frac{a+b-2t}{b-a}\right)}
+{T_k\!\left(\frac{a+b}{b-a}\right)}.
+\]</div>
+<p>分母使 <span class="arithmatex">\(p(0)=1\)</span>，分子的自变量在谱区间内落于 <span class="arithmatex">\([-1,1]\)</span>，因此其绝对值不超过1。令</p>
+<div class="arithmatex">\[
+q=\frac{\sqrt\kappa-1}{\sqrt\kappa+1},\qquad
+w=q^{-1}.
+\]</div>
+<p>当 <span class="arithmatex">\(z=(\kappa+1)/(\kappa-1)&gt;1\)</span> 时，</p>
+<div class="arithmatex">\[
+T_k(z)=\frac{w^k+w^{-k}}2,
+\]</div>
+<p>从而得到</p>
+<div class="arithmatex">\[
+\frac{\|e_k\|_A}{\|e_0\|_A}
+\le\frac{2q^k}{1+q^{2k}}
+\le 2q^k.
+\]</div>
+<p>再结合嵌套空间的不增性，可以显示 <span class="arithmatex">\(\min\{1,2q^k\}\)</span>。这是精确算术的区间比较界，不是具体求解器的步数预测，也不是全部浮点舍入都被包括的误差界。</p>
+<p>边界要分开：<span class="arithmatex">\(k=0\)</span> 时归一误差为1；<span class="arithmatex">\(\kappa=1\)</span> 时对称正定矩阵是标量乘单位阵，非零误差一步消去；<span class="arithmatex">\(e_0=0\)</span> 时一开始就是答案。<strong>接近1并不等于1</strong>，不能把一个正的小界直接改成0。</p>
+<h2 id="6-cg">6. 预条件CG：改变几何也要保留正定性<a class="headerlink" href="#6-cg" title="Permanent link"></a></h2>
+<p>取容易求解的 <span class="arithmatex">\(M=M^T\succ0\)</span>。对称变换</p>
+<div class="arithmatex">\[
+\widetilde A=M^{-1/2}AM^{-1/2},\qquad
+y=M^{1/2}x,\qquad
+\widetilde b=M^{-1/2}b
+\]</div>
+<p>保持正定性，并且</p>
+<div class="arithmatex">\[
+\|y_*-y\|_{\widetilde A}^2
+=\|x_*-x\|_A^2.
+\]</div>
+<p>把变换后系统的CG写回原变量，就得到PCG：</p>
+<div class="arithmatex">\[
+z_k=M^{-1}r_k,\qquad
+\rho_k=r_k^Tz_k,
+\]</div>
+<p>以及 <span class="arithmatex">\(\alpha_k=\rho_k/(p_k^TAp_k)\)</span>、<span class="arithmatex">\(\beta_k=\rho_{k+1}/\rho_k\)</span>、<span class="arithmatex">\(p_{k+1}=z_{k+1}+\beta_kp_k\)</span>。</p>
+<p>一般情形不能把 <span class="arithmatex">\(M^{-1}A\)</span> 当成欧氏内积下的对称矩阵。用于CG区间界的是与它相似的对称正定矩阵 <span class="arithmatex">\(\widetilde A\)</span> 的谱比。只有本页对角模型中，才可直接写</p>
+<div class="arithmatex">\[
+\mu_i=\lambda_i/m_i,\qquad
+\kappa_{\rm eff}=\frac{\max_i\mu_i}{\min_i\mu_i}.
+\]</div>
+<p>分组预条件器明确选择 <span class="arithmatex">\(m_i=\lambda_i/\nu_i\)</span>，让 <span class="arithmatex">\(\nu_i\)</span> 取三个指定值。这是用于观察有效谱的教学构造，不是处理未知大矩阵的通用方案。Jacobi取原矩阵对角；在已经对角的模型里它本身就完成了主要求解工作，不能据此宣称“免费一步求解”。</p>
+<p>预条件器也可能无益甚至使迭代更多。把 <span class="arithmatex">\(M\)</span> 整体乘一个正数虽然不改变有效谱的条件数，却会改变 <span class="arithmatex">\(\rho_k\)</span> 的大小；因此不能拿 <span class="arithmatex">\(\rho_k\)</span> 与原始残差的阈值直接比较。<a href="https://www.netlib.org/templates/templates.pdf">Netlib的说明</a>也将预条件的变换、构建与应用成本分别讨论。</p>
+<h2 id="7-arnoldi">7. Arnoldi：把大残差问题投影成小问题<a class="headerlink" href="#7-arnoldi" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(\beta=\|r_0\|_2\)</span>，<span class="arithmatex">\(v_1=r_0/\beta\)</span>。Arnoldi每轮先算 <span class="arithmatex">\(w=Av_j\)</span>，再消去它沿已有基的投影：</p>
+<div class="arithmatex">\[
+h_{ij}=v_i^Tw,\qquad w\leftarrow w-h_{ij}v_i.
+\]</div>
+<p>剩余向量的长度给出 <span class="arithmatex">\(h_{j+1,j}\)</span>，归一化后得到下一根基向量。把所有步骤放在一起，</p>
+<div class="arithmatex">\[
+AV_k=V_{k+1}\overline H_k,
+\]</div>
+<p>其中 <span class="arithmatex">\(\overline H_k\)</span> 是 <span class="arithmatex">\((k+1)\times k\)</span> 的上Hessenberg矩阵。此处的等式先在精确算术中理解；实验执行两遍改良Gram–Schmidt，并记录两遍的每个投影及剩余向量。</p>
+<p>候选解写成 <span class="arithmatex">\(x=x_0+V_ky\)</span>，于是</p>
+<div class="arithmatex">\[
+b-Ax
+=V_{k+1}(\beta e_1-\overline H_ky).
+\]</div>
+<p>若 <span class="arithmatex">\(V_{k+1}\)</span> 列正交，范数被保留：</p>
+<div class="arithmatex">\[
+\|b-Ax\|_2
+=\|\beta e_1-\overline H_ky\|_2.
+\]</div>
+<p>原来的大空间最小残差问题，就变成只有 <span class="arithmatex">\(k\)</span> 个未知量的小最小二乘。GMRES在这里用QR求解；本页逐步执行实际Givens旋转，并保存旋转前后矩阵、右端和三角解，没有形成 <span class="arithmatex">\(\overline H_k^T\overline H_k\)</span>。</p>
+<h2 id="8-gmres">8. 重启GMRES：节约历史信息也会失去它的好处<a class="headerlink" href="#8-gmres" title="Permanent link"></a></h2>
+<p>完整GMRES保留整个基。经过 <span class="arithmatex">\(k\)</span> 步，存储基的成本约为 <span class="arithmatex">\(O(nk)\)</span>，正交化总工作量通常随 <span class="arithmatex">\(k\)</span> 增长。重启GMRES<span class="arithmatex">\((m)\)</span>每做至多 <span class="arithmatex">\(m\)</span> 步，就以当前解重新计算残差、建立新的基。</p>
+<p>它仍在当前周期的小空间中最小化残差，但不再是全部历史 <span class="arithmatex">\(k\)</span> 维空间中的最优解。重启长度的选择牵涉内存与收敛，不能从“矩阵可逆”推断任意小的 <span class="arithmatex">\(m\)</span> 都有效。<a href="https://www.netlib.org/templates/templates.pdf">Netlib的GMRES讨论</a>明确保留了重启过短导致停滞的情形。</p>
+<p>一个不需要大数据的反例是</p>
+<div class="arithmatex">\[
+A=\begin{pmatrix}0&amp;-1\\1&amp;0\end{pmatrix},\qquad
+b=e_1,\qquad x_0=0.
+\]</div>
+<p>GMRES第一步只能试 <span class="arithmatex">\(x=\alpha e_1\)</span>，于是</p>
+<div class="arithmatex">\[
+\|b-Ax\|_2^2
+=\|e_1-\alpha e_2\|_2^2
+=1+\alpha^2.
+\]</div>
+<p>最优值出现在 <span class="arithmatex">\(\alpha=0\)</span>，完全没有进步。GMRES<span class="arithmatex">\((1)\)</span>重启后面对同一个问题，因此精确算术中永久停滞。完整GMRES第二步已经有 <span class="arithmatex">\(\operatorname{span}\{e_1,e_2\}\)</span>，能得到 <span class="arithmatex">\(x_*=-e_2\)</span>。</p>
+<p>这也说明“残差单调不增”与“残差一定趋于0”不同：常数曲线同样不增。</p>
+<h2 id="9">9. 左右预条件：同一个解，不同的最小化范数<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>左预条件解</p>
+<div class="arithmatex">\[
+M^{-1}Ax=M^{-1}b.
+\]</div>
+<p>将普通GMRES用于这个变换后的系统，最小化的是 <span class="arithmatex">\(\|M^{-1}(b-Ax)\|_2\)</span>。它不是原始残差二范数。</p>
+<p>右预条件改变量 <span class="arithmatex">\(x=M^{-1}y\)</span>，解</p>
+<div class="arithmatex">\[
+AM^{-1}y=b.
+\]</div>
+<p>在对应的修正空间中，普通GMRES最小化的就是 <span class="arithmatex">\(\|b-AM^{-1}y\|_2=\|b-Ax\|_2\)</span>。预条件器改变搜索方向的形成方式，但没有改变这个被最小化的残差。</p>
+<p>所以，同一个可逆 <span class="arithmatex">\(M\)</span> 可以保留原问题的解，却让两种算法画出不同曲线。左预条件的第一步尤其容易检查。记</p>
+<div class="arithmatex">\[
+d=M^{-1}r_0,\qquad g=M^{-1}Ad.
+\]</div>
+<p>试探 <span class="arithmatex">\(x=x_0+\alpha d\)</span>，最小化 <span class="arithmatex">\(\|d-\alpha g\|_2\)</span> 得到</p>
+<div class="arithmatex">\[
+\alpha=\frac{g^Td}{g^Tg}.
+\]</div>
+<p>这个系数只保证加权目标最优，没有保证原始 <span class="arithmatex">\(\|r_0-\alpha Ad\|_2\)</span> 下降。实验将两个范数同时保留；即使加权曲线很好看，也使用显式原始残差判断是否满足所声明的停止标准。</p>
+<h2 id="10">10. 浮点停止、递推偏差与实际工作量<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>本页区分以下量：</p>
+<div class="arithmatex">\[
+r_k^{\rm true}=b-Ax_k,\qquad
+r_k^{\rm rec}\ \text{为递推保存的残差},\qquad
+\|r_k^{\rm rec}-r_k^{\rm true}\|_2.
+\]</div>
+<p>短递推可以节省工作，却会积累舍入偏差。只看递推残差或小最小二乘的残差，都可能漏掉原方程里的误差。因此实验每步重算 <span class="arithmatex">\(b-Ax_k\)</span>，并公开这些核对的额外成本。</p>
+<p>对 <span class="arithmatex">\(b\ne0\)</span>，本页停止条件为</p>
+<div class="arithmatex">\[
+\frac{\|b-Ax_k\|_2}{\|b\|_2}\le\tau.
+\]</div>
+<p>真实浮点残差恰为0与达到阈值分开标记。<span class="arithmatex">\(b=0\)</span>且零初值的模型直接检查初始残差；不执行会除以0的归一化。小残差仍不自动保证前向误差小，条件数问题可回看第一讲。</p>
+<p>Arnoldi剩余向量很小时，实验按明示的机器精度阈值停止扩展，把实际舍去的向量和范数记录下来。只有原始残差也达到要求，才报告成功；否则显示近退化或预算结束。完整 <span class="arithmatex">\(n\)</span> 维空间的精确算术结论，不能代替浮点运行中的这一步判断。</p>
+<p>成本表统计求解过程实际调用的矩阵乘向量和预条件求解，包括显式残差检查；为展示恒等式而额外重算的诊断不计入求解调用，说明中单列。这个教学实现每一步重新分解小最小二乘，目的是展示过程；它没有实现大型库的增量更新和并行优化，不能拿这些小模型的耗时作性能排行榜。</p>
+<h2 id="11">11. 四道迁移题与完整答案<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<h3 id="cg">题一：CG的残差上升是否违反最优性？<a class="headerlink" href="#cg" title="Permanent link"></a></h3>
+<p>取 <span class="arithmatex">\(A=\operatorname{diag}(1,100)\)</span>、<span class="arithmatex">\(b=(1,1/10)^T\)</span>、<span class="arithmatex">\(x_0=0\)</span>。计算第一步，比较残差二范数与能量误差。</p>
+<details class="answer">
+<summary>答案：一个范数上升，另一个范数下降</summary>
+<p>初始 <span class="arithmatex">\(p_0=r_0=b\)</span>，所以</p>
+<div class="arithmatex">\[
+\alpha_0=\frac{1+1/100}{1+1}=\frac{101}{200}.
+\]</div>
+<p>第一步残差为</p>
+<div class="arithmatex">\[
+r_1=b-\alpha_0Ab
+=\left(\frac{99}{200},-\frac{99}{20}\right)^T.
+\]</div>
+<p>因而 <span class="arithmatex">\(\|r_1\|_2/\|r_0\|_2=99/20=4.95\)</span>，确实上升。另一方面，<span class="arithmatex">\(x_*=(1,1/1000)^T\)</span>，能量误差是二次函数的最小化对象。沿非零 <span class="arithmatex">\(p_0\)</span> 的精确线搜索严格降低该函数，因此 <span class="arithmatex">\(\|e_1\|_A\lt\|e_0\|_A\)</span>。也可以代入 <span class="arithmatex">\(e_1=(99/200,-99/2000)^T\)</span>，计算</p>
+<div class="arithmatex">\[
+\frac{\|e_1\|_A^2}{\|e_0\|_A^2}
+=\frac{9801}{20002}\lt1.
+\]</div>
+<p>这里没有矛盾；把两种纵轴都叫作“误差下降”，才会产生矛盾。</p>
+</details>
+<h3 id="_2">题二：三个谱点与三个谱簇有什么不同？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>解释为什么只含三个不同正特征值的SPD问题可在精确算术中至多三步结束，而三个窄簇没有同样的三步精确保证。</p>
+<details class="answer">
+<summary>答案：多项式的零点消去的是点</summary>
+<p>若三个有效谱点为 <span class="arithmatex">\(\lambda_1,\lambda_2,\lambda_3\)</span>，取</p>
+<div class="arithmatex">\[
+p(t)=\prod_{i=1}^3(1-t/\lambda_i).
+\]</div>
+<p>它满足 <span class="arithmatex">\(p(0)=1\)</span> 且在三个谱点上均为0，于是 <span class="arithmatex">\(p(A)e_0=0\)</span>。CG在该空间最优，能量误差也必须为0。若簇内还有不同谱点，三次多项式不能在所有这些点都为0；在簇中心取零只能使附近的值较小。实际效果依赖簇宽、间距与初始方向权重，不能直接报“三步”。</p>
+</details>
+<h3 id="gmres1">题三：为何可逆旋转也会使GMRES(1)永久停滞？<a class="headerlink" href="#gmres1" title="Permanent link"></a></h3>
+<p>对第8节的矩阵，给出每个重启周期的最优系数，以及完整GMRES第二步的解。</p>
+<details class="answer">
+<summary>答案：每次都扔掉了下一步需要的方向</summary>
+<p>第一步可用空间是 <span class="arithmatex">\(\operatorname{span}\{e_1\}\)</span>，残差平方为 <span class="arithmatex">\(1+\alpha^2\)</span>，唯一最优系数是0。当前解仍为0，重启后的起始残差仍为 <span class="arithmatex">\(e_1\)</span>，因此同一个计算无限重复。</p>
+<p>完整第二步保留 <span class="arithmatex">\(Ae_1=e_2\)</span>，搜索空间成为整个二维空间。取 <span class="arithmatex">\(x=-e_2\)</span>，有 <span class="arithmatex">\(Ax=e_1=b\)</span>。矩阵可逆只保证真解存在；重启策略仍可能不断选择同一个无进展的小空间。</p>
+</details>
+<h3 id="_3">题四：预条件后残差很小，应该用哪一个量验收？<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>左预条件GMRES报告 <span class="arithmatex">\(\|M^{-1}r\|_2\)</span> 下降，而 <span class="arithmatex">\(\|r\|_2\)</span> 增大。这是否违反最小残差原理？把 <span class="arithmatex">\(M\)</span> 整体乘一个很大的常数会带来什么危险？</p>
+<details class="answer">
+<summary>答案：必须先说清楚最小化对象和停止标准</summary>
+<p>左预条件的最优性针对 <span class="arithmatex">\(\|M^{-1}r\|_2\)</span>，所以原始范数上升不构成反例。两个范数满足</p>
+<div class="arithmatex">\[
+\|r\|_2\le\|M\|_2\|M^{-1}r\|_2,
+\]</div>
+<p>但没有无条件的等值关系。把 <span class="arithmatex">\(M\)</span> 换成 <span class="arithmatex">\(cM\)</span>，其加权残差会缩小为原来的 <span class="arithmatex">\(1/c\)</span>；这可能只是重新改了数值尺度，并不表示原方程更准确。</p>
+<p>PCG中 <span class="arithmatex">\(\rho=r^TM^{-1}r\)</span> 同样会缩小为 <span class="arithmatex">\(1/c\)</span>，不能把它直接与原残差阈值作比较。本页用显式 <span class="arithmatex">\(\|b-Ax\|_2/\|b\|_2\)</span> 验收所声明的目标，并把加权量作为另一个有明确含义的读数。</p>
+</details>
+<h2 id="12">12. 将小模型的判断带到更大的计算<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<p>选择方法时，先确认对称性、正定性、可用的算子操作和要满足的误差标准；再考虑基的存储、预条件器的构建与复用、显式残差检查和并行成本。固定维数不能单独决定哪一种方法总是更快。</p>
+<p>随机化低秩分解提供另一条缩小问题的路径：随机试探矩阵作用，构造候选列空间，再处理压缩后的矩阵。<a href="https://arxiv.org/abs/0909.4061">Halko、Martinsson与Tropp的原始工作</a>可作为后续阅读。这里不把“高概率接近最佳截断”写成没有采样、超采样、谱尾与概率条件的普适保证；本页的CG和GMRES实验也没有验证随机SVD。</p>
+<p>下一门<a href="ma-01-norms-perturbation.html">矩阵分析：范数、谱半径与扰动</a>继续追问：不同矩阵范数、谱与条件数之间究竟可以推出什么。遇到“残差很小”的结论时，先保留本页的习惯——它是哪一个残差、怎样算出、与哪个问题有关？</p>
+<style>
+article:has(#nla-krylov-learning-title) .katex{position:relative}
+article:has(#nla-krylov-learning-title) [data-learning-lab="cg-spectrum"]:not([data-cl-mounted="true"]) td:nth-child(2){white-space:nowrap;font-size:.9em;font-variant-numeric:tabular-nums}
+</style>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="nla-02-eigen.html"><span class="pager-label">上一页</span>数值线代 II · 特征值算法</a>

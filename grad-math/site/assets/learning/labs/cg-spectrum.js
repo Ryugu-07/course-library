@@ -1,1210 +1,397 @@
-(function (host) {
-  "use strict";
-
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "cg-spectrum-lab-styles";
-  var INSTANCE = 0;
-  var MACHINE_EPS = 2.220446049250313e-16;
-  var EPS = 1e-12;
-  var MAX_DIM = 256;
-
-  function isFiniteNumber(value) {
-    return typeof value === "number" && Number.isFinite(value);
+(function(root,factory){const api=factory();if(typeof module==="object"&&module.exports)module.exports=api;if(root&&root.CourseLearning)root.CourseLearning.register("cg-spectrum",api.mount);})(typeof window!=="undefined"?window:globalThis,function(){
+"use strict";
+const norm=x=>Math.hypot(...x),dot=(x,y)=>x.reduce((s,v,i)=>s+v*y[i],0),sub=(x,y)=>x.map((v,i)=>v-y[i]),axpy=(x,a,y)=>x.map((v,i)=>v+a*y[i]);
+function cgRun(lambda,M,truth,x0,maxSteps,tol){
+ let matvecs=0,preconditionerSolves=0;
+ const operator=x=>x.map((v,i)=>lambda[i]*v),apply=x=>{matvecs++;return operator(x);},
+  precondition=x=>{if(M.every(v=>v===1))return x.slice();preconditionerSolves++;return x.map((v,i)=>v/M[i]);},idealTruth=truth.slice(),b=operator(truth);
+ truth=b.map((v,i)=>v/lambda[i]);
+ const bn=norm(b),e0=sub(truth,x0),r0=sub(b,apply(x0)),rn0=norm(r0),mu=lambda.map((v,i)=>v/M[i]),kappa=Math.max(...mu)/Math.min(...mu),energy=x=>Math.sqrt(dot(lambda,x.map(v=>v*v))),en0=energy(e0);
+ let x=x0.slice(),r=r0.slice(),z=precondition(r),rho=dot(r,z),p=z.slice(),status="iteration-budget",poly=lambda.map(()=>1),directionPoly=mu.slice();
+ const rows=[],records=[],directions=[];
+ function measure(k){
+  const error=sub(truth,x),actual=sub(b,apply(x)),rn=norm(actual),den=bn||rn0,an=energy(error),q=kappa===1?0:(Math.sqrt(kappa)-1)/(Math.sqrt(kappa)+1),
+   bound=k===0?1:kappa===1?0:Math.min(1,2*q**k);
+  return{k,x:x.slice(),error,r:r.slice(),actualResidual:actual,recurrenceNorm:norm(r),actualNorm:rn,relativeResidual:den?rn/den:0,
+   gap:norm(sub(r,actual)),relativeGap:den?norm(sub(r,actual))/den:0,
+   aError:an,relativeAError:en0?an/en0:0,rho,poly:poly.slice(),directionPoly:directionPoly.slice(),
+   actualFilter:error.map((v,i)=>e0[i]===0?null:v/e0[i]),filterGap:error.map((v,i)=>v-poly[i]*e0[i]),bound,
+   weights:e0.map((v,i)=>en0?lambda[i]*v*v/(en0*en0):0),matvecs,preconditionerSolves};
+ }
+ function stopped(row){
+  if(row.actualNorm===0)return"zero-floating-residual";
+  if(row.relativeResidual<=tol)return"true-residual-threshold";
+  return null;
+ }
+ rows.push(measure(0));
+ for(let k=0;k<maxSteps;k++){
+  const stop=stopped(rows.at(-1));if(stop){status=stop;break;}
+  if(!(rho>0)||!Number.isFinite(rho)){status="nonpositive-rho";break;}
+  const before={x:x.slice(),r:r.slice(),z:z.slice(),p:p.slice(),rho,poly:poly.slice(),directionPoly:directionPoly.slice()},Ap=apply(p),curvature=dot(p,Ap);
+  if(!(curvature>0)||!Number.isFinite(curvature)){status="nonpositive-curvature";records.push({k,accepted:false,before,Ap,curvature});break;}
+  const alpha=rho/curvature;x=axpy(x,alpha,p);r=axpy(r,-alpha,Ap);
+  const zNext=precondition(r),rhoNext=dot(r,zNext),beta=rhoNext/rho;
+  poly=poly.map((v,i)=>v-alpha*directionPoly[i]);
+  directionPoly=mu.map((v,i)=>v*poly[i]+beta*directionPoly[i]);
+  const pNext=axpy(zNext,beta,p);
+  records.push({k,accepted:true,before,Ap,curvature,alpha,beta,zNext:zNext.slice(),rhoNext,pNext:pNext.slice()});
+  directions.push(p.slice());p=pNext;z=zNext;rho=rhoNext;rows.push(measure(k+1));
+ }
+ const finalStop=stopped(rows.at(-1));if(finalStop)status=finalStop;
+ const conjugacy=directions.map((p,i)=>directions.map(q=>{const d=Math.sqrt(dot(p,operator(p))*dot(q,operator(q)));return d?dot(p,operator(q))/d:null;}));
+ return{lambda:lambda.slice(),M:M.slice(),truth:truth.slice(),idealTruth,x0:x0.slice(),b,mu,kappa,r0,e0,initialResidual:rn0,initialAError:en0,status,rows,records,final:rows.at(-1),directions,conjugacy,matvecs,preconditionerSolves};
+}
+function cgModel(raw={}){
+ const s=Object.assign({spectrum:"uniform",condition:25,width:.01,weights:"all",preconditioner:"group",scaleExponent:0,preconditionExponent:0,steps:24,tolerance:1e-12},raw);
+ for(const[k,lo,hi,int]of[["condition",1,1e6],["width",0,.1],["scaleExponent",-12,12,true],["preconditionExponent",-12,12,true],["steps",1,64,true],["tolerance",1e-15,1e-3]]){
+  const v=s[k];if(typeof v!=="number"||!Number.isFinite(v)||v<lo||v>hi||(int&&!Number.isInteger(v)))throw Error("invalid "+k);
+ }
+ if(!["uniform","clustered","near-cluster","scalar","residual-rise"].includes(s.spectrum)||!["all","endpoints","zero"].includes(s.weights)||!["none","group","jacobi"].includes(s.preconditioner))throw Error("invalid choice");
+ const scale=10**s.scaleExponent,k=s.condition,levels=[1,Math.sqrt(k),k];
+ let base;
+ if(s.spectrum==="residual-rise")base=[1,100];
+ else if(s.spectrum==="scalar")base=Array(12).fill(7);
+ else if(s.spectrum==="uniform")base=Array.from({length:12},(_,i)=>1+(k-1)*i/11);
+ else base=Array.from({length:12},(_,i)=>{
+  const group=Math.floor(i/4),j=i%4;
+  if(s.spectrum==="clustered")return levels[group];
+  if(group===0)return 1+s.width*(Math.sqrt(k)-1)*j/3;
+  if(group===2)return k-s.width*(k-Math.sqrt(k))*(3-j)/3;
+  return Math.sqrt(k)+s.width*Math.min(Math.sqrt(k)-1,k-Math.sqrt(k))*(2*j/3-1);
+ });
+ const lambda=base.map(v=>v*scale),n=lambda.length,truth=lambda.map((_,i)=>s.weights==="zero"?0:s.weights==="endpoints"?(i===0||i===n-1?1:0):1);
+ if(s.spectrum==="residual-rise"&&s.weights!=="zero"){truth[0]=1;truth[1]=.001;}
+ const x0=Array(n).fill(0),factor=10**s.preconditionExponent,
+  M=lambda.map((v,i)=>factor*(s.preconditioner==="none"?1:s.preconditioner==="jacobi"?v:v/[1,1.25,1.5][Math.min(2,Math.floor(3*i/n))]));
+ return{config:s,scale,base,lambda,M,truth,methods:[
+  {id:"cg",...cgRun(lambda,Array(n).fill(1),truth,x0,s.steps,s.tolerance)},
+  {id:"pcg",...cgRun(lambda,M,truth,x0,s.steps,s.tolerance)}
+ ]};
+}
+const eye=n=>Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>+(i===j))),copy=A=>A.map(r=>r.slice()),transpose=A=>A[0].map((_,j)=>A.map(r=>r[j])),mv=(A,x)=>A.map(r=>dot(r,x)),mm=(A,B)=>A.map(r=>transpose(B).map(c=>dot(r,c))),fro=A=>norm(A.flat()),msub=(A,B)=>A.map((r,i)=>sub(r,B[i]));
+function smallLS(H,rhs){
+ const m=H.length,n=H[0].length,R=copy(H),g=rhs.slice(),Qt=eye(m),rotations=[];
+ for(let j=0;j<n;j++)for(let i=m-1;i>j;i--){
+  const a=R[i-1][j],b=R[i][j],length=Math.hypot(a,b),c=length?a/length:1,s=length?b/length:0,before=copy(R),gBefore=g.slice();
+  for(let k=j;k<n;k++){const u=R[i-1][k],v=R[i][k];R[i-1][k]=c*u+s*v;R[i][k]=-s*u+c*v;}
+  for(let k=0;k<m;k++){const u=Qt[i-1][k],v=Qt[i][k];Qt[i-1][k]=c*u+s*v;Qt[i][k]=-s*u+c*v;}
+  const u=g[i-1],v=g[i];g[i-1]=c*u+s*v;g[i]=-s*u+c*v;R[i][j]=0;
+  rotations.push({j,i,a,b,length,c,s,before,after:copy(R),gBefore,gAfter:g.slice()});
+ }
+ const y=Array(n).fill(0);
+ for(let i=n-1;i>=0;i--){
+  if(R[i][i]===0||!Number.isFinite(R[i][i]))return{status:"rank-deficient-projection",H:copy(H),rhs:rhs.slice(),R,Qt,g,rotations,y:null,residual:null};
+  y[i]=(g[i]-dot(R[i].slice(i+1),y.slice(i+1)))/R[i][i];
+ }
+ const residual=sub(mv(H,y),rhs);
+ return{status:"ok",H:copy(H),rhs:rhs.slice(),R,Qt,g,rotations,y,residual,residualNorm:norm(residual),tailNorm:norm(g.slice(n))};
+}
+function gmresRun(A,b,M,restart,steps,tolerance,side="none"){
+ const n=A.length,bn=norm(b),an=fro(A);let x=Array(n).fill(0),status="iteration-budget",k=0,matvecs=0,preconditionerSolves=0;
+ const rows=[],cycles=[],records=[];
+ const apply=v=>{matvecs++;return mv(A,v);},solveM=v=>{preconditionerSolves++;return v.map((x,i)=>x/M[i]);};
+ const op=v=>side==="left"?solveM(apply(v)):side==="right"?apply(solveM(v)):apply(v);
+ function measure(x,cycle,inner,predicted){
+  const r=sub(b,apply(x)),weighted=side==="left"?solveM(r):r.slice(),rn=norm(r),wn=norm(weighted);
+  const weightedDenominator=rows.length?rows[0].weightedNorm:wn;
+  return{k,cycle,inner,x:x.slice(),r,weighted,rNorm:rn,relativeResidual:bn?rn/bn:0,weightedNorm:wn,relativeWeighted:weightedDenominator?wn/weightedDenominator:0,predicted,
+   predictionGap:predicted===null?null:Math.abs(wn-predicted),matvecs,preconditionerSolves};
+ }
+ const stopping=row=>row.rNorm===0?"zero-floating-residual":row.relativeResidual<=tolerance?"true-residual-threshold":null;
+ rows.push(measure(x,0,0,null));
+ while(k<steps){
+  const stop=stopping(rows.at(-1));if(stop){status=stop;break;}
+  const cycle=cycles.length,base=x.slice(),baseResidual=rows.at(-1).r.slice(),start=side==="left"?solveM(baseResidual):baseResidual.slice(),beta=norm(start);
+  if(beta===0){status="zero-transformed-residual";break;}
+  const V=[start.map(v=>v/beta)],H=Array.from({length:Math.min(restart,n)+1},()=>Array(Math.min(restart,n)).fill(0)),cycleRecord={cycle,startStep:k,base,baseResidual,start,beta,accepted:0};
+  cycles.push(cycleRecord);let endCycle=false;
+  for(let j=0;j<Math.min(restart,n)&&k<steps;j++){
+   const raw=op(V[j]),rawNorm=norm(raw),projections=[];let w=raw.slice();
+   for(let pass=0;pass<2;pass++)for(let i=0;i<=j;i++){
+    const coefficient=dot(V[i],w);H[i][j]+=coefficient;const before=w.slice();w=axpy(w,-coefficient,V[i]);
+    projections.push({pass,i,coefficient,before,after:w.slice()});
+   }
+   const h=norm(w),threshold=64*Number.EPSILON*rawNorm,nearBreakdown=h<=threshold;
+   H[j+1][j]=nearBreakdown?0:h;
+   if(!nearBreakdown)V.push(w.map(v=>v/h));
+   const basis=V.slice(0,j+1),barBasis=V.slice(0,j+2);
+   if(barBasis.length===j+1)barBasis.push(Array(n).fill(0));
+   const small=H.slice(0,j+2).map(r=>r.slice(0,j+1)),rhs=[beta,...Array(j+1).fill(0)],ls=smallLS(small,rhs);
+   const record={k:k+1,cycle,j,base:base.slice(),raw,rawNorm,projections,w:w.slice(),h,threshold,nearBreakdown,H:small,V:copy(basis),barV:copy(barBasis),ls,accepted:false};
+   if(ls.status!=="ok"){status=ls.status;records.push(record);endCycle=true;break;}
+   const correction=Array(n).fill(0);
+   for(let i=0;i<=j;i++)for(let l=0;l<n;l++)correction[l]+=ls.y[i]*basis[i][l];
+   const physical=side==="right"?solveM(correction):correction.slice();x=axpy(base,1,physical);k++;
+   const row=measure(x,cycle,j+1,ls.residualNorm),Vmat=transpose(basis),barMat=transpose(barBasis),
+    applied=basis.map(v=>side==="left"?mv(A,v).map((x,i)=>x/M[i]):side==="right"?mv(A,v.map((x,i)=>x/M[i])):mv(A,v)),
+    arnoldiGap=fro(msub(transpose(applied),mm(barMat,small))),orthogonality=fro(msub(mm(transpose(Vmat),Vmat),eye(j+1)));
+   // The following identities are diagnostics, not extra counted algorithm matvecs.
+   Object.assign(record,{accepted:true,correction,physical,x:x.slice(),arnoldiGap,orthogonality});
+   records.push(record);rows.push(row);cycleRecord.accepted++;
+   const finish=stopping(row);if(finish){status=finish;endCycle=true;break;}
+   if(nearBreakdown){status="arnoldi-near-breakdown";endCycle=true;break;}
   }
-
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
+  cycleRecord.endStep=k;cycleRecord.final=x.slice();
+  if(endCycle)break;
+ }
+ const stop=stopping(rows.at(-1));if(stop)status=stop;
+ return{side,A:copy(A),b:b.slice(),M:M.slice(),restart,steps,tolerance,n,status,rows,records,cycles,final:rows.at(-1),matvecs,preconditionerSolves,matrixNorm:an};
+}
+function gmresModel(raw={}){
+ const s=Object.assign({family:"grcar",gamma:1,restart:2,steps:24,tolerance:1e-12,scaleExponent:0,preconditionExponent:2},raw);
+ if(!["grcar","rotation","triangular"].includes(s.family))throw Error("family");
+ for(const[k,lo,hi,int]of[["gamma",0,10],["restart",1,6,true],["steps",1,48,true],["tolerance",1e-15,1e-3],["scaleExponent",-12,12,true],["preconditionExponent",-4,4,true]]){
+  const v=s[k];if(typeof v!=="number"||!Number.isFinite(v)||v<lo||v>hi||(int&&!Number.isInteger(v)))throw Error("invalid "+k);
+ }
+ const scale=10**s.scaleExponent,n=s.family==="rotation"?2:6;
+ let A;
+ if(s.family==="rotation")A=[[0,-scale],[scale,0]];
+ else if(s.family==="grcar")A=Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>scale*(i===j?1:i===j+1?-1:j>i&&j-i<=3?s.gamma:0)));
+ else A=Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>scale*(i===j?1+i/5:j===i+1?s.gamma:0)));
+ const b=Array.from({length:n},(_,i)=>s.family==="rotation"?(i===0?scale:0):scale),M=Array.from({length:n},(_,i)=>10**(s.preconditionExponent*i/(n-1))),ones=Array(n).fill(1);
+ return{config:s,scale,A,b,M,methods:[
+  {id:"full",...gmresRun(A,b,ones,n,s.steps,s.tolerance)},
+  {id:"restarted",...gmresRun(A,b,ones,s.restart,s.steps,s.tolerance)},
+  {id:"left",...gmresRun(A,b,M,s.restart,s.steps,s.tolerance,"left")},
+  {id:"right",...gmresRun(A,b,M,s.restart,s.steps,s.tolerance,"right")}
+ ]};
+}
+const DEFAULTS={mode:"cg",spectrum:"uniform",condition:25,width:.01,weights:"all",preconditioner:"group",scaleExponent:0,preconditionExponent:0,steps:24,tolerance:1e-12,family:"grcar",gamma:1,restart:2,metricExponent:2};
+function num(v,key,lo,hi,integer=false){
+ if(typeof v!=="number"&&typeof v!=="string")throw Error(key+"必须是有限数值");
+ if(typeof v==="string"){
+  v=v.trim();if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(v))throw Error(key+"不能为空或含非数字内容");
+  const original=v;v=Number(v);if(v===0&&/[1-9]/.test(original.split(/e/i)[0]))throw Error(key+"发生下溢");
+ }
+ if(!Number.isFinite(v)||v<lo||v>hi||(integer&&!Number.isInteger(v)))throw Error(key+"须在"+lo+"至"+hi+"之间"+(integer?"且为整数":""));
+ return v;
+}
+function config(raw={}){
+ if(!raw||typeof raw!=="object"||Array.isArray(raw))throw Error("配置须为对象");
+ const s=Object.assign({},DEFAULTS);
+ const pick=(key,choices)=>{s[key]=Object.hasOwn(raw,key)?raw[key]:s[key];if(!choices.includes(s[key]))throw Error("未知"+key);};
+ pick("mode",["cg","gmres","precondition"]);
+ const fields=[["scaleExponent",-12,12,true],["tolerance",1e-15,1e-3]];
+ if(s.mode==="cg"){
+  pick("spectrum",["uniform","clustered","near-cluster","scalar","residual-rise"]);pick("weights",["all","endpoints","zero"]);pick("preconditioner",["none","group","jacobi"]);
+  fields.push(["steps",1,64,true],["preconditionExponent",-12,12,true]);
+  if(!["scalar","residual-rise"].includes(s.spectrum))fields.push(["condition",1,1e6]);
+  if(s.spectrum==="near-cluster")fields.push(["width",0,.1]);
+ }else{
+  pick("family",["grcar","rotation","triangular"]);fields.push(["steps",1,48,true],["restart",1,6,true],["metricExponent",-4,4,true]);
+  if(s.family!=="rotation")fields.push(["gamma",0,10]);
+ }
+ for(const [key,lo,hi,int]of fields)s[key]=num(Object.hasOwn(raw,key)?raw[key]:s[key],key,lo,hi,int);
+ return s;
+}
+function snapshot(raw={}){const s=config(raw);return{config:s,result:s.mode==="cg"?cgModel(s):gmresModel({...s,preconditionExponent:s.metricExponent})};}
+const PRESETS=[
+ {id:"default",label:"CG：区间界与真实轨迹"},
+ {id:"cluster",label:"三个不同谱点",spectrum:"clustered"},
+ {id:"near-cluster",label:"三个有宽度的谱簇",spectrum:"near-cluster",condition:1000,width:.08},
+ {id:"endpoints",label:"只激发首尾两个方向",weights:"endpoints"},
+ {id:"zero",label:"初始残差确实为0",weights:"zero"},
+ {id:"scalar",label:"κ=1：预条件也可能多走几步",spectrum:"scalar"},
+ {id:"small-units",label:"单位缩小：仍检查相对真残差",scaleExponent:-12},
+ {id:"scaled-M",label:"把M放大，不伪造收敛",preconditioner:"none",preconditionExponent:12},
+ {id:"residual-rise",label:"CG残差首步上升4.95倍",spectrum:"residual-rise",preconditioner:"none"},
+ {id:"jacobi",label:"对角模型的Jacobi就是直接求解",preconditioner:"jacobi"},
+ {id:"gmres",label:"完整基与重启基",mode:"gmres"},
+ {id:"rotation-one",label:"旋转：GMRES(1)停滞",mode:"gmres",family:"rotation",restart:1},
+ {id:"rotation-two",label:"旋转：保留两步可解",mode:"gmres",family:"rotation",restart:2},
+ {id:"near-breakdown",label:"全维浮点结果仍需验真残差",mode:"gmres",family:"triangular",gamma:10,restart:6},
+ {id:"weighted",label:"加权下降，原残差反而上升",mode:"precondition",family:"grcar",gamma:0,restart:1},
+ {id:"identity-M",label:"左右都取M=I的对照",mode:"precondition",metricExponent:0}
+];
+const QUESTIONS=[
+ ["CG的精确算术最优性针对哪个量？",["A范数误差","所有误差和残差的每一种范数"],0,"A范数误差不增，不推出残差二范数单调。"],
+ ["可逆矩阵能保证GMRES(1)一定收敛吗？",["不能，重启可以不断丢掉有用方向","能，每周期至少使残差严格变小"],0,"旋转矩阵上最优第一步可以是零修正，每次重启又回到同一问题。"],
+ ["把M整体放大导致rᵀM⁻¹r很小，可以直接标记零残差吗？",["不能，应检查所声明的实际残差标准","可以，rho很小就是原方程已经解好"],0,"rho携带预条件器的尺度，不能替代原方程的真残差。"],
+ ["左预条件GMRES实际最小化什么？",["当前空间里的||M⁻¹r||₂","一定是原始||r||₂"],0,"左右预条件保留同一个解，却可能改变搜索空间与被最小化的范数。"]
+];
+function fmt(x){
+ if(x===null||x===undefined)return"—";if(typeof x==="boolean")return x?"是":"否";if(typeof x!=="number")return String(x);
+ if(!Number.isFinite(x))throw Error("不能显示非有限结果");if(Number.isInteger(x))return String(x);
+ return Math.abs(x)<1e-4||Math.abs(x)>=1e6?x.toExponential(8):String(Number(x.toPrecision(10)));
+}
+const B="#268bd2",O="#cb6a16",G="#29966c",R="#b44a72",V="#9966bb";
+const names={cg:"原始CG",pcg:"预条件CG",full:"完整GMRES",restarted:"重启GMRES",left:"左预条件",right:"右预条件"},colors={cg:B,pcg:O,full:G,restarted:B,left:R,right:O};
+const statusNames={"iteration-budget":"预算结束","zero-floating-residual":"浮点真残差为0","true-residual-threshold":"真残差达到阈值","nonpositive-rho":"rho非正或非有限","nonpositive-curvature":"方向曲率非正或非有限","zero-transformed-residual":"变换后残差为0但原残差未过关","rank-deficient-projection":"小最小二乘秩亏","arnoldi-near-breakdown":"Arnoldi近退化且真残差未过关",ok:"成功"};
+const series=(key,label,color,points,line=true)=>({key,label,color,points,line});
+function plot(title,x,y,ss,xmin,xmax){
+ const ys=ss.flatMap(s=>s.points.map(p=>p[1])),range=y.startsWith("log₁₀")?ys:[0,...ys],lo=range.length?Math.min(...range):0,hi=range.length?Math.max(...range):0,pad=(hi-lo||1)*.08;
+ return{title,x,y,series:ss,xmin,xmax:xmax>xmin?xmax:xmin+1,ymin:lo-pad,ymax:hi+pad,square:false,markers:[]};
+}
+function plots(d){
+ const s=d.config,p=d.result;
+ const traces=(key,log=true)=>p.methods.map(m=>series(m.id,names[m.id],colors[m.id],m.rows.flatMap(r=>r[key]!==null&&(!log||r[key]>0)?[[r.k,log?Math.log10(r[key]):r[key]]]:[]),!log));
+ if(s.mode==="cg")return[
+  plot("A范数误差与精确算术Chebyshev比较界","实际CG/PCG步数","log₁₀ 归一化A误差与区间界",p.methods.flatMap(m=>[
+   series(m.id,names[m.id]+"实际A误差",colors[m.id],m.rows.filter(r=>r.relativeAError>0).map(r=>[r.k,Math.log10(r.relativeAError)]),false),
+   series(m.id+"-bound",names[m.id]+"精确算术区间界",m.id==="cg"?G:R,m.rows.filter(r=>r.bound>0).map(r=>[r.k,Math.log10(r.bound)]),false)]),0,s.steps),
+  plot("真实残差允许上升；不会钳到1","实际CG/PCG步数","log₁₀ ||b−Ax||₂ / ||b||₂",traces("relativeResidual"),0,s.steps),
+  plot("递推与重算残差的差距，零留在表中","实际CG/PCG步数","log₁₀ ||r(rec)−r(true)||₂ / ||b||₂",traces("relativeGap"),0,s.steps),
+  plot("末步多项式作用，与实际方向误差比核对","原始方向索引i","滤波值（无初始误差的方向留空）",p.methods.flatMap(m=>[
+   series(m.id+"-poly",names[m.id]+"递推多项式",colors[m.id],m.final.poly.map((v,i)=>[i,v]),false),
+   series(m.id+"-actual",names[m.id]+"实际误差分量比",m.id==="cg"?G:R,m.final.actualFilter.flatMap((v,i)=>v===null?[]:[[i,v]]),false)]),0,p.lambda.length-1),
+  plot("同一输入方向：有效谱按自身最小值归一","原始方向索引i","μᵢ / μmin",p.methods.map(m=>series(m.id,names[m.id],colors[m.id],m.mu.map((v,i)=>[i,v/Math.min(...m.mu)]),false)),0,p.lambda.length-1),
+  plot("前三步放大：能量下降，不等于残差下降","实际CG/PCG步数（最多前三步）","相对初值的范数，保留真实零",p.methods.flatMap(m=>[
+   series(m.id+"-residual",names[m.id]+"真残差",colors[m.id],m.rows.filter(r=>r.k<=3).map(r=>[r.k,r.relativeResidual])),
+   series(m.id+"-energy",names[m.id]+"A误差",m.id==="cg"?G:R,m.rows.filter(r=>r.k<=3).map(r=>[r.k,r.relativeAError]),false)]),0,Math.min(3,s.steps))
+ ];
+ const result=[
+  plot("原方程真残差：所有方法按同一标准验收","全部周期累计接受步数","log₁₀ ||b−Ax||₂ / ||b||₂",traces("relativeResidual"),0,s.steps),
+  plot("各方法正在最小化的范数，分母取各自初值","全部周期累计接受步数","log₁₀ 相对目标残差（左侧为加权范数）",traces("relativeWeighted"),0,s.steps),
+  plot("小最小二乘预测与实际目标残差的差距","全部周期累计接受步数","log₁₀ 预测差 / 初始目标残差",p.methods.map(m=>series(m.id,names[m.id],colors[m.id],m.rows.filter(r=>r.predictionGap!==null&&r.predictionGap>0).map(r=>[r.k,Math.log10(r.predictionGap/m.rows[0].weightedNorm)]),false)),0,s.steps),
+  plot("两遍正交化后的实际基正交性","全部周期累计接受步数","log₁₀ ||VᵀV−I||F",p.methods.map(m=>series(m.id,names[m.id],colors[m.id],m.records.filter(r=>r.accepted&&r.orthogonality>0).map(r=>[r.k,Math.log10(r.orthogonality)]),false)),0,s.steps)
+ ];
+ if(s.mode==="precondition")result.push(plot("同一运行的两种残差：左侧可以背向变化","全部周期累计接受步数","各自初值归一的残差",p.methods.filter(m=>m.id==="left"||m.id==="right").flatMap(m=>[
+  series(m.id+"-true",names[m.id]+"原始残差",colors[m.id],m.rows.map(r=>[r.k,r.relativeResidual])),
+  series(m.id+"-weighted",names[m.id]+"目标残差",m.id==="left"?V:B,m.rows.map(r=>[r.k,r.relativeWeighted]),false)]),0,s.steps));
+ if(s.mode==="gmres")result.push(plot("线性刻度保留零：比较原始残差","全部周期累计接受步数","||b−Ax||₂ / ||b||₂（含真实零）",traces("relativeResidual",false),0,s.steps));
+ return result;
+}
+function ledgers(d){
+ const s=d.config,p=d.result,t=(key,title,headers,rows)=>({key,title,headers,rows}),col=x=>x.map(v=>[v]),
+  matrices=objects=>Object.entries(objects).flatMap(([key,A])=>A.flatMap((r,i)=>r.map((v,j)=>[key,i,j,v])));
+ if(s.mode==="cg")return[
+  t("summary","CG问题、预条件与停止规则",["量","值"],[["谱类型",s.spectrum],["初始权重",s.weights],["维数",p.lambda.length],["原始谱条件数",Math.max(...p.lambda)/Math.min(...p.lambda)],["共同单位尺度",p.scale],["预条件类型",s.preconditioner],["M额外共同因子",10**s.preconditionExponent],["真残差相对阈值",s.tolerance],["步数预算",s.steps]]),
+  t("methods","实际停止状态，不能用rho代替真残差",["方法","停止原因","接受步数","κeff","相对A误差","相对真残差","递推gap","矩阵乘向量次数","非平凡预条件求解次数"],p.methods.map(m=>[names[m.id],statusNames[m.status],m.final.k,m.kappa,m.final.relativeAError,m.final.relativeResidual,m.final.gap,m.matvecs,m.preconditionerSolves])),
+  t("input","完整对角输入、理想向量与实际输入的对角参考",["方法","i","λᵢ","mᵢ","μᵢ","bᵢ","理想数据向量","实际bᵢ/λᵢ参考","x0","初始误差","初始残差","初始A能量权重"],p.methods.flatMap(m=>m.lambda.map((v,i)=>[names[m.id],i,v,m.M[i],m.mu[i],m.b[i],m.idealTruth[i],m.truth[i],m.x0[i],m.e0[i],m.r0[i],m.rows[0].weights[i]]))),
+  t("trace","每一步的不同误差和实际调用量",["方法","k","A误差","归一A误差","真残差","相对真残差","递推残差","递推gap","相对gap","rho","精确算术Cheb界","matvec","M求解"],p.methods.flatMap(m=>m.rows.map(r=>[names[m.id],r.k,r.aError,r.relativeAError,r.actualNorm,r.relativeResidual,r.recurrenceNorm,r.gap,r.relativeGap,r.rho,r.bound,r.matvecs,r.preconditionerSolves]))),
+  t("vectors","每一步的完整向量与逐方向多项式",["方法","k","i","xᵢ","eᵢ","r(rec)ᵢ","r(true)ᵢ","多项式P(μᵢ)","方向多项式S(μᵢ)","实际误差比","误差与P e0之差"],p.methods.flatMap(m=>m.rows.flatMap(r=>r.x.map((v,i)=>[names[m.id],r.k,i,v,r.error[i],r.r[i],r.actualResidual[i],r.poly[i],r.directionPoly[i],r.actualFilter[i],r.filterGap[i]])))),
+  t("updates","所有更新系数，未接受步骤也保留",["方法","k","接受","rho前","pᵀAp","α","β","rho后"],p.methods.flatMap(m=>m.records.map(r=>[names[m.id],r.k,r.accepted,r.before.rho,r.curvature,r.alpha,r.beta,r.rhoNext]))),
+  t("update-vectors","每次递推的所有输入与输出",["方法","k","对象","i","j","值"],p.methods.flatMap(m=>m.records.flatMap(r=>{
+   const a={xBefore:col(r.before.x),rBefore:col(r.before.r),zBefore:col(r.before.z),pBefore:col(r.before.p),Ap:col(r.Ap),polyBefore:col(r.before.poly),directionPolyBefore:col(r.before.directionPoly)};
+   if(r.accepted)Object.assign(a,{zNext:col(r.zNext),pNext:col(r.pNext)});
+   return matrices(a).map(v=>[names[m.id],r.k,...v]);
+  }))),
+  t("conjugacy","全部搜索方向的实际归一A内积",["方法","方向i","方向j","pᵢᵀApⱼ / (||pᵢ||A ||pⱼ||A)"],p.methods.flatMap(m=>m.conjugacy.flatMap((r,i)=>r.map((v,j)=>[names[m.id],i,j,v]))))
+ ];
+ return[
+  t("summary","GMRES输入、重启与原残差标准",["量","值"],[["矩阵族",s.family],["维数",p.A.length],["γ",s.family==="rotation"?null:s.gamma],["共同尺度",p.scale],["重启预算",s.restart],["总接受步数预算",s.steps],["真残差相对阈值",s.tolerance],["M最大指数",s.metricExponent],["近退化阈值","64u ||算子v||₂"]]),
+  t("methods","四种实际运行与各自停止原因",["方法","预条件侧","停止原因","接受步数","周期数","实际周期维数上限","原始相对残差","相对目标残差","matvec","M求解"],p.methods.map(m=>[names[m.id],m.side,statusNames[m.status],m.final.k,m.cycles.length,Math.min(m.restart,m.n),m.final.relativeResidual,m.final.relativeWeighted,m.matvecs,m.preconditionerSolves])),
+  t("input","完整A、b和每种运行的M",["方法","对象","i","j","值"],p.methods.flatMap(m=>matrices({A:m.A,b:col(m.b),Mdiagonal:col(m.M)}).map(v=>[names[m.id],...v]))),
+  t("trace","每一步原始残差、目标残差和预测差",["方法","k","周期","周期内步","原始残差","原始相对残差","目标残差","目标相对残差","小LS预测残差","预测绝对差","matvec","M求解"],p.methods.flatMap(m=>m.rows.map(r=>[names[m.id],r.k,r.cycle,r.inner,r.rNorm,r.relativeResidual,r.weightedNorm,r.relativeWeighted,r.predicted,r.predictionGap,r.matvecs,r.preconditionerSolves]))),
+  t("vectors","全部解、原始残差与目标残差向量",["方法","k","对象","i","j","值"],p.methods.flatMap(m=>m.rows.flatMap(r=>matrices({x:col(r.x),residual:col(r.r),targetResidual:col(r.weighted)}).map(v=>[names[m.id],r.k,...v])))),
+  t("cycles","每次重启的实际起点",["方法","周期","起始总步","终止总步","接受步","β","对象","i","j","值"],p.methods.flatMap(m=>m.cycles.flatMap(c=>matrices({base:col(c.base),baseResidual:col(c.baseResidual),start:col(c.start),final:col(c.final||c.base)}).map(v=>[names[m.id],c.cycle,c.startStep,c.endStep,c.accepted,c.beta,...v])))),
+  t("arnoldi","每步Arnoldi与近退化判据",["方法","k","周期","内索引j","接受","||算子v||","剩余h","阈值","近退化","实际Arnoldi缺陷","基正交缺陷","小LS状态"],p.methods.flatMap(m=>m.records.map(r=>[names[m.id],r.k,r.cycle,r.j,r.accepted,r.rawNorm,r.h,r.threshold,r.nearBreakdown,r.arnoldiGap,r.orthogonality,statusNames[r.ls.status]]))),
+  t("bases","所有基、小H与物理修正的全部元素",["方法","k","对象","i","j","值"],p.methods.flatMap(m=>m.records.flatMap(r=>{
+   const a={H:r.H,V_as_columns:transpose(r.V),barV_as_columns:transpose(r.barV),raw:col(r.raw),remaining:col(r.w),base:col(r.base)};
+   if(r.accepted)Object.assign(a,{correction:col(r.correction),physical:col(r.physical),x:col(r.x)});
+   return matrices(a).map(v=>[names[m.id],r.k,...v]);
+  }))),
+  t("projections","两遍MGS每个投影与工作向量",["方法","k","投影次序","遍","基索引","系数","坐标","之前","之后"],p.methods.flatMap(m=>m.records.flatMap(r=>r.projections.flatMap((v,j)=>v.before.map((x,i)=>[names[m.id],r.k,j,v.pass,v.i,v.coefficient,i,x,v.after[i]]))))),
+  t("least-squares","每个小最小二乘的全部矩阵和向量",["方法","k","对象","i","j","值"],p.methods.flatMap(m=>m.records.flatMap(r=>{
+   const v=r.ls,a={H:v.H,R:v.R,Qt:v.Qt,rhs:col(v.rhs),g:col(v.g)};
+   if(v.y)Object.assign(a,{y:col(v.y),residual:col(v.residual)});
+   return matrices(a).map(z=>[names[m.id],r.k,...z]);
+  }))),
+  t("rotations","小最小二乘Givens的全部参数",["方法","k","旋转次序","列j","下行i","a","b","hypot","c","s"],p.methods.flatMap(m=>m.records.flatMap(r=>r.ls.rotations.map((v,i)=>[names[m.id],r.k,i,v.j,v.i,v.a,v.b,v.length,v.c,v.s])))),
+  t("rotation-matrices","所有Givens旋转前后的矩阵与右端",["方法","k","旋转次序","对象","i","j","值"],p.methods.flatMap(m=>m.records.flatMap(r=>r.ls.rotations.flatMap((v,i)=>matrices({before:v.before,after:v.after,gBefore:col(v.gBefore),gAfter:col(v.gAfter)}).map(z=>[names[m.id],r.k,i,...z])))))
+ ];
+}
+ const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const tick=v=>v===0?"0":Math.abs(v)<1e-3||Math.abs(v)>=1e4?v.toExponential(2):String(Number(v.toPrecision(4)));
+ function svg(q){
+  const left=q.square?325:100,width=q.square?250:750,height=250,top=85,bottom=335,x=v=>left+width*(v-q.xmin)/(q.xmax-q.xmin),y=v=>bottom-height*(v-q.ymin)/(q.ymax-q.ymin);
+  let s='<svg xmlns="http://www.w3.org/2000/svg" width="900" height="425" role="img" aria-label="'+esc(q.title)+'"><title>'+esc(q.title)+'</title><text x="25" y="32" font-size="22">'+esc(q.title)+'</text>';
+  for(let i=0;i<(q.square?3:5);i++){
+   const v=q.ymin+(q.ymax-q.ymin)*i/(q.square?2:4);
+   s+='<path d="M'+left+' '+y(v)+'H'+(left+width)+'" stroke="currentColor" opacity=".18"/><text x="'+(left-12)+'" y="'+(y(v)+5)+'" text-anchor="end">'+tick(v)+'</text>';
   }
-
-  function copyArray(values) {
-    return values.slice();
+  const ticks=q.xTicks||Array.from({length:5},(_,i)=>q.xmin+(q.xmax-q.xmin)*i/4);
+  for(const v of ticks)s+='<text x="'+x(v)+'" y="'+(bottom+28)+'" text-anchor="middle">'+tick(v)+'</text>';
+  if(q.ymin<=0&&q.ymax>=0)s+='<line data-zero="true" x1="'+left+'" x2="'+(left+width)+'" y1="'+y(0)+'" y2="'+y(0)+'" stroke="currentColor" opacity=".7"/>';
+  s+='<text x="'+left+'" y="65">'+esc(q.y)+'</text><text x="'+(left+width/2)+'" y="'+(bottom+63)+'" text-anchor="middle">'+esc(q.x)+'</text>';
+  for(const series of q.series){
+   if(series.area)s+='<rect data-area="'+series.key+'" x="'+x(series.points[0][0])+'" y="'+y(series.points[0][1])+'" width="'+(x(series.points[1][0])-x(series.points[0][0]))+'" height="'+(y(0)-y(series.points[0][1]))+'" fill="'+series.color+'" opacity=".12"/>';
+   if(series.line)s+='<polyline data-series="'+series.key+'" points="'+series.points.map(p=>x(p[0])+','+y(p[1])).join(" ")+'" stroke="'+series.color+'" stroke-width="2" fill="none"/>';
+   series.points.forEach((p,i)=>{const open=series.endOpen&&i===series.points.length-1;s+='<circle data-series="'+series.key+'" data-index="'+i+'" data-open="'+!!open+'" cx="'+x(p[0])+'" cy="'+y(p[1])+'" r="'+(series.endOpen?3.5:series.line?1.8:3.5)+'" fill="'+(open?"var(--bg,#faf7ef)":series.color)+'" stroke="'+series.color+'"/>';});
   }
-
-  function dot(a, b) {
-    var total = 0;
-    for (var i = 0; i < a.length; i += 1) total += a[i] * b[i];
-    return total;
+  for(const [i,m]of (q.markers||[]).entries()){
+   const px=x(m.x),right=px>700;
+   s+='<line data-marker="'+i+'" x1="'+px+'" x2="'+px+'" y1="'+top+'" y2="'+bottom+'" stroke="currentColor" stroke-dasharray="5 5" opacity=".65"/><text x="'+(px+(right?-4:4))+'" y="'+(80+25*q.markers.slice(0,i).filter(p=>Math.abs(px-x(p.x))<110).length)+'" font-size="13" text-anchor="'+(right?'end':'start')+'">'+esc(m.label)+'</text>';
   }
+  return s+"</svg>";
+ }
 
-  function norm2(values) {
-    var squared = dot(values, values);
-    return Math.sqrt(Math.max(0, squared));
+ const STYLE=".krylov145{color:var(--fg,#273646)}.krylov145 .krylov-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}.krylov145 label{display:flex;flex-direction:column;gap:6px}.krylov145 input,.krylov145 select{font:inherit;padding:8px;max-width:100%;background:var(--bg,#fff);color:inherit;border:1px solid #8b98a0;border-radius:5px}.krylov145 button{font:inherit;padding:8px 12px;margin:5px;cursor:pointer}.krylov145 button[aria-pressed=true]{outline:3px solid #478aaa}.krylov145 .krylov-scroll{overflow:auto;max-width:100%;margin:16px 0}.krylov145 .krylov-scroll:focus{outline:3px solid #478aaa}.krylov145 .krylov-ledger{max-height:420px}.krylov145 svg{width:900px!important;max-width:none!important;display:block;fill:currentColor;font:16px system-ui}.krylov145 table{display:table;overflow:visible;width:max-content;max-width:none;min-width:900px;border-collapse:collapse;font-variant-numeric:tabular-nums}.krylov145 th,.krylov145 td{padding:9px;border:1px solid #98a4ab;text-align:left;white-space:nowrap}.krylov145 .krylov-error{color:#c74b39}.krylov145 [hidden]{display:none!important}.krylov145 fieldset{margin:16px 0;padding:12px}.krylov145 details{margin:16px 0}.krylov145 summary{cursor:pointer;font-weight:600}.krylov145 .krylov-legend{font-size:.95em}.krylov145 .krylov-note{line-height:1.7}.krylov145 [hidden]{display:none!important}.krylov145 select{font:inherit;color:var(--fg,#282820);background:var(--bg,#faf7ef);padding:8px;max-width:100%}";
+ function mount(container){
+  const doc=container.ownerDocument;
+  if(!doc.getElementById("krylov145-style")){const style=doc.createElement("style");style.id="krylov145-style";style.textContent=STYLE;doc.head.appendChild(style);}
+  const field=(key,label,modes,extra="")=>'<label data-modes="'+modes+'" '+extra+'>'+label+'<input data-key="'+key+'" type="number" step="any"></label>';
+  container.innerHTML='<div class="krylov145"><h3>算法在变小的，是哪一种误差？</h3><p>先预测，再查看真实递推、全部基与每个残差。</p><div class="krylov-presets">'+PRESETS.map(p=>'<button type="button" data-preset="'+p.id+'">'+esc(p.label)+'</button>').join("")+'</div><div class="krylov-controls"><label>实验<select data-key="mode"><option value="cg">CG、谱与能量</option><option value="gmres">GMRES与重启</option><option value="precondition">左右预条件与两种残差</option></select></label>'+
+   '<label data-modes="cg">谱类型<select data-key="spectrum"><option value="uniform">均匀谱</option><option value="clustered">三个重复谱点</option><option value="near-cluster">三个有宽度的簇</option><option value="scalar">标量矩阵7I</option><option value="residual-rise">残差上升的2维算例</option></select></label>'+
+   field("condition","谱端点比κ（1–10⁶）","cg",'data-spectra="uniform clustered near-cluster"')+
+   field("width","簇宽参数（0–0.1）","cg",'data-spectra="near-cluster"')+
+   '<label data-modes="cg">初始误差方向<select data-key="weights"><option value="all">全部方向</option><option value="endpoints">仅首尾方向</option><option value="zero">零右端、零初值</option></select></label>'+
+   '<label data-modes="cg">第二条运行的M<select data-key="preconditioner"><option value="none">共同因子乘I</option><option value="group">透明谱分组</option><option value="jacobi">Jacobi对角</option></select></label>'+
+   field("preconditionExponent","M共同因子10的指数（−12–12整数）","cg")+
+   '<label data-modes="gmres precondition">矩阵族<select data-key="family"><option value="grcar">六维Grcar族</option><option value="rotation">二维90°旋转</option><option value="triangular">六维上三角族</option></select></label>'+
+   field("gamma","上三角耦合γ（0–10）","gmres precondition",'data-families="grcar triangular"')+
+   field("restart","每周期最多维数m（1–6整数）","gmres precondition")+
+   field("metricExponent","M对角从1到10的指数（−4–4整数）","gmres precondition")+
+   field("steps","总步数预算（CG≤64，GMRES≤48整数）","cg gmres precondition")+
+   field("tolerance","相对真残差阈值（10⁻¹⁵–10⁻³）","cg gmres precondition")+
+   field("scaleExponent","A与b共同缩放10的指数（−12–12整数）","cg gmres precondition")+'</div>'+
+   QUESTIONS.map((q,i)=>'<fieldset data-question="'+i+'"><legend>'+(i+1)+'. '+esc(q[0])+'</legend>'+q[1].map((v,j)=>'<button type="button" data-choice="'+j+'" aria-pressed="false">'+esc(v)+'</button>').join("")+'</fieldset>').join("")+
+   '<button type="button" data-action="reveal">揭示图与完整账本</button><button type="button" data-action="reset">重置预测</button><p class="krylov-error" role="alert"></p><p role="status"></p><div class="krylov-results" hidden></div></div>';
+  const fields=Array.from(container.querySelectorAll("[data-key]")),answers=Array(4).fill(null),result=container.querySelector(".krylov-results"),reveal=container.querySelector("[data-action=reveal]"),feedback=container.querySelector("[role=status]"),error=container.querySelector("[role=alert]");
+  fields.forEach(e=>e.value=DEFAULTS[e.dataset.key]);
+  let revealed=false,valid=null;
+  function render(d){
+   const notes={cg:"两条运行求解相同的对角系统。CG最小化A范数误差，原始残差可以上升；Chebyshev线是精确算术比较界，不是包含舍入的工程保证。PCG的M每项都公开，M整体缩放不应伪造成功。初始误差严格为0的方向不定义滤波比；生成数据向量与实际bᵢ/λᵢ参考单独列出。",gmres:"所有运行执行两遍MGS Arnoldi和真实Givens小最小二乘。完整GMRES最多保留n维，重启方法每周期最多保留min(m,n)维；真实原残差统一判停。近退化的剩余向量、阈值和实际Arnoldi缺陷都保留，未过原残差标准不能宣称完成。",precondition:"左预条件最小化||M⁻¹r||₂；右预条件最小化原始||r||₂。两种曲线各按自己的初始范数归一，原始残差仍按同一个阈值验收。默认加权反例可使目标残差下降而原始残差上升；M=I预设提供直接对照。"};
+   result.innerHTML='<p>'+notes[d.config.mode]+'</p>'+
+    plots(d).map(q=>'<p>'+q.series.filter((s,i,ss)=>ss.findIndex(t=>t.label===s.label&&t.color===s.color)===i).map(s=>esc(s.label)+'（'+({"#268bd2":"蓝","#cb6a16":"橙","#29966c":"绿","#9966bb":"紫","#b44a72":"玫红"}[s.color])+'）').join("；")+'</p><div class="krylov-scroll" role="region" tabindex="0" aria-label="'+esc(q.title)+'">'+svg(q)+'</div>').join("")+
+    ledgers(d).map(t=>'<details data-ledger="'+t.key+'"'+(t.key==="summary"?' open':"")+'><summary>'+esc(t.title)+'（'+t.rows.length+' 行）</summary><div class="krylov-scroll krylov-ledger" role="region" tabindex="0" aria-label="'+esc(t.title)+'"><table data-table="'+t.key+'"><thead><tr>'+t.headers.map(x=>'<th scope="col">'+esc(x)+'</th>').join("")+'</tr></thead><tbody>'+t.rows.map(r=>'<tr>'+r.map(x=>'<td>'+esc(fmt(x))+'</td>').join("")+'</tr>').join("")+'</tbody></table></div></details>').join("")+
+    '<p>“—”表示不适用、未定义或失败，不是0。对数图仅显示严格正的实际值；真实0与超过1的残差都未钳制。次数列统计求解及显式残差检查调用；额外的恒等式诊断不计入算法调用。这里逐步重建小QR，不能将其耗时当作优化库性能。有限浮点实验不替代理论证明。</p>';
   }
-
-  function diagonalApply(diagonal, vector) {
-    return vector.map(function (value, index) { return diagonal[index] * value; });
+  function update(){
+   const raw=Object.fromEntries(fields.map(e=>[e.dataset.key,e.value]));
+   container.querySelectorAll("[data-modes]").forEach(e=>e.hidden=!e.dataset.modes.split(" ").includes(raw.mode)||(raw.mode==="cg"&&e.dataset.spectra&&!e.dataset.spectra.split(" ").includes(raw.spectrum))||(raw.mode!=="cg"&&e.dataset.families&&!e.dataset.families.split(" ").includes(raw.family)));
+   try{valid=config(raw);error.textContent="";}catch(e){valid=null;revealed=false;error.textContent=e.message;}
+   reveal.disabled=!valid||answers.some(x=>x===null);result.hidden=!revealed;
+   if(revealed&&valid)render(snapshot(valid));
+   feedback.textContent=revealed?answers.filter((x,i)=>x===QUESTIONS[i][2]).length+" / 4。"+QUESTIONS.map(q=>q[3]).join(" "):"";
   }
+  fields.forEach(e=>e.addEventListener(e.tagName==="SELECT"?"change":"input",update));
+  container.querySelectorAll("[data-choice]").forEach(b=>b.addEventListener("click",()=>{
+   const i=Number(b.closest("[data-question]").dataset.question);answers[i]=Number(b.dataset.choice);b.parentElement.querySelectorAll("[data-choice]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));update();
+  }));
+  container.querySelectorAll("[data-preset]").forEach(b=>b.addEventListener("click",()=>{
+   const s=Object.assign({},DEFAULTS,PRESETS.find(p=>p.id===b.dataset.preset));fields.forEach(e=>e.value=s[e.dataset.key]);update();
+  }));
+  reveal.addEventListener("click",()=>{if(!reveal.disabled){revealed=true;update();}});
+  container.querySelector("[data-action=reset]").addEventListener("click",()=>{answers.fill(null);revealed=false;container.querySelectorAll("[data-choice]").forEach(b=>b.setAttribute("aria-pressed","false"));update();container.querySelector("[data-choice]").focus();});
+  update();
+ }
 
-  function subtract(a, b) {
-    return a.map(function (value, index) { return value - b[index]; });
-  }
 
-  function addScaled(a, b, scale) {
-    return a.map(function (value, index) { return value + scale * b[index]; });
-  }
 
-  function scaleVector(values, scale) {
-    return values.map(function (value) { return value * scale; });
-  }
 
-  function maxAbs(values) {
-    var maximum = 0;
-    values.forEach(function (value) { maximum = Math.max(maximum, Math.abs(value)); });
-    return maximum;
-  }
 
-  function vectorDifferenceNorm(a, b) {
-    return norm2(a.map(function (value, index) { return value - b[index]; }));
-  }
 
-  function nearlyEqual(a, b, tolerance) {
-    return Math.abs(a - b) <= tolerance * Math.max(1, Math.abs(a), Math.abs(b));
-  }
 
-  function linspace(start, end, count) {
-    if (count < 1) return [];
-    if (count === 1) return [start];
-    var step = (end - start) / (count - 1);
-    return Array.apply(null, Array(count)).map(function (_, index) {
-      return start + index * step;
-    });
-  }
 
-  function repeated(values) {
-    var result = [];
-    values.forEach(function (item) {
-      for (var i = 0; i < item.count; i += 1) result.push(item.value);
-    });
-    return result;
-  }
 
-  function allOnes(count) {
-    return Array.apply(null, Array(count)).map(function () { return 1; });
-  }
 
-  function onlyEndpointWeights(count) {
-    var weights = Array.apply(null, Array(count)).map(function () { return 0; });
-    if (count > 0) weights[0] = 1;
-    if (count > 1) weights[count - 1] = 1;
-    return weights;
-  }
 
-  function spectralBucketPreconditioner(values, bucketLevels) {
-    var result = Array(values.length).fill(1);
-    var groupSize = Math.ceil(values.length / bucketLevels.length);
-    for (var index = 0; index < values.length; index += 1) {
-      var bucket = Math.min(bucketLevels.length - 1, Math.floor(index / groupSize));
-      result[index] = values[index] / bucketLevels[bucket];
-    }
-    return result;
-  }
 
-  function cloneSystemSpec(system) {
-    return {
-      id: system.id,
-      label: system.label,
-      description: system.description,
-      lambdas: copyArray(system.lambdas),
-      xTrue: copyArray(system.xTrue),
-      x0: system.x0 ? copyArray(system.x0) : undefined,
-      b: system.b ? copyArray(system.b) : undefined,
-      preconditioner: system.preconditioner ? copyArray(system.preconditioner) : undefined
-    };
-  }
 
-  function createPresets() {
-    var uniform = linspace(1, 25, 12);
-    var clustered = repeated([
-      { count: 4, value: 1 },
-      { count: 4, value: 8 },
-      { count: 4, value: 25 }
-    ]);
-    var preconditioner = spectralBucketPreconditioner(uniform, [1, 1.25, 1.5]);
-    var boundaryLambdas = repeated([{ count: 4, value: 7 }]);
-    return [
-      {
-        id: "same-kappa",
-        label: "同 κ：均匀谱 vs 三簇谱",
-        shortLabel: "同 κ 谱形",
-        question: "在相同 κ=25、相同初始权重下，哪一组会更早收敛？",
-        expected: "clustered",
-        description: "两个 n=12 的对角 SPD 系统都有 λmin=1、λmax=25；一个均匀铺开，一个只落在三个特征值簇上。",
-        systems: [
-          {
-            id: "uniform",
-            label: "均匀谱",
-            description: "12 个特征值均匀铺在 [1,25]",
-            lambdas: uniform,
-            xTrue: allOnes(12)
-          },
-          {
-            id: "clustered",
-            label: "三簇谱",
-            description: "λ=1、8、25 各重复 4 次",
-            lambdas: clustered,
-            xTrue: allOnes(12)
-          }
-        ]
-      },
-      {
-        id: "direction-weights",
-        label: "同谱：初始方向权重",
-        shortLabel: "方向权重",
-        question: "同一个均匀谱下，哪一种初始误差会让 CG 更早结束？",
-        expected: "endpoints",
-        description: "矩阵和 κ 完全不变，只改变 e₀ 在特征向量方向上的权重；零权重方向不会出现在这次问题的误差多项式里。",
-        systems: [
-          {
-            id: "visible",
-            label: "所有方向可见",
-            description: "e₀ 在 12 个对角特征方向都有权重",
-            lambdas: uniform,
-            xTrue: allOnes(12)
-          },
-          {
-            id: "endpoints",
-            label: "只看首尾方向",
-            description: "e₀ 只落在 λ=1 与 λ=25 方向",
-            lambdas: uniform,
-            xTrue: onlyEndpointWeights(12)
-          }
-        ]
-      },
-      {
-        id: "preconditioned",
-        label: "透明预条件：分组对角 M",
-        shortLabel: "预条件",
-        question: "把均匀谱交给分组对角预条件器后，哪一条会更早收敛？",
-        expected: "pcg",
-        description: "同一 A 与同一 b；PCG 使用透明的谱分箱对角 M，把有效谱 μᵢ=λᵢ/mᵢ 压成三个值。这个 M 是教学 toy，不冒充通用工业预条件器。",
-        systems: [
-          {
-            id: "raw",
-            label: "原始 CG",
-            description: "M=I，直接在 A 上迭代",
-            lambdas: uniform,
-            xTrue: allOnes(12)
-          },
-          {
-            id: "pcg",
-            label: "PCG · 分组 M",
-            description: "M 的每组条目为 λᵢ/[1,1.25,1.5]；μᵢ 恰为三档",
-            lambdas: uniform,
-            xTrue: allOnes(12),
-            preconditioner: preconditioner
-          }
-        ]
-      },
-      {
-        id: "boundaries",
-        label: "边界：κ=1 与零残差",
-        shortLabel: "边界情况",
-        question: "哪个边界状态不需要真正做一次矩阵乘向量？",
-        expected: "zero",
-        description: "用同一个标量谱检查 κ=1 的一步解和 r₀=0 的零步解；这两种情况不能塞进通用公式的除法里。",
-        systems: [
-          {
-            id: "kappa-one",
-            label: "κ=1：一步精确",
-            description: "A=7I，非零初始误差",
-            lambdas: boundaryLambdas,
-            xTrue: [1, 0.5, -1, 2]
-          },
-          {
-            id: "zero",
-            label: "零残差：零步",
-            description: "x₀=x*=0，所以 b-Ax₀=0",
-            lambdas: boundaryLambdas,
-            xTrue: [0, 0, 0, 0]
-          }
-        ]
-      }
-    ];
-  }
 
-  var PRESETS = createPresets();
-
-  function getPreset(id) {
-    for (var i = 0; i < PRESETS.length; i += 1) {
-      if (PRESETS[i].id === id) return PRESETS[i];
-    }
-    return PRESETS[0];
-  }
-
-  function clonePreset(preset) {
-    return {
-      id: preset.id,
-      label: preset.label,
-      shortLabel: preset.shortLabel,
-      question: preset.question,
-      expected: preset.expected,
-      description: preset.description,
-      systems: preset.systems.map(cloneSystemSpec)
-    };
-  }
-
-  function normalizeSystem(spec) {
-    if (!spec || !Array.isArray(spec.lambdas) || !spec.lambdas.length) {
-      throw new Error("CG system needs a non-empty diagonal spectrum");
-    }
-    if (spec.lambdas.length > MAX_DIM) {
-      throw new Error("CG teaching model is intentionally limited to n=" + MAX_DIM);
-    }
-    var lambdas = spec.lambdas.map(function (value, index) {
-      var lambda = Number(value);
-      if (!isFiniteNumber(lambda) || lambda <= 0) {
-        throw new Error("SPD diagonal entry must be positive at index " + index);
-      }
-      return lambda;
-    });
-    var n = lambdas.length;
-    var xTrue = spec.xTrue === undefined
-      ? allOnes(n)
-      : spec.xTrue.map(Number);
-    if (xTrue.length !== n || xTrue.some(function (value) { return !isFiniteNumber(value); })) {
-      throw new Error("xTrue must have one finite entry per diagonal direction");
-    }
-    var x0 = spec.x0 === undefined ? Array(n).fill(0) : spec.x0.map(Number);
-    if (x0.length !== n || x0.some(function (value) { return !isFiniteNumber(value); })) {
-      throw new Error("x0 must have one finite entry per diagonal direction");
-    }
-    var b = spec.b === undefined
-      ? diagonalApply(lambdas, xTrue)
-      : spec.b.map(Number);
-    if (b.length !== n || b.some(function (value) { return !isFiniteNumber(value); })) {
-      throw new Error("b must have one finite entry per diagonal direction");
-    }
-    var hasPreconditioner = spec.preconditioner !== undefined || spec.M !== undefined;
-    var mInput = spec.preconditioner !== undefined ? spec.preconditioner : spec.M;
-    var preconditioner = mInput === undefined ? Array(n).fill(1) : mInput.map(Number);
-    if (preconditioner.length !== n || preconditioner.some(function (value) {
-      return !isFiniteNumber(value) || value <= 0;
-    })) {
-      throw new Error("diagonal preconditioner must be positive and match n");
-    }
-    var requestedSteps = spec.maxSteps === undefined ? n : Number(spec.maxSteps);
-    if (!isFiniteNumber(requestedSteps)) requestedSteps = n;
-    requestedSteps = Math.floor(requestedSteps);
-    var maxSteps = clamp(requestedSteps, 0, n);
-    var tolerance = spec.tol === undefined ? 1e-12 : Number(spec.tol);
-    if (!isFiniteNumber(tolerance) || tolerance < 0) {
-      throw new Error("tol must be a finite non-negative number");
-    }
-    var effectiveSpectrum = lambdas.map(function (lambda, index) {
-      return lambda / preconditioner[index];
-    });
-    var lambdaMin = Math.min.apply(null, lambdas);
-    var lambdaMax = Math.max.apply(null, lambdas);
-    var effectiveMin = Math.min.apply(null, effectiveSpectrum);
-    var effectiveMax = Math.max.apply(null, effectiveSpectrum);
-    return {
-      id: spec.id || "system",
-      label: spec.label || "对角 SPD 系统",
-      description: spec.description || "",
-      n: n,
-      lambdas: lambdas,
-      xTrue: xTrue,
-      x0: x0,
-      b: b,
-      preconditioner: preconditioner,
-      hasPreconditioner: hasPreconditioner,
-      method: hasPreconditioner ? "PCG" : "CG",
-      maxSteps: maxSteps,
-      tolerance: tolerance,
-      effectiveSpectrum: effectiveSpectrum,
-      lambdaMin: lambdaMin,
-      lambdaMax: lambdaMax,
-      kappa: lambdaMax / lambdaMin,
-      effectiveMin: effectiveMin,
-      effectiveMax: effectiveMax,
-      effectiveKappa: effectiveMax / effectiveMin
-    };
-  }
-
-  function chebyshevBounds(kappa, step) {
-    var k = Math.max(0, Math.floor(Number(step)));
-    var condition = Number(kappa);
-    if (!isFiniteNumber(condition) || condition < 1) {
-      throw new Error("Chebyshev bound needs kappa >= 1");
-    }
-    if (condition <= 1 + 32 * MACHINE_EPS) {
-      return {
-        factor: 0,
-        raw: k === 0 ? 2 : 0,
-        bound: k === 0 ? 1 : 0
-      };
-    }
-    var factor = (Math.sqrt(condition) - 1) / (Math.sqrt(condition) + 1);
-    var raw = k === 0 ? 2 : 2 * Math.pow(factor, k);
-    return { factor: factor, raw: raw, bound: Math.min(1, raw) };
-  }
-
-  function weightedEnergy(lambdas, error, total) {
-    if (!(total > 0)) return lambdas.map(function () { return 0; });
-    return lambdas.map(function (lambda, index) {
-      return lambda * error[index] * error[index] / (total * total);
-    });
-  }
-
-  function residualFilter(r0, residual) {
-    var scale = Math.max(1, norm2(r0));
-    return residual.map(function (value, index) {
-      return Math.abs(r0[index]) > MACHINE_EPS * scale * 8
-        ? value / r0[index]
-        : null;
-    });
-  }
-
-  function runCG(input) {
-    var system = normalizeSystem(input);
-    var n = system.n;
-    var x = copyArray(system.x0);
-    var r = subtract(system.b, diagonalApply(system.lambdas, x));
-    var rTrue = subtract(system.b, diagonalApply(system.lambdas, x));
-    var r0 = copyArray(r);
-    var initialResidualNorm = norm2(r0);
-    var initialError = subtract(system.xTrue, system.x0);
-    var initialANorm = Math.sqrt(Math.max(0, dot(system.lambdas, initialError.map(function (value) {
-      return value * value;
-    }))));
-    var residualScale = Math.max(1, initialResidualNorm);
-    var zeroTolerance = system.tolerance * residualScale;
-    var z = r.map(function (value, index) { return value / system.preconditioner[index]; });
-    var rho = dot(r, z);
-    var p = rho > 0 ? copyArray(z) : null;
-    var energyWeights = weightedEnergy(system.lambdas, initialError, initialANorm);
-    var rows = [];
-    var termination = "step-limit";
-
-    function makeRow(step, alpha, beta, direction, rhoValue) {
-      var error = subtract(system.xTrue, x);
-      var errorEnergy = Math.sqrt(Math.max(0, dot(system.lambdas, error.map(function (value) {
-        return value * value;
-      }))));
-      var directResidual = subtract(system.b, diagonalApply(system.lambdas, x));
-      var recurrenceGap = vectorDifferenceNorm(r, directResidual);
-      var cheb = chebyshevBounds(system.effectiveKappa, step);
-      return {
-        k: step,
-        x: copyArray(x),
-        error: error,
-        r: copyArray(r),
-        trueResidual: directResidual,
-        direction: direction ? copyArray(direction) : null,
-        rho: rhoValue,
-        alpha: alpha,
-        beta: beta,
-        aNormError: errorEnergy,
-        aNormErrorNormalized: initialANorm > 0 ? errorEnergy / initialANorm : 0,
-        residualNorm: norm2(r),
-        trueResidualNorm: norm2(directResidual),
-        residualNormalized: initialResidualNorm > 0 ? norm2(directResidual) / initialResidualNorm : 0,
-        recurrenceGap: recurrenceGap,
-        filter: residualFilter(r0, r),
-        chebyshevRaw: cheb.raw,
-        chebyshevBound: cheb.bound
-      };
-    }
-
-    rows.push(makeRow(0, null, null, p, rho));
-    if (initialResidualNorm <= zeroTolerance || rho <= zeroTolerance * zeroTolerance) {
-      termination = "zero-residual";
-    } else if (system.maxSteps === 0) {
-      termination = "step-limit";
-    } else {
-      for (var step = 0; step < system.maxSteps; step += 1) {
-        var current = rows[rows.length - 1];
-        if (!p) {
-          termination = "breakdown";
-          break;
-        }
-        var Ap = diagonalApply(system.lambdas, p);
-        var denominator = dot(p, Ap);
-        if (!(denominator > 0) || !isFiniteNumber(denominator)) {
-          termination = "breakdown";
-          break;
-        }
-        var alpha = rho / denominator;
-        if (!isFiniteNumber(alpha)) {
-          termination = "breakdown";
-          break;
-        }
-        x = addScaled(x, p, alpha);
-        r = addScaled(r, Ap, -alpha);
-        rTrue = subtract(system.b, diagonalApply(system.lambdas, x));
-        var zNext = r.map(function (value, index) { return value / system.preconditioner[index]; });
-        var rhoNext = dot(r, zNext);
-        var nearZero = norm2(r) <= zeroTolerance || rhoNext <= zeroTolerance * zeroTolerance;
-        var beta = nearZero ? 0 : rhoNext / rho;
-        if (!nearZero && (!isFiniteNumber(beta) || beta < 0)) {
-          termination = "breakdown";
-          break;
-        }
-        current.alpha = alpha;
-        current.beta = beta;
-        var pNext = nearZero ? null : addScaled(zNext, p, beta);
-        var nextRow = makeRow(step + 1, null, null, pNext, nearZero ? 0 : rhoNext);
-        rows.push(nextRow);
-        rTrue = nextRow.trueResidual;
-        if (nearZero) {
-          termination = "zero-residual";
-          break;
-        }
-        p = pNext;
-        rho = rhoNext;
-        if (step + 1 >= system.maxSteps) termination = "step-limit";
-      }
-    }
-
-    var last = rows[rows.length - 1];
-    var convergenceStep = null;
-    rows.some(function (row) {
-      if (row.aNormErrorNormalized <= Math.max(system.tolerance, 1e-14)) {
-        convergenceStep = row.k;
-        return true;
-      }
-      return false;
-    });
-    if (convergenceStep === null && termination === "zero-residual") convergenceStep = last.k;
-    return {
-      id: system.id,
-      label: system.label,
-      description: system.description,
-      method: system.method,
-      system: system,
-      n: n,
-      maxSteps: system.maxSteps,
-      rows: rows,
-      initialResidualNorm: initialResidualNorm,
-      initialANorm: initialANorm,
-      initialError: initialError,
-      initialEnergyWeights: energyWeights,
-      lambdaMin: system.lambdaMin,
-      lambdaMax: system.lambdaMax,
-      kappa: system.kappa,
-      effectiveSpectrum: copyArray(system.effectiveSpectrum),
-      effectiveMin: system.effectiveMin,
-      effectiveMax: system.effectiveMax,
-      effectiveKappa: system.effectiveKappa,
-      termination: termination,
-      convergenceStep: convergenceStep,
-      requestedMaxSteps: system.maxSteps,
-      finitePrecisionNote: last.recurrenceGap > 0
-    };
-  }
-
-  function maxRelativeError(actual, expected) {
-    var maximum = 0;
-    for (var i = 0; i < actual.length; i += 1) {
-      maximum = Math.max(
-        maximum,
-        Math.abs(actual[i] - expected[i]) / Math.max(1, Math.abs(actual[i]), Math.abs(expected[i]))
-      );
-    }
-    return maximum;
-  }
-
-  function checkRun(run) {
-    var system = run.system;
-    var rows = run.rows;
-    var scale = Math.max(1, run.initialResidualNorm, run.initialANorm);
-    var residualGap = 0;
-    var explicitResidual = true;
-    var recurrence = true;
-    var aNormMonotone = true;
-    var boundRespected = true;
-    var dimensionBound = rows.length > 0 && rows[rows.length - 1].k <= system.n;
-    for (var i = 0; i < rows.length; i += 1) {
-      var row = rows[i];
-      var direct = subtract(system.b, diagonalApply(system.lambdas, row.x));
-      residualGap = Math.max(residualGap, row.recurrenceGap, vectorDifferenceNorm(row.trueResidual, direct));
-      explicitResidual = explicitResidual && nearlyEqual(row.trueResidualNorm, norm2(direct), 1e-9);
-      if (i > 0) {
-        aNormMonotone = aNormMonotone && row.aNormErrorNormalized <= rows[i - 1].aNormErrorNormalized + 1e-9;
-      }
-      boundRespected = boundRespected && row.aNormErrorNormalized <= row.chebyshevBound + 2e-8;
-      if (row.alpha !== null && i + 1 < rows.length) {
-        var next = rows[i + 1];
-        var expectedX = addScaled(row.x, row.direction, row.alpha);
-        var expectedR = addScaled(row.r, diagonalApply(system.lambdas, row.direction), -row.alpha);
-        recurrence = recurrence && maxRelativeError(next.x, expectedX) <= 2e-8;
-        recurrence = recurrence && maxRelativeError(next.r, expectedR) <= 2e-8;
-        if (next.direction && row.beta !== null) {
-          var nextZ = next.r.map(function (value, index) {
-            return value / system.preconditioner[index];
-          });
-          var expectedP = addScaled(nextZ, row.direction, row.beta);
-          recurrence = recurrence && maxRelativeError(next.direction, expectedP) <= 2e-8;
-        }
-      }
-    }
-    var directions = rows.map(function (row) { return row.direction; }).filter(Boolean);
-    var conjugate = true;
-    for (var left = 0; left < directions.length; left += 1) {
-      for (var right = 0; right < left; right += 1) {
-        var product = dot(directions[left], diagonalApply(system.lambdas, directions[right]));
-        var productScale = Math.max(1, norm2(directions[left]) * norm2(directions[right]) * system.lambdaMax);
-        if (Math.abs(product) > 2e-7 * productScale) conjugate = false;
-      }
-    }
-    var zeroInitial = run.initialResidualNorm === 0
-      ? rows.length === 1 && rows[0].trueResidualNorm === 0
-      : true;
-    var ok = residualGap <= 2e-8 * scale && explicitResidual && recurrence &&
-      aNormMonotone && boundRespected && dimensionBound && conjugate && zeroInitial;
-    return {
-      ok: ok,
-      recurrenceMatchesExplicit: residualGap <= 2e-8 * scale,
-      explicitResidual: explicitResidual,
-      recurrence: recurrence,
-      aNormMonotone: aNormMonotone,
-      chebyshevBound: boundRespected,
-      directionConjugacy: conjugate,
-      dimensionBound: dimensionBound,
-      zeroResidualBoundary: zeroInitial,
-      maxRecurrenceGap: residualGap,
-      finalStep: rows.length ? rows[rows.length - 1].k : null
-    };
-  }
-
-  function assertRun(run) {
-    var checks = checkRun(run);
-    if (!checks.ok) {
-      throw new Error("CG invariant failed: " + JSON.stringify(checks));
-    }
-    return checks;
-  }
-
-  function buildPresetData(id, options) {
-    var preset = getPreset(id);
-    var settings = options || {};
-    var runs = preset.systems.map(function (system) {
-      var spec = cloneSystemSpec(system);
-      if (settings.maxSteps !== undefined) spec.maxSteps = settings.maxSteps;
-      if (settings.tol !== undefined) spec.tol = settings.tol;
-      return runCG(spec);
-    });
-    return {
-      preset: clonePreset(preset),
-      runs: runs,
-      checks: runs.map(checkRun),
-      maxStep: runs.reduce(function (maximum, run) {
-        return Math.max(maximum, run.rows[run.rows.length - 1].k);
-      }, 0)
-    };
-  }
-
-  function assertPreset(id) {
-    var data = buildPresetData(id);
-    data.runs.forEach(assertRun);
-    return data;
-  }
-
-  var pureModel = {
-    EPS: EPS,
-    MAX_DIM: MAX_DIM,
-    presets: PRESETS.map(clonePreset),
-    chebyshevBounds: chebyshevBounds,
-    normalizeSystem: normalizeSystem,
-    runCG: runCG,
-    checkRun: checkRun,
-    assertRun: assertRun,
-    buildPresetData: buildPresetData,
-    assertPreset: assertPreset
-  };
-
-  if (typeof module === "object" && module.exports) {
-    module.exports = pureModel;
-    return;
-  }
-
-  var STYLE_TEXT = [
-    ".cg-lab { --cg-blue: var(--cl-blue, #315f9d); --cg-green: var(--cl-green, #39734d); --cg-gold: var(--cl-gold, #9b6a12); --cg-red: var(--cl-red, #b64335); --cg-muted: var(--fg-soft, #6f6a60); max-width: 100%; min-width: 0; overflow: hidden; color: var(--fg); line-height: 1.55; }",
-    "html[data-theme=\"dark\"] .cg-lab { --cg-blue: #83c8ff; --cg-green: #72bd8b; --cg-gold: #e2b458; --cg-red: #f08c7d; --cg-muted: #b8b2a7; }",
-    ".cg-lab *, .cg-lab *::before, .cg-lab *::after { box-sizing: border-box; min-width: 0; }",
-    ".cg-lab .cg-intro, .cg-lab .cg-note { color: var(--cg-muted); font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }",
-    ".cg-lab .cg-prompt { margin: 12px 0 16px; padding: 11px 13px; border-left: 3px solid var(--cg-gold); background: var(--block-bg, var(--bg)); line-height: 1.7; overflow-wrap: anywhere; }",
-    ".cg-lab .cg-layout { display: grid; grid-template-columns: minmax(215px, .72fr) minmax(0, 1.28fr); gap: 16px; align-items: start; min-width: 0; }",
-    ".cg-lab .cg-control-panel, .cg-lab .cg-stage { min-width: 0; }",
-    ".cg-lab .cg-control-panel { display: grid; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg); }",
-    ".cg-lab .cg-preset-box, .cg-lab .cg-prediction-box { margin: 0; padding: 0; border: 0; min-width: 0; }",
-    ".cg-lab .cg-preset-box legend, .cg-lab .cg-prediction-box legend { margin-bottom: 7px; color: var(--cg-muted); font-size: 13px; font-weight: 700; }",
-    ".cg-lab .cg-preset-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }",
-    ".cg-lab button, .cg-lab select { min-width: 0; min-height: 44px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--fg); font: inherit; line-height: 1.35; }",
-    ".cg-lab button { padding: 8px 10px; cursor: pointer; overflow-wrap: anywhere; }",
-    ".cg-lab button:hover { border-color: var(--accent); }",
-    ".cg-lab button[aria-pressed=\"true\"], .cg-lab button.cg-primary { border-color: var(--accent); background: var(--accent); color: var(--bg); font-weight: 700; }",
-    ".cg-lab select { width: 100%; padding: 7px 10px; }",
-    ".cg-lab button:focus-visible, .cg-lab select:focus-visible, .cg-lab input:focus-visible { outline: 3px solid var(--cl-focus, #1769aa); outline-offset: 2px; }",
-    ".cg-lab .cg-control { display: grid; gap: 5px; min-width: 0; }",
-    ".cg-lab .cg-label { color: var(--cg-muted); font-size: 13px; font-weight: 650; }",
-    ".cg-lab output { color: var(--accent); font-variant-numeric: tabular-nums; }",
-    ".cg-lab input[type=range] { display: block; width: 100%; min-height: 44px; margin: 0; accent-color: var(--accent); }",
-    ".cg-lab .cg-button-row { display: flex; flex-wrap: wrap; gap: 7px; }",
-    ".cg-lab .cg-button-row > * { flex: 1 1 120px; }",
-    ".cg-lab .cg-feedback { min-height: 2.9em; margin: 8px 0 0; color: var(--cg-muted); font-size: 12.5px; line-height: 1.65; overflow-wrap: anywhere; }",
-    ".cg-lab .cg-feedback.cg-correct { color: var(--cg-green); }",
-    ".cg-lab .cg-feedback.cg-incorrect { color: var(--cg-red); }",
-    ".cg-lab .cg-stage-frame { min-width: 0; padding: 9px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg); overflow: hidden; }",
-    ".cg-lab .cg-stage-title { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin: 0 0 7px; color: var(--cg-muted); font-size: 13px; }",
-    ".cg-lab .cg-status { min-height: 1.7em; margin: 0 0 8px; color: var(--fg); font-size: 13px; font-weight: 650; line-height: 1.7; overflow-wrap: anywhere; }",
-    ".cg-lab .cg-svg { display: block; width: 100%; max-width: 100%; height: auto; color: var(--fg); }",
-    ".cg-lab .cg-svg text { fill: currentColor; font-family: inherit; letter-spacing: 0; }",
-    ".cg-lab .cg-panel { fill: var(--bg); stroke: var(--border); stroke-width: 1.1; }",
-    ".cg-lab .cg-grid-line { stroke: var(--border); stroke-opacity: .55; stroke-width: 1; }",
-    ".cg-lab .cg-axis { stroke: var(--cg-muted); stroke-opacity: .7; stroke-width: 1.2; }",
-    ".cg-lab .cg-a-line { fill: none; stroke: var(--cg-blue); stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; }",
-    ".cg-lab .cg-r-line { fill: none; stroke: var(--cg-red); stroke-width: 2.2; stroke-dasharray: 6 4; stroke-linecap: round; stroke-linejoin: round; }",
-    ".cg-lab .cg-bound-line { fill: none; stroke: var(--cg-gold); stroke-width: 1.8; stroke-dasharray: 2 4; stroke-linecap: round; stroke-linejoin: round; }",
-    ".cg-lab .cg-a-dot { fill: var(--cg-blue); stroke: var(--bg); stroke-width: 2; }",
-    ".cg-lab .cg-r-dot { fill: var(--cg-red); stroke: var(--bg); stroke-width: 2; }",
-    ".cg-lab .cg-bound-dot { fill: var(--cg-gold); stroke: var(--bg); stroke-width: 1.5; }",
-    ".cg-lab .cg-svg-label { fill: var(--cg-muted) !important; font-size: 11px; }",
-    ".cg-lab .cg-svg-title { fill: var(--fg) !important; font-size: 12.5px; font-weight: 750; }",
-    ".cg-lab .cg-legend { display: flex; flex-wrap: wrap; gap: 7px 14px; margin: 8px 2px 0; color: var(--cg-muted); font-size: 12px; }",
-    ".cg-lab .cg-legend-item { display: inline-flex; align-items: center; gap: 6px; }",
-    ".cg-lab .cg-swatch { display: inline-block; width: 24px; height: 0; border-top: 3px solid currentColor; }",
-    ".cg-lab .cg-swatch-a { color: var(--cg-blue); } .cg-lab .cg-swatch-r { color: var(--cg-red); border-top-style: dashed; border-top-width: 2px; } .cg-lab .cg-swatch-bound { color: var(--cg-gold); border-top-style: dotted; border-top-width: 2px; }",
-    ".cg-lab .cg-subtitle { margin: 17px 0 7px; color: var(--fg); font-size: 14px; font-weight: 750; }",
-    ".cg-lab .cg-metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 8px; margin-top: 10px; }",
-    ".cg-lab .cg-metric { min-width: 0; padding: 9px 10px; border-top: 2px solid var(--border); background: var(--bg); }",
-    ".cg-lab .cg-metric span, .cg-lab .cg-metric small { display: block; color: var(--cg-muted); line-height: 1.45; }",
-    ".cg-lab .cg-metric span { font-size: 11.5px; } .cg-lab .cg-metric strong { display: block; margin-top: 3px; color: var(--fg); font-size: 15px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; } .cg-lab .cg-metric small { margin-top: 3px; font-size: 11px; overflow-wrap: anywhere; }",
-    ".cg-lab .cg-spectrum-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }",
-    ".cg-lab .cg-spectrum-card { min-width: 0; padding: 10px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg); overflow: hidden; }",
-    ".cg-lab .cg-spectrum-card h4 { margin: 0; font-size: 13.5px; } .cg-lab .cg-spectrum-card p { margin: 5px 0; color: var(--cg-muted); font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }",
-    ".cg-lab .cg-spectrum-svg { display: block; width: 100%; height: auto; color: var(--fg); } .cg-lab .cg-spectrum-svg text { fill: currentColor; font-family: inherit; font-size: 10px; }",
-    ".cg-lab .cg-spectrum-base { stroke: var(--border); stroke-width: 2; } .cg-lab .cg-spectrum-dot { fill: var(--cg-blue); stroke: var(--bg); stroke-width: 1.5; }",
-    ".cg-lab .cg-table-wrap { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }",
-    ".cg-lab .cg-table { width: 100%; min-width: 650px; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-size: 12px; font-variant-numeric: tabular-nums; }",
-    ".cg-lab .cg-table.cg-spectrum-table { min-width: 430px; }",
-    ".cg-lab .cg-table caption { padding: 0 0 7px; text-align: left; color: var(--cg-muted); font-size: 12.5px; }",
-    ".cg-lab .cg-table th, .cg-lab .cg-table td { padding: 7px 6px; border-bottom: 1px solid var(--border); text-align: right; vertical-align: top; overflow-wrap: anywhere; }",
-    ".cg-lab .cg-table th:first-child, .cg-lab .cg-table td:first-child { text-align: left; } .cg-lab .cg-table th { color: var(--cg-muted); font-size: 11.5px; font-weight: 650; }",
-    ".cg-lab .cg-table tr.cg-current td, .cg-lab .cg-table tr.cg-current th { background: color-mix(in srgb, var(--accent) 10%, var(--bg)); }",
-    ".cg-lab .cg-table .cg-good { color: var(--cg-green); } .cg-lab .cg-table .cg-warn { color: var(--cg-red); }",
-    ".cg-lab .cg-checklist { display: grid; gap: 7px; margin: 10px 0 0; padding: 0; list-style: none; }",
-    ".cg-lab .cg-checklist li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 7px; align-items: start; font-size: 12.5px; line-height: 1.6; } .cg-lab .cg-check { color: var(--cg-green); font-weight: 800; text-align: center; } .cg-lab .cg-fail { color: var(--cg-red); }",
-    ".cg-lab .cg-formula, .cg-lab .cg-footnote { max-width: 100%; margin: 9px 0 0; padding: 10px 12px; border-left: 3px solid var(--cg-blue); background: var(--block-bg, var(--bg)); color: var(--cg-muted); font-size: 12.5px; line-height: 1.7; overflow-wrap: anywhere; }",
-    ".cg-lab .cg-formula { color: var(--fg); font-family: \"SF Mono\", Menlo, Consolas, monospace; white-space: pre-wrap; }",
-    ".cg-lab .cg-footnote { border-left-color: var(--cg-gold); }",
-    ".cg-lab .cg-sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }",
-    "@supports not (color: color-mix(in srgb, white, black)) { .cg-lab .cg-table tr.cg-current td, .cg-lab .cg-table tr.cg-current th { background: var(--block-bg, var(--bg)); } }",
-    "@media (max-width: 860px) { .cg-lab .cg-layout { grid-template-columns: minmax(0, 1fr); } .cg-lab .cg-control-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } .cg-lab .cg-preset-box { grid-column: 1 / -1; } .cg-lab .cg-prediction-box { grid-column: 1 / -1; } }",
-    "@media (max-width: 640px) { .cg-lab .cg-control-panel { grid-template-columns: minmax(0, 1fr); } .cg-lab .cg-spectrum-grid { grid-template-columns: minmax(0, 1fr); } .cg-lab .cg-preset-box, .cg-lab .cg-prediction-box { grid-column: auto; } .cg-lab .cg-stage-frame { padding: 6px; } }",
-    "@media (max-width: 420px) { .cg-lab .cg-preset-row { grid-template-columns: minmax(0, 1fr); } .cg-lab .cg-table { font-size: 11.5px; } .cg-lab .cg-table th, .cg-lab .cg-table td { padding-left: 4px; padding-right: 4px; } }",
-    "@media (prefers-reduced-motion: reduce) { .cg-lab *, .cg-lab *::before, .cg-lab *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }"
-  ].join("\n");
-
-  function installStyles() {
-    if (typeof document === "undefined" || document.getElementById(STYLE_ID)) return;
-    var style = document.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = STYLE_TEXT;
-    document.head.appendChild(style);
-  }
-
-  function appendChildren(node, children) {
-    if (children === undefined || children === null) return node;
-    var list = Array.isArray(children) ? children : [children];
-    list.forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child && child.nodeType ? child : document.createTextNode(String(child)));
-    });
-    return node;
-  }
-
-  function setAttributes(node, attrs) {
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", String(value));
-      else if (key === "htmlFor") node.setAttribute("for", String(value));
-      else if (key === "text") node.textContent = String(value);
-      else if (key.slice(0, 2) === "on" && typeof value === "function") {
-        node.addEventListener(key.slice(2).toLowerCase(), value);
-      } else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, String(value));
-    });
-    return node;
-  }
-
-  function makeElement(api, tag, attrs, children) {
-    if (api && typeof api.el === "function") return api.el(tag, attrs || {}, children);
-    return appendChildren(setAttributes(document.createElement(tag), attrs || {}), children);
-  }
-
-  function makeSvg(api, tag, attrs, children) {
-    if (api && typeof api.svg === "function") return api.svg(tag, attrs || {}, children);
-    return appendChildren(
-      setAttributes(document.createElementNS(SVG_NS, tag), attrs || {}),
-      children
-    );
-  }
-
-  function replaceChildren(node, children) {
-    if (node && typeof node.replaceChildren === "function") {
-      node.replaceChildren.apply(node, Array.isArray(children) ? children : [children]);
-      return;
-    }
-    while (node && node.firstChild) node.removeChild(node.firstChild);
-    appendChildren(node, children);
-  }
-
-  function formatNumber(api, value, digits) {
-    if (!isFiniteNumber(value)) return "—";
-    if (Math.abs(value) < 0.0005) value = 0;
-    if (api && typeof api.format === "function") return api.format(value, digits === undefined ? 3 : digits);
-    var places = digits === undefined ? 3 : digits;
-    var text = value.toFixed(places);
-    return text.indexOf(".") === -1 ? text : text.replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function rowAt(run, step) {
-    for (var i = 0; i < run.rows.length; i += 1) {
-      if (run.rows[i].k === step) return run.rows[i];
-    }
-    return run.rows[run.rows.length - 1];
-  }
-
-  function metric(api, label, value, note) {
-    return makeElement(api, "div", { className: "cg-metric" }, [
-      makeElement(api, "span", {}, [label]),
-      makeElement(api, "strong", {}, [value]),
-      note ? makeElement(api, "small", {}, [note]) : null
-    ]);
-  }
-
-  function pathFor(rows, key, x0, x1, y0, y1, maxStep) {
-    if (!rows.length) return "";
-    var logMin = -14;
-    var logMax = 0;
-    function coordinate(value) {
-      var safe = clamp(isFiniteNumber(value) && value > 0 ? value : Math.pow(10, logMin), Math.pow(10, logMin), 1);
-      var logarithm = Math.log(safe) / Math.LN10;
-      return y1 - (logarithm - logMin) / (logMax - logMin) * (y1 - y0);
-    }
-    var path = "";
-    rows.forEach(function (row, index) {
-      var x = x0 + (maxStep > 0 ? row.k / maxStep : 0) * (x1 - x0);
-      var y = coordinate(row[key]);
-      path += (index === 0 ? "M" : "L") + x.toFixed(2) + "," + y.toFixed(2) + " ";
-    });
-    return path.trim();
-  }
-
-  function chartPoint(api, cssClass, row, property, label, x0, x1, y0, y1, maxStep) {
-    var value = row[property];
-    var safe = clamp(isFiniteNumber(value) && value > 0 ? value : Math.pow(10, -14), Math.pow(10, -14), 1);
-    var logarithm = Math.log(safe) / Math.LN10;
-    var x = x0 + (maxStep > 0 ? row.k / maxStep : 0) * (x1 - x0);
-    var y = y1 - (logarithm + 14) / 14 * (y1 - y0);
-    return makeSvg(api, "circle", {
-      className: cssClass,
-      cx: x,
-      cy: y,
-      r: 4,
-      "aria-label": "第 " + row.k + " 步，" + label + "=" + value
-    });
-  }
-
-  function renderComparison(api, data, step, uid) {
-    var width = 720;
-    var panelHeight = 246;
-    var height = panelHeight * data.runs.length;
-    var svg = makeSvg(api, "svg", {
-      className: "cg-svg",
-      viewBox: "0 0 " + width + " " + height,
-      role: "img",
-      "aria-labelledby": uid + "-chart-title " + uid + "-chart-desc"
-    });
-    svg.appendChild(makeSvg(api, "title", { id: uid + "-chart-title" }, ["CG 收敛曲线"]));
-    svg.appendChild(makeSvg(api, "desc", { id: uid + "-chart-desc" }, [
-      "每个面板显示归一化 A 范数误差、归一化真残差二范数和 Chebyshev 条件数上界；纵轴为对数刻度。"
-    ]));
-    var maxStep = data.maxStep;
-    var y0 = 47;
-    var y1 = 198;
-    var x0 = 54;
-    var x1 = 692;
-    data.runs.forEach(function (run, index) {
-      var top = index * panelHeight;
-      var panel = makeSvg(api, "g", { transform: "translate(0," + top + ")" });
-      panel.appendChild(makeSvg(api, "rect", {
-        className: "cg-panel",
-        x: 1,
-        y: 1,
-        width: width - 2,
-        height: panelHeight - 4,
-        rx: 5
-      }));
-      panel.appendChild(makeSvg(api, "text", { className: "cg-svg-title", x: 12, y: 22 }, [
-        run.label + " · " + run.method + " · κ_eff=" + formatNumber(api, run.effectiveKappa, 3)
-      ]));
-      [-0, -4, -8, -12].forEach(function (power) {
-        var y = y1 - (power + 14) / 14 * (y1 - y0);
-        panel.appendChild(makeSvg(api, "line", { className: "cg-grid-line", x1: x0, x2: x1, y1: y, y2: y }));
-        panel.appendChild(makeSvg(api, "text", { className: "cg-svg-label", x: 8, y: y + 4 }, ["10^" + power]));
-      });
-      panel.appendChild(makeSvg(api, "line", { className: "cg-axis", x1: x0, x2: x1, y1: y1, y2: y1 }));
-      panel.appendChild(makeSvg(api, "line", { className: "cg-axis", x1: x0, x2: x0, y1: y0, y2: y1 }));
-      var xTicks = maxStep <= 6 ? maxStep : 6;
-      for (var tick = 0; tick <= xTicks; tick += 1) {
-        var tickStep = xTicks > 0 ? Math.round(tick * maxStep / xTicks) : 0;
-        var tickX = x0 + (maxStep > 0 ? tickStep / maxStep : 0) * (x1 - x0);
-        panel.appendChild(makeSvg(api, "text", { className: "cg-svg-label", x: tickX - 5, y: y1 + 17 }, [String(tickStep)]));
-      }
-      panel.appendChild(makeSvg(api, "text", { className: "cg-svg-label", x: x1 - 16, y: y1 + 17 }, ["k"]));
-      panel.appendChild(makeSvg(api, "path", { className: "cg-a-line", d: pathFor(run.rows, "aNormErrorNormalized", x0, x1, y0, y1, maxStep) }));
-      panel.appendChild(makeSvg(api, "path", { className: "cg-r-line", d: pathFor(run.rows, "residualNormalized", x0, x1, y0, y1, maxStep) }));
-      panel.appendChild(makeSvg(api, "path", { className: "cg-bound-line", d: pathFor(run.rows, "chebyshevBound", x0, x1, y0, y1, maxStep) }));
-      var current = rowAt(run, step);
-      panel.appendChild(chartPoint(api, "cg-a-dot", current, "aNormErrorNormalized", "A 范数误差", x0, x1, y0, y1, maxStep));
-      panel.appendChild(chartPoint(api, "cg-r-dot", current, "residualNormalized", "真残差", x0, x1, y0, y1, maxStep));
-      panel.appendChild(chartPoint(api, "cg-bound-dot", current, "chebyshevBound", "Chebyshev 上界", x0, x1, y0, y1, maxStep));
-      svg.appendChild(panel);
-    });
-    return makeElement(api, "div", {}, [
-      svg,
-      makeElement(api, "div", { className: "cg-legend", "aria-label": "曲线图例" }, [
-        makeElement(api, "span", { className: "cg-legend-item" }, [makeElement(api, "span", { className: "cg-swatch cg-swatch-a", "aria-hidden": "true" }), "归一化 ||eₖ||A"]),
-        makeElement(api, "span", { className: "cg-legend-item" }, [makeElement(api, "span", { className: "cg-swatch cg-swatch-r", "aria-hidden": "true" }), "归一化真 ||rₖ||₂"]),
-        makeElement(api, "span", { className: "cg-legend-item" }, [makeElement(api, "span", { className: "cg-swatch cg-swatch-bound", "aria-hidden": "true" }), "Chebyshev κ 上界"])
-      ])
-    ]);
-  }
-
-  function renderMetrics(api, data, step) {
-    var sections = data.runs.map(function (run) {
-      var row = rowAt(run, step);
-      var stepNote = row.k === step ? "当前步" : "该系统在第 " + row.k + " 步停止";
-      return makeElement(api, "section", { className: "cg-metric-section", "aria-labelledby": "cg-metrics-" + run.id }, [
-        makeElement(api, "h4", { id: "cg-metrics-" + run.id, className: "cg-subtitle" }, [run.label + " · " + run.method]),
-        makeElement(api, "div", { className: "cg-metric-grid" }, [
-          metric(api, "当前 k", String(row.k), stepNote),
-          metric(api, "归一化 A-范数误差", formatNumber(api, row.aNormErrorNormalized, 7), "||eₖ||A / ||e₀||A；CG 的最小化目标"),
-          metric(api, "真残差 ||b−Axₖ||₂", formatNumber(api, row.trueResidualNorm, 7), "每步显式重算，不是只读 recurrence"),
-          metric(api, "Chebyshev 上界", formatNumber(api, row.chebyshevBound, 7), "κ_eff=" + formatNumber(api, run.effectiveKappa, 3) + "；最坏情形"),
-          metric(api, "κ(A)", formatNumber(api, run.kappa, 4), "原始谱的 λmax / λmin"),
-          metric(api, "κ_eff", formatNumber(api, run.effectiveKappa, 4), run.method === "PCG" ? "μᵢ=λᵢ/mᵢ" : "M=I，μᵢ=λᵢ"),
-          metric(api, "recurrence−真残差 gap", formatNumber(api, row.recurrenceGap, 8), "||rₖ(rec)−(b−Axₖ)||₂"),
-          metric(api, "预计收敛步", run.convergenceStep === null ? "未到" : String(run.convergenceStep), "本 toy 系统的观测，不是定理预测")
-        ])
-      ]);
-    });
-    return makeElement(api, "div", {}, sections);
-  }
-
-  function renderSpectrumStrip(api, run, row, uid) {
-    var width = 680;
-    var height = 70;
-    var min = run.effectiveMin;
-    var max = run.effectiveMax;
-    var svg = makeSvg(api, "svg", {
-      className: "cg-spectrum-svg",
-      viewBox: "0 0 " + width + " " + height,
-      role: "img",
-      "aria-label": run.label + " 的有效谱与当前多项式滤波"
-    });
-    var xLeft = 18;
-    var xRight = width - 18;
-    var y = 34;
-    function x(value) { return xLeft + (max > min ? (value - min) / (max - min) : .5) * (xRight - xLeft); }
-    svg.appendChild(makeSvg(api, "line", { className: "cg-spectrum-base", x1: xLeft, x2: xRight, y1: y, y2: y }));
-    svg.appendChild(makeSvg(api, "text", { x: xLeft, y: 60 }, [formatNumber(api, min, 3)]));
-    svg.appendChild(makeSvg(api, "text", { x: xRight - 25, y: 60 }, [formatNumber(api, max, 3)]));
-    run.effectiveSpectrum.forEach(function (value, index) {
-      var filter = row.filter[index];
-      var opacity = filter === null ? .18 : clamp(.18 + .82 * Math.min(1, Math.abs(filter)), .18, 1);
-      var radius = 4 + 9 * Math.sqrt(Math.max(0, run.initialEnergyWeights[index]));
-      svg.appendChild(makeSvg(api, "circle", {
-        className: "cg-spectrum-dot",
-        cx: x(value),
-        cy: y,
-        r: radius,
-        opacity: opacity,
-        "aria-label": "方向 " + index + "，有效特征值 " + value + "，初始能量权重 " + run.initialEnergyWeights[index] + "，滤波值 " + (filter === null ? "无初始残差" : filter)
-      }));
-    });
-    svg.appendChild(makeSvg(api, "text", { x: width / 2 - 84, y: 13 }, ["点越大=初始 A-能量权重；越淡=|pₖ(μ)| 小"]));
-    return svg;
-  }
-
-  function renderSpectrum(api, data, step, uid) {
-    return makeElement(api, "div", { className: "cg-spectrum-grid" }, data.runs.map(function (run, index) {
-      var row = rowAt(run, step);
-      var table = makeElement(api, "table", { className: "cg-table cg-spectrum-table" });
-      table.appendChild(makeElement(api, "caption", {}, ["当前第 " + row.k + " 步：有效谱 μᵢ=λᵢ/mᵢ 与 pₖ(μᵢ)"]));
-      table.appendChild(makeElement(api, "thead", {}, [makeElement(api, "tr", {}, [
-        makeElement(api, "th", { scope: "col" }, ["i"]),
-        makeElement(api, "th", { scope: "col" }, ["λᵢ"]),
-        makeElement(api, "th", { scope: "col" }, ["μᵢ"]),
-        makeElement(api, "th", { scope: "col" }, ["ωᵢ"]),
-        makeElement(api, "th", { scope: "col" }, ["pₖ(μᵢ)"])
-      ])]));
-      var body = makeElement(api, "tbody");
-      run.system.lambdas.forEach(function (lambda, eigenIndex) {
-        var filter = row.filter[eigenIndex];
-        body.appendChild(makeElement(api, "tr", {}, [
-          makeElement(api, "th", { scope: "row" }, [String(eigenIndex)]),
-          makeElement(api, "td", {}, [formatNumber(api, lambda, 4)]),
-          makeElement(api, "td", {}, [formatNumber(api, run.effectiveSpectrum[eigenIndex], 4)]),
-          makeElement(api, "td", {}, [formatNumber(api, run.initialEnergyWeights[eigenIndex], 4)]),
-          makeElement(api, "td", {}, [filter === null ? "—" : formatNumber(api, filter, 5)])
-        ]));
-      });
-      table.appendChild(body);
-      return makeElement(api, "section", { className: "cg-spectrum-card", "aria-labelledby": uid + "-spectrum-title-" + index }, [
-        makeElement(api, "h4", { id: uid + "-spectrum-title-" + index }, [run.label]),
-        makeElement(api, "p", {}, [
-          run.method + "；有效谱有 " + countDistinct(run.effectiveSpectrum) + " 个不同值；ωᵢ=λᵢe₀,ᵢ²/||e₀||A²。"
-        ]),
-        renderSpectrumStrip(api, run, row, uid + "-strip-" + index),
-        makeElement(api, "div", { className: "cg-table-wrap" }, [table])
-      ]);
-    }));
-  }
-
-  function countDistinct(values) {
-    var sorted = values.slice().sort(function (a, b) { return a - b; });
-    var count = 0;
-    var previous = null;
-    sorted.forEach(function (value) {
-      if (!count || Math.abs(value - previous) > 1e-9 * Math.max(1, Math.abs(value))) {
-        count += 1;
-        previous = value;
-      }
-    });
-    return count;
-  }
-
-  function renderLedger(api, data, step) {
-    return makeElement(api, "div", {}, data.runs.map(function (run) {
-      var table = makeElement(api, "table", { className: "cg-table" });
-      table.appendChild(makeElement(api, "caption", {}, [run.label + "：逐步 recurrence / 显式真残差账本"]));
-      table.appendChild(makeElement(api, "thead", {}, [makeElement(api, "tr", {}, [
-        makeElement(api, "th", { scope: "col" }, ["k"]),
-        makeElement(api, "th", { scope: "col" }, ["αₖ"]),
-        makeElement(api, "th", { scope: "col" }, ["βₖ"]),
-        makeElement(api, "th", { scope: "col" }, ["||eₖ||A / ||e₀||A"]),
-        makeElement(api, "th", { scope: "col" }, ["||rₖ(rec)||₂"]),
-        makeElement(api, "th", { scope: "col" }, ["||b−Axₖ||₂"]),
-        makeElement(api, "th", { scope: "col" }, ["gap"]),
-        makeElement(api, "th", { scope: "col" }, ["Cheb"])
-      ])]));
-      var body = makeElement(api, "tbody");
-      run.rows.forEach(function (row) {
-        body.appendChild(makeElement(api, "tr", { className: row.k === step || (step > run.rows[run.rows.length - 1].k && row === run.rows[run.rows.length - 1]) ? "cg-current" : "" }, [
-          makeElement(api, "th", { scope: "row" }, [String(row.k)]),
-          makeElement(api, "td", {}, [row.alpha === null ? "—" : formatNumber(api, row.alpha, 6)]),
-          makeElement(api, "td", {}, [row.beta === null ? "—" : formatNumber(api, row.beta, 6)]),
-          makeElement(api, "td", {}, [formatNumber(api, row.aNormErrorNormalized, 7)]),
-          makeElement(api, "td", {}, [formatNumber(api, row.residualNorm, 7)]),
-          makeElement(api, "td", {}, [formatNumber(api, row.trueResidualNorm, 7)]),
-          makeElement(api, "td", {}, [formatNumber(api, row.recurrenceGap, 8)]),
-          makeElement(api, "td", {}, [formatNumber(api, row.chebyshevBound, 7)])
-        ]));
-      });
-      table.appendChild(body);
-      return makeElement(api, "div", { className: "cg-table-wrap" }, [table]);
-    }));
-  }
-
-  function renderChecks(api, data) {
-    var items = [];
-    data.checks.forEach(function (checks, index) {
-      var label = data.runs[index].label;
-      [
-        [checks.recurrenceMatchesExplicit, "recurrence 与显式真残差", "max gap=" + formatNumber(api, checks.maxRecurrenceGap, 8)],
-        [checks.explicitResidual, "显式残差范数", "||b−Ax||₂ 与直接范数一致"],
-        [checks.recurrence, "CG/PCG 三项 recurrence", "x、r、p 的更新可重算"],
-        [checks.aNormMonotone, "A-范数误差", "在浮点容差内不增"],
-        [checks.chebyshevBound, "Chebyshev 上界", "实际误差没有超过最坏情形界"],
-        [checks.directionConjugacy, "A-共轭方向", "在浮点容差内"],
-        [checks.dimensionBound, "维数/步数边界", "k≤n=" + data.runs[index].n],
-        [checks.zeroResidualBoundary, "零残差边界", "初始 r₀=0 时不除以零"]
-      ].forEach(function (item) {
-        items.push(makeElement(api, "li", {}, [
-          makeElement(api, "span", { className: item[0] ? "cg-check" : "cg-check cg-fail", "aria-hidden": "true" }, [item[0] ? "✓" : "×"]),
-          makeElement(api, "span", {}, [label + "：" + item[1] + "（" + item[2] + "）"])
-        ]));
-      });
-    });
-    return makeElement(api, "ul", { className: "cg-checklist" }, items);
-  }
-
-  function renderFormula(api, data, step) {
-    return makeElement(api, "div", { className: "cg-formula" }, data.runs.map(function (run) {
-      var row = rowAt(run, step);
-      var methodLine = run.method === "PCG"
-        ? "M=diag(mᵢ)，zₖ=M⁻¹rₖ，ρₖ=rₖᵀzₖ；μᵢ=λᵢ/mᵢ。"
-        : "M=I，zₖ=rₖ，ρₖ=rₖᵀrₖ；μᵢ=λᵢ。";
-      return run.label + " · k=" + row.k + "：" + methodLine +
-        " α=" + (row.alpha === null ? "—" : formatNumber(api, row.alpha, 6)) +
-        "，β=" + (row.beta === null ? "—" : formatNumber(api, row.beta, 6)) +
-        "；rₖ(rec) 与 b−Axₖ 的二范数差=" + formatNumber(api, row.recurrenceGap, 8) + "。";
-    }).join("\n"));
-  }
-
-  function predictionFeedback(api, data, choice) {
-    if (!choice) return { text: "先选一个答案，再点击“核对预测”。", className: "cg-feedback" };
-    var fastest = data.runs.slice().sort(function (a, b) {
-      var stepA = a.convergenceStep === null ? Infinity : a.convergenceStep;
-      var stepB = b.convergenceStep === null ? Infinity : b.convergenceStep;
-      return stepA - stepB;
-    });
-    var firstStep = fastest[0].convergenceStep === null ? Infinity : fastest[0].convergenceStep;
-    var secondStep = fastest.length > 1 && fastest[1].convergenceStep !== null ? fastest[1].convergenceStep : Infinity;
-    var tie = firstStep === secondStep;
-    var correct = tie ? choice === "tie" : choice === fastest[0].id;
-    var facts = data.runs.map(function (run) {
-      return run.label + " 在第 " + (run.convergenceStep === null ? "未到" : run.convergenceStep) + " 步达到当前容差";
-    }).join("；");
-    return {
-      text: (correct ? "✓ 预测吻合。" : "△ 这次预测没有命中。") + facts + "。这只是当前 n=" + data.runs[0].n + " toy 账本的反馈；κ 界不是实际步数预测。",
-      className: "cg-feedback " + (correct ? "cg-correct" : "cg-incorrect")
-    };
-  }
-
-  function buildLab(root, api) {
-    if (!root || typeof document === "undefined") return;
-    installStyles();
-    root.classList.add("cg-lab");
-    var uid = "cl-cg-" + (INSTANCE += 1);
-    var state = { presetId: "same-kappa", step: 0, prediction: "", feedback: "" };
-    var refs = {};
-    var presetButtons = [];
-    var currentData = null;
-
-    var heading = makeElement(api, "h3", {}, ["CG 收敛实验：同 κ 不等于同轨迹"]);
-    var intro = makeElement(api, "p", { className: "cg-intro" }, [
-      "实验只生成 n≤12 的可复现对角 SPD toy 系统：A=diag(λᵢ)，b=Ax*，x₀=0。蓝线是归一化 A-范数误差，红色虚线是归一化真残差二范数，金色点线是 Chebyshev 条件数上界；所有真残差都重新计算 b−Axₖ。这里展示 O(n) 的教学算例，不把它冒充百万维性能数据。"
-    ]);
-    var prompt = makeElement(api, "div", { className: "cg-prompt" }, [
-      "先预测再展开：相同 κ 的均匀谱和聚集谱，谁会先把误差滤掉？如果只改变 e₀ 在特征向量方向上的权重，CG 的实际步数会不会改变？注意：CG 在精确算术中最小化 A-范数误差；||rₖ||₂ 不保证单调。"
-    ]);
-
-    var presetBox = makeElement(api, "fieldset", { className: "cg-preset-box" });
-    presetBox.appendChild(makeElement(api, "legend", {}, ["教学预设"]));
-    var presetRow = makeElement(api, "div", { className: "cg-preset-row" });
-    PRESETS.forEach(function (preset) {
-      var button = makeElement(api, "button", {
-        type: "button",
-        "aria-pressed": "false",
-        onclick: function () {
-          state.presetId = preset.id;
-          state.step = 0;
-          state.prediction = "";
-          state.feedback = "";
-          render();
-        }
-      }, [preset.shortLabel]);
-      presetButtons.push({ id: preset.id, button: button });
-      presetRow.appendChild(button);
-    });
-    presetBox.appendChild(presetRow);
-
-    var predictionBox = makeElement(api, "fieldset", { className: "cg-prediction-box" });
-    predictionBox.appendChild(makeElement(api, "legend", {}, ["预测反馈"]));
-    refs.predictionQuestion = makeElement(api, "p", { className: "cg-note" });
-    refs.prediction = makeElement(api, "select", { "aria-label": "选择你的收敛预测", onchange: function () {
-      state.prediction = refs.prediction.value;
-      state.feedback = "";
-      refs.feedback.textContent = "先点击“核对预测”查看本次账本的反馈。";
-      refs.feedback.className = "cg-feedback";
-    } });
-    refs.checkPrediction = makeElement(api, "button", { type: "button", className: "cg-primary", onclick: function () {
-      var result = predictionFeedback(api, currentData, state.prediction);
-      refs.feedback.textContent = result.text;
-      refs.feedback.className = result.className;
-    } }, ["核对预测"]);
-    refs.feedback = makeElement(api, "p", { className: "cg-feedback", "aria-live": "polite" }, ["先选一个答案，再点击“核对预测”。"]);
-    predictionBox.appendChild(refs.predictionQuestion);
-    predictionBox.appendChild(refs.prediction);
-    predictionBox.appendChild(makeElement(api, "div", { className: "cg-button-row" }, [refs.checkPrediction]));
-    predictionBox.appendChild(refs.feedback);
-
-    var stepId = uid + "-step";
-    var stepControl = makeElement(api, "div", { className: "cg-control" }, [
-      makeElement(api, "label", { className: "cg-label", htmlFor: stepId }, ["逐步展开到第 k 步：", makeElement(api, "output", { "data-step-output": true }, ["0"])]),
-      makeElement(api, "input", { id: stepId, type: "range", min: 0, max: 12, step: 1, value: 0, "aria-label": "选择要查看的 CG 步数", oninput: function () {
-        state.step = Number(this.value);
-        render();
-      } })
-    ]);
-    refs.stepRange = stepControl.querySelector("input");
-    refs.stepOutput = stepControl.querySelector("output");
-    var controlPanel = makeElement(api, "div", { className: "cg-control-panel" }, [presetBox, predictionBox, stepControl]);
-
-    refs.status = makeElement(api, "p", { className: "cg-status", "aria-live": "polite" });
-    refs.chart = makeElement(api, "div");
-    refs.metrics = makeElement(api, "div");
-    refs.spectrum = makeElement(api, "div");
-    refs.ledger = makeElement(api, "div");
-    refs.formula = makeElement(api, "div");
-    refs.checks = makeElement(api, "div");
-    var stage = makeElement(api, "div", { className: "cg-stage" }, [
-      makeElement(api, "div", { className: "cg-stage-frame" }, [
-        makeElement(api, "div", { className: "cg-stage-title" }, [
-          makeElement(api, "span", {}, ["实际轨迹与最坏情形界"]),
-          makeElement(api, "span", {}, ["纵轴 log₁₀；仅显示小型可复算系统"])
-        ]),
-        refs.status,
-        refs.chart
-      ])
-    ]);
-    var layout = makeElement(api, "div", { className: "cg-layout" }, [controlPanel, stage]);
-    replaceChildren(root, [heading, intro, prompt, layout,
-      makeElement(api, "h4", { className: "cg-subtitle" }, ["当前步读数"]), refs.metrics,
-      makeElement(api, "h4", { className: "cg-subtitle" }, ["谱与多项式滤波：初始权重决定哪些方向可见"]), refs.spectrum,
-      makeElement(api, "h4", { className: "cg-subtitle" }, ["逐步账本"]), refs.ledger,
-      refs.formula,
-      makeElement(api, "h4", { className: "cg-subtitle" }, ["可检查不变量"]), refs.checks,
-      makeElement(api, "p", { className: "cg-footnote" }, [
-        "读法提醒：Chebyshev 界只使用谱区间，是最坏情形上界而非实际预测；有限精度会让理论上的 n 步精确变成“达到容差”，并可能产生 recurrence 与显式残差的微小 gap。预条件案例中的 M 是透明的分组对角缩放，不是隐藏的直接解。"
-      ])
-    ]);
-
-    function syncPrediction(data) {
-      var preset = data.preset;
-      refs.predictionQuestion.textContent = preset.question;
-      replaceChildren(refs.prediction, [makeElement(api, "option", { value: "", disabled: true }, ["请选择…"])]);
-      data.runs.forEach(function (run) {
-        refs.prediction.appendChild(makeElement(api, "option", { value: run.id }, [run.label]));
-      });
-      refs.prediction.appendChild(makeElement(api, "option", { value: "tie" }, ["两者差不多"]));
-      refs.prediction.value = state.prediction;
-      if (state.feedback) refs.feedback.textContent = state.feedback;
-      else refs.feedback.textContent = "先选一个答案，再点击“核对预测”。";
-    }
-
-    function render() {
-      currentData = buildPresetData(state.presetId);
-      state.step = clamp(Math.round(Number(state.step) || 0), 0, currentData.maxStep);
-      refs.stepRange.max = String(currentData.maxStep);
-      refs.stepRange.value = String(state.step);
-      refs.stepOutput.textContent = String(state.step);
-      presetButtons.forEach(function (item) {
-        item.button.setAttribute("aria-pressed", item.id === state.presetId ? "true" : "false");
-      });
-      syncPrediction(currentData);
-      var selectedRows = currentData.runs.map(function (run) { return rowAt(run, state.step); });
-      refs.status.textContent = currentData.preset.label + "；当前显示第 " + state.step + " 步。" +
-        currentData.runs.map(function (run, index) {
-          return run.label + " 的 ||e||A/||e₀||A=" + formatNumber(api, selectedRows[index].aNormErrorNormalized, 5) +
-            "，真 ||r||₂=" + formatNumber(api, selectedRows[index].trueResidualNorm, 5);
-        }).join("；") + "。";
-      replaceChildren(refs.chart, renderComparison(api, currentData, state.step, uid));
-      replaceChildren(refs.metrics, renderMetrics(api, currentData, state.step));
-      replaceChildren(refs.spectrum, renderSpectrum(api, currentData, state.step, uid));
-      replaceChildren(refs.ledger, renderLedger(api, currentData, state.step));
-      replaceChildren(refs.formula, renderFormula(api, currentData, state.step));
-      replaceChildren(refs.checks, renderChecks(api, currentData));
-    }
-
-    render();
-  }
-
-  if (!host || !host.CourseLearning || typeof host.CourseLearning.register !== "function") return;
-  host.CourseLearning.register("cg-spectrum", buildLab);
-}(typeof window !== "undefined" ? window : null));
+function selfTest(){
+ let checks=0;const ck=(v,m)=>{checks++;if(!v)throw Error(m);};
+ ck(fmt(0)==="0"&&fmt(10)==="10"&&fmt(-10)==="-10","integer display");
+ ck(fmt(1e-5)!=="0","small values preserved");
+ let p=snapshot({spectrum:"residual-rise"}).result.methods[0];ck(Math.abs(p.rows[1].relativeResidual-4.95)<1e-12&&p.rows[1].relativeAError<1,"residual rises while energy falls");
+ p=snapshot({scaleExponent:-12}).result.methods[0];ck(p.final.k>0&&p.final.relativeResidual<1e-12,"small units are not zero solution");
+ p=snapshot({preconditioner:"none",preconditionExponent:12}).result.methods[1];ck(p.final.k>0&&p.final.relativeResidual<1e-12,"M scaling is not false convergence");
+ ck(snapshot({weights:"zero"}).result.methods.every(m=>m.final.k===0&&m.final.actualNorm===0),"actual initial zero");
+ p=snapshot({mode:"gmres",family:"rotation",restart:1}).result;ck(p.methods[0].final.k===2&&p.methods[0].final.rNorm===0,"full rotation solved");ck(p.methods[1].final.relativeResidual===1&&p.methods[1].status==="iteration-budget","restart one stagnation");
+ p=snapshot({mode:"precondition",family:"grcar",gamma:0,restart:1}).result.methods[2];ck(p.rows[1].relativeResidual>1&&p.rows[1].relativeWeighted<1,"weighted progress not physical progress");
+ p=snapshot({condition:1+4*Number.EPSILON}).result.methods[0];ck(p.rows.length<2||p.rows[1].bound>0,"nearly scalar is not exact scalar");
+ return{status:"PASS",checks};
+}
+return{DEFAULTS,PRESETS,QUESTIONS,num,config,snapshot,norm,dot,sub,axpy,eye,copy,transpose,mv,mm,fro,msub,cgRun,cgModel,smallLS,gmresRun,gmresModel,fmt,plots,ledgers,svg,mount,selfTest};
+});
