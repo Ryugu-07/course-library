@@ -1,816 +1,162 @@
-(function (root, factory) {
-  "use strict";
+(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;if(root&&root.CourseLearning)root.CourseLearning.register('galois-correspondence',api.mount);})(typeof window!=='undefined'?window:typeof globalThis!=='undefined'?globalThis:this,function(){
+'use strict';
+const abs=x=>x<0n?-x:x;
+function gcd(a,b){a=abs(a);b=abs(b);while(b){const t=a%b;a=b;b=t;}return a;}
+function coefficients(p=0){if(![0,2,3,5,7].includes(p))throw Error("系数特征只允许0、2、3、5、7");const P=BigInt(p);function norm(n,d=1n){if(!d)throw Error('零分母');if(d<0n){n=-n;d=-d;}if(P){n=(n%P+P)%P;d=(d%P+P)%P;if(!d)throw Error('分母在该特征下为零');let inverse=1n;while(d*inverse%P!==1n)inverse++;return [n*inverse%P,1n];}const g=gcd(n,d);return [n/g,d/g];}const z=()=>[0n,1n],one=()=>[1n,1n],add=(a,b)=>norm(a[0]*b[1]+b[0]*a[1],a[1]*b[1]),neg=a=>norm(-a[0],a[1]),sub=(a,b)=>add(a,neg(b)),mul=(a,b)=>norm(a[0]*b[0],a[1]*b[1]),div=(a,b)=>norm(a[0]*b[1],a[1]*b[0]),zero=a=>a[0]===0n,eq=(a,b)=>a[0]*b[1]===b[0]*a[1],pack=a=>String(a[0])+(a[1]===1n?'':'/'+String(a[1]));function read(s,limit=12){if(typeof s!=='string'||! /^-?(?:0|[1-9]\d*)(?:\/[1-9]\d*)?$/.test(s))throw Error('系数须为无空格整数或分数');const v=s.split('/').map(BigInt);if(abs(v[0])>BigInt(limit)||(v[1]||1n)>BigInt(limit))throw Error('系数分子绝对值及分母最多'+limit);return norm(v[0],v[1]||1n);}return {p,norm,z,one,add,neg,sub,mul,div,zero,eq,pack,read};}
+const vector=(n,C)=>Array.from({length:n},C.z),unit=(n,i,C)=>Array.from({length:n},(_,j)=>j===i?C.one():C.z()),matrix=(m,n,C)=>Array.from({length:m},()=>vector(n,C));
+const packVector=(v,C)=>v.map(C.pack),packMatrix=(a,n,C)=>({rows:a.length,cols:n,data:a.map(r=>packVector(r,C))});
+function rref(input,n,C){const a=input.map(r=>r.map(v=>v.slice())),m=a.length,U=Array.from({length:m},(_,i)=>unit(m,i,C)),pivots=[],operations=[];let k=0;
+ function swap(i,j){[a[i],a[j]]=[a[j],a[i]];[U[i],U[j]]=[U[j],U[i]];operations.push({kind:'swap',i,j});}
+ function scale(i,q){a[i]=a[i].map(v=>C.mul(v,q));U[i]=U[i].map(v=>C.mul(v,q));operations.push({kind:'scale',i,multiple:C.pack(q)});}
+ function add(i,j,q){a[i]=a[i].map((v,l)=>C.add(v,C.mul(q,a[j][l])));U[i]=U[i].map((v,l)=>C.add(v,C.mul(q,U[j][l])));operations.push({kind:'add',i,j,multiple:C.pack(q)});}
+ for(let j=0;j<n&&k<m;j++){const found=a.findIndex((r,i)=>i>=k&&!C.zero(r[j]));if(found<0)continue;if(found!==k)swap(k,found);if(!C.eq(a[k][j],C.one()))scale(k,C.div(C.one(),a[k][j]));for(let i=0;i<m;i++)if(i!==k&&!C.zero(a[i][j]))add(i,k,C.neg(a[i][j]));pivots.push(j);k++;}
+ const kernel=[];for(let j=0;j<n;j++)if(!pivots.includes(j)){const v=unit(n,j,C);pivots.forEach((col,i)=>v[col]=C.neg(a[i][j]));kernel.push(v);}
+ return {matrix:a,left:U,pivots,rank:k,kernel,operations};
+}
+function solve(A,b,n,C){const q=rref(A.map((r,i)=>r.concat([b[i]])),n+1,C);if(q.pivots.includes(n))return null;const out=vector(n,C);q.pivots.forEach((j,i)=>out[j]=q.matrix[i][n]);return out;}
+function determinant(A,C){const a=A.map(r=>r.map(v=>v.slice()));let d=C.one();for(let k=0;k<a.length;k++){const i=a.findIndex((r,j)=>j>=k&&!C.zero(r[k]));if(i<0)return C.z();if(i!==k){[a[i],a[k]]=[a[k],a[i]];d=C.neg(d);}const pivot=a[k][k];d=C.mul(d,pivot);for(let j=k+1;j<a.length;j++){const q=C.div(a[j][k],pivot);for(let col=k;col<a.length;col++)a[j][col]=C.sub(a[j][col],C.mul(q,a[k][col]));}}return d;}
+function matVec(A,v,C){return A.map(r=>r.reduce((s,x,i)=>C.add(s,C.mul(x,v[i])),C.z()));}
+function matMul(A,B,cols,C){return A.map(r=>Array.from({length:cols},(_,j)=>r.reduce((s,x,i)=>C.add(s,C.mul(x,B[i][j])),C.z())));}
+function coordinate(basis,v,C){return solve(v.map((_,i)=>basis.map(b=>b[i])),v,basis.length,C);}
+function reducedPowers(f,limit,C){const n=f.length-1,out=[];for(let k=0;k<=limit;k++){if(k<n){out.push(unit(n,k,C));continue;}const prev=out[k-1],v=vector(n,C);for(let i=1;i<n;i++)v[i]=prev[i-1];for(let i=0;i<n;i++)v[i]=C.sub(v[i],C.mul(prev[n-1],f[i]));out.push(v);}return out;}
+function algebra(fx,fy,C){const nx=fx.length-1,ny=fy.length-1,n=nx*ny,px=reducedPowers(fx,2*nx-2,C),py=reducedPowers(fy,2*ny-2,C),structure=Array.from({length:n},(_,a)=>Array.from({length:n},(_,b)=>{const v=vector(n,C),x=px[a%nx+b%nx],y=py[Math.floor(a/nx)+Math.floor(b/nx)];for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)v[i+nx*j]=C.mul(x[i],y[j]);return v;}));
+ const zero=()=>vector(n,C),one=()=>unit(n,0,C),add=(a,b)=>a.map((x,i)=>C.add(x,b[i])),neg=a=>a.map(C.neg),sub=(a,b)=>add(a,neg(b)),scale=(a,c)=>a.map(x=>C.mul(x,c)),isZero=a=>a.every(C.zero),equal=(a,b)=>a.length===b.length&&a.every((x,i)=>C.eq(x,b[i]));
+ function mul(a,b){let v=zero();for(let i=0;i<n;i++)if(!C.zero(a[i]))for(let j=0;j<n;j++)if(!C.zero(b[j]))v=add(v,scale(structure[i][j],C.mul(a[i],b[j])));return v;}
+ function pow(v,k){if(!Number.isSafeInteger(k)||k<0)throw Error("幂指数须为非负安全整数");let q=one(),x=v;for(let t=BigInt(k);t;t>>=1n,x=mul(x,x))if(t&1n)q=mul(q,x);return q;}
+ function multiplication(v){const columns=Array.from({length:n},(_,i)=>mul(v,unit(n,i,C)));return Array.from({length:n},(_,i)=>columns.map(c=>c[i]));}
+ function inverse(v){const w=solve(multiplication(v),one(),n,C);if(!w)throw Error('该元素没有乘法逆');return w;}
+ function minimal(v){const powers=[one()];for(let k=1;k<=n;k++){powers.push(mul(powers[k-1],v));const relation=coordinate(powers.slice(0,k),powers[k],C);if(relation)return {degree:k,coefficients:relation.map(C.neg).concat([C.one()]),powers};}throw Error('未找到有限维代数的幂关系');}
+ function imageMatrix(x,y){const columns=[];for(let j=0;j<ny;j++)for(let i=0;i<nx;i++)columns.push(mul(pow(x,i),pow(y,j)));return Array.from({length:n},(_,i)=>columns.map(v=>v[i]));}
+ function polynomial(f,x){let v=zero();for(let i=f.length-1;i>=0;i--)v=add(mul(v,x),scale(one(),f[i]));return v;}
+ const X=polynomialCoordinate(fx,C),Y=polynomialCoordinate(fy,C);const x=zero(),y=zero();for(let i=0;i<nx;i++)x[i]=X[i];for(let j=0;j<ny;j++)y[nx*j]=Y[j];
+ return {C,n,nx,ny,fx,fy,structure,zero,one,x,y,add,neg,sub,scale,mul,pow,isZero,equal,multiplication,inverse,minimal,imageMatrix,polynomial};
+}
+function polynomialCoordinate(f,C){const n=f.length-1;if(n===1)return[C.neg(f[0])];return unit(n,1,C);}
+function finiteIrreducibility(input,p){const C=coefficients(p),norm=a=>{const b=a.slice();while(b.length>1&&C.zero(b.at(-1)))b.pop();return b;},sub=(a,b)=>norm(Array.from({length:Math.max(a.length,b.length)},(_,i)=>C.sub(a[i]||C.z(),b[i]||C.z())));
+ function rem(a,b){let r=norm(a);if(b.every(C.zero))throw Error('零多项式除数');while(r.length>=b.length&&!r.every(C.zero)){const k=r.length-b.length,q=C.div(r.at(-1),b.at(-1));for(let j=0;j<b.length;j++)r[k+j]=C.sub(r[k+j],C.mul(q,b[j]));r=norm(r);}return r;}
+ function multiply(a,b,f){const v=vector(a.length+b.length-1,C);for(let i=0;i<a.length;i++)for(let j=0;j<b.length;j++)v[i+j]=C.add(v[i+j],C.mul(a[i],b[j]));return rem(v,f);}
+ function power(a,k,f){let v=[C.one()],x=a;for(let t=BigInt(k);t;t>>=1n,x=multiply(x,x,f))if(t&1n)v=multiply(v,x,f);return v;}
+ function polynomialGcd(a,b){while(!b.every(C.zero)){const r=rem(a,b);a=b;b=r;}return a.map(v=>C.div(v,a.at(-1)));}
+ const f=input.map(v=>C.norm(BigInt(v))),n=f.length-1,x=rem([C.z(),C.one()],f),powers=[x];for(let k=1;k<=n;k++)powers.push(power(powers[k-1],p,f));const primes=[];for(let q=2,t=n;q<=t;q++)if(t%q===0){primes.push(q);while(t%q===0)t/=q;}
+ const tests=primes.map(q=>{const difference=sub(powers[n/q],x),g=polynomialGcd(f,difference);return {primeDivisor:q,iteration:n/q,difference:packVector(difference,C),gcd:packVector(g,C),unit:g.length===1&&!C.zero(g[0])};});
+ const terminal=sub(powers[n],x),valid=terminal.every(C.zero)&&tests.every(t=>t.unit);
+ return {prime:p,degree:n,polynomial:packVector(f,C),frobeniusRemainders:powers.map(v=>packVector(v,C)),tests,terminalDifference:packVector(terminal,C),irreducible:valid};
+}
+const MODELS=[
+ {id:'biquadratic',label:'Q(√2,√3) / Q',fx:[-2,0,1],fy:[-3,0,1],x:'√2',y:'√3',galois:true,degree:4,group:'V₄'},
+ {id:'cubic',label:'Q(∛2,ω) / Q',fx:[-2,0,0,1],fy:[1,1,1],x:'α',y:'ω',galois:true,degree:6,group:'S₃'},
+ {id:'quartic',label:'Q(⁴√2,i) / Q',fx:[-2,0,0,0,1],fy:[1,0,1],x:'θ',y:'i',galois:true,degree:8,group:'D₄（8阶）'},
+ {id:'cyclo5',label:'Q(ζ₅) / Q',fx:[1,1,1,1,1],fy:[0,1],x:'ζ₅',y:'0',galois:true,degree:4,group:'C₄',cyclotomic:5},
+ {id:'cyclo8',label:'Q(ζ₈) / Q',fx:[1,0,0,0,1],fy:[0,1],x:'ζ₈',y:'0',galois:true,degree:4,group:'V₄',cyclotomic:8},
+ {id:'cyclo7',label:'Q(ζ₇) / Q',fx:[1,1,1,1,1,1,1],fy:[0,1],x:'ζ₇',y:'0',galois:true,degree:6,group:'C₆',cyclotomic:7},
+ {id:'nonnormal',label:'Q(∛2) / Q（非正规）',fx:[-2,0,0,1],fy:[0,1],x:'α',y:'0',galois:false,degree:3,group:'Aut = {1}'},
+ {id:'finite',label:'Fₚ[t]/(f) / Fₚ',x:'t',y:'0',galois:true}
+];
+const DEFAULTS={model:'biquadratic',prime:'2',polynomial:'1,1,0,1',generators:'1',element:'0,1,1,0'};
+const clone=o=>JSON.parse(JSON.stringify(o));
+function config(input){if(input===undefined)input={};if(input===null||typeof input!=='object'||Array.isArray(input))throw Error('参数必须是对象');for(const k of Object.keys(input))if(!Object.hasOwn(DEFAULTS,k))throw Error('未知参数：'+k);const c={...DEFAULTS,...input};if(!MODELS.some(m=>m.id===c.model))throw Error('请选择已实现的域模型');if(!['2','3','5','7'].includes(c.prime))throw Error('p 只允许 2、3、5、7');if(typeof c.polynomial!=='string'||c.polynomial.length>100||! /^-?(?:0|[1-9]\d*)(?:,-?(?:0|[1-9]\d*))*$/.test(c.polynomial))throw Error('多项式按常数项到最高次输入整数，以逗号分隔');const p=Number(c.prime),f=c.polynomial.split(',').map(Number);if(f.length<2||f.length>7||f.some(v=>!Number.isSafeInteger(v)||Math.abs(v)>12)||f.at(-1)!==1)throw Error('须输入 1–6 次首一多项式，各系数绝对值≤12');if(p**(f.length-1)>125)throw Error('有限域最多 125 个元素');for(const k of ['generators','element'])if(typeof c[k]!=='string'||c[k].length>200)throw Error(k+' 输入过长或类型错误');if(c.generators!==''&&! /^(?:0|[1-9]\d*)(?:,(?:0|[1-9]\d*))*$/.test(c.generators))throw Error('自同构编号须为无空格非负整数，逗号分隔；空串表示平凡子群');const gs=c.generators===''?[]:c.generators.split(',').map(Number);if(gs.some(x=>!Number.isSafeInteger(x)||x>7)||new Set(gs).size!==gs.length)throw Error('自同构编号须在 0–7 内且不重复');if(!c.element)throw Error('请按基的顺序输入全部系数');c.element.split(',').forEach(s=>coefficients(c.model==='finite'?p:0).read(s));return c;}
+function groupFromMatrices(matrices,C){const key=M=>JSON.stringify(M.map(r=>packVector(r,C))),keys=matrices.map(key),n=matrices.length,d=matrices[0].length;const table=matrices.map(X=>matrices.map(Y=>keys.indexOf(key(matMul(X,Y,d,C)))));if(table.some(r=>r.includes(-1))||new Set(keys).size!==n)throw Error('自同构复合未封闭或重复');if(table[0].some((v,i)=>v!==i)||table.some((r,i)=>r[0]!==i))throw Error('编号 0 必须是恒等映射');const inv=table.map((r,i)=>r.findIndex((v,j)=>v===0&&table[j][i]===0));if(inv.includes(-1))throw Error('自同构逆缺失');
+ function closure(gens){const seen=new Set([0]),queue=[0];for(let i=0;i<queue.length;i++)for(const g of gens){const h=table[queue[i]][g];if(!seen.has(h)){seen.add(h);queue.push(h);}}return [...seen].sort((a,b)=>a-b);}
+ const subgroups=[{elements:[0],generators:[]}],seen=new Map([['0',0]]);for(let i=0;i<subgroups.length;i++)for(let g=0;g<n;g++){const gens=subgroups[i].generators.concat(g),els=closure(gens),k=els.join(',');if(!seen.has(k)){seen.set(k,subgroups.length);subgroups.push({elements:els,generators:gens});}}
+ subgroups.sort((a,b)=>a.elements.length-b.elements.length||a.elements.join(',').localeCompare(b.elements.join(',')));const subgroupId=els=>subgroups.findIndex(h=>h.elements.join(',')===els.join(','));subgroups.forEach((h,id)=>{h.id=id;h.order=h.elements.length;h.conjugates=table.map((_,g)=>subgroupId(h.elements.map(x=>table[table[g][x]][inv[g]]).sort((a,b)=>a-b)));h.normal=h.conjugates.every(v=>v===id);h.normalizer=h.conjugates.map((v,g)=>v===id?g:-1).filter(g=>g>=0);});const inclusions=[];for(const h of subgroups)for(const k of subgroups)if(h.id!==k.id&&h.elements.every(x=>k.elements.includes(x)))inclusions.push([h.id,k.id]);const covers=inclusions.filter(([h,k])=>!subgroups.some(q=>q.id!==h&&q.id!==k&&inclusions.some(([a,b])=>a===h&&b===q.id)&&inclusions.some(([a,b])=>a===q.id&&b===k)));return {order:n,table,inverses:inv,subgroups,inclusions,covers,closure,subgroupId};
+}
+function fixedField(h,matrices,K){const {C,n}=K,eqs=[];for(const id of h.elements)for(let i=0;i<n;i++)eqs.push(matrices[id][i].map((v,j)=>C.sub(v,i===j?C.one():C.z())));const reduction=rref(eqs,n,C),basis=reduction.kernel;const products=basis.map(x=>basis.map(y=>{const v=coordinate(basis,K.mul(x,y),C);if(!v)throw Error('固定空间乘法未封闭');return v;}));return {basis,record:{subgroupId:h.id,dimension:basis.length,basis:basis.map(v=>packVector(v,C)),equations:packMatrix(eqs,n,C),rref:packMatrix(reduction.matrix,n,C),left:packMatrix(reduction.left,eqs.length,C),rowOperations:reduction.operations,pivots:reduction.pivots,multiplication:products.map(row=>row.map(v=>packVector(v,C)))}};}
+const cache=new Map();
+function build(c){const key=[c.model,c.prime,c.polynomial].join('|');if(cache.has(key))return cache.get(key);let def=MODELS.find(m=>m.id===c.model),p=c.model==='finite'?Number(c.prime):0,irreducibility=null;const C=coefficients(p);if(c.model==='finite'){const f=c.polynomial.split(',').map(Number);irreducibility=finiteIrreducibility(f,p);if(!irreducibility.irreducible)return {valid:false,irreducibility};def={...def,fx:f,fy:[0,1],degree:f.length-1,group:'C'+(f.length-1),label:'F'+(p**(f.length-1))+' / F'+p};}const K=algebra(def.fx.map(x=>C.norm(BigInt(x))),def.fy.map(x=>C.norm(BigInt(x))),C),maps=[],labels=[];function add(x,y,label){if(!K.isZero(K.polynomial(K.fx,x))||!K.isZero(K.polynomial(K.fy,y)))throw Error('生成元像不保持定义关系');const M=K.imageMatrix(x,y);if(C.zero(determinant(M,C)))throw Error('候选自同构不可逆');maps.push(M);labels.push(label);}
+ if(def.id==='biquadratic')for(const sy of [1,-1])for(const sx of [1,-1])add(K.scale(K.x,C.norm(BigInt(sx))),K.scale(K.y,C.norm(BigInt(sy))),'√2↦'+(sx<0?'−':'')+'√2；√3↦'+(sy<0?'−':'')+'√3');
+ else if(def.id==='cubic')for(const s of [1,2])for(let k=0;k<3;k++)add(K.mul(K.x,K.pow(K.y,k)),K.pow(K.y,s),'α↦ω^'+k+'α；ω↦ω^'+s);
+ else if(def.id==='quartic')for(const s of [1,3])for(let k=0;k<4;k++)add(K.mul(K.x,K.pow(K.y,k)),K.pow(K.y,s),'θ↦i^'+k+'θ；i↦i^'+s);
+ else if(def.cyclotomic)for(let k=1;k<def.cyclotomic;k++){let a=k,b=def.cyclotomic;while(b){[a,b]=[b,a%b];}if(a===1)add(K.pow(K.x,k),K.y,'ζ↦ζ^'+k);}
+ else if(def.id==='finite')for(let k=0;k<K.n;k++)add(K.pow(K.x,p**k),K.y,'Frob^'+k+'：t↦t^'+(p**k));
+ else add(K.x,K.y,'恒等：α↦α');
+ const G=groupFromMatrices(maps,C),fixed=G.subgroups.map(h=>fixedField(h,maps,K));const fieldInclusions=[];for(const f of fixed)for(const e of fixed)if(f!==e&&f.basis.every(v=>coordinate(e.basis,v,C)!==null))fieldInclusions.push([f.record.subgroupId,e.record.subgroupId]);const basisLabels=[];for(let j=0;j<K.ny;j++)for(let i=0;i<K.nx;i++)basisLabels.push([i?(i===1?def.x:def.x+'^'+i):'',j?(j===1?def.y:def.y+'^'+j):''].filter(Boolean).join('·')||'1');const record={valid:true,model:def.id,label:def.label,prime:p,degree:K.n,galois:def.galois,groupLabel:def.group,relations:{x:packVector(K.fx,C),y:packVector(K.fy,C)},basisLabels,structure:K.structure.map(row=>row.map(v=>packVector(v,C))),automorphisms:maps.map((m,id)=>({id,label:labels[id],matrix:packMatrix(m,K.n,C),x:packVector(matVec(m,K.x,C),C),y:packVector(matVec(m,K.y,C),C)})),group:{order:G.order,multiplication:G.table,inverses:G.inverses,subgroups:G.subgroups,inclusions:G.inclusions,covers:G.covers},fixedFields:fixed.map(f=>f.record),fieldInclusions,irreducibility};
+ if(def.galois&&(G.order!==K.n||fixed.some((f,i)=>f.basis.length*G.subgroups[i].order!==K.n)))throw Error('Galois 次数关系不满足');if(cache.size>=12)cache.delete(cache.keys().next().value);const result={valid:true,K,G,maps,fixed,record};cache.set(key,result);return result;
+}
+function quotient(h,B){const {K,G,maps,fixed}=B,{C}=K,f=fixed[h.id];if(!h.normal){const g=h.conjugates.findIndex(id=>id!==h.id),target=h.conjugates[g],index=f.basis.findIndex(v=>coordinate(f.basis,matVec(maps[g],v,C),C)===null);if(index<0)throw Error('非正规固定域缺少共轭见证');return {exists:false,conjugator:g,conjugateSubgroup:target,basisIndex:index,image:packVector(matVec(maps[g],f.basis[index],C),C)};}
+ const cosets=[],projection=Array(G.order).fill(-1);for(let g=0;g<G.order;g++)if(projection[g]<0){const row=h.elements.map(x=>G.table[g][x]).sort((a,b)=>a-b),id=cosets.length;row.forEach(x=>projection[x]=id);cosets.push(row);}const table=cosets.map(a=>cosets.map(b=>projection[G.table[a[0]][b[0]]]));const restrictions=cosets.map(row=>{const columns=f.basis.map(v=>coordinate(f.basis,matVec(maps[row[0]],v,C),C));if(columns.some(v=>v===null))throw Error('正规子群固定域未保持');return packMatrix(f.basis.map((_,i)=>columns.map(v=>v[i])),f.basis.length,C);});return {exists:true,cosets,projection,multiplication:table,restrictions,overBaseIsGalois:B.record.galois,baseWarning:B.record.galois?null:'此商描述 E^H / E^Aut(E/F)，不能据此声称 E^H / F 是 Galois'};}
+function snapshot(input){const c=config(input),B=build(c);if(!B.valid)return {version:159,parameters:c,valid:false,reason:'多项式可约：商环不是域，停止固定域与 Galois 推断。',irreducibility:B.irreducibility};const {K,G,maps,fixed}=B,{C}=K,gens=c.generators===''?[]:c.generators.split(',').map(Number);if(gens.some(g=>g>=G.order))throw Error('自同构编号超出该模型范围');const v=c.element.split(',').map(s=>C.read(s));if(v.length!==K.n)throw Error('该模型需要 '+K.n+' 个基坐标');const h=G.subgroups[G.subgroupId(G.closure(gens))],f=fixed[h.id],images=maps.map(M=>matVec(M,v,C)),stabilizer=images.map((w,i)=>K.equal(w,v)?i:-1).filter(i=>i>=0),orbit=[],orbitTransporters=[];images.forEach((w,i)=>{if(!orbit.some(x=>K.equal(x,w))){orbit.push(w);orbitTransporters.push(i);}});let orbitPolynomial=[K.one()];for(const root of orbit){const next=Array.from({length:orbitPolynomial.length+1},K.zero);orbitPolynomial.forEach((coef,i)=>{next[i]=K.sub(next[i],K.mul(root,coef));next[i+1]=K.add(next[i+1],coef);});orbitPolynomial=next;}const minimal=K.minimal(v),mult=K.multiplication(v),trace=mult.reduce((s,r,i)=>C.add(s,r[i]),C.z()),norm=determinant(mult,C),relativeTrace=h.elements.reduce((s,i)=>K.add(s,images[i]),K.zero()),relativeNorm=h.elements.reduce((s,i)=>K.mul(s,images[i]),K.one()),membership=fixed.map(ff=>({subgroupId:ff.record.subgroupId,coordinates:(()=>{const q=coordinate(ff.basis,v,C);return q?packVector(q,C):null;})()}));let inverse=null;if(!K.isZero(v))inverse=packVector(K.inverse(v),C);return {version:159,parameters:c,valid:true,base:clone(B.record),selected:{subgroupId:h.id,generators:gens,order:h.order,fixedDimension:f.basis.length,normal:h.normal,quotient:quotient(h,B)},element:{coordinates:packVector(v,C),inverse,multiplication:packMatrix(mult,K.n,C),minimalPolynomial:{degree:minimal.degree,coefficients:packVector(minimal.coefficients,C),powers:minimal.powers.map(w=>packVector(w,C))},primitive:minimal.degree===K.n,images:images.map(w=>packVector(w,C)),stabilizer,orbit:orbit.map(w=>packVector(w,C)),orbitTransporters,orbitPolynomial:orbitPolynomial.map(w=>packVector(w,C)),orbitPolynomialOverBase:orbitPolynomial.every(w=>w.slice(1).every(C.zero)),trace:C.pack(trace),norm:C.pack(norm),relativeTrace:packVector(relativeTrace,C),relativeNorm:packVector(relativeNorm,C),relativeTraceCoordinates:packVector(coordinate(f.basis,relativeTrace,C),C),relativeNormCoordinates:packVector(coordinate(f.basis,relativeNorm,C),C),membership}};}
 
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("galois-correspondence", exported.mount);
-  }
-  if (
-    typeof module === "object" &&
-    module.exports &&
-    typeof require === "function" &&
-    require.main === module
-  ) {
-    try {
-      var report = exported.selfTest();
-      console.log(
-        "galois-correspondence self-test: PASS (" +
-          report.checks +
-          " checks, " +
-          report.examples +
-          " examples, " +
-          report.subgroups +
-          " subgroups)"
-      );
-    } catch (error) {
-      console.error("galois-correspondence self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
-  }
-})(
-  typeof window !== "undefined"
-    ? window
-    : typeof globalThis !== "undefined"
-      ? globalThis
-      : this,
-  function (host) {
-    "use strict";
+const esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=v=>v===null?'不属于／不适用':typeof v==='boolean'?(v?'是':'否'):Array.isArray(v)?'['+v.map(fmt).join(', ')+']':v&&typeof v==='object'?'{'+Object.entries(v).map(([k,x])=>k+': '+fmt(x)).join('; ')+'}':String(v);
+function expression(v,labels){const terms=[];v.forEach((c,i)=>{if(c==='0')return;terms.push(c+(labels[i]==='1'?'':'·'+labels[i]));});return terms.length?terms.join(' + ').replace(/\+ -/g,'− '):'0';}
+function plots(s){if(!s.valid)return[];const b=s.base,h=b.group.subgroups[s.selected.subgroupId],f=b.fixedFields[h.id],n=b.degree,ink='#283b46',blue='#256c91',gold='#b96817',green='#327565';const ps=[];function panel(key,title,caption){const p={key,title,caption,width:900,height:460,items:[]};p.items.push({tag:'text',x:25,y:30,text:title,size:19,fill:ink},{tag:'text',x:25,y:437,text:caption,size:13,fill:ink});ps.push(p);return p;}
+ const p=panel('correspondence','子群与固定域：包含方向反转',b.galois?'同编号两节点互相对应；连线仅表示覆盖关系。':'此图仅对应 Aut 的固定域；原底域 Q 不在这一个节点中。');const orders=[...new Set(b.group.subgroups.map(h=>h.order))].sort((a,b)=>a-b);const pos=[{},{}];for(let side=0;side<2;side++){p.items.push({tag:'text',x:side?650:230,y:60,text:side?'固定域：维数向上增大':'子群：阶向上增大',size:15,anchor:'middle',fill:ink});for(let level=0;level<orders.length;level++){const hs=b.group.subgroups.filter(h=>h.order===orders[level]);hs.forEach((hh,j)=>{pos[side][hh.id]={x:side*420+60+(j+1)*360/(hs.length+1),w:Math.min(68,360/(hs.length+1)-8),y:orders.length===1?220:110+(side?level:orders.length-1-level)*270/(orders.length-1)};});}}
+ for(let side=0;side<2;side++){for(const [a,z]of b.group.covers){const u=pos[side][a],v=pos[side][z];p.items.push({tag:'line',x1:u.x,y1:u.y,x2:v.x,y2:v.y,stroke:'#8da2ab',strokeWidth:2});}for(const hh of b.group.subgroups){const q=pos[side][hh.id];p.items.push({tag:'rect',x:q.x-q.w/2,y:q.y-19,width:q.w,height:38,rx:7,fill:hh.id===h.id?'#fff0d4':'#eaf2f5',stroke:hh.id===h.id?gold:blue,strokeWidth:2},{tag:'text',x:q.x,y:q.y+5,text:(side?'K':'H')+hh.id+': '+(side?b.fixedFields[hh.id].dimension:hh.order),size:14,anchor:'middle',fill:ink});}}
+ const q=panel('fixed-basis','固定域的完整基：每一行是一个域元素','格内为精确基坐标；白色为零，蓝色为非零；颜色不表示正负或大小。');const cell= Math.min(85,680/n),row= Math.min(37,280/f.dimension),left=170,top=100;q.items.push({tag:'text',x:25,y:63,text:'H'+h.id+' 阶 '+h.order+'；固定域维数 '+f.dimension+'；原域维数 '+n,size:15,fill:ink});for(let j=0;j<n;j++)q.items.push({tag:'text',x:left+(j+.5)*cell,y:90,text:b.basisLabels[j],size:13,anchor:'middle',fill:ink});f.basis.forEach((v,i)=>{q.items.push({tag:'text',x:150,y:top+(i+.6)*row,text:'b'+i,size:14,anchor:'end',fill:ink});v.forEach((c,j)=>q.items.push({tag:'rect',x:left+j*cell,y:top+i*row,width:cell,height:row,fill:c==='0'?'#ffffff':'#deedf4',stroke:'#92a9b5',strokeWidth:1},{tag:'text',x:left+(j+.5)*cell,y:top+(i+.64)*row,text:c,size:13,anchor:'middle',fill:ink}));});
+ const z=panel('element-degrees','一个元素：极小次数、轨道与稳定子',b.galois?'Galois 时：不同像数 = 极小次数；不同像数 × 稳定子阶 = 群阶。':'非正规例：极小次数可大于域内自同构轨道；缺失的像落在域外。');const rows=[['原域次数',n],['极小多项式次数',s.element.minimalPolynomial.degree],['自同构轨道大小',s.element.orbit.length],['元素稳定子阶',s.element.stabilizer.length],['自同构群阶',b.group.order]];rows.forEach(([label,v],i)=>{z.items.push({tag:'text',x:205,y:102+i*57,text:label,size:15,anchor:'end',fill:ink},{tag:'rect',x:225,y:80+i*57,width:v*65,height:32,fill:i===1?gold:i===2?green:blue},{tag:'text',x:235+v*65,y:102+i*57,text:String(v),size:15,fill:ink});});
+ const t=panel('composition','自同构复合表：行映射在左、列映射先作用','格内为结果自同构编号；0 是恒等映射。编号与生成元像在完整表中对应。');const g=b.group.order,cs=Math.min(40,300/g),ox=290,oy=95;for(let i=0;i<g;i++){t.items.push({tag:'text',x:ox+(i+.5)*cs,y:80,text:String(i),size:14,anchor:'middle',fill:ink},{tag:'text',x:275,y:oy+(i+.65)*cs,text:String(i),size:14,anchor:'end',fill:ink});for(let j=0;j<g;j++)t.items.push({tag:'rect',x:ox+j*cs,y:oy+i*cs,width:cs,height:cs,fill:b.group.multiplication[i][j]===0?'#fff0d4':'#eaf2f5',stroke:'#92a9b5',strokeWidth:1},{tag:'text',x:ox+(j+.5)*cs,y:oy+(i+.65)*cs,text:String(b.group.multiplication[i][j]),size:14,anchor:'middle',fill:ink});}return ps;
+}
+function svg(p){return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+p.width+' '+p.height+'" width="'+p.width+'" height="'+p.height+'" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><desc>'+esc(p.caption)+'</desc><rect width="900" height="460" fill="#ffffff"/>'+p.items.map(it=>{const attrs={...it};delete attrs.tag;delete attrs.text;if(attrs.size){attrs['font-size']=attrs.size;delete attrs.size;}if(attrs.anchor){attrs['text-anchor']=attrs.anchor;delete attrs.anchor;}if(attrs.strokeWidth){attrs['stroke-width']=attrs.strokeWidth;delete attrs.strokeWidth;}if(it.tag==='text')attrs['font-family']='system-ui,sans-serif';return '<'+it.tag+' '+Object.entries(attrs).map(([k,v])=>k+'="'+esc(v)+'"').join(' ')+'>'+(it.tag==='text'?esc(it.text):'')+'</'+it.tag+'>';}).join('')+'</svg>';}
+function ledgers(s){if(!s.valid)return[{key:'irreducibility',title:'不可约性失败证据',headers:['项目','精确记录'],rows:Object.entries(s.irreducibility)}];const b=s.base,g=b.group,h=g.subgroups[s.selected.subgroupId],f=b.fixedFields[h.id],e=s.element,n=b.degree,rows=[];const table=(key,title,headers,rs)=>rows.push({key,title,headers,rows:rs});
+ table('basis','原域基与定义关系',['编号','基元素'],b.basisLabels.map((l,i)=>[i,l]).concat([['x关系（低次到高次）',b.relations.x],['y关系（低次到高次）',b.relations.y],['特征',b.prime],['相对于原底域为Galois',b.galois]]));
+ table('automorphisms','全部自同构与生成元像',['编号','操作','x的像坐标','y的像坐标'],b.automorphisms.map(a=>[a.id,a.label,a.x,a.y]));
+ table('automorphism-matrices','全部自同构矩阵',['自同构','矩阵行',...b.basisLabels],b.automorphisms.flatMap(a=>a.matrix.data.map((r,i)=>[a.id,i,...r])));
+ table('group','自同构复合表',['左乘/右乘',...g.multiplication.map((_,i)=>i)],g.multiplication.map((r,i)=>[i,...r]));
+ table('subgroups','全部子群及共轭',['H编号','生成元','全部元素','阶','正规','正规化子','逐个g的共轭H编号'],g.subgroups.map(h=>[h.id,h.generators,h.elements,h.order,h.normal,h.normalizer,h.conjugates]));
+ table('fixed-fields','全部固定域基',['H编号','维数','固定基编号','表达式','原域坐标'],b.fixedFields.flatMap(f=>f.basis.map((v,i)=>[f.subgroupId,f.dimension,i,expression(v,b.basisLabels),v])));
+ table('field-products','全部固定基乘法',['H编号','左基编号','右基编号','乘积在该固定基的坐标'],b.fixedFields.flatMap(f=>f.multiplication.flatMap((row,i)=>row.map((v,j)=>[f.subgroupId,i,j,v]))));
+ table('ambient-products','原域基全部乘法',['左基编号','右基编号','乘积原域坐标'],b.structure.flatMap((row,i)=>row.map((v,j)=>[i,j,v])));
+ table('inclusions','全部严格包含（及子群覆盖）',['种类','较小编号','较大编号'],g.inclusions.map(([a,z])=>['H包含',a,z]).concat(b.fieldInclusions.map(([a,z])=>['固定域包含',a,z]),g.covers.map(([a,z])=>['H覆盖',a,z])));
+ for(const [key,title,data]of [['equations','选中固定域：全部(Mh−I)方程',f.equations],['rref','选中固定域：约化阶梯矩阵',f.rref],['left','选中固定域：左侧可逆变换U',f.left]])table(key,title,['行',...Array.from({length:data.cols},(_,i)=>i)],data.data.map((r,i)=>[i,...r]));
+ table('operations','选中固定域：完整消元操作',['步','操作','目标行','来源行','乘数'],f.rowOperations.map((o,i)=>[i,o.kind,o.i,o.j===undefined?null:o.j,o.multiple===undefined?null:o.multiple]));
+ table('element','选中元素与迹/范数',['项目','值'],[['坐标',e.coordinates],['表达式',expression(e.coordinates,b.basisLabels)],['逆元坐标',e.inverse],['极小多项式低次到高次',e.minimalPolynomial.coefficients],['极小次数',e.minimalPolynomial.degree],['本原元',e.primitive],['稳定子',e.stabilizer],['原底域迹',e.trace],['原底域范数',e.norm],['相对E^H的迹：原域坐标',e.relativeTrace],['相对E^H的范数：原域坐标',e.relativeNorm],['相对迹：固定基坐标',e.relativeTraceCoordinates],['相对范数：固定基坐标',e.relativeNormCoordinates],['轨道多项式系数都在原底域',e.orbitPolynomialOverBase]]);
+ table('powers','极小多项式：首次相关的全部幂',['幂次',...b.basisLabels],e.minimalPolynomial.powers.map((v,i)=>[i,...v]));
+ table('multiply-element','所选元素的乘法矩阵',['行',...b.basisLabels],e.multiplication.data.map((r,i)=>[i,...r]));
+ table('images','全部自同构像',['自同构','像的表达式','像的坐标'],e.images.map((v,i)=>[i,expression(v,b.basisLabels),v]));
+ table('orbit-polynomial','不同像与轨道多项式',['种类','编号/幂次','值'],e.orbit.map((v,i)=>['不同像',i,v]).concat(e.orbitTransporters.map((v,i)=>['到达该像的一个自同构',i,v]),e.orbitPolynomial.map((v,i)=>['T^'+i+'系数的原域坐标',i,v])));
+ table('membership','所选元素属于哪些固定域',['H编号','在该固定基的坐标（不属于则为空）'],e.membership.map(m=>[m.subgroupId,m.coordinates]));
+ const q=s.selected.quotient;if(q.exists){table('quotient','商群：陪集与投影',['商元素','自同构陪集'],q.cosets.map((v,i)=>[i,v]).concat([['每个自同构的投影',q.projection],['相对原底域的Galois商',q.overBaseIsGalois],['底域说明',q.baseWarning]]));table('quotient-products','商群完整乘法',['行',...q.cosets.map((_,i)=>i)],q.multiplication.map((v,i)=>[i,...v]));table('restrictions','商群作用在固定域的限制矩阵',['商元素','矩阵行',...f.basis.map((_,i)=>'b'+i)],q.restrictions.flatMap((m,j)=>m.data.map((r,i)=>[j,i,...r])));}else table('nonnormal','非正规固定域的共轭见证',['项目','值'],Object.entries(q));
+ if(b.irreducibility)table('irreducibility','有限域不可约性完整证据',['项目','值'],Object.entries(b.irreducibility));return rows;
+}
+const QUESTIONS=[['H包含更多自同构时，固定域如何变化？',['包含关系反向，固定域可能变小','一定变大','没有任何关系']],['固定域的一组F基，怎样实际求出？',['解所有(Mh−I)c=0的共同零空间','挑一个看起来不变的根号就够','直接把子群元素当作域基']],['何时G/H能给出原底域上的Galois群？',['E/F有限Galois且H正规','任意子群都可以','只需H的阶整除G的阶']],['Q(∛2)/Q的自同构只有一个，能推出次数1吗？',['不能：该扩张不正规，原底域不是全部自同构的固定域','能，自同构个数永远等于次数','能，因为三次多项式只有一个根']]];
+const PRESETS=[];
+function preset(id,label,model,element,generators,extra={}){PRESETS.push({id,label,values:{...DEFAULTS,model,element,generators,...extra}});}
+preset('biquad-primitive','双二次：√2+√3是本原元','biquadratic','0,1,1,0','1');
+preset('biquad-product','双二次：同时换号固定√6','biquadratic','0,0,0,1','3');
+preset('biquad-sqrt2','双二次：固定√2','biquadratic','0,1,0,0','2');
+preset('biquad-full','双二次：全群固定有理数','biquadratic','1/2,0,0,0','1,2');
+preset('biquad-identity','双二次：平凡子群固定全域','biquadratic','1,1,1,1','');
+preset('cubic-real','S₃：复共轭与三次实域','cubic','0,1,0,0,0,0','3');
+preset('cubic-omega','S₃：旋转固定Q(ω)','cubic','0,0,0,1,0,0','1');
+preset('cubic-primitive','S₃：α+ω的六个像','cubic','0,1,0,1,0,0','1,3');
+preset('cubic-conjugate','S₃：另一个三次固定域','cubic','0,0,0,0,1,0','5');
+preset('quartic-real','D₄：四次实域不正规','quartic','0,1,0,0,0,0,0,0','4');
+preset('quartic-i','D₄：旋转固定Q(i)','quartic','0,0,0,0,1,0,0,0','1');
+preset('quartic-sqrt2','D₄：二次域Q(√2)','quartic','0,0,1,0,0,0,0,0','2,4');
+preset('quartic-mixture','D₄：θ+i的八个像','quartic','0,1,0,0,1,0,0,0','1,4');
+preset('cyclo5-real','圆分5：唯一二次域','cyclo5','-1,0,-1,-1','3');
+preset('cyclo5-generator','圆分5：C₄','cyclo5','0,1,0,0','1');
+preset('cyclo8-real','圆分8：固定√2','cyclo8','0,1,0,-1','3');
+preset('cyclo8-i','圆分8：固定i','cyclo8','0,0,1,0','2');
+preset('cyclo8-imaginary','圆分8：固定√−2','cyclo8','0,1,0,1','1');
+preset('cyclo7-real','圆分7：实三次子域','cyclo7','-1,0,-1,-1,-1,-1','5');
+preset('cyclo7-quadratic','圆分7：二次固定域','cyclo7','0,1,1,0,1,0','1');
+preset('nonnormal','非正规：次数3、轨道1','nonnormal','0,1,0','');
+preset('zero','零元素：逆元不适用','biquadratic','0,0,0,0','1');
+preset('finite2','F₂：一次多项式边界','finite','1','',{prime:'2',polynomial:'0,1'});
+preset('finite4','F₄：Frobenius阶2','finite','0,1','1',{prime:'2',polynomial:'1,1,1'});
+preset('finite8','F₈：Frobenius阶3','finite','0,1,0','1',{prime:'2',polynomial:'1,1,0,1'});
+preset('finite16','F₁₆：二次子域','finite','0,1,0,0','2',{prime:'2',polynomial:'1,1,0,0,1'});
+preset('finite32','F₃₂：只有两个中间域','finite','0,1,0,0,0','1',{prime:'2',polynomial:'1,0,1,0,0,1'});
+preset('finite64','F₆₄：Frob²固定F₄','finite','0,1,0,0,0,0','2',{prime:'2',polynomial:'1,1,0,0,0,0,1'});
+preset('finite9','F₉：特征3','finite','1,1','1',{prime:'3',polynomial:'1,0,1'});
+preset('finite27','F₂₇：三次扩张','finite','0,1,0','1',{prime:'3',polynomial:'1,-1,0,1'});
+preset('finite25','F₂₅：分数按模5解释','finite','1/2,1','1',{prime:'5',polynomial:'2,0,1'});
+preset('finite125','F₁₂₅：125元素上界','finite','0,1,0','1',{prime:'5',polynomial:'1,1,0,1'});
+preset('finite49','F₄₉：特征7','finite','0,1','1',{prime:'7',polynomial:'1,0,1'});
+preset('reducible','可约：F₂中(t+1)²不是域','finite','0,1','1',{prime:'2',polynomial:'1,0,1'});
+const STYLE='.galois159{color:var(--fg);min-width:0;overflow-wrap:anywhere}.galois159 *{box-sizing:border-box}.galois159 [hidden]{display:none!important}.galois159 button,.galois159 input,.galois159 select{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--border);border-radius:5px;min-height:44px;padding:8px;max-width:100%}.galois159 button{margin:4px 4px 4px 0;cursor:pointer;white-space:normal}.galois159 button:disabled{opacity:.5;cursor:default}.galois159 button[aria-pressed=true]{outline:2px solid var(--accent);background:var(--block-bg)}.galois159 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}.galois-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}.galois-controls label{display:grid;gap:6px;min-width:0}.galois159 fieldset{border:1px solid var(--border);margin:12px 0;min-width:0}.galois159 legend{max-width:100%;font-weight:600}.galois159 p{line-height:1.7}.galois-error{color:var(--cl-red,#b64335)}.galois-scroll{overflow:auto;max-width:100%;min-width:0;border:1px solid var(--border);margin:10px 0}.galois-scroll svg{display:block;min-width:900px;width:900px;height:460px;max-width:none}.galois-scroll table{border-collapse:collapse;min-width:900px;width:max-content;max-width:none;font-size:12px}.galois-scroll th,.galois-scroll td{padding:7px;vertical-align:top;text-align:left;border:1px solid var(--border);min-width:40px;max-width:550px;white-space:normal;overflow-wrap:anywhere}.galois159 details{border:1px solid var(--border);padding:10px;margin:10px 0;min-width:0}.galois159 summary{cursor:pointer;min-height:44px;line-height:1.7}.galois159 .galois-summary{padding:12px;border-left:3px solid var(--accent);background:var(--block-bg)}@media(max-width:680px){.galois-controls{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){.galois159 *{scroll-behavior:auto!important}}';
+function tableHTML(t){return '<table data-table="'+esc(t.key)+'"><caption>'+esc(t.title)+'</caption><thead><tr>'+t.headers.map(h=>'<th scope="col">'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+t.rows.map(r=>'<tr>'+r.map(v=>'<td>'+esc(fmt(v))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';}
+function mount(container){const doc=container.ownerDocument,win=doc.defaultView;if(!doc.getElementById('galois159-style')){const style=doc.createElement('style');style.id='galois159-style';style.textContent=STYLE;doc.head.appendChild(style);}const field=(k,label)=>'<label>'+label+'<input type="text" data-key="'+k+'"></label>';
+ container.innerHTML='<div class="galois159"><h3>Galois对应：从实际域运算求固定域</h3><p>先识别基坐标与自同构编号，再比较固定域。数域采用精确有理数，有限域先检验多项式不可约。</p><div>'+PRESETS.map(p=>'<button type="button" data-preset="'+p.id+'">'+esc(p.label)+'</button>').join('')+'</div><div class="galois-controls"><label>扩张模型<select data-key="model">'+MODELS.map(m=>'<option value="'+m.id+'">'+esc(m.label)+'</option>').join('')+'</select></label>'+field('generators','子群H的自同构生成元编号（空=平凡子群）')+field('element','所选元素的全部基系数（逗号分隔）')+'<label data-finite>素数p<select data-key="prime">'+[2,3,5,7].map(p=>'<option value="'+p+'">'+p+'</option>').join('')+'</select></label><div data-finite>'+field('polynomial','首一多项式系数：常数项到最高次')+'</div></div><p data-model-info></p><p>系数用无空格整数或分数，分子绝对值及分母≤12；模p下分母不能为0。切换模型后请对照新基更新全部坐标与自同构编号，或选择预设。有限域要求1–6次且pⁿ≤125。</p>'+QUESTIONS.map((q,i)=>'<fieldset data-question="'+i+'"><legend>'+(i+1)+'. '+esc(q[0])+'</legend>'+q[1].map((v,j)=>'<button type="button" data-choice="'+j+'" aria-pressed="false">'+esc(v)+'</button>').join('')+'</fieldset>').join('')+'<button type="button" data-action="reveal">核对预测并展示完整结果</button><button type="button" data-action="reset">重置实验</button><p class="galois-error" role="alert"></p><p role="status"></p><div class="galois-results" hidden></div></div>';
+ const shell=container.querySelector('.galois159'),inputs=[...shell.querySelectorAll('[data-key]')],result=shell.querySelector('.galois-results'),reveal=shell.querySelector('[data-action=reveal]'),error=shell.querySelector('[role=alert]'),status=shell.querySelector('[role=status]');let choices=[null,null,null,null],d=null,url=null;
+ const values=()=>Object.fromEntries(inputs.map(e=>[e.dataset.key,e.value]));function set(v){inputs.forEach(e=>e.value=String({...DEFAULTS,...v}[e.dataset.key]));}function cleanup(){if(url){win.URL.revokeObjectURL(url);url=null;}result.hidden=true;result.replaceChildren();}
+ function update(){cleanup();shell.querySelectorAll('[data-finite]').forEach(e=>e.hidden=values().model!=='finite');const info=shell.querySelector('[data-model-info]');info.textContent='';try{const c=config(values()),b=build(c);info.textContent=b.valid?'基顺序：'+b.record.basisLabels.map((l,i)=>i+'='+l).join('；')+'。自同构编号：'+b.record.automorphisms.map(a=>a.id+'='+a.label).join('；'):'不可约性检验未通过；可展示失败证据。';d=snapshot(c);error.textContent=d.valid?'':d.reason;}catch(e){d=null;error.textContent=e.message;if(!info.textContent)info.textContent='先选择预设，再对照基与映射修改输入。';}reveal.disabled=!d||choices.some(x=>x===null);status.textContent=choices.some(x=>x===null)?'先完成四项预测。':'预测已记录，请揭晓核对。';}
+ function render(){if(!d)return;cleanup();result.hidden=false;const tables=ledgers(d);let summary=d.reason;if(d.valid){const b=d.base,h=b.group.subgroups[d.selected.subgroupId],f=b.fixedFields[h.id];summary=b.label+'；原域次数 '+b.degree+'，自同构群阶 '+b.group.order+'。H'+h.id+' 阶 '+h.order+'；固定域维数 '+f.dimension+'。所选元素的极小次数 '+d.element.minimalPolynomial.degree+'，自同构轨道 '+d.element.orbit.length+'。'+(b.galois?'此扩张满足有限Galois对应。':'原底域不是全部自同构的固定域，不能按原底域使用完整对应。');}
+ result.innerHTML='<div class="galois-summary">'+esc(summary)+'</div><p><a data-download download="galois-correspondence-run.json">下载本次全部精确记录(JSON)</a></p>'+plots(d).map((p,i)=>'<div class="galois-scroll" role="region" tabindex="0" aria-label="图'+(i+1)+'：'+esc(p.title)+'">'+svg(p)+'</div>').join('')+'<p>各表在展开时载入全部行；没有省略固定基、矩阵行或乘法项。宽表可用方向键横向滚动；JSON还保留全部固定域的消元证书。</p>'+tables.map(t=>'<details data-ledger="'+t.key+'"><summary>'+esc(t.title)+'（'+t.rows.length+'行）</summary><div class="galois-scroll" role="region" tabindex="0" aria-label="'+esc(t.title)+'"></div></details>').join('');url=win.URL.createObjectURL(new win.Blob([JSON.stringify(d,null,2)+'\n'],{type:'application/json'}));result.querySelector('[data-download]').href=url;for(const t of tables){const detail=result.querySelector('[data-ledger="'+t.key+'"]');detail.addEventListener('toggle',()=>{if(detail.open&&!detail.querySelector('table'))detail.querySelector('[role=region]').innerHTML=tableHTML(t);});}status.textContent=choices.filter(v=>v===0).length+' / 4；结果已显示。每题第一项为正确答案；请用固定基与具体像检查原因。';}
+ inputs.forEach(e=>e.addEventListener(e.tagName==='SELECT'?'change':'input',update));shell.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{set(PRESETS.find(p=>p.id===b.dataset.preset).values);update();}));shell.querySelectorAll('[data-question]').forEach((f,i)=>f.querySelectorAll('[data-choice]').forEach(b=>b.addEventListener('click',()=>{choices[i]=+b.dataset.choice;f.querySelectorAll('button').forEach(q=>q.setAttribute('aria-pressed',String(q===b)));if(!result.hidden)render();else update();})));reveal.addEventListener('click',render);shell.querySelector('[data-action=reset]').addEventListener('click',()=>{choices=[null,null,null,null];shell.querySelectorAll('[data-choice]').forEach(b=>b.setAttribute('aria-pressed','false'));set(DEFAULTS);update();shell.querySelector('[data-choice]').focus();});set(DEFAULTS);update();
+}
+function selfTest(){let checks=0;const ck=(v,m)=>{checks++;if(!v)throw Error(m);};for(const p of PRESETS){const s=snapshot(p.values);if(p.id==='reducible'){ck(!s.valid&&!s.irreducibility.irreducible,p.id);continue;}ck(s.valid&&s.element.orbit.length*s.element.stabilizer.length===s.base.group.order,p.id);if(s.base.galois)ck(s.base.fixedFields.every(f=>f.dimension*s.base.group.subgroups[f.subgroupId].order===s.base.degree),p.id+' degrees');}const s=snapshot(PRESETS.find(p=>p.id==='nonnormal').values);ck(s.base.degree===3&&s.base.group.order===1&&s.element.minimalPolynomial.degree===3&&s.element.orbit.length===1,'nonnormal gap');return{status:'PASS',checks,presets:PRESETS.length};}
 
-    var STYLE_ID = "cl-galois-correspondence-styles";
-    var SERIAL = 0;
-
-    var V4_ELEMENTS = [
-      { id: "e", label: "e", action: "(a,b) -> (a,b)", order: 1 },
-      { id: "s", label: "sigma", action: "(a,b) -> (-a,b)", order: 2 },
-      { id: "t", label: "tau", action: "(a,b) -> (a,-b)", order: 2 },
-      { id: "st", label: "sigma tau", action: "(a,b) -> (-a,-b)", order: 2 }
-    ];
-
-    var S3_ELEMENTS = [
-      { id: "e", label: "e", action: "e", order: 1 },
-      { id: "r", label: "r=(123)", action: "(123)", order: 3 },
-      { id: "r2", label: "r^2=(132)", action: "(132)", order: 3 },
-      { id: "t12", label: "t12=(12)", action: "(12)", order: 2 },
-      { id: "t13", label: "t13=(13)", action: "(13)", order: 2 },
-      { id: "t23", label: "t23=(23)", action: "(23)", order: 2 }
-    ];
-
-    var EXAMPLES = [
-      {
-        id: "v4",
-        label: "V4",
-        title: "V4 example",
-        baseField: "Q",
-        extensionField: "K = Q(sqrt(2), sqrt(3))",
-        fieldDegree: 4,
-        groupElements: V4_ELEMENTS,
-        defaultSubgroup: "s",
-        subgroups: [
-          {
-            id: "trivial",
-            label: "{e}",
-            elements: ["e"],
-            order: 1,
-            index: 4,
-            fixedField: "K = Q(sqrt(2), sqrt(3))",
-            graphField: "K",
-            fieldDegree: 4,
-            normal: true,
-            quotient: "V4",
-            reason: "V4 is abelian; every subgroup is normal."
-          },
-          {
-            id: "s",
-            label: "<sigma>",
-            elements: ["e", "s"],
-            order: 2,
-            index: 2,
-            fixedField: "Q(sqrt(3))",
-            graphField: "Q(sqrt(3))",
-            fieldDegree: 2,
-            normal: true,
-            quotient: "C2",
-            reason: "V4 is abelian; every subgroup is normal."
-          },
-          {
-            id: "t",
-            label: "<tau>",
-            elements: ["e", "t"],
-            order: 2,
-            index: 2,
-            fixedField: "Q(sqrt(2))",
-            graphField: "Q(sqrt(2))",
-            fieldDegree: 2,
-            normal: true,
-            quotient: "C2",
-            reason: "V4 is abelian; every subgroup is normal."
-          },
-          {
-            id: "st",
-            label: "<sigma tau>",
-            elements: ["e", "st"],
-            order: 2,
-            index: 2,
-            fixedField: "Q(sqrt(6))",
-            graphField: "Q(sqrt(6))",
-            fieldDegree: 2,
-            normal: true,
-            quotient: "C2",
-            reason: "V4 is abelian; every subgroup is normal."
-          },
-          {
-            id: "whole",
-            label: "V4",
-            elements: ["e", "s", "t", "st"],
-            order: 4,
-            index: 1,
-            fixedField: "Q",
-            graphField: "F = Q",
-            fieldDegree: 1,
-            normal: true,
-            quotient: "1",
-            reason: "The whole group is normal."
-          }
-        ],
-        latticeEdges: [
-          ["whole", "s"],
-          ["whole", "t"],
-          ["whole", "st"],
-          ["s", "trivial"],
-          ["t", "trivial"],
-          ["st", "trivial"]
-        ]
-      },
-      {
-        id: "s3",
-        label: "S3",
-        title: "S3 example",
-        baseField: "Q",
-        extensionField: "K = Q(alpha, omega)",
-        fieldDegree: 6,
-        groupElements: S3_ELEMENTS,
-        defaultSubgroup: "a3",
-        subgroups: [
-          {
-            id: "trivial",
-            label: "{e}",
-            elements: ["e"],
-            order: 1,
-            index: 6,
-            fixedField: "K = Q(alpha, omega)",
-            graphField: "K",
-            fieldDegree: 6,
-            normal: true,
-            quotient: "S3",
-            reason: "The trivial subgroup is normal."
-          },
-          {
-            id: "t12",
-            label: "<t12>",
-            elements: ["e", "t12"],
-            order: 2,
-            index: 3,
-            fixedField: "Q(alpha_3) = Q(omega^2 alpha)",
-            graphField: "Q(alpha_3)",
-            fieldDegree: 3,
-            normal: false,
-            quotient: null,
-            reason: "r <t12> r^(-1) = <t23> != <t12>."
-          },
-          {
-            id: "t13",
-            label: "<t13>",
-            elements: ["e", "t13"],
-            order: 2,
-            index: 3,
-            fixedField: "Q(alpha_2) = Q(omega alpha)",
-            graphField: "Q(alpha_2)",
-            fieldDegree: 3,
-            normal: false,
-            quotient: null,
-            reason: "r <t13> r^(-1) = <t12> != <t13>."
-          },
-          {
-            id: "t23",
-            label: "<t23>",
-            elements: ["e", "t23"],
-            order: 2,
-            index: 3,
-            fixedField: "Q(alpha_1) = Q(alpha)",
-            graphField: "Q(alpha_1)",
-            fieldDegree: 3,
-            normal: false,
-            quotient: null,
-            reason: "r <t23> r^(-1) = <t13> != <t23>."
-          },
-          {
-            id: "a3",
-            label: "A3=<r>",
-            elements: ["e", "r", "r2"],
-            order: 3,
-            index: 2,
-            fixedField: "Q(omega)",
-            graphField: "Q(omega)",
-            fieldDegree: 2,
-            normal: true,
-            quotient: "C2",
-            reason: "A3 = ker(sign), so S3/A3 is C2."
-          },
-          {
-            id: "whole",
-            label: "S3",
-            elements: ["e", "r", "r2", "t12", "t13", "t23"],
-            order: 6,
-            index: 1,
-            fixedField: "Q",
-            graphField: "F = Q",
-            fieldDegree: 1,
-            normal: true,
-            quotient: "1",
-            reason: "The whole group is normal."
-          }
-        ],
-        latticeEdges: [
-          ["whole", "t12"],
-          ["whole", "t13"],
-          ["whole", "t23"],
-          ["whole", "a3"],
-          ["t12", "trivial"],
-          ["t13", "trivial"],
-          ["t23", "trivial"],
-          ["a3", "trivial"]
-        ]
-      }
-    ];
-
-    var QUESTIONS = [
-      {
-        key: "v4-field",
-        prompt: "V4: K^<sigma> 应该是哪一个固定域？",
-        options: [
-          { id: "sqrt2", label: "Q(sqrt(2))" },
-          { id: "sqrt3", label: "Q(sqrt(3))" },
-          { id: "sqrt6", label: "Q(sqrt(6))" }
-        ],
-        answer: "sqrt3"
-      },
-      {
-        key: "s3-a3",
-        prompt: "S3: A3 的指数和固定域是哪一组？",
-        options: [
-          { id: "three-alpha", label: "3 与 Q(alpha)" },
-          { id: "two-omega", label: "2 与 Q(omega)" },
-          { id: "six-q", label: "6 与 Q" }
-        ],
-        answer: "two-omega"
-      },
-      {
-        key: "s3-transposition",
-        prompt: "S3: 对换子群 <t12> 的正规性与商群？",
-        options: [
-          { id: "normal-c2", label: "正规，商群 C2" },
-          { id: "not-normal", label: "不正规，不存在群商" },
-          { id: "normal-c3", label: "正规，商群 C3" }
-        ],
-        answer: "not-normal"
-      },
-      {
-        key: "boundary",
-        prompt: "E=Q(cuberoot(2))/Q 为什么不能直接套用对应？",
-        options: [
-          { id: "galois", label: "它是 Galois，群阶为 3" },
-          { id: "normal-closure", label: "它不正规，应先取正规闭包" },
-          { id: "inseparable", label: "它不可分" }
-        ],
-        answer: "normal-closure"
-      }
-    ];
-
-    var STYLE_TEXT = [
-      ".cl-galois{--gc-blue:var(--cl-blue,#315f9d);--gc-gold:var(--cl-gold,#9b6a12);--gc-green:var(--cl-green,#39734d);--gc-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere;}",
-      "html[data-theme=\"dark\"] .cl-galois{--gc-blue:#83c8ff;--gc-gold:#e2b458;--gc-green:#72bd8b;--gc-red:#f08c7d;}",
-      ".cl-galois *,.cl-galois *::before,.cl-galois *::after{box-sizing:border-box}.cl-galois [hidden]{display:none!important}",
-      ".cl-galois h3,.cl-galois h4{margin:0;color:var(--fg);letter-spacing:0}.cl-galois h3{font-size:1.18rem}.cl-galois h4{margin-top:16px;font-size:1rem}",
-      ".cl-galois button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit;line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.cl-galois button:hover{border-color:var(--accent)}.cl-galois button[aria-pressed=\"true\"],.cl-galois button.gc-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750}.cl-galois button:disabled{cursor:not-allowed;opacity:.55}.cl-galois button:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}",
-      ".cl-galois fieldset{min-width:0;margin:0;padding:0;border:0}.cl-galois legend{margin-bottom:8px;color:var(--fg);font-weight:750}.gc-shell{display:grid;gap:14px}.gc-intro,.gc-note,.gc-feedback{color:var(--fg-soft);font-size:13px;line-height:1.7}.gc-prediction-box,.gc-control-box{padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg)}.gc-question{margin:10px 0;padding:10px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg)}.gc-question legend{max-width:100%;color:var(--fg-soft);font-size:13px;line-height:1.5}.gc-option-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.gc-option-grid button{font-size:12px}.gc-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}.gc-actions>*{flex:1 1 170px}.gc-feedback{min-height:2em;margin:9px 0 0;font-weight:700}.gc-pass{color:var(--gc-green)}.gc-warn{color:var(--gc-red)}",
-      ".gc-layout{display:grid;grid-template-columns:minmax(220px,.72fr) minmax(0,1.28fr);gap:14px;align-items:start;min-width:0}.gc-layout>div{min-width:0}.gc-preset-grid,.gc-subgroup-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.gc-preset-grid button,.gc-subgroup-grid button{font-size:12px}.gc-subgroup-grid button small{display:block;margin-top:3px;color:var(--fg-soft);font-size:10.5px;line-height:1.35}.gc-subgroup-grid button[aria-pressed=\"true\"] small{color:inherit}.gc-stage-frame{min-width:0;padding:10px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden}.gc-stage-heading{display:flex;flex-wrap:wrap;justify-content:space-between;gap:7px;align-items:baseline}.gc-stage-heading span{color:var(--fg-soft);font-size:12px}.gc-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:8px;margin:11px 0}.gc-metric{min-width:0;padding:8px;border-top:2px solid var(--border);background:var(--bg)}.gc-metric:nth-child(1),.gc-metric:nth-child(4){border-top-color:var(--gc-blue)}.gc-metric:nth-child(2),.gc-metric:nth-child(5){border-top-color:var(--gc-gold)}.gc-metric:nth-child(3){border-top-color:var(--gc-green)}.gc-metric span{display:block;color:var(--fg-soft);font-size:11px;line-height:1.4}.gc-metric strong{display:block;margin-top:3px;font-size:14px;line-height:1.45;overflow-wrap:anywhere}",
-      ".gc-certificate{margin:10px 0;padding:10px 12px;border-left:3px solid var(--gc-green);background:var(--bg);font-size:13px;line-height:1.7}.gc-certificate.gc-not-normal{border-left-color:var(--gc-red)}.gc-certificate p{margin:4px 0}.gc-certificate strong{color:var(--fg)}.gc-graph-frame{max-width:100%;margin-top:12px;padding:7px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow-x:auto;-webkit-overflow-scrolling:touch}.gc-svg{display:block;width:100%;min-width:620px;height:auto;color:var(--fg)}.gc-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.gc-svg .gc-edge{stroke:var(--border);stroke-width:1.4;fill:none}.gc-svg .gc-pair{stroke:var(--gc-gold);stroke-width:1;stroke-dasharray:4 4;stroke-opacity:.55}.gc-svg .gc-selected-pair{stroke:var(--gc-gold);stroke-width:2;stroke-opacity:1}.gc-svg .gc-node{fill:var(--bg);stroke:var(--border);stroke-width:1.3}.gc-svg .gc-node-selected{fill:color-mix(in srgb,var(--gc-blue) 16%,var(--bg));stroke:var(--gc-blue);stroke-width:2}.gc-svg .gc-title{font-size:13px;font-weight:750}.gc-svg .gc-note{font-size:10.5px;fill:var(--fg-soft)}.gc-svg .gc-label{font-size:11px;font-weight:700}.gc-svg .gc-subnote{font-size:9.5px;fill:var(--fg-soft)}.gc-svg .gc-axis-note{font-size:10px;fill:var(--fg-soft)}",
-      ".gc-table-wrap{max-width:100%;margin-top:13px;overflow-x:auto;-webkit-overflow-scrolling:touch}.gc-table{width:100%;min-width:650px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.gc-table caption{padding:0 0 7px;text-align:left;color:var(--fg-soft);font-size:12px;line-height:1.55}.gc-table th,.gc-table td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;white-space:nowrap}.gc-table th{color:var(--fg-soft);font-size:11.5px;font-weight:750}.gc-table tr.gc-selected{background:color-mix(in srgb,var(--gc-blue) 9%,transparent)}.gc-boundary{margin-top:14px;padding:11px 12px;border-left:3px solid var(--gc-red);background:var(--bg);font-size:13px;line-height:1.7}.gc-boundary p{margin:5px 0}.gc-boundary strong{color:var(--gc-red)}.gc-check{margin-top:12px;padding:9px 11px;border-left:3px solid var(--gc-gold);background:var(--bg);font-size:12.5px;line-height:1.7}",
-      "@media(max-width:860px){.gc-layout{grid-template-columns:minmax(0,1fr)}}@media(max-width:520px){.gc-option-grid,.gc-preset-grid,.gc-subgroup-grid{grid-template-columns:minmax(0,1fr)}.gc-stage-frame{padding:7px}.gc-table{font-size:11.5px}.gc-table th,.gc-table td{padding-left:5px;padding-right:5px}}@media(prefers-reduced-motion:reduce){.cl-galois *{animation:none!important;transition:none!important}}"
-    ].join("\n");
-
-    function findExample(id) {
-      var match = EXAMPLES.filter(function (example) { return example.id === id; })[0];
-      return match || EXAMPLES[0];
-    }
-
-    function findSubgroup(example, id) {
-      var match = example.subgroups.filter(function (subgroup) { return subgroup.id === id; })[0];
-      return match || example.subgroups[0];
-    }
-
-    function findElement(example, id) {
-      return example.groupElements.filter(function (element) { return element.id === id; })[0];
-    }
-
-    function analyze(exampleId, subgroupId) {
-      var example = findExample(exampleId);
-      var subgroup = findSubgroup(example, subgroupId);
-      return {
-        exampleId: example.id,
-        exampleLabel: example.label,
-        baseField: example.baseField,
-        extensionField: example.extensionField,
-        groupOrder: example.groupElements.length,
-        subgroupId: subgroup.id,
-        subgroupLabel: subgroup.label,
-        subgroupElements: subgroup.elements.slice(),
-        subgroupOrder: subgroup.order,
-        index: subgroup.index,
-        fixedField: subgroup.fixedField,
-        fieldDegree: subgroup.fieldDegree,
-        normal: subgroup.normal,
-        quotient: subgroup.quotient,
-        reason: subgroup.reason
-      };
-    }
-
-    function reverseInclusion(exampleId) {
-      var example = findExample(exampleId);
-      return example.latticeEdges.map(function (edge) {
-        var larger = findSubgroup(example, edge[0]);
-        var smaller = findSubgroup(example, edge[1]);
-        return {
-          largerSubgroup: larger.id,
-          smallerSubgroup: smaller.id,
-          smallerField: larger.fixedField,
-          largerField: smaller.fixedField
-        };
-      });
-    }
-
-    function assert(condition, message) {
-      if (!condition) throw new Error(message);
-    }
-
-    function selfTest() {
-      var checks = 0;
-      function check(condition, message) {
-        checks += 1;
-        assert(condition, message);
-      }
-
-      check(EXAMPLES.length === 2, "there must be exactly two finite Galois examples");
-      var v4 = findExample("v4");
-      var s3 = findExample("s3");
-      check(v4.groupElements.length === 4, "V4 must enumerate four elements");
-      check(v4.subgroups.length === 5, "V4 must enumerate five subgroups");
-      check(s3.groupElements.length === 6, "S3 must enumerate six elements");
-      check(s3.subgroups.length === 6, "S3 must enumerate six subgroups");
-
-      EXAMPLES.forEach(function (example) {
-        var groupIds = example.groupElements.map(function (element) { return element.id; });
-        example.subgroups.forEach(function (subgroup) {
-          check(subgroup.elements.length === subgroup.order, example.id + " subgroup order");
-          check(subgroup.elements.every(function (id) { return groupIds.indexOf(id) >= 0; }), example.id + " subgroup elements");
-          check(subgroup.order * subgroup.index === example.groupElements.length, example.id + " order-index identity");
-          check(subgroup.index === subgroup.fieldDegree, example.id + " index-degree identity");
-          var report = analyze(example.id, subgroup.id);
-          check(report.groupOrder === example.groupElements.length, example.id + " report group order");
-        });
-        example.latticeEdges.forEach(function (edge) {
-          var larger = findSubgroup(example, edge[0]);
-          var smaller = findSubgroup(example, edge[1]);
-          check(smaller.elements.every(function (id) { return larger.elements.indexOf(id) >= 0; }), example.id + " subgroup inclusion");
-          check(reverseInclusion(example.id).some(function (item) {
-            return item.largerSubgroup === larger.id && item.smallerSubgroup === smaller.id;
-          }), example.id + " reverse-inclusion record");
-        });
-      });
-
-      check(analyze("v4", "s").fixedField === "Q(sqrt(3))", "V4 <s> fixed field");
-      check(analyze("v4", "s").index === 2, "V4 <s> index");
-      check(analyze("v4", "st").fixedField === "Q(sqrt(6))", "V4 <st> fixed field");
-      check(analyze("s3", "a3").fixedField === "Q(omega)", "S3 A3 fixed field");
-      check(analyze("s3", "a3").quotient === "C2", "S3 A3 quotient");
-      check(analyze("s3", "t23").fixedField === "Q(alpha_1) = Q(alpha)", "S3 transposition fixed field");
-      check(!analyze("s3", "t23").normal, "S3 transposition is not normal");
-      check(analyze("s3", "t23").quotient === null, "non-normal subgroup has no quotient certificate");
-      check(v4.subgroups.every(function (subgroup) { return subgroup.normal; }), "V4 all subgroups normal");
-
-      var boundary = {
-        field: "Q(alpha)",
-        degree: 3,
-        normal: false,
-        separable: true,
-        automorphismOrder: 1,
-        normalClosure: "Q(alpha, omega)"
-      };
-      check(boundary.degree === 3 && !boundary.normal, "boundary must be non-Galois");
-      check(boundary.automorphismOrder !== boundary.degree, "boundary must fail |Aut| = degree");
-      return { checks: checks, examples: EXAMPLES.length, subgroups: 11 };
-    }
-
-    function installStyles(doc) {
-      if (!doc || !doc.getElementById || doc.getElementById(STYLE_ID)) return;
-      var style = doc.createElement("style");
-      style.id = STYLE_ID;
-      style.textContent = STYLE_TEXT;
-      (doc.head || doc.documentElement || doc.body).appendChild(style);
-    }
-
-    function appendChildren(node, children) {
-      if (children === undefined || children === null) return node;
-      var list = Array.isArray(children) ? children : [children];
-      list.forEach(function (child) {
-        if (child === undefined || child === null || child === false) return;
-        node.appendChild(child && child.nodeType ? child : node.ownerDocument.createTextNode(String(child)));
-      });
-      return node;
-    }
-
-    function setAttributes(node, attrs) {
-      Object.keys(attrs || {}).forEach(function (key) {
-        var value = attrs[key];
-        if (value === undefined || value === null || value === false) return;
-        if (key === "className") node.setAttribute("class", String(value));
-        else if (key === "text") node.textContent = String(value);
-        else if (key.slice(0, 2) === "on" && typeof value === "function") node.addEventListener(key.slice(2).toLowerCase(), value);
-        else if (value === true) node.setAttribute(key, "");
-        else node.setAttribute(key, String(value));
-      });
-      return node;
-    }
-
-    function element(doc, tag, attrs, children) {
-      return appendChildren(setAttributes(doc.createElement(tag), attrs), children);
-    }
-
-    function svgElement(doc, tag, attrs, children) {
-      return appendChildren(setAttributes(doc.createElementNS("http://www.w3.org/2000/svg", tag), attrs), children);
-    }
-
-    function announce(api, root, message) {
-      if (api && typeof api.announce === "function") api.announce(root, message);
-    }
-
-    function elementLabels(example, ids) {
-      return ids.map(function (id) { return findElement(example, id).label; }).join(", ");
-    }
-
-    function quotientText(subgroup) {
-      return subgroup.normal ? "G/H ≅ " + subgroup.quotient : "不存在群商（H 非正规）";
-    }
-
-    function normalText(example, subgroup) {
-      if (example.id === "v4") return subgroup.normal ? "是：V4 为交换群，所有子群都正规。" : "否。";
-      if (subgroup.id === "a3") return "是：A3 = ker(sign)，所以 S3/A3 ≅ C2。";
-      if (subgroup.id === "trivial" || subgroup.id === "whole") return "是：平凡子群或整个群总是正规。";
-      return "否：" + subgroup.reason.replace("r ", "r·").replace(" != ", " ≠ ") + "。";
-    }
-
-    function middlePositions(count, center) {
-      var width = count === 3 ? 170 : 220;
-      var start = center - width / 2;
-      var step = count === 1 ? 0 : width / (count - 1);
-      return Array.apply(null, Array(count)).map(function (_, index) {
-        return start + step * index;
-      });
-    }
-
-    function graphPositions(example) {
-      var middle = example.subgroups.filter(function (subgroup) {
-        return subgroup.id !== "whole" && subgroup.id !== "trivial";
-      });
-      var groupXs = middlePositions(middle.length, 180);
-      var fieldXs = middlePositions(middle.length, 660);
-      var positions = {
-        whole: { group: { x: 180, y: 54 }, field: { x: 660, y: 54 } },
-        trivial: { group: { x: 180, y: 316 }, field: { x: 660, y: 316 } }
-      };
-      middle.forEach(function (subgroup, index) {
-        positions[subgroup.id] = {
-          group: { x: groupXs[index], y: 185 },
-          field: { x: fieldXs[index], y: 185 }
-        };
-      });
-      return positions;
-    }
-
-    function drawGraphNode(doc, svg, position, label, note, selected) {
-      var width = label.length > 13 ? 128 : 106;
-      var group = svgElement(doc, "g", { "aria-label": label + (note ? " " + note : "") });
-      group.appendChild(svgElement(doc, "rect", {
-        x: position.x - width / 2,
-        y: position.y - 19,
-        width: width,
-        height: 38,
-        rx: 5,
-        className: selected ? "gc-node gc-node-selected" : "gc-node"
-      }));
-      group.appendChild(svgElement(doc, "text", {
-        x: position.x,
-        y: position.y + 4,
-        "text-anchor": "middle",
-        className: "gc-label"
-      }, label));
-      if (note) {
-        group.appendChild(svgElement(doc, "text", {
-          x: position.x,
-          y: position.y + 32,
-          "text-anchor": "middle",
-          className: "gc-subnote"
-        }, note));
-      }
-      svg.appendChild(group);
-    }
-
-    function renderGraph(doc, example, selectedId, serial) {
-      var positions = graphPositions(example);
-      var svg = svgElement(doc, "svg", {
-        className: "gc-svg",
-        viewBox: "0 0 840 370",
-        role: "img",
-        "aria-labelledby": "gc-svg-title-" + serial + " gc-svg-desc-" + serial
-      });
-      svg.appendChild(svgElement(doc, "title", { id: "gc-svg-title-" + serial }, "Galois correspondence lattices"));
-      svg.appendChild(svgElement(doc, "desc", { id: "gc-svg-desc-" + serial }, "The subgroup lattice and fixed-field lattice have reverse inclusion; the selected pair is highlighted."));
-      var defs = svgElement(doc, "defs", {});
-      var marker = svgElement(doc, "marker", {
-        id: "gc-arrow-" + serial,
-        viewBox: "0 0 10 10",
-        refX: 8,
-        refY: 5,
-        markerWidth: 5,
-        markerHeight: 5,
-        orient: "auto-start-reverse"
-      });
-      marker.appendChild(svgElement(doc, "path", { d: "M 0 0 L 10 5 L 0 10 z", fill: "currentColor" }));
-      defs.appendChild(marker);
-      svg.appendChild(defs);
-      svg.appendChild(svgElement(doc, "text", { x: 180, y: 18, "text-anchor": "middle", className: "gc-title" }, "Subgroup lattice"));
-      svg.appendChild(svgElement(doc, "text", { x: 660, y: 18, "text-anchor": "middle", className: "gc-title" }, "Fixed-field lattice"));
-      svg.appendChild(svgElement(doc, "text", { x: 180, y: 35, "text-anchor": "middle", className: "gc-axis-note" }, "superset direction"));
-      svg.appendChild(svgElement(doc, "text", { x: 660, y: 35, "text-anchor": "middle", className: "gc-axis-note" }, "subset direction"));
-      svg.appendChild(svgElement(doc, "text", { x: 420, y: 35, "text-anchor": "middle", className: "gc-axis-note" }, "anti-isomorphism"));
-
-      example.latticeEdges.forEach(function (edge) {
-        var larger = positions[edge[0]].group;
-        var smaller = positions[edge[1]].group;
-        svg.appendChild(svgElement(doc, "line", {
-          x1: larger.x,
-          y1: larger.y + 20,
-          x2: smaller.x,
-          y2: smaller.y - 20,
-          className: "gc-edge",
-          "marker-end": "url(#gc-arrow-" + serial + ")"
-        }));
-        var largerField = positions[edge[0]].field;
-        var smallerField = positions[edge[1]].field;
-        svg.appendChild(svgElement(doc, "line", {
-          x1: largerField.x,
-          y1: largerField.y + 20,
-          x2: smallerField.x,
-          y2: smallerField.y - 20,
-          className: "gc-edge",
-          "marker-end": "url(#gc-arrow-" + serial + ")"
-        }));
-      });
-
-      example.subgroups.forEach(function (subgroup) {
-        var selected = subgroup.id === selectedId;
-        var groupPosition = positions[subgroup.id].group;
-        var fieldPosition = positions[subgroup.id].field;
-        svg.appendChild(svgElement(doc, "line", {
-          x1: groupPosition.x + 60,
-          y1: groupPosition.y,
-          x2: fieldPosition.x - 60,
-          y2: fieldPosition.y,
-          className: selected ? "gc-pair gc-selected-pair" : "gc-pair"
-        }));
-      });
-
-      example.subgroups.forEach(function (subgroup) {
-        var selected = subgroup.id === selectedId;
-        var note = subgroup.normal ? "normal" : "not normal";
-        var groupLabel = subgroup.id === "whole" ? "G = " + example.label : subgroup.id === "trivial" ? "{e}" : subgroup.label;
-        var fieldLabel = subgroup.id === "whole" ? "F = Q" : subgroup.id === "trivial" ? "K" : subgroup.graphField;
-        drawGraphNode(doc, svg, positions[subgroup.id].group, groupLabel, note, selected);
-        drawGraphNode(doc, svg, positions[subgroup.id].field, fieldLabel, "fixed by " + groupLabel, selected);
-      });
-      return svg;
-    }
-
-    function table(doc, caption, headers, rows, selectedIndex) {
-      var wrap = element(doc, "div", { className: "gc-table-wrap" });
-      var node = element(doc, "table", { className: "gc-table" });
-      node.appendChild(element(doc, "caption", { text: caption }));
-      var head = element(doc, "tr");
-      headers.forEach(function (header) { head.appendChild(element(doc, "th", { scope: "col", text: header })); });
-      node.appendChild(element(doc, "thead", {}, head));
-      var body = element(doc, "tbody");
-      rows.forEach(function (row, rowIndex) {
-        var tr = element(doc, "tr", { className: rowIndex === selectedIndex ? "gc-selected" : "" });
-        row.forEach(function (value) { tr.appendChild(element(doc, "td", { text: value })); });
-        body.appendChild(tr);
-      });
-      node.appendChild(body);
-      wrap.appendChild(node);
-      return wrap;
-    }
-
-    function renderPrediction(doc, state, render) {
-      var box = element(doc, "fieldset", { className: "gc-prediction-box" });
-      box.appendChild(element(doc, "legend", { text: "预测门：四项都回答后才揭示对应实验" }));
-      var buttons = [];
-      QUESTIONS.forEach(function (question) {
-        var field = element(doc, "fieldset", { className: "gc-question" });
-        field.appendChild(element(doc, "legend", { text: question.prompt }));
-        var choices = element(doc, "div", { className: "gc-option-grid", role: "group", "aria-label": question.prompt });
-        question.options.forEach(function (option) {
-          var button = element(doc, "button", {
-            type: "button",
-            "aria-pressed": state.predictions[question.key] === option.id ? "true" : "false",
-            text: option.label
-          });
-          button.addEventListener("click", function () {
-            state.predictions[question.key] = option.id;
-            buttons.forEach(function (item) {
-              item.button.setAttribute("aria-pressed", state.predictions[item.question.key] === item.option.id ? "true" : "false");
-            });
-            revealButton.disabled = QUESTIONS.some(function (item) { return !state.predictions[item.key]; });
-            feedback.textContent = "已记录这一项预测。";
-            feedback.className = "gc-feedback";
-          });
-          buttons.push({ button: button, question: question, option: option });
-          choices.appendChild(button);
-        });
-        field.appendChild(choices);
-        box.appendChild(field);
-      });
-      var feedback = element(doc, "p", { className: "gc-feedback", "aria-live": "polite", text: "四项都回答后，揭示按钮才会可用。" });
-      var actions = element(doc, "div", { className: "gc-actions" });
-      var revealButton = element(doc, "button", { type: "button", className: "gc-primary", text: "揭示对应与证书" });
-      revealButton.disabled = QUESTIONS.some(function (item) { return !state.predictions[item.key]; });
-      revealButton.addEventListener("click", function () {
-        var correct = QUESTIONS.filter(function (item) { return state.predictions[item.key] === item.answer; }).length;
-        state.revealed = true;
-        render();
-        announce(state.api, state.root, "预测门已揭示，" + correct + " 项与证书一致。");
-      });
-      var clearButton = element(doc, "button", { type: "button", text: "清空预测" });
-      clearButton.addEventListener("click", function () {
-        QUESTIONS.forEach(function (question) { state.predictions[question.key] = null; });
-        buttons.forEach(function (item) { item.button.setAttribute("aria-pressed", "false"); });
-        revealButton.disabled = true;
-        feedback.textContent = "预测已清空。";
-        feedback.className = "gc-feedback";
-      });
-      actions.appendChild(revealButton);
-      actions.appendChild(clearButton);
-      box.appendChild(feedback);
-      box.appendChild(actions);
-      return box;
-    }
-
-    function renderExplorer(doc, state, render) {
-      var example = findExample(state.exampleId);
-      var selected = findSubgroup(example, state.selectedSubgroupId);
-      var report = analyze(example.id, selected.id);
-      var layout = element(doc, "div", { className: "gc-layout" });
-      var controls = element(doc, "div", { className: "gc-control-box" });
-      controls.appendChild(element(doc, "h4", { text: "选择有限 Galois 例子" }));
-      var presets = element(doc, "div", { className: "gc-preset-grid", role: "group", "aria-label": "选择例子" });
-      EXAMPLES.forEach(function (item) {
-        var button = element(doc, "button", {
-          type: "button",
-          "aria-pressed": item.id === example.id ? "true" : "false"
-        });
-        button.appendChild(doc.createTextNode(item.label));
-        button.appendChild(element(doc, "small", { text: item.extensionField }));
-        button.addEventListener("click", function () {
-          state.exampleId = item.id;
-          state.selectedSubgroupId = item.defaultSubgroup;
-          render();
-          announce(state.api, state.root, "已切换到" + item.label + "，默认选择" + findSubgroup(item, item.defaultSubgroup).label + "。");
-        });
-        presets.appendChild(button);
-      });
-      controls.appendChild(presets);
-      controls.appendChild(element(doc, "h4", { text: "枚举全部子群" }));
-      var subgroupGrid = element(doc, "div", { className: "gc-subgroup-grid", role: "group", "aria-label": "选择子群" });
-      example.subgroups.forEach(function (subgroup) {
-        var button = element(doc, "button", {
-          type: "button",
-          "aria-pressed": subgroup.id === selected.id ? "true" : "false"
-        });
-        button.appendChild(doc.createTextNode(subgroup.label));
-        button.appendChild(element(doc, "small", { text: "{" + elementLabels(example, subgroup.elements) + "}" }));
-        button.addEventListener("click", function () {
-          state.selectedSubgroupId = subgroup.id;
-          render();
-          announce(state.api, state.root, "已选择" + subgroup.label + "；固定域为" + subgroup.fixedField + "。");
-        });
-        subgroupGrid.appendChild(button);
-      });
-      controls.appendChild(subgroupGrid);
-      controls.appendChild(element(doc, "p", { className: "gc-note", text: "每个按钮都是预先列出的真实子群；脚本不搜索任意群或多项式。" }));
-
-      var stage = element(doc, "div", { className: "gc-stage-frame" });
-      var stageHeading = element(doc, "div", { className: "gc-stage-heading" });
-      stageHeading.appendChild(element(doc, "h3", { text: "Galois 对应账本" }));
-      stageHeading.appendChild(element(doc, "span", { text: example.title }));
-      stage.appendChild(stageHeading);
-      stage.appendChild(element(doc, "p", { className: "gc-intro", text: "选中 H 后，左右图的同一行是对应对；左图按子群包含向下，右图按固定域包含向下。" }));
-
-      var metrics = element(doc, "div", { className: "gc-metrics" });
-      [
-        ["|G|", String(report.groupOrder)],
-        ["|H|", String(report.subgroupOrder)],
-        ["[G:H]", String(report.index)],
-        ["[K^H:F]", String(report.fieldDegree)],
-        ["K^H", report.fixedField]
-      ].forEach(function (item) {
-        var metric = element(doc, "div", { className: "gc-metric" });
-        metric.appendChild(element(doc, "span", { text: item[0] }));
-        metric.appendChild(element(doc, "strong", { text: item[1] }));
-        metrics.appendChild(metric);
-      });
-      stage.appendChild(metrics);
-
-      var certificate = element(doc, "section", { className: report.normal ? "gc-certificate" : "gc-certificate gc-not-normal" });
-      certificate.appendChild(element(doc, "strong", { text: "当前选择：H = " + report.subgroupLabel }));
-      certificate.appendChild(element(doc, "p", { text: "H 的全部元素：{" + elementLabels(example, report.subgroupElements) + "}；固定域：" + report.fixedField + "。" }));
-      certificate.appendChild(element(doc, "p", { text: "正规性：" + normalText(example, selected) }));
-      certificate.appendChild(element(doc, "p", { text: "商群证书：" + quotientText(selected) + "。" }));
-      stage.appendChild(certificate);
-
-      var graphFrame = element(doc, "div", { className: "gc-graph-frame" });
-      graphFrame.appendChild(renderGraph(doc, example, selected.id, SERIAL));
-      stage.appendChild(graphFrame);
-
-      var elementRows = example.groupElements.map(function (item) {
-        return [item.label, item.action, String(item.order)];
-      });
-      stage.appendChild(table(doc, "群元素的完整枚举", ["元素", "作用 / 置换", "阶"], elementRows, -1));
-      var subgroupRows = example.subgroups.map(function (subgroup) {
-        return [
-          subgroup.label,
-          "{" + elementLabels(example, subgroup.elements) + "}",
-          subgroup.fixedField,
-          String(subgroup.order),
-          String(subgroup.index),
-          subgroup.normal ? "是" : "否",
-          quotientText(subgroup)
-        ];
-      });
-      stage.appendChild(table(doc, "子群、固定域与次数的完整枚举", ["H", "全部元素", "K^H", "|H|", "[G:H]", "正规?", "G/H"], subgroupRows, example.subgroups.map(function (item) { return item.id; }).indexOf(selected.id)));
-
-      var boundary = element(doc, "section", { className: "gc-boundary" });
-      boundary.appendChild(element(doc, "strong", { text: "失败边界：E = Q(cuberoot(2))" }));
-      boundary.appendChild(element(doc, "p", { text: "x^3-2 的实根 alpha 生成 E，且 [E:Q]=3；但 omega alpha 与 omega^2 alpha 不在 E，所以 E/Q 可分而不正规。" }));
-      boundary.appendChild(element(doc, "p", { text: "Aut_Q(E) 只有恒等，不能把它当作阶 3 的 Galois 群；对应定理应改在正规闭包 K=Q(alpha, omega) 上使用，E=K^<t23>。" }));
-      stage.appendChild(boundary);
-      layout.appendChild(controls);
-      layout.appendChild(stage);
-      return layout;
-    }
-
-    function mount(root, api) {
-      var doc = root && root.ownerDocument ? root.ownerDocument : null;
-      if (!doc) return;
-      installStyles(doc);
-      SERIAL += 1;
-      var state = {
-        exampleId: "v4",
-        selectedSubgroupId: "s",
-        revealed: false,
-        predictions: {},
-        root: root,
-        api: api
-      };
-      QUESTIONS.forEach(function (question) { state.predictions[question.key] = null; });
-
-      function render() {
-        var shell = element(doc, "div", { className: "gc-shell" });
-        shell.appendChild(element(doc, "h3", { text: "Galois 对应：V4 与 S3 的完整账本" }));
-        shell.appendChild(element(doc, "p", { className: "gc-intro", text: "先预测，再查看固定域格、子群格、次数和正规子群证书。所有计算都来自两个固定例子的有限模型。" }));
-        shell.appendChild(renderPrediction(doc, state, render));
-        if (state.revealed) shell.appendChild(renderExplorer(doc, state, render));
-        root.replaceChildren(shell);
-      }
-
-      render();
-    }
-
-    return {
-      EXAMPLES: EXAMPLES,
-      QUESTIONS: QUESTIONS,
-      analyze: analyze,
-      reverseInclusion: reverseInclusion,
-      selfTest: selfTest,
-      mount: mount
-    };
-  }
-);
+return {MODELS,DEFAULTS,PRESETS,QUESTIONS,config,snapshot,plots,svg,ledgers,fmt,expression,tableHTML,mount,selfTest};
+});
