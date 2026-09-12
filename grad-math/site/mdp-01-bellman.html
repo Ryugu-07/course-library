@@ -52,156 +52,266 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-12 15:06</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：看得更远，为什么价值迭代反而走得更慢？</a><ul>
-<li><a href="#bellman-learning-title">1. 具体谜题：短视时留在营地，远视时先付出旅行成本</a></li>
-<li><a href="#2">2. 先预测：是真收敛，还是只看起来平了？</a></li>
-<li><a href="#3-mdp-max">3. 最小 MDP：把 max、期望与折现逐层展开</a></li>
-<li><a href="#4">4. 动手验证：把真误差与可用证书分开</a></li>
-<li><a href="#5">5. 误区与边界</a></li>
-<li><a href="#6">6. 回到算子语言：三件事由一个常数购买</a></li>
-<li><a href="#7">7. 迁移问题</a></li>
-</ul>
-</li>
-<li><a href="#1-mdp">1. MDP 与目标</a></li>
-<li><a href="#2-bellman">2. Bellman 算子</a></li>
-<li><a href="#3">3. 最优策略的存在与贪心原理</a></li>
-<li><a href="#4_1">4. 练习与要点</a></li>
+<li><a href="#1">1. 先问一个会改变选择的问题</a></li>
+<li><a href="#2">2. 无限长的收益为什么能定义</a></li>
+<li><a href="#3-bellman">3. 一次 Bellman 更新到底做了什么</a></li>
+<li><a href="#4-max">4. 为什么 max 的切换不会把误差放大</a></li>
+<li><a href="#5">5. 不动点怎样成为真正的最优价值</a></li>
+<li><a href="#6">6. 不知道答案，也能给价值误差设上界</a></li>
+<li><a href="#7">7. 策略已经很好，价值却还没算准</a></li>
+<li><a href="#8">8. 把营地—矿区模型完整解出来</a></li>
+<li><a href="#9">9. 更新有误差时，为什么可能停在错误的位置</a></li>
+<li><a href="#10-1">10. γ=1 与无界奖励分别拿走了什么</a></li>
+<li><a href="#11">11. 先预测，再核对完整计算</a></li>
+<li><a href="#12">12. 八个可以独立验算的问题</a></li>
 </ul>
 </div>
 </details>
-<h1 id="mdp-i-bellman">MDP I · Bellman 算子与压缩<a class="headerlink" href="#mdp-i-bellman" title="Permanent link"></a></h1>
+<h1 id="mdp-i-bellman">MDP I · Bellman 算子：从未来收益到可检验的误差<a class="headerlink" href="#mdp-i-bellman" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Puterman <em>MDP</em> §6.1–6.2 / Szepesvári §1–2 ｜ <strong>前置</strong>：泛函 I（压缩映像）、本科优化 IV（DP）、随机过程 II–III
-强化学习的数学地基是马尔可夫决策过程。本页把本科的 Bellman 方程（优化 IV 一行递推）升级为<strong>算子理论</strong>：价值函数生活在 Banach 空间里，Bellman 算子是压缩映射——存在唯一性、算法收敛性全部由泛函 I 的一个定理包办。</p>
+<p><strong>前置</strong>：条件期望、sup 范数、压缩映像定理。<strong>本页目标</strong>：从一个两状态决策问题出发，证明最优价值为何存在，并分别判断价值估计、策略和近似更新是否可靠。主线限于有限状态、有限动作、已知模型与有界奖励。</p>
 </blockquote>
 <div data-learning-page></div>
-
-<section aria-labelledby="bellman-learning-title" class="learning-layer">
-<h2 id="_1">学习层：看得更远，为什么价值迭代反而走得更慢？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="bellman-learning-title">1. 具体谜题：短视时留在营地，远视时先付出旅行成本<a class="headerlink" href="#bellman-learning-title" title="Permanent link"></a></h3>
-<p>一个两状态决策问题：在“营地”可以立刻采集 <span class="arithmatex">\(+1\)</span> 并留下，也可以先付 <span class="arithmatex">\(-2\)</span> 远行到“矿区”；在矿区可以收获 <span class="arithmatex">\(+4\)</span>，随后以概率 <span class="arithmatex">\(0.4\)</span> 回营地、<span class="arithmatex">\(0.6\)</span> 留在矿区，或者拿 <span class="arithmatex">\(+2\)</span> 直接返回。</p>
-<p>当折现 <span class="arithmatex">\(\gamma\)</span> 小，未来不值钱，采集更好；当 <span class="arithmatex">\(\gamma\)</span> 大，远行的前期成本可由长期收获抵消。与此同时，Bellman 算子的压缩常数就是 <span class="arithmatex">\(\gamma\)</span>：<strong>看得越远，策略可能越有远见，数值迭代却越慢。</strong></p>
-<h3 id="2">2. 先预测：是真收敛，还是只看起来平了？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>选择 <span class="arithmatex">\(\gamma\)</span> 和初值，先预测：快速压缩、收敛但缓慢，或没有本页的 <span class="arithmatex">\(\gamma&lt;1\)</span> 压缩证书。不要以相邻两次曲线“肉眼接近”为停止依据；真正可计算的是 Bellman 残差</p>
-<div class="arithmatex">\[
-r(V)=\|TV-V\|_\infty.
-\]</div>
-<h3 id="3-mdp-max">3. 最小 MDP：把 max、期望与折现逐层展开<a class="headerlink" href="#3-mdp-max" title="Permanent link"></a></h3>
-<p>实验的动作价值为</p>
-<div class="arithmatex">\[
-Q_V(s,a)=r(s,a)+\gamma\sum_{s'}P(s'\mid s,a)V(s'),
-\qquad
-(TV)(s)=\max_a Q_V(s,a).
-\]</div>
-<p>例如营地的两项候选是</p>
-<div class="arithmatex">\[
-Q(\text{营地},\text{采集})=1+\gamma V(\text{营地}),
-\qquad
-Q(\text{营地},\text{远行})=-2+\gamma V(\text{矿区}).
-\]</div>
-<p><code>max</code> 虽会让策略在迭代中翻转，却不扩大 sup 范数距离；转移概率的加权平均也不扩大它。因此</p>
-<div class="arithmatex">\[
-\|TU-TV\|_\infty\le\gamma\|U-V\|_\infty,
-\qquad 0\le\gamma&lt;1.
-\]</div>
-<p>Banach 不动点定理给唯一 <span class="arithmatex">\(V^*\)</span> 与任意初值收敛。更实用的是残差证书：</p>
-<div class="arithmatex">\[
-\|V-V^*\|_\infty
-\le\frac{\|TV-V\|_\infty}{1-\gamma}.
-\]</div>
-<p>它不需要提前知道 <span class="arithmatex">\(V^*\)</span>；但 <span class="arithmatex">\(\gamma\to1\)</span> 时分母变小，证书会很保守，也准确提醒问题的有效视界变长。</p>
-<h3 id="4">4. 动手验证：把真误差与可用证书分开<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>左图显示两个状态的价值；右图把小 MDP 可解析得到的真误差与残差上界并列。账本记录每轮贪心动作、残差、真误差和证书。把共同初值从 <span class="arithmatex">\(0\)</span> 改成 <span class="arithmatex">\(25\)</span>，观察极限不变；把 <span class="arithmatex">\(\gamma\)</span> 从 <span class="arithmatex">\(0.2\)</span> 提到 <span class="arithmatex">\(0.95\)</span>，观察收敛包络与证书同时变慢。</p>
-<div class="learning-lab" data-learning-lab="bellman-contraction">
-<p><strong>无 JavaScript 时的静态读法：</strong></p>
+<div class="bellman178-course">
+<style>.bellman178-course .learning-lab{max-width:none;min-width:0}.bellman178-static{overflow:auto;max-width:100%}.bellman178-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}.bellman178-static td,.bellman178-static th{white-space:nowrap}</style>
+<noscript>
+<style>.bellman178-course span.arithmatex{overflow-wrap:anywhere}</style>
+</noscript>
+<h2 id="1">1. 先问一个会改变选择的问题<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>你在营地，可以采集一份物资并留下，也可以付出两份物资去矿区。矿区每次收获四份，但可能把你送回营地。若你只看眼前，远行明显吃亏；若你重视未来，先付成本可能值得。</p>
 <table>
 <thead>
 <tr>
-<th>情境</th>
-<th>数学状态</th>
-<th>应看哪本账</th>
+<th>当前位置</th>
+<th>动作</th>
+<th style="text-align: right;">即时奖励</th>
+<th style="text-align: right;">下一步在营地</th>
+<th style="text-align: right;">下一步在矿区</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><span class="arithmatex">\(\gamma=0.2\)</span></td>
-<td>压缩强，短视策略偏向即时奖励</td>
-<td>价值与残差快速收缩</td>
+<td>营地</td>
+<td>采集</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(\gamma=0.8\)</span></td>
-<td>营地贪心动作转为远行</td>
-<td>策略翻转不破坏压缩</td>
+<td>营地</td>
+<td>远行</td>
+<td style="text-align: right;">−2</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(\gamma=0.95\)</span></td>
-<td>唯一不动点仍存在，速度慢</td>
-<td>有效视界与 <span class="arithmatex">\(1/(1-\gamma)\)</span> 放大</td>
+<td>矿区</td>
+<td>收获</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">2/5</td>
+<td style="text-align: right;">3/5</td>
 </tr>
 <tr>
-<td>很坏的 <span class="arithmatex">\(V_0\)</span></td>
-<td>任意有界初值仍趋同一 <span class="arithmatex">\(V^*\)</span></td>
-<td>初值影响路径，不影响唯一极限</td>
+<td>矿区</td>
+<td>返回</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<p>用 <span class="arithmatex">\(\gamma\)</span> 表示一轮之后的奖励在今天值多少。比较 <span class="arithmatex">\(\gamma=0.2\)</span> 和 <span class="arithmatex">\(0.8\)</span>，本页将算出营地最优动作确实不同。但“更重视未来”并不意味着任何模型的策略都按同一方向改变；这里只对表中模型作结论。</p>
+<p>先记住两种问题。<strong>决策问题</strong>问下一步做什么；<strong>数值问题</strong>问价值还差多少。同一个动作可能很早就稳定下来，而价值估计还在缓慢移动。</p>
+<h2 id="2">2. 无限长的收益为什么能定义<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>设状态和每个状态可用的动作都有限，奖励满足 <span class="arithmatex">\(|r(s,a)|\le R_{\max}\)</span>，且 <span class="arithmatex">\(0\le\gamma&lt;1\)</span>。策略可以根据全部过去的观察选择动作，也可以随机选择。其价值是从当前状态出发的期望折现总收益：</p>
+<div class="arithmatex">\[
+V^\pi(s)=\mathbb E_s^\pi\!\left[\sum_{t=0}^{\infty}\gamma^t r(s_t,a_t)\right],
+\qquad |V^\pi(s)|\le\frac{R_{\max}}{1-\gamma}.
+\]</div>
+<p>几何级数控制了每一条轨迹的绝对收益，所以取期望和极限不会留下一个未处理的无穷尾项。最优价值 <span class="arithmatex">\(V^*(s)=\sup_\pi V^\pi(s)\)</span> 因而也有限。这里的上确界暂时包括历史依赖、随机和非平稳策略；稍后证明一个确定性平稳策略就能达到它。</p>
+<p>有限状态时，价值向量属于 <span class="arithmatex">\(\mathbb R^{|\mathcal S|}\)</span>，取 <span class="arithmatex">\(\|V\|_\infty=\max_s|V(s)|\)</span>。这是完备空间。一般状态空间需要另外处理可测性；一般动作空间还要区分最大值与上确界，不能直接照抄本页的有限集合选择。</p>
+<h2 id="3-bellman">3. 一次 Bellman 更新到底做了什么<a class="headerlink" href="#3-bellman" title="Permanent link"></a></h2>
+<p>先把“从下一步开始的收益”暂估为 <span class="arithmatex">\(V\)</span>。对每个动作，先计算下一状态的价值平均，再折现，最后加上这一步的奖励：</p>
+<div class="arithmatex">\[
+Q_V(s,a)=r(s,a)+\gamma\sum_{s'}P(s'\mid s,a)V(s'),
+\qquad (TV)(s)=\max_a Q_V(s,a).
+\]</div>
+<p>例如营地两候选为 <span class="arithmatex">\(1+\gamma V_C\)</span> 和 <span class="arithmatex">\(-2+\gamma V_M\)</span>；矿区两候选为 <span class="arithmatex">\(4+\gamma(2V_C+3V_M)/5\)</span> 和 <span class="arithmatex">\(2+\gamma V_C\)</span>。实验会保留四个候选，不只显示获胜动作。</p>
+<p>固定一个平稳策略 <span class="arithmatex">\(\pi\)</span>，不再取最大而按策略对动作平均，得到 <span class="arithmatex">\(T^\pi V=r^\pi+\gamma P^\pi V\)</span>。它回答“坚持这个策略值多少”；<span class="arithmatex">\(T\)</span> 则允许在这一步重新选择。<span class="arithmatex">\(V_{k+1}=TV_k\)</span> 中的 <span class="arithmatex">\(k\)</span> 是计算轮数，并不表示你真的又走了一轮轨迹。</p>
+<p>若 <span class="arithmatex">\(V_0=0\)</span>，<span class="arithmatex">\(V_k\)</span> 还可解释为最优的 <span class="arithmatex">\(k\)</span> 步收益；若 <span class="arithmatex">\(V_0\)</span> 非零，它是末端加上 <span class="arithmatex">\(\gamma^k V_0\)</span> 的有限时域问题。这个末端项正好解释了初值为什么最终会淡出。</p>
+<h2 id="4-max">4. 为什么 max 的切换不会把误差放大<a class="headerlink" href="#4-max" title="Permanent link"></a></h2>
+<p>对有限序列 <span class="arithmatex">\(f_a,g_a\)</span>，取实现 <span class="arithmatex">\(\max f\)</span> 的动作 <span class="arithmatex">\(a_0\)</span>，则 <span class="arithmatex">\(\max f-\max g\le f_{a_0}-g_{a_0}\le\max_a|f_a-g_a|\)</span>；交换两组数便得到绝对值版。再利用概率非负且和为一：</p>
+<div class="arithmatex">\[
+\|TU-TV\|_\infty
+\le\gamma\max_{s,a}\left|\sum_{s'}P(s'\mid s,a)(U(s')-V(s'))\right|
+\le\gamma\|U-V\|_\infty.
+\]</div>
+<p><span class="arithmatex">\(T^\pi\)</span> 同样压缩。<span class="arithmatex">\(\gamma=0\)</span> 时算子直接变成与输入无关的即时最优奖励，一次更新到位；<span class="arithmatex">\(0&lt;\gamma&lt;1\)</span> 时由 Banach 定理得到唯一不动点 <span class="arithmatex">\(\bar V\)</span>，并有 <span class="arithmatex">\(\|V_k-\bar V\|_\infty\le\gamma^k\|V_0-\bar V\|_\infty\)</span>。</p>
+<p>“唯一不动点”还不是“最优收益”的完整证明。压缩定理只处理映射；我们仍要把它的解接回策略的收益定义。</p>
+<h2 id="5">5. 不动点怎样成为真正的最优价值<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>由 <span class="arithmatex">\(\bar V=T\bar V\)</span>，对每个状态和每个动作都有 <span class="arithmatex">\(\bar V(s)\ge r(s,a)+\gamma\mathbb E[\bar V(s')\mid s,a]\)</span>。即使动作依赖整段历史，这个逐动作不等式仍成立。沿任意策略反复取条件期望，可得 <span class="arithmatex">\(\bar V(s)\ge\mathbb E_s^\pi[\sum_{t=0}^{n-1}\gamma^t r_t+\gamma^n\bar V(s_n)]\)</span>。有界尾项趋零，所以 <span class="arithmatex">\(\bar V\ge V^\pi\)</span> 对所有策略成立。</p>
+<p>有限动作集合保证每个状态都有一个达到最大值的动作。选这些动作组成确定性平稳策略 <span class="arithmatex">\(\pi^*\)</span>，则 <span class="arithmatex">\(T^{\pi^*}\bar V=T\bar V=\bar V\)</span>。另一方面，按固定策略展开收益可得 <span class="arithmatex">\(V^{\pi^*}=T^{\pi^*}V^{\pi^*}\)</span>；压缩的不动点唯一，因此 <span class="arithmatex">\(V^{\pi^*}=\bar V\)</span>。这同时证明 <span class="arithmatex">\(\bar V=V^*\)</span> 和最优策略存在。</p>
+<p>可以有多个最优动作、多个最优策略，但它们共享唯一的最优价值。实验并列时选第一动作作为可重复的显示约定；并列本身不会毁掉压缩性。</p>
+<h2 id="6">6. 不知道答案，也能给价值误差设上界<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>定义完整模型的 Bellman 残差向量 <span class="arithmatex">\(d=TV-V\)</span>，以及 <span class="arithmatex">\(r=\|d\|_\infty\)</span>。由三角不等式和压缩性，<span class="arithmatex">\(\|V-V^*\|_\infty\le r+\gamma\|V-V^*\|_\infty\)</span>，所以误差不超过 <span class="arithmatex">\(r/(1-\gamma)\)</span>。这里的 <span class="arithmatex">\(r\)</span> 是计算出的残差，别与奖励函数 <span class="arithmatex">\(r(s,a)\)</span> 混淆。</p>
+<p>还可以保留残差的正负。令 <span class="arithmatex">\(m=\min_s d(s)\)</span>、<span class="arithmatex">\(M=\max_s d(s)\)</span>，利用单调性和 <span class="arithmatex">\(T(V+c\mathbf1)=TV+\gamma c\mathbf1\)</span>，得到：</p>
+<div class="arithmatex">\[
+V+\frac{m}{1-\gamma}\mathbf1\ \le\ V^*\ \le\ V+\frac{M}{1-\gamma}\mathbf1.
+\]</div>
+<p>证明下界只需令 <span class="arithmatex">\(L=V+m\mathbf1/(1-\gamma)\)</span>，观察 <span class="arithmatex">\(TL-L=d-m\mathbf1\ge0\)</span>。单调性使 <span class="arithmatex">\(L\le TL\le T^2L\le\cdots\to V^*\)</span>。上界同理反向迭代。</p>
+<p>这个包络可以整体在 <span class="arithmatex">\(V\)</span> 上方或下方，不必把它强行画成对称误差条。实验中的解析 <span class="arithmatex">\(V^*\)</span> 只用来检验上界；真正的停止判据只需要残差和已知的 <span class="arithmatex">\(\gamma\)</span>。双精度算出的极小差值并非严格区间算术认证，末位舍入应与理论结论分开。</p>
+<h2 id="7">7. 策略已经很好，价值却还没算准<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>对当前 <span class="arithmatex">\(V\)</span> 贪心得到 <span class="arithmatex">\(\pi\)</span>，于是 <span class="arithmatex">\(T^\pi V=TV\)</span>。同样用上一节的 <span class="arithmatex">\(L\)</span> 可证明 <span class="arithmatex">\(V^\pi\ge L\)</span>，再应用一次 <span class="arithmatex">\(T^\pi\)</span> 得 <span class="arithmatex">\(V^\pi\ge TV+\gamma m\mathbf1/(1-\gamma)\)</span>。对 <span class="arithmatex">\(V^*\)</span> 的上界也再应用一次 <span class="arithmatex">\(T\)</span>，得到 <span class="arithmatex">\(V^*\le TV+\gamma M\mathbf1/(1-\gamma)\)</span>。相减便有：</p>
+<div class="arithmatex">\[
+0\le V^*-V^\pi\le\frac{\gamma(M-m)}{1-\gamma}\mathbf1.
+\]</div>
+<p>这不是把“动作没有变化”当作证据，而是一个利用残差跨度的策略损失界。若所有状态残差相等，跨度为零，当前贪心策略已经最优，即使价值还共同差着一大截。</p>
+<p>给初值整体加 <span class="arithmatex">\(c\)</span>，归纳可得 <span class="arithmatex">\(U_k=V_k+\gamma^k c\mathbf1\)</span>。每个动作候选都增加同一数，贪心动作不变；残差向量整体平移，其跨度不变，但 sup 残差可能改变。实验把共同偏移的数值路径与 <span class="arithmatex">\(\gamma^k c\)</span> 并列，让你看清哪些变化影响决策，哪些只是价值的基准变化。</p>
+<h2 id="8">8. 把营地—矿区模型完整解出来<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>先假设营地采集、矿区收获。策略评估给 <span class="arithmatex">\(V_C=1/(1-\gamma)\)</span>，<span class="arithmatex">\(V_M=(4+2\gamma V_C/5)/(1-3\gamma/5)\)</span>。代回动作比较，营地的“采集减远行”为 <span class="arithmatex">\(3(5-8\gamma)/(5-3\gamma)\)</span>，矿区的“收获减返回”为 <span class="arithmatex">\((3\gamma+10)/(5-3\gamma)&gt;0\)</span>。所以这个策略恰在 <span class="arithmatex">\(\gamma\le5/8\)</span> 时最优。</p>
+<p>若营地远行、矿区收获，解方程得到 <span class="arithmatex">\(V_C=(26\gamma-10)/[(1-\gamma)(2\gamma+5)]\)</span>、<span class="arithmatex">\(V_M=(20-4\gamma)/[(1-\gamma)(2\gamma+5)]\)</span>。此时营地的“采集减远行”为 <span class="arithmatex">\(3(5-8\gamma)/(2\gamma+5)\)</span>，矿区优势为 <span class="arithmatex">\(2(11\gamma+5)/(2\gamma+5)&gt;0\)</span>，所以恰在 <span class="arithmatex">\(\gamma\ge5/8\)</span> 时最优。</p>
+<p>在阈值 <span class="arithmatex">\(\gamma=5/8\)</span>，两种策略共同给出 <span class="arithmatex">\(V^*=(8/3,112/15)\)</span>。在 <span class="arithmatex">\(\gamma=4/5\)</span>，最优值为 <span class="arithmatex">\((90/11,140/11)\)</span>。这两次代回检验，比只看到一条曲线趋平更有说服力。</p>
+<p>实验还评估另外两种策略，完整写出 <span class="arithmatex">\((I-\gamma P^\pi)V^\pi=r^\pi\)</span>。并不是所有线性系统的解都最优；必须把它代回四个动作候选，检查所选动作是否确实达到最大值。</p>
+<h2 id="9">9. 更新有误差时，为什么可能停在错误的位置<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>现在让 <span class="arithmatex">\(W_{k+1}=TW_k+e_k\)</span>，并假设每一轮都满足确定性的全状态误差界 <span class="arithmatex">\(\|e_k\|_\infty\le\varepsilon\)</span>。这项假设比“平均误差不大”强，不能未经证明就套给随机采样或神经网络。</p>
+<div class="arithmatex">\[
+\|W_k-V^*\|_\infty\le\gamma^k\|W_0-V^*\|_\infty
++\varepsilon\sum_{j=0}^{k-1}\gamma^j
+=\gamma^k\|W_0-V^*\|_\infty+\frac{\varepsilon(1-\gamma^k)}{1-\gamma}.
+\]</div>
+<p>证明从 <span class="arithmatex">\(E_{k+1}\le\gamma E_k+\varepsilon\)</span> 递推展开即可。若 <span class="arithmatex">\(W_0=V_0\)</span>，比较同一模型的精确路径则有 <span class="arithmatex">\(\|W_k-V_k\|_\infty\le\varepsilon\sum_{j=0}^{k-1}\gamma^j\)</span>，这不需要预先知道 <span class="arithmatex">\(V^*\)</span>。</p>
+<p>尤其注意 <span class="arithmatex">\(W_{k+1}-W_k=(TW_k-W_k)+e_k\)</span>。更新增量可能为零，因为误差恰好抵消了模型残差。常数正偏置会让迭代趋于 <span class="arithmatex">\(V^*+\varepsilon\mathbf1/(1-\gamma)\)</span>；那里增量为零，但原始 Bellman 残差仍是 <span class="arithmatex">\(-\varepsilon\mathbf1\)</span>。本页提供同向偏置和交替扰动两个确定性例子，不把它们称作实际强化学习训练。</p>
+<h2 id="10-1">10. γ=1 与无界奖励分别拿走了什么<a class="headerlink" href="#10-1" title="Permanent link"></a></h2>
+<p>把本例改成 <span class="arithmatex">\(\gamma=1\)</span>，营地永远采集每轮得1，总收益发散。若从 <span class="arithmatex">\(V_0=0\)</span> 做有限轮更新，营地 <span class="arithmatex">\(V_k\ge k\)</span>，因此不存在本页意义下有限的最优总收益。实验仍显示每一轮更新，但最优折现值、无限时域策略损失和除以 <span class="arithmatex">\(1-\gamma\)</span> 的界全部标为不适用。</p>
+<p>非扩张本身也不保证唯一性：单状态、奖励0、<span class="arithmatex">\(\gamma=1\)</span> 时 <span class="arithmatex">\(TV=V\)</span>，每个数都是不动点。奖励1时 <span class="arithmatex">\(TV=V+1\)</span>，没有不动点。它们是不同的失败方式。</p>
+<p>无界奖励是另一条边界。令状态 <span class="arithmatex">\(n=0,1,\ldots\)</span> 确定性前进到 <span class="arithmatex">\(n+1\)</span>，奖励 <span class="arithmatex">\(2^n\)</span>，<span class="arithmatex">\(\gamma=1/2\)</span>，从0出发每项折现收益都为1，和仍发散。即使 <span class="arithmatex">\(\gamma&lt;1\)</span>，也不能省掉本页的有界性条件。</p>
+<p>这些反例没有否定随机最短路、吸收模型或平均奖励理论。它们需要不同的目标或额外条件；例如适当的加权范数可以处理某些无界状态问题。后续研究可以沿着“保留什么空间、能否证明压缩或多步压缩”继续，而不是直接把折现公式的分母删掉。</p>
+<h2 id="11">11. 先预测，再核对完整计算<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p>实验的折现数值范围为0至0.999；另设γ=1查看无折现边界。临近1到机器精度的数值求解需要更高精度，本实验不接受这段输入。理论部分的结论仍针对完整的0≤γ&lt;1范围。</p>
+<p>先试“共同初值25”：策略是否变化，价值误差是否变化？再试“高折现慢收敛”：策略损失与价值误差是否同步？最后切换“γ=1边界”，查表中哪些对象不再有定义。</p>
+<section aria-label="预测与实验" class="learning-layer">
+<div class="learning-lab" data-learning-lab="bellman-contraction">
+<p><strong>无脚本对照：</strong>五幅图和六行末轮读数来自同一份固定记录。价值误差与策略损失分别计算。</p>
+<figure class="plot">
+<p><img alt="Bellman迭代的价值、残差误差界、策略损失、扰动累积与折现切换点。" src="assets/img/mdp-01-bellman-ledgers.svg" /></p>
+<figcaption>图 mdp-01.1：线性坐标未对零值作log截断。图E只连接实际扫描点，γ=1没有有限折现最优价值。</figcaption>
+</figure>
+<div aria-label="Bellman固定记录，可横向滚动" class="bellman178-static" role="region" tabindex="0">
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th style="text-align: right;">γ</th>
+<th style="text-align: right;">轮数</th>
+<th style="text-align: right;">真误差</th>
+<th style="text-align: right;">残差界</th>
+<th style="text-align: right;">策略损失</th>
+<th style="text-align: right;">策略损失界</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>switch</td>
+<td style="text-align: right;">0.8</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">0.0013410961</td>
+<td style="text-align: right;">0.0013410961</td>
+<td style="text-align: right;">3.55271368e-15</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(\gamma=1\)</span></td>
-<td>本页压缩常数不再小于 1</td>
-<td>不能沿用存在、唯一、收敛证书</td>
+<td>patient</td>
+<td style="text-align: right;">0.99</td>
+<td style="text-align: right;">300</td>
+<td style="text-align: right;">11.1664587</td>
+<td style="text-align: right;">11.1664587</td>
+<td style="text-align: right;">2.27373675e-13</td>
+<td style="text-align: right;">2.81374923e-12</td>
+</tr>
+<tr>
+<td>tie</td>
+<td style="text-align: right;">0.625</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">1.82460735e-08</td>
+<td style="text-align: right;">1.82460743e-08</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.48029737e-15</td>
+</tr>
+<tr>
+<td>offset</td>
+<td style="text-align: right;">0.8</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">0.00198197389</td>
+<td style="text-align: right;">0.00198197389</td>
+<td style="text-align: right;">3.55271368e-15</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>boundary</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">不适用</td>
+<td style="text-align: right;">不适用</td>
+<td style="text-align: right;">不适用</td>
+<td style="text-align: right;">不适用</td>
+</tr>
+<tr>
+<td>alternating</td>
+<td style="text-align: right;">0.95</td>
+<td style="text-align: right;">80</td>
+<td style="text-align: right;">0.739303186</td>
+<td style="text-align: right;">0.739303186</td>
+<td style="text-align: right;">7.10542736e-15</td>
+<td style="text-align: right;">2.7000624e-13</td>
 </tr>
 </tbody>
 </table>
 </div>
-<h3 id="5">5. 误区与边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<ul>
-<li><strong>残差小不是无条件等于误差小。</strong>这里靠 <span class="arithmatex">\(\gamma&lt;1\)</span> 才有 <span class="arithmatex">\(1/(1-\gamma)\)</span> 证书；<span class="arithmatex">\(\gamma=1\)</span> 时不能把公式硬除。</li>
-<li><strong>策略翻转不等于迭代发散。</strong>最优性算子是分段仿射的；<code>max</code> 切换动作仍保持 <span class="arithmatex">\(\gamma\)</span>-压缩。</li>
-<li><strong>折现不是唯一的无限时域准则。</strong>平均奖励、随机最短路和未折现吸收 MDP 有各自的良定条件，不应由本页边界预设推出“都不收敛”。</li>
-<li><strong>有界奖励与合适函数空间不可省。</strong>它们保证价值留在 <span class="arithmatex">\(B(\mathcal S)\)</span>；连续状态/动作下，最优策略存在还需可测选择、紧致性等条件。</li>
-<li><strong>模型已知。</strong>这里是动态规划；采样近似、函数逼近和 off-policy 更新会再加入统计误差与稳定性问题。</li>
-</ul>
-<h3 id="6">6. 回到算子语言：三件事由一个常数购买<a class="headerlink" href="#6" title="Permanent link"></a></h3>
-<p><span class="arithmatex">\(\gamma\)</span> 同时控制未来权重、迭代压缩率和残差到真误差的放大。压缩映像定理提供存在唯一，反复应用 <span class="arithmatex">\(T\)</span> 提供算法，对 <span class="arithmatex">\(V^*\)</span> 贪心提供最优平稳策略。实验把这三步拆开，是为了避免“Bellman 方程写出来了，所以算法自然可靠”的跳跃。</p>
-<h3 id="7">7. 迁移问题<a class="headerlink" href="#7" title="Permanent link"></a></h3>
-<p>若每次 Bellman 更新只能近似到 <span class="arithmatex">\(\|\widetilde TV-TV\|_\infty\le\epsilon\)</span>，试推导误差为何会累积成约 <span class="arithmatex">\(\epsilon/(1-\gamma)\)</span> 的量级。它怎样解释高折现强化学习对函数逼近误差更敏感？哪些额外假设才允许把这个确定性上界迁移到采样算法？</p>
+<p><a href="assets/learning/projects/bellman-certificates/run-snapshot.json">下载六组完整记录</a>。γ=1的无限时域量不适用；双精度末位差仍保留在完整数据中，数学界未作向外舍入认证。</p>
+</div>
 </section>
-<h2 id="1-mdp">1. MDP 与目标<a class="headerlink" href="#1-mdp" title="Permanent link"></a></h2>
-<p><strong>五元组</strong> <span class="arithmatex">\((\mathcal{S}, \mathcal{A}, P, r, \gamma)\)</span>：状态、动作、转移核 <span class="arithmatex">\(P(s'\mid s,a)\)</span>、奖励 <span class="arithmatex">\(r(s,a)\)</span>（有界 <span class="arithmatex">\(|r| \leq R_{\max}\)</span>）、折现因子 <span class="arithmatex">\(\gamma \in [0,1)\)</span>。为使本页的 <code>max</code> 与贪心选择不夹带技术细节，主线先取有限状态、有限动作；一般 Borel 空间需另加可测性、紧致性和选择条件。<strong>策略</strong> <span class="arithmatex">\(\pi(a\mid s)\)</span>；价值函数</p>
-<div class="arithmatex">\[
-V^\pi(s) = E^\pi\Big[\sum_{t=0}^{\infty}\gamma^t\,r(s_t, a_t)\;\Big|\;s_0 = s\Big]
-\]</div>
-<p>（在奖励有界时，级数被 <span class="arithmatex">\(\frac{R_{\max}}{1-\gamma}\)</span> 绝对控制；对本页的无限时域折现模型，<span class="arithmatex">\(\gamma &lt; 1\)</span> 购买了最直接的有界性与压缩性。有限时域、吸收型或平均奖励模型有各自的良定条件。）目标：<span class="arithmatex">\(V^*(s) = \sup_\pi V^\pi(s)\)</span> 与在适当条件下达到它的策略。</p>
-<h2 id="2-bellman">2. Bellman 算子<a class="headerlink" href="#2-bellman" title="Permanent link"></a></h2>
-<p>在 <span class="arithmatex">\(B(\mathcal{S})\)</span>（有界函数空间，sup 范数——泛函 I 的 Banach 空间）上定义两个算子：</p>
-<div class="arithmatex">\[
-(T^\pi V)(s) = E_{a\sim\pi}\Big[r(s,a) + \gamma\,E_{s'}V(s')\Big], \qquad
-(TV)(s) = \max_a\Big[r(s,a) + \gamma\,E_{s'\mid s,a}V(s')\Big]
-\]</div>
-<p>（<span class="arithmatex">\(T^\pi\)</span> = 策略评估算子；<span class="arithmatex">\(T\)</span> = 最优性算子——本科优化 IV 的 Bellman 递推正是"<span class="arithmatex">\(V = TV\)</span>"。）</p>
-<p><strong>定理（压缩性）</strong> <span class="arithmatex">\(T\)</span> 与 <span class="arithmatex">\(T^\pi\)</span> 都是 <span class="arithmatex">\((B(\mathcal{S}), \|\cdot\|_\infty)\)</span> 上的 <span class="arithmatex">\(\gamma\)</span>-压缩：</p>
-<div class="arithmatex">\[
-\|TU - TV\|_\infty \leq \gamma\,\|U - V\|_\infty
-\]</div>
-<p><strong>【证明】</strong> 对每个 <span class="arithmatex">\(s\)</span>：<span class="arithmatex">\(|(TU)(s) - (TV)(s)| \leq \max_a\big|\gamma E_{s'}[U(s') - V(s')]\big| \leq \gamma\|U - V\|_\infty\)</span>——第一步用 <span class="arithmatex">\(|\max_a f(a) - \max_a g(a)| \leq \max_a|f - g|\)</span>（max 的非扩张性，一行验证），第二步期望是平均、不放大 sup。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>定理（Bellman 方程的存在唯一）</strong> <span class="arithmatex">\(V^*\)</span> 是 <span class="arithmatex">\(T\)</span> 的唯一不动点，<span class="arithmatex">\(V^\pi\)</span> 是 <span class="arithmatex">\(T^\pi\)</span> 的唯一不动点；从任意 <span class="arithmatex">\(V_0\)</span> 迭代 <span class="arithmatex">\(T^nV_0 \to V^*\)</span>，误差按 <span class="arithmatex">\(\gamma^n\)</span> 几何衰减。
-<strong>【证明】</strong> 压缩映像原理（泛函 I，全站被引第五次——这次是它最著名的工程应用）给唯一不动点与收敛速率；"不动点 = <span class="arithmatex">\(V^*\)</span>"需验证 <span class="arithmatex">\(T\)</span> 的不动点满足最优性【骨架】：由 <span class="arithmatex">\(V = TV\)</span> 展开 <span class="arithmatex">\(n\)</span> 步得 <span class="arithmatex">\(V = \max\)</span> 序列的 <span class="arithmatex">\(n\)</span> 步收益 + <span class="arithmatex">\(\gamma^n\)</span> 尾项，取极限证 <span class="arithmatex">\(V \geq V^\pi\ \forall\pi\)</span> 且贪心策略达到它（见 §3）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<h2 id="3">3. 最优策略的存在与贪心原理<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>定理（贪心策略最优）</strong> 对有限状态、有限动作的折现 MDP，取 <span class="arithmatex">\(\pi^*(s) \in \arg\max_a[r + \gamma E V^*]\)</span>（对 <span class="arithmatex">\(V^*\)</span> 贪心），则 <span class="arithmatex">\(V^{\pi^*} = V^*\)</span>，所以存在确定性平稳最优策略。一般连续状态/动作空间还需保证最大值可达与可测选择等条件。
-<strong>【证明】</strong> 贪心使 <span class="arithmatex">\(T^{\pi^*}V^* = TV^* = V^*\)</span> ⇒ <span class="arithmatex">\(V^*\)</span> 是 <span class="arithmatex">\(T^{\pi^*}\)</span> 的不动点 ⇒ 由 <span class="arithmatex">\(T^{\pi^*}\)</span> 不动点唯一，<span class="arithmatex">\(V^{\pi^*} = V^*\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>读法（三连击的结构）</strong>：压缩给存在唯一、迭代给算法、贪心给策略——<strong>"解 MDP"在数学上是一个不动点问题</strong>，其全部良好性质由 <span class="arithmatex">\(\gamma &lt; 1\)</span> 一个假设购买。<span class="arithmatex">\(\gamma \to 1\)</span> 时压缩失效（平均奖励准则需另起炉灶【引用 Puterman §8】）；<span class="arithmatex">\(\gamma\)</span> 的双重身份：经济学的时间偏好 + 数学的收敛保险。</p>
-<p><strong>Q 函数版</strong>（RL 实用形态）：<span class="arithmatex">\(Q^*(s,a) = r + \gamma E\max_{a'}Q^*(s',a')\)</span>——同构理论（算子在 <span class="arithmatex">\(B(\mathcal{S}\times\mathcal{A})\)</span> 上压缩）；<strong>知道 <span class="arithmatex">\(Q^*\)</span> 不需要模型就能行动</strong>（<span class="arithmatex">\(\arg\max_a Q^*\)</span>），这是 mdp-03 无模型学习的伏笔。</p>
-<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（误差的几何衰减手感）</strong> <span class="arithmatex">\(\gamma = 0.99\)</span>，要 <span class="arithmatex">\(\|V_n - V^*\| \leq 10^{-3}\cdot\frac{R_{\max}}{1-\gamma}\)</span>：<span class="arithmatex">\(n \geq \frac{\ln 10^3}{\ln(1/0.99)} \approx 690\)</span> 次迭代——<strong>有效视界 <span class="arithmatex">\(\frac{1}{1-\gamma} = 100\)</span> 决定一切成本</strong>：<span class="arithmatex">\(\gamma\)</span> 越接近 1（越远视）问题越"深"。RL 调 <span class="arithmatex">\(\gamma\)</span> 的第一原理。</p>
-<p><strong>例 2（两行解一个 MDP）</strong> 两状态机器维护问题（好/坏，修或不修）：写出 <span class="arithmatex">\(T\)</span>、猜不动点形式、验证——比本科 DP 的表格更快（小 MDP 的解析解练习，把算子语言过一遍手）。</p>
-<p><strong>例 3（非扩张性的边界）</strong> 若奖励无界或 <span class="arithmatex">\(\gamma = 1\)</span>：给出 <span class="arithmatex">\(V\)</span> 不存在/不唯一的例子（如无折现的循环收益）——每个假设各挡一个反例（Evans 页的"验尸报告"法在 MDP 重演）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：把不动点定理变成两大算法——价值迭代与策略迭代的收敛性证明，以及它们与线性规划的第三条等价路线。</em></p>
+<h2 id="12">12. 八个可以独立验算的问题<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>1. 从零开始，在γ=4/5时，前两次更新是什么？</summary>
+<p><span class="arithmatex">\(V_0=(0,0)\)</span>，四个候选是 <span class="arithmatex">\((1,-2)\)</span> 和 <span class="arithmatex">\((4,2)\)</span>，故 <span class="arithmatex">\(V_1=(1,4)\)</span>。再更新：营地候选为 <span class="arithmatex">\(9/5\)</span>、<span class="arithmatex">\(6/5\)</span>；矿区候选为 <span class="arithmatex">\(156/25\)</span>、<span class="arithmatex">\(14/5\)</span>，因此 <span class="arithmatex">\(V_2=(9/5,156/25)\)</span>。此时营地仍选采集，但无限时域最优动作是远行；有限轮贪心动作并非从第一步就正确。</p>
+</details>
+<details class="answer">
+<summary>2. γ=4/5、V=(0,0)时，上下包络和策略损失界是多少？</summary>
+<p><span class="arithmatex">\(d=(1,4)\)</span>，所以 <span class="arithmatex">\(m=1,M=4\)</span>，价值包络为 <span class="arithmatex">\((5,5)\le V^*\le(20,20)\)</span>。对零向量贪心的策略是采集/收获，其值为 <span class="arithmatex">\((5,140/13)\)</span>。实际最大损失为 <span class="arithmatex">\(90/11-5=35/11\)</span>；另一个状态损失为 <span class="arithmatex">\(140/11-140/13=280/143\)</span>。跨度证书给 <span class="arithmatex">\((4/5)(4-1)/(1/5)=12\)</span>，有效但较保守。sup残差给价值误差上界20；两者回答不同问题。</p>
+</details>
+<details class="answer">
+<summary>3. 为什么γ=5/8能有两个最优策略？</summary>
+<p>把两组解析值代入都得 <span class="arithmatex">\((8/3,112/15)\)</span>。营地两动作候选都等于 <span class="arithmatex">\(8/3\)</span>；矿区收获严格优于返回。营地选采集或远行都达到同一个Bellman最大值。价值的不动点唯一，不要求实现最大值的动作唯一。</p>
+</details>
+<details class="answer">
+<summary>4. 共同偏移25，γ=4/5，第3轮还差多少？</summary>
+<p>偏移为 <span class="arithmatex">\(25(4/5)^3=64/5=12.8\)</span>，两个状态相同。下一轮每个动作候选都增加 <span class="arithmatex">\(\gamma\)</span> 倍当前偏移，所以排序不变。残差向量变化为 <span class="arithmatex">\(-(1-\gamma)\gamma^k25\mathbf1\)</span>，其跨度保持。浮点实现中应保留恒等式的末位缺陷，不把它偷偷截成零。</p>
+</details>
+<details class="answer">
+<summary>5. γ=0.99，要把初始误差保证缩小到千分之一，需要几轮？</summary>
+<p>条件是 <span class="arithmatex">\(0.99^k\le10^{-3}\)</span>，最小整数为 <span class="arithmatex">\(\lceil\ln(10^{-3})/\ln(0.99)\rceil=688\)</span>。这个比例界对任意初值成立。若把初始误差替换成 <span class="arithmatex">\(R_{\max}/(1-\gamma)\)</span>，则需要明确采用 <span class="arithmatex">\(V_0=0\)</span>；任意初值还应加上 <span class="arithmatex">\(\|V_0\|_\infty\)</span>。它是充分的最坏情况轮数，并不证明每个模型都恰好这么慢。</p>
+</details>
+<details class="answer">
+<summary>6. γ=0.8、每轮两个状态都加0.1，近似迭代停在哪里？</summary>
+<p>令 <span class="arithmatex">\(W=V^*+0.5\mathbf1\)</span>。平移恒等式给 <span class="arithmatex">\(TW=V^*+0.4\mathbf1\)</span>，再加 <span class="arithmatex">\(0.1\mathbf1\)</span> 恰等于 <span class="arithmatex">\(W\)</span>，所以近似更新以它为唯一不动点。真实价值误差是0.5，完整模型残差为 <span class="arithmatex">\(-0.1\mathbf1\)</span>，近似更新增量为0。当前贪心策略仍最优，因为共同平移不改变动作排序。</p>
+</details>
+<details class="answer">
+<summary>7. γ=1时，还能比较有界扰动与精确路径吗？</summary>
+<p>可以比较有限轮。由非扩张性，<span class="arithmatex">\(D_{k+1}\le D_k+\varepsilon\)</span>；若起点相同，则 <span class="arithmatex">\(D_k\le k\varepsilon\)</span>。这没有使用 <span class="arithmatex">\(V^*\)</span>，因此不要求无限时域总收益存在。它不意味着两条路径分别收敛，也不允许恢复残差除以 <span class="arithmatex">\(1-\gamma\)</span> 的公式。</p>
+</details>
+<details class="answer">
+<summary>8. 已知残差跨度0.02、γ=0.9，当前策略最多损失多少？</summary>
+<p>跨度证书给 <span class="arithmatex">\(\gamma\operatorname{span}(d)/(1-\gamma)=0.18\)</span>，对每个起始状态都成立。仅知道跨度不能给绝对价值误差上界：把 <span class="arithmatex">\(V^*\)</span> 整体平移任意大的常数，残差跨度仍为0，策略仍最优，价值误差却可任意大。若要保证价值误差不超过0.01，需要另查完整残差是否满足 <span class="arithmatex">\(\|d\|_\infty\le0.001\)</span>。</p>
+</details>
+<p>可继续阅读 <a href="https://ocw.mit.edu/courses/6-231-dynamic-programming-and-stochastic-control-fall-2015/ec7b70a77571e2f2c48a5a0fa5fa23d5_MIT6_231F15_Lec15.pdf">MIT 6.231 第15讲</a> 关于单调性、压缩和加权范数的处理。该讲使用成本最小化，本页采用奖励最大化，比较不等式的方向随之相反。下一页：价值迭代、策略迭代与线性规划如何利用这些性质。</p>
+</div>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="slt-04-stability-online.html"><span class="pager-label">上一页</span>统计学习 IV · 稳定性与在线学习</a>
