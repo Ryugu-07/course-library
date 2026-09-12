@@ -1,640 +1,79 @@
-(function (root, factory) {
-  "use strict";
-
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("stochastic-approximation", exported.mount);
+(function(hostWindow){'use strict';
+const DEFAULTS={gamma:.8,steps:120,alphaKind:'harmonic',coverage:'full',noiseKind:'iid',scale:1,seed:20260912,theta0:0};
+const MODEL=[[{name:'采集',reward:1,p:[1,0]},{name:'远行',reward:-2,p:[0,1]}],[{name:'收获',reward:4,p:[.4,.6]},{name:'返回',reward:2,p:[1,0]}]];
+const copy=x=>x.map(r=>r.slice()),flat=x=>x.flat(),norm=x=>Math.max(...flat(x).map(Math.abs)),dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0);
+function config(o={}){if(!o||typeof o!=='object'||Array.isArray(o))throw Error('参数对象');for(const k of Object.keys(o))if(!Object.hasOwn(DEFAULTS,k))throw Error('未知参数');const c={...DEFAULTS,...o};for(const k of ['gamma','steps','scale','seed','theta0'])if(typeof c[k]!=='number'||!Number.isFinite(c[k]))throw Error('有限数');if(!['harmonic','root','constant'].includes(c.alphaKind)||!['full','sparse'].includes(c.coverage)||!['iid','alternating','biased'].includes(c.noiseKind))throw Error('模式');if(c.gamma<0||c.gamma>1||(c.gamma>.999&&c.gamma!==1)||!Number.isInteger(c.steps)||c.steps<0||c.steps>400||c.scale<0||c.scale>2||!Number.isInteger(c.seed)||c.seed<1||c.seed>4294967295||Math.abs(c.theta0)>10)throw Error('参数范围');return c;}
+function generator(seed){let state=seed>>>0;if(state===0)state=1;return()=>{const before=state;state^=state<<13;state^=state>>>17;state^=state<<5;state>>>=0;return{before,after:state,u:state/4294967296};};}
+function alpha(kind,n){return kind==='constant'?.15:kind==='root'?1/Math.sqrt(n):1/n;}
+function theory(kind){return{kind,sum:'发散',squares:kind==='harmonic'?'收敛':'发散',classicStepCondition:kind==='harmonic',scope:kind==='root'?'未满足经典充分条件，不推出必然不收敛':kind==='constant'?'有非退化独立噪声时一般保留误差；零噪声另论':'步长合格仍需要噪声、稳定性与访问假设'};}
+function qOperator(Q,g){const V=Q.map(r=>Math.max(...r));return MODEL.map(as=>as.map(a=>a.reward+g*dot(a.p,V)));}
+function reference(g){if(g===1)return null;const vc=g<=.625?1/(1-g):(26*g-10)/((1-g)*(2*g+5)),vm=g<=.625?(4+.4*g/(1-g))/(1-.6*g):(20-4*g)/((1-g)*(2*g+5));return{value:[vc,vm],q:MODEL.map(as=>as.map(a=>a.reward+g*dot(a.p,[vc,vm]))),scope:'由解析Bellman解得到，学习更新不使用此参考'};}
+function rm(c){const rng=generator((c.seed^0xa341316c)>>>0),rows=[];let theta=c.theta0,mean=c.theta0,variance=0,sum=0,squares=0,martingale=0;rows.push({k:0,theta,mean,variance,mse:(mean-2)**2,alphaSum:0,squareSum:0,centeredAccumulation:0,update:null});
+for(let k=0;k<c.steps;k++){const a=alpha(c.alphaKind,k+1),random=c.noiseKind==='alternating'?null:rng(),expectedNoise=c.noiseKind==='biased'?.5:c.noiseKind==='alternating'?c.scale*(k%2===0?1:-1):0,centeredNoise=random?(random.u<.5?-c.scale:c.scale):0,noise=expectedNoise+centeredNoise,old=theta,drift=2-old;theta=old+a*(drift+noise);mean=(1-a)*mean+a*(2+expectedNoise);variance=(1-a)**2*variance+a*a*(random?c.scale*c.scale:0);sum+=a;squares+=a*a;martingale+=a*centeredNoise;rows.push({k:k+1,theta,mean,variance,mse:variance+(mean-2)**2,alphaSum:sum,squareSum:squares,centeredAccumulation:martingale,update:{old,alpha:a,drift,noise,expectedNoise,centeredNoise,random}});}
+let survival=1;const weights=[];for(let k=c.steps-1;k>=0;k--){const a=alpha(c.alphaKind,k+1);weights.push({k:k+1,weight:a*survival,observation:2+rows[k+1].update.noise});survival*=1-a;}weights.reverse();return{target:2,rows,weights,initialWeight:survival,reconstructed:survival*c.theta0+weights.reduce((s,w)=>s+w.weight*w.observation,0),meanModel:c.noiseKind==='alternating'?'确定性输入，均值即本条路径、方差为零':'对应理想独立Rademacher模型的精确矩递推；种子轨迹不是该概率模型的证明'};}
+function qLearning(c){const rng=generator((c.seed^0xc8013ea4)>>>0),ref=reference(c.gamma),pairs=c.coverage==='full'?[[0,0],[0,1],[1,0],[1,1]]:[[0,0],[1,0]],rows=[];let Q=[[0,0],[0,0]],visits=[[0,0],[0,0]],sums=[[0,0],[0,0]],squares=[[0,0],[0,0]];
+function record(k,update){const expected=qOperator(Q,c.gamma),delta=expected.map((r,s)=>r.map((v,a)=>v-Q[s][a])),residual=norm(delta),error=ref?norm(Q.map((r,s)=>r.map((v,a)=>v-ref.q[s][a]))):null;rows.push({k,Q:copy(Q),visits:copy(visits),alphaSums:copy(sums),squareSums:copy(squares),expected,delta,residual,residualBound:ref?residual/(1-c.gamma):null,error,covered:visits.flat().filter(v=>v>0).length,update});}
+record(0,null);for(let k=0;k<c.steps;k++){const [s,a]=pairs[k%pairs.length],action=MODEL[s][a],random=rng(),next=random.u<action.p[0]?0:1,V=Q.map(r=>Math.max(...r)),conditionalMean=action.reward+c.gamma*dot(action.p,V),conditionalVariance=c.gamma*c.gamma*action.p[0]*action.p[1]*(V[0]-V[1])**2,target=action.reward+c.gamma*V[next],old=Q[s][a],visit=++visits[s][a],rate=alpha(c.alphaKind,visit),newValue=old+rate*(target-old);Q[s][a]=newValue;sums[s][a]+=rate;squares[s][a]+=rate*rate;record(k+1,{s,a,next,reward:action.reward,random,visit,alpha:rate,old,target,conditionalMean,conditionalVariance,noise:target-conditionalMean,td:target-old,newValue});}
+return{reference:ref,rows,scope:'按(s,a)调用生成模型；不是连续环境轨迹。种子PRNG仅复现有限样本，条件均值/方差来自理想转移模型；有限覆盖次数不证明无穷访问。'};}
+function projection(c){if(c.gamma===1)return null;const g=c.gamma,P=[[0,1],[.4,.6]],r=[-2,4],phi=[1,2],rate=.1;
+return[{key:'stationary',d:[2/7,5/7]},{key:'reweighted',d:[.99,.01]}].map(({key,d})=>{const C=dot(d,phi.map(v=>v*v)),DPPhi=phi.map((v,i)=>d[i]*v*dot(P[i],phi)),A=C-g*DPPhi.reduce((a,b)=>a+b,0),b=dot(d,phi.map((v,i)=>v*r[i])),projector=phi.map(v=>phi.map((u,j)=>v*d[j]*u/C)),coefficient=g*DPPhi.reduce((a,b)=>a+b,0)/C,root=Math.abs(A)<1e-12?null:b/A,rows=[];let w=0;for(let k=0;k<=c.steps;k++){const value=phi.map(v=>v*w),tv=P.map((p,i)=>r[i]+g*dot(p,value)),residual=tv.map((v,i)=>v-value[i]),projected=projector.map(p=>dot(p,tv)),drift=b-A*w;rows.push({k,w,value,tv,residual,projected,projectedResidual:projected.map((v,i)=>v-value[i]),drift});if(k<c.steps)w+=rate*drift;}return{key,d,P,r,phi,C,A,b,projector,coefficient,root,rootSuppressed:root===null,rate,meanIterationFactor:1-rate*A,stableMeanIteration:Math.abs(1-rate*A)<1,rows,scope:'固定策略的确定性平均TD更新；权重d改变，转移P不变。|A|<1e−12不显示不稳定比值根。'};});}
+function maximumBias(scale){const rows=[];for(const a0 of [-scale,scale])for(const a1 of [-scale,scale])for(const b0 of [-scale,scale])for(const b1 of [-scale,scale]){const selected=a0>=a1?0:1;rows.push({A:[a0,a1],B:[b0,b1],selected,single:Math.max(a0,a1),independent:[b0,b1][selected],sameData:[a0,a1][selected],probability:1/16});}return{rows,single:rows.reduce((s,r)=>s+r.single/16,0),independent:rows.reduce((s,r)=>s+r.independent/16,0),sameData:rows.reduce((s,r)=>s+r.sameData/16,0),trueMaximum:0,scope:'16种独立符号的完整枚举，非采样；两动作真值均零，独立B评估时无偏，非Double Q普遍无偏定理。'};}
+function snapshot(o={}){const c=config(o);return{version:180,parameters:c,model:MODEL,rm:rm(c),q:qLearning(c),projection:projection(c),bias:maximumBias(c.scale),theory:theory(c.alphaKind)};}
+const PRESETS=[{key:'default',label:'完整访问与均值模型',config:{}},{key:'root',label:'平方根步长',config:{alphaKind:'root'}},{key:'constant',label:'常步长跟踪',config:{alphaKind:'constant'}},{key:'sparse',label:'漏掉两个分量',config:{coverage:'sparse'}},{key:'biased',label:'噪声均值偏移',config:{noiseKind:'biased'}},{key:'alternating',label:'确定性交替输入',config:{noiseKind:'alternating'}},{key:'quiet',label:'零噪声常步长',config:{scale:0,alphaKind:'constant'}},{key:'myopic',label:'γ=0',config:{gamma:0}},{key:'patient',label:'γ=0.999',config:{gamma:.999,steps:400}},{key:'boundary',label:'γ=1边界',config:{gamma:1}},{key:'empty',label:'尚未更新',config:{steps:0}},{key:'seed',label:'换一条有限回放',config:{seed:7,theta0:10,scale:2}}];
+const QUESTIONS=[
+['1/√n不满足平方可和，是否就证明该随机逼近一定不收敛？',['没有，只是不满足这组充分条件','是，所有这类算法必然发散'],0,'步长条件是所述经典定理的充分假设。缺少其中一条只能阻止直接套定理；特定噪声与漂移仍可能收敛。常步长在零噪声下也可以收敛。'],
+['有限回放中四个(s,a)都访问过，是否已验证无穷访问条件？',['已验证，访问一次就足够','没有，有限覆盖只描述本次数据'],1,'表格收敛要求每个分量无穷更新，并且各自的步长满足级数条件。有限次数不能验证无穷性质；总访问次数也不能替代逐分量计数。'],
+['固定当前Q，按真实转移独立抽取下一状态，样本目标的条件均值是否等于Bellman目标？',['是，最大化作用于已给定Q，期望取在下一状态上','否，只要存在max就不可能无偏'],0,'给定过去时Q已知，E[r+γmax Q(S′,·)|过去,s,a]=(TQ)(s,a)。跨不同训练样本比较Emax估计与max真均值，是另一层期望，不能混淆。'],
+['两动作真值均零，用独立无偏B评估A选出的动作，可以推广为Double Q永远无偏吗？',['可以，两套估计自动消除所有偏差','不可以，等真值例子不代表一般情况'],1,'本页16种符号全枚举中独立B的平均确为零。一般动作真值不同，选择次优动作仍可能产生低估；共享数据又会破坏这里使用的独立性。']];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=4||![0,1].includes(j))throw Error('预测');const correct=j===QUESTIONS[i][2];return{correct,text:(correct?'预测正确。':'需要修正。')+QUESTIONS[i][3]};}
+function fmt(v){if(v===null)return'不适用';if(Array.isArray(v))return v.map(fmt).join(' · ');if(typeof v==='boolean')return v?'是':'否';if(typeof v!=='number')return String(v);if(!Number.isFinite(v))throw Error('非有限读数');if(v===0)return'0';return Math.abs(v)<.0001||Math.abs(v)>=1e6?v.toExponential(5):Number(v.toFixed(6)).toString();}
+const COLORS=['#2479bc','#c97906','#23845a','#a33b66'];
+function plot(key,title,xLabel,yLabel,series){const ps=series.flatMap(s=>s.points.filter(Boolean)),xs=ps.map(p=>p[0]),ys=ps.map(p=>p[1]);let xMin=xs.length?Math.min(...xs):0,xMax=xs.length?Math.max(...xs):1,yMin=ys.length?Math.min(...ys):0,yMax=ys.length?Math.max(...ys):1;if(xMax===xMin)xMax=xMin+1;const pad=(yMax-yMin||Math.max(1,Math.abs(yMax)))*.08;return{key,title,xLabel,yLabel,xMin,xMax,yMin:yMin-pad,yMax:yMax+pad,series};}
+function plots(s){const series=(name,points,color,markersOnly=false)=>({name,points,color,markersOnly,boundaryMarkers:!markersOnly}),rm=s.rm.rows,q=s.q.rows,p=s.projection;return[
+plot('rm','RM：一条轨迹和理想模型均值','更新次数 k','θ',[series('固定种子轨迹',rm.map(r=>[r.k,r.theta]),COLORS[0]),series(s.parameters.noiseKind==='alternating'?'确定性对照均值':'理想独立模型均值',rm.map(r=>[r.k,r.mean]),COLORS[1]),series('目标2',[[0,2],[s.parameters.steps,2]],COLORS[2])]),
+plot('mse','均方误差：方差加偏差平方','更新次数 k','对目标2的均方误差',[series('MSE（理想模型）',rm.map(r=>[r.k,r.mse]),COLORS[0]),series('方差',rm.map(r=>[r.k,r.variance]),COLORS[1])]),
+plot('qerror','Q表：解析真误差与模型残差界','样本更新次数 k','全表sup误差',[series('解析Q*误差',q.map(r=>r.error===null?null:[r.k,r.error]),COLORS[0]),series('模型残差/(1−γ)',q.map(r=>r.residualBound===null?null:[r.k,r.residualBound]),COLORS[1])]),
+plot('visits','覆盖必须逐状态动作查看','样本更新次数 k','累计访问次数',[0,1,2,3].map(i=>series(['采集','远行','收获','返回'][i],q.map(r=>[r.k,r.visits[Math.floor(i/2)][i%2]]),COLORS[i]))),
+plot('projection','平均TD更新：同一转移，不同抽样权重','确定性均值更新 k','特征权重 w',p?p.map((r,i)=>series(i?'重加权d=(.99,.01)':'平稳d=(2/7,5/7)',r.rows.map(x=>[x.k,x.w]),COLORS[i])):[]),
+plot('bias','16种等概率情况的完整平均','估计方式：0单、1独立双、2共享','估计值的平均',[series('真值均为零的有限枚举',[[0,s.bias.single],[1,s.bias.independent],[2,s.bias.sameData]],COLORS[0],true)])];}
+function tables(s){const q=s.q.rows.at(-1),p=s.projection,ref=s.q.reference;return[
+{key:'parameters',title:'本次参数',headers:['参数','值'],rows:Object.entries(s.parameters)},
+{key:'model',title:'已知模型仅用于生成样本与核验',headers:['状态','动作','奖励','营地概率','矿区概率'],rows:s.model.flatMap((as,i)=>as.map(a=>[['营地','矿区'][i],a.name,a.reward,...a.p]))},
+{key:'rm',title:'RM每一步、噪声与精确矩',headers:['k','θ','均值','方差','MSE','Σα','Σα²','中心噪声累积','旧θ','α','漂移','噪声','噪声均值','中心噪声','PRNG前','PRNG后','u'],rows:s.rm.rows.map(r=>[r.k,r.theta,r.mean,r.variance,r.mse,r.alphaSum,r.squareSum,r.centeredAccumulation,r.update?.old??null,r.update?.alpha??null,r.update?.drift??null,r.update?.noise??null,r.update?.expectedNoise??null,r.update?.centeredNoise??null,r.update?.random?.before??null,r.update?.random?.after??null,r.update?.random?.u??null])},
+{key:'q',title:'每次Q更新和完整Q表',headers:['k','Q四项','访问四项','Σα四项','Σα²四项','TQ四项','残差四项','sup残差','误差界','真误差','覆盖项数','状态动作','下一状态','逐项n','α','旧Q','目标','条件均值','条件方差','中心噪声','TD','新Q','PRNG前','PRNG后','u'],rows:s.q.rows.map(r=>[r.k,r.Q,r.visits,r.alphaSums,r.squareSums,r.expected,r.delta,r.residual,r.residualBound,r.error,r.covered,r.update?[r.update.s,r.update.a]:null,r.update?.next??null,r.update?.visit??null,r.update?.alpha??null,r.update?.old??null,r.update?.target??null,r.update?.conditionalMean??null,r.update?.conditionalVariance??null,r.update?.noise??null,r.update?.td??null,r.update?.newValue??null,r.update?.random?.before??null,r.update?.random?.after??null,r.update?.random?.u??null])},
+{key:'visits',title:'逐分量步长账，禁止用总步数代替',headers:['动作','实际访问','实际Σα','实际Σα²','最终Q','解析Q*'],rows:s.model.flatMap((as,i)=>as.map((a,j)=>[a.name,q.visits[i][j],q.alphaSums[i][j],q.squareSums[i][j],q.Q[i][j],ref?ref.q[i][j]:null]))},
+{key:'theory',title:'级数条件与适用范围',headers:['方案','Σα','Σα²','经典步长条件','边界'],rows:['harmonic','root','constant'].map(k=>{const t=theory(k);return[k,t.sum,t.squares,t.classicStepCondition,t.scope];})},
+{key:'projection',title:'线性TD投影矩阵及全部均值更新',headers:['分布','d','C','A','b','Π矩阵','投影收缩系数','比值根','均值迭代因子','稳定','k','w','预测V','TπV','Bellman残差','ΠTπV','投影残差','平均漂移'],rows:p?p.flatMap(m=>m.rows.map(r=>[m.key,m.d,m.C,m.A,m.b,m.projector,m.coefficient,m.root,m.meanIterationFactor,m.stableMeanIteration,r.k,r.w,r.value,r.tv,r.residual,r.projected,r.projectedResidual,r.drift])):[]},
+{key:'bias',title:'独立双估计的16个等概率情况',headers:['A0','A1','B0','B1','A所选动作','单估计','独立B评估','同数据评估','概率'],rows:s.bias.rows.map(r=>[...r.A,...r.B,r.selected,r.single,r.independent,r.sameData,r.probability])},
+{key:'reference',title:'解析参考与最后一行模型核验',headers:['动作','解析Q*','最后Q','最后TQ','Bellman残差'],rows:s.model.flatMap((as,i)=>as.map((a,j)=>[a.name,ref?ref.q[i][j]:null,q.Q[i][j],q.expected[i][j],q.delta[i][j]]))},
+{key:'weights',title:'RM末值的全部观测权重',headers:['观测序号','权重','2+噪声','加权贡献'],rows:[[0,s.rm.initialWeight,s.parameters.theta0,s.rm.initialWeight*s.parameters.theta0],...s.rm.weights.map(r=>[r.k,r.weight,r.observation,r.weight*r.observation])]}];}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=10000?v.toExponential(2):Number(v.toFixed(3)).toString();
+function svg(p){const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 540" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+const discrete=['rm','mse','qerror','visits','projection','bias'].includes(p.key);const xticks=discrete?[...new Set(Array.from({length:5},(_,i)=>Math.round(p.xMin+(p.xMax-p.xMin)*i/4)))]:Array.from({length:5},(_,i)=>p.xMin+(p.xMax-p.xMin)*i/4);for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+axisFmt(y)+'</text>';}for(const x of xticks){out+='<text x="'+X(x)+'" y="410" text-anchor="middle">'+axisFmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen&&!s.markersOnly?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const marks=s.markersOnly?s.points.filter(Boolean):s.boundaryMarkers?[...new Set([s.points.find(Boolean),s.points.filter(Boolean).at(-1)])].filter(Boolean):s.points.filter(Boolean).length===1?s.points.filter(Boolean):[];marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="'+(s.markerRadius??5)+'" stroke="'+s.color+'" fill="'+(s.hollow?'none':s.open?'var(--bg,#fff)':s.color)+'" stroke-width="'+(s.markerStrokeWidth??2.5)+'"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});if(!p.series.some(s=>s.points.some(Boolean)))out+='<text x="450" y="245" text-anchor="middle">γ=1：此无限时域量不适用</text>';return out+'</svg>';}
+  var mounted=new WeakMap();
+  function mount(root){const METRICS=QUESTIONS.map((q,i)=>({key:String(i),label:q[0]}));var doc=root.ownerDocument;var previous=mounted.get(root);if(previous)previous();var url=null,c=config(),choices={},revealed=false,view=0;root.replaceChildren();root.classList.add('sa180');
+    function el(tag,attrs={},text){var e=doc.createElement(tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));if(text!==undefined)e.textContent=text;return e;}
+    if(!doc.querySelector('[data-sa180-style]')){let style=el('style',{'data-sa180-style':''});style.textContent='.sa180{min-width:0;color:var(--fg,#222);line-height:1.65}.sa180 *{box-sizing:border-box}.sa180 button,.sa180 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.sa180 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.sa180 button:focus-visible,.sa180 select:focus-visible,.sa180 [tabindex]:focus-visible{outline:3px solid #2474bc}.sa180 .sa-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.sa180 label{display:grid;gap:4px;min-width:0}.sa180 input{width:100%;min-height:44px;font:inherit;color:inherit;background:var(--bg,#fff)}.sa180 .sa-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.sa180 .sa-pred>strong{display:block;margin-bottom:6px}.sa180 .sa-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.sa180 .sa-feedback{margin:7px 0}.sa180 .sa-scroll{max-width:100%;overflow:auto}.sa180 svg{display:block;min-width:680px;width:100%;height:auto}.sa180 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.sa180 td,.sa180 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.sa180 [hidden]{display:none!important}.sa180 details{margin:12px 0}.sa180 summary{min-height:44px;cursor:pointer}.sa180 .sa-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.sa180 .sa-correct{color:var(--cl-green,#277540)}.sa180 .sa-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.sa180 .sa-grid{grid-template-columns:1fr}}';doc.head.appendChild(style);}
+    root.append(el('h3',{},'把步长、噪声与访问条件逐项算清'));
+    root.append(el('p',{},'沿用营地矿区模型，逐分量更新Q表。把一条有限回放与指定概率模型的精确矩、完整访问计数、线性TD投影和双估计枚举放在一起核对。'));
+    var presets=el('div',{class:'sa-row','aria-label':'教学预设'});PRESETS.forEach(p=>{let b=el('button',{type:'button','data-preset':p.key},p.label);b.onclick=()=>{c=config(p.config);sync();reset();};presets.append(b);});root.append(presets);
+    var fields={},grid=el('div',{class:'sa-grid'});
+    var outs={};
+    [['gamma','Q与TD的折现 γ（至0.999；1看边界）',0,1,.001],['steps','样本与均值更新次数',0,400,1],['scale','RM与偏差枚举的噪声幅度',0,2,.01],['theta0','RM初始 θ',-10,10,.1],['seed','有限回放种子（正32位整数）',1,4294967295,1]].forEach(([key,title,min,max,step])=>{let label=el('label',{},title),out=el('output'),input=el('input',{type:key==='seed'?'number':'range',required:'',min,max,step,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.onchange=input.oninput=()=>{const v=+input.value;if(!input.validity.valid||input.value===''||!Number.isFinite(v)){reset();check.disabled=true;input.setAttribute('aria-invalid','true');status.textContent='请为'+title+'输入范围内的有效数值。';return;}input.removeAttribute('aria-invalid');check.disabled=false;c[key]=v;sync();reset();};});
+    [['alphaKind','RM与逐访问Q步长',[['harmonic','1/n'],['root','1/√n'],['constant','常数0.15']]],['coverage','生成模型调用范围',[['full','四个状态动作循环'],['sparse','仅采集与收获']]],['noiseKind','RM输入类型',[['iid','理想独立符号模型'],['alternating','确定性交替对照'],['biased','独立符号再加0.5']]]].forEach(([key,title,names])=>{let label=el('label',{},title),select=el('select',{'data-field':key,'aria-label':title});names.forEach(([value,name])=>select.append(el('option',{value},name)));label.append(select);grid.append(label);fields[key]=select;select.onchange=()=>{c[key]=select.value;sync();reset();};});root.append(grid);
+    var rateNote=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(rateNote,prediction);prediction.append(el('h4',{},'先预测：充分条件、访问、条件均值与双估计'),el('p',{},'四道题的数学条件写在题干里。旋钮用于对照和找反例，不会自动改写题目。'));
+    var predButtons={},feedbacks={};METRICS.forEach(m=>{let row=el('div',{class:'sa-pred'});row.append(el('strong',{},m.label));predButtons[m.key]=[];[true,false].forEach(v=>{let b=el('button',{type:'button','data-prediction':m.key,'data-choice':String(v),'aria-pressed':'false'},QUESTIONS[+m.key][1][v?0:1]);b.onclick=()=>{choices[m.key]=v;predButtons[m.key].forEach(b=>b.setAttribute('aria-pressed',String(b.getAttribute('data-choice')===String(v))));if(revealed)showFeedback();};predButtons[m.key].push(b);row.append(b);});let f=el('p',{class:'sa-feedback','data-feedback':m.key});feedbacks[m.key]=f;row.append(f);prediction.append(row);});
+    var check=el('button',{type:'button','data-check':''},'核对预测并显示结果'),status=el('p',{class:'sa-status','aria-live':'polite'});root.append(check,status);
+    var stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),plotButtons=el('div',{class:'sa-row'}),plotWrap=el('div',{class:'sa-scroll',tabindex:'0',role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'折线连接全部记录点，零读数保持为零。RM的MSE来自指定理想模型；Q是有限种子回放，TD是确定性平均更新，偏差图是16种情况全枚举。γ=1的折现参考不适用，空值不代表零。'),summary=el('p'),tableHost=el('div'),download=el('a',{'data-download':'',download:'sa-record.json'},'下载当前完整数值记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);var current;
+    function showFeedback(){let total=0;METRICS.forEach(m=>{if(typeof choices[m.key]!=='boolean')return;let f=feedback(+m.key,choices[m.key]?0:1);total+=+f.correct;feedbacks[m.key].textContent=f.text;feedbacks[m.key].className='sa-feedback '+(f.correct?'sa-correct':'sa-wrong');});status.textContent='预测核对：'+total+'/4 正确。读数、曲线和下载均对应当前参数。';}
+    function draw(){var ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+    function render(){current=snapshot(c);root.__saSnapshot=current;stage.hidden=false;summary.textContent='当前Q访问覆盖 '+current.q.rows.at(-1).covered+'/4 项；末轮模型残差='+fmt(current.q.rows.at(-1).residual)+'，解析Q*误差='+fmt(current.q.rows.at(-1).error)+'。RM末值='+fmt(current.rm.rows.at(-1).theta)+'；'+current.rm.meanModel+'。经典步长条件：'+(current.theory.classicStepCondition?'满足该步长部分':'不满足该组充分条件')+'，仍须核查其他定理假设。';plotButtons.replaceChildren();plots(current).forEach((p,i)=>{let b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();tables(current).forEach(t=>{let details=el('details',{'data-table':t.key}),heading=el('summary',{},t.title);details.append(heading);details.addEventListener('toggle',()=>{if(!details.open||details.children.length>1)return;let wrap=el('div',{class:'sa-scroll',tabindex:'0',role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),head=el('thead'),tr=el('tr'),body=el('tbody');t.headers.forEach(h=>tr.append(el('th',{scope:'col'},h)));head.append(tr);t.rows.forEach(r=>{let row=el('tr');r.forEach(v=>row.append(el('td',{},fmt(v))));body.append(row);});table.append(head,body);wrap.append(table);details.append(wrap);});tableHost.append(details);});if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current,null,2)],{type:'application/json'}));download.href=url;showFeedback();}
+    function sync(){Object.entries(fields).forEach(([k,e])=>{e.value=c[k];e.removeAttribute('aria-invalid');});check.disabled=false;}
+    function reset(){c=config(c);revealed=false;choices={};stage.hidden=true;delete root.__saSnapshot;METRICS.forEach(m=>{feedbacks[m.key].textContent='';predButtons[m.key].forEach(b=>b.setAttribute('aria-pressed','false'));});Object.entries(outs).forEach(([k,o])=>o.textContent=k==='seed'?String(c[k]):fmt(c[k]));rateNote.textContent='RM输入与Q转移使用分别记录的有限伪随机回放。幅度和RM初值不改变Q模型；改变种子只换有限轨迹。线性TD固定均值步长为0.1，独立于RM/Q步长。';status.textContent='参数已就绪。完成四项预测后显示结果。';}
+    check.onclick=()=>{if(!METRICS.every(m=>typeof choices[m.key]==='boolean')){status.textContent='请先为四个量各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
   }
-  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module) {
-    try {
-      var report = exported.selfTest();
-      process.stdout.write("stochastic-approximation self-test: PASS (" + report.checks + " checks)\n");
-    } catch (error) {
-      process.stderr.write("stochastic-approximation self-test: FAIL\n" + error.stack + "\n");
-      process.exitCode = 1;
-    }
-  }
-})(typeof window !== "undefined" ? window : null, function (host) {
-  "use strict";
+function selfTest(){let checks=0;const ok=x=>{if(!x)throw Error('SA self check');checks++;};for(const p of PRESETS){const s=snapshot(p.config);ok(s.rm.rows.length===s.parameters.steps+1);ok(s.q.rows.length===s.parameters.steps+1);ok(Math.abs(s.rm.reconstructed-s.rm.rows.at(-1).theta)<1e-10);ok(Math.abs(s.rm.initialWeight+s.rm.weights.reduce((a,r)=>a+r.weight,0)-1)<1e-10);ok(s.q.rows.at(-1).visits.flat().reduce((a,b)=>a+b,0)===s.parameters.steps);ok(plots(s).length===6&&tables(s).length===10);ok(s.bias.rows.length===16);ok(Math.abs(s.bias.independent)<1e-12);ok(Math.abs(s.bias.single-s.parameters.scale/2)<1e-12);for(const r of s.q.rows){if(r.error!==null)ok(r.error<=r.residualBound+1e-7);ok(r.covered<=4);}for(const r of s.rm.rows)ok(r.variance>=0);if(s.parameters.gamma===1)ok(s.projection===null&&s.q.reference===null);}const t=snapshot({noiseKind:'biased',alphaKind:'harmonic',steps:100});ok(Math.abs(t.rm.rows.at(-1).mean-2.5)<1e-12);ok(Math.abs(t.rm.rows.at(-1).variance-.01)<1e-12);ok(reference(.99).value[0]>200);ok(fmt(20)==='20');return{status:'PASS',checks};}
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "cl-stochastic-approximation-styles";
-  var INSTANCE = 0;
-  var EPS = 1e-10;
-  var DEFAULT = { alphaKind: "harmonic", replayMode: "full", steps: 48, gamma: 0.8, theta0: 0, thetaStar: 2 };
-  var ALPHA_PRESETS = [
-    { id: "harmonic", label: "逐访问 1/(n+1)", short: "1/n" },
-    { id: "root", label: "逐访问 1/√(n+1)", short: "1/√n" },
-    { id: "constant", label: "常数 0.15", short: "常数" }
-  ];
-  var REPLAY_PRESETS = [
-    { id: "full", label: "完整覆盖：4 个 (s,a)" },
-    { id: "sparse", label: "稀疏覆盖：漏掉两项" }
-  ];
-  var NOISE_REPLAY = [0.8, -0.6, 0.4, -0.2, -0.8, 0.6, -0.4, 0.2];
-  var FULL_REPLAY = [
-    { state: 0, action: 0, reward: 1, nextState: 1, terminal: false },
-    { state: 0, action: 1, reward: 0, nextState: 1, terminal: false },
-    { state: 1, action: 0, reward: 2, nextState: 1, terminal: false },
-    { state: 1, action: 1, reward: -1, nextState: 1, terminal: false }
-  ];
-  var SPARSE_REPLAY = [FULL_REPLAY[0], FULL_REPLAY[2]];
-
-  var STYLE_TEXT = [
-    ".sa-lab{--sa-blue:var(--cl-blue,#315f9d);--sa-gold:var(--cl-gold,#9b6a12);--sa-green:var(--cl-green,#39734d);--sa-red:var(--cl-red,#b64335);--sa-soft:var(--fg-soft,#6f6a60);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere;}",
-    ".sa-lab *,.sa-lab *::before,.sa-lab *::after{box-sizing:border-box;}.sa-lab [hidden]{display:none!important;}.sa-lab h3,.sa-lab h4{margin:0;color:var(--fg);letter-spacing:0;}.sa-lab h3{font-size:1.18rem;}.sa-lab h4{font-size:1rem;}.sa-lab .sa-note,.sa-lab .sa-feedback{color:var(--sa-soft);font-size:13px;line-height:1.7;}.sa-lab .sa-prompt{margin:14px 0;padding:12px 14px;border-left:3px solid var(--sa-gold);background:var(--bg);}.sa-lab fieldset{min-width:0;margin:0;padding:10px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);}.sa-lab legend{max-width:100%;padding:0 4px;color:var(--sa-soft);font-size:13px;line-height:1.5;}.sa-lab .sa-question-list{display:grid;gap:10px;}.sa-lab .sa-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}",
-    ".sa-lab button,.sa-lab input{font:inherit;}.sa-lab button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);line-height:1.35;cursor:pointer;overflow-wrap:anywhere;}.sa-lab button:hover{border-color:var(--accent);}.sa-lab button[aria-pressed=\"true\"],.sa-lab button.sa-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750;}.sa-lab button:disabled{cursor:not-allowed;opacity:.55;}.sa-lab button:focus-visible,.sa-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px;}.sa-lab .sa-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}.sa-lab .sa-actions>*{flex:1 1 170px;}.sa-lab .sa-feedback{min-height:2em;margin:8px 0 0;font-weight:700;}.sa-lab .sa-pass{color:var(--sa-green);}.sa-lab .sa-warn{color:var(--sa-red);}",
-    ".sa-lab .sa-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.sa-lab .sa-preset-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:10px 0 12px;}.sa-lab .sa-replay-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:10px 0 12px;}.sa-lab .sa-preset-grid button,.sa-lab .sa-replay-grid button{font-size:12px;}.sa-lab .sa-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 16px;align-items:end;}.sa-lab .sa-control{display:grid;gap:5px;min-width:0;}.sa-lab .sa-control label{color:var(--sa-soft);font-size:13px;font-weight:700;}.sa-lab .sa-control output{color:var(--accent);font-variant-numeric:tabular-nums;}.sa-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent);}",
-    ".sa-lab .sa-metrics{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:13px 0;}.sa-lab .sa-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.sa-lab .sa-metric:nth-child(3n+1){border-top-color:var(--sa-blue);}.sa-lab .sa-metric:nth-child(3n+2){border-top-color:var(--sa-gold);}.sa-lab .sa-metric:nth-child(3n){border-top-color:var(--sa-green);}.sa-lab .sa-metric span{display:block;color:var(--sa-soft);font-size:11.5px;line-height:1.4;}.sa-lab .sa-metric strong{display:block;margin-top:3px;font-size:14px;line-height:1.45;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;}",
-    ".sa-lab .sa-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow-x:auto;-webkit-overflow-scrolling:touch;}.sa-lab .sa-svg{display:block;width:100%;min-width:720px;height:auto;color:var(--fg);}.sa-lab .sa-svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.sa-lab .sa-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.68;}.sa-lab .sa-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.72;}.sa-lab .sa-rm{fill:none;stroke:var(--sa-blue);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}.sa-lab .sa-target{stroke:var(--sa-gold);stroke-width:1.6;stroke-dasharray:5 4;}.sa-lab .sa-error{fill:var(--sa-red);fill-opacity:.76;}.sa-lab .sa-cover{fill:var(--sa-green);fill-opacity:.72;}.sa-lab .sa-title{font-size:13px;font-weight:750;}.sa-lab .sa-label{font-size:11px;}",
-    ".sa-lab .sa-table-wrap{max-width:100%;margin-top:13px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.sa-lab table{width:100%;min-width:850px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.sa-lab caption{padding:0 0 7px;text-align:left;color:var(--sa-soft);font-size:12px;}.sa-lab th,.sa-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;}.sa-lab th{color:var(--sa-soft);font-size:11.5px;font-weight:750;}.sa-lab .sa-interpretation{margin:12px 0 0;padding:10px 12px;border-left:3px solid var(--sa-green);background:var(--bg);font-size:13px;line-height:1.7;}",
-    "@media(max-width:980px){.sa-lab .sa-metrics{grid-template-columns:repeat(3,minmax(0,1fr));}.sa-lab .sa-controls{grid-template-columns:repeat(2,minmax(0,1fr));}}@media(max-width:680px){.sa-lab .sa-choice-grid,.sa-lab .sa-preset-grid,.sa-lab .sa-replay-grid,.sa-lab .sa-controls,.sa-lab .sa-metrics{grid-template-columns:minmax(0,1fr);}.sa-lab .sa-frame{padding:5px;}}@media(prefers-reduced-motion:reduce){.sa-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important;}}"
-  ].join("\n");
-
-  function finite(value) {
-    return typeof value === "number" && isFinite(value);
-  }
-
-  function near(left, right, tolerance) {
-    var scale = Math.max(1, Math.abs(left), Math.abs(right));
-    return Math.abs(left - right) <= (tolerance || EPS) * scale;
-  }
-
-  function clamp(value, minimum, maximum) {
-    return Math.max(minimum, Math.min(maximum, value));
-  }
-
-  function alphaValue(kind, visitIndex) {
-    if (kind === "root") return 1 / Math.sqrt(visitIndex + 1);
-    if (kind === "constant") return 0.15;
-    return 1 / (visitIndex + 1);
-  }
-
-  function scheduleTheory(kind) {
-    if (kind === "harmonic") {
-      return { sum: "发散", squareSum: "收敛", theorem: "满足经典 RM 两条步长条件" };
-    }
-    if (kind === "root") {
-      return { sum: "发散", squareSum: "发散", theorem: "平方不可和；不能直接套经典噪声结论" };
-    }
-    return { sum: "发散", squareSum: "发散", theorem: "常数步长用于跟踪/邻域震荡，不给精确 a.s. 收敛" };
-  }
-
-  function stepSums(kind, visits) {
-    var count = Math.max(0, Math.floor(Number(visits) || 0));
-    var sum = 0;
-    var squareSum = 0;
-    var index;
-    for (index = 0; index < count; index += 1) {
-      var alpha = alphaValue(kind, index);
-      sum += alpha;
-      squareSum += alpha * alpha;
-    }
-    return {
-      kind: kind,
-      visits: count,
-      sum: sum,
-      squareSum: squareSum,
-      theory: scheduleTheory(kind)
-    };
-  }
-
-  function cloneTable(table) {
-    return table.map(function (row) { return row.slice(); });
-  }
-
-  function zeroTable() {
-    return [[0, 0], [0, 0]];
-  }
-
-  function maxRow(row) {
-    return Math.max(row[0], row[1]);
-  }
-
-  function qUpdate(table, transition, alpha, gamma) {
-    var next = cloneTable(table);
-    var oldValue = table[transition.state][transition.action];
-    var future = transition.terminal ? 0 : maxRow(table[transition.nextState]);
-    var target = transition.reward + gamma * future;
-    var newValue = oldValue + alpha * (target - oldValue);
-    next[transition.state][transition.action] = newValue;
-    return {
-      table: next,
-      oldValue: oldValue,
-      target: target,
-      newValue: newValue,
-      temporalDifference: target - oldValue
-    };
-  }
-
-  function bellmanQ(table, gamma) {
-    return FULL_REPLAY.map(function (transition) {
-      var future = transition.terminal ? 0 : maxRow(table[transition.nextState]);
-      return transition.reward + gamma * future;
-    }).reduce(function (result, value, index) {
-      var transition = FULL_REPLAY[index];
-      result[transition.state][transition.action] = value;
-      return result;
-    }, zeroTable());
-  }
-
-  function fixedPointQ(gamma, iterations) {
-    var table = zeroTable();
-    var count = Math.max(1, Math.floor(Number(iterations) || 80));
-    var index;
-    for (index = 0; index < count; index += 1) table = bellmanQ(table, gamma);
-    return table;
-  }
-
-  function tableError(left, right) {
-    var error = 0;
-    left.forEach(function (row, state) {
-      row.forEach(function (value, action) {
-        error = Math.max(error, Math.abs(value - right[state][action]));
-      });
-    });
-    return error;
-  }
-
-  function rmTrace(options) {
-    var settings = options || {};
-    var kind = settings.alphaKind || DEFAULT.alphaKind;
-    var steps = Math.max(1, Math.floor(Number(settings.steps) || DEFAULT.steps));
-    var theta = finite(Number(settings.theta0)) ? Number(settings.theta0) : DEFAULT.theta0;
-    var thetaStar = finite(Number(settings.thetaStar)) ? Number(settings.thetaStar) : DEFAULT.thetaStar;
-    var noiseScale = finite(Number(settings.noiseScale)) ? Number(settings.noiseScale) : 1;
-    var rows = [{ iteration: 0, theta: theta, alpha: null, noise: null, drift: thetaStar - theta }];
-    var index;
-    for (index = 0; index < steps; index += 1) {
-      var alpha = alphaValue(kind, index);
-      var noise = NOISE_REPLAY[index % NOISE_REPLAY.length] * noiseScale;
-      var drift = thetaStar - theta;
-      theta += alpha * (drift + noise);
-      rows.push({ iteration: index + 1, theta: theta, alpha: alpha, noise: noise, drift: drift });
-    }
-    return {
-      kind: kind,
-      thetaStar: thetaStar,
-      rows: rows,
-      finalTheta: theta,
-      replay: NOISE_REPLAY.slice(),
-      evidenceLabel: "固定有限回放：数值证据，不是鞅收敛证明"
-    };
-  }
-
-  function visitMatrix() {
-    return [[0, 0], [0, 0]];
-  }
-
-  function qTrace(options) {
-    var settings = options || {};
-    var kind = settings.alphaKind || DEFAULT.alphaKind;
-    var mode = settings.replayMode || DEFAULT.replayMode;
-    var steps = Math.max(1, Math.floor(Number(settings.steps) || DEFAULT.steps));
-    var gamma = clamp(Number(settings.gamma), 0, 0.99);
-    if (!finite(gamma)) gamma = DEFAULT.gamma;
-    var replay = mode === "sparse" ? SPARSE_REPLAY : FULL_REPLAY;
-    var table = zeroTable();
-    var visits = visitMatrix();
-    var rows = [];
-    var index;
-    for (index = 0; index < steps; index += 1) {
-      var transition = replay[index % replay.length];
-      var visit = visits[transition.state][transition.action];
-      var alpha = alphaValue(kind, visit);
-      visits[transition.state][transition.action] += 1;
-      var update = qUpdate(table, transition, alpha, gamma);
-      table = update.table;
-      rows.push({
-        iteration: index + 1,
-        state: transition.state,
-        action: transition.action,
-        visit: visit + 1,
-        alpha: alpha,
-        reward: transition.reward,
-        target: update.target,
-        oldValue: update.oldValue,
-        newValue: update.newValue,
-        td: update.temporalDifference
-      });
-    }
-    var reference = fixedPointQ(gamma, 120);
-    return {
-      kind: kind,
-      replayMode: mode,
-      gamma: gamma,
-      rows: rows,
-      finalTable: table,
-      referenceTable: reference,
-      errorToReference: tableError(table, reference),
-      visits: visits,
-      covered: visits.every(function (row) { return row.every(function (count) { return count > 0; }); }),
-      evidenceLabel: "固定有限回放：逐项更新证据，不是 Q-learning a.s. 定理"
-    };
-  }
-
-  function normalizeConfig(input) {
-    var source = input || {};
-    var alphaKind = ["harmonic", "root", "constant"].indexOf(source.alphaKind) >= 0 ? source.alphaKind : DEFAULT.alphaKind;
-    var replayMode = ["full", "sparse"].indexOf(source.replayMode) >= 0 ? source.replayMode : DEFAULT.replayMode;
-    var steps = Math.floor(Number(source.steps));
-    var gamma = Number(source.gamma);
-    if (!finite(steps)) steps = DEFAULT.steps;
-    if (!finite(gamma)) gamma = DEFAULT.gamma;
-    return {
-      alphaKind: alphaKind,
-      replayMode: replayMode,
-      steps: clamp(steps, 8, 96),
-      gamma: clamp(gamma, 0, 0.99),
-      theta0: DEFAULT.theta0,
-      thetaStar: DEFAULT.thetaStar
-    };
-  }
-
-  function compute(input) {
-    var config = normalizeConfig(input);
-    var rm = rmTrace(config);
-    var q = qTrace(config);
-    var sums = stepSums(config.alphaKind, Math.max(1, Math.floor(config.steps / 4)));
-    return {
-      config: config,
-      rm: rm,
-      q: q,
-      sums: sums,
-      theoremEligible: config.alphaKind === "harmonic" && config.replayMode === "full" && config.gamma < 1,
-      theoremConditions: scheduleTheory(config.alphaKind)
-    };
-  }
-
-  function format(value, digits) {
-    if (value === null || value === undefined || !finite(value)) return "—";
-    var places = digits === undefined ? 4 : digits;
-    if (Math.abs(value) > 0 && Math.abs(value) < 0.0005) return value.toExponential(Math.min(places, 4));
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function appendChildren(node, children) {
-    var list = Array.isArray(children) ? children : [children];
-    list.forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child && child.nodeType ? child : node.ownerDocument.createTextNode(String(child)));
-    });
-    return node;
-  }
-
-  function setAttributes(node, attrs) {
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", String(value));
-      else if (key === "htmlFor") node.setAttribute("for", String(value));
-      else if (key === "text") node.textContent = String(value);
-      else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, String(value));
-    });
-    return node;
-  }
-
-  function element(doc, tag, attrs, children) {
-    return appendChildren(setAttributes(doc.createElement(tag), attrs || {}), children || []);
-  }
-
-  function svgElement(doc, tag, attrs, children) {
-    return appendChildren(setAttributes(doc.createElementNS(SVG_NS, tag), attrs || {}), children || []);
-  }
-
-  function clear(node) {
-    while (node && node.firstChild) node.removeChild(node.firstChild);
-  }
-
-  function installStyles(doc) {
-    if (!doc || !doc.head || (doc.getElementById && doc.getElementById(STYLE_ID))) return;
-    var style = doc.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = STYLE_TEXT;
-    doc.head.appendChild(style);
-  }
-
-  function metric(doc, label, value) {
-    return element(doc, "div", { className: "sa-metric" }, [
-      element(doc, "span", {}, [label]),
-      element(doc, "strong", {}, [value])
-    ]);
-  }
-
-  function tableElement(doc, captionText, headers, rows) {
-    var head = element(doc, "tr", {}, headers.map(function (header) {
-      return element(doc, "th", { scope: "col" }, [header]);
-    }));
-    var body = element(doc, "tbody", {}, rows.map(function (row) {
-      return element(doc, "tr", {}, row.map(function (cell, index) {
-        return element(doc, index === 0 ? "th" : "td", index === 0 ? { scope: "row" } : {}, [cell]);
-      }));
-    }));
-    return element(doc, "table", {}, [element(doc, "caption", {}, [captionText]), element(doc, "thead", {}, [head]), body]);
-  }
-
-  function svgText(doc, x, y, text, attrs) {
-    var merged = { x: x, y: y, className: "sa-label" };
-    Object.keys(attrs || {}).forEach(function (key) { merged[key] = attrs[key]; });
-    return svgElement(doc, "text", merged, [text]);
-  }
-
-  function linePath(points, x, y) {
-    return points.map(function (point, index) {
-      return (index ? "L" : "M") + x(point) + " " + y(point);
-    }).join(" ");
-  }
-
-  function drawSvg(doc, result, uid) {
-    var svg = svgElement(doc, "svg", {
-      className: "sa-svg",
-      viewBox: "0 0 820 380",
-      role: "img",
-      "aria-labelledby": uid + "-title " + uid + "-desc"
-    }, []);
-    svg.appendChild(svgElement(doc, "title", { id: uid + "-title" }, ["随机逼近与 Q-learning 有限回放账本"]));
-    svg.appendChild(svgElement(doc, "desc", { id: uid + "-desc" }, ["左图显示固定噪声下的 Robbins-Monro 轨迹，右图显示 Q 表误差与访问覆盖。"]));
-    var top = 42;
-    var bottom = 292;
-    var left = 54;
-    var split = 398;
-    var right = 780;
-    var rmRows = result.rm.rows;
-    var values = rmRows.map(function (row) { return row.theta; }).concat([result.rm.thetaStar]);
-    var minValue = Math.min.apply(null, values) - 0.2;
-    var maxValue = Math.max.apply(null, values) + 0.2;
-    if (near(minValue, maxValue)) maxValue = minValue + 1;
-    function xRm(row) { return left + row.iteration / Math.max(1, rmRows.length - 1) * (split - left - 20); }
-    function yRm(value) { return bottom - (value - minValue) / (maxValue - minValue) * (bottom - top); }
-    [minValue, (minValue + maxValue) / 2, maxValue].forEach(function (value) {
-      svg.appendChild(svgElement(doc, "line", { x1: left, y1: yRm(value), x2: split - 20, y2: yRm(value), className: "sa-grid" }));
-      svg.appendChild(svgText(doc, left - 8, yRm(value) + 4, format(value, 2), { "text-anchor": "end" }));
-    });
-    svg.appendChild(svgElement(doc, "line", { x1: left, y1: bottom, x2: split - 20, y2: bottom, className: "sa-axis" }));
-    svg.appendChild(svgElement(doc, "line", { x1: left, y1: top, x2: left, y2: bottom, className: "sa-axis" }));
-    svg.appendChild(svgElement(doc, "path", { d: linePath(rmRows, xRm, function (row) { return yRm(row.theta); }), className: "sa-rm" }));
-    svg.appendChild(svgElement(doc, "line", { x1: left, y1: yRm(result.rm.thetaStar), x2: split - 20, y2: yRm(result.rm.thetaStar), className: "sa-target" }));
-    svg.appendChild(svgText(doc, (left + split) / 2, 22, "RM 固定回放：轨迹证据", { className: "sa-title", "text-anchor": "middle" }));
-    svg.appendChild(svgText(doc, split - 28, yRm(result.rm.thetaStar) - 7, "θ*=2", { "text-anchor": "end" }));
-    var barLeft = 470;
-    var barRight = right - 24;
-    var barBottom = bottom;
-    var barTop = 100;
-    var errors = result.q.finalTable.reduce(function (list, row, state) {
-      row.forEach(function (value, action) { list.push({ label: "Q" + state + action, value: Math.abs(value - result.q.referenceTable[state][action]) }); });
-      return list;
-    }, []);
-    var maxError = Math.max(0.1, Math.max.apply(null, errors.map(function (item) { return item.value; })) * 1.2);
-    var barWidth = (barRight - barLeft) / errors.length * 0.58;
-    errors.forEach(function (item, index) {
-      var center = barLeft + (index + 0.5) / errors.length * (barRight - barLeft);
-      var height = item.value / maxError * (barBottom - barTop);
-      svg.appendChild(svgElement(doc, "rect", { x: center - barWidth / 2, y: barBottom - height, width: barWidth, height: Math.max(1, height), className: "sa-error" }));
-      svg.appendChild(svgText(doc, center, barBottom + 18, item.label, { "text-anchor": "middle" }));
-      svg.appendChild(svgText(doc, center, barBottom - height - 6, format(item.value, 3), { "text-anchor": "middle" }));
-    });
-    var coverage = result.q.visits.reduce(function (sum, row) { return sum + row.reduce(function (rowSum, count) { return rowSum + count; }, 0); }, 0);
-    var coverageWidth = Math.min(230, Math.max(12, coverage / Math.max(1, result.config.steps) * 230));
-    svg.appendChild(svgElement(doc, "rect", { x: barLeft, y: 58, width: 230, height: 16, className: "sa-grid" }));
-    svg.appendChild(svgElement(doc, "rect", { x: barLeft, y: 58, width: coverageWidth, height: 16, className: "sa-cover" }));
-    svg.appendChild(svgText(doc, barLeft, 48, "Q 表有限误差与总访问次数 " + coverage, { className: "sa-title" }));
-    svg.appendChild(svgText(doc, (barLeft + barRight) / 2, 22, "表格对照：有限误差 / 覆盖", { className: "sa-title", "text-anchor": "middle" }));
-    return svg;
-  }
-
-  function announce(api, root, message) {
-    if (api && typeof api.announce === "function") api.announce(root, message);
-    var status = root.querySelector("[data-sa-status]");
-    if (status) status.textContent = message;
-  }
-
-  function mount(root, api) {
-    if (!root || !root.ownerDocument) return;
-    var doc = root.ownerDocument;
-    installStyles(doc);
-    var uid = "sa-" + (++INSTANCE);
-    var state = { alphaKind: DEFAULT.alphaKind, replayMode: DEFAULT.replayMode, steps: DEFAULT.steps, gamma: DEFAULT.gamma };
-    var prediction = { sums: null, trajectory: null, offpolicy: null };
-    var revealed = false;
-    var score = 0;
-    var shell = element(doc, "div", { className: "sa-lab" }, []);
-    clear(root);
-    root.appendChild(shell);
-
-    function addPrediction(list, key, legendText, options) {
-      var fieldset = element(doc, "fieldset", {}, [element(doc, "legend", {}, [legendText])]);
-      var grid = element(doc, "div", { className: "sa-choice-grid" }, []);
-      options.forEach(function (option) {
-        var button = element(doc, "button", {
-          type: "button",
-          "aria-pressed": prediction[key] === option.value ? "true" : "false",
-          disabled: revealed
-        }, [option.label]);
-        button.addEventListener("click", function () {
-          if (!revealed) {
-            prediction[key] = option.value;
-            renderGate();
-          }
-        });
-        grid.appendChild(button);
-      });
-      fieldset.appendChild(grid);
-      list.appendChild(fieldset);
-    }
-
-    function complete() {
-      return prediction.sums !== null && prediction.trajectory !== null && prediction.offpolicy !== null;
-    }
-
-    function renderGate() {
-      clear(shell);
-      shell.appendChild(element(doc, "h3", {}, ["随机逼近审计：级数、访问与噪声"]));
-      shell.appendChild(element(doc, "p", { className: "sa-note" }, [revealed ? "预测已提交；可以切换步长、回放覆盖和折现因子，重新核对有限账本。" : "先判断两条级数、有限轨迹的证据等级和 off-policy 的真正边界。"]));
-      shell.appendChild(element(doc, "div", { className: "sa-prompt" }, [revealed ? "回放序列固定且有限；下面的参考 Q 表只用于当前 toy 对照，不把一条轨迹提升为 a.s. 收敛证明。" : "预测门：步长平方和、有限样本证据、逐状态动作覆盖分别判断。"]));
-      var questions = element(doc, "div", { className: "sa-question-list" }, []);
-      addPrediction(questions, "sums", "1 · 哪个步长同时满足两条经典级数条件？", [
-        { value: "harmonic", label: "1/(t+1)" },
-        { value: "root", label: "1/√(t+1)" },
-        { value: "constant", label: "常数步长" }
-      ]);
-      addPrediction(questions, "trajectory", "2 · 固定有限轨迹接近目标能否证明 a.s. 收敛？", [
-        { value: "proof", label: "可以证明" },
-        { value: "evidence", label: "只是有限证据" },
-        { value: "noise", label: "说明无噪声" }
-      ]);
-      addPrediction(questions, "offpolicy", "3 · off-policy 表格 Q-learning 仍需要什么？", [
-        { value: "none", label: "不需访问条件" },
-        { value: "coverage", label: "每个(s,a)无穷访问" },
-        { value: "function", label: "函数逼近自动稳定" }
-      ]);
-      shell.appendChild(questions);
-      var actions = element(doc, "div", { className: "sa-actions" }, []);
-      var reveal = element(doc, "button", { type: "button", className: "sa-primary", disabled: revealed || !complete() }, [revealed ? "账本已揭示" : "提交预测并揭示"]);
-      reveal.addEventListener("click", function () {
-        if (!complete()) return;
-        score = (prediction.sums === "harmonic" ? 1 : 0) + (prediction.trajectory === "evidence" ? 1 : 0) + (prediction.offpolicy === "coverage" ? 1 : 0);
-        revealed = true;
-        renderGate();
-        announce(api, root, "预测已提交；随机逼近与 Q-learning 账本已揭示。");
-      });
-      var reset = element(doc, "button", { type: "button" }, [revealed ? "重新预测" : "重置"]);
-      reset.addEventListener("click", resetToGate);
-      actions.appendChild(reveal);
-      actions.appendChild(reset);
-      shell.appendChild(actions);
-      shell.appendChild(element(doc, "p", { className: "sa-feedback " + (revealed ? (score === 3 ? "sa-pass" : "sa-warn") : ""), "aria-live": "polite", "data-sa-status": true }, [
-        !complete() ? "请为三个判断各选一项。" : revealed ? "预测得分 " + score + "/3；下面显示 RM、Q 表和访问账本。" : "三项预测已记录，点击提交后才显示结果。"
-      ]));
-      if (revealed) buildResults();
-    }
-
-    function buildResults() {
-      var panel = element(doc, "section", { className: "sa-revealed" }, [
-        element(doc, "h4", {}, ["结果与透明账本"]),
-        element(doc, "p", { className: "sa-note" }, ["Q-learning 的 alpha 按每个 (s,a) 自己的访问次数计算；完整覆盖和稀疏覆盖会因此给出不同的逐项步长。"])
-      ]);
-      var alphaGrid = element(doc, "div", { className: "sa-preset-grid" }, []);
-      ALPHA_PRESETS.forEach(function (preset) {
-        var button = element(doc, "button", { type: "button", "aria-pressed": state.alphaKind === preset.id ? "true" : "false" }, [preset.label]);
-        button.addEventListener("click", function () { state.alphaKind = preset.id; renderGate(); });
-        alphaGrid.appendChild(button);
-      });
-      panel.appendChild(element(doc, "p", { className: "sa-note" }, ["步长方案"]));
-      panel.appendChild(alphaGrid);
-      var replayGrid = element(doc, "div", { className: "sa-replay-grid" }, []);
-      REPLAY_PRESETS.forEach(function (preset) {
-        var button = element(doc, "button", { type: "button", "aria-pressed": state.replayMode === preset.id ? "true" : "false" }, [preset.label]);
-        button.addEventListener("click", function () { state.replayMode = preset.id; renderGate(); });
-        replayGrid.appendChild(button);
-      });
-      panel.appendChild(element(doc, "p", { className: "sa-note" }, ["行为数据回放"]));
-      panel.appendChild(replayGrid);
-      var controls = element(doc, "div", { className: "sa-controls" }, []);
-      var stepsId = uid + "-steps";
-      var stepsOutput = element(doc, "output", { for: stepsId }, [String(state.steps)]);
-      var stepsInput = element(doc, "input", { id: stepsId, type: "range", min: "8", max: "96", step: "1", value: String(state.steps), "aria-label": "回放步数" });
-      stepsInput.addEventListener("input", function () { state.steps = Number(stepsInput.value); stepsOutput.textContent = String(state.steps); renderResults(); });
-      controls.appendChild(element(doc, "div", { className: "sa-control" }, [element(doc, "label", { htmlFor: stepsId }, ["回放步数 = ", stepsOutput]), stepsInput]));
-      var gammaId = uid + "-gamma";
-      var gammaOutput = element(doc, "output", { for: gammaId }, [format(state.gamma, 2)]);
-      var gammaInput = element(doc, "input", { id: gammaId, type: "range", min: "0", max: "0.99", step: "0.01", value: String(state.gamma), "aria-label": "折现因子" });
-      gammaInput.addEventListener("input", function () { state.gamma = Number(gammaInput.value); gammaOutput.textContent = format(state.gamma, 2); renderResults(); });
-      controls.appendChild(element(doc, "div", { className: "sa-control" }, [element(doc, "label", { htmlFor: gammaId }, ["γ = ", gammaOutput]), gammaInput]));
-      controls.appendChild(element(doc, "p", { className: "sa-note" }, ["固定噪声回放，不使用运行时随机数。"]));
-      panel.appendChild(controls);
-      var stage = element(doc, "div", { className: "sa-stage" }, []);
-      panel.appendChild(stage);
-      shell.appendChild(panel);
-
-      function renderResults() {
-        var result = compute(state);
-        clear(stage);
-        var totalVisits = result.q.visits.reduce(function (total, row) { return total + row[0] + row[1]; }, 0);
-        stage.appendChild(element(doc, "div", { className: "sa-metrics" }, [
-          metric(doc, "RM 最终 θ", format(result.rm.finalTheta, 4)),
-          metric(doc, "部分和 Σα", format(result.sums.sum, 4)),
-          metric(doc, "部分和 Σα²", format(result.sums.squareSum, 4)),
-          metric(doc, "Q 表最大误差", format(result.q.errorToReference, 4)),
-          metric(doc, "访问总数", String(totalVisits)),
-          metric(doc, "四项全覆盖", result.q.covered ? "是" : "否")
-        ]));
-        var frame = element(doc, "div", { className: "sa-frame" }, []);
-        frame.appendChild(drawSvg(doc, result, uid));
-        frame.appendChild(element(doc, "p", { className: "sa-note" }, [
-          result.theoremEligible
-            ? "当前设置接近表格定理的步长/覆盖前提，但这里仍只显示有限回放的数值证据；a.s. 结论需要随机过程假设。"
-            : "当前设置至少缺少一个经典前提（平方可和步长、完整覆盖或 γ<1）；有限曲线不能补上缺失的定理条件。"
-        ]));
-        stage.appendChild(frame);
-        var traceRows = result.q.rows.filter(function (row, index) { var stride = Math.max(1, Math.ceil(result.q.rows.length / 12)); return index % stride === 0 || index === result.q.rows.length - 1; }).map(function (row) {
-          return [row.iteration, "(" + row.state + "," + row.action + ")", row.visit, format(row.alpha, 4), format(row.target, 4), format(row.newValue, 4), format(row.td, 4)];
-        });
-        stage.appendChild(element(doc, "div", { className: "sa-table-wrap" }, [tableElement(doc, "Q-learning 逐状态动作更新（固定回放）", ["t", "(s,a)", "该项访问 n", "α_n", "target", "新 Q", "TD"], traceRows)]));
-        var visitRows = result.q.visits.map(function (row, stateIndex) {
-          return ["状态 " + stateIndex, row[0], row[1], row[0] > 0 && row[1] > 0 ? "当前有限回放全覆盖" : "缺少至少一项；不能宣称全覆盖"];
-        });
-        stage.appendChild(element(doc, "div", { className: "sa-table-wrap" }, [tableElement(doc, "访问与步长前提账", ["分量", "动作 0 访问", "动作 1 访问", "解释"], visitRows)]));
-        stage.appendChild(element(doc, "p", { className: "sa-interpretation", "aria-live": "polite" }, [
-          result.q.covered
-            ? "完整回放只证明本次四个分量都被有限次触碰；定理要求每个 (s,a) 无穷访问，并且每个分量自己的 α 序列满足级数条件。off-policy 不会删除这条要求；函数逼近、bootstrapping 和分布偏移还可能破坏表格压缩性。"
-            : "稀疏回放明确展示访问缺口：漏掉的 Q 分量没有被学习。即便已访问分量的有限误差下降，也不能把它升级成全表 Q* 收敛结论。"
-        ]));
-      }
-      renderResults();
-    }
-
-    function resetToGate() {
-      state = { alphaKind: DEFAULT.alphaKind, replayMode: DEFAULT.replayMode, steps: DEFAULT.steps, gamma: DEFAULT.gamma };
-      prediction = { sums: null, trajectory: null, offpolicy: null };
-      revealed = false;
-      score = 0;
-      renderGate();
-      announce(api, root, "随机逼近实验已重置；请重新完成三个预测。");
-    }
-
-    renderGate();
-  }
-
-  function selfTest() {
-    var checks = 0;
-    function assert(condition, message) {
-      checks += 1;
-      if (!condition) throw new Error(message);
-    }
-    assert(near(alphaValue("harmonic", 0), 1), "harmonic first step");
-    assert(near(alphaValue("root", 3), 0.5), "root step");
-    assert(near(alphaValue("constant", 10), 0.15), "constant step");
-    var harmonic = stepSums("harmonic", 10000);
-    var root = stepSums("root", 10000);
-    assert(harmonic.sum > 8, "harmonic partial sum grows");
-    assert(harmonic.squareSum < 2, "harmonic square partial sum bounded in audit");
-    assert(root.squareSum > 8, "root square partial sum grows");
-    assert(scheduleTheory("harmonic").squareSum === "收敛", "harmonic theory label");
-    assert(scheduleTheory("root").squareSum === "发散", "root theory label");
-    var rmA = rmTrace({ alphaKind: "harmonic", steps: 24 });
-    var rmB = rmTrace({ alphaKind: "harmonic", steps: 24 });
-    assert(JSON.stringify(rmA) === JSON.stringify(rmB), "fixed RM replay deterministic");
-    assert(rmA.rows.length === 25, "RM trace rows");
-    assert(finite(rmA.finalTheta), "RM finite final value");
-    var update = qUpdate([[0, 0], [0, 0]], FULL_REPLAY[0], 0.5, 0.8);
-    assert(near(update.target, 1), "Q immediate target");
-    assert(near(update.newValue, 0.5), "Q update equation");
-    var full = qTrace({ alphaKind: "harmonic", replayMode: "full", steps: 16, gamma: 0.8 });
-    assert(full.covered, "full replay covers every state-action");
-    assert(full.visits[0][0] === 4 && full.visits[1][1] === 4, "per state-action visit counts");
-    assert(full.rows[4].visit === 2 && near(full.rows[4].alpha, 0.5), "per component step schedule");
-    var sparse = qTrace({ alphaKind: "harmonic", replayMode: "sparse", steps: 16, gamma: 0.8 });
-    assert(!sparse.covered, "sparse replay has coverage gap");
-    assert(sparse.visits[0][1] === 0 && sparse.visits[1][1] === 0, "sparse missing components");
-    assert(finite(full.errorToReference), "finite Q reference error");
-    var computed = compute({ alphaKind: "constant", replayMode: "full", steps: 10, gamma: 0.8 });
-    assert(computed.config.steps === 10, "config step clamp");
-    assert(computed.theoremEligible === false, "constant step not theorem eligible");
-    assert(compute({ alphaKind: "harmonic", replayMode: "full", steps: 10, gamma: 0.8 }).theoremEligible, "eligible assumptions label");
-    assert(computed.q.rows.length === 10, "Q trace row count");
-    return { checks: checks, alphaPresets: ALPHA_PRESETS.length, replayPresets: REPLAY_PRESETS.length };
-  }
-
-  return {
-    DEFAULT: DEFAULT,
-    ALPHA_PRESETS: ALPHA_PRESETS,
-    REPLAY_PRESETS: REPLAY_PRESETS,
-    NOISE_REPLAY: NOISE_REPLAY,
-    FULL_REPLAY: FULL_REPLAY,
-    SPARSE_REPLAY: SPARSE_REPLAY,
-    alphaValue: alphaValue,
-    scheduleTheory: scheduleTheory,
-    stepSums: stepSums,
-    rmTrace: rmTrace,
-    qUpdate: qUpdate,
-    bellmanQ: bellmanQ,
-    fixedPointQ: fixedPointQ,
-    qTrace: qTrace,
-    normalizeConfig: normalizeConfig,
-    compute: compute,
-    mount: mount,
-    selfTest: selfTest
-  };
-});
+const API={DEFAULTS,MODEL,config,generator,alpha,theory,qOperator,reference,rm,qLearning,projection,maximumBias,snapshot,PRESETS,QUESTIONS,feedback,fmt,plots,tables,svg,mount,selfTest};if(typeof module==='object'&&module.exports)module.exports=API;if(hostWindow?.CourseLearning)hostWindow.CourseLearning.register('stochastic-approximation',mount);})(typeof window==='undefined'?null:window);
