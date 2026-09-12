@@ -1,503 +1,108 @@
-(function (root, factory) {
-  "use strict";
+(function(hostWindow){"use strict";
 
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("electroweak-mixing", exported.mount);
-  }
-  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module) {
-    try {
-      var report = exported.selfTest();
-      console.log("electroweak-mixing self-test: PASS (" + report.checks + " checks, " + report.presets + " presets)");
-    } catch (error) {
-      console.error("electroweak-mixing self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
-  }
-})(typeof window !== "undefined" ? window : null, function (host) {
-  "use strict";
+const LIMITS={gPercent:[0,200],gpPercent:[0,200],scaleGeV:[1,500],massSquaredPercent:[-100,100],lambdaPercent:[1,200],angleOffsetDegrees:[-90,90],yukawaPercent:[0,200],xiPercent:[0,200]};
+const DEFAULT={gPercent:65,gpPercent:35,scaleGeV:246,massSquaredPercent:-13,lambdaPercent:13,angleOffsetDegrees:0,yukawaPercent:100,xiPercent:100};
+function config(input={}){if(input===null||typeof input!=='object'||Array.isArray(input))throw Error('parameters');for(const k of Object.keys(input))if(!Object.prototype.hasOwnProperty.call(LIMITS,k))throw Error('unknown '+k);const c={...DEFAULT,...input};for(const[k,[lo,hi]]of Object.entries(LIMITS))if(!Number.isInteger(c[k])||c[k]<lo||c[k]>hi)throw Error('domain '+k);return c;}
+const PRESETS=[['default','树级示意：v=246 GeV',{}],['wrong-angle','错误中性混合角：偏移12度',{angleOffsetDegrees:12}],['symmetric','正二次项：原点真空',{massSquaredPercent:13}],['critical','零二次项：四次势仍稳定',{massSquaredPercent:0}],['no-su2','g=0：只耦合超荷场',{gPercent:0}],['no-hypercharge','g′=0：SU(2)完全Higgs化',{gpPercent:0}],['global','g=g′=0：保留全局Goldstone',{gPercent:0,gpPercent:0}],['equal','两个规范耦合相等',{gPercent:65,gpPercent:65}],['landau','Rξ取ξ=0',{xiPercent:0}],['xi-two','Rξ取ξ=2',{xiPercent:200}],['no-yukawa','示意Yukawa关闭',{yukawaPercent:0}],['deep','深势阱与弱四次耦合',{massSquaredPercent:-100,lambdaPercent:1,scaleGeV:500,gPercent:200,gpPercent:1}]].map(([id,label,p])=>({id,label,parameters:config(p)}));
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1]],mul=(a,b)=>[a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]],conj=a=>[a[0],-a[1]],scale=(a,s)=>[a[0]*s,a[1]*s],sum=arr=>arr.reduce(add,[0,0]);
+const mv=(A,v)=>A.map(row=>sum(row.map((a,j)=>mul(a,v[j])))),inner=(a,b)=>sum(a.map((z,i)=>mul(conj(z),b[i])));
+const GENERATORS=[[[[0,0],[.5,0]],[[.5,0],[0,0]]],[[[0,0],[0,-.5]],[[0,.5],[0,0]]],[[[.5,0],[0,0]],[[0,0],[-.5,0]]],[[[.5,0],[0,0]],[[0,0],[.5,0]]]];
+const dot=(a,b)=>a.reduce((s,x,i)=>s+x*b[i],0),realMV=(A,v)=>A.map(row=>dot(row,v));
+function vacuum(c){const S=c.scaleGeV,a=c.massSquaredPercent/100,lambda=c.lambdaPercent/100,m2=a*S*S,broken=a<0,v=broken?S*Math.sqrt(-a/lambda):0,phi=[0,0,v,0],doublet=[[0,0],[v/Math.sqrt(2),0]],hessian=phi.map((x,i)=>phi.map((y,j)=>(i===j?m2+lambda*v*v:0)+2*lambda*x*y)),radialMassSquared=broken?-2*m2:m2,tangentMassSquared=broken?0:m2;
+ return{S,a,lambda,m2,broken,phase:broken?'broken-tree-vacuum':a===0?'quartic-critical-origin':'symmetric-tree-vacuum',v,phi,doublet,potentialMinimum:broken?-m2*m2/(4*lambda):0,hessian,gradient:phi.map(x=>(m2+lambda*v*v)*x),radialMassSquared,tangentMassSquared,scalarEigenvalues:[tangentMassSquared,tangentMassSquared,radialMassSquared,tangentMassSquared],radialMass:Math.sqrt(Math.max(0,radialMassSquared)),globalGoldstones:broken?3:0};}
+function rotated(M,angle){const s=Math.sin(angle),c=Math.cos(angle),vectors=[[s,c],[c,-s]];return vectors.map(a=>vectors.map(b=>dot(a,realMV(M,b))));}
+function gauge(c,vac){const g=c.gPercent/100,gp=c.gpPercent/100,v=vac.v,r=Math.hypot(g,gp),thetaReference=r?Math.atan2(gp,g):0,thetaW=r?thetaReference:null,s=r?gp/r:null,co=r?g/r:null,e=r?g*gp/r:0,couplings=[g,g,g,gp],directions=GENERATORS.map((T,i)=>mv(T,vac.doublet).map(z=>scale(z,couplings[i]))),matrix=directions.map(a=>directions.map(b=>2*inner(a,b)[0])),neutral=[[matrix[2][2],matrix[2][3]],[matrix[3][2],matrix[3][3]]],mW2=g*g*v*v/4,mZ2=r*r*v*v/4,angle=thetaReference+c.angleOffsetDegrees*Math.PI/180,rotation=rotated(neutral,angle),referenceRotation=rotated(neutral,thetaReference),rank=v===0?0:g>0?3:gp>0?1:0;
+ const sin=Math.sin(thetaReference),cos=Math.cos(thetaReference),eigen=[{name:'W1',massSquared:mW2,vector:[1,0,0,0]},{name:'W2',massSquared:mW2,vector:[0,1,0,0]},{name:'A-reference',massSquared:0,vector:[0,0,sin,cos]},{name:'Z-reference',massSquared:mZ2,vector:[0,0,cos,-sin]}],photonGenerator=GENERATORS[2].map((row,i)=>row.map((z,j)=>add(z,GENERATORS[3][i][j]))),Qvacuum=mv(photonGenerator,vac.doublet),masslessCount=4-rank,physicalScalars=4-rank;
+ return{g,gp,r,couplings,generators:GENERATORS,directions,matrix,neutral,thetaW,thetaReference,sinW:s,cosW:co,e,mW2,mZ2,mW:Math.sqrt(mW2),mZ:Math.sqrt(mZ2),mPhoton:0,angleUsed:angle,rotation,referenceRotation,eigen,photonGenerator,Qvacuum,neutralMixingIdentifiable:v>0&&r>0,neutralRank:mZ2>0?1:0,rank,rho:v>0&&g>0?1:null,fermiConstant:mW2>0?1/(Math.sqrt(2)*v*v):null,chargedCurrentCoupling:g/Math.sqrt(2),dof:{beforeGauge:8,beforeScalar:4,massiveVectors:rank,masslessVectors:masslessCount,physicalScalars,absorbedGoldstones:rank,physicalGlobalGoldstones:vac.broken?3-rank:0,afterGauge:3*rank+2*masslessCount,total:3*rank+2*masslessCount+physicalScalars}};
+}
+function currents(g){const defs=[['νL',.5,-.5],['eL',-.5,-.5],['eR',0,-1],['uL',.5,1/6],['uR',0,2/3],['dL',-.5,1/6],['dR',0,-1/3]];return defs.map(([name,T3,Y])=>{const Q=T3+Y,defined=g.r>0,A=defined?g.g*T3*g.sinW+g.gp*Y*g.cosW:null,Z=defined?g.g*T3*g.cosW-g.gp*Y*g.sinW:null;return{name,T3,Y,Q,photonCoupling:A,photonChargeFormula:defined?g.e*Q:null,zCoupling:Z,zChargeFormula:defined?g.r*(T3-g.sinW*g.sinW*Q):null,usesPhysicalChiralityNotConjugate:true};});}
+function gaugeFix(g,xi){return{xi,channels:[['W1',g.mW2],['W2',g.mW2],['Z',g.mZ2]].map(([name,massSquared])=>({name,massSquared,physicalMass:Math.sqrt(massSquared),goldstoneGaugeMassSquared:massSquared>0?xi*massSquared:null,ghostMassSquared:xi*massSquared,gaugePoleMass:Math.sqrt(xi*massSquared),absorbed:massSquared>0})),physicalPhotonMass:0,unphysicalPolesAreNotExtraParticles:true};}
+function compute(input={}){const c=config(input),vac=vacuum(c),G=gauge(c,vac),y=c.yukawaPercent/100,xi=c.xiPercent/100,xmax=Math.max(2,1.6*vac.v/vac.S),potential=Array.from({length:401},(_,i)=>{const x=-xmax+2*xmax*i/400;return{x,field:x*vac.S,potentialOverS4:.5*vac.a*x*x+.25*vac.lambda*x**4,derivativeOverS3:vac.a*x+vac.lambda*x**3,curvatureOverS2:vac.a+3*vac.lambda*x*x};}),phaseScan=Array.from({length:201},(_,i)=>{const a=(i-100)/100,v=a<0?Math.sqrt(-a/vac.lambda):0;return{a,vOverS:v,radialMassSquaredOverS2:a<0?-2*a:a,tangentMassSquaredOverS2:a<0?0:a,potentialMinimumOverS4:a<0?-a*a/(4*vac.lambda):0};}),mixingScan=Array.from({length:181},(_,i)=>{const offset=i-90,angle=G.thetaReference+offset*Math.PI/180,R=rotated(G.neutral,angle);return{offsetDegrees:offset,angle,rotation:R,normalized:G.mZ2>0?R.map(row=>row.map(x=>x/G.mZ2)):null};}),couplingScan=Array.from({length:201},(_,i)=>{const gp=i/100,r=Math.hypot(G.g,gp);return{gp,mW:G.mW,mZ:vac.v*r/2,e:r?G.g*gp/r:0,thetaW:r?Math.atan2(gp,G.g):null};}),xiScan=Array.from({length:201},(_,i)=>gaugeFix(G,i/100));
+ return{schema:'electroweak196-v1',parameters:c,units:{mass:'GeV',massSquared:'GeV^2',potential:'GeV^4; plotted V/S^4',couplings:'dimensionless',angle:'radians; offset control in degrees',model:'tree level; canonical gauge kinetic terms; one Y=1/2 scalar doublet'},vacuum:vac,gauge:G,currents:currents(G),yukawa:{y,mass:y*vac.v/Math.sqrt(2),hCoupling:vac.broken?y/Math.sqrt(2):null,formalYukawaVertex:y/Math.sqrt(2),massOverV:vac.v>0?y/Math.sqrt(2):null,illustrativeSingleCoupling:true},gaugeFix:gaugeFix(G,xi),potential,phaseScan,mixingScan,couplingScan,xiScan,boundaries:{gaugeRedundancyNotPhysicallyBroken:true,treeLevelNotPrecisionFit:true,scalarMinimumNotFiniteTemperaturePrediction:true,zeroCouplingsAreDecouplingLimits:true,wrongBasisNotPhotonMass:true,unphysicalGaugePolesNotObservables:true,globalGoldstonesOnlyWhenNotAbsorbed:true,fermiMatchingRequiresMassiveW:true,yukawaHierarchyNotExplained:true,protonMassNotElementaryYukawa:true,neutrinoMassRequiresExtension:true}};
+}
+const QUESTIONS=[['固定v>0且g,g′>0，只偏移中性场的混合角，会改变什么？',['矩阵表示改变，完整本征谱不变','光子获得一个新的物理质量'],0,'必须对完整质量矩阵求本征值。错误角产生的AA对角元不等于物理光子质量；90度偏移还会交换两个方向的身份。'],['把势的二次系数改为正数，树级最低点在哪里？',['仍在原来的非零v','回到原点；四个实标量的曲率均为m²'],1,'lambda>0时，m²>0的唯一径向最低点是零。规范玻色子质量矩阵为零，质量项不再选择中性混合基。'],['在非零真空中把g和g′都设成零，三个切向模怎样？',['都被矢量场吸收','都保留为全局Goldstone模'],1,'关闭规范耦合后质量矩阵秩为零，四个矢量各有两极化，标量保留一个径向模和三个切向Goldstone，总物理自由度仍为12。'],['Rξ规范中改变ξ，会改变W/Z的物理质量吗？',['不会；would-be Goldstone和ghost极点可以随ξ变','会；它们的物理质量都乘sqrt(ξ)'],0,'sqrt(ξ)m是规范相关内部极点。物理矢量极点保持m；不能把额外传播子极点都当成可观测粒子。']];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=4||![0,1].includes(j))throw Error('choice');return{correct:j===QUESTIONS[i][2],text:(j===QUESTIONS[i][2]?'正确。':'需要修正。')+QUESTIONS[i][3]};}
+const LABELS={gPercent:'SU(2)耦合 g ×100',gpPercent:'超荷耦合 g′ ×100',scaleGeV:'参考能标 S（GeV）',massSquaredPercent:'二次系数 m²/S² ×100',lambdaPercent:'四次耦合 λ ×100',angleOffsetDegrees:'中性混合角偏移 δ（度）',yukawaPercent:'示意 Yukawa 耦合 y ×100',xiPercent:'规范固定参数 ξ ×100',gaugeRedundancyNotPhysicallyBroken:'规范冗余没有物理上被破坏',treeLevelNotPrecisionFit:'树级模型，不是精密拟合',scalarMinimumNotFiniteTemperaturePrediction:'势的最低点不等于热相变预测',zeroCouplingsAreDecouplingLimits:'零耦合是理论解耦边界',wrongBasisNotPhotonMass:'错误基底不产生光子质量',unphysicalGaugePolesNotObservables:'规范相关极点不是额外物理粒子',globalGoldstonesOnlyWhenNotAbsorbed:'未吸收切向模才作为全局Goldstone计数',fermiMatchingRequiresMassiveW:'四费米匹配要求有质量W',yukawaHierarchyNotExplained:'未解释Yukawa等级',protonMassNotElementaryYukawa:'质子不是基本Yukawa粒子',neutrinoMassRequiresExtension:'最小SM中微子质量需要扩展'};
+Object.assign(LABELS,{S:'参考能标S/GeV',a:'二次系数a=m²/S²',lambda:'四次耦合λ',m2:'势中m²/GeV²',broken:'是否选择非零树级最低点',phase:'树级真空类型',v:'真空尺度v/GeV',phi:'4个实场的真空值/GeV',doublet:'复双重态真空值[Re,Im]/GeV',potentialMinimum:'最低势能/GeV⁴',gradient:'真空梯度/GeV³',radialMassSquared:'径向质量平方/GeV²',tangentMassSquared:'切向质量平方/GeV²',scalarEigenvalues:'标量Hessian本征值/GeV²',radialMass:'径向质量/GeV',globalGoldstones:'未耦合规范场时的全局Goldstone数',g:'SU(2)耦合g',gp:'超荷耦合g′',r:'sqrt(g²+g′²)',thetaW:'由耦合定义的Weinberg角/rad',thetaReference:'仅供计算的参考角/rad',sinW:'sinθW',cosW:'cosθW',e:'电磁耦合e',mW2:'mW²/GeV²',mZ2:'mZ²/GeV²',mW:'mW/GeV',mZ:'mZ/GeV',mPhoton:'光子质量/GeV',angleUsed:'实际旋转角/rad',neutralMixingIdentifiable:'中性质量项是否选出本征方向',neutralRank:'中性子块秩',rank:'完整矢量质量矩阵秩',rho:'树级ρ（适用时）',fermiConstant:'树级低能GF/GeV⁻²',chargedCurrentCoupling:'带电流耦合g/sqrt2',beforeGauge:'质量生成前的矢量自由度',beforeScalar:'原有实标量自由度',massiveVectors:'有质量实矢量数',masslessVectors:'无质量实矢量数',physicalScalars:'保留的物理实标量数',absorbedGoldstones:'被吸收的切向模数',physicalGlobalGoldstones:'保留的物理全局Goldstone数',afterGauge:'质量生成后的矢量自由度',total:'物理自由度总数',y:'示意Yukawa耦合y',mass:'示意费米子质量/GeV',hCoupling:'径向h与费米子的树级耦合',formalYukawaVertex:'双重态单实分量的y/sqrt2',massOverV:'mf/v（v>0时）',illustrativeSingleCoupling:'只取一个示意Yukawa参数','broken-tree-vacuum':'非零树级真空','symmetric-tree-vacuum':'对称原点真空','quartic-critical-origin':'二次项为零的四次势原点'});
+function fmt(x){if(x===null||x===undefined)return'不适用';if(typeof x==='boolean')return x?'是':'否';if(Array.isArray(x))return'['+x.map(fmt).join(', ')+']';if(typeof x==='object')return JSON.stringify(x);if(typeof x==='number')return Number.isInteger(x)&&Math.abs(x)<1e6?String(x):Math.abs(x)<1e-4||Math.abs(x)>=1e5?x.toExponential(5):Number(x.toPrecision(7)).toString();return LABELS[x]??String(x);}
+const COLORS=['#3875ba','#c55b32','#368661','#9860a8','#856722','#646e7c'];
+function frame(key,title,xLabel,yLabel,series,domain,range){const ys=series.flatMap(s=>s.points.filter(Boolean).map(p=>p[1]));let ymin=range?.[0]??Math.min(0,...ys),ymax=range?.[1]??Math.max(0,...ys);if(ymin===ymax)ymax=ymin+1;if(!range){const pad=.07*(ymax-ymin);ymin-=pad;ymax+=pad;}return{key,title,xLabel,yLabel,xMin:domain[0],xMax:domain[1],yMin:ymin,yMax:ymax,series};}
+function plots(s){const series=(name,color,points,extra={})=>({name,color:COLORS[color],points,...extra}),v=s.vacuum,G=s.gauge,S=v.S,a=v.v/S,min=v.potentialMinimum/S**4;return[
+ frame('potential','先找最低点，再问激发的质量','实径向轴截面 φ3/S；负值不是负半径',v.broken?(G.rank?'V/S⁴；两侧点沿规范轨道等价':'V/S⁴；零规范耦合时按全局真空解释'):'V/S⁴；最低点是原点',[
+ series('固定势的实轴截面',0,s.potential.map(q=>[q.x,q.potentialOverS4])),
+ series('选定最低点的同一径向长度',1,a?[[-a,min],[a,min]]:[[0,min]],{markersOnly:true,markerRadius:6})
+ ],[s.potential[0].x,s.potential.at(-1).x]),
+ frame('phase','树级势扫描：真空与曲率不是同一条曲线','a=m²/S²；固定λ；没有加入温度','v/S、径向质量/S、切向质量/S',[
+ series('最低点长度 v/S',0,s.phaseScan.map(q=>[q.a,q.vOverS])),
+ series('径向质量/S',1,s.phaseScan.map(q=>[q.a,Math.sqrt(Math.max(0,q.radialMassSquaredOverS2))])),
+ series('切向曲率的平方根/S',2,s.phaseScan.map(q=>[q.a,Math.sqrt(Math.max(0,q.tangentMassSquaredOverS2))]))
+ ],[-1,1]),
+ frame('mixing','换角度会改矩阵表示：本征值仍是0与mZ²','偏移 δ（度）；±90度会交换中性方向','旋转后矩阵元素 / mZ²；mZ=0时不适用',[
+ ...[[0,0,'AA元'],[1,1,'ZZ元'],[0,1,'AZ混合元']].map(([i,j,name],n)=>series(name,n,s.mixingScan.map(q=>q.normalized?[q.offsetDegrees,q.normalized[i][j]]:null))),
+ series('当前偏移的AA元',3,G.mZ2?[[s.parameters.angleOffsetDegrees,G.rotation[0][0]/G.mZ2]]:[],{markersOnly:true,markerRadius:6})
+ ],[-90,90],[-.6,1.1]),
+ frame('couplings','改变g′是在改理论：Z质量随之变化','超荷耦合 g′；固定g与势','树级质量/S；不是实验数据拟合',[
+ series('mW/S',0,s.couplingScan.map(q=>[q.gp,q.mW/S])),
+ series('mZ/S',1,s.couplingScan.map(q=>[q.gp,q.mZ/S])),
+ series('当前g′的mZ/S',2,[[G.gp,G.mZ/S]],{markersOnly:true,markerRadius:6})
+ ],[0,2]),
+ frame('currents','光子只看电荷，Z还区分左右手分量','0=νL，1=eL，2=eR，3=uL，4=uR，5=dL，6=dR','协变导数中的无量纲系数 cA 与 cZ',[
+ series('光子 cA=eQ',0,s.currents.map((q,i)=>q.photonCoupling===null?null:[i,q.photonCoupling]),{markersOnly:true}),
+ series('Z：cZ=r(T3−sin²θ Q)',1,s.currents.map((q,i)=>q.zCoupling===null?null:[i,q.zCoupling]),{markersOnly:true,hollow:true,markerRadius:7})
+ ],[0,6]),
+ frame('gaugefix','ξ移动内部极点，物理矢量质量保持不变','Rξ规范参数 ξ；0是Landau极限','质量/S；缺少被吸收通道时相应点不显示',[
+ series('物理 mW/S',0,s.xiScan.map(q=>[q.xi,G.mW/S])),
+ series('物理 mZ/S',1,s.xiScan.map(q=>[q.xi,G.mZ/S])),
+ series('内部 sqrt(ξ)mW/S',2,s.xiScan.map(q=>q.channels[0].absorbed?[q.xi,q.channels[0].gaugePoleMass/S]:null)),
+ series('内部 sqrt(ξ)mZ/S',3,s.xiScan.map(q=>q.channels[2].absorbed?[q.xi,q.channels[2].gaugePoleMass/S]:null)),
+ series('当前W通道内部极点',2,s.gaugeFix.channels[0].absorbed?[[s.gaugeFix.xi,s.gaugeFix.channels[0].gaugePoleMass/S]]:[],{markersOnly:true,hollow:true,markerRadius:7}),
+ series('当前Z通道内部极点',3,s.gaugeFix.channels[2].absorbed?[[s.gaugeFix.xi,s.gaugeFix.channels[2].gaugePoleMass/S]]:[],{markersOnly:true,hollow:true,markerRadius:7})
+ ],[0,2])
+ ];}
+function tables(s){const v=s.vacuum,G=s.gauge;return[
+ {key:'parameters',title:'8个输入及其单位',headers:['输入','值'],rows:Object.entries(s.parameters)},
+ {key:'vacuum',title:'真空、曲率与质量：原始数值不提前抹零',headers:['量','值'],rows:[...Object.entries(v).filter(([k])=>k!=='hessian'),...['g','gp','r','thetaW','thetaReference','sinW','cosW','e','mW2','mZ2','mW','mZ','mPhoton','angleUsed','neutralMixingIdentifiable','neutralRank','rank','rho','fermiConstant','chargedCurrentCoupling'].map(k=>[k,G[k]])]},
+ {key:'generators',title:'表示决定因子：T1,T2,T3,Y与各自在真空上的作用',headers:['生成元','规范耦合','完整2×2矩阵[Re,Im]','gaTaΦ0','QΦ0（仅最后行）'],rows:G.generators.map((T,i)=>[['T1','T2','T3','Y'][i],G.couplings[i],T,G.directions[i],i===3?G.Qvacuum:null])},
+ {key:'matrices',title:'完整Hessian、4维质量矩阵及中性旋转矩阵',headers:['矩阵','行','完整行'],rows:[['标量Hessian/GeV²',v.hessian],['规范M²/GeV²',G.matrix],['中性M0²/GeV²',G.neutral],['参考角旋转/GeV²',G.referenceRotation],['用户角旋转/GeV²',G.rotation]].flatMap(([name,M])=>M.map((row,i)=>[name,i,row]))},
+ {key:'eigen',title:'完整4维矢量本征基：零耦合/零真空时允许简并',headers:['方向','质量平方/GeV²','4维归一向量'],rows:G.eigen.map(p=>[p.name,p.massSquared,p.vector])},
+ {key:'currents',title:'物理手征场：本页R标签不是上一页的左手共轭场',headers:['分量','T3','Y','Q','旋转所得cA','eQ','旋转所得cZ','r(T3−sin²θQ)'],rows:s.currents.map(q=>[q.name,q.T3,q.Y,q.Q,q.photonCoupling,q.photonChargeFormula,q.zCoupling,q.zChargeFormula])},
+ {key:'accounting',title:'自由度、单个示意Yukawa与适用边界',headers:['对象','值'],rows:[...Object.entries(G.dof),...Object.entries(s.yukawa),...Object.entries(s.boundaries)]},
+ {key:'potential',title:'401个势截面点：势、导数、二阶曲率',headers:['φ3/S','φ3/GeV','V/S⁴','V′/S³','V″/S²'],rows:s.potential.map(q=>[q.x,q.field,q.potentialOverS4,q.derivativeOverS3,q.curvatureOverS2])},
+ {key:'phase',title:'201个二次系数：tree-level最低点与标量曲率',headers:['a=m²/S²','v/S','径向m²/S²','切向m²/S²','Vmin/S⁴'],rows:s.phaseScan.map(q=>[q.a,q.vOverS,q.radialMassSquaredOverS2,q.tangentMassSquaredOverS2,q.potentialMinimumOverS4])},
+ {key:'mixing',title:'181个偏移角：完整旋转矩阵元素',headers:['偏移/度','实际角/rad','旋转后2×2矩阵/GeV²','除以mZ²后的矩阵'],rows:s.mixingScan.map(q=>[q.offsetDegrees,q.angle,q.rotation,q.normalized])},
+ {key:'couplings',title:'201个g′：固定g和势重新计算质量与电荷',headers:['g′','mW/GeV','mZ/GeV','e','参考Weinberg角/rad'],rows:s.couplingScan.map(q=>[q.gp,q.mW,q.mZ,q.e,q.thetaW])},
+ {key:'gaugefix',title:'201个ξ：物理质量与规范相关极点分别记录',headers:['ξ','通道','物理m²/GeV²','物理m/GeV','Goldstone规范m²/GeV²','ghost m²/GeV²','内部极点质量/GeV','是否被吸收'],rows:s.xiScan.flatMap(q=>q.channels.map(p=>[q.xi,p.name,p.massSquared,p.physicalMass,p.goldstoneGaugeMassSquared,p.ghostMassSquared,p.gaugePoleMass,p.absorbed]))}
+ ];}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=10000?v.toExponential(2):Number(v.toFixed(3)).toString();
+function svg(p){const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 580" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+const discrete=['currents'].includes(p.key);const xticks=discrete?[...new Set(Array.from({length:5},(_,i)=>Math.round(p.xMin+(p.xMax-p.xMin)*i/4)))]:Array.from({length:5},(_,i)=>p.xMin+(p.xMax-p.xMin)*i/4);for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+axisFmt(y)+'</text>';}for(const x of xticks){out+='<text x="'+X(x)+'" y="410" text-anchor="middle">'+axisFmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen&&!s.markersOnly?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const marks=s.markersOnly?s.points.filter(Boolean):s.boundaryMarkers?[...new Set([s.points.find(Boolean),s.points.filter(Boolean).at(-1)])].filter(Boolean):s.points.filter(Boolean).length===1?s.points.filter(Boolean):[];marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="'+(s.markerRadius??5)+'" stroke="'+s.color+'" fill="'+(s.hollow?'none':s.open?'var(--bg,#fff)':s.color)+'" stroke-width="'+(s.markerStrokeWidth??2.5)+'"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});if(!p.series.some(s=>s.points.some(Boolean)))out+='<text x="450" y="245" text-anchor="middle">当前模型在此参数下无适用数据</text>';return out+'</svg>';}
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "electroweak-mixing-lab-styles";
-  var INSTANCE = 0;
-  var EPS = 1e-10;
+var mounted=new WeakMap();
+function mount(root){const doc=root.ownerDocument,previous=mounted.get(root);if(previous)previous();root.replaceChildren();root.classList.add('electroweak196');let c=config(PRESETS[0].parameters),choices={},revealed=false,url=null,current=null,view=0,valid=true;
+ const el=(tag,attrs={},text)=>{const e=doc.createElement(tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
+ if(!doc.querySelector('[data-electroweak196-style]')){const style=el('style',{'data-electroweak196-style':''});style.textContent='.electroweak196{margin-inline:0!important;width:100%;min-width:0;color:var(--fg,#222);line-height:1.65}.electroweak196 *{box-sizing:border-box}.electroweak196 button,.electroweak196 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.electroweak196 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.electroweak196 button:focus-visible,.electroweak196 select:focus-visible,.electroweak196 [tabindex]:focus-visible{outline:3px solid #2474bc}.electroweak196 .ew-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.electroweak196 label{display:grid;gap:4px;min-width:0}.electroweak196 input{width:100%;min-height:44px;font:inherit;color:inherit;background:var(--bg,#fff)}.electroweak196 .ew-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.electroweak196 .ew-pred>strong{display:block;margin-bottom:6px}.electroweak196 .ew-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.electroweak196 .ew-feedback{margin:7px 0}.electroweak196 .ew-scroll{max-width:100%;overflow:auto}.electroweak196 svg{display:block;min-width:680px;width:100%;height:auto}.electroweak196 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.electroweak196 td,.electroweak196 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.electroweak196 [hidden]{display:none!important}.electroweak196 details{margin:12px 0}.electroweak196 summary{min-height:44px;cursor:pointer}.electroweak196 .ew-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.electroweak196 .ew-correct{color:var(--cl-green,#277540)}.electroweak196 .ew-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.electroweak196 .ew-grid{grid-template-columns:1fr}}';doc.head.append(style);}
+ root.append(el('h3',{},'从Higgs的表示计算质量，不先背W/Z公式'),el('p',{},'先找势的最低点，再由四个生成元构造完整质量矩阵。比较错误混合角、零真空与零耦合，并区分物理矢量质量和Rξ规范中的内部极点。'));
+ const presets=el('div',{class:'ew-row','aria-label':'教学预设'});for(const p of PRESETS){const b=el('button',{type:'button','data-preset':p.id},p.label);b.onclick=()=>{c=config(p.parameters);valid=true;sync();reset();};presets.append(b);}root.append(presets);
+ const fields={},outs={},grid=el('div',{class:'ew-grid'});
 
-  var PRESETS = [
-    { id: "physical", label: "物理角度", g: 0.65, gp: 0.35, v: 246, angleOffset: 0, note: "正确 Weinberg 角：中性质量矩阵被对角化。" },
-    { id: "wrong-angle", label: "错误混合角", g: 0.65, gp: 0.35, v: 246, angleOffset: 12, note: "故意偏移 12°：本征值不变，但旋转后出现非对角元。" },
-    { id: "zero-vev", label: "v=0 边界", g: 0.65, gp: 0.35, v: 0, angleOffset: 0, note: "整个质量矩阵为零；质量项不选择唯一中性基。" },
-    { id: "invalid", label: "非法耦合", g: -0.65, gp: 0.35, v: 246, angleOffset: 0, note: "负规范耦合被拒绝，显示失败状态。" }
-  ];
 
-  var STYLE_TEXT = [
-    ".ew-lab{max-width:100%;min-width:0;color:var(--fg,#20252b);line-height:1.55;overflow-wrap:anywhere}.ew-lab *,.ew-lab *::before,.ew-lab *::after{box-sizing:border-box}.ew-lab [hidden]{display:none!important}",
-    ".ew-lab h3,.ew-lab h4{margin:0;color:var(--fg,#20252b);letter-spacing:0}.ew-lab h3{font-size:1.12rem}.ew-lab h4{margin-top:15px;font-size:1rem}.ew-lab p{margin:8px 0}.ew-lab .ew-intro,.ew-lab .ew-note,.ew-lab .ew-feedback{color:var(--fg-soft,var(--muted,#5d6873));font-size:13px;line-height:1.65}",
-    ".ew-lab fieldset{min-width:0;margin:10px 0;padding:9px 10px;border:1px solid var(--border,#c8cdd3)}.ew-lab legend{max-width:100%;padding:0 4px;font-size:13px;font-weight:750;line-height:1.5}.ew-lab .ew-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}",
-    ".ew-lab button,.ew-lab select,.ew-lab input{font:inherit}.ew-lab button{min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--border,#c8cdd3);border-radius:6px;background:var(--bg,#fff);color:var(--fg,#20252b);line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.ew-lab button:hover{border-color:var(--accent,#1769aa)}.ew-lab button:focus-visible,.ew-lab select:focus-visible,.ew-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.ew-lab button[aria-pressed=true],.ew-lab button.ew-primary{border-color:var(--accent,#1769aa);background:var(--accent,#1769aa);color:var(--bg,#fff);font-weight:750}.ew-lab button:disabled{opacity:.55;cursor:not-allowed}",
-    ".ew-lab .ew-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.ew-lab .ew-actions>*{flex:1 1 170px}.ew-lab .ew-feedback{min-height:2em;margin:8px 0;font-weight:700}.ew-lab .ew-pass{color:var(--cl-green,#2f7547)}.ew-lab .ew-warn{color:var(--cl-red,#b43d32)}",
-    ".ew-lab .ew-layout{display:grid;grid-template-columns:minmax(215px,.64fr) minmax(0,1.36fr);gap:14px;align-items:start}.ew-lab .ew-controls,.ew-lab .ew-stage{min-width:0}.ew-lab .ew-controls{display:grid;gap:10px;padding:11px;border:1px solid var(--border,#c8cdd3);border-radius:7px;background:var(--bg,#fff)}.ew-lab .ew-control{display:grid;gap:5px}.ew-lab .ew-control label{color:var(--fg-soft,var(--muted,#5d6873));font-size:12.5px;font-weight:700}.ew-lab .ew-control select,.ew-lab .ew-control input[type=number]{width:100%;min-height:44px;padding:7px 9px;border:1px solid var(--border,#c8cdd3);border-radius:6px;background:var(--bg,#fff);color:var(--fg,#20252b);font-variant-numeric:tabular-nums}.ew-lab .ew-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.ew-lab .ew-presets button{font-size:12px}",
-    ".ew-lab .ew-frame{min-width:0;padding:7px;border:1px solid var(--border,#c8cdd3);border-radius:7px;background:var(--bg,#fff);overflow:hidden}.ew-lab .ew-svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg,#20252b)}.ew-lab .ew-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.ew-lab .ew-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.65}.ew-lab .ew-grid{stroke:var(--border,#c8cdd3);stroke-width:1;stroke-opacity:.75}.ew-lab .ew-a{stroke:var(--cl-green,#347247);fill:var(--cl-green,#347247)}.ew-lab .ew-z{stroke:var(--cl-blue,#2c6aa0);fill:var(--cl-blue,#2c6aa0)}.ew-lab .ew-selected{stroke:var(--cl-red,#b13d32);fill:var(--cl-red,#b13d32);stroke-dasharray:5 4}.ew-lab .ew-vector{fill:none;stroke-width:2.8;stroke-linecap:round}.ew-lab .ew-label{font-size:10.5px}.ew-lab .ew-title{font-size:12px;font-weight:800;text-anchor:middle}.ew-lab .ew-matrix-box{fill:var(--bg,#fff);stroke:var(--border,#c8cdd3);stroke-width:1}",
-    ".ew-lab .ew-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px;margin:11px 0}.ew-lab .ew-metric{min-width:0;padding:8px;border-top:2px solid var(--border,#c8cdd3);background:var(--bg,#fff)}.ew-lab .ew-metric:nth-child(4n+1){border-color:var(--cl-blue,#2c6aa0)}.ew-lab .ew-metric:nth-child(4n+2){border-color:var(--cl-gold,#95670d)}.ew-lab .ew-metric:nth-child(4n+3){border-color:var(--cl-green,#347247)}.ew-lab .ew-metric:nth-child(4n){border-color:var(--cl-red,#b13d32)}.ew-lab .ew-metric span{display:block;color:var(--fg-soft,var(--muted,#5d6873));font-size:11px}.ew-lab .ew-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-    ".ew-lab .ew-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}.ew-lab table{width:100%;min-width:700px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.ew-lab th,.ew-lab td{padding:7px 7px;border-bottom:1px solid var(--border,#c8cdd3);text-align:left;vertical-align:top}.ew-lab th{color:var(--fg-soft,var(--muted,#5d6873));font-size:11.5px}.ew-lab .ew-checks{display:grid;gap:6px;margin:10px 0 0;padding:0;list-style:none}.ew-lab .ew-checks li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;align-items:start}.ew-lab .ew-check{font-weight:800}.ew-lab .ew-check-pass{color:var(--cl-green,#2f7547)}.ew-lab .ew-check-fail{color:var(--cl-red,#b43d32)}.ew-lab .ew-interpretation{margin-top:10px;padding:9px 11px;border-left:3px solid var(--cl-green,#347247);background:var(--block-bg,var(--bg,#fff));color:var(--fg-soft,var(--muted,#5d6873));font-size:12.5px;line-height:1.65}",
-    "@media(max-width:850px){.ew-lab .ew-layout{grid-template-columns:minmax(0,1fr)}}@media(max-width:620px){.ew-lab .ew-choice-grid{grid-template-columns:minmax(0,1fr)}.ew-lab .ew-presets{grid-template-columns:minmax(0,1fr)}}@media(max-width:420px){.ew-lab .ew-frame{padding:4px}.ew-lab table{font-size:11.5px}.ew-lab th,.ew-lab td{padding-left:5px;padding-right:5px}}@media(prefers-reduced-motion:reduce){.ew-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
-  ].join("\n");
 
-  function finite(value) { return typeof value === "number" && isFinite(value); }
-  function near(a, b, tolerance) { return Math.abs(a - b) <= (tolerance || EPS) * Math.max(1, Math.abs(a), Math.abs(b)); }
-  function matrixMaxAbs(matrix) { return Math.max.apply(null, matrix.reduce(function (all, row) { return all.concat(row.map(Math.abs)); }, [])); }
-  function degrees(radians) { return radians * 180 / Math.PI; }
-  function radians(deg) { return deg * Math.PI / 180; }
-  function dot(a, b) { return a[0] * b[0] + a[1] * b[1]; }
-  function matrixVector(matrix, vector) { return [matrix[0][0] * vector[0] + matrix[0][1] * vector[1], matrix[1][0] * vector[0] + matrix[1][1] * vector[1]]; }
 
-  function massMatrix(g, gp, v) {
-    g = Number(g); gp = Number(gp); v = Number(v);
-    if (!finite(g) || !finite(gp) || !finite(v)) throw new TypeError("g, gp, and v must be finite");
-    var factor = v * v / 4;
-    return [[factor * g * g, -factor * g * gp], [-factor * g * gp, factor * gp * gp]];
-  }
+ for(const[key,title]of Object.entries(LABELS).filter(([key])=>Object.hasOwn(LIMITS,key))){const[min,max]=LIMITS[key],label=el('label',{},title),out=el('output'),input=el('input',{type:'range',min,max,step:1,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.oninput=input.onchange=change;}root.append(grid);
+ function change(){try{c=config(Object.fromEntries(Object.entries(fields).map(([k,e])=>[k,e.value===''?NaN:Number(e.value)])));valid=true;sync();reset();}catch(e){valid=false;reset();status.textContent='请使用各控件范围内的整数。百分数控件除以100；S以GeV输入，角偏移以度输入。';}}
+ const note=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(note,prediction);prediction.append(el('h4',{},'先预测：中性混合、真空、零耦合与规范极点'),el('p',{},'四题的条件固定写在题干里；参数用来检查例子，不自动改变问题。'));
+ const feedbacks=[],buttons=[];QUESTIONS.forEach((q,i)=>{const row=el('div',{class:'ew-pred'});row.append(el('strong',{},q[0]));buttons[i]=[];q[1].forEach((text,j)=>{const b=el('button',{type:'button','data-prediction':i,'data-choice':String(j===0),'aria-pressed':'false'},text);b.onclick=()=>{choices[i]=j;buttons[i].forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));if(revealed)showFeedback();};row.append(b);buttons[i].push(b);});feedbacks[i]=el('p',{class:'ew-feedback','data-feedback':i});row.append(feedbacks[i]);prediction.append(row);});
+ const check=el('button',{type:'button','data-check':''},'核对预测并显示完整结果'),status=el('p',{class:'ew-status','aria-live':'polite'});root.append(check,status);
+ const stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),summary=el('p'),plotButtons=el('div',{class:'ew-row'}),plotWrap=el('div',{class:'ew-scroll',tabindex:0,role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'势图是一条实轴截面；系数扫描只比较树级最低点，没有加入温度。混合图的对角元不是各自的质量本征值，mZ=0时不做归一化。手征流表使用物理L/R场；ξ图中的内部极点不增加外部物理粒子。'),tableHost=el('div'),download=el('a',{'data-download':'',download:'ew-record.json'},'下载当前完整记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);
+ function sync(){for(const[k,e]of Object.entries(fields))e.value=c[k];}
+ function reset(){if(url){hostWindow.URL.revokeObjectURL(url);url=null;download.removeAttribute('href');}revealed=false;choices={};stage.hidden=true;delete root.__electroweakSnapshot;for(let i=0;i<4;i++){feedbacks[i].textContent='';for(const b of buttons[i])b.setAttribute('aria-pressed','false');}for(const[k,o]of Object.entries(outs))o.textContent=fmt(c[k]);note.textContent='v由m²与λ计算，不直接等于参考能标S。m²>=0时真空回到原点；g=g′=0时物理Weinberg角不适用，展示参考角选0。Yukawa只取一个示意参数。全部数字是树级模型结果，不是精密实验拟合。';status.textContent='完成四项预测后显示当前结果。';}
+ function showFeedback(){let n=0;for(let i=0;i<4;i++){if(!Number.isInteger(choices[i]))continue;const f=feedback(i,choices[i]);n+=+f.correct;feedbacks[i].textContent=f.text;feedbacks[i].className='ew-feedback '+(f.correct?'ew-correct':'ew-wrong');}status.textContent='预测核对：'+n+'/4 正确。图、表和下载均对应当前参数。';}
+ function draw(){const ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+ function render(){current=compute(c);root.__electroweakSnapshot=current;stage.hidden=false;summary.textContent='真空v='+fmt(current.vacuum.v)+' GeV；mW='+fmt(current.gauge.mW)+' GeV，mZ='+fmt(current.gauge.mZ)+' GeV，径向标量质量='+fmt(current.vacuum.radialMass)+' GeV。质量矩阵秩='+fmt(current.gauge.rank)+'，总物理自由度='+fmt(current.gauge.dof.total)+'，未吸收全局Goldstone数='+fmt(current.gauge.dof.physicalGlobalGoldstones)+'。由耦合定义的Weinberg角(rad)='+fmt(current.gauge.thetaW)+'；中性质量项是否选基：'+fmt(current.gauge.neutralMixingIdentifiable)+'。';plotButtons.replaceChildren();plots(current).forEach((p,i)=>{const b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();for(const t of tables(current)){const d=el('details',{'data-table':t.key});d.append(el('summary',{},t.title));d.addEventListener('toggle',()=>{if(!d.open||d.children.length>1)return;const wrap=el('div',{class:'ew-scroll',tabindex:0,role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),thead=el('thead'),tr=el('tr'),tbody=el('tbody');for(const h of t.headers)tr.append(el('th',{scope:'col'},h));thead.append(tr);for(const row of t.rows){const r=el('tr');for(const v of row)r.append(el('td',{},fmt(v)));tbody.append(r);}table.append(thead,tbody);wrap.append(table);d.append(wrap);});tableHost.append(d);}if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current)],{type:'application/json'}));download.href=url;showFeedback();}
+ check.onclick=()=>{if(!valid){status.textContent='请先修正无效参数。';return;}if(![0,1,2,3].every(i=>Number.isInteger(choices[i]))){status.textContent='请先为四个问题各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
+}
 
-  function diagonalizeSymmetric(matrix) {
-    var a = matrix[0][0];
-    var b = matrix[0][1];
-    var d = matrix[1][1];
-    var trace = a + d;
-    var radius = Math.hypot(a - d, 2 * b);
-    return { low: (trace - radius) / 2, high: (trace + radius) / 2, trace: trace, determinant: a * d - b * b };
-  }
-
-  function rotatedMatrix(matrix, theta) {
-    var s = Math.sin(theta);
-    var c = Math.cos(theta);
-    var columns = [[s, c], [c, -s]];
-    var first = [dot(columns[0], matrixVector(matrix, columns[0])), dot(columns[0], matrixVector(matrix, columns[1]))];
-    var second = [dot(columns[1], matrixVector(matrix, columns[0])), dot(columns[1], matrixVector(matrix, columns[1]))];
-    return [first, second];
-  }
-
-  function invalid(status, message, extra) {
-    var result = { ok: false, status: status, failure: message, message: message };
-    Object.keys(extra || {}).forEach(function (key) { result[key] = extra[key]; });
-    return result;
-  }
-
-  function compute(input) {
-    input = input || {};
-    var g = Number(input.g);
-    var gp = Number(input.gp === undefined ? input.gPrime : input.gp);
-    var v = Number(input.v);
-    if (!finite(g) || !finite(gp) || !finite(v)) return invalid("invalid-input", "g、g'、v 和混合角必须是有限数。", { g: g, gp: gp, v: v });
-    if (g <= 0 || gp <= 0) return invalid("invalid-coupling", "本实验要求 g>0 且 g'>0；非法耦合不进入质量对角化。", { g: g, gp: gp, v: v });
-    if (v < 0) return invalid("invalid-vev", "本实验把 v 作为非负真空期望值尺度。", { g: g, gp: gp, v: v });
-    var thetaW = Math.atan2(gp, g);
-    var thetaDeg = input.thetaDeg === undefined ? degrees(thetaW) : Number(input.thetaDeg);
-    if (!finite(thetaDeg)) return invalid("invalid-angle", "混合角必须是有限数。", { g: g, gp: gp, v: v });
-    var theta = radians(thetaDeg);
-    var matrix = massMatrix(g, gp, v);
-    var spectrum = diagonalizeSymmetric(matrix);
-    var low = Math.abs(spectrum.low) < 1e-9 ? 0 : spectrum.low;
-    var high = Math.max(0, spectrum.high);
-    var r = Math.hypot(g, gp);
-    var sinW = gp / r;
-    var cosW = g / r;
-    var analyticZSquared = v * v * r * r / 4;
-    var rotation = rotatedMatrix(matrix, theta);
-    var rotationAtW = rotatedMatrix(matrix, thetaW);
-    var angleError = degrees(theta - thetaW);
-    var mW = g * v / 2;
-    var mZFormula = v * r / 2;
-    var mZNumeric = Math.sqrt(high);
-    var mGammaNumeric = Math.sqrt(Math.max(0, low));
-    var eFromG = g * sinW;
-    var eFromGp = gp * cosW;
-    var vZero = v === 0;
-    var mixingIdentifiable = !vZero;
-    var mixingCorrect = Math.abs(angleError) < 1e-7;
-    var status = vZero ? "zero-vev-degenerate" : mixingCorrect ? "ok" : "wrong-mixing-angle";
-    return {
-      ok: true,
-      status: status,
-      g: g,
-      gp: gp,
-      v: v,
-      thetaW: thetaW,
-      thetaWDeg: degrees(thetaW),
-      thetaUsed: theta,
-      thetaUsedDeg: thetaDeg,
-      angleErrorDeg: angleError,
-      sinW: sinW,
-      cosW: cosW,
-      matrix: matrix,
-      rotation: rotation,
-      rotationAtW: rotationAtW,
-      lowEigenvalue: low,
-      highEigenvalue: high,
-      analyticPhotonSquared: 0,
-      analyticZSquared: analyticZSquared,
-      numericSpectrumResidual: Math.max(Math.abs(low), Math.abs(high - analyticZSquared)),
-      determinant: spectrum.determinant,
-      mGamma: 0,
-      mGammaNumeric: mGammaNumeric,
-      mW: mW,
-      mZ: mZFormula,
-      mZNumeric: mZNumeric,
-      eFromG: eFromG,
-      eFromGp: eFromGp,
-      eResidual: Math.abs(eFromG - eFromGp),
-      rotatedPhotonEntry: rotation[0][0],
-      rotatedOffDiagonal: rotation[0][1],
-      rotatedZEntry: rotation[1][1],
-      correctRotationResidual: Math.abs(rotationAtW[0][0]) + Math.abs(rotationAtW[0][1]),
-      mixingIdentifiable: mixingIdentifiable,
-      mixingCorrect: mixingCorrect,
-      photonMassless: Math.abs(low) < 1e-8,
-      formulaChecks: {
-        mW: near(mW, g * v / 2),
-        mZ: near(mZFormula, v * r / 2),
-        gamma: near(0, 0),
-        charge: near(eFromG, eFromGp)
-      }
-    };
-  }
-
-  function assert(condition, message) {
-    if (!condition) throw new Error("electroweak-mixing self-test failed: " + message);
-  }
-
-  function selfTest() {
-    var checks = 0;
-    [
-      { g: 0.65, gp: 0.35, v: 246 },
-      { g: 0.3, gp: 0.7, v: 100 },
-      { g: 1.1, gp: 0.2, v: 3 }
-    ].forEach(function (input) {
-      var result = compute(input);
-      checks += 11;
-      assert(result.ok && result.status === "ok", "physical input status");
-      assert(near(result.lowEigenvalue, 0, 1e-8), "massless photon eigenvalue");
-      assert(near(result.highEigenvalue, result.analyticZSquared, 1e-9), "analytic Z eigenvalue");
-      assert(near(result.determinant, 0, 1e-8), "rank-one determinant");
-      assert(near(result.mGamma, 0), "m_gamma formula");
-      assert(near(result.mW, input.g * input.v / 2), "m_W formula");
-      assert(near(result.mZ, input.v * Math.hypot(input.g, input.gp) / 2), "m_Z formula");
-      assert(near(result.mZNumeric, result.mZ, 1e-9), "numeric m_Z");
-      assert(near(result.eFromG, result.eFromGp, 1e-10), "electric charge equality");
-      assert(result.correctRotationResidual < 1e-8, "correct rotation diagonalizes");
-      assert(result.formulaChecks.charge, "charge formula check");
-    });
-    var wrong = compute({ g: 0.65, gp: 0.35, v: 246, thetaDeg: 40 });
-    var zero = compute({ g: 0.65, gp: 0.35, v: 0, thetaDeg: 40 });
-    var invalidCoupling = compute({ g: -0.65, gp: 0.35, v: 246, thetaDeg: 28 });
-    var invalidV = compute({ g: 0.65, gp: 0.35, v: -1, thetaDeg: 28 });
-    var invalidNumber = compute({ g: NaN, gp: 0.35, v: 246, thetaDeg: 28 });
-    checks += 10;
-    assert(wrong.ok && wrong.status === "wrong-mixing-angle", "wrong angle status");
-    assert(Math.abs(wrong.rotatedOffDiagonal) > 1, "wrong angle leaves off diagonal");
-    assert(wrong.photonMassless, "wrong basis does not change spectrum");
-    assert(zero.ok && zero.status === "zero-vev-degenerate", "zero vev boundary status");
-    assert(matrixMaxAbs(zero.matrix) === 0, "zero mass matrix");
-    assert(zero.mW === 0 && zero.mZ === 0 && zero.mGamma === 0, "zero vev masses");
-    assert(!zero.mixingIdentifiable, "zero vev mixing not identifiable");
-    assert(!invalidCoupling.ok && invalidCoupling.status === "invalid-coupling", "invalid coupling rejection");
-    assert(!invalidV.ok && invalidV.status === "invalid-vev", "invalid vev rejection");
-    assert(!invalidNumber.ok && invalidNumber.status === "invalid-input", "nonfinite rejection");
-    return { checks: checks, presets: PRESETS.length };
-  }
-
-  function installStyles(doc) {
-    if (!doc || !doc.head || doc.getElementById(STYLE_ID)) return;
-    var style = doc.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = STYLE_TEXT;
-    doc.head.appendChild(style);
-  }
-
-  function appendChildren(node, children) {
-    if (children === undefined || children === null) return node;
-    (Array.isArray(children) ? children : [children]).forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child && child.nodeType ? child : node.ownerDocument.createTextNode(String(child)));
-    });
-    return node;
-  }
-
-  function setAttributes(node, attrs) {
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", String(value));
-      else if (key === "htmlFor") node.setAttribute("for", String(value));
-      else if (key === "text") node.textContent = String(value);
-      else if (key.slice(0, 2) === "on" && typeof value === "function") node.addEventListener(key.slice(2).toLowerCase(), value);
-      else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, String(value));
-    });
-    return node;
-  }
-
-  function makeElement(api, doc, tag, attrs, children) {
-    var node = api && typeof api.el === "function" ? api.el(tag, attrs || {}) : setAttributes(doc.createElement(tag), attrs || {});
-    return appendChildren(node, children);
-  }
-
-  function svgNode(doc, tag, attrs, text) {
-    var node = doc.createElementNS(SVG_NS, tag);
-    setAttributes(node, attrs || {});
-    if (text !== undefined) node.textContent = text;
-    return node;
-  }
-
-  function replaceChildren(node, children) {
-    if (node && typeof node.replaceChildren === "function") {
-      node.replaceChildren.apply(node, Array.isArray(children) ? children : [children]);
-      return;
-    }
-    while (node && node.firstChild) node.removeChild(node.firstChild);
-    appendChildren(node, children);
-  }
-
-  function formatNumber(api, value, digits) {
-    if (!finite(value)) return "—";
-    if (Math.abs(value) < 0.0005) value = 0;
-    if (api && typeof api.format === "function") return api.format(value, digits === undefined ? 3 : digits);
-    var text = value.toFixed(digits === undefined ? 3 : digits);
-    return text.indexOf(".") < 0 ? text : text.replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function announce(api, root, message) {
-    if (api && typeof api.announce === "function") api.announce(root, message);
-  }
-
-  function metric(api, doc, label) {
-    var value = makeElement(api, doc, "strong", {}, ["—"]);
-    return { node: makeElement(api, doc, "div", { className: "ew-metric" }, [makeElement(api, doc, "span", {}, [label]), value]), value: value };
-  }
-
-  function drawScene(doc, svg, result) {
-    replaceChildren(svg, []);
-    svg.setAttribute("viewBox", "0 0 760 330");
-    svg.setAttribute("role", "img");
-    svg.setAttribute("aria-label", "W3 B 中性质量矩阵的 A Z 混合向量");
-    var plot = { cx: 190, cy: 160, scale: 105 };
-    svg.appendChild(svgNode(doc, "text", { x: plot.cx, y: 20, class: "ew-title" }, "中性基底与混合方向"));
-    [-1, 0, 1].forEach(function (value) {
-      svg.appendChild(svgNode(doc, "line", { x1: plot.cx - plot.scale, y1: plot.cy - value * plot.scale, x2: plot.cx + plot.scale, y2: plot.cy - value * plot.scale, class: value === 0 ? "ew-axis" : "ew-grid" }));
-      svg.appendChild(svgNode(doc, "line", { x1: plot.cx + value * plot.scale, y1: plot.cy - plot.scale, x2: plot.cx + value * plot.scale, y2: plot.cy + plot.scale, class: value === 0 ? "ew-axis" : "ew-grid" }));
-    });
-    svg.appendChild(svgNode(doc, "text", { x: plot.cx + plot.scale + 8, y: plot.cy + 4, class: "ew-label" }, "W³"));
-    svg.appendChild(svgNode(doc, "text", { x: plot.cx + 4, y: plot.cy - plot.scale - 8, class: "ew-label" }, "B"));
-    if (!result || !result.ok) {
-      svg.appendChild(svgNode(doc, "text", { x: 505, y: 95, class: "ew-title" }, "未进行物理对角化"));
-      svg.appendChild(svgNode(doc, "text", { x: 505, y: 122, class: "ew-label", "text-anchor": "middle" }, result ? result.message : "invalid input"));
-      return;
-    }
-    function endpoint(vector, scale) { return { x: plot.cx + vector[0] * scale, y: plot.cy - vector[1] * scale }; }
-    var actualA = [result.sinW, result.cosW];
-    var actualZ = [result.cosW, -result.sinW];
-    var selectedA = [Math.sin(result.thetaUsed), Math.cos(result.thetaUsed)];
-    var selectedZ = [Math.cos(result.thetaUsed), -Math.sin(result.thetaUsed)];
-    [
-      { vector: actualA, className: "ew-vector ew-a", label: "A=sinθ W³+cosθ B", offset: [7, -7] },
-      { vector: actualZ, className: "ew-vector ew-z", label: "Z=cosθ W³−sinθ B", offset: [7, 15] }
-    ].forEach(function (entry) {
-      var end = endpoint(entry.vector, plot.scale);
-      svg.appendChild(svgNode(doc, "line", { x1: plot.cx, y1: plot.cy, x2: end.x, y2: end.y, class: entry.className }));
-      svg.appendChild(svgNode(doc, "text", { x: end.x + entry.offset[0], y: end.y + entry.offset[1], class: "ew-label" }, entry.label));
-    });
-    if (!result.mixingCorrect && result.v > 0) {
-      var selectedEnd = endpoint(selectedA, plot.scale * 0.82);
-      svg.appendChild(svgNode(doc, "line", { x1: plot.cx, y1: plot.cy, x2: selectedEnd.x, y2: selectedEnd.y, class: "ew-vector ew-selected" }));
-      svg.appendChild(svgNode(doc, "text", { x: selectedEnd.x + 6, y: selectedEnd.y - 7, class: "ew-label" }, "错误 A 方向"));
-    }
-    var matrixX = 480;
-    svg.appendChild(svgNode(doc, "text", { x: 590, y: 20, class: "ew-title" }, "M² 与旋转后非对角元"));
-    svg.appendChild(svgNode(doc, "rect", { x: matrixX, y: 47, width: 220, height: 104, rx: "4", class: "ew-matrix-box" }));
-    if (result.matrix) {
-      svg.appendChild(svgNode(doc, "text", { x: 590, y: 68, class: "ew-label", "text-anchor": "middle" }, "M²(W³,B) / GeV²"));
-      svg.appendChild(svgNode(doc, "text", { x: 590, y: 92, class: "ew-label", "text-anchor": "middle" }, "[" + formatNumber(null, result.matrix[0][0], 1) + "  " + formatNumber(null, result.matrix[0][1], 1) + "]"));
-      svg.appendChild(svgNode(doc, "text", { x: 590, y: 112, class: "ew-label", "text-anchor": "middle" }, "[" + formatNumber(null, result.matrix[1][0], 1) + "  " + formatNumber(null, result.matrix[1][1], 1) + "]"));
-      svg.appendChild(svgNode(doc, "text", { x: 590, y: 137, class: "ew-label", "text-anchor": "middle" }, "旋转后 M_AZ²=" + formatNumber(null, result.rotatedOffDiagonal, 5)));
-    }
-    svg.appendChild(svgNode(doc, "text", { x: 590, y: 190, class: "ew-label", "text-anchor": "middle" }, result.status === "zero-vev-degenerate" ? "v=0：两个零本征值，混合不由质量项选定" : result.mixingCorrect ? "绿色/蓝色：解析本征方向" : "红虚：用户选定的错误方向"));
-  }
-
-  function renderPrediction(api, state, questions, refs) {
-    questions.forEach(function (question) { question.choices.forEach(function (choice) { choice.node.setAttribute("aria-pressed", state.predictions[question.key] === choice.value ? "true" : "false"); }); });
-    var missing = questions.filter(function (question) { return !state.predictions[question.key]; });
-    refs.reveal.disabled = missing.length > 0;
-    refs.feedback.className = "ew-feedback" + (state.feedbackClass ? " " + state.feedbackClass : "");
-    refs.feedback.textContent = state.feedback || (missing.length ? "还差 " + missing.length + " 项预测；提交前隐藏矩阵与质量结果。" : "五项都已回答，可以揭晓。");
-  }
-
-  function makePredictionForm(api, doc, state, refs) {
-    var questions = [
-      { key: "zero", prompt: "单个 SM Higgs 双重态的中性质量矩阵应有几个零特征值？", choices: [{ value: "one", label: "一个" }, { value: "zero", label: "没有" }, { value: "two", label: "两个" }], expected: "one" },
-      { key: "angle", prompt: "取 tan θW=g'/g 的角度，旋转后的 M² 预期怎样？", choices: [{ value: "diagonal", label: "对角" }, { value: "offdiag", label: "仍强耦合" }, { value: "zero", label: "全为零" }], expected: "diagonal" },
-      { key: "charge", prompt: "e 的两种计算应如何比较？", choices: [{ value: "same", label: "g sinθ=g' cosθ" }, { value: "different", label: "必不相等" }, { value: "zero", label: "都为 0" }], expected: "same" },
-      { key: "vev", prompt: "v=0 时，质量与混合基应是什么状态？", choices: [{ value: "degenerate", label: "全零且基不唯一" }, { value: "zonly", label: "只 Z 有质量" }, { value: "same", label: "与 v=246 相同" }], expected: "degenerate" },
-      { key: "wrong", prompt: "故意用错误混合角，最直接的账本信号是什么？", choices: [{ value: "offdiag", label: "旋转后非对角元非零" }, { value: "spectrum", label: "本征谱改变" }, { value: "nothing", label: "没有任何变化" }], expected: "offdiag" }
-    ];
-    var form = makeElement(api, doc, "form", { className: "ew-prediction", "aria-describedby": "ew-prediction-note" });
-    form.appendChild(makeElement(api, doc, "p", { id: "ew-prediction-note", className: "ew-intro" }, ["先押注零模、旋转、荷关系和边界；提交前隐藏数值矩阵、SVG 与质量账本。"]));
-    questions.forEach(function (question) {
-      var fieldset = makeElement(api, doc, "fieldset", {});
-      fieldset.appendChild(makeElement(api, doc, "legend", {}, [question.prompt]));
-      var grid = makeElement(api, doc, "div", { className: "ew-choice-grid" });
-      question.choices.forEach(function (choice) {
-        var button = makeElement(api, doc, "button", { type: "button", text: choice.label, "aria-pressed": "false" });
-        button.addEventListener("click", function () { state.predictions[question.key] = choice.value; state.feedback = ""; state.feedbackClass = ""; renderPrediction(api, state, questions, refs); });
-        choice.node = button;
-        grid.appendChild(button);
-      });
-      fieldset.appendChild(grid);
-      form.appendChild(fieldset);
-    });
-    refs.questions = questions;
-    return form;
-  }
-
-  function renderLedger(api, doc, hostNode, result) {
-    if (!result.ok) {
-      replaceChildren(hostNode, [makeElement(api, doc, "p", { className: "ew-interpretation" }, ["失败状态：" + result.status + "；" + result.message])]);
-      return;
-    }
-    var rows = [
-      ["M²₁₁", formatNumber(api, result.matrix[0][0], 7), "v²g²/4"],
-      ["M²₁₂=M²₂₁", formatNumber(api, result.matrix[0][1], 7), "−v²gg'/4"],
-      ["M²₂₂", formatNumber(api, result.matrix[1][1], 7), "v²g'²/4"],
-      ["numeric λγ / λZ", formatNumber(api, result.lowEigenvalue, 8) + " / " + formatNumber(api, result.highEigenvalue, 8), "0 / v²(g²+g'²)/4"],
-      ["mγ / mW / mZ", formatNumber(api, result.mGamma, 6) + " / " + formatNumber(api, result.mW, 6) + " / " + formatNumber(api, result.mZ, 6), "0 / gv/2 / vr/2"],
-      ["e from g / g'", formatNumber(api, result.eFromG, 8) + " / " + formatNumber(api, result.eFromGp, 8), "difference=" + formatNumber(api, result.eResidual, 8)],
-      ["rotated M²_AZ", formatNumber(api, result.rotatedOffDiagonal, 8), result.mixingCorrect ? "correct angle → 0" : "wrong angle warning"]
-    ];
-    var body = makeElement(api, doc, "tbody", {});
-    rows.forEach(function (row) { body.appendChild(makeElement(api, doc, "tr", {}, [makeElement(api, doc, "th", {}, [row[0]]), makeElement(api, doc, "td", {}, [row[1]]), makeElement(api, doc, "td", {}, [row[2]])])); });
-    replaceChildren(hostNode, [makeElement(api, doc, "table", {}, [
-      makeElement(api, doc, "caption", {}, ["透明账本：原始矩阵、解析谱、数值谱和电荷核对"]),
-      makeElement(api, doc, "thead", {}, [makeElement(api, doc, "tr", {}, [makeElement(api, doc, "th", {}, ["量"]), makeElement(api, doc, "th", {}, ["数值"]), makeElement(api, doc, "th", {}, ["解析/判读"])])]),
-      body
-    ])]);
-  }
-
-  function mount(root, api) {
-    if (!root || typeof document === "undefined") return;
-    var doc = root.ownerDocument || document;
-    installStyles(doc);
-    root.classList.add("ew-lab");
-    var state = { presetId: "physical", g: 0.65, gp: 0.35, v: 246, angleOffset: 0, revealed: false, predictions: {}, feedback: "", feedbackClass: "" };
-    var refs = {};
-    var questions;
-    var heading = makeElement(api, doc, "h3", {}, ["电弱混合账本：从 g,g',v 到 A/Z"]);
-    var intro = makeElement(api, doc, "p", { className: "ew-intro" }, ["模型固定树级、单个 Higgs 双重态并忽略圈修正；浏览器只展示代数核对，不把参数调节图当作测量或完整标准模型拟合。"]);
-    var predictionForm = makePredictionForm(api, doc, state, refs);
-    questions = refs.questions;
-    var actions = makeElement(api, doc, "div", { className: "ew-actions" });
-    var reveal = makeElement(api, doc, "button", { type: "button", className: "ew-primary", text: "核对预测并揭晓" });
-    var reset = makeElement(api, doc, "button", { type: "button", text: "重置预测" });
-    refs.reveal = reveal;
-    refs.feedback = makeElement(api, doc, "p", { className: "ew-feedback", "aria-live": "polite" }, []);
-    actions.appendChild(reveal);
-    actions.appendChild(reset);
-
-    var presetSelect = makeElement(api, doc, "select", { "aria-label": "电弱场景" }, [makeElement(api, doc, "option", { value: "custom", text: "自定义参数" })].concat(PRESETS.map(function (preset) { return makeElement(api, doc, "option", { value: preset.id, text: preset.label }); })));
-    var gInput = makeElement(api, doc, "input", { type: "number", min: "0.01", max: "2", step: "0.01", value: "0.65", "aria-label": "g" });
-    var gpInput = makeElement(api, doc, "input", { type: "number", min: "0.01", max: "2", step: "0.01", value: "0.35", "aria-label": "g prime" });
-    var vInput = makeElement(api, doc, "input", { type: "number", min: "0", max: "500", step: "1", value: "246", "aria-label": "v" });
-    var offsetInput = makeElement(api, doc, "input", { type: "number", min: "-45", max: "45", step: "0.1", value: "0", "aria-label": "mixing angle offset in degrees" });
-    var controls = makeElement(api, doc, "div", { className: "ew-controls" }, [
-      makeElement(api, doc, "div", { className: "ew-control" }, [makeElement(api, doc, "label", {}, ["场景"]), presetSelect]),
-      makeElement(api, doc, "div", { className: "ew-control" }, [makeElement(api, doc, "label", {}, ["g"]), gInput]),
-      makeElement(api, doc, "div", { className: "ew-control" }, [makeElement(api, doc, "label", {}, ["g'"]), gpInput]),
-      makeElement(api, doc, "div", { className: "ew-control" }, [makeElement(api, doc, "label", {}, ["v / GeV"]), vInput]),
-      makeElement(api, doc, "div", { className: "ew-control" }, [makeElement(api, doc, "label", {}, ["相对正确 θW 的偏移 / °"]), offsetInput]),
-      makeElement(api, doc, "p", { className: "ew-note" }, ["选定角度为 θW+偏移；正确时 θW=atan2(g',g)。v=0 保留为边界，不强行选择唯一 A/Z 基。"])
-    ]);
-    var svg = doc.createElementNS(SVG_NS, "svg");
-    svg.setAttribute("class", "ew-svg");
-    var frame = makeElement(api, doc, "div", { className: "ew-frame" }, [svg]);
-    var metricsHost = makeElement(api, doc, "div", { className: "ew-metrics" });
-    var ledgerHost = makeElement(api, doc, "div", { className: "ew-table-wrap" });
-    var checksHost = makeElement(api, doc, "ul", { className: "ew-checks" });
-    var interpretationHost = makeElement(api, doc, "p", { className: "ew-interpretation" });
-    var resultShell = makeElement(api, doc, "div", { hidden: true }, [makeElement(api, doc, "div", { className: "ew-layout" }, [controls, makeElement(api, doc, "div", { className: "ew-stage" }, [frame, metricsHost, ledgerHost, checksHost, interpretationHost])])]);
-    replaceChildren(root, [heading, intro, predictionForm, actions, refs.feedback, resultShell]);
-
-    function applyPreset(id) {
-      var preset = PRESETS.filter(function (item) { return item.id === id; })[0];
-      if (!preset) return;
-      state.presetId = id;
-      state.g = preset.g;
-      state.gp = preset.gp;
-      state.v = preset.v;
-      state.angleOffset = preset.angleOffset;
-    }
-    presetSelect.addEventListener("change", function () { if (presetSelect.value !== "custom") applyPreset(presetSelect.value); render(); });
-    [[gInput, "g"], [gpInput, "gp"], [vInput, "v"], [offsetInput, "angleOffset"]].forEach(function (pair) {
-      pair[0].addEventListener("input", function () { state[pair[1]] = Number(pair[0].value); state.presetId = "custom"; render(); });
-    });
-    reveal.addEventListener("click", function () {
-      var correct = questions.filter(function (question) { return state.predictions[question.key] === question.expected; }).length;
-      state.revealed = true;
-      state.feedback = "已揭晓：" + correct + "/" + questions.length + " 命中；现在可修改 g、g'、v 和混合角偏移。";
-      state.feedbackClass = correct === questions.length ? "ew-pass" : "ew-warn";
-      render();
-      announce(api, root, state.feedback);
-    });
-    reset.addEventListener("click", function () {
-      state.presetId = "physical";
-      state.g = 0.65;
-      state.gp = 0.35;
-      state.v = 246;
-      state.angleOffset = 0;
-      state.revealed = false;
-      state.predictions = {};
-      state.feedback = "";
-      state.feedbackClass = "";
-      render();
-      announce(api, root, "预测和电弱混合账本已重置。");
-    });
-
-    function render() {
-      renderPrediction(api, state, questions, refs);
-      resultShell.hidden = !state.revealed;
-      presetSelect.value = state.presetId;
-      gInput.value = String(state.g);
-      gpInput.value = String(state.gp);
-      vInput.value = String(state.v);
-      offsetInput.value = String(state.angleOffset);
-      if (!state.revealed) return;
-      var thetaForInput = finite(state.g) && finite(state.gp) && state.g > 0 && state.gp > 0 ? degrees(Math.atan2(state.gp, state.g)) + state.angleOffset : NaN;
-      var result = compute({ g: state.g, gp: state.gp, v: state.v, thetaDeg: thetaForInput });
-      drawScene(doc, svg, result);
-      var metricValues = result.ok ? [result.thetaWDeg, result.mGamma, result.mW, result.mZ, result.eFromG, result.rotatedOffDiagonal] : ["—", "—", "—", "—", "—", result.status];
-      replaceChildren(metricsHost, [metric(api, doc, "θW / °"), metric(api, doc, "mγ / GeV"), metric(api, doc, "mW / GeV"), metric(api, doc, "mZ / GeV"), metric(api, doc, "e"), metric(api, doc, "旋转 M²_AZ")]);
-      metricsHost.querySelectorAll("strong").forEach(function (node, index) { node.textContent = typeof metricValues[index] === "number" ? formatNumber(api, metricValues[index], 7) : String(metricValues[index]); });
-      renderLedger(api, doc, ledgerHost, result);
-      var checks = result.ok ? [
-        [result.photonMassless, "零本征值：mγ²≈0，数值谱残差=" + formatNumber(api, result.numericSpectrumResidual, 8)],
-        [near(result.mW, result.g * result.v / 2), "mW=gv/2：" + formatNumber(api, result.mW, 7)],
-        [near(result.mZ, result.v * Math.hypot(result.g, result.gp) / 2), "mZ=v√(g²+g'²)/2：" + formatNumber(api, result.mZ, 7)],
-        [result.eResidual < 1e-8, "e=g sinθW=g' cosθW：差=" + formatNumber(api, result.eResidual, 8)],
-        [result.v === 0 ? !result.mixingIdentifiable : result.mixingCorrect ? result.correctRotationResidual < 1e-8 : Math.abs(result.rotatedOffDiagonal) > 1e-7, result.v === 0 ? "v=0：混合基不由质量矩阵唯一确定" : result.mixingCorrect ? "正确角：旋转后对角" : "错误角：非对角元已显现"]
-      ] : [[false, "失败状态：" + result.status], [false, result.message]];
-      replaceChildren(checksHost, checks.map(function (check) { return makeElement(api, doc, "li", {}, [makeElement(api, doc, "span", { className: "ew-check " + (check[0] ? "ew-check-pass" : "ew-check-fail") }, [check[0] ? "✓" : "×"]), makeElement(api, doc, "span", {}, [check[1]])]); }));
-      interpretationHost.textContent = result.ok
-        ? (result.status === "zero-vev-degenerate" ? "v=0 边界：三个质量公式都给零，质量矩阵也无法选出唯一的 A/Z 方向。" : result.status === "wrong-mixing-angle" ? "这是错误基底的诊断：物理本征谱仍有零模，但用户指定的 A/Z 旋转留下非零 M_AZ²；不要把它解释成光子真的获得了质量。" : "正确 Weinberg 角把 W³/B 矩阵对角化；解析公式与数值谱、mW/mZ 和电荷两路核对一致。") + " 全部结果都限于树级、单个 Higgs 双重态、无圈修正模型，不能作为实验测量或完整 SM 拟合。"
-        : "输入未进入物理对角化：" + result.message + " 迁移到更完整模型时，先重新声明表示、规范荷、圈修正和参数定义。";
-    }
-    render();
-  }
-
-  return {
-    EPS: EPS,
-    PRESETS: PRESETS,
-    massMatrix: massMatrix,
-    diagonalizeSymmetric: diagonalizeSymmetric,
-    rotatedMatrix: rotatedMatrix,
-    compute: compute,
-    evaluate: compute,
-    selfTest: selfTest,
-    mount: mount
-  };
-});
+function selfTest(){let checks=0;const ok=x=>{checks++;if(!x)throw Error('Electroweak invariant '+checks);};for(const p of PRESETS){const s=compute(p.parameters),G=s.gauge;ok(plots(s).length===6);ok(tables(s).length===12);ok(G.dof.total===12);ok(G.dof.physicalScalars+G.rank===4);for(const q of G.eigen){const out=realMV(G.matrix,q.vector);ok(out.every((x,i)=>Math.abs(x-q.massSquared*q.vector[i])<1e-7*(1+q.massSquared)));}for(const row of s.currents)if(row.photonCoupling!==null){ok(Math.abs(row.photonCoupling-row.photonChargeFormula)<1e-12);ok(Math.abs(row.zCoupling-row.zChargeFormula)<1e-12);}for(const row of s.xiScan)for(const q of row.channels){ok(Math.abs(q.physicalMass*q.physicalMass-q.massSquared)<1e-7*(1+q.massSquared));ok(q.absorbed?q.goldstoneGaugeMassSquared===row.xi*q.massSquared:q.goldstoneGaugeMassSquared===null);}for(const plot of plots(s))for(const q of plot.series)for(const point of q.points)if(point)ok(point.every(Number.isFinite));for(let i=0;i<4;i++)ok(feedback(i,QUESTIONS[i][2]).correct);}return{status:'PASS',checks};}
+const API={LIMITS,DEFAULT,config,PRESETS,QUESTIONS,compute,snapshot:compute,plots,tables,svg,feedback,fmt,mount,selfTest,vacuum,gauge,rotated,currents,gaugeFix};if(typeof module!=="undefined"&&module.exports)module.exports=API;if(hostWindow&&hostWindow.CourseLearning)hostWindow.CourseLearning.register("electroweak-mixing",mount);})(typeof window!=="undefined"?window:null);
