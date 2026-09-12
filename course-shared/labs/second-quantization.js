@@ -1,746 +1,125 @@
-(function (root, factory) {
-  "use strict";
+(function(hostWindow){"use strict";
 
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("second-quantization", exported.mount);
-  }
-  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module) {
-    try {
-      var report = exported.selfTest();
-      process.stdout.write("second-quantization self-test: PASS (" + report.checks + " checks)" + String.fromCharCode(10));
-    } catch (error) {
-      process.stderr.write("second-quantization self-test: FAIL" + String.fromCharCode(10) + error.stack + String.fromCharCode(10));
-      process.exitCode = 1;
-    }
-  }
-})(typeof window !== "undefined" ? window : null, function () {
-  "use strict";
+const DEFAULT={statistics:'boson',occupation0:1,occupation1:1,mode:0,cutoff:3,hoppingPercent:100,interactionPercent:0,detuningPercent:0};
+const LIMITS={occupation0:[0,8],occupation1:[0,8],mode:[0,1],cutoff:[1,8],hoppingPercent:[-200,200],interactionPercent:[-400,800],detuningPercent:[-200,200]};
+function config(input={}){if(!input||typeof input!=='object'||Array.isArray(input))throw Error('object');for(const k of Object.keys(input))if(!Object.hasOwn(DEFAULT,k))throw Error('key');const c={...DEFAULT,...input};for(const[k,[lo,hi]]of Object.entries(LIMITS))if(!Number.isInteger(c[k])||c[k]<lo||c[k]>hi)throw Error('integer/domain');if(!['boson','fermion'].includes(c.statistics))throw Error('statistics');const max=c.statistics==='fermion'?1:c.cutoff;if(c.occupation0>max||c.occupation1>max)throw Error('occupation');return c;}
+const total=a=>a.reduce((x,y)=>x+y,0),stateKey=a=>a.join(','),zeros=n=>Array.from({length:n},()=>Array(n).fill(0)),identity=n=>Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>+(i===j)));
+function radical(sign,square){if(!square||!sign)return{integer:0,radicand:1,value:0};let integer=sign;for(let p=2;p*p<=square;p++)while(square%(p*p)===0){integer*=p;square/=p*p;}return{integer,radicand:square,value:integer*Math.sqrt(square)};}
+function action(state,kind,mode,statistics,cutoff=null,reverse=false){if(!['create','annihilate'].includes(kind)||!['boson','fermion'].includes(statistics)||!Array.isArray(state)||!state.length||!state.every(n=>Number.isInteger(n)&&n>=0&&(statistics!=='fermion'||n<=1))||!Number.isInteger(mode)||mode<0||mode>=state.length||cutoff!==null&&(!Number.isInteger(cutoff)||cutoff<0))throw Error('action');const n=state[mode],create=kind==='create',blocked=create?(statistics==='fermion'?n===1:cutoff!==null&&n>=cutoff):n===0;
+if(blocked)return{state:null,coefficient:radical(0,0)};const out=state.slice();out[mode]+=create?1:-1;const parity=reverse?total(state.slice(mode+1)):total(state.slice(0,mode));return{state:out,coefficient:radical(statistics==='fermion'&&parity%2?-1:1,statistics==='fermion'?1:n+(create?1:0))};}
+// Operators are written left to right; the rightmost acts first. Intermediate states are retained.
+function compose(state,operators,statistics,cutoff=null){let current=state.slice(),sign=1,square=1;const steps=[];for(const[kind,mode]of operators.slice().reverse()){if(current===null)break;const a=action(current,kind,mode,statistics,cutoff);steps.push({kind,mode,before:current,after:a.state,coefficient:a.coefficient});if(!a.state){current=null;sign=0;square=0;break;}sign*=Math.sign(a.coefficient.integer);square*=a.coefficient.integer**2*a.coefficient.radicand;current=a.state;}return{state:current,coefficient:radical(sign,square),steps};}
+function combination(a,b,sign){const terms=new Map();for(const[t,scale]of [[a,1],[b,sign]])if(t.state&&t.coefficient.integer){const key=stateKey(t.state)+';'+t.coefficient.radicand,old=terms.get(key);terms.set(key,{state:t.state.slice(),radicand:t.coefficient.radicand,integer:(old?.integer||0)+scale*t.coefficient.integer});}return[...terms.values()].filter(t=>t.integer).sort((a,b)=>stateKey(a.state).localeCompare(stateKey(b.state))).map(t=>({state:t.state,coefficient:{integer:t.integer,radicand:t.radicand,value:t.integer*Math.sqrt(t.radicand)}}));}
+function relationRows(states,statistics){const rows=[];for(const state of states)for(let i=0;i<state.length;i++)for(let j=0;j<state.length;j++)for(const[family,k1,k2]of [['mixed','annihilate','create'],['annihilate','annihilate','annihilate'],['create','create','create']]){const left=compose(state,[[k1,i],[k2,j]],statistics),right=compose(state,[[k2,j],[k1,i]],statistics);rows.push({state:state.slice(),i,j,family,left,right,combined:combination(left,right,statistics==='boson'?-1:1),expected:family==='mixed'&&i===j?1:0});}return rows;}
+function occupations(modes){return Array.from({length:2**modes},(_,mask)=>Array.from({length:modes},(_,i)=>(mask>>i)&1));}
+function algebra(c){const state=[c.occupation0,c.occupation1],q=c.cutoff,states=c.statistics==='fermion'?occupations(2):Array.from({length:(q+1)**2},(_,i)=>[i%(q+1),Math.floor(i/(q+1))]);const actions=[];for(const s of states)for(let mode=0;mode<2;mode++)for(const kind of ['annihilate','create'])actions.push({state:s,mode,kind,...action(s,kind,mode,c.statistics),input:s});
+const ladder=Array.from({length:q+1},(_,n)=>({n,bosonCreate:action([n],'create',0,'boson'),bosonAnnihilate:action([n],'annihilate',0,'boson'),projectedCreate:action([n],'create',0,'boson',q),projectedAnnihilate:action([n],'annihilate',0,'boson',q),fullCommutator:1,projectedCommutator:n===q?-q:1,defect:n===q?-(q+1):0,normalPair:n*(n-1),naiveSquare:n*n}));
+const selected=['annihilate','create'].map(kind=>({kind,full:action(state,kind,c.mode,c.statistics),projected:action(state,kind,c.mode,c.statistics,c.statistics==='boson'?q:null)}));return{statistics:c.statistics,selectedState:state,selected,actions,relations:relationRows(states,c.statistics),ladder,cutoffTrace:total(ladder.map(r=>r.projectedCommutator)),fullTraceOnDisplayedStates:q+1};}
+function jordanWigner(){const basis=occupations(4),actions=[],reordering=[];for(let mask=0;mask<16;mask++)for(let mode=0;mode<4;mode++)for(const kind of ['annihilate','create']){const state=basis[mask],a=action(state,kind,mode,'fermion'),reverse=action(state,kind,mode,'fermion',null,true),N=total(state),inPhase=(-1)**(N*(N-1)/2),outN=a.state?total(a.state):0,outPhase=(-1)**(outN*(outN-1)/2);actions.push({mask,mode,kind,input:state,output:a.state,coefficient:a.coefficient.integer,prefix:total(state.slice(0,mode)),targetMask:a.state?a.state.reduce((s,n,i)=>s+(n<<i),0):null});reordering.push({mask,mode,kind,number:N,inputPhase:inPhase,outputPhase:outPhase,canonical:a.coefficient.integer,transformed:inPhase*outPhase*a.coefficient.integer,reverse:reverse.coefficient.integer});}return{basis,actions,reordering,relations:relationRows(basis,'fermion')};}
+function multiply(A,B){return A.map(row=>B[0].map((_,j)=>row.reduce((s,a,k)=>s+a*B[k][j],0)));}
+function transpose(A){return A[0].map((_,i)=>A.map(row=>row[i]));}
+function maximum(A){return Math.max(...A.flat().map(Math.abs));}
+function eigensystem(matrix){const n=matrix.length,A=matrix.map(r=>r.slice()),V=identity(n),scale=Math.max(1,maximum(A));let sweeps=0;for(;sweeps<100;sweeps++){let p=0,q=1,max=0;for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)if(Math.abs(A[i][j])>max){max=Math.abs(A[i][j]);p=i;q=j;}if(max<=2e-15*scale)break;const tau=(A[q][q]-A[p][p])/(2*A[p][q]),t=(tau>=0?1:-1)/(Math.abs(tau)+Math.sqrt(1+tau*tau)),cos=1/Math.sqrt(1+t*t),sin=t*cos,ap=A[p][p],aq=A[q][q],b=A[p][q];A[p][p]=ap-t*b;A[q][q]=aq+t*b;A[p][q]=A[q][p]=0;for(let k=0;k<n;k++)if(k!==p&&k!==q){const x=A[k][p],y=A[k][q];A[k][p]=A[p][k]=cos*x-sin*y;A[k][q]=A[q][k]=sin*x+cos*y;}for(let k=0;k<n;k++){const x=V[k][p],y=V[k][q];V[k][p]=cos*x-sin*y;V[k][q]=sin*x+cos*y;}}
+if(sweeps===100)throw Error('eigensolver convergence');const order=Array.from({length:n},(_,i)=>i).sort((i,j)=>A[i][i]-A[j][j]),energies=order.map(i=>A[i][i]),vectors=order.map(i=>V.map(row=>row[i]));const residual=Math.max(...vectors.map((v,k)=>Math.max(...matrix.map((row,i)=>Math.abs(row.reduce((s,a,j)=>s+a*v[j],0)-energies[k]*v[i])))));const gram=multiply(vectors,transpose(vectors)),orthogonality=maximum(gram.map((row,i)=>row.map((x,j)=>x-+(i===j))));return{energies,vectors,residual,orthogonality,sweeps};}
+function hamiltonian(c,statistics){const t=c.hoppingPercent/100,U=c.interactionPercent/100,delta=c.detuningPercent/100,basis=statistics==='boson'?[[2,0],[1,1],[0,2]]:occupations(2),matrix=zeros(basis.length),terms=[];
+for(let col=0;col<basis.length;col++){const state=basis[col],diag=delta*(state[0]-state[1])/2+U*(statistics==='boson'?(state[0]*(state[0]-1)+state[1]*(state[1]-1))/2:state[0]*state[1]);matrix[col][col]+=diag;terms.push({column:col,row:col,input:state,output:state,term:'diagonal',factor:1,value:diag,numberIn:total(state),numberOut:total(state)});for(const[i,j]of [[0,1],[1,0]]){const a=compose(state,[['create',i],['annihilate',j]],statistics),row=a.state?basis.findIndex(s=>stateKey(s)===stateKey(a.state)):-1;if(a.state&&row<0)throw Error('sector escaped');const value=-t*a.coefficient.value;if(row>=0)matrix[row][col]+=value;terms.push({column:col,row:row<0?null:row,input:state,output:a.state,term:'hop '+j+'->'+i,factor:a.coefficient.value,radical:a.coefficient,value,numberIn:total(state),numberOut:a.state?total(a.state):null,steps:a.steps});}}
+const N=basis.map(total),commutator=matrix.map((row,i)=>row.map((x,j)=>x*(N[j]-N[i]))),hermiticity=maximum(matrix.map((row,i)=>row.map((x,j)=>x-matrix[j][i]))),eigen=eigensystem(matrix),trace=matrix.reduce((s,row,i)=>s+row[i],0),traceSquared=matrix.flat().reduce((s,x)=>s+x*x,0);return{statistics,basis,matrix,terms,numberByBasis:N,commutator,commutatorResidual:maximum(commutator),hermiticity,eigen,trace,traceSquared};}
+function evolve(H,time,initialIndex){const{energies,vectors}=H.eigen,n=H.matrix.length,real=Array(n).fill(0),imaginary=Array(n).fill(0);for(let k=0;k<n;k++)for(let i=0;i<n;i++){const w=vectors[k][initialIndex]*vectors[k][i],angle=energies[k]*time;real[i]+=w*Math.cos(angle);imaginary[i]-=w*Math.sin(angle);}const probabilities=real.map((x,i)=>x*x+imaginary[i]**2),energy=H.matrix.reduce((s,row,i)=>s+row.reduce((v,a,j)=>v+a*(real[i]*real[j]+imaginary[i]*imaginary[j]),0),0);return{time,real,imaginary,probabilities,norm:total(probabilities),energy,meanN0:probabilities.reduce((s,p,i)=>s+p*H.basis[i][0],0)};}
+function dynamics(H,fermion){return Array.from({length:161},(_,i)=>{const t=i/20;return{...evolve(H,t,1),fermion:evolve(fermion,t,3)};});}
+const core={DEFAULT,LIMITS,config,radical,action,compose,combination,relationRows,occupations,algebra,jordanWigner,multiply,transpose,eigensystem,hamiltonian,evolve,dynamics};
 
-  var STYLE_ID = "cl-second-quantization-styles";
-  var SERIAL = 0;
-  var DEFAULT_ALGEBRA = { statistics: "fermion", modeCount: 2, mode: 0, occupations: [1, 0] };
-  var DEFAULT_HUBBARD = { t: 1, U: 4, epsilon0: 0, epsilon1: 0 };
-  var STYLE_TEXT = [
-    ".sq-lab{--sq-blue:#2f6f9f;--sq-green:#39734d;--sq-gold:#a36a16;--sq-red:#b3483b;--sq-soft:var(--fg-soft,#6f6a60);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere}",
-    "html[data-theme=\"dark\"] .sq-lab{--sq-blue:#82c8ff;--sq-green:#7bc48c;--sq-gold:#e3b45f;--sq-red:#f08d7d;--sq-soft:#b8b2a7}",
-    ".sq-lab *,.sq-lab *::before,.sq-lab *::after{box-sizing:border-box}.sq-lab [hidden]{display:none!important}.sq-lab h3,.sq-lab h4{margin:0;color:var(--fg);letter-spacing:0}.sq-lab h3{font-size:1.18rem}.sq-lab h4{font-size:1rem}.sq-lab p{margin:.65rem 0}.sq-intro,.sq-note,.sq-feedback,.sq-boundary{color:var(--sq-soft);font-size:13px;line-height:1.7}.sq-gate{margin:14px 0;padding:12px 14px;border-left:3px solid var(--sq-gold);background:var(--bg)}.sq-gate fieldset{border:0;min-width:0;margin:12px 0 0;padding:0}.sq-gate legend{margin-bottom:7px;font-weight:700;line-height:1.5}.sq-choice-row,.sq-actions,.sq-stats{display:flex;flex-wrap:wrap;gap:7px}.sq-actions{margin-top:12px}.sq-lab button{font:inherit;line-height:1.3;cursor:pointer;color:var(--fg);background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 10px;min-height:44px}.sq-lab button:hover{border-color:var(--sq-blue)}.sq-lab button[aria-pressed=\"true\"]{border-color:var(--sq-blue);background:var(--bg);font-weight:700}.sq-lab button:disabled{cursor:default;opacity:.65}.sq-primary{border-color:var(--sq-blue)!important;background:var(--sq-blue)!important;color:#fff!important;font-weight:700}.sq-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:11px 0}.sq-control{min-width:0}.sq-control label{display:block;font-size:13px;color:var(--sq-soft);margin-bottom:4px}.sq-control output{font-weight:700;color:var(--fg)}.sq-control input{display:block;width:100%;accent-color:var(--sq-blue)}.sq-scale{display:flex;justify-content:space-between;color:var(--sq-soft);font-size:11px}.sq-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;margin:13px 0}.sq-metric{border-top:2px solid var(--sq-blue);padding:7px 8px;background:var(--bg)}.sq-metric span{display:block;color:var(--sq-soft);font-size:12px}.sq-metric strong{display:block;font-size:1.06rem;color:var(--fg);overflow-wrap:anywhere}.sq-frame{border:1px solid var(--border);background:var(--bg);padding:6px;min-width:0}.sq-chart{display:block;width:100%;height:auto}.sq-chart text{font-family:inherit;fill:var(--fg-soft,#6f6a60);font-size:11px}.sq-grid{stroke:var(--border);stroke-width:1;stroke-dasharray:3 4}.sq-axis{stroke:var(--border);stroke-width:1}.sq-boson{fill:var(--sq-gold)}.sq-fermion{fill:var(--sq-blue)}.sq-energy{fill:var(--sq-green)}.sq-interaction{fill:var(--sq-red)}.sq-title{fill:var(--fg)!important;font-weight:700}.sq-table-wrap{overflow-x:auto;max-width:100%;margin-top:10px}.sq-table{border-collapse:collapse;width:100%;min-width:650px;font-size:12px}.sq-table caption{text-align:left;color:var(--sq-soft);padding:5px 0}.sq-table th,.sq-table td{border:1px solid var(--border);padding:6px 7px;text-align:right;white-space:nowrap}.sq-table th:first-child,.sq-table td:first-child{text-align:left}.sq-table th{background:var(--block-bg);color:var(--fg)}.sq-boundary{border-left:3px solid var(--sq-green);padding-left:10px}.sq-footnote{font-size:12px;color:var(--sq-soft)}.sq-lab input:focus-visible,.sq-lab button:focus-visible{outline:2px solid var(--sq-blue);outline-offset:2px}@media(max-width:600px){.sq-choice-row,.sq-actions{display:grid;grid-template-columns:1fr}.sq-choice-row button,.sq-actions button{width:100%}.sq-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.sq-frame{padding:3px}.sq-table{font-size:11px}}"
-  ].join("");
 
-  function finite(value) {
-    return Number.isFinite(value);
-  }
+const PRESETS=[
+['default','无相互作用：两玻色子干涉',{}],['fermion','自旋无关模式的Pauli阻挡',{statistics:'fermion',mode:1}],['sign','第二模式产生负号',{statistics:'fermion',occupation0:1,occupation1:0,mode:1}],['vacuum','真空与最低截断',{occupation0:0,occupation1:0,cutoff:1}],['top','玻色子最高显示态',{occupation0:8,occupation1:8,cutoff:8}],['repulsive','强排斥：双占据受抑',{interactionPercent:800}],['attractive','吸引与有限系统',{interactionPercent:-400}],['tilted','不等势阱',{detuningPercent:200,interactionPercent:100}],['negative','跃迁符号反转',{hoppingPercent:-100}],['zero','零跃迁与简并',{hoppingPercent:0,interactionPercent:0}],['crossing','零跃迁能级交叉',{hoppingPercent:0,interactionPercent:200,detuningPercent:200}],['fast','两倍跃迁与最小截断',{hoppingPercent:200,cutoff:1}]
+].map(([id,label,parameters])=>({id,label,parameters:core.config(parameters)}));
+let jw;
+function compute(input={}){const c=core.config(input),a=core.algebra(c),boson=core.hamiltonian(c,'boson'),fermion=core.hamiltonian(c,'fermion');if(!jw)jw=core.jordanWigner();const scan=Array.from({length:97},(_,i)=>{const interactionPercent=-400+i*12.5,b=core.hamiltonian({...c,interactionPercent},'boson'),f=core.hamiltonian({...c,interactionPercent},'fermion');return{U:interactionPercent/100,bosonEnergies:b.eigen.energies,fermionEnergies:f.eigen.energies,bosonTrace:b.trace,bosonTraceSquared:b.traceSquared,residual:b.eigen.residual};});const free=core.hamiltonian({...c,interactionPercent:0,detuningPercent:0},'boson'),t=Math.abs(c.hoppingPercent/100),bunchTime=t?Math.PI/(4*t):null,bunch=bunchTime===null?null:core.evolve(free,bunchTime,1);return{schemaVersion:1,parameters:c,algebra:a,jordanWigner:JSON.parse(JSON.stringify(jw)),boson,fermion,spectrumScan:scan,dynamics:core.dynamics(boson,fermion),freeBunching:{interaction:0,detuning:0,time:bunchTime,result:bunch,condition:'Independent free resonant reference; not the interacting curve.'},boundaries:{cutoffOnlyAlgebra:true,hamiltonianBosonSector:2,hamiltonianUsesDisplayedOccupations:false,fermionModesInSignCheck:4,thermodynamicLimit:false}};}
+const STATISTICS_NAMES={boson:'玻色子：每个模式可重复占据',fermion:'费米子：每个模式仅0或1'};
+const QUESTIONS=[
+['玻色子产生算符作用于已归一化的 |n〉，系数是多少？',['√(n+1)，因为新态也必须归一化','n+1，就是把粒子数加一'],0,'态的占据数增加一，而振幅为√(n+1)。两者不同；振幅平方给出算符作用后的范数平方。'],
+['按模式0在前、模式1在后的规范顺序，c₁†|1,0〉是什么？',['+|1,1〉，不同模式之间不带符号','−|1,1〉，必须跨过一个已占据模式'],1,'c₁†c₀†=−c₀†c₁†。换约定可以同时改变基矢和矩阵元，不能仅删掉这一个负号。'],
+['截断到 |0〉,…,|q〉 的玻色子矩阵，最高态上的 [a_q,a_q†] 等于多少？',['仍是+1，截断不改变任何代数关系','−q；缺少通往 |q+1〉 的路径'],1,'最高态先产生的路径被投影删掉，先湮灭再产生仍给q。因此有限矩阵的对易子是 I−(q+1)|q〉〈q|，迹为0。'],
+['本实验的两个无自旋费米模式都被占据时，单粒子跃迁项能把两粒子搬到同一个模式吗？',['不能；目标模式已被占据，算符动作归零','可以；相互作用U足够小就能双占据同一模式'],0,'Pauli阻挡来自同一个单粒子模式的CAR，与U的大小无关。真实电子的同格点反向自旋是两个不同模式，需要另写模型。']
+];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=4||![0,1].includes(j))throw Error('choice');const correct=j===QUESTIONS[i][2];return{correct,text:(correct?'正确。':'需要修正。')+QUESTIONS[i][3]};}
+function fmt(x){if(x===null||x===undefined)return'无输出';if(Array.isArray(x))return'['+x.map(fmt).join(', ')+']';if(typeof x==='boolean')return x?'是':'否';if(typeof x==='object'){if(x.radicand===undefined)return JSON.stringify(x);if(!x.integer||x.radicand===1)return String(x.integer);return(x.integer===1?'':x.integer===-1?'−':x.integer)+'√'+x.radicand+' ≈ '+fmt(x.value);}if(typeof x==='number')return Number.isInteger(x)?String(x):Math.abs(x)<1e-4||Math.abs(x)>=1e5?x.toExponential(5):Number(x.toPrecision(7)).toString();return String(x);}
+const COLORS=['#c55b32','#3875ba','#368661','#9860a8','#856722','#646e7c'];
+function frame(key,title,xLabel,yLabel,series,domain,range){const pts=series.flatMap(s=>s.points.filter(Boolean)),xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);let xmin=domain?.[0]??Math.min(...xs),xmax=domain?.[1]??Math.max(...xs),ymin=range?.[0]??Math.min(...ys),ymax=range?.[1]??Math.max(...ys);if(xmin===xmax)xmax=xmin+1;if(ymin===ymax)ymax=ymin+1;if(!range){const pad=.08*(ymax-ymin);ymin-=pad;ymax+=pad;}return{key,title,xLabel,yLabel,xMin:xmin,xMax:xmax,yMin:ymin,yMax:ymax,series};}
+function plots(s){const a=s.algebra,q=s.parameters.cutoff,n=s.parameters['occupation'+s.parameters.mode];return[
+frame('ladder','产生与湮灭：画的是振幅平方，符号另查表','单个玻色模式的初始占据 n','算符作用后的范数平方',[
+{name:'未截断产生：n+1',color:COLORS[1],points:a.ladder.map(r=>[r.n,r.n+1])},
+{name:'投影后产生：最高态归零',color:COLORS[0],markersOnly:true,hollow:true,points:a.ladder.map(r=>[r.n,r.projectedCreate.coefficient.value**2])},
+{name:'湮灭：n',color:COLORS[2],points:a.ladder.map(r=>[r.n,r.n])},
+{name:'当前所选模式占据（只定位横坐标）',color:COLORS[3],markersOnly:true,points:[[n,n+1]]}
+],[0,q],[0,q+1]),
+frame('cutoff','有限矩阵：最高占据态上的对易子有缺项','截断空间内的占据 n','对易子对角元与缺陷',[
+{name:'未截断 [a,a†]：1',color:COLORS[1],points:a.ladder.map(r=>[r.n,1])},
+{name:'截断 [a_q,a_q†]：圆点',color:COLORS[0],markersOnly:true,points:a.ladder.map(r=>[r.n,r.projectedCommutator])},
+{name:'截断减未截断：空心点',color:COLORS[2],markersOnly:true,hollow:true,points:a.ladder.map(r=>[r.n,r.defect])}
+],[0,q],[-q-1,1]),
+frame('fermion-sign','四模式产生算符：相同占据数不保证相同符号','初态mask；四模式从左到右稍错开，仅为排版','c_i† 的带符号系数；0表示阻挡',Array.from({length:4},(_,i)=>({name:'模式 i='+i,color:COLORS[i],markersOnly:true,hollow:i%2===1,points:s.jordanWigner.actions.filter(r=>r.kind==='create'&&r.mode===i).map(r=>[r.mask+(i-1.5)*.13,r.coefficient])})),[-.3,15.3],[-1,1]),
+frame('spectrum','固定两粒子玻色子能谱与另一种相互作用','U/E0（两种模型定义不同）','能量 E/E0',[
+...Array.from({length:3},(_,i)=>({name:'玻色N=2，第'+(i+1)+'个排序能量',color:COLORS[i],points:s.spectrumScan.map(r=>[r.U,r.bosonEnergies[i]])})),
+{name:'无自旋费米满占据能量：U',color:COLORS[3],points:s.spectrumScan.map(r=>[r.U,r.U])}
+],[-4,8]),
+frame('dynamics','固定初态 |1,1〉：占据概率随时间演化','无量纲时间 τ=E0 t_phys/ℏ','测量概率（不是振幅）',[
+{name:'玻色子 P(2,0)',color:COLORS[1],points:s.dynamics.map(r=>[r.time,r.probabilities[0]])},
+{name:'玻色子 P(1,1)',color:COLORS[0],points:s.dynamics.map(r=>[r.time,r.probabilities[1]])},
+{name:'玻色子 P(0,2)：空心点',color:COLORS[2],markersOnly:true,hollow:true,points:s.dynamics.filter((_,i)=>i%4===0).map(r=>[r.time,r.probabilities[2]])},
+{name:'无自旋费米子 P(1,1)=1',color:COLORS[3],points:s.dynamics.map(r=>[r.time,r.fermion.probabilities[3]])}
+],[0,8],[0,1]),
+frame('pairs','两体相互作用：去掉把粒子与自身配对的项','单个玻色模式占据 n','有序对数（除以2才是无序对）',[
+{name:'正规序 a†a†aa：n(n−1)',color:COLORS[1],points:a.ladder.map(r=>[r.n,r.normalPair])},
+{name:'误写成 n²：多出n个自配对',color:COLORS[0],points:a.ladder.map(r=>[r.n,r.naiveSquare])},
+{name:'两者的差：n',color:COLORS[2],markersOnly:true,points:a.ladder.map(r=>[r.n,r.n])}
+],[0,q],[0,q*q])
+];}
+const mappedText=a=>a.state===null?'0（无输出态）':fmt(a.coefficient)+' |'+a.state.join(',')+'〉';
+const wordText=steps=>steps.map(r=>(r.kind==='create'?'产生':'湮灭')+'模式'+r.mode+'：|'+r.before.join(',')+'〉 → '+mappedText({state:r.after,coefficient:r.coefficient})).join('；');
+function tables(s){const a=s.algebra,jw=s.jordanWigner;return[
+{key:'parameters',title:'八项输入与三个独立实验的范围',headers:['字段','值'],rows:[...Object.entries(s.parameters),...Object.entries(s.boundaries)]},
+{key:'actions',title:'所选统计：全部显示初态的产生与湮灭',headers:['初态','模式','操作','输出态','带符号根式系数'],rows:a.actions.map(r=>[r.input,r.mode,r.kind,r.state,r.coefficient])},
+{key:'algebra',title:'两模式与四费米模式：所有关系的两条路径',headers:['统计/模式数','初态','i','j','关系','左路径输出','右路径输出','合并后的完整输出','期望δ'],rows:[[a.statistics,2,a.relations],['fermion',4,jw.relations]].flatMap(([statistics,modes,rs])=>rs.map(r=>[statistics+'/'+modes,r.state,r.i,r.j,r.family,mappedText(r.left),mappedText(r.right),r.combined.length?r.combined.map(mappedText).join(' + '):'0（无输出态）',r.expected]))},
+{key:'jordan-wigner',title:'四费米模式：全部128个单算符矩阵动作',headers:['mask','初态','模式','操作','前缀占据和','系数','目标mask','输出态'],rows:jw.actions.map(r=>[r.mask,r.input,r.mode,r.kind,r.prefix,r.coefficient,r.targetMask,r.output])},
+{key:'reordering',title:'反转规范产生顺序：同步变换基矢和矩阵',headers:['mask','模式','操作','N','输入态相位','输出态相位','原系数','D算符D系数','反序定义系数'],rows:jw.reordering.map(r=>[r.mask,r.mode,r.kind,r.number,r.inputPhase,r.outputPhase,r.canonical,r.transformed,r.reverse])},
+{key:'cutoff',title:'玻色子投影与未截断作用逐项比较',headers:['n','未截断产生','投影产生','未截断湮灭','投影湮灭','未截断对易子','投影对易子','差'],rows:a.ladder.map(r=>[r.n,mappedText(r.bosonCreate),mappedText(r.projectedCreate),mappedText(r.bosonAnnihilate),mappedText(r.projectedAnnihilate),r.fullCommutator,r.projectedCommutator,r.defect])},
+...['boson','fermion'].map(statistics=>({key:statistics+'-matrix',title:(statistics==='boson'?'玻色N=2三态':'无自旋费米四态')+'：Hamiltonian每个算符项',headers:['列/初态编号','行/末态编号','初态','末态','项','算符系数','矩阵贡献/E0','N前','N后','中间动作'],rows:s[statistics].terms.map(r=>[r.column,r.row,r.input,r.output,r.term,r.factor,r.value,r.numberIn,r.numberOut,r.steps?wordText(r.steps):'对角项'])})),
+{key:'eigensystem',title:'完整矩阵、粒子数、正交本征基与残差',headers:['模型','量','值'],rows:['boson','fermion'].flatMap(k=>[...['basis','matrix','numberByBasis','commutator','commutatorResidual','hermiticity','trace','traceSquared'].map(f=>[k,f,s[k][f]]),...Object.entries(s[k].eigen).map(([f,v])=>[k,f,v])])},
+{key:'spectrum-scan',title:'97个U点：全部排序能量与迹证书',headers:['U/E0','玻色三个能量','费米四个能量','玻色TrH','玻色TrH²','本征残差'],rows:s.spectrumScan.map(r=>[r.U,r.bosonEnergies,r.fermionEnergies,r.bosonTrace,r.bosonTraceSquared,r.residual])},
+{key:'dynamics',title:'161个时间点：复振幅、概率与守恒',headers:['τ','玻色实部','玻色虚部','玻色概率','范数','能量/E0','〈n0〉','费米实部','费米虚部','费米概率','费米范数','费米能量/E0'],rows:s.dynamics.map(r=>[r.time,r.real,r.imaginary,r.probabilities,r.norm,r.energy,r.meanN0,r.fermion.real,r.fermion.imaginary,r.fermion.probabilities,r.fermion.norm,r.fermion.energy])},
+{key:'pairs',title:'正规序：逐占据数核对有序对数与自配对',headers:['n','n(n−1)','n²','无序对 n(n−1)/2','多算的自配对'],rows:a.ladder.map(r=>[r.n,r.normalPair,r.naiveSquare,r.normalPair/2,r.n])},
+{key:'summary',title:'当前动作、迹缺陷与另算的自由干涉参照',headers:['量','值'],rows:[['所选初态',a.selectedState],...a.selected.map(r=>[r.kind+' 未截断/投影',[mappedText(r.full),mappedText(r.projected)]]),['截断对易子迹',a.cutoffTrace],['未截断恒等算符在显示基上的迹',a.fullTraceOnDisplayedStates],...Object.entries(s.freeBunching)]}
+];}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=10000?v.toExponential(2):Number(v.toFixed(3)).toString();
+function svg(p){const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 580" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+const discrete=!['spectrum','dynamics'].includes(p.key);const xticks=discrete?[...new Set(Array.from({length:5},(_,i)=>Math.round(p.xMin+(p.xMax-p.xMin)*i/4)))]:Array.from({length:5},(_,i)=>p.xMin+(p.xMax-p.xMin)*i/4);for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+axisFmt(y)+'</text>';}for(const x of xticks){out+='<text x="'+X(x)+'" y="410" text-anchor="middle">'+axisFmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen&&!s.markersOnly?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const marks=s.markersOnly?s.points.filter(Boolean):s.boundaryMarkers?[...new Set([s.points.find(Boolean),s.points.filter(Boolean).at(-1)])].filter(Boolean):s.points.filter(Boolean).length===1?s.points.filter(Boolean):[];marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="'+(s.markerRadius??5)+'" stroke="'+s.color+'" fill="'+(s.hollow?'none':s.open?'var(--bg,#fff)':s.color)+'" stroke-width="'+(s.markerStrokeWidth??2.5)+'"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});if(!p.series.some(s=>s.points.some(Boolean)))out+='<text x="450" y="245" text-anchor="middle">当前模型在此参数下无适用数据</text>';return out+'</svg>';}
 
-  function clamp(value, minimum, maximum) {
-    return Math.min(maximum, Math.max(minimum, value));
-  }
+var mounted=new WeakMap();
+function mount(root){const doc=root.ownerDocument,previous=mounted.get(root);if(previous)previous();root.replaceChildren();root.classList.add('fock191');let c=config(PRESETS[0].parameters),choices={},revealed=false,url=null,current=null,view=0,valid=true;
+ const el=(tag,attrs={},text)=>{const e=doc.createElement(tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
+ if(!doc.querySelector('[data-fock191-style]')){const style=el('style',{'data-fock191-style':''});style.textContent='.fock191{margin-inline:0!important;width:100%;min-width:0;color:var(--fg,#222);line-height:1.65}.fock191 *{box-sizing:border-box}.fock191 button,.fock191 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.fock191 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.fock191 button:focus-visible,.fock191 select:focus-visible,.fock191 [tabindex]:focus-visible{outline:3px solid #2474bc}.fock191 .fk-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.fock191 label{display:grid;gap:4px;min-width:0}.fock191 input{width:100%;min-height:44px;font:inherit;color:inherit;background:var(--bg,#fff)}.fock191 .fk-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.fock191 .fk-pred>strong{display:block;margin-bottom:6px}.fock191 .fk-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.fock191 .fk-feedback{margin:7px 0}.fock191 .fk-scroll{max-width:100%;overflow:auto}.fock191 svg{display:block;min-width:680px;width:100%;height:auto}.fock191 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.fock191 td,.fock191 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.fock191 [hidden]{display:none!important}.fock191 details{margin:12px 0}.fock191 summary{min-height:44px;cursor:pointer}.fock191 .fk-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.fock191 .fk-correct{color:var(--cl-green,#277540)}.fock191 .fk-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.fock191 .fk-grid{grid-template-columns:1fr}}';doc.head.append(style);}
+ root.append(el('h3',{},'让占据、交换符号和两粒子干涉落到具体计算'),el('p',{},'前半部分逐步作用产生与湮灭算符；后半部分固定初态|1,1〉，比较玻色与无自旋费米模型的完整矩阵和占据概率。'));
+ const presets=el('div',{class:'fk-row','aria-label':'教学预设'});for(const p of PRESETS){const b=el('button',{type:'button','data-preset':p.id},p.label);b.onclick=()=>{c=config(p.parameters);valid=true;sync();reset();};presets.append(b);}root.append(presets);
+ const fields={},outs={},grid=el('div',{class:'fk-grid'});
 
-  function normalizeAlgebra(input) {
-    var source = input || {};
-    var statistics = source.statistics === "boson" ? "boson" : "fermion";
-    var occupations = Array.isArray(source.occupations) ? source.occupations.slice(0, 2) : DEFAULT_ALGEBRA.occupations.slice();
-    while (occupations.length < 2) occupations.push(0);
-    occupations = occupations.map(function (value) {
-      var integer = Math.max(0, Math.round(finite(Number(value)) ? Number(value) : 0));
-      return statistics === "fermion" ? Math.min(1, integer) : Math.min(12, integer);
-    });
-    return {
-      statistics: statistics,
-      modeCount: 2,
-      mode: Math.round(clamp(finite(Number(source.mode)) ? Number(source.mode) : 0, 0, 1)),
-      occupations: occupations
-    };
-  }
 
-  function signFor(occupations, mode) {
-    var parity = occupations.slice(0, mode).reduce(function (sum, value) { return sum + value; }, 0);
-    return parity % 2 === 0 ? 1 : -1;
-  }
 
-  function creationAction(input, mode, statistics) {
-    var occupations = input.slice();
-    var n = occupations[mode];
-    if (statistics === "boson") {
-      occupations[mode] = n + 1;
-      return { allowed: true, occupations: occupations, factor: Math.sqrt(n + 1), magnitude: Math.sqrt(n + 1), sign: 1, blocked: false };
-    }
-    if (n === 1) return { allowed: false, occupations: occupations, factor: 0, magnitude: 0, sign: 0, blocked: true };
-    occupations[mode] = 1;
-    var sign = signFor(input, mode);
-    return { allowed: true, occupations: occupations, factor: sign, magnitude: 1, sign: sign, blocked: false };
-  }
+ for(const[key,title]of [['occupation0','局部算符：模式0初始占据'],['occupation1','局部算符：模式1初始占据'],['mode','局部算符：当前操作模式'],['cutoff','代数对照：玻色截断 q'],['hoppingPercent','两粒子模型：跃迁 t/E0 ×100'],['interactionPercent','两粒子模型：相互作用 U/E0 ×100'],['detuningPercent','两粒子模型：势差 Δ/E0 ×100']]){const[min,max]=LIMITS[key],label=el('label',{},title),out=el('output'),input=el('input',{type:'range',min,max,step:1,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.oninput=input.onchange=change;}
+ {const title='仅局部算符表：统计类型',label=el('label',{},title),out=el('output'),input=el('select',{'data-field':'statistics','aria-label':title});for(const[value,name]of Object.entries(STATISTICS_NAMES))input.append(el('option',{value},name));label.append(out,input);grid.append(label);fields.statistics=input;outs.statistics=out;input.onchange=change;}root.append(grid);
+ function change(event){try{const values=Object.fromEntries(Object.entries(fields).map(([k,e])=>[k,k==='statistics'?e.value:e.value===''?NaN:Number(e.value)]));if(['statistics','cutoff'].includes(event?.currentTarget?.dataset.field)&&Number.isInteger(values.cutoff)&&values.cutoff>=1&&values.cutoff<=8&&['boson','fermion'].includes(values.statistics)){const max=values.statistics==='fermion'?1:values.cutoff;values.occupation0=Math.min(values.occupation0,max);values.occupation1=Math.min(values.occupation1,max);}c=config(values);valid=true;sync();reset();}catch(e){valid=false;reset();status.textContent='请使用范围内的整数与给定统计类型；占据数须满足当前上限。';}}
+ const note=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(note,prediction);prediction.append(el('h4',{},'先预测：归一化、交换符号、截断与Pauli阻挡'),el('p',{},'四题的条件固定写在题干里；参数用来检查例子，不自动改变问题。'));
+ const feedbacks=[],buttons=[];QUESTIONS.forEach((q,i)=>{const row=el('div',{class:'fk-pred'});row.append(el('strong',{},q[0]));buttons[i]=[];q[1].forEach((text,j)=>{const b=el('button',{type:'button','data-prediction':i,'data-choice':String(j===0),'aria-pressed':'false'},text);b.onclick=()=>{choices[i]=j;buttons[i].forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));if(revealed)showFeedback();};row.append(b);buttons[i].push(b);});feedbacks[i]=el('p',{class:'fk-feedback','data-feedback':i});row.append(feedbacks[i]);prediction.append(row);});
+ const check=el('button',{type:'button','data-check':''},'核对预测并显示完整结果'),status=el('p',{class:'fk-status','aria-live':'polite'});root.append(check,status);
+ const stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),summary=el('p'),plotButtons=el('div',{class:'fk-row'}),plotWrap=el('div',{class:'fk-scroll',tabindex:0,role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'占据数和符号点是离散数据，连线只辅助阅读。四模式符号图的小横向错位仅为分开标记，准确mask在表中。动力学初态固定|1,1〉，与局部算符的占据滑块无关。两模型的U定义不同；有限能级变化不能称为热力学相变。'),tableHost=el('div'),download=el('a',{'data-download':'',download:'fk-record.json'},'下载当前完整记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);
+ function sync(){const max=c.statistics==='fermion'?1:c.cutoff;fields.occupation0.max=max;fields.occupation1.max=max;for(const[k,e]of Object.entries(fields))e.value=c[k];}
+ function reset(){revealed=false;choices={};stage.hidden=true;delete root.__fockSnapshot;for(let i=0;i<4;i++){feedbacks[i].textContent='';for(const b of buttons[i])b.setAttribute('aria-pressed','false');}for(const[k,o]of Object.entries(outs))o.textContent=k==='statistics'?STATISTICS_NAMES[c[k]]:fmt(c[k]);note.textContent='局部占据与统计类型只改变算符动作表。玻色截断q用于比较投影代数，不截断下面始终完整的N=2三态模型。该模型用同模式接触相互作用；无自旋费米模型用跨模式密度相互作用。能量以E0计、时间以ℏ/E0计。';status.textContent='完成四项预测后显示当前结果。';}
+ function showFeedback(){let n=0;for(let i=0;i<4;i++){if(!Number.isInteger(choices[i]))continue;const f=feedback(i,choices[i]);n+=+f.correct;feedbacks[i].textContent=f.text;feedbacks[i].className='fk-feedback '+(f.correct?'fk-correct':'fk-wrong');}status.textContent='预测核对：'+n+'/4 正确。图、表和下载均对应当前参数。';}
+ function draw(){const ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+ function render(){current=compute(c);root.__fockSnapshot=current;stage.hidden=false;summary.textContent='局部初态|'+current.algebra.selectedState.join(',')+'〉：'+current.algebra.selected.map(r=>r.kind+' → '+mappedText(r.full)).join('；')+'。玻色三态能量='+fmt(current.boson.eigen.energies)+'；费米四态能量='+fmt(current.fermion.eigen.energies)+'。两模型[H,N]残差分别='+fmt(current.boson.commutatorResidual)+' / '+fmt(current.fermion.commutatorResidual)+'。截断玻色对易子迹='+fmt(current.algebra.cutoffTrace)+'；最高态对角元=−q。';plotButtons.replaceChildren();plots(current).forEach((p,i)=>{const b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();for(const t of tables(current)){const d=el('details',{'data-table':t.key});d.append(el('summary',{},t.title));d.addEventListener('toggle',()=>{if(!d.open||d.children.length>1)return;const wrap=el('div',{class:'fk-scroll',tabindex:0,role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),thead=el('thead'),tr=el('tr'),tbody=el('tbody');for(const h of t.headers)tr.append(el('th',{scope:'col'},h));thead.append(tr);for(const row of t.rows){const r=el('tr');for(const v of row)r.append(el('td',{},fmt(v)));tbody.append(r);}table.append(thead,tbody);wrap.append(table);d.append(wrap);});tableHost.append(d);}if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current)],{type:'application/json'}));download.href=url;showFeedback();}
+ check.onclick=()=>{if(!valid){status.textContent='请先修正无效参数。';return;}if(![0,1,2,3].every(i=>Number.isInteger(choices[i]))){status.textContent='请先为四个问题各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
+}
 
-  function annihilationAction(input, mode, statistics) {
-    var occupations = input.slice();
-    var n = occupations[mode];
-    if (statistics === "boson") {
-      if (n === 0) return { allowed: false, occupations: occupations, factor: 0, magnitude: 0, sign: 0, blocked: true };
-      occupations[mode] = n - 1;
-      return { allowed: true, occupations: occupations, factor: Math.sqrt(n), magnitude: Math.sqrt(n), sign: 1, blocked: false };
-    }
-    if (n === 0) return { allowed: false, occupations: occupations, factor: 0, magnitude: 0, sign: 0, blocked: true };
-    occupations[mode] = 0;
-    var sign = signFor(input, mode);
-    return { allowed: true, occupations: occupations, factor: sign, magnitude: 1, sign: sign, blocked: false };
-  }
-
-  function occupationAlgebra(input) {
-    var config = normalizeAlgebra(input);
-    var mode = config.mode;
-    var creation = creationAction(config.occupations, mode, config.statistics);
-    var annihilation = annihilationAction(config.occupations, mode, config.statistics);
-    var number = config.occupations.reduce(function (sum, value) { return sum + value; }, 0);
-    var relation = config.statistics === "boson" ? "[a_i, a_j†] = delta_ij" : "{c_i, c_j†} = delta_ij";
-    var relationCheck = config.statistics === "boson" ? bosonAlgebraCheck(config.occupations) : fermionAlgebraCheck(config.modeCount);
-    return {
-      config: config,
-      number: number,
-      creation: creation,
-      annihilation: annihilation,
-      creationFactor: creation.factor,
-      annihilationFactor: annihilation.factor,
-      relation: relation,
-      relationCheck: relationCheck,
-      pauliBlocked: config.statistics === "fermion" && creation.blocked,
-      displayBoundary: config.statistics === "boson" ? "Boson occupations are unbounded; the displayed slider is only a visualization range." : "Fermion occupations are exactly 0/1, so creation on an occupied mode is zero."
-    };
-  }
-
-  function basisStates() {
-    return [[0, 0], [1, 0], [0, 1], [1, 1]];
-  }
-
-  function sameState(left, right) {
-    return left && right && left[0] === right[0] && left[1] === right[1];
-  }
-
-  function applyFermion(state, kind, mode) {
-    var action = kind === "create" ? creationAction(state, mode, "fermion") : annihilationAction(state, mode, "fermion");
-    return action.allowed ? { state: action.occupations, coefficient: action.factor } : { state: null, coefficient: 0 };
-  }
-
-  function applyBoson(state, kind, mode) {
-    var action = kind === "create" ? creationAction(state, mode, "boson") : annihilationAction(state, mode, "boson");
-    return action.allowed ? { state: action.occupations, coefficient: action.factor } : { state: null, coefficient: 0 };
-  }
-
-  function composeFermion(state, first, second) {
-    var afterSecond = applyFermion(state, second.kind, second.mode);
-    if (!afterSecond.state) return { state: null, coefficient: 0 };
-    var afterFirst = applyFermion(afterSecond.state, first.kind, first.mode);
-    if (!afterFirst.state) return { state: null, coefficient: 0 };
-    return { state: afterFirst.state, coefficient: afterSecond.coefficient * afterFirst.coefficient };
-  }
-
-  function composeBoson(state, first, second) {
-    var afterSecond = applyBoson(state, second.kind, second.mode);
-    if (!afterSecond.state) return { state: null, coefficient: 0 };
-    var afterFirst = applyBoson(afterSecond.state, first.kind, first.mode);
-    if (!afterFirst.state) return { state: null, coefficient: 0 };
-    return { state: afterFirst.state, coefficient: afterSecond.coefficient * afterFirst.coefficient };
-  }
-
-  function addMappingTerm(mapping, action, scale) {
-    if (!action || !action.state || action.coefficient === 0) return;
-    var key = action.state.join(",");
-    if (!mapping[key]) mapping[key] = { state: action.state.slice(), coefficient: 0 };
-    mapping[key].coefficient += (scale === undefined ? 1 : scale) * action.coefficient;
-  }
-
-  function mappingResidual(terms, targetState, targetCoefficient) {
-    var mapping = {};
-    var targetKey = targetState ? targetState.join(",") : null;
-    var keys;
-    terms.forEach(function (term) { addMappingTerm(mapping, term.action || term, term.scale); });
-    keys = Object.keys(mapping);
-    if (targetKey && keys.indexOf(targetKey) === -1) keys.push(targetKey);
-    return keys.reduce(function (maximum, key) {
-      var actual = mapping[key] ? mapping[key].coefficient : 0;
-      var expected = targetKey && key === targetKey ? (targetCoefficient === undefined ? 0 : targetCoefficient) : 0;
-      return Math.max(maximum, Math.abs(actual - expected));
-    }, 0);
-  }
-
-  function cleanResidual(value) {
-    return value <= 1e-12 ? 0 : value;
-  }
-
-  function fermionAlgebraCheck(modeCount) {
-    var states = modeCount === 2 ? basisStates() : [[0], [1]];
-    var maximumResidual = 0;
-    var annihilationResidual = 0;
-    var creationResidual = 0;
-    states.forEach(function (state) {
-      for (var i = 0; i < modeCount; i += 1) {
-        for (var j = 0; j < modeCount; j += 1) {
-          maximumResidual = Math.max(maximumResidual, mappingResidual([
-            { action: composeFermion(state, { kind: "annihilate", mode: i }, { kind: "create", mode: j }) },
-            { action: composeFermion(state, { kind: "create", mode: j }, { kind: "annihilate", mode: i }) }
-          ], state, i === j ? 1 : 0));
-          annihilationResidual = Math.max(annihilationResidual, mappingResidual([
-            { action: composeFermion(state, { kind: "annihilate", mode: i }, { kind: "annihilate", mode: j }) },
-            { action: composeFermion(state, { kind: "annihilate", mode: j }, { kind: "annihilate", mode: i }) }
-          ], null, 0));
-          creationResidual = Math.max(creationResidual, mappingResidual([
-            { action: composeFermion(state, { kind: "create", mode: i }, { kind: "create", mode: j }) },
-            { action: composeFermion(state, { kind: "create", mode: j }, { kind: "create", mode: i }) }
-          ], null, 0));
-        }
-      }
-    });
-    maximumResidual = cleanResidual(maximumResidual);
-    annihilationResidual = cleanResidual(annihilationResidual);
-    creationResidual = cleanResidual(creationResidual);
-    return {
-      relation: "{c_i, c_j†} = delta_ij; {c_i,c_j} = {c_i†,c_j†} = 0",
-      residual: maximumResidual,
-      annihilationResidual: annihilationResidual,
-      creationResidual: creationResidual,
-      checkedStates: states.length,
-      checkedPairs: modeCount * modeCount,
-      exact: maximumResidual === 0 && annihilationResidual === 0 && creationResidual === 0
-    };
-  }
-
-  function bosonAlgebraCheck(occupations) {
-    var values = Array.isArray(occupations) ? occupations.slice(0, 2) : [0, 0];
-    while (values.length < 2) values.push(0);
-    values = values.map(function (value) { return Math.max(0, Math.round(finite(Number(value)) ? Number(value) : 0)); });
-    var maximumOccupation = Math.max(1, values[0], values[1]);
-    var states = [];
-    var maximumResidual = 0;
-    var annihilationResidual = 0;
-    var creationResidual = 0;
-    var n0;
-    var n1;
-    for (n0 = 0; n0 <= maximumOccupation; n0 += 1) {
-      for (n1 = 0; n1 <= maximumOccupation; n1 += 1) states.push([n0, n1]);
-    }
-    states.forEach(function (state) {
-      for (var i = 0; i < 2; i += 1) {
-        for (var j = 0; j < 2; j += 1) {
-          maximumResidual = Math.max(maximumResidual, mappingResidual([
-            { action: composeBoson(state, { kind: "annihilate", mode: i }, { kind: "create", mode: j }) },
-            { action: composeBoson(state, { kind: "create", mode: j }, { kind: "annihilate", mode: i }), scale: -1 }
-          ], state, i === j ? 1 : 0));
-          annihilationResidual = Math.max(annihilationResidual, mappingResidual([
-            { action: composeBoson(state, { kind: "annihilate", mode: i }, { kind: "annihilate", mode: j }) },
-            { action: composeBoson(state, { kind: "annihilate", mode: j }, { kind: "annihilate", mode: i }), scale: -1 }
-          ], null, 0));
-          creationResidual = Math.max(creationResidual, mappingResidual([
-            { action: composeBoson(state, { kind: "create", mode: i }, { kind: "create", mode: j }) },
-            { action: composeBoson(state, { kind: "create", mode: j }, { kind: "create", mode: i }), scale: -1 }
-          ], null, 0));
-        }
-      }
-    });
-    maximumResidual = cleanResidual(maximumResidual);
-    annihilationResidual = cleanResidual(annihilationResidual);
-    creationResidual = cleanResidual(creationResidual);
-    return {
-      relation: "[a_i, a_j†] = delta_ij; [a_i,a_j] = [a_i†,a_j†] = 0",
-      residual: maximumResidual,
-      annihilationResidual: annihilationResidual,
-      creationResidual: creationResidual,
-      checkedStates: states.length,
-      checkedPairs: 4,
-      exact: maximumResidual === 0 && annihilationResidual === 0 && creationResidual === 0
-    };
-  }
-
-  function multiplyMatrix(left, right) {
-    var size = left.length;
-    var output = [];
-    for (var i = 0; i < size; i += 1) {
-      output[i] = [];
-      for (var j = 0; j < size; j += 1) {
-        var sum = 0;
-        for (var k = 0; k < size; k += 1) sum += left[i][k] * right[k][j];
-        output[i][j] = sum;
-      }
-    }
-    return output;
-  }
-
-  function maxMatrixAbs(matrix) {
-    return Math.max.apply(null, matrix.map(function (row) { return Math.max.apply(null, row.map(Math.abs)); }));
-  }
-
-  function hubbardLedger(input) {
-    var source = input || {};
-    var config = {
-      t: clamp(finite(Number(source.t)) ? Number(source.t) : DEFAULT_HUBBARD.t, 0, 3),
-      U: clamp(finite(Number(source.U)) ? Number(source.U) : DEFAULT_HUBBARD.U, 0, 10),
-      epsilon0: clamp(finite(Number(source.epsilon0)) ? Number(source.epsilon0) : DEFAULT_HUBBARD.epsilon0, -3, 3),
-      epsilon1: clamp(finite(Number(source.epsilon1)) ? Number(source.epsilon1) : DEFAULT_HUBBARD.epsilon1, -3, 3)
-    };
-    var states = basisStates();
-    var matrix = states.map(function () { return [0, 0, 0, 0]; });
-    var rows = [];
-    states.forEach(function (state, column) {
-      var n0 = state[0];
-      var n1 = state[1];
-      var diagonal = config.epsilon0 * n0 + config.epsilon1 * n1 + config.U * n0 * n1;
-      matrix[column][column] += diagonal;
-      var actions = [{ state: state, coefficient: diagonal, label: "diagonal" }];
-      var remove1 = applyFermion(state, "annihilate", 1);
-      if (remove1.state) {
-        var add0 = applyFermion(remove1.state, "create", 0);
-        if (add0.state) {
-          matrix[states.findIndex(function (candidate) { return sameState(candidate, add0.state); })][column] += -config.t * remove1.coefficient * add0.coefficient;
-          actions.push({ state: add0.state, coefficient: -config.t * remove1.coefficient * add0.coefficient, label: "-t c0†c1" });
-        }
-      }
-      var remove0 = applyFermion(state, "annihilate", 0);
-      if (remove0.state) {
-        var add1 = applyFermion(remove0.state, "create", 1);
-        if (add1.state) {
-          matrix[states.findIndex(function (candidate) { return sameState(candidate, add1.state); })][column] += -config.t * remove0.coefficient * add1.coefficient;
-          actions.push({ state: add1.state, coefficient: -config.t * remove0.coefficient * add1.coefficient, label: "-t c1†c0" });
-        }
-      }
-      rows.push({ state: state.slice(), number: n0 + n1, diagonalEnergy: diagonal, actions: actions });
-    });
-    var numberMatrix = states.map(function (state, row) {
-      return states.map(function (_, column) { return row === column ? state[0] + state[1] : 0; });
-    });
-    var commutator = multiplyMatrix(matrix, numberMatrix).map(function (row, i) {
-      return row.map(function (value, j) { return value - multiplyMatrix(numberMatrix, matrix)[i][j]; });
-    });
-    var oneParticleCenter = (config.epsilon0 + config.epsilon1) / 2;
-    var oneParticleGap = Math.sqrt(Math.pow((config.epsilon0 - config.epsilon1) / 2, 2) + config.t * config.t);
-    return {
-      config: config,
-      basis: states,
-      matrix: matrix,
-      rows: rows,
-      numberByBasis: states.map(function (state) { return state[0] + state[1]; }),
-      commutatorResidual: maxMatrixAbs(commutator),
-      oneParticleEigenvalues: [oneParticleCenter - oneParticleGap, oneParticleCenter + oneParticleGap],
-      twoParticleEnergy: config.epsilon0 + config.epsilon1 + config.U,
-      numberConserving: maxMatrixAbs(commutator) === 0,
-      boundary: "This is a finite two-mode, spinless Hubbard-like ledger; it is not the thermodynamic interacting Hubbard theory."
-    };
-  }
-
-  function format(value, digits) {
-    if (!finite(value)) return "-";
-    var places = digits === undefined ? 4 : digits;
-    if (Math.abs(value) > 0 && Math.abs(value) < 0.001) return value.toExponential(Math.min(places, 4));
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function clear(node) {
-    while (node && node.firstChild) node.removeChild(node.firstChild);
-  }
-
-  function append(node, children) {
-    if (children === undefined || children === null) return node;
-    if (!Array.isArray(children)) children = [children];
-    children.forEach(function (child) {
-      if (child !== undefined && child !== null && child !== false) node.appendChild(child.nodeType ? child : node.ownerDocument.createTextNode(String(child)));
-    });
-    return node;
-  }
-
-  function element(doc, tag, attrs, children) {
-    var node = doc.createElement(tag);
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", value);
-      else if (key === "htmlFor") node.setAttribute("for", value);
-      else if (key === "text") node.textContent = value;
-      else node.setAttribute(key, value === true ? "" : String(value));
-    });
-    return append(node, children);
-  }
-
-  function svgElement(doc, tag, attrs, children) {
-    var node = doc.createElementNS("http://www.w3.org/2000/svg", tag);
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value !== undefined && value !== null) node.setAttribute(key === "className" ? "class" : key, String(value));
-    });
-    return append(node, children);
-  }
-
-  function installStyles(doc) {
-    if (!doc || !doc.head || doc.getElementById(STYLE_ID)) return;
-    var style = doc.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = STYLE_TEXT;
-    doc.head.appendChild(style);
-  }
-
-  function metric(doc, label, value) {
-    return element(doc, "div", { className: "sq-metric" }, [element(doc, "span", {}, label), element(doc, "strong", {}, value)]);
-  }
-
-  function stateLabel(state) {
-    return "|" + state.join(",") + ">";
-  }
-
-  function actionText(action) {
-    if (!action.allowed) return "0 (blocked)";
-    return format(action.factor, 4) + " -> " + stateLabel(action.occupations);
-  }
-
-  function drawChart(doc, svg, algebra, hubbard, uid) {
-    clear(svg);
-    var width = 780;
-    var height = 380;
-    var leftA = 58;
-    var rightA = 360;
-    var leftB = 430;
-    var rightB = 758;
-    var top = 34;
-    var split = 185;
-    var bottom = 337;
-    var maximumOccupation = Math.max(2, Math.max.apply(null, algebra.config.occupations) + 1);
-    var maximumEnergy = Math.max(1, Math.max.apply(null, hubbard.oneParticleEigenvalues.concat([hubbard.twoParticleEnergy]).map(Math.abs))) * 1.2;
-    function xA(index) { return leftA + 72 + index * 120; }
-    function yA(value) { return split - value / maximumOccupation * (split - top); }
-    function xB(index) { return leftB + (index + 0.5) / 4 * (rightB - leftB); }
-    function yB(value) { return split + 30 + (maximumEnergy - value) / (2 * maximumEnergy) * (bottom - split - 35); }
-    svg.setAttribute("viewBox", "0 0 " + width + " " + height);
-    svg.setAttribute("role", "img");
-    svg.setAttribute("aria-labelledby", uid + "-chart-title " + uid + "-chart-desc");
-    svg.appendChild(svgElement(doc, "title", { id: uid + "-chart-title" }, "有限占据账本与两模式 Hubbard 能级"));
-    svg.appendChild(svgElement(doc, "desc", { id: uid + "-chart-desc" }, "左侧显示两个模式的占据数，右侧显示四个 Fock 基态的粒子数和对角能量；相互作用只抬高双占据态。"));
-    [0, maximumOccupation / 2, maximumOccupation].forEach(function (value) {
-      var y = yA(value);
-      svg.appendChild(svgElement(doc, "line", { x1: leftA, y1: y, x2: rightA, y2: y, className: "sq-grid" }));
-      svg.appendChild(svgElement(doc, "text", { x: leftA - 8, y: y + 4, "text-anchor": "end" }, format(value, 1)));
-    });
-    svg.appendChild(svgElement(doc, "line", { x1: leftA, y1: split, x2: rightA, y2: split, className: "sq-axis" }));
-    algebra.config.occupations.forEach(function (occupation, index) {
-      var x = xA(index);
-      var y = yA(occupation);
-      svg.appendChild(svgElement(doc, "rect", { x: x - 24, y: y, width: 48, height: split - y, className: algebra.config.statistics === "boson" ? "sq-boson" : "sq-fermion" }));
-      svg.appendChild(svgElement(doc, "text", { x: x, y: split + 17, "text-anchor": "middle" }, "mode " + index));
-      svg.appendChild(svgElement(doc, "text", { x: x, y: y - 6, "text-anchor": "middle" }, "n=" + occupation));
-    });
-    svg.appendChild(svgElement(doc, "text", { x: leftA, y: 19, className: "sq-title" }, algebra.config.statistics === "boson" ? "boson occupation" : "fermion occupation"));
-    svg.appendChild(svgElement(doc, "text", { x: rightA, y: 19, "text-anchor": "end" }, "创建/湮灭因子"));
-    [0, maximumEnergy, -maximumEnergy].forEach(function (value) {
-      var y = yB(value);
-      svg.appendChild(svgElement(doc, "line", { x1: leftB, y1: y, x2: rightB, y2: y, className: "sq-grid" }));
-      svg.appendChild(svgElement(doc, "text", { x: leftB - 8, y: y + 4, "text-anchor": "end" }, format(value, 1)));
-    });
-    hubbard.rows.forEach(function (row, index) {
-      var x = xB(index);
-      var energy = row.diagonalEnergy;
-      var y = yB(energy);
-      var base = yB(-maximumEnergy);
-      svg.appendChild(svgElement(doc, "rect", { x: x - 25, y: Math.min(y, base), width: 50, height: Math.max(2, Math.abs(base - y)), className: row.number === 2 ? "sq-interaction" : "sq-energy" }));
-      svg.appendChild(svgElement(doc, "text", { x: x, y: bottom + 17, "text-anchor": "middle" }, stateLabel(row.state)));
-      svg.appendChild(svgElement(doc, "text", { x: x, y: y - 6, "text-anchor": "middle" }, "N=" + row.number + ", E=" + format(energy, 2)));
-    });
-    svg.appendChild(svgElement(doc, "line", { x1: leftB, y1: split, x2: rightB, y2: split, className: "sq-axis" }));
-    svg.appendChild(svgElement(doc, "text", { x: leftB, y: 19, className: "sq-title" }, "two-mode Hubbard-like diagonal ledger"));
-    svg.appendChild(svgElement(doc, "text", { x: rightB, y: 19, "text-anchor": "end" }, "红：U n0 n1；绿：单占据"));
-    svg.appendChild(svgElement(doc, "text", { x: rightB, y: bottom + 35, "text-anchor": "end" }, "canonical Fock basis"));
-  }
-
-  function algebraTable(doc, result) {
-    var table = element(doc, "table", { className: "sq-table" });
-    table.appendChild(element(doc, "caption", {}, "占据数表象的局部操作；fermion factor 的正负来自 canonical mode order。"));
-    table.appendChild(element(doc, "thead", {}, element(doc, "tr", {}, ["项目", "结果", "读法"].map(function (label) {
-      return element(doc, "th", { scope: "col" }, label);
-    }))));
-    table.appendChild(element(doc, "tbody", {}, [
-      element(doc, "tr", {}, [element(doc, "td", {}, "当前 Fock state"), element(doc, "td", {}, stateLabel(result.config.occupations)), element(doc, "td", {}, "N=" + result.number)]),
-      element(doc, "tr", {}, [element(doc, "td", {}, "creation"), element(doc, "td", {}, actionText(result.creation)), element(doc, "td", {}, result.config.statistics === "boson" ? "sqrt(n+1)" : "occupied mode -> 0")]),
-      element(doc, "tr", {}, [element(doc, "td", {}, "annihilation"), element(doc, "td", {}, actionText(result.annihilation)), element(doc, "td", {}, result.config.statistics === "boson" ? "sqrt(n)" : "Pauli sign")]),
-      element(doc, "tr", {}, [element(doc, "td", {}, "exact relation"), element(doc, "td", {}, result.relation), element(doc, "td", {}, result.displayBoundary)])
-    ]));
-    return table;
-  }
-
-  function hubbardTable(doc, result) {
-    var table = element(doc, "table", { className: "sq-table" });
-    table.appendChild(element(doc, "caption", {}, "H=-t(c0†c1+c1†c0)+epsilon0 n0+epsilon1 n1+U n0 n1；每一列动作都在同一 N sector 内。"));
-    table.appendChild(element(doc, "thead", {}, element(doc, "tr", {}, ["basis", "N", "diagonal E", "H action"].map(function (label) {
-      return element(doc, "th", { scope: "col" }, label);
-    }))));
-    var body = element(doc, "tbody");
-    result.rows.forEach(function (row) {
-      body.appendChild(element(doc, "tr", {}, [
-        element(doc, "td", {}, stateLabel(row.state)),
-        element(doc, "td", {}, String(row.number)),
-        element(doc, "td", {}, format(row.diagonalEnergy, 4)),
-        element(doc, "td", {}, row.actions.map(function (action) { return action.label + (action.label === "diagonal" ? "=" + format(action.coefficient, 3) : " -> " + format(action.coefficient, 3) + stateLabel(action.state)); }).join("; "))
-      ]));
-    });
-    table.appendChild(body);
-    return table;
-  }
-
-  function mount(rootNode, api) {
-    var doc = rootNode.ownerDocument || document;
-    installStyles(doc);
-    SERIAL += 1;
-    var uid = "sq-" + SERIAL;
-    var algebraConfig = normalizeAlgebra(DEFAULT_ALGEBRA);
-    var hubbardConfig = { t: DEFAULT_HUBBARD.t, U: DEFAULT_HUBBARD.U, epsilon0: DEFAULT_HUBBARD.epsilon0, epsilon1: DEFAULT_HUBBARD.epsilon1 };
-    var predictions = { factor: null, pauli: null, number: null, boundary: null };
-    var questions = [
-      { key: "factor", prompt: "Boson a† 作用在 |n> 上的因子是什么？", choices: [["sqrt", "sqrt(n+1)"], ["one", "1"], ["n", "n+1"]], answer: "sqrt" },
-      { key: "pauli", prompt: "fermion 在已占据模式上再 creation 会怎样？", choices: [["zero", "结果为 0：Pauli exclusion"], ["double", "得到双占据"], ["boson", "变成 boson"]], answer: "zero" },
-      { key: "number", prompt: "两模式 hopping 项对总粒子数做什么？", choices: [["conserve", "保持 N 不变"], ["raise", "每次增加 1"], ["random", "不确定"]], answer: "conserve" },
-      { key: "boundary", prompt: "有限两模式 ledger 的定位是什么？", choices: [["finite", "有限模式/有限基的精确代数桥梁"], ["thermo", "已经是热力学极限相互作用理论"], ["classical", "经典概率模型"]], answer: "finite" }
-    ];
-    var shell = element(doc, "div", { className: "sq-lab" });
-    shell.appendChild(element(doc, "h3", {}, "二次量子化：占据数代数与两模式 Hubbard-like 账本"));
-    shell.appendChild(element(doc, "p", { className: "sq-intro" }, "先预测 creation/annihilation 因子、Pauli exclusion 和 number conservation；揭示后可在 boson/fermion 间切换。所有结果由有限、确定的代数规则计算。"));
-    var gate = element(doc, "form", { className: "sq-gate", "aria-labelledby": uid + "-gate-title" });
-    gate.appendChild(element(doc, "strong", { id: uid + "-gate-title" }, "预测门：算符因子、反对易与模型边界"));
-    var choiceNodes = [];
-    var feedback = element(doc, "p", { className: "sq-feedback", "aria-live": "polite" }, "四项预测完成后才揭示模式账本。");
-    questions.forEach(function (question, index) {
-      var field = element(doc, "fieldset");
-      field.appendChild(element(doc, "legend", {}, (index + 1) + ". " + question.prompt));
-      var row = element(doc, "div", { className: "sq-choice-row" });
-      question.choices.forEach(function (choice) {
-        var button = element(doc, "button", { type: "button", "aria-pressed": "false" }, choice[1]);
-        button.addEventListener("click", function () {
-          predictions[question.key] = choice[0];
-          choiceNodes.forEach(function (item) {
-            if (item.key === question.key) item.button.setAttribute("aria-pressed", item.value === choice[0] ? "true" : "false");
-          });
-          feedback.textContent = "预测已记录；完成四项后提交。";
-        });
-        choiceNodes.push({ key: question.key, value: choice[0], button: button });
-        row.appendChild(button);
-      });
-      field.appendChild(row);
-      gate.appendChild(field);
-    });
-    var gateActions = element(doc, "div", { className: "sq-actions" });
-    var reveal = element(doc, "button", { type: "submit", className: "sq-primary" }, "提交预测并揭示");
-    var resetGate = element(doc, "button", { type: "button" }, "重置");
-    gateActions.appendChild(reveal);
-    gateActions.appendChild(resetGate);
-    gate.appendChild(gateActions);
-    gate.appendChild(feedback);
-    shell.appendChild(gate);
-
-    var experiment = element(doc, "section", { hidden: "hidden", "aria-labelledby": uid + "-results-title" });
-    experiment.appendChild(element(doc, "h3", { id: uid + "-results-title" }, "确定性实验台：局部算符与两模式相互作用"));
-    experiment.appendChild(element(doc, "p", { className: "sq-note" }, "boson 侧的占据 slider 只是显示范围，公式本身允许任意 n>=0；fermion 侧严格限制 n=0/1。Hubbard-like ledger 只有两个 spinless 模式，不能冒充热力学极限或完整相互作用电子理论。"));
-    var stats = element(doc, "div", { className: "sq-stats", role: "group", "aria-label": "statistics selector" });
-    [["fermion", "fermion"], ["boson", "boson"]].forEach(function (choice) {
-      var button = element(doc, "button", { type: "button", "aria-pressed": algebraConfig.statistics === choice[0] ? "true" : "false" }, choice[1]);
-      button.addEventListener("click", function () { algebraConfig.statistics = choice[0]; algebraConfig.occupations = choice[0] === "fermion" ? algebraConfig.occupations.map(function (value) { return Math.min(1, value); }) : algebraConfig.occupations; render(); });
-      stats.appendChild(button);
-    });
-    experiment.appendChild(stats);
-    var controls = element(doc, "div", { className: "sq-controls" });
-    var inputs = {};
-    function addRange(key, label, min, max, step, digits, target) {
-      var id = uid + "-" + key;
-      var input = element(doc, "input", { id: id, type: "range", min: min, max: max, step: step, "aria-label": label });
-      var output = element(doc, "output", { for: id });
-      var scaleMin = element(doc, "span", {}, String(min));
-      var scaleMax = element(doc, "span", {}, String(max));
-      input.addEventListener("input", function () { target[key] = Number(input.value); render(); });
-      inputs[key] = { input: input, output: output, scaleMin: scaleMin, scaleMax: scaleMax, digits: digits };
-      controls.appendChild(element(doc, "div", { className: "sq-control" }, [
-        element(doc, "label", { htmlFor: id }, [label + " = ", output]),
-        input,
-        element(doc, "div", { className: "sq-scale" }, [scaleMin, scaleMax])
-      ]));
-    }
-    addRange("mode", "操作模式 index", 0, 1, 1, 0, algebraConfig);
-    addRange("occupation0", "mode 0 occupation", 0, 8, 1, 0, { get occupation0() { return algebraConfig.occupations[0]; }, set occupation0(value) { algebraConfig.occupations[0] = algebraConfig.statistics === "fermion" ? Math.min(1, value) : value; } });
-    addRange("occupation1", "mode 1 occupation", 0, 8, 1, 0, { get occupation1() { return algebraConfig.occupations[1]; }, set occupation1(value) { algebraConfig.occupations[1] = algebraConfig.statistics === "fermion" ? Math.min(1, value) : value; } });
-    addRange("t", "hopping t", 0, 3, 0.1, 2, hubbardConfig);
-    addRange("U", "interaction U", 0, 10, 0.25, 2, hubbardConfig);
-    experiment.appendChild(controls);
-    var metrics = element(doc, "div", { className: "sq-metrics" });
-    var boundary = element(doc, "p", { className: "sq-boundary", "aria-live": "polite" });
-    var frame = element(doc, "div", { className: "sq-frame" });
-    var svg = svgElement(doc, "svg", { className: "sq-chart", viewBox: "0 0 780 380" });
-    frame.appendChild(svg);
-    var algebraWrap = element(doc, "div", { className: "sq-table-wrap" });
-    var hubbardWrap = element(doc, "div", { className: "sq-table-wrap" });
-    var interpretation = element(doc, "p", { className: "sq-footnote", "aria-live": "polite" });
-    var reset = element(doc, "button", { type: "button" }, "重新预测");
-    reset.addEventListener("click", resetAll);
-    experiment.appendChild(metrics);
-    experiment.appendChild(boundary);
-    experiment.appendChild(frame);
-    experiment.appendChild(element(doc, "h4", {}, "局部占据代数"));
-    experiment.appendChild(algebraWrap);
-    experiment.appendChild(element(doc, "h4", {}, "Hubbard-like 两模式总账"));
-    experiment.appendChild(hubbardWrap);
-    experiment.appendChild(interpretation);
-    experiment.appendChild(reset);
-    shell.appendChild(experiment);
-    rootNode.replaceChildren(shell);
-
-    function syncControls() {
-      inputs.mode.input.value = String(algebraConfig.mode);
-      inputs.mode.output.textContent = format(algebraConfig.mode, 0);
-      var occupationMax = algebraConfig.statistics === "fermion" ? "1" : "8";
-      inputs.occupation0.input.max = occupationMax;
-      inputs.occupation1.input.max = occupationMax;
-      inputs.occupation0.scaleMax.textContent = occupationMax;
-      inputs.occupation1.scaleMax.textContent = occupationMax;
-      inputs.occupation0.input.value = String(algebraConfig.occupations[0]);
-      inputs.occupation0.output.textContent = format(algebraConfig.occupations[0], 0);
-      inputs.occupation1.input.value = String(algebraConfig.occupations[1]);
-      inputs.occupation1.output.textContent = format(algebraConfig.occupations[1], 0);
-      inputs.t.input.value = String(hubbardConfig.t);
-      inputs.t.output.textContent = format(hubbardConfig.t, 2);
-      inputs.U.input.value = String(hubbardConfig.U);
-      inputs.U.output.textContent = format(hubbardConfig.U, 2);
-      stats.querySelectorAll("button").forEach(function (button, index) { button.setAttribute("aria-pressed", (index === 0 ? "fermion" : "boson") === algebraConfig.statistics ? "true" : "false"); });
-    }
-
-    function render() {
-      var algebra = occupationAlgebra(algebraConfig);
-      var hubbard = hubbardLedger(hubbardConfig);
-      syncControls();
-      metrics.replaceChildren(
-        metric(doc, "statistics", algebra.config.statistics),
-        metric(doc, "state", stateLabel(algebra.config.occupations)),
-        metric(doc, "total N", String(algebra.number)),
-        metric(doc, "creation factor", format(algebra.creationFactor, 4)),
-        metric(doc, "annihilation factor", format(algebra.annihilationFactor, 4)),
-        metric(doc, "occupation relation residual", format(algebra.relationCheck.residual, 4)),
-        metric(doc, "[H,N] residual", format(hubbard.commutatorResidual, 4)),
-        metric(doc, "N=1 eigenvalues", hubbard.oneParticleEigenvalues.map(function (value) { return format(value, 2); }).join(" / "))
-      );
-      boundary.textContent = algebra.displayBoundary + " " + hubbard.boundary;
-      drawChart(doc, svg, algebra, hubbard, uid);
-      algebraWrap.replaceChildren(algebraTable(doc, algebra));
-      hubbardWrap.replaceChildren(hubbardTable(doc, hubbard));
-      interpretation.textContent = hubbard.numberConserving
-        ? "矩阵级 [H,N]=0：hopping 只在 N=1 的两个基态之间交换粒子，U 只给 |1,1> 加相互作用能。有限账本验证的是代数和守恒，不是热力学极限相图。"
-        : "当前矩阵的 number conservation 检查失败；请回到默认参数审计算符顺序。";
-    }
-
-    function resetAll() {
-      var freshAlgebra = normalizeAlgebra(DEFAULT_ALGEBRA);
-      algebraConfig.statistics = freshAlgebra.statistics;
-      algebraConfig.mode = freshAlgebra.mode;
-      algebraConfig.occupations = freshAlgebra.occupations;
-      hubbardConfig.t = DEFAULT_HUBBARD.t;
-      hubbardConfig.U = DEFAULT_HUBBARD.U;
-      hubbardConfig.epsilon0 = DEFAULT_HUBBARD.epsilon0;
-      hubbardConfig.epsilon1 = DEFAULT_HUBBARD.epsilon1;
-      predictions = { factor: null, pauli: null, number: null, boundary: null };
-      choiceNodes.forEach(function (item) { item.button.setAttribute("aria-pressed", "false"); });
-      reveal.disabled = false;
-      experiment.setAttribute("hidden", "hidden");
-      feedback.className = "sq-feedback";
-      feedback.textContent = "四项预测完成后才揭示模式账本。";
-      syncControls();
-    }
-
-    gate.addEventListener("submit", function (event) {
-      event.preventDefault();
-      var missing = questions.filter(function (question) { return predictions[question.key] === null; });
-      if (missing.length) {
-        feedback.className = "sq-feedback sq-boundary";
-        feedback.textContent = "还缺 " + missing.length + " 项预测。";
-        return;
-      }
-      var correct = questions.reduce(function (sum, question) { return sum + (predictions[question.key] === question.answer ? 1 : 0); }, 0);
-      reveal.disabled = true;
-      experiment.removeAttribute("hidden");
-      feedback.textContent = "已揭示：" + correct + "/" + questions.length + " 项命中；现在可切换统计类型和相互作用。";
-      render();
-      if (api && typeof api.announce === "function") api.announce(rootNode, feedback.textContent);
-    });
-    resetGate.addEventListener("click", resetAll);
-    render();
-  }
-
-  function predictionAnswers() {
-    return { factor: "sqrt", pauli: "zero", number: "conserve", boundary: "finite" };
-  }
-
-  function close(left, right, tolerance) {
-    return Math.abs(left - right) <= (tolerance === undefined ? 1e-10 : tolerance);
-  }
-
-  function selfTest() {
-    var checks = 0;
-    function assert(condition, message) {
-      checks += 1;
-      if (!condition) throw new Error(message);
-    }
-    var boson = occupationAlgebra({ statistics: "boson", occupations: [2, 1], mode: 0 });
-    assert(boson.creation.allowed && close(boson.creation.factor, Math.sqrt(3)), "boson creation factor");
-    assert(boson.annihilation.allowed && close(boson.annihilation.factor, Math.sqrt(2)), "boson annihilation factor");
-    assert(boson.number === 3, "boson number");
-    assert(boson.relation === "[a_i, a_j†] = delta_ij", "boson commutator label");
-    var vacuumBoson = occupationAlgebra({ statistics: "boson", occupations: [0, 0], mode: 0 });
-    assert(vacuumBoson.annihilation.blocked && vacuumBoson.annihilation.factor === 0, "boson vacuum annihilation");
-    var fermion = occupationAlgebra({ statistics: "fermion", occupations: [1, 0], mode: 0 });
-    assert(fermion.pauliBlocked && fermion.creation.factor === 0, "Pauli exclusion");
-    assert(fermion.annihilation.allowed && fermion.annihilation.factor === 1, "fermion annihilation on first mode");
-    var signed = occupationAlgebra({ statistics: "fermion", occupations: [1, 0], mode: 1 });
-    assert(signed.creation.factor === -1, "canonical fermion creation sign");
-    assert(signed.annihilation.blocked, "empty fermion annihilation");
-    var relation = fermionAlgebraCheck(2);
-    assert(relation.exact && close(relation.residual, 0) && close(relation.annihilationResidual, 0) && close(relation.creationResidual, 0), "finite CAR relation");
-    assert(relation.checkedStates === 4 && relation.checkedPairs === 4, "CAR checks every state and mode pair");
-    var bosonRelation = bosonAlgebraCheck([0, 7]);
-    assert(bosonRelation.exact && close(bosonRelation.residual, 0) && close(bosonRelation.annihilationResidual, 0) && close(bosonRelation.creationResidual, 0), "finite-mode boson CCR relation");
-    assert(bosonRelation.checkedStates === 64 && bosonRelation.checkedPairs === 4, "CCR checks a finite state grid and every mode pair");
-    var fermionCrossLeft = composeFermion([1, 0], { kind: "annihilate", mode: 0 }, { kind: "create", mode: 1 });
-    var fermionCrossRight = composeFermion([1, 0], { kind: "create", mode: 1 }, { kind: "annihilate", mode: 0 });
-    assert(close(mappingResidual([{ action: fermionCrossLeft }, { action: fermionCrossRight }], null, 0), 0), "fermion cross-mode signs cancel by mapped state");
-    assert(mappingResidual([{ action: fermionCrossLeft }, { action: { state: fermionCrossRight.state, coefficient: fermionCrossRight.coefficient + 0.25 } }], null, 0) > 0, "fermion coefficient perturbation is detected");
-    var bosonCrossLeft = composeBoson([2, 1], { kind: "annihilate", mode: 0 }, { kind: "create", mode: 1 });
-    var bosonCrossRight = composeBoson([2, 1], { kind: "create", mode: 1 }, { kind: "annihilate", mode: 0 });
-    assert(close(mappingResidual([{ action: bosonCrossLeft }, { action: bosonCrossRight, scale: -1 }], null, 0), 0), "boson cross-mode coefficients cancel by mapped state");
-    assert(mappingResidual([{ action: bosonCrossLeft }, { action: { state: bosonCrossRight.state, coefficient: bosonCrossRight.coefficient + 0.25 }, scale: -1 }], null, 0) > 0, "boson coefficient perturbation is detected");
-    var vacuum = occupationAlgebra({ statistics: "fermion", occupations: [0, 0], mode: 1 });
-    assert(vacuum.creation.factor === 1 && sameState(vacuum.creation.occupations, [0, 1]), "fermion vacuum creation");
-    var fermionBoundary = normalizeAlgebra({ statistics: "fermion", occupations: [8, -1] });
-    assert(fermionBoundary.occupations[0] === 1 && fermionBoundary.occupations[1] === 0, "fermion occupation boundary");
-    var bosonBoundary = occupationAlgebra({ statistics: "boson", occupations: [8, 0], mode: 0 });
-    assert(bosonBoundary.creation.allowed && close(bosonBoundary.creation.factor, 3), "boson displayed boundary factor");
-    var hubbard = hubbardLedger(DEFAULT_HUBBARD);
-    assert(hubbard.basis.length === 4 && hubbard.matrix.length === 4, "two-mode basis size");
-    assert(hubbard.numberByBasis.join(",") === "0,1,1,2", "Fock number sectors");
-    assert(close(hubbard.matrix[1][2], -1) && close(hubbard.matrix[2][1], -1), "hopping matrix entries");
-    assert(close(hubbard.matrix[3][3], 4), "double occupation U energy");
-    assert(hubbard.commutatorResidual === 0 && hubbard.numberConserving, "H-N number conservation");
-    assert(close(hubbard.oneParticleEigenvalues[0], -1) && close(hubbard.oneParticleEigenvalues[1], 1), "one-particle eigenvalues");
-    var interacting = hubbardLedger({ t: 0.5, U: 7, epsilon0: 1, epsilon1: -1 });
-    assert(close(interacting.twoParticleEnergy, 7), "two-particle interaction ledger");
-    assert(interacting.rows.every(function (row) { return row.actions.every(function (action) { return action.state[0] + action.state[1] === row.number; }); }), "every Hubbard action preserves N");
-    assert(JSON.stringify(hubbardLedger(DEFAULT_HUBBARD)) === JSON.stringify(hubbardLedger(DEFAULT_HUBBARD)), "Hubbard determinism");
-    var answers = predictionAnswers();
-    assert(answers.factor === "sqrt" && answers.pauli === "zero", "algebra gate answers");
-    assert(answers.number === "conserve" && answers.boundary === "finite", "Hubbard gate answers");
-    return { checks: checks, basisStates: 4 };
-  }
-
-  return {
-    DEFAULT_ALGEBRA: DEFAULT_ALGEBRA,
-    DEFAULT_HUBBARD: DEFAULT_HUBBARD,
-    normalizeAlgebra: normalizeAlgebra,
-    creationAction: creationAction,
-    annihilationAction: annihilationAction,
-    applyFermion: applyFermion,
-    applyBoson: applyBoson,
-    composeFermion: composeFermion,
-    composeBoson: composeBoson,
-    mappingResidual: mappingResidual,
-    occupationAlgebra: occupationAlgebra,
-    fermionAlgebraCheck: fermionAlgebraCheck,
-    bosonAlgebraCheck: bosonAlgebraCheck,
-    hubbardLedger: hubbardLedger,
-    predictionAnswers: predictionAnswers,
-    selfTest: selfTest,
-    mount: mount
-  };
-});
+function selfTest(){let checks=0;const ok=x=>{checks++;if(!x)throw Error('Fock invariant '+checks);};for(const p of PRESETS){const s=compute(p.parameters);ok(plots(s).length===6);ok(tables(s).length===13);for(const rows of [s.algebra.relations,s.jordanWigner.relations])for(const r of rows){ok(r.combined.length===r.expected);if(r.expected)ok(r.combined[0].coefficient.integer===1&&r.combined[0].coefficient.radicand===1&&stateKey(r.combined[0].state)===stateKey(r.state));}for(const r of s.jordanWigner.reordering)ok(r.transformed===r.reverse);for(const h of [s.boson,s.fermion]){ok(h.hermiticity===0);ok(h.commutatorResidual===0);ok(h.eigen.residual<1e-10);ok(h.eigen.orthogonality<1e-10);}ok(s.algebra.cutoffTrace===0);for(const r of s.dynamics){ok(Math.abs(r.norm-1)<1e-10);ok(Math.abs(r.energy)<1e-10);ok(Math.abs(r.fermion.probabilities[3]-1)<1e-10);}for(let i=0;i<4;i++)ok(feedback(i,QUESTIONS[i][2]).correct);}return{status:'PASS',checks};}
+const API={...core,PRESETS,QUESTIONS,compute,snapshot:compute,plots,tables,svg,feedback,fmt,mount,selfTest};if(typeof module!=="undefined"&&module.exports)module.exports=API;if(hostWindow&&hostWindow.CourseLearning)hostWindow.CourseLearning.register("second-quantization",mount);})(typeof window!=="undefined"?window:null);

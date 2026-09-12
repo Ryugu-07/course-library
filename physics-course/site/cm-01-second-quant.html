@@ -56,195 +56,442 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-13 02:27</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#second-quantization-learning-title">学习层：从“有几个”到“能不能再造一个”</a><ul>
-<li><a href="#1-occupation">1. 直觉案例：全同粒子不需要名字，只需要 occupation</a></li>
-<li><a href="#2-occupation-algebra">2. 形式推导桥：occupation algebra</a></li>
-<li><a href="#3-hubbard-like-ledger">3. 小型相互作用桥：两模式 Hubbard-like ledger</a></li>
-<li><a href="#4">4. 模型边界面板</a></li>
-<li><a href="#5">5. 确定性实验：先过预测门，再切换统计</a></li>
-</ul>
-</li>
-<li><a href="#1-fock">1. Fock 空间与算符翻译</a></li>
-<li><a href="#2-pauli-exclusion">2. 交换统计与 Pauli exclusion</a></li>
-<li><a href="#3-hubbard-like">3. 两模式 Hubbard-like 模型</a></li>
-<li><a href="#4_1">4. 三个检查题</a></li>
-<li><a href="#_1">基础衔接与计算验收</a></li>
+<li><a href="#fock-learning-title">从“哪个粒子在哪”换到“哪个模式有几个粒子”</a></li>
+<li><a href="#1">1. 两个相同粒子，为什么不能只给它们编号？</a></li>
+<li><a href="#2-fock">2. Fock 空间并没有增加一次“量子化”</a></li>
+<li><a href="#3">3. 玻色子的平方根：先算范数，再解释增强</a></li>
+<li><a href="#4">4. 费米子的负号：一个可逐项追踪的奇偶计数</a></li>
+<li><a href="#5">5. 怎样把一次量子化的单体算符翻译过来？</a></li>
+<li><a href="#6-12">6. 两体项的 \(1/2\)、正规序与粒子数守恒</a></li>
+<li><a href="#7">7. 两种有限化：显示窗口、投影算符与完整扇区</a></li>
+<li><a href="#8-hamiltonian">8. 从算符构造两个不同的两模式 Hamiltonian</a></li>
+<li><a href="#9">9. 从能级到概率：为什么玻色子会出现聚束？</a></li>
+<li><a href="#10">10. 实验路线：每次只改变一个问题</a></li>
+<li><a href="#11">11. 八道练习：把中间步骤保留下来</a></li>
+<li><a href="#12">12. 带着这套语言继续学习</a></li>
 </ul>
 </div>
 </details>
-<h1 id="i">凝聚态 I · 二次量化、占据数与两模式相互作用<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<h1 id="i">凝聚态 I · 二次量子化：从交换符号到两粒子干涉<a class="headerlink" href="#i" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Altland &amp; Simons §2、Coleman 入门 ｜ <strong>前置</strong>：qft-01、solid-02、qm-03
-二次量化不是把粒子“变成第二次量子”，而是换一套适合全同粒子的坐标：用 Fock occupation 记录每个模式有几个粒子。先把 boson/fermion 的有限模式代数做精确，再用一个两模式 Hubbard-like ledger 看 hopping、相互作用和总粒子数守恒。有限 demo 不等于热力学极限的强相互作用理论。</p>
+<p><strong>前置</strong>：<a href="qft-01-canonical.html">正则量子化</a>、<a href="qm-05-identical-particles.html">全同粒子</a>与单粒子矩阵力学。<strong>本页目标</strong>：把归一化、交换统计、相互作用与可测概率连接起来；能从算符自行构造一个有限多体矩阵。</p>
+<p>建议分两次学习：先完成第 1–7 节的代数，再用第 8–11 节把代数变成实验。每次都先写预测，再打开结果。</p>
 </blockquote>
 <div data-learning-page></div>
 
-<section aria-labelledby="second-quantization-learning-title" class="learning-layer">
-<h2 id="second-quantization-learning-title">学习层：从“有几个”到“能不能再造一个”<a class="headerlink" href="#second-quantization-learning-title" title="Permanent link"></a></h2>
-<h3 id="1-occupation">1. 直觉案例：全同粒子不需要名字，只需要 occupation<a class="headerlink" href="#1-occupation" title="Permanent link"></a></h3>
-<p>对一组单粒子模式，Fock state 写成</p>
+<section aria-labelledby="fock-learning-title" class="learning-layer fock191-course">
+<h2 id="fock-learning-title">从“哪个粒子在哪”换到“哪个模式有几个粒子”<a class="headerlink" href="#fock-learning-title" title="Permanent link"></a></h2>
+<h2 id="1">1. 两个相同粒子，为什么不能只给它们编号？<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>想象两个相连的势阱，每边起初各有一个粒子。打开耦合后，测量时可能得到“一边两个，另一边零个”，也可能仍是一边一个。我们要算的是这些结果的<strong>概率振幅如何相加</strong>，不是跟踪两颗带名字的小球。</p>
+<p>这里的“模式”是一个完整的单粒子态，可以包含位置、轨道和自旋。一个空间轨道里的自旋向上、向下电子是<strong>两个模式</strong>；Pauli 原理限制同一个完整模式，不能把它读成“一个格点永远只能有一个电子”。</p>
+<p>选正交归一的两个模式 <span class="arithmatex">\(\phi_0,\phi_1\)</span>，两粒子各占一个模式时，归一化波函数为</p>
 <div class="arithmatex">\[
-|n_0,n_1,\ldots\rangle.
+\Psi_\pm(x_1,x_2)
+=\frac{\phi_0(x_1)\phi_1(x_2)
+\pm\phi_1(x_1)\phi_0(x_2)}{\sqrt2}.
 \]</div>
-<p>先预测四件事：</p>
-<ol>
-<li>boson 的 <span class="arithmatex">\(a^\dagger|n\rangle\)</span> 因子是 <span class="arithmatex">\(1\)</span>、<span class="arithmatex">\(n+1\)</span> 还是 <span class="arithmatex">\(\sqrt{n+1}\)</span>？</li>
-<li>fermion 已有一个粒子时，<span class="arithmatex">\(c_i^\dagger\)</span> 能否再造一个？</li>
-<li>两个 fermion 模式交换次序，态矢会不会只改变名字而不改变符号？</li>
-<li>hopping <span class="arithmatex">\(c_0^\dagger c_1+c_1^\dagger c_0\)</span> 会不会改变总数 <span class="arithmatex">\(N=n_0+n_1\)</span>？</li>
-</ol>
-<p>boson 可以共享模式，所以 <span class="arithmatex">\(n=0,1,2,\ldots\)</span>；fermion 的反对易代数会直接把 <span class="arithmatex">\(n_i=2\)</span> 删掉。算符前面的平方根和符号不是装饰：它们正是归一化与交换统计进入计算的地方。</p>
-<h3 id="2-occupation-algebra">2. 形式推导桥：occupation algebra<a class="headerlink" href="#2-occupation-algebra" title="Permanent link"></a></h3>
-<p>定义</p>
+<p><span class="arithmatex">\(+\)</span> 对应玻色对称态，<span class="arithmatex">\(-\)</span> 对应费米反对称态。交换 <span class="arithmatex">\(x_1,x_2\)</span> 后发生的是波函数的对称或反对称变换。两个项代表不可区分的排列，计算概率前必须先合并振幅。</p>
+<p>若两粒子都占 <span class="arithmatex">\(\phi_0\)</span>，玻色子的归一化波函数就是 <span class="arithmatex">\(\phi_0(x_1)\phi_0(x_2)\)</span>；费米反对称组合则为零。本页采用通常三维非相对论多体理论的 Bose/Fermi 统计，<strong>不会从这一条代数推导相对论的自旋—统计定理</strong>，也不涵盖二维任意子。</p>
+<p><strong>先想一想：</strong> 两粒子各在一边，与“每个粒子都独立以一半概率选一边”，是不是同一个纯态？若觉得一样，第 9 节的干涉会给出可检验的反例。</p>
+<h2 id="2-fock">2. Fock 空间并没有增加一次“量子化”<a class="headerlink" href="#2-fock" title="Permanent link"></a></h2>
+<p>固定粒子数 <span class="arithmatex">\(N\)</span> 时，多体空间分别是单粒子空间 <span class="arithmatex">\(\mathcal H_1\)</span> 的对称张量幂 <span class="arithmatex">\(\operatorname{Sym}^N\mathcal H_1\)</span> 与反对称张量幂 <span class="arithmatex">\(\bigwedge^N\mathcal H_1\)</span>。Fock 空间把不同 <span class="arithmatex">\(N\)</span> 的空间直和放在一起：</p>
 <div class="arithmatex">\[
-[a_i,a_j^\dagger]=\delta_{ij},\qquad [a_i,a_j]=0
+\mathcal F_B=\bigoplus_{N=0}^{\infty}\operatorname{Sym}^N\mathcal H_1,
+\qquad
+\mathcal F_F=\bigoplus_{N=0}^{\infty}\bigwedge^N\mathcal H_1.
 \]</div>
-<p>以及</p>
+<p>真空 <span class="arithmatex">\(|\mathrm{vac}\rangle\)</span> 是 <span class="arithmatex">\(N=0\)</span> 的归一化态；它不是零向量。写成直和，方便产生与湮灭算符在不同粒子数扇区之间工作，<strong>不代表实际 Hamiltonian 一定改变粒子数</strong>，也不自动规定不同电荷扇区的相干叠加如何制备。</p>
+<p>本页固定模式顺序 <span class="arithmatex">\(0&lt;1&lt;\cdots&lt;M-1\)</span>，定义归一化占据基：</p>
 <div class="arithmatex">\[
-\{c_i,c_j^\dagger\}=\delta_{ij},\qquad
-\{c_i,c_j\}=0.
+|\boldsymbol n\rangle_B
+=\prod_{i=0}^{M-1}\frac{(a_i^\dagger)^{n_i}}{\sqrt{n_i!}}
+|\mathrm{vac}\rangle,
+\qquad
+|\boldsymbol n\rangle_F
+=(c_0^\dagger)^{n_0}\cdots(c_{M-1}^\dagger)^{n_{M-1}}
+|\mathrm{vac}\rangle.
 \]</div>
-<p>在规范归一化的占据数基底上，</p>
+<p>玻色占据 <span class="arithmatex">\(n_i=0,1,2,\ldots\)</span>，费米占据 <span class="arithmatex">\(n_i=0,1\)</span>；<span class="arithmatex">\(\sum_i n_i=N\)</span>。乘积按书写顺序定义基矢，但作用时仍从最右边开始。一般态是这些占据基的<strong>线性组合</strong>，不是只能选择一张确定占据表。</p>
+<p>有限 <span class="arithmatex">\(M\)</span> 模式、固定 <span class="arithmatex">\(N\)</span> 的维数为</p>
 <div class="arithmatex">\[
-\begin{aligned}
-a_i|n_i\rangle&amp;=\sqrt{n_i}|n_i-1\rangle,&amp;
-a_i^\dagger|n_i\rangle&amp;=\sqrt{n_i+1}|n_i+1\rangle,\\
-c_i|n\rangle&amp;=(-1)^{\sum_{k&lt;i}n_k}n_i|n-e_i\rangle,&amp;
-c_i^\dagger|n\rangle&amp;=(-1)^{\sum_{k&lt;i}n_k}(1-n_i)|n+e_i\rangle.
-\end{aligned}
+d_B(M,N)=\binom{N+M-1}{N},
+\qquad
+d_F(M,N)=\binom{M}{N}.
 \]</div>
-<p>第二行同时显示两件事：<span class="arithmatex">\(n_i=1\)</span> 时 creation 为零（Pauli exclusion），而模式的 canonical ordering 产生交换符号。实验台会在两个模式间切换并逐项显示 factor，而不是只画一个抽象箭头；fermion slider 的最大值和可见刻度都严格是 <span class="arithmatex">\(1\)</span>，boson 的可见上限只是读图范围。</p>
-<h3 id="3-hubbard-like-ledger">3. 小型相互作用桥：两模式 Hubbard-like ledger<a class="headerlink" href="#3-hubbard-like-ledger" title="Permanent link"></a></h3>
-<p>取两个 spinless fermion 模式 <span class="arithmatex">\(0,1\)</span>：</p>
+<p>第一式是把 <span class="arithmatex">\(N\)</span> 个相同计数分给 <span class="arithmatex">\(M\)</span> 个盒子的组合数；第二式是从 <span class="arithmatex">\(M\)</span> 个模式选出 <span class="arithmatex">\(N\)</span> 个。两玻色模式、<span class="arithmatex">\(N=2\)</span> 有 <span class="arithmatex">\(|2,0\rangle,|1,1\rangle,|0,2\rangle\)</span> 三态；两费米模式、<span class="arithmatex">\(N=2\)</span> 只有 <span class="arithmatex">\(|1,1\rangle\)</span>。四费米模式的<strong>整个</strong> Fock 空间有 <span class="arithmatex">\(2^4=16\)</span> 态，其中 <span class="arithmatex">\(N=2\)</span> 扇区有 <span class="arithmatex">\(\binom42=6\)</span> 态。</p>
+<p>这解释了为什么二次量子化让记号更合适，却没有自动消除多体空间的增长。</p>
+<h2 id="3">3. 玻色子的平方根：先算范数，再解释增强<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>从 <span class="arithmatex">\([a_i,a_j^\dagger]=\delta_{ij}\)</span>、<span class="arithmatex">\([a_i,a_j]=0\)</span> 和 <span class="arithmatex">\(a_i|\mathrm{vac}\rangle=0\)</span> 出发。对单模式，反复使用 <span class="arithmatex">\(aa^\dagger=a^\dagger a+1\)</span>，可证明</p>
 <div class="arithmatex">\[
-H=-t(c_0^\dagger c_1+c_1^\dagger c_0)
- +\epsilon_0n_0+\epsilon_1n_1+Un_0n_1,
-\qquad N=n_0+n_1.
+a(a^\dagger)^n
+=(a^\dagger)^n a+n(a^\dagger)^{n-1}.
 \]</div>
-<p>在 canonical basis
-<span class="arithmatex">\(|00\rangle,|10\rangle,|01\rangle,|11\rangle\)</span> 中，</p>
+<p>作用于真空后，左边只剩第二项。因此 <span class="arithmatex">\(\langle\mathrm{vac}|a^n(a^\dagger)^n|\mathrm{vac}\rangle=n!\)</span>，归一化要求 <span class="arithmatex">\(|n\rangle=(a^\dagger)^n|\mathrm{vac}\rangle/\sqrt{n!}\)</span>。现在再作用一次：</p>
 <div class="arithmatex">\[
-H=
+a^\dagger|n\rangle
+=\sqrt{n+1}|n+1\rangle,
+\qquad
+a|n\rangle=\sqrt n|n-1\rangle.
+\]</div>
+<p>当 <span class="arithmatex">\(n=0\)</span> 时，第二式表示零向量，不存在 <span class="arithmatex">\(|-1\rangle\)</span>。由此得到 <span class="arithmatex">\(a^\dagger a|n\rangle=n|n\rangle\)</span>，而 <span class="arithmatex">\(aa^\dagger|n\rangle=(n+1)|n\rangle\)</span>。</p>
+<p><strong>一个完整算例。</strong> 从 <span class="arithmatex">\(|2,1\rangle\)</span> 出发，把模式 1 的一个粒子搬到模式 0：</p>
+<div class="arithmatex">\[
+a_0^\dagger a_1|2,1\rangle
+=a_0^\dagger|2,0\rangle
+=\sqrt3|3,0\rangle.
+\]</div>
+<p>一般 <span class="arithmatex">\(i\ne j\)</span> 时，搬运系数为 <span class="arithmatex">\(\sqrt{(n_i+1)n_j}\)</span>。它同时包含“来源中有多少粒子可以移除”和“目标模式的产生增强”。这是振幅因子；只有连同耦合、演化时间和其他路径计算后，才得到测量概率，不能直接把 <span class="arithmatex">\(\sqrt3\)</span> 叫做概率。</p>
+<h2 id="4">4. 费米子的负号：一个可逐项追踪的奇偶计数<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>费米关系是 <span class="arithmatex">\(\{c_i,c_j^\dagger\}=\delta_{ij}\)</span>、<span class="arithmatex">\(\{c_i,c_j\}=0\)</span>。特别地，<span class="arithmatex">\(\{c_i^\dagger,c_i^\dagger\}=2(c_i^\dagger)^2=0\)</span>，所以同模式重复产生必为零。</p>
+<p>令 <span class="arithmatex">\(S_i(\boldsymbol n)=\sum_{k&lt;i}n_k\)</span>。把 <span class="arithmatex">\(c_i\)</span> 或 <span class="arithmatex">\(c_i^\dagger\)</span> 移到规范顺序中的第 <span class="arithmatex">\(i\)</span> 个位置，要跨过前方已占据模式的产生算符，每跨一次乘 <span class="arithmatex">\(-1\)</span>：</p>
+<div class="arithmatex">\[
+c_i|\boldsymbol n\rangle
+=(-1)^{S_i(\boldsymbol n)}n_i|\boldsymbol n-\boldsymbol e_i\rangle,
+\qquad
+c_i^\dagger|\boldsymbol n\rangle
+=(-1)^{S_i(\boldsymbol n)}(1-n_i)|\boldsymbol n+\boldsymbol e_i\rangle.
+\]</div>
+<p>因子为零时，右侧整体就是零向量，不把不合法占据基当作状态。例子是 <span class="arithmatex">\(c_1^\dagger|1,0\rangle=-|1,1\rangle\)</span>，但 <span class="arithmatex">\(c_0^\dagger|0,1\rangle=+|1,1\rangle\)</span>。</p>
+<p>在占据位的张量积表示里，令 <span class="arithmatex">\(Z_k|n_k\rangle=(-1)^{n_k}|n_k\rangle\)</span>，<span class="arithmatex">\(s_i^+=|1\rangle_i\langle0|\)</span>，<span class="arithmatex">\(s_i^-=|0\rangle_i\langle1|\)</span>，则</p>
+<div class="arithmatex">\[
+c_i^\dagger=\left(\prod_{k&lt;i}Z_k\right)s_i^+,
+\qquad
+c_i=\left(\prod_{k&lt;i}Z_k\right)s_i^-.
+\]</div>
+<p>这是有限模式的 Jordan–Wigner 表示。只用局部 <span class="arithmatex">\(s_i^\pm\)</span> 而省掉 <span class="arithmatex">\(Z\)</span> 串，不同模式上的局部矩阵会对易，便不能满足费米反对易关系。实验检查四模式的全部 16 态、所有模式对及三类 CAR；它比较合并后的<strong>完整输出态和系数</strong>，不是仅看一个对角期望。</p>
+<p>换规范顺序也必须一致。若将产生算符顺序全部反转，含 <span class="arithmatex">\(N\)</span> 个粒子的占据基乘上 <span class="arithmatex">\(D_{\boldsymbol n}=(-1)^{N(N-1)/2}\)</span>。新矩阵为 <span class="arithmatex">\(O'=DOD\)</span>，态的坐标也同时变换，所以可观测概率保持不变。表中逐项对照“原矩阵变换”与“直接使用反序定义”的结果。</p>
+<h2 id="5">5. 怎样把一次量子化的单体算符翻译过来？<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>设单粒子算符 <span class="arithmatex">\(h\)</span> 在正交模式基中的矩阵元为 <span class="arithmatex">\(h_{ij}=\langle\phi_i|h|\phi_j\rangle\)</span>。其作用于所有粒子的总和应写成</p>
+<div class="arithmatex">\[
+\widehat H_1=\sum_{ij}h_{ij}b_i^\dagger b_j,
+\]</div>
+<p>其中 <span class="arithmatex">\(b=a\)</span> 或 <span class="arithmatex">\(c\)</span>，必须与所选统计匹配。右边先从模式 <span class="arithmatex">\(j\)</span> 移除一个粒子，再在 <span class="arithmatex">\(i\)</span> 产生；前面的矩阵元负责一次单粒子变换的振幅。</p>
+<p>为什么它等于一次量子化里的 <span class="arithmatex">\(\sum_{\alpha=1}^N h^{(\alpha)}\)</span>？关键是对两种统计均成立的普通对易式</p>
+<div class="arithmatex">\[
+[b_i^\dagger b_j,b_k^\dagger]=\delta_{jk}b_i^\dagger.
+\]</div>
+<p>玻色情形直接用 CCR 展开。费米情形写 <span class="arithmatex">\(c_jc_k^\dagger=\delta_{jk}-c_k^\dagger c_j\)</span> 后，三算符项在两边相减时抵消，留下同一个结果。因此</p>
+<div class="arithmatex">\[
+[\widehat H_1,b_k^\dagger]=\sum_i h_{ik}b_i^\dagger.
+\]</div>
+<p>再对一个含 <span class="arithmatex">\(N\)</span> 个产生算符的乘积应用 <span class="arithmatex">\([A,BC]=[A,B]C+B[A,C]\)</span>，便得到 <span class="arithmatex">\(N\)</span> 项：每一项恰好只替换一个单粒子模式。真空项 <span class="arithmatex">\(\widehat H_1|\mathrm{vac}\rangle=0\)</span>，所以整个动作就是逐粒子求和。这里用的是双线性算符的<strong>普通对易子</strong>，不要因为粒子是费米子就把所有方括号换成反对易括号。</p>
+<p>若 <span class="arithmatex">\(h\)</span> 已对角化，<span class="arithmatex">\(\widehat H_1=\sum_i\epsilon_i n_i\)</span>。即使可以这样写，固定总数下玻色和费米允许的占据集合仍不同，自由多体基态的填充规则也不同。</p>
+<h2 id="6-12">6. 两体项的 <span class="arithmatex">\(1/2\)</span>、正规序与粒子数守恒<a class="headerlink" href="#6-12" title="Permanent link"></a></h2>
+<p>一次量子化的两体相互作用是 <span class="arithmatex">\(\sum_{\alpha&lt;\beta}V(x_\alpha,x_\beta)\)</span>，假定势对交换两粒子对称。明确采用<strong>未经反对称化的</strong>模式矩阵元</p>
+<div class="arithmatex">\[
+V_{ij;kl}
+=\int dx\,dy\,
+\phi_i^*(x)\phi_j^*(y)V(x,y)\phi_k(x)\phi_l(y).
+\]</div>
+<p>相应的算符为</p>
+<div class="arithmatex">\[
+\widehat V=\frac12\sum_{ijkl}
+V_{ij;kl}\,b_i^\dagger b_j^\dagger b_l b_k.
+\]</div>
+<p>最右的 <span class="arithmatex">\(b_k\)</span> 对应 <span class="arithmatex">\(x\)</span>，然后 <span class="arithmatex">\(b_l\)</span> 对应 <span class="arithmatex">\(y\)</span>；左边按相反过程重建。两次移除选出的是有序粒子对 <span class="arithmatex">\((\alpha,\beta)\)</span>，所以每个无序对被计算两次，前面需要 <span class="arithmatex">\(1/2\)</span>。费米交换符号由算符代数承担。若另一本书把 <span class="arithmatex">\(V\)</span> 定义成已经反对称化的矩阵元，求和约定与前因子可能一起变化，不能只移植系数。</p>
+<p>对单个玻色模式的接触相互作用，正规序给出</p>
+<div class="arithmatex">\[
+a^\dagger a^\dagger aa=n(n-1),
+\qquad
+H_U=\frac U2 n(n-1).
+\]</div>
+<p>证明可以直接连续作用两次湮灭，振幅 <span class="arithmatex">\(\sqrt{n(n-1)}\)</span>，再连续产生回到原态，最终系数为 <span class="arithmatex">\(n(n-1)\)</span>。也可从 <span class="arithmatex">\(n^2=a^\dagger aa^\dagger a=a^\dagger a^\dagger aa+n\)</span> 推出。误写 <span class="arithmatex">\(Un^2/2\)</span> 会给单粒子态也加上“自身与自身相互作用”的 <span class="arithmatex">\(U/2\)</span>。</p>
+<p>令 <span class="arithmatex">\(\widehat N=\sum_i b_i^\dagger b_i\)</span>。由 <span class="arithmatex">\([\widehat N,b_i^\dagger]=b_i^\dagger\)</span>、<span class="arithmatex">\([\widehat N,b_i]=-b_i\)</span>，一个正常算符单项式若含 <span class="arithmatex">\(r\)</span> 个产生、<span class="arithmatex">\(s\)</span> 个湮灭，便有 <span class="arithmatex">\([\widehat N,O]=(r-s)O\)</span>。上述单体项和两体项都满足 <span class="arithmatex">\(r=s\)</span>，因此守恒总数。</p>
+<p>相反，BCS 平均场里会出现 <span class="arithmatex">\(c_i^\dagger c_j^\dagger+\mathrm{h.c.}\)</span>，它改变粒子数两个，通常不与 <span class="arithmatex">\(\widehat N\)</span> 对易，但仍守恒费米奇偶性 <span class="arithmatex">\((-1)^{\widehat N}\)</span>。这不表示电子被无缘无故创造出来；需要在后续课程解释配对场、凝聚体和所采用的近似。</p>
+<h2 id="7">7. 两种有限化：显示窗口、投影算符与完整扇区<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>在纸上只列 <span class="arithmatex">\(n=0,\ldots,q\)</span> 的几个例子，不会改变无限梯子的公式；从最高显示态 <span class="arithmatex">\(|q\rangle\)</span> 出发，<span class="arithmatex">\(a^\dagger\)</span> 仍可到 <span class="arithmatex">\(|q+1\rangle\)</span>。实验的“未截断”分支保留这些中间态。</p>
+<p>真正投影则不同。定义 <span class="arithmatex">\(P_q=\sum_{n=0}^q|n\rangle\langle n|\)</span>、<span class="arithmatex">\(a_q=P_qaP_q\)</span>，于是 <span class="arithmatex">\(a_q^\dagger|q\rangle=0\)</span>。计算两条路径：</p>
+<div class="arithmatex">\[
+[a_q,a_q^\dagger]|n\rangle=
+\begin{cases}
+|n\rangle,&amp;0\le n&lt;q,\\
+-q|q\rangle,&amp;n=q.
+\end{cases}
+\]</div>
+<p>因此</p>
+<div class="arithmatex">\[
+[a_q,a_q^\dagger]=I_q-(q+1)|q\rangle\langle q|.
+\]</div>
+<p>迹为 <span class="arithmatex">\((q+1)-(q+1)=0\)</span>，与任意有限矩阵的 <span class="arithmatex">\(\operatorname{Tr}[A,B]=0\)</span> 一致。有限矩阵不可能在整个空间精确满足 <span class="arithmatex">\([a,a^\dagger]=I\)</span>。提高 <span class="arithmatex">\(q\)</span> 把缺陷移到更高占据，却不会让算符范数中的缺陷消失；讨论具体态的数值收敛，还需检查高占据权重与观测量误差。</p>
+<p><strong>另一种常见陷阱：</strong> 固定 <span class="arithmatex">\(N\)</span> 扇区里的产生或湮灭单算符都把态送出该扇区，所以 <span class="arithmatex">\(P_Na_iP_N=0\)</span>。然而搬运算符 <span class="arithmatex">\(P_Na_i^\dagger a_jP_N\)</span> 通常不为零：</p>
+<div class="arithmatex">\[
+P_Na_i^\dagger a_jP_N
+\ne (P_Na_i^\dagger P_N)(P_Na_jP_N).
+\]</div>
+<p>应先完整组合算符，再限制到守恒扇区。下面的两玻色模式 <span class="arithmatex">\(N=2\)</span> 三态空间包含这个扇区的全部状态，Hamiltonian 在其中封闭；它是<strong>精确的扇区限制</strong>，与单模式截断滑块 <span class="arithmatex">\(q\)</span> 无关。即使把滑块设为 <span class="arithmatex">\(q=1\)</span>，下方模型仍保留 <span class="arithmatex">\(|2,0\rangle\)</span> 与 <span class="arithmatex">\(|0,2\rangle\)</span>，以便把两种操作区分清楚。</p>
+<h2 id="8-hamiltonian">8. 从算符构造两个不同的两模式 Hamiltonian<a class="headerlink" href="#8-hamiltonian" title="Permanent link"></a></h2>
+<p>以下用固定能量单位 <span class="arithmatex">\(E_0\)</span>，<span class="arithmatex">\(t,U,\Delta\)</span> 表示能量；数值表显示它们除以 <span class="arithmatex">\(E_0\)</span> 后的数。<span class="arithmatex">\(t\)</span> 是跃迁耦合，时间另记 <span class="arithmatex">\(\tau=E_0t_{\rm phys}/\hbar\)</span>。</p>
+<p><strong>无自旋费米模型。</strong> 采用跨模式密度相互作用：</p>
+<div class="arithmatex">\[
+H_F=-t(c_0^\dagger c_1+c_1^\dagger c_0)
++\frac{\Delta}{2}(n_0-n_1)+Un_0n_1.
+\]</div>
+<p>在顺序 <span class="arithmatex">\(|0,0\rangle,|1,0\rangle,|0,1\rangle,|1,1\rangle\)</span> 下，</p>
+<div class="arithmatex">\[
+H_F=
 \begin{pmatrix}
 0&amp;0&amp;0&amp;0\\
-0&amp;\epsilon_0&amp;-t&amp;0\\
-0&amp;-t&amp;\epsilon_1&amp;0\\
-0&amp;0&amp;0&amp;\epsilon_0+\epsilon_1+U
-\end{pmatrix},
-\qquad \texttt{[H,N]}=0.
+0&amp;\Delta/2&amp;-t&amp;0\\
+0&amp;-t&amp;-\Delta/2&amp;0\\
+0&amp;0&amp;0&amp;U
+\end{pmatrix}.
 \]</div>
-<p>所以 hopping 只在 <span class="arithmatex">\(N=1\)</span> sector 内交换占据；<span class="arithmatex">\(U\)</span> 只抬高双占据态。实验台把矩阵动作、<span class="arithmatex">\(N\)</span> 和能量分开列出，让“相互作用”不再是一个没有单位的标签。</p>
-<h3 id="4">4. 模型边界面板<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<blockquote>
-<p><strong>边界与误解</strong></p>
-<ul>
-<li>两个模式、四个 fermion basis state 是有限代数演示；它不是无限晶格、连续动量、热力学极限或非微扰 Hubbard 相图。</li>
-<li>boson 的 slider 截止只限制显示范围；公式本身允许任意非负 <span class="arithmatex">\(n\)</span>。fermion 的 <span class="arithmatex">\(0/1\)</span> 则是精确代数约束，不是显示偏好。</li>
-<li><span class="arithmatex">\(\texttt{[H,N]}=0\)</span> 说明本模型的粒子数守恒，不等于模型已经解释 Mott 转变、超导或所有集体激发。</li>
-<li>两模式 spinless interaction 是 Hubbard-like 最小桥梁；真实电子还要加 lattice、spin、long-range terms、填充、极限与相应的 many-body 分析。</li>
-</ul>
-</blockquote>
-<h3 id="5">5. 确定性实验：先过预测门，再切换统计<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<p>预测提交后，左侧显示当前 Fock state 的 creation/annihilation factor、总数和精确关系；关系检查会在有限状态集合上组合完整的 state+coefficient 映射，并比较非目标态的系数，而不是只代入一个恒等式。右侧显示四个 basis state 的 Hubbard 动作、<span class="arithmatex">\(N\)</span> sector、单粒子本征值和 <span class="arithmatex">\(\texttt{[H,N]}\)</span> 残差。切换 <span class="arithmatex">\(t\)</span> 或 <span class="arithmatex">\(U\)</span> 只是在同一个有限模型内改变账本。</p>
-<div class="learning-lab" data-learning-lab="second-quantization">
-<p><strong>无 JavaScript 时的静态读法：</strong> 取 fermion state <span class="arithmatex">\(|1,0\rangle\)</span>，操作 mode 1；再取 boson state <span class="arithmatex">\(|2,1\rangle\)</span>，操作 mode 0。</p>
+<p>例：<span class="arithmatex">\(c_1^\dagger c_0|1,0\rangle=|0,1\rangle\)</span>，所以列 <span class="arithmatex">\(|1,0\rangle\)</span>、行 <span class="arithmatex">\(|0,1\rangle\)</span> 的贡献为 <span class="arithmatex">\(-t\)</span>。从 <span class="arithmatex">\(|1,1\rangle\)</span> 出发，先移除一个粒子后，另一边仍已占据，下一次产生被阻挡，两条跃迁贡献都为零。<span class="arithmatex">\(Un_0n_1\)</span> 描述两个不同模式之间的密度能，不是同模式双占据能。</p>
+<p><strong>玻色 Bose–Hubbard 二聚体。</strong> 改用各模式内部的接触相互作用：</p>
+<div class="arithmatex">\[
+H_B=-t(a_0^\dagger a_1+a_1^\dagger a_0)
++\frac{\Delta}{2}(n_0-n_1)
++\frac U2\sum_{i=0}^1n_i(n_i-1).
+\]</div>
+<p>在完整 <span class="arithmatex">\(N=2\)</span> 基 <span class="arithmatex">\(|2,0\rangle,|1,1\rangle,|0,2\rangle\)</span> 下，</p>
+<div class="arithmatex">\[
+H_B^{(2)}=
+\begin{pmatrix}
+U+\Delta&amp;-\sqrt2t&amp;0\\
+-\sqrt2t&amp;0&amp;-\sqrt2t\\
+0&amp;-\sqrt2t&amp;U-\Delta
+\end{pmatrix}.
+\]</div>
+<p>这里 <span class="arithmatex">\(a_0^\dagger a_1|1,1\rangle=\sqrt2|2,0\rangle\)</span>；三态的相互作用能分别为 <span class="arithmatex">\(U,0,U\)</span>。两模型共享跃迁和势差的写法，<strong>相互作用的定义却不同</strong>，不能把图中的同一数值 <span class="arithmatex">\(U\)</span> 当成完全相同的物理操作。</p>
+<p>实验按“初态作为列，末态作为行”逐项组装矩阵，再检查 Hermiticity、<span class="arithmatex">\([H,N]\)</span> 和本征方程。此处 <span class="arithmatex">\(H_B\)</span> 的三态全有 <span class="arithmatex">\(N=2\)</span>；<span class="arithmatex">\(H_F\)</span> 的四态分别有 <span class="arithmatex">\(N=0,1,1,2\)</span>。两模型都只代表有限系统，不足以独立宣布 Mott 相变或超导。</p>
+<h2 id="9">9. 从能级到概率：为什么玻色子会出现聚束？<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>先看对称势阱 <span class="arithmatex">\(\Delta=0\)</span>。定义</p>
+<div class="arithmatex">\[
+|S\rangle=\frac{|2,0\rangle+|0,2\rangle}{\sqrt2},
+\qquad
+|A\rangle=\frac{|2,0\rangle-|0,2\rangle}{\sqrt2}.
+\]</div>
+<p><span class="arithmatex">\(|A\rangle\)</span> 的两条跃迁振幅抵消，能量为 <span class="arithmatex">\(U\)</span>；<span class="arithmatex">\(|S\rangle\)</span> 与 <span class="arithmatex">\(|1,1\rangle\)</span> 的耦合则相加，得到</p>
+<div class="arithmatex">\[
+H_{\{|S\rangle,|1,1\rangle\}}
+=\begin{pmatrix}U&amp;-2t\\-2t&amp;0\end{pmatrix},
+\qquad
+E_\pm=\frac{U\pm\sqrt{U^2+16t^2}}2.
+\]</div>
+<p>所以完整谱为 <span class="arithmatex">\(\{E_-,U,E_+\}\)</span>，排序随参数自动处理。对初态 <span class="arithmatex">\(|1,1\rangle\)</span>，若将能量均以 <span class="arithmatex">\(E_0\)</span> 为单位写成数值，令 <span class="arithmatex">\(\Omega=\sqrt{U^2+16t^2}\)</span>，两边双占据的总概率为</p>
+<div class="arithmatex">\[
+P_{20}(\tau)+P_{02}(\tau)
+=\frac{16t^2}{U^2+16t^2}
+\sin^2\!\left(\frac{\Omega\tau}{2}\right).
+\]</div>
+<p>当 <span class="arithmatex">\(\Omega=0\)</span> 时按无演化的极限取零。强 <span class="arithmatex">\(|U|/|t|\)</span> 下，这个特定初态向双占据态的转移受抑；这是动力学结论，不能据此断言吸引相互作用的基态也不喜欢双占据。</p>
+<p>自由且共振时 <span class="arithmatex">\(U=\Delta=0\)</span>，公式化为</p>
+<div class="arithmatex">\[
+P_{11}=\cos^2(2t\tau),\qquad
+P_{20}=P_{02}=\frac12\sin^2(2t\tau).
+\]</div>
+<p>当 <span class="arithmatex">\(t\ne0\)</span>、<span class="arithmatex">\(\tau=\pi/(4|t|)\)</span> 时，<span class="arithmatex">\(P_{11}=0\)</span>、<span class="arithmatex">\(P_{20}=P_{02}=1/2\)</span>。这是两条不可区分路径的干涉。若换成两个可区分、独立通过相同平衡分束器的粒子，反而得到 <span class="arithmatex">\(P_{11}=1/2\)</span>、<span class="arithmatex">\(P_{20}=P_{02}=1/4\)</span>。</p>
+<p>两无自旋费米模式的初态 <span class="arithmatex">\(|1,1\rangle\)</span> 则始终只积累相位 <span class="arithmatex">\(e^{-iU\tau}\)</span>，占据概率为一。它并不是“没有量子演化”，而是本模型的固定满占据扇区只有一维，所有占据测量都看不见这个整体相位。</p>
+<p>对一般 <span class="arithmatex">\(\Delta\)</span>，实验使用完整三态矩阵的正交本征基，计算
+<span class="arithmatex">\(\psi_j(\tau)=\sum_\alpha v_{\alpha j}v_{\alpha,11}e^{-iE_\alpha\tau}\)</span>。
+表中保留实部、虚部、概率、范数与能量；本征向量的任意整体符号会在乘积中抵消。简并时也使用完整本征子空间，不能随意挑一个“基态向量”来冒充唯一物理预测。</p>
+<h2 id="10">10. 实验路线：每次只改变一个问题<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>先用默认自由玻色模型看第 9 节的聚束，再依次检查：</p>
+<ol>
+<li><strong>“第二模式产生负号”</strong>：局部初态 <span class="arithmatex">\(|1,0\rangle\)</span>，操作模式 1，先手算 <span class="arithmatex">\(c_1^\dagger\)</span>，再打开动作表。四模式符号图按每个 mask 完整列出，轻微横向错位只为了让四组点分开。</li>
+<li><strong>“玻色子最高显示态”</strong>：比较同一个 <span class="arithmatex">\(|q\rangle\)</span> 上的未截断和投影产生；查看最高态对易子与总迹。不要把显示边界误读成 Pauli 约束。</li>
+<li><strong>“强排斥”与“吸引”</strong>：初态仍固定 <span class="arithmatex">\(|1,1\rangle\)</span>，用第 9 节的上限预测双占据最大概率，再检查曲线和完整复振幅。</li>
+<li><strong>“不等势阱”</strong>：<span class="arithmatex">\(\Delta\ne0\)</span> 时对称、反对称组合不再自动分块，回到三态矩阵；检查排序能量、本征残差、概率归一化与能量守恒。</li>
+<li><strong>“跃迁符号反转”</strong>：观察 <span class="arithmatex">\(t\to-t\)</span> 时能量和占据概率不变，但某些振幅符号改变。两模式系统可用模式的相位变换吸收这个符号，不能推广成任意带环晶格的所有跃迁相位都可消掉。</li>
+<li><strong>“零跃迁与简并”</strong>：初态不转移，重复能量是合法结果。确认界面没有把简并误报为失败，也不把数值微小残差解释成物理劈裂。</li>
+</ol>
+<p>局部算符的 <span class="arithmatex">\(n_0,n_1\)</span> 滑块只选择代数问题；动力学始终从 <span class="arithmatex">\(|1,1\rangle\)</span> 出发。统计选择只改变局部动作表，下方同时保留两种物理模型作比较。最后的自由聚束参照会<strong>另设 <span class="arithmatex">\(U=\Delta=0\)</span> 计算</strong>，不能当成当前相互作用曲线的结果。</p>
+<div class="learning-lab" data-learning-lab="second-quantization" markdown="1">
+<p><strong>无脚本对照：</strong>六份完整记录保留每条算符路径、全部四模式CAR、截断缺陷、两模型矩阵、能谱和161个时间点的复振幅。整数与根式系数精确保存；本征分解和时间演化采用浮点数。</p>
+<figure class="plot">
+<p><img alt="玻色阶梯、截断对易子、四模式费米符号、能谱、两粒子概率与正规序计数六面板图。" src="assets/img/cm-01-fock-certificates.svg" /></p>
+<figcaption>A、B比较未截断与真正投影；C的零系数表示Pauli阻挡；D的两种U定义不同；E从固定初态一边一个粒子出发；F区分粒子数平方和实际粒子对数。</figcaption>
+</figure>
+<div aria-label="二次量子化固定记录，可横向滚动" class="fock191-static" role="region" tabindex="0">
 <table>
 <thead>
 <tr>
-<th>账本</th>
-<th>精确结果</th>
-<th>读法</th>
+<th>预设</th>
+<th>局部统计</th>
+<th style="text-align: right;">q</th>
+<th style="text-align: right;">t/E0</th>
+<th style="text-align: right;">U/E0</th>
+<th style="text-align: right;">Δ/E0</th>
+<th>玻色N=2能量/E0</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>boson creation</td>
-<td><span class="arithmatex">\(a_0^\dagger\lvert2,1\rangle=\sqrt3\,\lvert3,1\rangle\)</span></td>
-<td>可无限占据；因子是 <span class="arithmatex">\(\sqrt{n+1}\)</span></td>
+<td>default</td>
+<td>boson</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.0</td>
+<td>-2, -1.9467935e-16, 2</td>
 </tr>
 <tr>
-<td>boson annihilation</td>
-<td><span class="arithmatex">\(a_0\lvert2,1\rangle=\sqrt2\,\lvert1,1\rangle\)</span></td>
-<td>因子是 <span class="arithmatex">\(\sqrt n\)</span></td>
+<td>sign</td>
+<td>fermion</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.0</td>
+<td>-2, -1.9467935e-16, 2</td>
 </tr>
 <tr>
-<td>fermion creation</td>
-<td><span class="arithmatex">\(c_1^\dagger\lvert1,0\rangle=-\lvert1,1\rangle\)</span></td>
-<td>前面 mode 0 有一个粒子，所以有负号</td>
+<td>top</td>
+<td>boson</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.0</td>
+<td>-2, -1.9467935e-16, 2</td>
 </tr>
 <tr>
-<td>Pauli 边界</td>
-<td><span class="arithmatex">\(c_0^\dagger\lvert1,0\rangle=0\)</span></td>
-<td>不能双占据同一个 fermion mode</td>
+<td>repulsive</td>
+<td>boson</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">8.0</td>
+<td style="text-align: right;">0.0</td>
+<td>-0.47213595, 8, 8.472136</td>
 </tr>
 <tr>
-<td>两模式矩阵</td>
-<td><span class="arithmatex">\(H_{10,01}=H_{01,10}=-t\)</span></td>
-<td>hopping 保持 <span class="arithmatex">\(N=1\)</span></td>
+<td>tilted</td>
+<td>boson</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">2.0</td>
+<td>-2.1413361, 0.51513805, 3.6261981</td>
 </tr>
 <tr>
-<td>双占据能量</td>
-<td><span class="arithmatex">\(E_{11}=\epsilon_0+\epsilon_1+U\)</span></td>
-<td><span class="arithmatex">\(U\)</span> 只在 <span class="arithmatex">\(n_0n_1=1\)</span> 时出现</td>
-</tr>
-<tr>
-<td>守恒检查</td>
-<td><span class="arithmatex">\(\texttt{[H,N]}=0\)</span></td>
-<td>有限矩阵逐项核对，不是热力学极限结论</td>
+<td>zero</td>
+<td>boson</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.0</td>
+<td>0, 0, 0</td>
 </tr>
 </tbody>
 </table>
-<p>如果交互失效，仍可用这些行检查 creation/annihilation 的归一化、fermion sign、Pauli exclusion 和 number conservation；关系测试还会用真空、双占据和非目标输出态作边界/扰动反例，不要把这张四态表称作完整 Hubbard 理论。</p>
 </div>
+<p><a download="fock-frozen-records.json" href="assets/learning/projects/fock-certificates/run-snapshot.json">下载六份完整记录</a>。q只用于投影代数比较，下面始终完整的两玻色子三态矩阵不随q截断。局部占据选择不改变动力学初态。</p>
+</div>
+<h2 id="11">11. 八道练习：把中间步骤保留下来<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>练习 1：两玻色模式、三个粒子有几态？怎样归一化 |2,1〉？</summary>
+<p>固定 <span class="arithmatex">\(N=3\)</span> 的非负整数解为 <span class="arithmatex">\((3,0),(2,1),(1,2),(0,3)\)</span>，共 <span class="arithmatex">\(\binom{3+2-1}{3}=4\)</span> 态。不能把两个模式各自截成 <span class="arithmatex">\(0,\ldots,3\)</span> 后所得 <span class="arithmatex">\(16\)</span> 态全部算进去，因为其中许多态的总数不是三。</p>
+<p>在占据表示中，</p>
+<div class="arithmatex">\[
+|2,1\rangle=\frac{(a_0^\dagger)^2a_1^\dagger}{\sqrt2}|\mathrm{vac}\rangle.
+\]</div>
+<p>对应的归一化位置波函数，是三个不同排列的等振幅组合：</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\Psi&amp;=(T_1+T_2+T_3)/\sqrt3,\\
+T_1&amp;=\phi_1(x_1)\phi_0(x_2)\phi_0(x_3),\\
+T_2&amp;=\phi_0(x_1)\phi_1(x_2)\phi_0(x_3),\\
+T_3&amp;=\phi_0(x_1)\phi_0(x_2)\phi_1(x_3).
+\end{aligned}
+\]</div>
+<p>三个乘积因正交模式而相互正交，各自范数为一，所以归一化因子是 <span class="arithmatex">\(1/\sqrt3\)</span>。占据式的 <span class="arithmatex">\(1/\sqrt2\)</span> 与波函数式的 <span class="arithmatex">\(1/\sqrt3\)</span> 并不矛盾：两种未归一化表达式本身的范数不同。</p>
+</details>
+<details class="answer">
+<summary>练习 2：亲手核对一个非对角费米反对易关系。</summary>
+<p>在 <span class="arithmatex">\(|1,0\rangle\)</span> 上比较 <span class="arithmatex">\(c_0c_1^\dagger\)</span> 与 <span class="arithmatex">\(c_1^\dagger c_0\)</span>。第一条路径：</p>
+<div class="arithmatex">\[
+c_1^\dagger|1,0\rangle=-|1,1\rangle,\qquad
+c_0(-|1,1\rangle)=-|0,1\rangle.
+\]</div>
+<p>第二条路径：</p>
+<div class="arithmatex">\[
+c_0|1,0\rangle=|0,0\rangle,\qquad
+c_1^\dagger|0,0\rangle=|0,1\rangle.
+\]</div>
+<p>两者相加为零，验证该态上的 <span class="arithmatex">\(\{c_0,c_1^\dagger\}=0\)</span>。若只算 <span class="arithmatex">\(\langle1,0|\{c_0,c_1^\dagger\}|1,0\rangle\)</span>，即使错误地得到 <span class="arithmatex">\(2|0,1\rangle\)</span>，对角期望仍为零，会漏掉错误。因此实验检查所有输出基态系数。</p>
+<p>要证明整个有限空间上的算符恒等式，还须覆盖一组完整基。四模式实验做这件事；要推广任意模式数，则使用第 4 节的奇偶串代数证明。</p>
+</details>
+<details class="answer">
+<summary>练习 3：在 q=2 的截断空间写出 a，并计算对易子。</summary>
+<p>按 <span class="arithmatex">\(|0\rangle,|1\rangle,|2\rangle\)</span> 排列，矩阵的列是输入、行是输出：</p>
+<div class="arithmatex">\[
+a_2=
+\begin{pmatrix}0&amp;1&amp;0\\0&amp;0&amp;\sqrt2\\0&amp;0&amp;0\end{pmatrix}.
+\]</div>
+<p>取共轭转置：</p>
+<div class="arithmatex">\[
+a_2^\dagger=
+\begin{pmatrix}0&amp;0&amp;0\\1&amp;0&amp;0\\0&amp;\sqrt2&amp;0\end{pmatrix}.
+\]</div>
+<p>所以 <span class="arithmatex">\(a_2a_2^\dagger=\operatorname{diag}(1,2,0)\)</span>，<span class="arithmatex">\(a_2^\dagger a_2=\operatorname{diag}(0,1,2)\)</span>，两者之差为 <span class="arithmatex">\(\operatorname{diag}(1,1,-2)\)</span>。迹为零，最高态缺陷为 <span class="arithmatex">\(-3\)</span>。</p>
+<p>若只是在显示表里把 <span class="arithmatex">\(n\)</span> 列到二，未截断路径 <span class="arithmatex">\(a^\dagger|2\rangle=\sqrt3|3\rangle\)</span> 仍存在，接着 <span class="arithmatex">\(a\)</span> 给出 <span class="arithmatex">\(3|2\rangle\)</span>；减去另一条路径的 <span class="arithmatex">\(2|2\rangle\)</span>，结果仍为 <span class="arithmatex">\(|2\rangle\)</span>。</p>
+<p>再看固定两粒子扇区，虽然 <span class="arithmatex">\(P_2a_0^\dagger P_2=P_2a_1P_2=0\)</span>，但 <span class="arithmatex">\(P_2a_0^\dagger a_1P_2|1,1\rangle=\sqrt2|2,0\rangle\)</span>。这个例子同时说明投影与乘法不能随意交换。</p>
+</details>
+<details class="answer">
+<summary>练习 4：为什么 U n(n−1)/2 在 n=0、1、2、3 时给 0、0、U、3U？</summary>
+<p><span class="arithmatex">\(n\)</span> 个粒子的无序对数是 <span class="arithmatex">\(\binom n2=n(n-1)/2\)</span>。把每对相互作用能设为 <span class="arithmatex">\(U\)</span>，便依次得到零对、零对、一对、三对。</p>
+<p>从算符再算一次：<span class="arithmatex">\(aa|n\rangle=\sqrt{n(n-1)}|n-2\rangle\)</span>，而 <span class="arithmatex">\(a^\dagger a^\dagger\)</span> 将它变回原态并再乘相同平方根，因此总系数为 <span class="arithmatex">\(n(n-1)\)</span>。前面的 <span class="arithmatex">\(1/2\)</span> 把有序对化成无序对。</p>
+<p>同一个费米模式有 <span class="arithmatex">\(cc=0\)</span>，这种同模式两体项直接为零。但对两个不同自旋模式，<span class="arithmatex">\(n_\uparrow n_\downarrow\)</span> 可以为一。电子 Hubbard 模型的格点双占据指后者，不能拿“同模式最多一个”来排除它。</p>
+</details>
+<details class="answer">
+<summary>练习 5：推导玻色三态的 −2t 耦合，以及自由聚束时刻。</summary>
+<p>从中间态出发，</p>
+<div class="arithmatex">\[
+H_B|1,1\rangle
+=-\sqrt2t|2,0\rangle-\sqrt2t|0,2\rangle
+=-2t|S\rangle.
+\]</div>
+<p>对称态到中间态也给 <span class="arithmatex">\(-2t\)</span>，由此在 <span class="arithmatex">\(U=\Delta=0\)</span> 时，二态 Hamiltonian 是 <span class="arithmatex">\(-2t\sigma_x\)</span>。指数公式为</p>
+<div class="arithmatex">\[
+e^{i2t\tau\sigma_x}
+=I\cos(2t\tau)+i\sigma_x\sin(2t\tau).
+\]</div>
+<p>从 <span class="arithmatex">\(|1,1\rangle\)</span> 出发，<span class="arithmatex">\(\psi(\tau)=\cos(2t\tau)|1,1\rangle+i\sin(2t\tau)|S\rangle\)</span>。因此两端态的振幅各为 <span class="arithmatex">\(i\sin(2t\tau)/\sqrt2\)</span>，平方后得到第 9 节的三个概率。</p>
+<p>当 <span class="arithmatex">\(t=1\)</span>、<span class="arithmatex">\(\tau=\pi/4\)</span>，中间态振幅为零。两端概率各一半，但态仍是带确定相对相位的相干叠加。只知道两端概率，不能把它直接替换成各一半的经典混合态；后续再耦合的干涉会区分两者。</p>
+</details>
+<details class="answer">
+<summary>练习 6：强排斥 U=8t 时，从 |1,1〉 出发最多有多少双占据？</summary>
+<p>在 <span class="arithmatex">\(\Delta=0\)</span>、<span class="arithmatex">\(t\ne0\)</span> 时，第 9 节的正弦平方至多为一，所以</p>
+<div class="arithmatex">\[
+P_{20}+P_{02}\le
+\frac{16t^2}{U^2+16t^2}.
+\]</div>
+<p>代入 <span class="arithmatex">\(U=8t\)</span> 得上限 <span class="arithmatex">\(16/(64+16)=1/5\)</span>。这不是只靠“排斥较大”的定性判断，而是有限二态振荡的严格振幅上限。有限显示时间窗口是否刚好取到最大值，则还取决于采样点；不能把画出的离散最大值当作精确上限本身。</p>
+<p>把 <span class="arithmatex">\(U\)</span> 改为 <span class="arithmatex">\(-8t\)</span>，这个初态的转移上限仍为 <span class="arithmatex">\(1/5\)</span>，但能谱和最低能态的物理意义改变。动力学转移需要考虑初态的能量匹配，不能把它与基态的双占据偏好混为一谈。</p>
+</details>
+<details class="answer">
+<summary>练习 7：换费米基矢顺序，为什么物理结果不变？</summary>
+<p>两模式原基 <span class="arithmatex">\(|1,1\rangle=c_0^\dagger c_1^\dagger|\mathrm{vac}\rangle\)</span>，反序基为 <span class="arithmatex">\(|1,1\rangle'=c_1^\dagger c_0^\dagger|\mathrm{vac}\rangle=-|1,1\rangle\)</span>。另外三个占据态不变，所以 <span class="arithmatex">\(D=\operatorname{diag}(1,1,1,-1)\)</span>。</p>
+<p>原矩阵元 <span class="arithmatex">\(\langle1,1|c_1^\dagger|1,0\rangle=-1\)</span>。新矩阵元为 <span class="arithmatex">\((-1)\times(-1)\times1=+1\)</span>，正是 <span class="arithmatex">\(Dc_1^\dagger D\)</span> 相应元素。与此同时，任意态的列向量变为 <span class="arithmatex">\(\psi'=D\psi\)</span>，故</p>
+<div class="arithmatex">\[
+(\psi')^\dagger O'\psi'
+=\psi^\dagger D(DOD)D\psi
+=\psi^\dagger O\psi.
+\]</div>
+<p>费米的交换统计没有消失，只是符号在基矢与坐标之间重新分配。若只改矩阵中一个负号，却保持其他算符和态完全不变，就不是合法的基变换。</p>
+</details>
+<details class="answer">
+<summary>练习 8：哪些结论可以带去研究 Hubbard 晶格，哪些还需要补条件？</summary>
+<p>可以直接复用的是占据基、费米奇偶串、算符项的逐步作用、Hermiticity、守恒量分块与可观测量计算。四个带自旋的格点模式可构成真正电子二聚体，在 <span class="arithmatex">\(N=2\)</span> 时有六态，需保留自旋与所有允许跃迁。</p>
+<p>不能直接复用的是“两无自旋费米模式满占据后不动，所以电子都不能跃迁”。电子二聚体中，另一格点的反向自旋模式可能空着，跃迁可以形成格点双占据；虚跃迁还会产生低能自旋交换。对应的六态计算见 <a href="research-01-hubbard-dimer.html">Hubbard 二聚体</a>。</p>
+<p>也不能仅用几条有限能级曲线就宣布 Mott 相变。需要说明格点数、填充、边界条件、热力学极限以及电荷能隙或响应如何随规模变化。对数值算法，还要独立检查截断和时间演化误差；一个很小的本征残差不是对整个物理近似的总误差保证。</p>
+</details>
+<h2 id="12">12. 带着这套语言继续学习<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<p>现在应能完成三个迁移：看见 <span class="arithmatex">\(b_i^\dagger b_j\)</span> 就能读出单粒子搬运；看见四算符项就能追踪两个粒子的移除、重建与计数因子；看见一个有限矩阵就能说清它来自完整守恒扇区还是额外截断。</p>
+<p>继续 <a href="cm-02-bcs.html">BCS 与超导</a> 时，重点追问配对项为何改变 <span class="arithmatex">\(N\)</span> 却守恒奇偶性；继续 <a href="cm-03-greens-quasiparticles.html">Green 函数</a> 时，重点追问产生和湮灭的先后顺序如何进入相关函数。到张量网络与量子模拟，再把本页的有限奇偶串和截断缺陷当作基本检验。</p>
+<p>本页的有限模型、例题与交互计算均围绕明确的算符约定独立展开。进一步阅读可使用：</p>
+<ul>
+<li><a href="https://arxiv.org/html/1812.10732v5">Tasaki：非相对论二次量子化讲义，第 3–4 节</a>：从多体波函数到占据表示与 Hamiltonian，适合继续核对各步定义。</li>
+<li><a href="https://ocw.mit.edu/courses/8-514-strongly-correlated-systems-in-condensed-matter-physics-fall-2003/resources/lec3/">Levitov：MIT 8.514 二次量子化讲义</a>：玻色 Fock 表示、模式矩阵元与相互作用的后续例子。</li>
+</ul>
+<p><strong>完成标准：</strong> 不看结果表，独立算出一个带负号的费米动作、一个带平方根的玻色跃迁、一个截断反例，并用三个复振幅重建同一时刻的归一化概率。能指出模型边界，比只记住矩阵长什么样更能支持后面的多体课程。</p>
 </section>
-<h2 id="1-fock">1. Fock 空间与算符翻译<a class="headerlink" href="#1-fock" title="Permanent link"></a></h2>
-<p>一次量子化把 <span class="arithmatex">\(N\)</span> 个全同粒子写成对称或反对称的多体波函数；二次量子化选择一组单粒子模式，把多体态写成 occupation vector。真空 <span class="arithmatex">\(|0\rangle\)</span> 是所有模式空的 reference，creation/annihilation 在其上生成整个 Fock space。</p>
-<p>数算符为</p>
-<div class="arithmatex">\[
-n_i=a_i^\dagger a_i\quad\text{或}\quad n_i=c_i^\dagger c_i,
-\qquad N=\sum_i n_i.
-\]</div>
-<p>单体算符和两体相互作用通常翻译为</p>
-<div class="arithmatex">\[
-\hat T=\sum_{ij}t_{ij}c_i^\dagger c_j,\qquad
-\hat V=\frac12\sum_{ijkl}V_{ijkl}c_i^\dagger c_j^\dagger c_lc_k.
-\]</div>
-<p>“先 annihilate、再 create”是指标顺序的实际读法；fermion 还要跟踪 canonical order 产生的符号。</p>
-<h2 id="2-pauli-exclusion">2. 交换统计与 Pauli exclusion<a class="headerlink" href="#2-pauli-exclusion" title="Permanent link"></a></h2>
-<p>对 fermion，<span class="arithmatex">\(c_i^{\dagger2}=0\)</span> 直接来自
-<span class="arithmatex">\(\{c_i^\dagger,c_i^\dagger\}=0\)</span>。这不是额外写进程序的禁止清单，而是代数作用在 occupation state 上的结果。对 boson，重复 creation 不为零，归一化因子使</p>
-<div class="arithmatex">\[
-\langle n|a_i a_i^\dagger|n\rangle=n+1,\qquad
-\langle n|a_i^\dagger a_i|n\rangle=n.
-\]</div>
-<p>两式相减给 <span class="arithmatex">\([a_i,a_i^\dagger]=1\)</span>。交互实现采用精确平方根公式；显示上限只服务于可读图形，不应被误读为物理 cutoff 的连续极限。</p>
-<h2 id="3-hubbard-like">3. 两模式 Hubbard-like 模型<a class="headerlink" href="#3-hubbard-like" title="Permanent link"></a></h2>
-<p>在 <span class="arithmatex">\(N=0\)</span> sector，<span class="arithmatex">\(|00\rangle\)</span> 是真空；在 <span class="arithmatex">\(N=1\)</span> sector，矩阵是</p>
-<div class="arithmatex">\[
-\begin{pmatrix}\epsilon_0&amp;-t\\-t&amp;\epsilon_1\end{pmatrix},
-\qquad
-E_\pm=\frac{\epsilon_0+\epsilon_1}{2}
-\pm\sqrt{\left(\frac{\epsilon_0-\epsilon_1}{2}\right)^2+t^2}.
-\]</div>
-<p>在 <span class="arithmatex">\(N=2\)</span> sector，唯一基态 <span class="arithmatex">\(|11\rangle\)</span> 的能量是
-<span class="arithmatex">\(\epsilon_0+\epsilon_1+U\)</span>。由于 hopping 不改变总数，矩阵按 <span class="arithmatex">\(N\)</span> 分块；这是 number conservation 的最小可见证据。</p>
-<p>若把模式解释为两格点、两个 spin、或两个轨道，物理语境会不同，但这张代数表仍然是同一类有限 Fock 账本。真正的凝聚态问题还要研究模式数、填充、边界条件、基态极限和关联函数如何随系统规模变化。</p>
-<h2 id="4_1">4. 三个检查题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（符号）</strong> 直接算 <span class="arithmatex">\(c_0^\dagger c_1|0,1\rangle=|1,0\rangle\)</span>，而
-<span class="arithmatex">\(c_1^\dagger c_0|1,0\rangle=|0,1\rangle\)</span>；改变 canonical basis 顺序会同步改变中间符号约定，不能只看绝对值。</p>
-<p><strong>例 2（双占据）</strong> 对 <span class="arithmatex">\(|1,0\rangle\)</span> 施加 <span class="arithmatex">\(c_1^\dagger\)</span> 可以进入 <span class="arithmatex">\(|1,1\rangle\)</span>；再次施加 <span class="arithmatex">\(c_0^\dagger\)</span> 则为零。<span class="arithmatex">\(U\)</span> 不是“第二个粒子的质量”，而是双占据矩阵元的相互作用能。</p>
-<p><strong>例 3（边界）</strong> 如果有限两模式 ledger 显示 <span class="arithmatex">\(\texttt{[H,N]}=0\)</span>，它证明的是这个写出的有限矩阵守恒；要讨论 Mott 绝缘体，还要把模型扩展到晶格与热力学极限，并分析相应的 many-body 状态。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>二次量子化的力量来自代数的可组合性：occupation、交换符号、相互作用和守恒都能落进同一本账。下一步不是把四态模型夸大，而是把模式数、对称性和极限逐层放回物理。</em></p>
-<h2 id="_1">基础衔接与计算验收<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<p>下一次验收可做<a href="research-01-hubbard-dimer.html">Hubbard 二聚体第 2 节</a>的四轨道六基矢计算：按固定费米顺序逐项作用跃迁算符，解释 −2t 与三重态抵消，而不仅是背出二阶矩阵。</p>
+<noscript><style>.fock191-course span.arithmatex{overflow-wrap:anywhere}.fock191-static{overflow:auto;max-width:100%}.fock191-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}.fock191-static th,.fock191-static td{white-space:nowrap}</style></noscript>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="qft-03-path-renorm.html"><span class="pager-label">上一页</span>场论 III · 路径积分与重整化</a>
