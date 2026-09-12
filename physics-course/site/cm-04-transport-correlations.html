@@ -56,182 +56,393 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-13 04:36</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#correlated-transport-learning-title">学习层：一条涨落模式如何变成输运时间？</a><ul>
-<li><a href="#1">1. 先预测：空间的长和时间的快是同一件事吗？</a></li>
-<li><a href="#2">2. 固定模型：指数关联与扩散方程</a></li>
-<li><a href="#3-fallback">3. 静态 fallback：默认数值的逐行核对</a></li>
-<li><a href="#4">4. 机制和边界分开记</a></li>
-<li><a href="#5">5. 迁移任务</a></li>
-</ul>
-</li>
-<li><a href="#1_1">1. 相关函数是怎样把许多自由度压成一条曲线的？</a></li>
-<li><a href="#2_1">2. 结构因子：在波数空间找最容易涨落的尺度</a></li>
-<li><a href="#3-q2">3. 守恒律为什么产生 \(q^2\) 的慢模？</a></li>
-<li><a href="#4_1">4. 从扩散到可测输运系数</a></li>
-<li><a href="#5_1">5. 三个边界案例</a></li>
-<li><a href="#6">6. 小结：两本账、一个守恒入口</a></li>
+<li><a href="#transport-learning-title">学习层：一幅密度起伏图，为什么会消退，又为什么一直存在？</a></li>
+<li><a href="#1">1. 先定义测量对象：平均值、关联与响应</a></li>
+<li><a href="#2">2. 一个不会遗漏零模的有限周期环</a></li>
+<li><a href="#3-gaussian">3. 从 Gaussian 积分得到结构因子</a></li>
+<li><a href="#4">4. 守恒不只是让平均值守恒：噪声也必须守恒</a></li>
+<li><a href="#5">5. 解一个模式：扰动记忆消失，平衡方差保持</a></li>
+<li><a href="#6-fdt">6. 相关函数与响应：推导出经典 FDT</a></li>
+<li><a href="#7-2pi">7. 频率空间：面积、虚部与 \(2\pi\)</a></li>
+<li><a href="#8-chi0-1r">8. 零模与极限：为什么 \(\chi(0)\) 有时不是 \(1/r\)？</a></li>
+<li><a href="#9-dq2">9. 从守恒流到扩散：什么时候只剩 \(Dq^2\)？</a></li>
+<li><a href="#10-einstein">10. Einstein 关系：恢复单位后再谈电导率</a></li>
+<li><a href="#11">11. 一个数值实验：稳定并不保证平衡分布正确</a></li>
+<li><a href="#12">12. 八道自检：把结论和条件一起带走</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iv">凝聚态 IV · 关联函数、结构因子与扩散输运<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Chaikin &amp; Lubensky §4–6 / Forster《Hydrodynamic Fluctuations》/ Kardar《Statistical Physics of Fields》§5 ｜ <strong>前置</strong>：cm-03、fl-01、sm-02
-多体系统的“输运”不是一颗粒子从左跑到右的故事，而是守恒密度的空间模式如何衰减。本页用一个可解的密度涨落模型把静态关联长度、结构因子、连续性方程和扩散时间接起来，并明确指出：相关长度不是电导率，相关函数也不是外场响应。</p>
+<p><strong>前置</strong>：<a href="cm-03-greens-quasiparticles.html">Green 函数</a>、<a href="sm-04-kinetic-transport.html">动理学与输运</a>、矩阵对角化与 Gaussian 积分。</p>
+<p><strong>本页目标</strong>：从同一个有限模型算出空间相关、结构因子、因果响应、守恒弛豫和数值误差。静态关联告诉你“哪些位置一起涨落”，响应告诉你“施加外场后怎样改变”；二者通过明确的平衡条件联系。</p>
 </blockquote>
 <div data-learning-page></div>
 
-<section aria-labelledby="correlated-transport-learning-title" class="learning-layer">
-<h2 id="correlated-transport-learning-title">学习层：一条涨落模式如何变成输运时间？<a class="headerlink" href="#correlated-transport-learning-title" title="Permanent link"></a></h2>
-<h3 id="1">1. 先预测：空间的长和时间的快是同一件事吗？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>把一维介质中的密度涨落写成 <span class="arithmatex">\(\delta n(x,t)\)</span>。在打开实验前判断：</p>
-<ol>
-<li>若空间关联长度 <span class="arithmatex">\(\xi\)</span> 加倍，<span class="arithmatex">\(C(x)=C_0e^{-|x|/\xi}\)</span> 的半高距离加倍吗？</li>
-<li>对固定波数 <span class="arithmatex">\(q\)</span> 的扩散模式，扩散系数 <span class="arithmatex">\(D\)</span> 加倍，衰减时间 <span class="arithmatex">\(\tau_q\)</span> 变为原来的几分之一？</li>
-<li>把 <span class="arithmatex">\(q\)</span> 加倍后，模式是慢四倍、慢两倍，还是快四倍？</li>
-<li>一个很长的静态关联长度是否自动意味着很大的电导率或很大的粒子流？</li>
-</ol>
-<p>实验将静态空间账和动态时间账并排画出：左图显示 <span class="arithmatex">\(C(x)\)</span> 与它的 Fourier 权重，右图显示一个 <span class="arithmatex">\(q\)</span> 模式如何按 <span class="arithmatex">\(e^{-Dq^2t}\)</span> 衰减。两张图共享同一组 <span class="arithmatex">\(\xi,D,q\)</span>，但它们不是同一种物理量。</p>
-<h3 id="2">2. 固定模型：指数关联与扩散方程<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>先采用一维、平移不变、各向同性的教学模型</p>
-<div class="arithmatex">\[
-C(x,0)=\langle\delta n(x,0)\delta n(0,0)\rangle=C_0e^{-|x|/\xi},
-\]</div>
-<p>其中 <span class="arithmatex">\(\xi\)</span> 的单位是 <span class="arithmatex">\(\mu\mathrm m\)</span>，<span class="arithmatex">\(C_0\)</span> 是任意关联单位。其 Fourier 变换取本页约定</p>
-<div class="arithmatex">\[
-S(q,0)=\int_{-\infty}^{\infty}C(x,0)e^{-iqx}dx
-=\frac{2C_0\xi}{1+q^2\xi^2}.
-\]</div>
-<p>动态部分从守恒和 constitutive law 得到。连续性方程为</p>
-<div class="arithmatex">\[
-\partial_t\delta n+\partial_x j=0,
-\]</div>
-<p>Fick 定律在均匀介质中为 <span class="arithmatex">\(j=-D\partial_x\delta n\)</span>，于是</p>
-<div class="arithmatex">\[
-\partial_t\delta n=D\partial_x^2\delta n.
-\]</div>
-<p>对 Fourier 模式 <span class="arithmatex">\(\delta n_q(t)\propto e^{iqx}\)</span>，因为 <span class="arithmatex">\(\partial_x^2e^{iqx}=-q^2e^{iqx}\)</span>，得到</p>
-<div class="arithmatex">\[
-\delta n_q(t)=\delta n_q(0)e^{-Dq^2t},
-\qquad
-\tau_q=\frac{1}{Dq^2}.
-\]</div>
-<h3 id="3-fallback">3. 静态 fallback：默认数值的逐行核对<a class="headerlink" href="#3-fallback" title="Permanent link"></a></h3>
-<p>实验默认取 <span class="arithmatex">\(C_0=1\)</span>、<span class="arithmatex">\(\xi=3\ \mu\mathrm m\)</span>、<span class="arithmatex">\(D=2\ \mu\mathrm m^2/\mathrm s\)</span>、<span class="arithmatex">\(q=0.5\ \mu\mathrm m^{-1}\)</span>，并把读数时刻设为 <span class="arithmatex">\(t=1\ \mathrm s\)</span>。以下数字与交互图一致：</p>
-<div class="learning-lab" data-learning-lab="physics-correlated-transport">
-<p><strong>无 JavaScript 时的静态读法：</strong>只使用上面的两个公式，不需要猜图的像素高度。</p>
+<section aria-labelledby="transport-learning-title" class="learning-layer transport194-course">
+<h2 id="transport-learning-title">学习层：一幅密度起伏图，为什么会消退，又为什么一直存在？<a class="headerlink" href="#transport-learning-title" title="Permanent link"></a></h2>
+<p>想象一圈装有液体、彼此连通的小格子。某一格暂时偏多，流动会把它抹平；但热运动不断制造新的小偏差。<strong>某次扰动的消退</strong>和<strong>平衡涨落的持续存在</strong>并不矛盾：前者描述记忆丢失，后者描述新噪声不断补入。</p>
+<p>先比较三个实验：从没有涨落的状态打开噪声；从平衡态关闭噪声；从平衡态保留噪声。它们可以有完全相同的平均衰减率，却有不同的方差。下面不靠一条碰巧好看的随机轨迹下结论，而是计算每种实验的完整方差。</p>
+<div data-learning-lab="physics-correlated-transport">
+<p><strong>无脚本对照：</strong>六份固定记录含全部参数、完整L/H/A/Q/C/P矩阵、全部Fourier模式、加密时间采样、201个频率点、100个有限窗积分和65步方差递推。零模由固定总量约束移除；r=0仅在有限受约束环中解释。</p>
+<figure class="plot">
+<p><img alt="六图：空间协方差、守恒与非守恒弛豫率、相关与因果响应、频率FDT、噪声维持方差、Euler步长偏差。" src="assets/img/cm-04-transport-certificates.svg" /></p>
+<figcaption>A—E使用默认参数。F使用biased-step预设：ΓΔt=1.35，Euler稳态方差约为正确值的3.076923倍；纵轴为log10(1+V/S)，原始方差见记录。</figcaption>
+</figure>
+<div aria-label="守恒输运固定记录，可横向滚动" class="transport194-static" role="region" tabindex="0">
 <table>
 <thead>
 <tr>
-<th>账本</th>
-<th>公式</th>
-<th style="text-align: right;">默认结果</th>
+<th>预设</th>
+<th style="text-align: right;">N</th>
+<th style="text-align: right;">m</th>
+<th style="text-align: right;">平衡方差S</th>
+<th style="text-align: right;">Γ</th>
+<th style="text-align: right;">ΓΔt</th>
+<th>Euler状态</th>
+<th style="text-align: right;">Euler稳态方差</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>原点关联</td>
-<td><span class="arithmatex">\(C(0)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td>default</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2.4860722</td>
+<td style="text-align: right;">0.061237536</td>
+<td style="text-align: right;">0.0061237536</td>
+<td>stable</td>
+<td style="text-align: right;">2.4937076</td>
 </tr>
 <tr>
-<td>一个关联长度处</td>
-<td><span class="arithmatex">\(C(\xi)=e^{-1}\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.36788\)</span></td>
+<td>zero</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td>constrained-zero</td>
+<td style="text-align: right;">不适用</td>
 </tr>
 <tr>
-<td>空间半高距离</td>
-<td><span class="arithmatex">\(x_{1/2}=\xi\ln2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(2.079\ \mu\mathrm m\)</span></td>
+<td>critical</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">6.5685356</td>
+<td style="text-align: right;">0.023177302</td>
+<td style="text-align: right;">0.0023177302</td>
+<td>stable</td>
+<td style="text-align: right;">6.5761565</td>
 </tr>
 <tr>
-<td>结构因子</td>
-<td><span class="arithmatex">\(S(q,0)=6/(1+2.25)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1.84615\)</span>（关联单位·<span class="arithmatex">\(\mu\)</span>m）</td>
+<td>short</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.23529412</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">1.7</td>
+<td>stable</td>
+<td style="text-align: right;">1.5686275</td>
 </tr>
 <tr>
-<td>扩散率</td>
-<td><span class="arithmatex">\(Dq^2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.5\ \mathrm s^{-1}\)</span></td>
+<td>biased-step</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">0.44444444</td>
+<td style="text-align: right;">4.5</td>
+<td style="text-align: right;">1.35</td>
+<td>stable</td>
+<td style="text-align: right;">1.3675214</td>
 </tr>
 <tr>
-<td>模式时间</td>
-<td><span class="arithmatex">\(\tau_q=1/(Dq^2)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(2\ \mathrm s\)</span></td>
-</tr>
-<tr>
-<td><span class="arithmatex">\(t=1\)</span> 的模式比</td>
-<td><span class="arithmatex">\(e^{-Dq^2t}=e^{-0.5}\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.60653\)</span></td>
-</tr>
-<tr>
-<td><span class="arithmatex">\(t=1\)</span> 的结构因子</td>
-<td><span class="arithmatex">\(S(q,t)=S(q,0)e^{-0.5}\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1.1197\)</span></td>
+<td>unstable-step</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.1</td>
+<td style="text-align: right;">80</td>
+<td style="text-align: right;">160</td>
+<td>unstable</td>
+<td style="text-align: right;">不适用</td>
 </tr>
 </tbody>
 </table>
-<p>因此 <span class="arithmatex">\(q\)</span> 加倍会使 <span class="arithmatex">\(\tau_q\)</span> 变为 <span class="arithmatex">\(1/4\)</span>，而 <span class="arithmatex">\(D\)</span> 加倍会使它变为 <span class="arithmatex">\(1/2\)</span>；在 <span class="arithmatex">\(t=\tau_q\)</span> 时模式比恰为 <span class="arithmatex">\(e^{-1}=0.36788\)</span>。这些是扩散方程的确定性结论，不是对一条随机轨迹的拟合。</p>
-<p>实验揭示后可拖动 <span class="arithmatex">\(\xi,D,q,t\)</span>：左侧的 <span class="arithmatex">\(C(x)/C_0\)</span> 用关联长度定位，右侧的 <span class="arithmatex">\(S(q,t)/S(q,0)\)</span> 用扩散时间定位；图中还标出同一 <span class="arithmatex">\(q\)</span> 的 <span class="arithmatex">\(S(q,0)\)</span> 和 <span class="arithmatex">\(\tau_q\)</span>。</p>
-<p><strong>反例与迁移：</strong>若观测到长时间的指数衰减，不要立刻宣布“系统是扩散的”。弹道传播、声子、有限尺寸、记忆核、无序局域化或临界动力学都可能给出别的时间律；需要检查小 <span class="arithmatex">\(q\)</span> 的 <span class="arithmatex">\(q^2\)</span> 标度以及连续性方程的适用范围。</p>
 </div>
-<h3 id="4">4. 机制和边界分开记<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<ul>
-<li><span class="arithmatex">\(\xi\)</span> 是 equal-time correlation 的空间尺度；<span class="arithmatex">\(D\)</span> 是守恒密度的 constitutive coefficient。它们可以相关，却没有一个普适公式把 <span class="arithmatex">\(\xi\)</span> 直接变成 <span class="arithmatex">\(D\)</span>。</li>
-<li><span class="arithmatex">\(S(q)\)</span> 是结构因子，即相关函数的 Fourier 权重；它是涨落的账，不是施加外场后测得的 susceptibility。</li>
-<li>本实验假定局域、无记忆的 Fick 定律和无限一维连续介质。<span class="arithmatex">\(q\to0\)</span> 才是 hydrodynamic 长波长窗口；大 <span class="arithmatex">\(q\)</span> 会看见晶格、碰撞时间或非局域修正。</li>
-<li><span class="arithmatex">\(t&lt;0\)</span> 的关联函数可以非零，因为平衡系统本来就有涨落；这和 retarded response 的 <span class="arithmatex">\(t&lt;0\)</span> 必须为零不同。二者的差别正是相关与响应的入口。</li>
-</ul>
-<h3 id="5">5. 迁移任务<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<p>给出一组实验读数：静态 <span class="arithmatex">\(C(x)\)</span> 的半高距离为 <span class="arithmatex">\(4.16\ \mu\)</span>m，<span class="arithmatex">\(q=0.25\ \mu\mathrm m^{-1}\)</span> 模式在 <span class="arithmatex">\(3.2\)</span> s 衰减到 <span class="arithmatex">\(e^{-1}\)</span>。先分别读出 <span class="arithmatex">\(\xi\)</span> 和 <span class="arithmatex">\(D=1/(q^2\tau_q)\)</span>，再说明为什么不能仅凭这两项推出电导率；若要测电导率，还需要电荷、外场耦合和响应定义。</p>
+<p><a download="transport-frozen-records.json" href="assets/learning/projects/transport-certificates/run-snapshot.json">下载六份完整记录</a>。stable仅表示均方稳定，未保证平衡方差无偏。constrained-zero表示固定总量的零模；unstable表示数值更新失稳，并非物理相变。频窗[-10Γ,10Γ]只包含约93.655%的非零模方差。</p>
+</div>
+<h2 id="1">1. 先定义测量对象：平均值、关联与响应<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>设第 <span class="arithmatex">\(j\)</span> 格的无量纲密度偏差为 <span class="arithmatex">\(\phi_j=n_j-\langle n_j\rangle\)</span>。本页考虑平均为零的平衡态，因此 connected 关联就是</p>
+<div class="arithmatex">\[
+C_{ij}(t)=\langle\phi_i(t)\phi_j(0)\rangle.
+\]</div>
+<p>若没有先减去平均值，<span class="arithmatex">\(\langle n_i n_j\rangle\)</span> 中的背景 <span class="arithmatex">\(\langle n_i\rangle\langle n_j\rangle\)</span> 会混进来。它不表示两个位置之间传递了一个扰动。</p>
+<p>相关也不是“从 <span class="arithmatex">\(j\)</span> 跑到 <span class="arithmatex">\(i\)</span> 的概率”。例如总密度固定时，某处偏多必须由别处偏少补偿，远处相关可以为负。正确的正性要求是：任何实线性组合 <span class="arithmatex">\(Y=\sum_i v_i\phi_i\)</span> 都满足</p>
+<div class="arithmatex">\[
+\operatorname{Var}Y=\mathbf v^{\mathsf T}C(0)\mathbf v\ge0.
+\]</div>
+<p>外场响应则需要一次干预。把自由能加入 <span class="arithmatex">\(-\sum_j h_j(t)\phi_j\)</span>，定义</p>
+<div class="arithmatex">\[
+\delta\langle\phi_i(t)\rangle
+=\sum_j\int_{-\infty}^{t}R_{ij}(t-t')h_j(t')\,dt'.
+\]</div>
+<p>这里的 <span class="arithmatex">\(R\)</span> 是脉冲响应核；恒定外场的最终响应还需要对它积分。<span class="arithmatex">\(\langle\phi_i(t)\phi_j(0)\rangle\)</span> 可以在负时间非零，因果响应不能先于干预。</p>
+<p><strong>读图动作</strong>：实验中先选“默认”，看相关与响应图。正时间两条归一化曲线重合，负时间只有相关继续存在。这种重合来自本页模型及涨落耗散关系，不能把两个量的原始单位混为一谈。</p>
+<h2 id="2">2. 一个不会遗漏零模的有限周期环<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>取 <span class="arithmatex">\(N\)</span> 个格点，格距 <span class="arithmatex">\(a=1\)</span>，下标按模 <span class="arithmatex">\(N\)</span> 循环。能量以 <span class="arithmatex">\(E_0\)</span>、时间以 <span class="arithmatex">\(t_0\)</span> 计，<span class="arithmatex">\(\Theta=k_BT/E_0\)</span>。本页所有数值计算都使用这些无量纲量。</p>
+<p>定义正半定的格点 Laplacian</p>
+<div class="arithmatex">\[
+(L\boldsymbol\phi)_j=2\phi_j-\phi_{j+1}-\phi_{j-1},
+\qquad L\mathbf1=0.
+\]</div>
+<p>它近似 <span class="arithmatex">\(-\partial_x^2\)</span>，不是 <span class="arithmatex">\(\partial_x^2\)</span>；这个符号决定后面的动力学是否衰减。取二次自由能</p>
+<div class="arithmatex">\[
+\mathcal F\equiv F/E_0
+=\frac12\boldsymbol\phi^{\mathsf T}H\boldsymbol\phi
+-\mathbf h^{\mathsf T}\boldsymbol\phi,\qquad
+H=rI+\kappa L,
+\]</div>
+<p>即局部偏差代价 <span class="arithmatex">\(\frac r2\sum_j\phi_j^2\)</span> 加上梯度代价 <span class="arithmatex">\(\frac\kappa2\sum_j(\phi_{j+1}-\phi_j)^2\)</span>。规定 <span class="arithmatex">\(r\ge0,\kappa&gt;0,\Theta&gt;0\)</span>，并固定总量</p>
+<div class="arithmatex">\[
+\sum_j\phi_j=0,\qquad
+P=I-\frac{\mathbf1\mathbf1^{\mathsf T}}N.
+\]</div>
+<p>平衡分布是这个 <span class="arithmatex">\(N-1\)</span> 维子空间上的 <span class="arithmatex">\(\exp(-\mathcal F/\Theta)\)</span>。即使 <span class="arithmatex">\(r=0\)</span>，有限环的非零模式仍有正能量代价，约束后的分布可以归一化。<strong>这不保证 <span class="arithmatex">\(N\to\infty\)</span> 时涨落有限</strong>，也不把一个高斯有限模型称为已完成的真实临界理论。</p>
+<h2 id="3-gaussian">3. 从 Gaussian 积分得到结构因子<a class="headerlink" href="#3-gaussian" title="Permanent link"></a></h2>
+<p>采用单位归一 Fourier 变换</p>
+<div class="arithmatex">\[
+\phi_m=\frac1{\sqrt N}\sum_{j=0}^{N-1}
+e^{-iq_mj}\phi_j,\qquad
+\phi_j=\frac1{\sqrt N}\sum_{m=0}^{N-1}e^{iq_mj}\phi_m,
+\qquad q_m=\frac{2\pi m}{N}.
+\]</div>
+<p>实场满足 <span class="arithmatex">\(\phi_{N-m}=\phi_m^*\)</span>。格点本征值和自由能刚度分别是</p>
+<div class="arithmatex">\[
+\ell_m=4\sin^2\frac{\pi m}{N},\qquad h_m=r+\kappa\ell_m.
+\]</div>
+<p>对每个非零实正交模式，Gaussian 积分或均分定理给出</p>
+<div class="arithmatex">\[
+S_m\equiv\langle|\phi_m|^2\rangle=\frac{\Theta}{h_m}\quad(m\ne0),
+\qquad S_0=0.
+\]</div>
+<p>最后一项来自总量约束，不能直接把 <span class="arithmatex">\(m=0\)</span> 代入 <span class="arithmatex">\(\Theta/h_m\)</span>。反变换得到</p>
+<div class="arithmatex">\[
+C(j)=\frac1N\sum_m S_m e^{iq_mj},
+\qquad \sum_j C(j)=S_0=0,\qquad C(0)=\frac1N\sum_m S_m.
+\]</div>
+<p>成对模式使 <span class="arithmatex">\(C(j)\)</span> 为实数。实验保留完整 <span class="arithmatex">\(C_{ij}=C(i-j)\)</span> 矩阵；它可以有负的非对角元素，但本征值就是非负的 <span class="arithmatex">\(S_m\)</span>。</p>
+<p>为了画一条实随机变量的时间曲线，实验选用归一化余弦坐标 <span class="arithmatex">\(Y_m=\sum_j v_j\phi_j\)</span>。普通模式取 <span class="arithmatex">\(v_j=\sqrt{2/N}\cos(q_mj)\)</span>，其方差也是 <span class="arithmatex">\(S_m\)</span>。偶数 <span class="arithmatex">\(N\)</span> 的 Nyquist 模式 <span class="arithmatex">\(m=N/2\)</span> 要改成 <span class="arithmatex">\(v_j=(-1)^j/\sqrt N\)</span>；它没有独立的正弦伙伴。零模 <span class="arithmatex">\(v_j=1/\sqrt N\)</span> 被约束为零。</p>
+<h2 id="4">4. 守恒不只是让平均值守恒：噪声也必须守恒<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(B\)</span> 把格点量变成相邻格差，约定 <span class="arithmatex">\((B\phi)_j=\phi_{j+1}-\phi_j\)</span>，于是 <span class="arithmatex">\(L=B^{\mathsf T}B\)</span>。化学势样变量为 <span class="arithmatex">\(\boldsymbol\mu=H\boldsymbol\phi-\mathbf h\)</span>。取迁移率 <span class="arithmatex">\(M&gt;0\)</span>，沿边的确定性流由化学势差驱动。</p>
+<p>在每条边上加入独立标准 Wiener 增量 <span class="arithmatex">\(dW_j\)</span>，得到</p>
+<div class="arithmatex">\[
+d\boldsymbol\phi
+=-ML(H\boldsymbol\phi-\mathbf h)\,dt
++\sqrt{2\Theta M}\,B^{\mathsf T}d\mathbf W.
+\]</div>
+<p>随机通量的正方向可以整体换号而不改变协方差。关键是 <span class="arithmatex">\(B\mathbf1=0\)</span>：每一次噪声增量的总和都为零。若直接给每个格点加入独立噪声，通常会破坏这个固定总量条件。</p>
+<p>定义漂移矩阵和噪声协方差</p>
+<div class="arithmatex">\[
+A=MLH,\qquad Q=2\Theta ML.
+\]</div>
+<p>在平衡态，协方差满足 Lyapunov 方程</p>
+<div class="arithmatex">\[
+AC+CA^{\mathsf T}=Q.
+\]</div>
+<p>本页的 <span class="arithmatex">\(C\)</span> 来自第 3 节的 Gaussian 分布，并且满足此式。换言之，噪声强度不是为了“让图动起来”随意选的；它与耗散共同维持指定温度的平衡分布。</p>
+<p>守恒与非守恒模型可以具有同一静态自由能，却有不同噪声算符和弛豫率。这里沿用 Gaussian Model B 的基本设置；Kardar 的原始课程讲义把它与 Model A 对照，并提醒真实流体还可能有额外守恒量。<a href="https://www.mit.edu/~kardar/teaching/IITS/lectures/lec5/Brownian.pdf">MIT 讲义，§I.B–I.C</a></p>
+<h2 id="5">5. 解一个模式：扰动记忆消失，平衡方差保持<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>对任一非零实正交模式，动力学化为 Ornstein–Uhlenbeck 方程</p>
+<div class="arithmatex">\[
+dY=-\Gamma Y\,dt+b\,f(t)\,dt+\sqrt{2\Theta b}\,dW,
+\qquad b=M\ell,\quad \Gamma=bh,\quad S=\Theta/h.
+\]</div>
+<p>此处模式刚度 <span class="arithmatex">\(h=r+\kappa\ell\)</span> 与时间依赖外场 <span class="arithmatex">\(f(t)\)</span> 的角色不同：前者是自由能曲率，后者是外部源；模式表给出刚度与噪声功率，源系数由迁移率乘Laplacian本征值得到。令外场为零，积分因子给出</p>
+<div class="arithmatex">\[
+Y(t)=e^{-\Gamma t}Y(0)
++\sqrt{2\Theta b}\int_0^t e^{-\Gamma(t-u)}\,dW(u).
+\]</div>
+<p>因此平均值按 <span class="arithmatex">\(e^{-\Gamma t}\)</span> 衰减，而方差满足</p>
+<div class="arithmatex">\[
+V(t)=e^{-2\Gamma t}V(0)+S(1-e^{-2\Gamma t}).
+\]</div>
+<p>三种实验现在可以逐项核对：</p>
+<table>
+<thead>
+<tr>
+<th>条件</th>
+<th>方差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>无涨落初态 <span class="arithmatex">\(V(0)=0\)</span>，保留噪声</td>
+<td><span class="arithmatex">\(S(1-e^{-2\Gamma t})\)</span></td>
+</tr>
+<tr>
+<td>平衡初态 <span class="arithmatex">\(V(0)=S\)</span>，保留噪声</td>
+<td><span class="arithmatex">\(S\)</span></td>
+</tr>
+<tr>
+<td>平衡初态，之后关闭噪声</td>
+<td><span class="arithmatex">\(Se^{-2\Gamma t}\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>默认 <span class="arithmatex">\(N=16,m=1,r=0.25,\kappa=M=\Theta=1\)</span>，有 <span class="arithmatex">\(\ell=4\sin^2(\pi/16)\approx0.15224\)</span>、<span class="arithmatex">\(h\approx0.40224\)</span>、<span class="arithmatex">\(S\approx2.4861\)</span>、<span class="arithmatex">\(\Gamma\approx0.06124\)</span>。时间常数约 <span class="arithmatex">\(16.33t_0\)</span>，所以只看前 <span class="arithmatex">\(t_0\)</span> 的图，衰减并不明显；这不是程序没有工作。</p>
+<h2 id="6-fdt">6. 相关函数与响应：推导出经典 FDT<a class="headerlink" href="#6-fdt" title="Permanent link"></a></h2>
+<p>平衡初态下，未来噪声与 <span class="arithmatex">\(Y(0)\)</span> 无关，故</p>
+<div class="arithmatex">\[
+C_Y(t)=S e^{-\Gamma|t|}.
+\]</div>
+<p>对外场求线性变化，从同一个解得到</p>
+<div class="arithmatex">\[
+R_Y(t)=\theta(t)b e^{-\Gamma t},
+\qquad
+\int_0^\infty R_Y(t)\,dt=\frac b\Gamma=\frac1h.
+\]</div>
+<p>响应图在 <span class="arithmatex">\(t=0\)</span> 采用右极限 <span class="arithmatex">\(b\)</span>；积分不受单点取值影响。对正时间求相关的导数，</p>
+<div class="arithmatex">\[
+R_Y(t)=-\frac1\Theta\theta(t)\frac{dC_Y(t)}{dt},
+\]</div>
+<p>因为 <span class="arithmatex">\(\Gamma S=\Theta b\)</span>。这就是该经典平衡模型的涨落耗散关系。</p>
+<p><strong>不要省略假设</strong>：这是平衡、线性、经典 Gaussian 动力学，外场按自由能中的 <span class="arithmatex">\(-hY\)</span> 耦合。主动驱动、非平衡稳态或量子算符的非对易性，都可能要求另一套关系。负时间相关非零也不表示信息可以向过去传播。</p>
+<h2 id="7-2pi">7. 频率空间：面积、虚部与 <span class="arithmatex">\(2\pi\)</span><a class="headerlink" href="#7-2pi" title="Permanent link"></a></h2>
+<p>时间 Fourier 约定为</p>
+<div class="arithmatex">\[
+\widetilde C(\omega)=\int_{-\infty}^{\infty}e^{i\omega t}C(t)\,dt,
+\qquad
+C(t)=\int_{-\infty}^{\infty}\frac{d\omega}{2\pi}
+e^{-i\omega t}\widetilde C(\omega).
+\]</div>
+<p>脉冲响应的变换记为 <span class="arithmatex">\(\chi(\omega)\)</span>。直接积分可得</p>
+<div class="arithmatex">\[
+\widetilde C(\omega)=\frac{2S\Gamma}{\Gamma^2+\omega^2},
+\qquad
+\chi(\omega)=\frac b{\Gamma-i\omega},
+\qquad
+\operatorname{Im}\chi(\omega)=\frac{b\omega}{\Gamma^2+\omega^2}.
+\]</div>
+<p>于是</p>
+<div class="arithmatex">\[
+\widetilde C(\omega)=\frac{2\Theta}{\omega}\operatorname{Im}\chi(\omega).
+\]</div>
+<p>在 <span class="arithmatex">\(\omega=0\)</span> 用连续极限 <span class="arithmatex">\(2\Theta b/\Gamma^2\)</span>，不能让程序直接算 <span class="arithmatex">\(0/0\)</span>。这里的涨落谱是双边频谱；若换成只积分正频率的定义，必须一起修改因子。</p>
+<p>全轴和规则与有限窗质量分别是</p>
+<div class="arithmatex">\[
+\int_{\mathbb R}\frac{d\omega}{2\pi}\widetilde C(\omega)=S,
+\qquad
+\int_{-W}^{W}\frac{d\omega}{2\pi}\widetilde C(\omega)
+=\frac{2S}{\pi}\arctan\frac W\Gamma.
+\]</div>
+<p>实验画到 <span class="arithmatex">\(|\omega|\le10\Gamma\)</span>，只包含约 <span class="arithmatex">\(93.655\%\)</span> 的方差质量。它没有丢失归一化，而是仍有尾部在图窗外。频谱图的纵轴另作明确缩放，原始数值及实际频率在表中完整保留。</p>
+<p>量子情形的非对称关联谱带有热占据因子；在低频经典极限才回到这里的 <span class="arithmatex">\(2k_BT/\omega\)</span> 关系，不能把本页 Lorentzian 直接当成任意量子结构因子。<a href="https://www.damtp.cam.ac.uk/user/tong/kintheory/four.pdf">Tong，线性响应 §4.3.2</a></p>
+<h2 id="8-chi0-1r">8. 零模与极限：为什么 <span class="arithmatex">\(\chi(0)\)</span> 有时不是 <span class="arithmatex">\(1/r\)</span>？<a class="headerlink" href="#8-chi0-1r" title="Permanent link"></a></h2>
+<p>本实验严格固定总量，所以 <span class="arithmatex">\(Y_0=0\)</span>、<span class="arithmatex">\(S_0=0\)</span>，均匀外场的自由能项 <span class="arithmatex">\(-h_0Y_0\)</span> 恒为零。因而零模响应也为零。归一化相关 <span class="arithmatex">\(C/S\)</span> 和频率坐标 <span class="arithmatex">\(\omega/\Gamma\)</span> 不适用，界面留空，表中明确标出占位频率。</p>
+<p>若改为允许总量涨落的静态系综，且 <span class="arithmatex">\(r&gt;0\)</span>，则零模方差是 <span class="arithmatex">\(\Theta/r\)</span>。它给每个空间相关增加同一个常数：</p>
+<div class="arithmatex">\[
+C_{\mathrm{unconstrained}}(j)=C_{\mathrm{fixed}}(j)+\frac{\Theta}{Nr}.
+\]</div>
+<p>但在封闭的守恒动力学中，这个随机初始总量仍不随时间变化。它的频谱是零频 <span class="arithmatex">\(\delta\)</span> 质量，不会像非零模式一样弛豫。若要让均匀外场重新调整总量，还必须增加与粒子库交换的动力学；当前实验没有做这件事。</p>
+<p>连续长波表达式也提醒我们极限顺序的作用：</p>
+<div class="arithmatex">\[
+\chi(q,\omega)\simeq
+\frac{Mq^2}{Mq^2(r+\kappa q^2)-i\omega}.
+\]</div>
+<p>对 <span class="arithmatex">\(r&gt;0\)</span>，先令 <span class="arithmatex">\(\omega\to0\)</span> 再沿非零 <span class="arithmatex">\(q\to0\)</span> 得到 <span class="arithmatex">\(1/r\)</span>；先沿非零 <span class="arithmatex">\(\omega\)</span> 令 <span class="arithmatex">\(q\to0\)</span> 得到零。有限环的严格零模又受到指定系综约束。<strong>写“静态压缩率”时必须说明可交换什么、如何取极限。</strong></p>
+<h2 id="9-dq2">9. 从守恒流到扩散：什么时候只剩 <span class="arithmatex">\(Dq^2\)</span>？<a class="headerlink" href="#9-dq2" title="Permanent link"></a></h2>
+<p>精确格点弛豫率是</p>
+<div class="arithmatex">\[
+\Gamma_B(q)=M\ell(q)[r+\kappa\ell(q)].
+\]</div>
+<p>当 <span class="arithmatex">\(|q|a\ll1\)</span> 时 <span class="arithmatex">\(\ell(q)\simeq q^2\)</span>；若还满足 <span class="arithmatex">\(\kappa q^2\ll r\)</span>，则</p>
+<div class="arithmatex">\[
+\Gamma_B(q)\simeq Mrq^2=Dq^2,\qquad D=Mr.
+\]</div>
+<p>少了第二个条件，即使波长相对格距很长，也可能仍要保留梯度项。<span class="arithmatex">\(r=0\)</span> 的本页 Gaussian 模型给出 <span class="arithmatex">\(\Gamma_B\simeq M\kappa q^4\)</span>；这是此可解模型的结果，不是对所有相变动力学宣称指数都等于 <span class="arithmatex">\(4\)</span>。</p>
+<p>在相同非零模静态自由能下，非守恒 Model A 给出 <span class="arithmatex">\(\Gamma_A=M(r+\kappa\ell)\)</span>，它没有额外的 <span class="arithmatex">\(\ell\)</span> 因子。实验只比较非零模式，不把 Model A 的均匀模当成满足本页总量约束的运动。</p>
+<p>观察静态相关长度也不能直接读出输运速度：连续近似中 <span class="arithmatex">\(\xi=\sqrt{\kappa/r}\)</span>，改变 <span class="arithmatex">\(M\)</span> 不改变 <span class="arithmatex">\(\xi\)</span>，却会改变所有弛豫时间。大波数、短波长时格点修正首先显著；不要把这说成“小波数先失效”。</p>
+<p>局部扰动表使用 <span class="arithmatex">\(\phi_j(0)=\delta_{j0}-1/N\)</span>，于是任何时刻总和仍为零：</p>
+<div class="arithmatex">\[
+\langle\phi_j(t)\rangle=\frac1N\sum_{m\ne0}
+e^{-\Gamma_m t}e^{iq_mj}.
+\]</div>
+<p>这是一份密度偏差的响应轮廓，可以为负。对于含四阶梯度项的场方程，也不应把每个值解释成单粒子转移概率。</p>
+<h2 id="10-einstein">10. Einstein 关系：恢复单位后再谈电导率<a class="headerlink" href="#10-einstein" title="Permanent link"></a></h2>
+<p>在具有物理单位的连续介质中，设粒子数流满足 <span class="arithmatex">\(\mathbf j_n=-\mathcal M\nabla\mu\)</span>，静态密度响应为 <span class="arithmatex">\(\chi_n=\partial n/\partial\mu\)</span>。在局部线性区间，<span class="arithmatex">\(\delta\mu=\delta n/\chi_n\)</span>，所以</p>
+<div class="arithmatex">\[
+D=\frac{\mathcal M}{\chi_n}.
+\]</div>
+<p>若每个载流子电荷为 <span class="arithmatex">\(q_e\)</span>，静电势为 <span class="arithmatex">\(\Phi\)</span>，电化学势包含 <span class="arithmatex">\(q_e\Phi\)</span>。在均匀背景中 <span class="arithmatex">\(\mathbf E=-\nabla\Phi\)</span>，电流 <span class="arithmatex">\(\mathbf j_e=q_e\mathbf j_n\)</span> 的外场部分为</p>
+<div class="arithmatex">\[
+\mathbf j_e=q_e^2\mathcal M\mathbf E,\qquad
+\sigma=q_e^2\mathcal M=q_e^2D\chi_n.
+\]</div>
+<p>这里的 <span class="arithmatex">\(\mathcal M\)</span> 必须带上密度、长度、能量与时间的单位；实验的 <span class="arithmatex">\(M\)</span> 是无量纲模型参数，不能直接贴上 <span class="arithmatex">\(\mathrm{S/m}\)</span> 标签。理想稀薄经典气体有 <span class="arithmatex">\(\chi_n=n/(k_BT)\)</span>，才得到熟悉的 <span class="arithmatex">\(\sigma=nq_e^2D/(k_BT)\)</span>。相互作用体系一般应使用实际压缩率。</p>
+<p>上述关系还预设扩散型局部响应。动量守恒的洁净体系、弹道输运、多个耦合守恒量、Hall 响应及量子相干修正可能需要矩阵形式或额外项。微观电流关联与接触项留到 <a href="neq-02-kubo-transport.html">Kubo 与输运</a>；本页没有从电子 Hamiltonian 算出完整电导率。</p>
+<h2 id="11">11. 一个数值实验：稳定并不保证平衡分布正确<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p>模式的精确离散转移可直接从第 5 节积分得到：</p>
+<div class="arithmatex">\[
+Y_{k+1}=\alpha Y_k+\zeta_k,\qquad
+\alpha=e^{-\Gamma\Delta t},\qquad
+\operatorname{Var}\zeta_k=S(1-\alpha^2).
+\]</div>
+<p>不同步的 <span class="arithmatex">\(\zeta_k\)</span> 独立、均值为零且为 Gaussian。任意正步长下，这个更新都保持平衡方差 <span class="arithmatex">\(S\)</span>；但很大的步长仍会漏掉两个采样时刻之间的动力学细节。</p>
+<p>Euler–Maruyama 则用</p>
+<div class="arithmatex">\[
+Y_{k+1}=(1-\Gamma\Delta t)Y_k
++\sqrt{2\Theta b\Delta t}\,\eta_k,\qquad \eta_k\sim\mathcal N(0,1).
+\]</div>
+<p>令 <span class="arithmatex">\(x=\Gamma\Delta t\)</span>。其均方稳定条件为 <span class="arithmatex">\(0&lt;x&lt;2\)</span>，满足条件时稳态方差却是</p>
+<div class="arithmatex">\[
+V_{\mathrm{EM}}=\frac{2\Theta b\Delta t}{1-(1-x)^2}
+=\frac{S}{1-x/2}.
+\]</div>
+<p>例如 <span class="arithmatex">\(x=1\)</span> 时，均值每步就被完全抹去，但稳态方差是正确值的两倍。<span class="arithmatex">\(x=2\)</span> 时确定性振幅不衰减，噪声方差不断累加；<span class="arithmatex">\(x&gt;2\)</span> 则出现数值失稳。这些不是新的物理相变。</p>
+<p>实验从 <span class="arithmatex">\(V_0=0\)</span> 递推 <span class="arithmatex">\(64\)</span> 步，保留所有原始方差。第六图使用 <span class="arithmatex">\(\log_{10}(1+V/S)\)</span>，以容纳失稳时极大的数值；纵轴不再是原始方差，不能用图上高度直接读取倍数。选“Euler 稳定但方差明显偏大”，再减小步长，检查偏差是否按公式消失。</p>
+<p><strong>实验记录建议</strong>：记录 <span class="arithmatex">\(N,m,r,\kappa,M,\Theta,\Delta t\)</span>；写出预计的 <span class="arithmatex">\(x\)</span>、稳定状态和方差比；再下载当前记录核对。单条随机轨迹的起伏不能代替多次试验方差，而本实验直接给出解析方差及离散递推账。</p>
+<h2 id="12">12. 八道自检：把结论和条件一起带走<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>1 · 为什么固定总量的 C(j) 可以为负？这是否违反结构因子正性？</summary>
+<p>总和约束给 <span class="arithmatex">\(\sum_jC(j)=0\)</span>。若局部方差 <span class="arithmatex">\(C(0)&gt;0\)</span>，其余位置必须合计为负。正性要求针对二次型 <span class="arithmatex">\(\sum_{ij}v_iC_{ij}v_j\)</span>，而不是每个矩阵元素。Fourier 对角化后，此二次型是 <span class="arithmatex">\(\sum_m S_m|v_m|^2\ge0\)</span>。因此空间负相关与非负结构因子完全相容。</p>
+</details>
+<details class="answer">
+<summary>2 · 证明噪声既守恒，又保持 Gaussian 平衡协方差。</summary>
+<p>因为 <span class="arithmatex">\(B\mathbf1=0\)</span>，有 <span class="arithmatex">\(\mathbf1^{\mathsf T}B^{\mathsf T}dW=0\)</span>。漂移也满足 <span class="arithmatex">\(\mathbf1^{\mathsf T}L=0\)</span>。在非零模式上，<span class="arithmatex">\(C_m=\Theta/h_m\)</span>、<span class="arithmatex">\(A_m=M\ell_mh_m\)</span>，所以 <span class="arithmatex">\(2A_mC_m=2\Theta M\ell_m=Q_m\)</span>。零模三者均为零。因此矩阵式 <span class="arithmatex">\(AC+CA^{\mathsf T}=Q\)</span> 成立，Gaussian 分布在受约束空间上保持不变。</p>
+</details>
+<details class="answer">
+<summary>3 · 把温度加倍，与把迁移率加倍，有什么不同？</summary>
+<p>保持 <span class="arithmatex">\(r,\kappa\)</span> 不变时，<span class="arithmatex">\(S=\Theta/h\)</span> 随温度加倍，<span class="arithmatex">\(\Gamma=M\ell h\)</span> 不变。把 <span class="arithmatex">\(M\)</span> 加倍时，<span class="arithmatex">\(\Gamma\)</span> 和噪声功率 <span class="arithmatex">\(Q\)</span> 都加倍，<span class="arithmatex">\(S\)</span> 不变。前者改变静态方差，后者加快同一个平衡分布的采样和弛豫。这里把自由能参数视为温度不变；真实材料的有效参数可能也随温度改变。</p>
+</details>
+<details class="answer">
+<summary>4 · 默认频窗为什么只有约 93.655% 的方差？</summary>
+<p>积分 <span class="arithmatex">\(\widetilde C=2S\Gamma/(\omega^2+\Gamma^2)\)</span> 时必须使用 <span class="arithmatex">\(d\omega/(2\pi)\)</span>。令 <span class="arithmatex">\(u=\omega/\Gamma\)</span>，窗内比例为 <span class="arithmatex">\((1/\pi)\int_{-10}^{10}du/(1+u^2)=2\arctan(10)/\pi\)</span>。其余约 <span class="arithmatex">\(6.345\%\)</span> 在尾部。把图上的曲线重新归一到面积一，会抹掉这个可检验的有限窗效应。</p>
+</details>
+<details class="answer">
+<summary>5 · r=0 后，有限环为什么仍可计算？增大 N 又会怎样？</summary>
+<p>零模已被移除，剩余最小 <span class="arithmatex">\(\ell_1=4\sin^2(\pi/N)&gt;0\)</span>，所以每个 <span class="arithmatex">\(S_m=\Theta/(\kappa\ell_m)\)</span> 都有限。随着 <span class="arithmatex">\(N\)</span> 增大，<span class="arithmatex">\(\ell_1\sim(2\pi/N)^2\)</span>，最低模方差增长、弛豫率 <span class="arithmatex">\(\Gamma_1\sim M\kappa(2\pi/N)^4\)</span> 减小。有限 <span class="arithmatex">\(N\)</span> 的合法计算不能推出无限系统具有有限局部涨落。这个模型还没有非 Gaussian 相互作用和临界重整化。</p>
+</details>
+<details class="answer">
+<summary>6 · 固定总量的零模响应是零，为什么静态压缩率还常写成 1/r？</summary>
+<p>它们指向不同操作。对本页封闭环施加均匀源，不会改变严格固定的总量。<span class="arithmatex">\(1/r\)</span> 则可来自允许改变总量的静态平衡问题，或先取非零波数的静态响应再令波数趋零。若初始总量随机但动力学仍封闭，该总量只作为不变的初始随机变量存在，不能自动获得对之后外场的重新平衡能力。</p>
+</details>
+<details class="answer">
+<summary>7 · Euler 取 x=1.35 时，稳态方差比是多少？应如何改进？</summary>
+<p>稳定条件 <span class="arithmatex">\(0&lt;x&lt;2\)</span> 成立，但 <span class="arithmatex">\(V_{\mathrm{EM}}/S=1/(1-0.675)\approx3.076923\)</span>。先减小 <span class="arithmatex">\(\Delta t\)</span>，观察比值趋向一；或者使用本页精确 OU 更新。只有均值衰减正确、轨迹不爆炸，并不足以证明热平衡分布正确。精确模式更新适用于此线性 Gaussian 问题，不能直接照搬给一般非线性方程。</p>
+</details>
+<details class="answer">
+<summary>8 · 什么时候可以由扩散系数直接写电导率？</summary>
+<p>先明确扩散的是哪个带电守恒密度，确认局部扩散响应成立，恢复单位，并给出对应静态响应 <span class="arithmatex">\(\chi_n\)</span>。此时 <span class="arithmatex">\(\sigma=q_e^2D\chi_n\)</span>。只有理想稀薄经典气体才可进一步用 <span class="arithmatex">\(\chi_n=n/(k_BT)\)</span>。没有压缩率、载流子电荷及模型适用条件，仅知道相关长度或一个衰减时间，不足以决定电导率。</p>
+</details>
+<p>完成后应能独立说明：为什么负空间相关并不违反正性；为什么确定性扩散不足以维持热涨落；为什么固定总量时必须特殊处理零模；以及为什么数值稳定仍需检查平衡方差。进一步学习可转到 <a href="neq-01-fluctuation.html">涨落定理</a>、<a href="neq-02-kubo-transport.html">Kubo 与输运</a> 和 <a href="neq-03-active-matter.html">主动与非平衡物质</a>，逐步放松本页的线性、Gaussian 与平衡假设。</p>
+</details>
 </section>
-<h2 id="1_1">1. 相关函数是怎样把许多自由度压成一条曲线的？<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p>一个宏观样品含有极多微观变量。若逐点记录全部自由度，信息量随系统大小迅速增长；相关函数问的是一个更有针对性的问题：在相距 <span class="arithmatex">\(x\)</span> 的两个位置同时出现涨落，是否比彼此独立更常见？对密度，先减去平均值 <span class="arithmatex">\(\delta n=n-\langle n\rangle\)</span>，再定义</p>
-<div class="arithmatex">\[
-C(x,t)=\langle\delta n(x,t)\delta n(0,0)\rangle.
-\]</div>
-<p>“connected” 的减法很重要：若不减去平均密度，均匀背景会制造一个与真实关联无关的常数项。平移不变性使函数只依赖差分坐标；若还处于平衡态，时间平移和详细的平衡对称性会提供更多关系，但本页不把它们自动推广到主动系统。</p>
-<p>指数模型 <span class="arithmatex">\(C(x)=C_0e^{-|x|/\xi}\)</span> 是相关长度的最小示范。<span class="arithmatex">\(x=\xi\)</span> 时下降到 <span class="arithmatex">\(e^{-1}\)</span>，<span class="arithmatex">\(x=\xi\ln2\)</span> 时下降到一半。临界点附近真实系统也常出现幂律和异常指数，而不是简单指数；此处的 <span class="arithmatex">\(\xi\)</span> 是一个可调参数，不是所有相变的完整标度理论。</p>
-<h2 id="2_1">2. 结构因子：在波数空间找最容易涨落的尺度<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p>把 <span class="arithmatex">\(C(x)\)</span> 做 Fourier 变换后，<span class="arithmatex">\(S(q)\)</span> 告诉我们波长 <span class="arithmatex">\(2\pi/q\)</span> 的密度模式有多少静态权重。对于本页的指数关联，直接积分</p>
-<div class="arithmatex">\[
-\begin{aligned}
-S(q)&amp;=C_0\int_{-\infty}^\infty e^{-|x|/\xi}e^{-iqx}dx\\
-&amp;=2C_0\int_0^\infty e^{-x/\xi}\cos(qx)dx
-=\frac{2C_0\xi}{1+q^2\xi^2}.
-\end{aligned}
-\]</div>
-<p>中间一步使用了偶函数的正负半轴相等；最后的积分是一个带衰减因子的余弦积分。<span class="arithmatex">\(q\xi\ll1\)</span> 时 <span class="arithmatex">\(S\)</span> 接近 <span class="arithmatex">\(2C_0\xi\)</span>，说明长关联会把低波数权重抬高；<span class="arithmatex">\(q\xi\gg1\)</span> 时它按 <span class="arithmatex">\(q^{-2}\)</span> 下降。这是空间信息在两个表示之间的同一笔账。</p>
-<p>散射实验常测得动态结构因子 <span class="arithmatex">\(S(q,\omega)\)</span> 或其频率积分。峰位、峰宽和总权重可以分别指向传播速度、弛豫时间和静态相关；仍需把仪器分辨率、散射截面和样品几何放进测量模型，不能把教学公式直接当成原始计数率。</p>
-<h2 id="3-q2">3. 守恒律为什么产生 <span class="arithmatex">\(q^2\)</span> 的慢模？<a class="headerlink" href="#3-q2" title="Permanent link"></a></h2>
-<p>守恒量的局部变化只能由通量流入或流出：</p>
-<div class="arithmatex">\[
-\partial_t n+\nabla\cdot\mathbf j=0.
-\]</div>
-<p>接近局域热平衡、没有外场且介质均匀时，最低阶梯度展开给 Fick 定律 <span class="arithmatex">\(\mathbf j=-D\nabla n\)</span>。负号保证从高密度流向低密度，并使熵产生为非负。代回连续性方程：</p>
-<div class="arithmatex">\[
-\partial_t n=D\nabla^2n.
-\]</div>
-<p>在 <span class="arithmatex">\(d\)</span> 维对平面波 <span class="arithmatex">\(e^{i\mathbf q\cdot\mathbf x}\)</span> 做代入，拉普拉斯贡献 <span class="arithmatex">\(-q^2\)</span>，于是每一个 Fourier mode 独立衰减，率是 <span class="arithmatex">\(Dq^2\)</span>。长波长的模式慢，不是因为它“更重”，而是要把一大片区域的密度差抹平，局部梯度小、通量小。</p>
-<p>这个推导还解释了为什么 <span class="arithmatex">\(q\to0\)</span> 是 hydrodynamic 极限：<span class="arithmatex">\(\tau_q\sim q^{-2}\)</span> 发散，微观碰撞完成得很快，宏观模式才有机会被局部平衡描述。如果在碰撞时间内观察，记忆核和弹道项不能被一个常数 <span class="arithmatex">\(D\)</span> 替代。</p>
-<h2 id="4_1">4. 从扩散到可测输运系数<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p>扩散系数的单位是长度平方除以时间。最简单的数量级关系是扩散长度 <span class="arithmatex">\(\ell_D\sim\sqrt{2Dt}\)</span>（本页一维单坐标的 RMS 标度）；在三维，均方位移是 <span class="arithmatex">\(\langle r^2\rangle=6Dt\)</span>。这些系数来自维数和方程结构，系数 2 或 6 不能跨维度乱用。</p>
-<p>对粒子、热量和电荷，可以分别定义对应的守恒密度和通量。若电荷密度的化学势梯度作为驱动，线性本构关系会导向扩散和电导之间的联系；但电导率还包含电荷平方、态密度、散射机制和边界条件，不能把一个无量纲的 <span class="arithmatex">\(\xi\)</span> 或密度结构因子直接叫“输运能力”。这正是本页故意把 <span class="arithmatex">\(D\)</span> 与 <span class="arithmatex">\(S\)</span> 分成两栏的原因。</p>
-<p>在多体系统中，微观电流会有长时间尾、声学模和守恒量重叠。于是实际的相关函数可能不是单指数，甚至出现幂律尾巴。下一个 Kubo 页面会回答“外场怎样引发电流”以及为什么响应要是 retarded；本页只完成“涨落怎样在无外场时衰减”的结构。</p>
-<h2 id="5_1">5. 三个边界案例<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<p><strong>例 1（大 <span class="arithmatex">\(\xi\)</span> 不等于大 <span class="arithmatex">\(D\)</span>）</strong> 取 <span class="arithmatex">\(\xi=10\ \mu\)</span>m 但 <span class="arithmatex">\(D=0.01\ \mu\mathrm m^2/\mathrm s\)</span>，静态低 <span class="arithmatex">\(q\)</span> 结构因子很大，然而 <span class="arithmatex">\(q=1\ \mu\mathrm m^{-1}\)</span> 的模式时间是 <span class="arithmatex">\(100\)</span> s。空间上彼此相关，时间上却很慢；一个参数不能代替另一个。</p>
-<p><strong>例 2（短波数先失效）</strong> 设 <span class="arithmatex">\(D=2\ \mu\mathrm m^2/\mathrm s\)</span>。<span class="arithmatex">\(q=0.5\)</span> 时 <span class="arithmatex">\(\tau=2\)</span> s，<span class="arithmatex">\(q=2\)</span> 时 <span class="arithmatex">\(\tau=0.125\)</span> s。若后者已接近微观碰撞时间，<span class="arithmatex">\(q^2\)</span> 标度可能在实验上偏离；不能只因为公式给出一个数字就宣称 hydrodynamic 理论仍然有效。</p>
-<p><strong>例 3（相关与响应）</strong> 平衡中 <span class="arithmatex">\(C(x,t)\)</span> 在 <span class="arithmatex">\(t&lt;0\)</span> 可以不为零；若在 <span class="arithmatex">\(t=0\)</span> 之后加一个外场，响应函数 <span class="arithmatex">\(\chi^R(t)\)</span> 却必须在 <span class="arithmatex">\(t&lt;0\)</span> 为零。它们都含有“时间”，但一个记录自然涨落的共变，另一个记录因扰动产生的因果变化。</p>
-<h2 id="6">6. 小结：两本账、一个守恒入口<a class="headerlink" href="#6" title="Permanent link"></a></h2>
-<p>相关函数和结构因子压缩了平衡或无外场涨落的空间信息；连续性方程和 Fick 定律把守恒密度的长波模式变成 <span class="arithmatex">\(e^{-Dq^2t}\)</span>；<span class="arithmatex">\(\xi\)</span> 描述“相隔多远还相像”，<span class="arithmatex">\(D\)</span> 描述“模式消失有多快”。把这两者与外场响应、谱函数寿命或主动推进混为一谈，会失去每个量的物理问题。</p>
-<hr />
-<p><em>核心句：静态关联告诉你涨落的空间组织，守恒律决定长波模式的时间尺度；输运系数必须从相应的通量机制中定义。</em></p>
+<noscript><style>.transport194-course span.arithmatex{overflow-wrap:anywhere}.transport194-static{overflow:auto;max-width:100%}.transport194-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}.transport194-static th,.transport194-static td{white-space:nowrap}</style></noscript>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="cm-03-greens-quasiparticles.html"><span class="pager-label">上一页</span>凝聚态 III · Green 函数与准粒子</a>

@@ -368,6 +368,8 @@ def sync_learning_assets(md_names):
         shutil.copytree(SHARED / "projects" / "bcs-certificates", destination / "projects" / "bcs-certificates")
     if "physics-greens-quasiparticle" in names:
         shutil.copytree(SHARED / "projects" / "greens-certificates", destination / "projects" / "greens-certificates")
+    if "physics-correlated-transport" in names:
+        shutil.copytree(SHARED / "projects" / "transport-certificates", destination / "projects" / "transport-certificates")
 
 
 def previous_build_time(out: Path, fallback: str) -> str:
