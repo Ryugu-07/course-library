@@ -1,236 +1,129 @@
-(function (host) {
-  "use strict";
+(function(hostWindow){"use strict";
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "landau-free-energy-lab-styles";
-  var EPS = 1e-8;
-  var PRESETS = [
-    { id: "single", label: "高温单井", t: 0.8, u: 1, v: 1, h: 0, expected: "single" },
-    { id: "broken", label: "低温双井", t: -0.8, u: 1, v: 1, h: 0, expected: "broken" },
-    { id: "critical", label: "连续临界", t: 0, u: 1, v: 1, h: 0, expected: "critical" },
-    { id: "tilted", label: "外场倾斜", t: -0.8, u: 1, v: 1, h: 0.18, expected: "tilted" },
-    { id: "coexist", label: "一级共存", t: 0.1875, u: -1, v: 1, h: 0, expected: "coexist" },
-    { id: "spinodal", label: "非零 spinodal", t: 0.25, u: -1, v: 1, h: 0, expected: "spinodal" }
-  ];
+const DEFAULT={t:-.8,u:1,v:1,h:0,volume:16,stiffness:1,dimension:3,cutoff:1};
+function config(input={}){if(!input||typeof input!=='object'||Array.isArray(input))throw Error('object');for(const k of Object.keys(input))if(!Object.prototype.hasOwnProperty.call(DEFAULT,k))throw Error('unknown');const c={...DEFAULT,...input};for(const k of Object.keys(DEFAULT))if(typeof c[k]!=='number'||!Number.isFinite(c[k]))throw Error('finite number');if(Math.abs(c.t)>1||Math.abs(c.u)>1||c.v<.5||c.v>2||Math.abs(c.h)>.5||c.volume<1||c.volume>128||c.stiffness<.2||c.stiffness>2||![1,2,3,4,5].includes(c.dimension)||c.cutoff<.5||c.cutoff>4)throw Error('domain');return c;}
+const energy=(x,c)=>c.t*x*x/2+c.u*x**4/4+c.v*x**6/6-c.h*x;
+const slope=(x,c)=>c.t*x+c.u*x**3+c.v*x**5-c.h;
+const derivatives=(x,c)=>[c.t+3*c.u*x*x+5*c.v*x**4,6*c.u*x+20*c.v*x**3,6*c.u+60*c.v*x*x,120*c.v*x,120*c.v];
+function stationary(input={}){
+ const c=config(input),bound=1+Math.max(Math.abs(c.u),Math.abs(c.t),Math.abs(c.h))/c.v,D=9*c.u*c.u-20*c.v*c.t,cuts=[-bound,bound],roots=[],brackets=[],trace=[],rootTolerance=2e-12,classificationTolerance=2e-9;
+ const add=x=>{if(!roots.some(v=>Math.abs(x-v)<2e-8))roots.push(x);};
+ if(D>=-1e-14){const r=Math.sqrt(Math.max(0,D));for(const y of[(-3*c.u-r)/(10*c.v),(-3*c.u+r)/(10*c.v)])if(y>0){const z=Math.sqrt(y);cuts.push(-z,z);}else if(y===0)cuts.push(0);}
+ cuts.sort((a,b)=>a-b);const points=cuts.filter((x,i)=>!i||Math.abs(x-cuts[i-1])>1e-12);
+ if(c.h===0){add(0);const disc=c.u*c.u-4*c.v*c.t;if(disc>=-1e-14){const r=Math.sqrt(Math.max(0,disc));for(const y of[(-c.u-r)/(2*c.v),(-c.u+r)/(2*c.v)])if(y>0){add(-Math.sqrt(y));add(Math.sqrt(y));}}}
+ else{
+  for(const x of points)if(Math.abs(slope(x,c))<=rootTolerance)add(x);
+  for(let index=0;index<points.length-1;index++){let a=points[index],b=points[index+1],fa=slope(a,c),fb=slope(b,c);const record={index,a,b,fa,fb,signChange:fa*fb<0,root:null,steps:0};if(record.signChange){for(let step=0;step<90;step++){const m=(a+b)/2,fm=slope(m,c);trace.push({interval:index,step,a,b,m,fa,fb,fm});record.steps++;if(fm===0){a=b=m;break;}if(fa*fm<0){b=m;fb=fm;}else{a=m;fa=fm;}if(b-a<2e-14*Math.max(1,Math.abs(a),Math.abs(b)))break;}record.root=(a+b)/2;add(record.root);}brackets.push(record);}
+ }
+ roots.sort((a,b)=>a-b);const rows=roots.map((m,id)=>{const ds=derivatives(m,c),at=ds.findIndex(x=>Math.abs(x)>classificationTolerance),order=at+2,leading=ds[at],kind=order%2?'stationary-inflection':leading>0?(order===2?'minimum':'flat-minimum'):(order===2?'maximum':'flat-maximum');return {id,m,f:energy(m,c),residual:slope(m,c),derivatives:ds,leadingOrder:order,kind,localMinimum:kind==='minimum'||kind==='flat-minimum'};});
+ const fmin=Math.min(...rows.filter(r=>r.localMinimum).map(r=>r.f));for(const r of rows){r.deltaF=r.f-fmin;r.globalCandidate=r.localMinimum&&Math.abs(r.deltaF)<=1e-10;r.metastable=r.localMinimum&&!r.globalCandidate;r.susceptibility=r.localMinimum&&r.derivatives[0]>classificationTolerance?1/r.derivatives[0]:null;}
+ return {parameters:c,bound,criticalDiscriminant:D,monotoneCuts:points,rootTolerance,classificationTolerance,equalDepthTolerance:1e-10,roots:rows,brackets,trace,fmin,coexistence:c.u<0?3*c.u*c.u/(16*c.v):null,nonzeroSpinodal:c.u<0?c.u*c.u/(4*c.v):null,zeroSpinodal:0,scope:'Numerical root isolation and derivative classification with explicit tolerances; near degeneracy is not an exact equality proof.'};
+}
+function finiteVolume(input={},st=null){
+ const c=config(input);st=st||stationary(c);const R=4,rows=[],n=6,tolerance=2e-13,values=x=>{const w=Math.exp(-c.volume*(energy(x,c)-st.fmin));return [w,x*w,x*x*w,x**3*w,x**4*w,Math.abs(x)*w];},simp=(a,b,fa,fm,fb)=>fa.map((x,j)=>(b-a)*(x+4*fm[j]+fb[j])/6);
+ function rec(a,b,fa,fm,fb,coarse,tol,depth){const mid=(a+b)/2,fl=values((a+mid)/2),fr=values((mid+b)/2),left=simp(a,mid,fa,fl,fm),right=simp(mid,b,fm,fr,fb),fine=left.map((x,j)=>x+right[j]),correction=fine.map((x,j)=>(x-coarse[j])/15),error=Math.max(...correction.map(Math.abs));if(error<=tol||depth===0){const value=fine.map((x,j)=>x+correction[j]);rows.push({a,b,fa,fl,fm,fr,fb,coarse,fine,correction,value,error,tolerance:tol,depth,converged:error<=tol});return value;}const l=rec(a,mid,fa,fl,fm,left,tol/2,depth-1),r=rec(mid,b,fm,fr,fb,right,tol/2,depth-1);return l.map((x,j)=>x+r[j]);}
+ const cuts=Array.from(new Set([-R,0,...st.roots.map(r=>r.m),R])).sort((a,b)=>a-b);let integrals=Array(n).fill(0);
+ for(let j=0;j<cuts.length-1;j++){const a=cuts[j],b=cuts[j+1],fa=values(a),fm=values((a+b)/2),fb=values(b),v=rec(a,b,fa,fm,fb,simp(a,b,fa,fm,fb),tolerance*(b-a)/(2*R),24);integrals=integrals.map((x,k)=>x+v[k]);}
+ const moments=integrals.map(x=>x/integrals[0]);if(c.h===0){moments[1]=0;moments[3]=0;}const variance=moments[2]-moments[1]**2,tailBounds=[];
+ for(const side of[-1,1]){const x=side*R,fp=side*slope(x,c),curv=derivatives(x,c)[0];if(!(fp>0&&curv>0&&10*c.v*R*R+3*c.u>0))throw Error('tail convexity');for(let k=0;k<=4;k++){const decay=c.volume*fp-k/R;if(!(decay>0))throw Error('tail moment decay');const logBound=k*Math.log(R)-c.volume*(energy(x,c)-st.fmin)-Math.log(decay);tailBounds.push({side,moment:k,endpoint:x,slopeOutward:fp,curvature:curv,decay,logBound,numericBound:Math.exp(logBound),underflow:Math.exp(logBound)===0});}}
+ const density=Array.from(new Set([...Array.from({length:321},(_,j)=>-R+2*R*j/320),...st.roots.map(r=>r.m)])).sort((a,b)=>a-b).map(m=>({m,f:energy(m,c),weight:values(m)[0],density:values(m)[0]/integrals[0]}));
+ return {parameters:c,range:R,cuts,fmin:st.fmin,integrals,moments,mean:moments[1],absoluteMean:moments[5],variance,susceptibility:c.volume*variance,binder:1-moments[4]/(3*moments[2]**2),logZ:-c.volume*st.fmin+Math.log(integrals[0]),freeEnergyPerVolume:st.fmin-Math.log(integrals[0])/c.volume,estimatedError:rows.reduce((s,r)=>s+r.error,0),converged:rows.every(r=>r.converged),tolerance,rows,tailBounds,density,scope:'Continuous unbounded phenomenological order parameter with weight exp(-V f), kBT=1. V is a large parameter, not an exact microscopic spin count. Odd h=0 moments set by exact parity; raw quadrature integrals retained. Tail formulas are analytic bounds, floating values/Simpson errors are numerical evidence.'};
+}
+// Integral 0..z y^(d-1)/(1+y^2) dy. Series avoids cancellation near zero.
+function radial(d,z){if(z<.25){let sum=0,p=z**d;for(let k=0;k<40;k++){const term=p/(d+2*k);sum+=(k%2?-1:1)*term;p*=z*z;if(Math.abs(term)<1e-17*Math.abs(sum))break;}return sum;}if(d===1)return Math.atan(z);if(d===2)return Math.log1p(z*z)/2;return z**(d-2)/(d-2)-radial(d-2,z);}
+const areas=[null,2,2*Math.PI,4*Math.PI,2*Math.PI**2,8*Math.PI**2/3];
+function gaussian(input={},st=null){
+ const c=config(input);st=st||stationary(c);
+ // At coexistence choose the largest ordered global candidate and disclose it.
+ const candidates=st.roots.filter(r=>r.globalCandidate).sort((a,b)=>b.m-a.m),selected=candidates[0],r=selected.derivatives[0],valid=r>st.classificationTolerance,xi=valid?Math.sqrt(c.stiffness/r):null;
+ const spectrum=Array.from({length:81},(_,i)=>{const q=c.cutoff*i/80;return {q,inverse:r+c.stiffness*q*q,response:valid?1/(r+c.stiffness*q*q):null};});
+ const fluctuation=Array.from({length:5},(_,i)=>{const d=i+1,A=areas[d]/(2*Math.PI)**d,z=valid?Math.min(c.cutoff*xi,1):null,F=valid?radial(d,z):null,value=valid?A*r**(d/2-1)*c.stiffness**(-d/2)*F:null,ratio=valid&&c.h===0&&Math.abs(selected.m)>1e-8?value/selected.m**2:null;
+  return {d,sphereArea:areas[d],prefactor:A,z,radial:F,variance:value,ratio,quarticExponent:d/2-2,tricriticalExponent:(d-3)/2};});
+ return {parameters:c,selectedRoot:selected.id,m:selected.m,curvature:r,valid,xi,qMax:valid?Math.min(c.cutoff,1/xi):null,spectrum,fluctuation,scope:'Gaussian expansion around the largest-m global candidate; this chooses a phase at exact coexistence, not the finite-volume mean. Long-wave fluctuation window q<=min(cutoff,1/xi). Ratios only for h=0 ordered stable saddles. Marginal dimensions require RG/logarithmic corrections.'};
+}
+function finiteSummary(c){const a=finiteVolume(c);return {t:c.t,h:c.h,volume:c.volume,mean:a.mean,absoluteMean:a.absoluteMean,moments:a.moments,variance:a.variance,susceptibility:a.susceptibility,binder:a.binder,logZ:a.logZ,freeEnergyPerVolume:a.freeEnergyPerVolume,estimatedError:a.estimatedError,converged:a.converged,leafCount:a.rows.length,tailLogMax:Math.max(...a.tailBounds.map(x=>x.logBound))};}
+function scans(input={}){
+ const c=config(input),st=stationary(c),ts=Array.from(new Set([...Array.from({length:81},(_,i)=>-1+i/40),0,c.t,...[st.coexistence,st.nonzeroSpinodal].filter(x=>x!==null&&x>=-1&&x<=1)])).sort((a,b)=>a-b);
+ const temperature=ts.map(t=>{const s=stationary({...c,t});return {t,fmin:s.fmin,roots:s.roots.map(r=>({m:r.m,f:r.f,kind:r.kind,globalCandidate:r.globalCandidate,metastable:r.metastable,curvature:r.derivatives[0]}))};});
+ const volumes=Array.from(new Set([1,2,4,8,16,32,64,128,c.volume])).sort((a,b)=>a-b).map(volume=>finiteSummary({...c,volume}));
+ const fields=Array.from(new Set([-.5,-.25,-.1,-.02,0,.02,.1,.25,.5,c.h])).sort((a,b)=>a-b).map(h=>finiteSummary({...c,h}));
+ const ginzburg=[];for(const u of[1,0])for(let k=0;k<=24;k++){const t=-(10**(-4+4*k/24)),g=gaussian({...c,t,u,h:0});ginzburg.push({family:u===0?'tricritical':'quartic',t,m:g.m,curvature:g.curvature,xi:g.xi,dimensions:g.fluctuation});}
+ return {temperature,volumes,fields,ginzburg,scope:'Temperature scan follows current u,v,h; coexistence/spinodal formulas inserted are zero-field reference landmarks. Ginzburg comparison fixes h=0 and u=1 or 0, retaining v,kappa,cutoff.'};
+}
+const PRESETS=[
+ {key:'broken',label:'零场双井',config:{}},
+ {key:'critical',label:'连续临界点',config:{t:0}},
+ {key:'tricritical',label:'三临界点',config:{t:0,u:0}},
+ {key:'coexistence',label:'三个等深极小',config:{t:3/16,u:-1}},
+ {key:'metastable',label:'双井已出现但未共存',config:{t:.22,u:-1}},
+ {key:'spinodal',label:'非零分支失稳点',config:{t:.25,u:-1}},
+ {key:'flat-maximum',label:'零分支平坦极大',config:{t:0,u:-1}},
+ {key:'tilted',label:'外场选择一侧',config:{h:.18}},
+ {key:'small-volume',label:'小体积宽分布',config:{volume:1}},
+ {key:'large-volume',label:'大体积双峰',config:{volume:128}},
+ {key:'near-critical',label:'三维近临界涨落',config:{t:-.0001}},
+ {key:'upper-dimension',label:'四维边界',config:{t:-.0001,dimension:4}}
+];
+const QUESTIONS=[
+ ['在任意有限 V、h=0 的对称积分里，双峰分布是否必定有非零均值？',['必定有','不，均值仍为零'],1,'权重在 m→−m 下不变，奇函数积分严格为零；双峰位置和〈|m|〉可以非零。选相需要说明外场与体积极限的次序。'],
+ ['u=−1、v=1 时，非零驻点在 t=1/4 出现，这就是等深共存温度吗？',['不是，共存在 t=3/16','是，出现就是共存'],0,'t=1/4 是非零分支失稳边界；将驻点条件与 f(m)=f(0) 联立才得到 t=3/16。两个条件问的是不同问题。'],
+ ['t=u=h=0、v>0 时，m=0 曲率为零，可以直接判为不稳定吗？',['可以','不可以，要看六阶项'],1,'此时 f=vm⁶/6≥0，m=0 是平坦极小；t=h=0、u<0 时的四阶项却使中心成为平坦极大。'],
+ ['三维四次连续临界线的 Gaussian 自洽比随 |t|→0 增大，能据此把 β=1/2 当作精确三维指数吗？',['不能，反而提示平均场失效','能，指数由极小化精确决定'],0,'长波涨落与序参量平方的比值按 |t|^(d/2−2) 缩放，d=3 时增大。这个近似自身失去控制，需要考虑非 Gaussian 涨落与重整化。']
+];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=QUESTIONS.length||![0,1].includes(j))throw Error('choice');const correct=j===QUESTIONS[i][2];return {correct,text:(correct?'正确。':'需要修正。')+QUESTIONS[i][3]};}
+function fmt(x){if(x===null||x===undefined)return '不适用';if(Array.isArray(x))return '['+x.map(fmt).join(', ')+']';if(typeof x==='boolean')return x?'是':'否';if(typeof x==='number')return x===0?'0':Math.abs(x)<1e-4||Math.abs(x)>=1e5?x.toExponential(5):Number(x.toPrecision(7)).toString();return String(x);}
+function compute(input={}){const c=config(input),s=stationary(c);return {schemaVersion:1,model:'Landau phi6 + finite-volume order-parameter integral + Gaussian long waves',parameters:c,stationary:s,finite:finiteVolume(c,s),gaussian:gaussian(c,s),scans:scans(c)};}
+const COLORS=['#c55b32','#3875ba','#368661','#9860a8'];
+function frame(key,title,xLabel,yLabel,series,domain){const xs=series.flatMap(s=>s.points.filter(Boolean).map(p=>p[0])),ys=series.flatMap(s=>s.points.filter(Boolean).map(p=>p[1]));let xmin=domain?domain[0]:Math.min(...xs),xmax=domain?domain[1]:Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys);if(!xs.length){xmin=0;xmax=1;ymin=0;ymax=1;}if(xmin===xmax)xmax=xmin+1;if(ymin===ymax){ymin-=.5;ymax+=.5;}const pad=.08*(ymax-ymin);return {key,title,xLabel,yLabel,xMin:xmin,xMax:xmax,yMin:['energy','density','volume','spectrum'].includes(key)&&ymin>=-1e-12?0:ymin-pad,yMax:ymax+pad,series};}
+function plots(s){const c=s.parameters,st=s.stationary,f=s.finite,g=s.gaussian,sc=s.scans,range=Math.max(.6,1.15*Math.max(...st.roots.map(r=>Math.abs(r.m)))),xs=Array.from(new Set([...Array.from({length:241},(_,i)=>-range+2*range*i/240),...st.roots.map(r=>r.m)])).sort((a,b)=>a-b);
+const energySeries=[{name:'f(m)−f_min',color:COLORS[0],points:xs.map(m=>[m,energy(m,c)-st.fmin])},{name:'驻点（详见分类表）',color:COLORS[1],markersOnly:true,points:st.roots.map(r=>[r.m,r.deltaF])}];
+const branches=[{name:'等深全局极小候选',color:COLORS[0],markersOnly:true,markerRadius:3,points:[]},{name:'亚稳局部极小',color:COLORS[1],markersOnly:true,markerRadius:3,points:[]},{name:'极大／驻点拐折',color:COLORS[3],markersOnly:true,markerRadius:2,points:[]}];
+for(const row of sc.temperature)for(const r of row.roots)branches[r.globalCandidate?0:r.metastable?1:2].points.push([row.t,r.m]);
+return [
+frame('energy','局部地形与驻点','m','f(m)−f_min',energySeries,[-range,range]),
+frame('density','有限体积的完整概率密度','m','p_V(m)',[{name:'连续序参量密度',color:COLORS[1],points:f.density.map(r=>[r.m,r.density])}],[-4,4]),
+frame('branches','温度扫描：各分支分别取点','t','驻点 m',branches,[-1,1]),
+frame('volume','有限体积响应，不冒充选相曲率','log₂ V','χ_V = V Var(m)',[{name:'有限体积积分',color:COLORS[2],points:sc.volumes.map(r=>[Math.log2(r.volume),r.susceptibility]),boundaryMarkers:true}],[0,7]),
+frame('spectrum','选定稳定相的 Gaussian 谱','q','1 / (r + κq²)',[{name:g.valid?'最大 m 的全局极小候选':'平坦鞍点：Gaussian 近似不适用',color:COLORS[1],points:g.spectrum.map(r=>r.response===null?null:[r.q,r.response])}],[0,c.cutoff]),
+frame('ginzburg','第 '+c.dimension+' 维：近临界自洽比','log₁₀ |t|','log₁₀(长波方差 / m_*²)',[1,0].map((u,i)=>({name:u?'四次线 u=1，h=0':'三临界线 u=0，h=0',color:COLORS[i],points:sc.ginzburg.filter(r=>r.family===(u?'quartic':'tricritical')).map(r=>[Math.log10(-r.t),Math.log10(r.dimensions[c.dimension-1].ratio)])})),[-4,0])
+];}
+function tables(s){const c=s.parameters,st=s.stationary,f=s.finite,g=s.gaussian,sc=s.scans;return [
+{key:'parameters',title:'参数、适用域与数值容差',headers:['项目','值','含义'],rows:[...Object.entries(c).map(([k,v])=>[k,v,'当前模型参数']),['根包含界',st.bound,'Cauchy界'],['根残差容差',st.rootTolerance,'浮点隔离判断'],['分类容差',st.classificationTolerance,'首个非零高阶导数'],['等深容差',st.equalDepthTolerance,'数值候选不等于精确证明'],['积分范围',[-4,4],'严格尾公式另列'],['Simpson容差',f.tolerance,'绝对误差估计'],['选定Gaussian根',g.selectedRoot,'共存时取最大m的全局候选'],['共存参考t',st.coexistence,'仅h=0,u<0'],['非零失稳参考t',st.nonzeroSpinodal,'仅h=0,u<0']]},
+{key:'roots',title:'全部驻点与二至六阶导数',headers:['编号','m','f','f′残差','[f″,…,f⁽⁶⁾]','首项阶数','分类','Δf','全局候选','亚稳','局部χ'],rows:st.roots.map(r=>[r.id,r.m,r.f,r.residual,r.derivatives,r.leadingOrder,r.kind,r.deltaF,r.globalCandidate,r.metastable,r.susceptibility])},
+{key:'isolation',title:'单调区间与二分隔离记录',headers:['记录','序号','a','b','f′(a)','f′(b)','中点／根','f′(中点)'],rows:[...st.monotoneCuts.slice(0,-1).map((a,i)=>['单调区间',i,a,st.monotoneCuts[i+1],slope(a,c),slope(st.monotoneCuts[i+1],c),null,null]),...st.trace.map(r=>['二分步 '+r.interval,r.step,r.a,r.b,r.fa,r.fb,r.m,r.fm]),...(c.h===0?[['零场解析法',0,null,null,null,null,'m=0及 y=(−u±√(u²−4vt))/(2v)>0','m=±√y']]:[])]},
+{key:'temperature',title:'温度分支完整数据（不跨接一阶跳变）',headers:['t','m','f','最小f','分类','全局候选','亚稳','曲率'],rows:sc.temperature.flatMap(r=>r.roots.map(q=>[r.t,q.m,q.f,r.fmin,q.kind,q.globalCandidate,q.metastable,q.curvature]))},
+{key:'integral',title:'有限积分全部叶区间与双侧尾界',headers:['类型','a／方向','b／矩阶','五点的[0..4阶,绝对值]','粗Simpson','细Simpson','修正','贡献／log尾界','误差估计／数值尾界','容差／下溢','收敛'],rows:[...f.rows.map(r=>['叶区间',r.a,r.b,[r.fa,r.fl,r.fm,r.fr,r.fb],r.coarse,r.fine,r.correction,r.value,r.error,r.tolerance,r.converged]),...f.tailBounds.map(r=>['尾界',r.side,r.moment,[r.endpoint,r.slopeOutward,r.curvature,r.decay],null,null,null,r.logBound,r.numericBound,r.underflow,true])]},
+{key:'moments',title:'所选体积与体积扫描的矩、响应和Binder量',headers:['V','〈m〉','〈|m|〉','[〈1〉,…,〈m⁴〉,〈|m|〉]','方差','χ_V','Binder U₄','logZ','−logZ/V','估计误差','收敛'],rows:sc.volumes.map(r=>[r.volume,r.mean,r.absoluteMean,r.moments,r.variance,r.susceptibility,r.binder,r.logZ,r.freeEnergyPerVolume,r.estimatedError,r.converged])},
+{key:'fields',title:'有限体积外场扫描：零场对称与平滑响应',headers:['h','V','〈m〉','〈|m|〉','方差','χ_V','Binder U₄','logZ','−logZ/V','估计误差','收敛'],rows:sc.fields.map(r=>[r.h,r.volume,r.mean,r.absoluteMean,r.variance,r.susceptibility,r.binder,r.logZ,r.freeEnergyPerVolume,r.estimatedError,r.converged])},
+{key:'spectrum',title:'Gaussian谱与长波窗口',headers:['q','r+κq²','响应','ξ','q上限','位于窗口'],rows:g.spectrum.map(r=>[r.q,r.inverse,r.response,g.xi,g.qMax,g.valid?r.q<=g.qMax:null])},
+{key:'fluctuation',title:'一至五维长波积分与临界幂次',headers:['d','球面积','A_d','上限z','径向积分','方差','方差/m_*²','四次幂次','三临界幂次'],rows:g.fluctuation.map(r=>[r.d,r.sphereArea,r.prefactor,r.z,r.radial,r.variance,r.ratio,r.quarticExponent,r.tricriticalExponent])},
+{key:'ginzburg',title:'两条临界线的完整维数扫描',headers:['类型','t','m_*','曲率','ξ','d','长波方差','自洽比','径向上限'],rows:sc.ginzburg.flatMap(r=>r.dimensions.map(q=>[r.family,r.t,r.m,r.curvature,r.xi,q.d,q.variance,q.ratio,q.z]))}
+];}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=10000?v.toExponential(2):Number(v.toFixed(3)).toString();
+function svg(p){const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 540" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+const discrete=false;const xticks=discrete?[...new Set(Array.from({length:5},(_,i)=>Math.round(p.xMin+(p.xMax-p.xMin)*i/4)))]:Array.from({length:5},(_,i)=>p.xMin+(p.xMax-p.xMin)*i/4);for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+axisFmt(y)+'</text>';}for(const x of xticks){out+='<text x="'+X(x)+'" y="410" text-anchor="middle">'+axisFmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen&&!s.markersOnly?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const marks=s.markersOnly?s.points.filter(Boolean):s.boundaryMarkers?[...new Set([s.points.find(Boolean),s.points.filter(Boolean).at(-1)])].filter(Boolean):s.points.filter(Boolean).length===1?s.points.filter(Boolean):[];marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="'+(s.markerRadius??5)+'" stroke="'+s.color+'" fill="'+(s.hollow?'none':s.open?'var(--bg,#fff)':s.color)+'" stroke-width="'+(s.markerStrokeWidth??2.5)+'"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});if(!p.series.some(s=>s.points.some(Boolean)))out+='<text x="450" y="245" text-anchor="middle">当前模型在此参数下无适用数据</text>';return out+'</svg>';}
 
-  var STYLE_TEXT = [
-    ".lfe-lab{max-width:100%;min-width:0;color:var(--fg);}",
-    ".lfe-lab [hidden]{display:none!important;}",
-    ".lfe-lab .lfe-kicker,.lfe-lab .lfe-note{color:var(--fg-soft);font-size:13px;line-height:1.65;}",
-    ".lfe-lab .lfe-presets,.lfe-lab .lfe-choice,.lfe-lab .lfe-actions{display:flex;flex-wrap:wrap;gap:8px;}",
-    ".lfe-lab button{min-height:44px;}",
-    ".lfe-lab .lfe-presets button{flex:1 1 132px;}",
-    ".lfe-lab .lfe-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0;}",
-    ".lfe-lab .lfe-control{display:grid;gap:4px;min-width:0;}",
-    ".lfe-lab .lfe-control label{font-size:12.5px;font-weight:700;color:var(--fg-soft);}",
-    ".lfe-lab .lfe-control output{color:var(--accent);font-variant-numeric:tabular-nums;}",
-    ".lfe-lab .lfe-predict{margin:12px 0;padding:12px 14px;border-left:3px solid var(--cl-gold);background:var(--bg);}",
-    ".lfe-lab .lfe-predict strong{display:block;margin-bottom:8px;font-size:13px;}",
-    ".lfe-lab .lfe-choice button{flex:1 1 145px;}",
-    ".lfe-lab .lfe-feedback{min-height:1.7em;margin:9px 0 0;font-size:13px;font-weight:700;line-height:1.7;}",
-    ".lfe-lab .lfe-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(230px,.65fr);gap:14px;align-items:start;margin-top:16px;}",
-    ".lfe-lab svg{display:block;width:100%;height:auto;background:var(--bg);border:1px solid var(--border);border-radius:7px;}",
-    ".lfe-lab svg text{fill:var(--fg);font-family:inherit;letter-spacing:0;}",
-    ".lfe-lab .lfe-axis{stroke:var(--border);stroke-width:1.2;}.lfe-lab .lfe-gridline{stroke:var(--border);stroke-width:1;stroke-opacity:.45;}",
-    ".lfe-lab .lfe-curve{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}",
-    ".lfe-lab .lfe-global{fill:var(--cl-green);stroke:var(--bg);stroke-width:2;}.lfe-lab .lfe-meta{fill:var(--cl-gold);stroke:var(--bg);stroke-width:2;}.lfe-lab .lfe-unstable{fill:var(--cl-red);stroke:var(--bg);stroke-width:2;}.lfe-lab .lfe-marginal{fill:var(--fg-soft);stroke:var(--bg);stroke-width:2;}",
-    ".lfe-lab .lfe-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}",
-    ".lfe-lab .lfe-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}",
-    ".lfe-lab .lfe-metric span{display:block;color:var(--fg-soft);font-size:11.5px;}.lfe-lab .lfe-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
-    ".lfe-lab .lfe-ledger-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:14px;}",
-    ".lfe-lab table{width:100%;min-width:650px;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums;}",
-    ".lfe-lab th,.lfe-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;}.lfe-lab th{color:var(--fg-soft);font-size:11.5px;}",
-    ".lfe-lab .lfe-pass{color:var(--cl-green);}.lfe-lab .lfe-warn{color:var(--cl-red);}",
-    ".lfe-lab button:focus-visible,.lfe-lab input:focus-visible{outline:3px solid var(--cl-focus);outline-offset:2px;}",
-    "@media(max-width:820px){.lfe-lab .lfe-controls{grid-template-columns:repeat(2,minmax(0,1fr));}.lfe-lab .lfe-grid{grid-template-columns:minmax(0,1fr);}}",
-    "@media(max-width:480px){.lfe-lab .lfe-controls{grid-template-columns:minmax(0,1fr);}}"
-  ].join("\n");
+var mounted=new WeakMap();
+function mount(root){const doc=root.ownerDocument,previous=mounted.get(root);if(previous)previous();root.replaceChildren();root.classList.add('ld184');let c=config(PRESETS[0].config),choices={},revealed=false,url=null,current=null,view=0;
+ const el=(tag,attrs={},text)=>{const e=doc.createElement(tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
+ if(!doc.querySelector('[data-ld184-style]')){const style=el('style',{'data-ld184-style':''});style.textContent='.ld184{margin-inline:0!important;width:100%;min-width:0;color:var(--fg,#222);line-height:1.65}.ld184 *{box-sizing:border-box}.ld184 button,.ld184 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.ld184 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.ld184 button:focus-visible,.ld184 select:focus-visible,.ld184 [tabindex]:focus-visible{outline:3px solid #2474bc}.ld184 .ld-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.ld184 label{display:grid;gap:4px;min-width:0}.ld184 input{width:100%;min-height:44px;font:inherit;color:inherit;background:var(--bg,#fff)}.ld184 .ld-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.ld184 .ld-pred>strong{display:block;margin-bottom:6px}.ld184 .ld-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.ld184 .ld-feedback{margin:7px 0}.ld184 .ld-scroll{max-width:100%;overflow:auto}.ld184 svg{display:block;min-width:680px;width:100%;height:auto}.ld184 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.ld184 td,.ld184 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.ld184 [hidden]{display:none!important}.ld184 details{margin:12px 0}.ld184 summary{min-height:44px;cursor:pointer}.ld184 .ld-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.ld184 .ld-correct{color:var(--cl-green,#277540)}.ld184 .ld-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.ld184 .ld-grid{grid-template-columns:1fr}}';doc.head.append(style);}
+ root.append(el('h3',{},'从局部自由能，到有限体积概率与空间涨落'),el('p',{},'先找出全部驻点，再对连续序参量做有限体积积分。最后比较稳定相的空间涨落，检查平均场近似是否自洽。'));
+ const presets=el('div',{class:'ld-row','aria-label':'教学预设'});for(const p of PRESETS){const b=el('button',{type:'button','data-preset':p.key},p.label);b.onclick=()=>{c=config(p.config);sync();reset();};presets.append(b);}root.append(presets);
+ const fields={},outs={},grid=el('div',{class:'ld-grid'});
+ for(const[key,title,min,max,step]of[['t','二次系数 t（临界温差变量）',-1,1,.0001],['u','四次系数 u',-1,1,.01],['v','稳定六次系数 v',.5,2,.05],['h','外场 h',-.5,.5,.01],['volume','有限体积参数 V',1,128,1],['stiffness','空间刚度 κ',.2,2,.05],['dimension','空间维数 d',1,5,1],['cutoff','长波模型截断 Λ',.5,4,.1]]){const label=el('label',{},title),out=el('output'),input=el('input',{type:'range',min,max,step,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.oninput=input.onchange=()=>{c[key]=+input.value;sync();reset();};}root.append(grid);
+ const note=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(note,prediction);prediction.append(el('h4',{},'先预测：双峰、共存、高阶稳定性和涨落'),el('p',{},'四题的条件固定写在题干里；参数用来检查例子，不自动改变问题。'));
+ const feedbacks=[],buttons=[];QUESTIONS.forEach((q,i)=>{const row=el('div',{class:'ld-pred'});row.append(el('strong',{},q[0]));buttons[i]=[];q[1].forEach((text,j)=>{const b=el('button',{type:'button','data-prediction':i,'data-choice':String(j===0),'aria-pressed':'false'},text);b.onclick=()=>{choices[i]=j;buttons[i].forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));if(revealed)showFeedback();};row.append(b);buttons[i].push(b);});feedbacks[i]=el('p',{class:'ld-feedback','data-feedback':i});row.append(feedbacks[i]);prediction.append(row);});
+ const check=el('button',{type:'button','data-check':''},'核对预测并显示完整结果'),status=el('p',{class:'ld-status','aria-live':'polite'});root.append(check,status);
+ const stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),summary=el('p'),plotButtons=el('div',{class:'ld-row'}),plotWrap=el('div',{class:'ld-scroll',tabindex:0,role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'温度分支用散点显示，不把一阶跳变接成连续曲线。体积横轴为 log₂V；自洽比双轴取 log₁₀。Gaussian谱只在非平坦稳定分支适用；共存时明确选取最大 m 的极小候选。全部原始读数保存在表和下载中。'),tableHost=el('div'),download=el('a',{'data-download':'',download:'landau-record.json'},'下载当前完整记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);
+ function sync(){for(const[k,e]of Object.entries(fields))e.value=c[k];}
+ function reset(){revealed=false;choices={};stage.hidden=true;delete root.__landauSnapshot;for(let i=0;i<4;i++){feedbacks[i].textContent='';for(const b of buttons[i])b.setAttribute('aria-pressed','false');}for(const[k,o]of Object.entries(outs))o.textContent=fmt(c[k]);note.textContent='所有量无量纲，取 k_BT=1；m 是无界连续序参量，V 是此积分的大参数。驻点等深采用明示浮点容差；积分误差是估计，尾部另有解析界。零场共存公式不用于非零外场。';status.textContent='完成四项预测后显示当前结果。';}
+ function showFeedback(){let n=0;for(let i=0;i<4;i++){if(!Number.isInteger(choices[i]))continue;const f=feedback(i,choices[i]);n+=+f.correct;feedbacks[i].textContent=f.text;feedbacks[i].className='ld-feedback '+(f.correct?'ld-correct':'ld-wrong');}status.textContent='预测核对：'+n+'/4 正确。图、表和下载均对应当前参数。';}
+ function draw(){const ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+ function render(){current=compute(c);root.__landauSnapshot=current;stage.hidden=false;summary.textContent='有限体积〈m〉 = '+fmt(current.finite.mean)+'，〈|m|〉 = '+fmt(current.finite.absoluteMean)+'，χ_V = '+fmt(current.finite.susceptibility)+'，Binder U₄ = '+fmt(current.finite.binder)+'。选相 Gaussian ξ = '+fmt(current.gaussian.xi)+'；全局极小候选有 '+current.stationary.roots.filter(r=>r.globalCandidate).length+' 个。';plotButtons.replaceChildren();plots(current).forEach((p,i)=>{const b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();for(const t of tables(current)){const d=el('details',{'data-table':t.key});d.append(el('summary',{},t.title));d.addEventListener('toggle',()=>{if(!d.open||d.children.length>1)return;const wrap=el('div',{class:'ld-scroll',tabindex:0,role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),thead=el('thead'),tr=el('tr'),tbody=el('tbody');for(const h of t.headers)tr.append(el('th',{scope:'col'},h));thead.append(tr);for(const row of t.rows){const r=el('tr');for(const v of row)r.append(el('td',{},fmt(v)));tbody.append(r);}table.append(thead,tbody);wrap.append(table);d.append(wrap);});tableHost.append(d);}if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current)],{type:'application/json'}));download.href=url;showFeedback();}
+ check.onclick=()=>{if(![0,1,2,3].every(i=>Number.isInteger(choices[i]))){status.textContent='请先为四个问题各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
+}
 
-  function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
-  function freeEnergy(m, p) { return p.t * m * m / 2 + p.u * Math.pow(m, 4) / 4 + p.v * Math.pow(m, 6) / 6 - p.h * m; }
-  function derivative(m, p) { return p.t * m + p.u * Math.pow(m, 3) + p.v * Math.pow(m, 5) - p.h; }
-  function curvature(m, p) { return p.t + 3 * p.u * m * m + 5 * p.v * Math.pow(m, 4); }
-  function copyPreset(p) { return { id: p.id, label: p.label, t: p.t, u: p.u, v: p.v, h: p.h, expected: p.expected }; }
-  function nearly(a, b, tolerance) { return Math.abs(a - b) <= (tolerance || 1e-6); }
-
-  function bisect(left, right, p) {
-    var a = left, b = right, fa = derivative(a, p);
-    for (var i = 0; i < 90; i += 1) {
-      var middle = (a + b) / 2, fm = derivative(middle, p);
-      if (Math.abs(fm) < 1e-11) return middle;
-      if (fa * fm <= 0) b = middle;
-      else { a = middle; fa = fm; }
-    }
-    return (a + b) / 2;
-  }
-
-  function addRoot(roots, value, p) {
-    if (!Number.isFinite(value) || Math.abs(derivative(value, p)) > 2e-5) return;
-    if (!roots.some(function (root) { return Math.abs(root - value) < 2e-5; })) roots.push(value);
-  }
-
-  function findRoots(p) {
-    var span = 3.2, steps = 5000, roots = [];
-    if (Math.abs(p.h) <= EPS) {
-      roots.push(0);
-      var discriminant = p.u * p.u - 4 * p.v * p.t;
-      if (discriminant >= -EPS) {
-        var root = Math.sqrt(Math.max(0, discriminant));
-        [(-p.u - root) / (2 * p.v), (-p.u + root) / (2 * p.v)].forEach(function (y) {
-          if (y > EPS) {
-            addRoot(roots, -Math.sqrt(y), p);
-            addRoot(roots, Math.sqrt(y), p);
-          }
-        });
-      }
-      return roots.sort(function (a, b) { return a - b; });
-    }
-    var cuts = [-span, span];
-    var criticalDiscriminant = 9 * p.u * p.u - 20 * p.v * p.t;
-    if (criticalDiscriminant >= -EPS) {
-      var criticalRoot = Math.sqrt(Math.max(0, criticalDiscriminant));
-      [(-3 * p.u - criticalRoot) / (10 * p.v), (-3 * p.u + criticalRoot) / (10 * p.v)].forEach(function (y) {
-        if (y > EPS) {
-          var m = Math.sqrt(y);
-          if (m < span) cuts.push(-m, m);
-        }
-      });
-    }
-    cuts.sort(function (a, b) { return a - b; });
-    cuts = cuts.filter(function (value, index) { return index === 0 || Math.abs(value - cuts[index - 1]) > 1e-8; });
-    cuts.forEach(function (value) {
-      if (Math.abs(derivative(value, p)) < 2e-7) addRoot(roots, value, p);
-    });
-    for (var interval = 1; interval < cuts.length; interval += 1) {
-      var left = cuts[interval - 1], right = cuts[interval];
-      if (derivative(left, p) * derivative(right, p) < 0) addRoot(roots, bisect(left, right, p), p);
-    }
-    return roots.sort(function (a, b) { return a - b; });
-  }
-
-  function classifyPoints(p) {
-    var roots = findRoots(p);
-    var candidates = roots.map(function (m) { return { m: m, f: freeEnergy(m, p), curvature: curvature(m, p) }; });
-    var minimum = Infinity;
-    candidates.forEach(function (point) { if (point.curvature >= -2e-5) minimum = Math.min(minimum, point.f); });
-    candidates.forEach(function (point) {
-      point.global = point.curvature >= -2e-5 && Math.abs(point.f - minimum) < 2e-5;
-      if (point.curvature < -2e-5) point.kind = "unstable";
-      else if (Math.abs(point.curvature) <= 2e-5) point.kind = "marginal";
-      else if (point.global) point.kind = "global";
-      else point.kind = "metastable";
-    });
-    return candidates;
-  }
-
-  function phaseLabel(p, points) {
-    var globals = points.filter(function (point) { return point.global; });
-    if (p.u < 0 && Math.abs(p.h) < EPS) {
-      var coexist = 3 * p.u * p.u / (16 * p.v), spinodal = p.u * p.u / (4 * p.v);
-      if (nearly(p.t, coexist, 2e-4)) return "一级共存";
-      if (nearly(p.t, spinodal, 2e-4)) return "非零分支 spinodal";
-      if (nearly(p.t, 0, 2e-4)) return "m=0 spinodal";
-    }
-    if (Math.abs(p.h) > EPS) return "外场倾斜";
-    if (Math.abs(p.t) < 2e-5 && p.u > 0) return "连续临界";
-    if (globals.length >= 2 && globals.some(function (q) { return Math.abs(q.m) > 1e-3; })) return "对称破缺";
-    return "对称单相";
-  }
-
-  function expectedChoice(p, points) {
-    var label = phaseLabel(p, points);
-    if (label === "一级共存") return "coexist";
-    if (label.indexOf("spinodal") !== -1) return "spinodal";
-    if (label === "连续临界") return "critical";
-    if (label === "外场倾斜") return "tilted";
-    if (label === "对称破缺") return "broken";
-    return "single";
-  }
-
-  function formatNumber(value, digits) {
-    if (!Number.isFinite(value)) return "-";
-    if (Math.abs(value) < 5e-9) return "0";
-    return value.toFixed(digits === undefined ? 3 : digits).replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function element(doc, tag, className, text) { var node = doc.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; }
-  function svgNode(doc, tag, attrs, text) { var node = doc.createElementNS(SVG_NS, tag); Object.keys(attrs || {}).forEach(function (key) { node.setAttribute(key, String(attrs[key])); }); if (text !== undefined) node.textContent = text; return node; }
-  function installStyles(doc) { if (doc.getElementById(STYLE_ID)) return; var style = element(doc, "style"); style.id = STYLE_ID; style.textContent = STYLE_TEXT; doc.head.appendChild(style); }
-
-  function curveSvg(doc, p, points) {
-    var svg = svgNode(doc, "svg", { viewBox: "0 0 620 390", role: "img", "aria-label": "Landau 自由能及驻点分类" });
-    svg.appendChild(svgNode(doc, "title", {}, "Landau 自由能地形"));
-    var rootSpan = points.reduce(function (maximum, point) { return Math.max(maximum, Math.abs(point.m)); }, 0);
-    var span = clamp(rootSpan + 0.55, 1.25, 2.1), samples = [], minF = Infinity, maxF = -Infinity;
-    for (var i = 0; i <= 260; i += 1) { var m = -span + 2 * span * i / 260, f = freeEnergy(m, p); samples.push({ m: m, f: f }); minF = Math.min(minF, f); maxF = Math.max(maxF, f); }
-    var pad = Math.max(0.25, (maxF - minF) * 0.08); minF -= pad; maxF += pad;
-    var mapX = function (m) { return 55 + (m + span) / (2 * span) * 525; };
-    var mapY = function (f) { return 335 - (f - minF) / (maxF - minF) * 280; };
-    [0, .5, 1].forEach(function (fraction) { var y = 335 - fraction * 280; svg.appendChild(svgNode(doc, "line", { x1: 55, y1: y, x2: 580, y2: y, class: "lfe-gridline" })); svg.appendChild(svgNode(doc, "text", { x: 48, y: y + 4, "font-size": 10, "text-anchor": "end" }, formatNumber(minF + fraction * (maxF - minF), 2))); });
-    var zeroX = mapX(0); svg.appendChild(svgNode(doc, "line", { x1: zeroX, y1: 55, x2: zeroX, y2: 335, class: "lfe-axis" }));
-    svg.appendChild(svgNode(doc, "line", { x1: 55, y1: 335, x2: 580, y2: 335, class: "lfe-axis" }));
-    var d = samples.map(function (q, index) { return (index ? "L" : "M") + mapX(q.m) + " " + mapY(q.f); }).join(" ");
-    svg.appendChild(svgNode(doc, "path", { d: d, class: "lfe-curve" }));
-    points.forEach(function (point) { svg.appendChild(svgNode(doc, "circle", { cx: mapX(point.m), cy: mapY(point.f), r: 6, class: point.kind === "global" ? "lfe-global" : point.kind === "metastable" ? "lfe-meta" : point.kind === "unstable" ? "lfe-unstable" : "lfe-marginal" })); });
-    svg.appendChild(svgNode(doc, "text", { x: 55, y: 28, "font-size": 14, "font-weight": 700 }, "f(m) 地形：绿=全局，金=亚稳，红=不稳，灰=边界"));
-    svg.appendChild(svgNode(doc, "text", { x: 580, y: 357, "font-size": 11, "text-anchor": "end" }, "序参量 m"));
-    svg.appendChild(svgNode(doc, "text", { x: 58, y: 49, "font-size": 11 }, "f"));
-    return svg;
-  }
-
-  function mount(root, api) {
-    var doc = root.ownerDocument; installStyles(doc); var state = copyPreset(PRESETS[0]); var prediction = null; var revealed = false;
-    var shell = element(doc, "div", "lfe-lab"); shell.appendChild(element(doc, "p", "lfe-kicker", "调节 t、u、v、h，观察“出现局部极小”“两相等深”和“局部极小消失”为什么是三件事。"));
-    var presetRow = element(doc, "div", "lfe-presets"), presetButtons = [];
-    PRESETS.forEach(function (preset) { var button = element(doc, "button", "", preset.label); button.type = "button"; button.addEventListener("click", function () { state = copyPreset(preset); prediction = null; revealed = false; render(); }); presetButtons.push({ id: preset.id, node: button }); presetRow.appendChild(button); }); shell.appendChild(presetRow);
-    var controls = element(doc, "div", "lfe-controls"), inputs = {};
-    [["t", -1.2, .8, .0125], ["u", -1.5, 1.5, .05], ["v", .5, 2, .05], ["h", -.4, .4, .01]].forEach(function (spec) {
-      var box = element(doc, "div", "lfe-control"), label = element(doc, "label", "", spec[0] + " = "), output = element(doc, "output"); label.appendChild(output);
-      var input = element(doc, "input"); input.type = "range"; input.min = String(spec[1]); input.max = String(spec[2]); input.step = String(spec[3]); input.setAttribute("aria-label", "Landau 参数 " + spec[0]);
-      input.addEventListener("input", function () { state[spec[0]] = Number(input.value); state.id = "custom"; prediction = null; revealed = false; render(); });
-      box.appendChild(label); box.appendChild(input); controls.appendChild(box); inputs[spec[0]] = { input: input, output: output };
-    }); shell.appendChild(controls);
-    var predict = element(doc, "div", "lfe-predict"); predict.appendChild(element(doc, "strong", "", "先预测当前地形身份"));
-    var choice = element(doc, "div", "lfe-choice"), choices = [];
-    [["single", "单相单井"], ["broken", "连续双井"], ["critical", "连续临界"], ["tilted", "倾斜/亚稳"], ["coexist", "一级共存"], ["spinodal", "spinodal"]].forEach(function (item) { var button = element(doc, "button", "", item[1]); button.type = "button"; button.addEventListener("click", function () { prediction = item[0]; renderPrediction(); }); choices.push({ value: item[0], node: button }); choice.appendChild(button); }); predict.appendChild(choice);
-    var actions = element(doc, "div", "lfe-actions"), check = element(doc, "button", "cl-primary", "核对预测"), reset = element(doc, "button", "", "重置本预设"), feedback = element(doc, "p", "lfe-feedback", "先选择一种地形身份。 "); check.type = reset.type = "button";
-    check.addEventListener("click", function () { var points = classifyPoints(state), expected = expectedChoice(state, points); if (prediction === null) { feedback.textContent = "请先作出预测。"; feedback.className = "lfe-feedback lfe-warn"; return; } var good = prediction === expected; revealed = true; render(); feedback.textContent = (good ? "预测命中。" : "再看驻点与等深条件。") + " 当前判定：" + phaseLabel(state, points) + "。"; feedback.className = "lfe-feedback " + (good ? "lfe-pass" : "lfe-warn"); if (api && api.announce) api.announce(root, feedback.textContent); });
-    reset.addEventListener("click", function () { var p = PRESETS.filter(function (q) { return q.id === state.id; })[0] || PRESETS[0]; state = copyPreset(p); prediction = null; revealed = false; render(); });
-    actions.appendChild(check); actions.appendChild(reset); predict.appendChild(actions); predict.appendChild(feedback); shell.appendChild(predict);
-    var grid = element(doc, "div", "lfe-grid"), chart = element(doc, "div"), metrics = element(doc, "div", "lfe-metrics"); grid.appendChild(chart); grid.appendChild(metrics); shell.appendChild(grid);
-    var ledgerWrap = element(doc, "div", "lfe-ledger-wrap"), table = element(doc, "table"); ledgerWrap.appendChild(table); shell.appendChild(ledgerWrap); shell.appendChild(element(doc, "p", "lfe-note", "扫描器只解这个无量纲多项式。有限系统、涨落、界面动力学和真实材料参数不由它自动给出。")); root.replaceChildren(shell);
-    function renderPrediction() { choices.forEach(function (item) { item.node.setAttribute("aria-pressed", prediction === item.value ? "true" : "false"); }); if (!revealed) { feedback.textContent = prediction === null ? "先选择一种地形身份。" : "预测已记录，点击“核对预测”查看身份。"; feedback.className = "lfe-feedback"; } }
-    function metric(labelText, value) { var box = element(doc, "div", "lfe-metric"); box.appendChild(element(doc, "span", "", labelText)); box.appendChild(element(doc, "strong", "", value)); return box; }
-    function render() {
-      Object.keys(inputs).forEach(function (key) { inputs[key].input.value = String(state[key]); inputs[key].output.textContent = formatNumber(state[key], 4); }); presetButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", state.id === item.id ? "true" : "false"); }); renderPrediction();
-      var points = classifyPoints(state), minima = points.filter(function (q) { return q.kind === "global" || q.kind === "metastable" || (q.kind === "marginal" && q.global); }), globals = points.filter(function (q) { return q.global; });
-      chart.replaceChildren(curveSvg(doc, state, points)); metrics.replaceChildren(metric("地形身份", phaseLabel(state, points)), metric("局部极小数", String(minima.length)), metric("全局平衡 m", globals.length ? globals.map(function (q) { return formatNumber(q.m, 3); }).join(", ") : "边界"), metric("共存 t", state.u < 0 ? formatNumber(3 * state.u * state.u / (16 * state.v), 4) : "不适用"));
-      var rows = points.map(function (q) { var label = q.kind === "global" ? "全局平衡" : q.kind === "metastable" ? "亚稳" : q.kind === "unstable" ? "不稳定" : q.global ? "平坦全局平衡" : "边界"; return "<tr><td>" + formatNumber(q.m, 5) + "</td><td>" + formatNumber(q.f, 5) + "</td><td>" + formatNumber(q.curvature, 5) + "</td><td>" + label + "</td></tr>"; }).join("");
-      table.innerHTML = "<caption>驻点账本</caption><thead><tr><th>m</th><th>f(m)</th><th>f''(m)</th><th>身份</th></tr></thead><tbody>" + rows + "</tbody>";
-      grid.hidden = !revealed;
-      ledgerWrap.hidden = !revealed;
-    }
-    render();
-  }
-
-  function selfTest() {
-    var checks = 0; function assert(condition, message) { checks += 1; if (!condition) throw new Error(message); }
-    PRESETS.forEach(function (p) { var points = classifyPoints(p); assert(points.length >= 1, p.id + " roots"); assert(expectedChoice(p, points) === p.expected, p.id + " classification"); points.forEach(function (point) { assert(Math.abs(derivative(point.m, p)) < 3e-5, p.id + " stationary residual"); }); });
-    var u = -1.2, v = .8, tc = 3 * u * u / (16 * v), mc2 = -3 * u / (4 * v), p = { t: tc, u: u, v: v, h: 0 };
-    assert(nearly(freeEnergy(0, p), freeEnergy(Math.sqrt(mc2), p), 1e-9), "coexistence equal depth");
-    assert(nearly(derivative(Math.sqrt(mc2), p), 0, 1e-9), "coexistence stationary");
-    var spinodal = { t: u * u / (4 * v), u: u, v: v, h: 0 }, ms2 = -u / (2 * v);
-    assert(nearly(derivative(Math.sqrt(ms2), spinodal), 0, 1e-8), "spinodal derivative"); assert(nearly(curvature(Math.sqrt(ms2), spinodal), 0, 1e-8), "spinodal curvature");
-    var tiltedM = 0.7, tiltedT = -3 * (-1) * tiltedM * tiltedM - 5 * Math.pow(tiltedM, 4), tiltedH = tiltedT * tiltedM - Math.pow(tiltedM, 3) + Math.pow(tiltedM, 5);
-    var tiltedSpinodal = { t: tiltedT, u: -1, v: 1, h: tiltedH };
-    assert(findRoots(tiltedSpinodal).some(function (root) { return nearly(root, tiltedM, 1e-7); }), "tilted spinodal double root");
-    var quarticLike = { t: -1e-4, u: 1, v: 0.5, h: 0 }, roots = classifyPoints(quarticLike), positive = roots.filter(function (q) { return q.kind === "global" && q.m > 0; })[0];
-    assert(positive && nearly(positive.m / Math.sqrt(1e-4), 1, .001), "beta one-half asymptotic");
-    assert(PRESETS.length >= 5, "preset count"); return { checks: checks, presets: PRESETS.length };
-  }
-
-  var exported = { PRESETS: PRESETS, freeEnergy: freeEnergy, derivative: derivative, curvature: curvature, findRoots: findRoots, classifyPoints: classifyPoints, phaseLabel: phaseLabel, selfTest: selfTest };
-  if (typeof module !== "undefined" && module.exports) module.exports = exported;
-  if (host && host.CourseLearning && typeof host.CourseLearning.register === "function") host.CourseLearning.register("landau-free-energy", mount);
-  if (typeof module !== "undefined" && module.exports && typeof require !== "undefined" && require.main === module) { try { var result = selfTest(); console.log("landau-free-energy self-test: PASS (" + result.checks + " checks, " + result.presets + " presets)"); } catch (error) { console.error("landau-free-energy self-test: FAIL\n" + error.stack); process.exitCode = 1; } }
-})(typeof window !== "undefined" ? window : null);
+function selfTest(){let checks=0;const ok=x=>{checks++;if(!x)throw Error('Landau invariant '+checks);},near=(a,b)=>ok(Math.abs(a-b)<2e-9*(1+Math.abs(b)));for(const p of PRESETS){const s=compute(p.config),c=s.parameters,f=s.finite;ok(plots(s).length===6);ok(tables(s).length===10);ok(f.converged);near(f.moments[0],1);ok(f.variance>=0);if(c.h===0){near(f.mean,0);for(const r of s.stationary.roots){near(energy(r.m,c),energy(-r.m,c));near(slope(r.m,c),0);}}for(const r of f.tailBounds){ok(r.decay>0);ok(r.curvature>0);ok(r.logBound<0);}for(const r of s.scans.volumes){ok(r.converged);ok(r.variance>=0);}for(const r of s.gaussian.spectrum)if(s.gaussian.valid)near(r.response*r.inverse,1);for(let i=0;i<4;i++)ok(feedback(i,QUESTIONS[i][2]).correct);}return {status:'PASS',checks};}
+const API={DEFAULT,PRESETS,QUESTIONS,config,energy,slope,derivatives,stationary,finiteVolume,radial,gaussian,scans,compute,snapshot:compute,plots,tables,svg,feedback,fmt,mount,selfTest};if(typeof module!=="undefined"&&module.exports)module.exports=API;if(hostWindow&&hostWindow.CourseLearning)hostWindow.CourseLearning.register("landau-free-energy",mount);})(typeof window!=="undefined"?window:null);

@@ -356,6 +356,8 @@ def sync_learning_assets(md_names):
         shutil.copytree(SHARED / "projects" / "feynman-certificates", destination / "projects" / "feynman-certificates")
     if "renormalization-scale" in names:
         shutil.copytree(SHARED / "projects" / "renormalization-certificates", destination / "projects" / "renormalization-certificates")
+    if "landau-free-energy" in names:
+        shutil.copytree(SHARED / "projects" / "landau-certificates", destination / "projects" / "landau-certificates")
 
 
 def previous_build_time(out: Path, fallback: str) -> str:

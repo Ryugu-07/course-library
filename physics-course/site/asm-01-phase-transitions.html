@@ -56,155 +56,231 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-12 20:13</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：一块磁铁怎样从“没有偏好”长出两个选择？</a><ul>
-<li><a href="#landau-learning-title">1. 具体谜题：双井何时出现，何时突然换边？</a></li>
-<li><a href="#2">2. 先预测：数低谷之前先说答案</a></li>
-<li><a href="#3">3. 最小模型：一个能容纳两类相变的多项式</a></li>
-<li><a href="#4">4. 动手验证：给每个驻点贴身份标签</a></li>
-<li><a href="#5">5. 误区与边界</a></li>
-<li><a href="#6">6. 回到理论：对称性决定允许项，不独自决定答案</a></li>
-<li><a href="#7">7. 迁移问题</a></li>
+<li><a href="#1">1. 同一张双井图，为什么会有三个不同答案？</a><ul>
+<li><a href="#landau184-title">从“哪边更低”走到“体系怎样取平均”</a></li>
 </ul>
 </li>
-<li><a href="#1">1. 相变的语言</a></li>
-<li><a href="#2-landau">2. 四次 Landau 理论</a></li>
-<li><a href="#3_1">3. 空间涨落与平均场失效</a></li>
-<li><a href="#4_1">4. 练习</a></li>
+<li><a href="#2">2. 最小模型：对称性允许什么，稳定性要求什么？</a></li>
+<li><a href="#3">3. 找全驻点，还要分清高阶稳定性</a></li>
+<li><a href="#4">4. 一阶转变：出现、等深和消失是三个条件</a></li>
+<li><a href="#5">5. 连续线与三临界点：指数从哪一步来？</a></li>
+<li><a href="#6">6. 有限体积：对全部序参量积分，别只挑一个低谷</a></li>
+<li><a href="#7">7. 先取哪个极限，会改变“自发”的含义</a></li>
+<li><a href="#8">8. 数值实验怎样避免漏掉窄峰？</a></li>
+<li><a href="#9">9. 从一个数到空间场：涨落开始有长度尺度</a></li>
+<li><a href="#10-ginzburg">10. Ginzburg 判断：被忽略的涨落够小吗？</a></li>
+<li><a href="#11">11. 操作顺序与研究接口</a></li>
+<li><a href="#12">12. 练习：先算一个例子，再改变条件</a></li>
 </ul>
 </div>
 </details>
-<h1 id="i-landau">统计进阶 I · 相变与 Landau 理论<a class="headerlink" href="#i-landau" title="Permanent link"></a></h1>
+<h1 id="i-landau">统计进阶 I · 相变、有限体积与 Landau 理论<a class="headerlink" href="#i-landau" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Goldenfeld §1–5 / Pathria §12 ｜ <strong>前置</strong>：sm-01/02、优化 I
-Landau 理论不从每一个原子出发，而是先问：相变附近，什么宏观量能够区分两相？对称性允许自由能怎样写？这套方法非常有解释力，也把自己的失效条件写在了公式里。</p>
+<p><strong>前置</strong>：统计系综与配分函数、导数与局部极值、Gaussian 积分。<br />
+<strong>本课目标</strong>：能区分驻点、稳定相、两相共存与失稳；从实际概率积分理解极限次序；用空间涨落检查平均场近似的适用范围。</p>
 </blockquote>
 <div data-learning-page></div>
 
-<figure class="plot">
-<p><img alt="Landau 自由能从单井变成双井。" src="assets/img/asm-01-landau.svg" /></p>
-<figcaption><span class="fig-id">图 asm-01.1</span>四次 Landau 模型在零外场下的连续对称破缺：高温单井，临界点变平，低温出现等深双井。</figcaption>
-</figure>
-<section aria-labelledby="landau-learning-title" class="learning-layer">
-<h2 id="_1">学习层：一块磁铁怎样从“没有偏好”长出两个选择？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="landau-learning-title">1. 具体谜题：双井何时出现，何时突然换边？<a class="headerlink" href="#landau-learning-title" title="Permanent link"></a></h3>
-<p>把序参量想成广场上的人群倾向：<span class="arithmatex">\(m=0\)</span> 表示没有净偏好，<span class="arithmatex">\(m&gt;0\)</span> 与 <span class="arithmatex">\(m&lt;0\)</span> 是对称的两种集体选择。降温可以把中央低谷抬成山脊，让两侧各长出一个低谷；外场 <span class="arithmatex">\(h\)</span> 则像广播，轻轻把地形向一边倾斜。</p>
-<p>但“有两个低谷”还不够。我们还要区分：全局平衡、亚稳态、失稳极值、两相等深的共存点，以及局部极小消失的 spinodal。</p>
-<h3 id="2">2. 先预测：数低谷之前先说答案<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>对实验的六个预设，先预测：</p>
-<ul>
-<li>有几个局部极小？全局平衡在 <span class="arithmatex">\(m=0\)</span> 还是 <span class="arithmatex">\(m\ne0\)</span>？</li>
-<li>改变参数时，平衡序参量是连续长出还是跳变？</li>
-<li>哪个点是两相等深，哪个点只是亚稳态消失？</li>
-</ul>
-<p>“四次连续相变”和“六次一级相变”尤其容易混淆：二者都可能画出双井，但参数经过的路径不同。</p>
-<h3 id="3">3. 最小模型：一个能容纳两类相变的多项式<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>实验使用无量纲自由能密度</p>
+<section aria-labelledby="landau184-title" class="learning-layer ld184-course">
+<h2 id="1">1. 同一张双井图，为什么会有三个不同答案？<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<h3 id="landau184-title">从“哪边更低”走到“体系怎样取平均”<a class="headerlink" href="#landau184-title" title="Permanent link"></a></h3>
+<p>想象一块很小的磁性样品，没有外场。模型给出左右两个等深低谷。你说“样品偏向其中一侧”，同伴说“平均磁化为零”，第三个人说“这里还没有严格相变”。三句话可以分别成立，因为它们谈的是<strong>选定的相、有限体系的系综平均，以及热力学极限的非解析性</strong>。</p>
+<p>本课先计算一个连续序参量的自由能地形，再对全部可能的序参量取值积分。最后才允许序参量随空间变化。每一步新增了什么自由度，就相应新增什么结论；不能只凭双井形状跳过中间的推理。</p>
+<p>先保留三个预测：双井出现是否就是共存？零场双峰是否必有非零均值？曲率为零是否就是不稳定？实验中的答案可以分别核对，完整解答在第 12 节。</p>
+<h2 id="2">2. 最小模型：对称性允许什么，稳定性要求什么？<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>取无量纲自由能密度与统计权重</p>
 <div class="arithmatex">\[
-f(m)=\frac{t}{2}m^2+\frac{u}{4}m^4+\frac{v}{6}m^6-hm,
-\qquad v&gt;0,
+f(m)=\frac{t}{2}m^2+\frac{u}{4}m^4+\frac{v}{6}m^6-hm,\qquad
+v&gt;0,\qquad p_V(m)=\frac{e^{-Vf(m)}}{Z_V},\qquad
+Z_V=\int_{\mathbb R}e^{-Vf(m)}\,dm.
 \]</div>
-<p>其中 <span class="arithmatex">\(t\)</span> 与 <span class="arithmatex">\(T-T_c\)</span> 同号，<span class="arithmatex">\(h\)</span> 是与 <span class="arithmatex">\(m\)</span> 共轭的外场。驻点满足</p>
+<p>这里取 <span class="arithmatex">\(k_BT=1\)</span>。<span class="arithmatex">\(m\)</span> 是<strong>无界连续的现象学序参量</strong>，不是必须位于 <span class="arithmatex">\([-1,1]\)</span> 的单格点 Ising 自旋；<span class="arithmatex">\(V\)</span> 是这个积分的大参数，也不直接等于实验样品的原子数。实验始终保留 <span class="arithmatex">\(v&gt;0\)</span>，所以任意所选 <span class="arithmatex">\(t,u,h\)</span> 下积分都可归一化。四次模型会作为明确标注的近临界对照出现。</p>
+<p>零场的 <span class="arithmatex">\(m\mapsto-m\)</span> 对称性排除了奇次项；外场通过 <span class="arithmatex">\(-hm\)</span> 倾斜地形。二次系数 <span class="arithmatex">\(t\)</span> 可在临界附近与温差成正比，四次系数 <span class="arithmatex">\(u\)</span> 决定连续线还是一阶线附近的结构，六次系数 <span class="arithmatex">\(v\)</span> 提供大 <span class="arithmatex">\(|m|\)</span> 稳定性。<strong>对称性限制可能的表达式，系数和极小化才决定相图。</strong></p>
+<p>把这个多项式视为一套可独立定义的概率模型时，后面的有限积分是实际计算；把它用于某种材料时，系数需要由微观模型或数据确定，截断展开也需要适用范围。</p>
+<h2 id="3">3. 找全驻点，还要分清高阶稳定性<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>驻点方程为 <span class="arithmatex">\(f'(m)=tm+um^3+vm^5-h=0\)</span>。曲率 <span class="arithmatex">\(r=f''(m)=t+3um^2+5vm^4\)</span> 为正给出普通局部极小，为负给出普通局部极大。<strong>若 <span class="arithmatex">\(r=0\)</span>，二阶判别法没有答案</strong>：要看 Taylor 展开中首个非零高阶项。</p>
+<p>例如 <span class="arithmatex">\(t=u=h=0\)</span> 时 <span class="arithmatex">\(f=vm^6/6\)</span>，原点是六阶平坦极小；<span class="arithmatex">\(t=h=0,u&gt;0\)</span> 时是四阶平坦极小；<span class="arithmatex">\(t=h=0,u&lt;0\)</span> 时则是四阶平坦极大。若首个非零导数是奇数阶，驻点两侧的函数值一升一降，它是驻点拐折，并不是局部极小。</p>
+<p>实验不只在屏幕宽度内试探根。五次多项式的 Cauchy 界给出所有实根都位于 <span class="arithmatex">\(|m|\le 1+\max(|u|,|t|,|h|)/v\)</span>。再解 <span class="arithmatex">\(f''=0\)</span>，把该区间分成 <span class="arithmatex">\(f'\)</span> 单调的各段；有变号的区间二分求根，同时检查分割端点上的重根。零场还可直接令 <span class="arithmatex">\(y=m^2\)</span>，解 <span class="arithmatex">\(vy^2+uy+t=0\)</span>，只保留 <span class="arithmatex">\(y&gt;0\)</span>。</p>
+<p>驻点表保留二至六阶导数、残差与相对自由能。程序使用明示的浮点容差，因此“等深全局候选”是数值判定；精确共存条件应由下一节的代数式证明。非常接近退化点时，不能把浮点分类误称为严格根证书。</p>
+<h2 id="4">4. 一阶转变：出现、等深和消失是三个条件<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>在 <span class="arithmatex">\(h=0,u&lt;0\)</span> 时，非零驻点满足 <span class="arithmatex">\(t+uy+vy^2=0\)</span>。存在实的非零分支要求判别式 <span class="arithmatex">\(u^2-4vt\ge0\)</span>，其边界是 <span class="arithmatex">\(t_{\rm sp}=u^2/(4v)\)</span>。这只说明局部地形开始出现新的驻点。</p>
+<p>要找它和中心相共存的温度，还必须令 <span class="arithmatex">\(f(m)=f(0)\)</span>。把驻点关系 <span class="arithmatex">\(t=-uy-vy^2\)</span> 代回自由能，得到 <span class="arithmatex">\(f=-uy^2/4-vy^3/3\)</span>，于是</p>
 <div class="arithmatex">\[
-f'(m)=tm+um^3+vm^5-h=0,
+y_{\rm coex}=-\frac{3u}{4v},\qquad
+t_{\rm coex}=\frac{3u^2}{16v},\qquad
+0&lt;t_{\rm coex}&lt;t_{\rm sp}=\frac{u^2}{4v}.
 \]</div>
-<p>曲率 <span class="arithmatex">\(f''(m)&gt;0\)</span> 是局部极小，<span class="arithmatex">\(f''(m)&lt;0\)</span> 是局部极大。局部极小中自由能最低者才是平衡态；更高者是亚稳态。</p>
-<p>当 <span class="arithmatex">\(h=0,u&gt;0\)</span> 且忽略不影响稳定性的六次修正时，<span class="arithmatex">\(t&lt;0\)</span> 的平衡序参量为</p>
+<p>对 <span class="arithmatex">\(u=-1,v=1\)</span>，从高温向下降：<span class="arithmatex">\(t=1/4\)</span> 出现非零驻点；到 <span class="arithmatex">\(t=3/16\)</span>，中心和两侧极小才等深；再到 <span class="arithmatex">\(t=0\)</span>，中心局部稳定性丧失。处在 <span class="arithmatex">\(3/16&lt;t&lt;1/4\)</span> 时，两侧局部极小比中心高，它们是亚稳态。</p>
+<p>在 <span class="arithmatex">\(t=1/4,m=\pm1/\sqrt2\)</span> 处，曲率为零而三阶导数非零，故为驻点拐折。共存点 <span class="arithmatex">\(m=0,\pm\sqrt3/2\)</span> 的曲率则分别为 <span class="arithmatex">\(3/16,3/4,3/4\)</span>，都为正。<strong>共存并不要求极小变平。</strong></p>
+<p>外场 <span class="arithmatex">\(h\ne0\)</span> 会改变这些条件，实验仍可求全部驻点，但不会把上述零场公式当成非零外场的共存线。地形中的势垒也不自动给出寿命或滞回曲线；那些问题还需要噪声、动力学与扫场速率。</p>
+<h2 id="5">5. 连续线与三临界点：指数从哪一步来？<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>固定 <span class="arithmatex">\(u&gt;0\)</span>，令 <span class="arithmatex">\(t\to0^-\)</span>。在小 <span class="arithmatex">\(m\)</span> 区域，六次项相对四次项变小，非零解满足 <span class="arithmatex">\(m_*^2\simeq -t/u\)</span>，所以平均场 <span class="arithmatex">\(\beta=1/2\)</span>。由驻点方程对 <span class="arithmatex">\(h\)</span> 求导，得到选定稳定分支的局部响应 <span class="arithmatex">\(\chi_{\rm loc}=1/f''(m_*)\)</span>。四次近临界对照给出高温 <span class="arithmatex">\(\chi_+=1/t\)</span>、低温选相 <span class="arithmatex">\(\chi_-=1/(2|t|)\)</span>，两侧 <span class="arithmatex">\(\gamma=1\)</span>，振幅不同。</p>
+<p>临界等温线 <span class="arithmatex">\(t=0,u&gt;0\)</span> 的低场关系为 <span class="arithmatex">\(h\simeq um^3\)</span>，所以 <span class="arithmatex">\(\delta=3\)</span>。四次模型的平衡自由能在 <span class="arithmatex">\(t&lt;0\)</span> 为 <span class="arithmatex">\(-t^2/(4u)\)</span>，在 <span class="arithmatex">\(t&gt;0\)</span> 为零；二阶导数有限跳变，常记 <span class="arithmatex">\(\alpha=0\)</span>。这不代表自动存在对数发散。</p>
+<p>再调到 <span class="arithmatex">\(u=0\)</span>，六次项成为首个稳定非线性项：<span class="arithmatex">\(m_*^4=-t/v\)</span>、<span class="arithmatex">\(h=vm^5\)</span> 分别给出三临界平均场 <span class="arithmatex">\(\beta=1/4,\delta=5\)</span>。低温曲率为 <span class="arithmatex">\(r=4|t|\)</span>，仍有 <span class="arithmatex">\(\gamma=1\)</span>；平衡自由能为 <span class="arithmatex">\(-|t|^{3/2}/(3\sqrt v)\)</span>，对应 <span class="arithmatex">\(\alpha=1/2\)</span> 的幂次。</p>
+<p>这些是<strong>极小化近似的指数</strong>。增加空间涨落之后是否保持，必须继续检查。三临界点通常需要同时调节两个独立的相关参数；单独沿温度轴降温不会自动经过 <span class="arithmatex">\(t=u=0\)</span>。</p>
+<h2 id="6">6. 有限体积：对全部序参量积分，别只挑一个低谷<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>对任意有限 <span class="arithmatex">\(V\)</span>，零场权重是偶函数，因而 <span class="arithmatex">\(\langle m\rangle_V=0\)</span>。双峰位置、<span class="arithmatex">\(\langle |m|\rangle_V\)</span> 与 <span class="arithmatex">\(\langle m^2\rangle_V\)</span> 仍可非零。对配分函数求导可直接得到</p>
 <div class="arithmatex">\[
-m_\star=\pm\sqrt{-t/u},\qquad |m_\star|\propto(-t)^{1/2}.
+\frac{1}{V}\,\partial_h\log Z_V=\langle m\rangle_V,\qquad
+\chi_V=\partial_h\langle m\rangle_V
+=V\bigl(\langle m^2\rangle_V-\langle m\rangle_V^2\bigr),\qquad
+U_4=1-\frac{\langle m^4\rangle_V}{3\langle m^2\rangle_V^2}.
 \]</div>
-<p>所以平均场 <span class="arithmatex">\(\beta=1/2\)</span>。零场磁化率在两侧分别为 <span class="arithmatex">\(\chi_+=1/t\)</span> 与 <span class="arithmatex">\(\chi_-=1/(2|t|)\)</span>，指数同为 <span class="arithmatex">\(\gamma=1\)</span>，振幅却相差 2。</p>
-<p>若 <span class="arithmatex">\(u&lt;0,v&gt;0\)</span>，零场可出现一级相变。非零极小与 <span class="arithmatex">\(m=0\)</span> 等深时</p>
+<p><span class="arithmatex">\(\chi_V\)</span> 包含在不同低谷之间重新分配概率的效应；<span class="arithmatex">\(\chi_{\rm loc}\)</span> 则描述一个选定低谷内部的局部响应。零场低温大体积双峰可以让 <span class="arithmatex">\(\chi_V\)</span> 随 <span class="arithmatex">\(V\)</span> 增长，即使每个低谷的曲率保持有限。把两种磁化率混写，会误判“临界发散”。</p>
+<p>Binder 量 <span class="arithmatex">\(U_4\)</span> 帮助描述分布形状：零均值 Gaussian 分布给零；对称的两个无限窄峰给 <span class="arithmatex">\(2/3\)</span>。它不是“所有双峰都恰好 <span class="arithmatex">\(2/3\)</span>”的规则，也不能凭这一个全局序参量积分宣称已经测出某个空间晶格模型的普适 Binder 交点。</p>
+<p>实验对 <span class="arithmatex">\(Z_V\)</span>、前四阶矩和绝对值矩一起积分，再改变 <span class="arithmatex">\(V\)</span> 和 <span class="arithmatex">\(h\)</span>。你可以同时看到均值保持零、绝对值均值增大以及响应变陡。由于 <span class="arithmatex">\(v&gt;0\)</span> 控制两端，在有限参数邻域内可以对积分求导；有限 <span class="arithmatex">\(V\)</span> 的实参数热力学函数保持平滑。真正的非解析性来自极限，不能由一次有限扫描证明。</p>
+<h2 id="7">7. 先取哪个极限，会改变“自发”的含义<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>在有对称双井的参数区，若始终令 <span class="arithmatex">\(h=0\)</span>，无论 <span class="arithmatex">\(V\)</span> 多大都有 <span class="arithmatex">\(\langle m\rangle_V=0\)</span>。若先固定一个很小的 <span class="arithmatex">\(h&gt;0\)</span>，再让 <span class="arithmatex">\(V\to\infty\)</span>，概率集中在正的一侧；最后令 <span class="arithmatex">\(h\to0^+\)</span>，可以留下正的 <span class="arithmatex">\(m_*\)</span>。因此 <span class="arithmatex">\(\lim_{V\to\infty}\lim_{h\to0}\langle m\rangle_V=0\)</span>，而有序区的 <span class="arithmatex">\(\lim_{h\to0^+}\lim_{V\to\infty}\langle m\rangle_V=m_*&gt;0\)</span>。</p>
+<p>这一选择并没有破坏方程的零场对称性，而是选定了一个极限态。实验展示有限 <span class="arithmatex">\(V\)</span> 的前兆和分支极小，不能以 <span class="arithmatex">\(V=128\)</span> 冒充已经完成了无穷极限。</p>
+<p>还可以问：<strong>等深的极小是否在大体积时等概率？</strong>若几个孤立极小的曲率 <span class="arithmatex">\(r_i&gt;0\)</span>，Laplace 近似给每个低谷的贡献 <span class="arithmatex">\(e^{-Vf_i}\sqrt{2\pi/(Vr_i)}\)</span>。等深只消去了指数上的区别，局部宽度仍影响权重。对上一节的一阶共存例子，中心曲率是两侧的四分之一，因此三个低谷的渐近权重是 <span class="arithmatex">\(1/2,1/4,1/4\)</span>，而非各 <span class="arithmatex">\(1/3\)</span>。</p>
+<h2 id="8">8. 数值实验怎样避免漏掉窄峰？<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>直接在固定粗网格上积分，可能跨过大 <span class="arithmatex">\(V\)</span> 的窄峰。实验先找全部驻点，把它们和 <span class="arithmatex">\(m=0\)</span> 都用作分割点；再计算平移后的权重 <span class="arithmatex">\(w(m)=\exp[-V(f(m)-f_{\min})]\)</span>，避免配分函数整体过大。自适应 Simpson 同时控制六个积分分量，完整记录叶区间、五点评估值、粗细结果和修正。</p>
+<p>可计算范围取 <span class="arithmatex">\([-4,4]\)</span>，但模型本身仍定义在整条实轴。在所允许的参数域内，两端之外自由能向外递增且凸。对任一侧 <span class="arithmatex">\(x=sR\)</span>，令 <span class="arithmatex">\(a=s f'(sR)&gt;0\)</span>，其中 <span class="arithmatex">\(s=\pm1,R=4\)</span>。由凸性与 <span class="arithmatex">\((R+y)^k\le R^k e^{ky/R}\)</span>，有</p>
 <div class="arithmatex">\[
-t_{\mathrm{coex}}=\frac{3u^2}{16v},
-\qquad
-m_{\mathrm{coex}}^2=-\frac{3u}{4v}.
+\int_R^\infty x^k e^{-V[f(sx)-f_{\min}]}\,dx
+\le \frac{R^k e^{-V[f(sR)-f_{\min}]}}{Va-k/R},
+\qquad k=0,\ldots,4,\quad Va&gt;k/R.
 \]</div>
-<p>这不是 spinodal。<span class="arithmatex">\(m=0\)</span> 在 <span class="arithmatex">\(t=0\)</span> 失去局部稳定性；非零驻点则在 <span class="arithmatex">\(t=u^2/(4v)\)</span> 成对出现。共存点位于二者之间。</p>
-<h3 id="4">4. 动手验证：给每个驻点贴身份标签<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>实验扫描 <span class="arithmatex">\(f'(m)=0\)</span> 的全部实根，并用曲率与自由能把它们标成 global、metastable、unstable 或 marginal。图上同时显示自由能地形和参数温度轴；账本列出驻点、曲率、相对自由能以及当前预测是否命中。</p>
+<p>表中分别保留两侧的对数尾界。浮点数下溢为零只表示小于数值表示范围，<strong>不是严格零尾概率</strong>。Simpson 的误差列是数值估计，尾不等式是解析推导；二者不能统称为严格区间误差证书。课程的独立核对用整条实轴上的另一套积分与多项式求根实现检验结果。</p>
+<h2 id="9">9. 从一个数到空间场：涨落开始有长度尺度<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>让 <span class="arithmatex">\(m\)</span> 变成 <span class="arithmatex">\(m(\mathbf x)\)</span>，加入梯度代价 <span class="arithmatex">\(\kappa|\nabla m|^2/2\)</span>。这个项惩罚邻近区域突然改变序参量，也使不同相之间的界面具有有限宽度。固定或足够快衰减的边界条件下，对泛函变分得到 <span class="arithmatex">\(-\kappa\nabla^2m+f'(m)=0\)</span>。</p>
+<p>在选定的均匀稳定相 <span class="arithmatex">\(m_*\)</span> 周围写 <span class="arithmatex">\(m=m_*+\delta m\)</span>，保留二次项，Fourier 模的代价为 <span class="arithmatex">\((r+\kappa q^2)|\delta m_q|^2/2\)</span>，其中 <span class="arithmatex">\(r=f''(m_*)&gt;0\)</span>。因此 Gaussian 响应谱是 <span class="arithmatex">\(1/(r+\kappa q^2)\)</span>，关联长度尺度为 <span class="arithmatex">\(\xi=\sqrt{\kappa/r}\)</span>。</p>
+<p>实验在多相等深时明确选择<strong>最大 <span class="arithmatex">\(m\)</span> 的全局极小候选</strong>来画这一谱；这并不等于有限体积平均值。在 <span class="arithmatex">\(r=0\)</span> 的平坦点，二次近似本身失效，显示“不适用”，而不是画一条假的有限曲线。</p>
+<p>四次模型在 <span class="arithmatex">\(t&lt;0\)</span> 有解析界面 <span class="arithmatex">\(m(x)=\sqrt{|t|/u}\tanh[x\sqrt{|t|/(2\kappa)}]\)</span>，其宽度尺度为 <span class="arithmatex">\(\sqrt{2\kappa/|t|}\)</span>。这只是<strong>省去六次项的对照解</strong>；不能将它原样当作实验中 <span class="arithmatex">\(v&gt;0\)</span> 模型的精确界面。</p>
+<h2 id="10-ginzburg">10. Ginzburg 判断：被忽略的涨落够小吗？<a class="headerlink" href="#10-ginzburg" title="Permanent link"></a></h2>
+<p>将一个相关长度内的长波涨落与 <span class="arithmatex">\(m_*^2\)</span> 比较。为使问题可复核，本实验明确采用窗口 <span class="arithmatex">\(0\le q\le\min(\Lambda,\xi^{-1})\)</span>，球面积因子 <span class="arithmatex">\(A_d=S_{d-1}/(2\pi)^d\)</span>。换元 <span class="arithmatex">\(y=q\xi\)</span> 后</p>
+<div class="arithmatex">\[
+\sigma_{\rm long}^2
+=A_d\,r^{d/2-1}\kappa^{-d/2}
+\int_0^{\min(\Lambda\xi,1)}\frac{y^{d-1}}{1+y^2}\,dy,\qquad
+G=\frac{\sigma_{\rm long}^2}{m_*^2}.
+\]</div>
+<p>它是一个明确窗口下的 Gaussian 自洽指标。<span class="arithmatex">\(G\ll1\)</span> 支持“涨落比选相序参量小”的假设，<span class="arithmatex">\(G\)</span> 增大则提示假设开始失效；窗口形状和系数会影响数值，所以 <span class="arithmatex">\(G=1\)</span> 不是精确相界。实验只在零场、非零稳定序参量处定义这个比值。</p>
+<p>四次连续线近临界时 <span class="arithmatex">\(r\sim|t|,m_*^2\sim|t|\)</span>，故 <span class="arithmatex">\(G\sim|t|^{d/2-2}\)</span>，上临界维数为 <span class="arithmatex">\(4\)</span>。三临界线则有 <span class="arithmatex">\(m_*^2\sim|t|^{1/2}\)</span>，故 <span class="arithmatex">\(G\sim|t|^{(d-3)/2}\)</span>，上临界维数为 <span class="arithmatex">\(3\)</span>。达到边界维数时，幂次为零并不保证所有修正都消失，还要考察边缘耦合的重整化和对数修正。</p>
+<p>改变维数滑块只改变这部分连续 Gaussian 比较；它没有把前面的单序参量积分变成一、二、三维 Ising 晶格模拟。定量的低维临界指数、微观有限尺寸标度与非平衡动力学需要各自的模型，后续 Ising 与重整化群课程会继续处理。</p>
+<h2 id="11">11. 操作顺序与研究接口<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p>先选“非零分支失稳点”，读驻点表中的三阶导数；再选“三个等深极小”，检查三个正曲率。接着在零场双井下比较“小体积宽分布”和“大体积双峰”，记录 <span class="arithmatex">\(\langle m\rangle,\langle |m|\rangle,\chi_V\)</span>。最后选“三维近临界涨落”，将维数切到 4 和 5，观察两条临界线自洽比的斜率怎样变化。</p>
+<p>每个预设都提供六幅可切换图、十组完整数据表和当前记录下载。温度分支采用散点，避免把共存处的跳变画成连续轨道；各向量积分分量与尾界也能追溯。</p>
+<p>这条链条连接到三类进一步问题：从有限尺寸分布估计热力学行为；从局部自由能构造空间场论；用重整化群判断耦合的相关性与三临界结构。课程给出这些问题的可计算入口，尚未执行晶格抽样、核化动力学或实验数据拟合。</p>
+<p><strong>参考读法。</strong><a href="https://www.damtp.cam.ac.uk/user/tong/sft/sfthtml/S1.html">Tong 的统计场论第 1 章</a>解释从微观自旋到有效自由能及空间场的层次；<a href="https://www.damtp.cam.ac.uk/user/tong/statphys/statmechhtml/S5.html">统计物理第 5 章</a>可用于对照相变与系综语言。本课的六次多项式、有限体积积分、尾界和明确动量窗口均按本文约定推导，不能把不同系数约定直接混用。</p>
 <div class="learning-lab" data-learning-lab="landau-free-energy">
-<p><strong>无 JavaScript 时的静态读法：</strong>取 <span class="arithmatex">\(v=1,h=0\)</span>。</p>
+<p><strong>无脚本对照：</strong>五图与六组记录使用同一份固定数据。前四图是连续序参量模型，第五图是明确动量窗口下的 Gaussian 自洽比较。</p>
+<figure class="plot">
+<p><img alt="等深自由能、有限体积双峰、温度驻点分支、体积响应和三维临界自洽比。" src="assets/img/asm-01-landau-ledgers.svg" /></p>
+<figcaption>等深不等于等宽；有限体积均值不等于选相极小。温度分支为独立散点，体积横轴取 log₂V；自洽比双轴取 log₁₀。三临界线在三维的零幂次仍需考虑边缘耦合。</figcaption>
+</figure>
+<div aria-label="Landau固定记录，可横向滚动" class="ld184-static" role="region" tabindex="0">
 <table>
 <thead>
 <tr>
-<th>参数</th>
-<th>地形与平衡</th>
-<th>关键判断</th>
+<th>预设</th>
+<th style="text-align: right;">均值</th>
+<th style="text-align: right;">绝对值均值</th>
+<th style="text-align: right;">有限χ</th>
+<th style="text-align: right;">Binder U₄</th>
+<th style="text-align: right;">选相Gaussian ξ</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><span class="arithmatex">\(t=0.8,u=1\)</span></td>
-<td><span class="arithmatex">\(m=0\)</span> 单井</td>
-<td>对称相</td>
+<td>broken</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.611178869</td>
+<td style="text-align: right;">6.7935688</td>
+<td style="text-align: right;">0.550892745</td>
+<td style="text-align: right;">0.681897636</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(t=-0.8,u=1\)</span></td>
-<td>等深双井</td>
-<td>连续破缺相</td>
+<td>critical</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.321114413</td>
+<td style="text-align: right;">2.31220821</td>
+<td style="text-align: right;">0.292759588</td>
+<td style="text-align: right;">不适用</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(t=0,u=1\)</span></td>
-<td>原点四次平坦</td>
-<td>临界点，曲率为零</td>
+<td>tricritical</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.408695732</td>
+<td style="text-align: right;">3.67398589</td>
+<td style="text-align: right;">0.333333333</td>
+<td style="text-align: right;">不适用</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(t=-0.8,u=1,h=0.18\)</span></td>
-<td>双井倾斜</td>
-<td>一边全局，一边亚稳</td>
+<td>coexistence</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.560820411</td>
+<td style="text-align: right;">6.80321909</td>
+<td style="text-align: right;">0.385318596</td>
+<td style="text-align: right;">1.15470054</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(u=-1,t=3/16\)</span></td>
-<td><span class="arithmatex">\(m=0\)</span> 与 <span class="arithmatex">\(m=\pm\sqrt{3/4}\)</span> 等深</td>
-<td>一级相变共存</td>
+<td>tilted</td>
+<td style="text-align: right;">0.693137034</td>
+<td style="text-align: right;">0.71974296</td>
+<td style="text-align: right;">1.16547601</td>
+<td style="text-align: right;">0.603028265</td>
+<td style="text-align: right;">0.570355208</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(u=-1,t=1/4\)</span></td>
-<td>非零极值刚成对出现</td>
-<td>非零分支 spinodal</td>
+<td>near-critical</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.321138234</td>
+<td style="text-align: right;">2.31250809</td>
+<td style="text-align: right;">0.292792521</td>
+<td style="text-align: right;">70.7071436</td>
 </tr>
 </tbody>
 </table>
 </div>
-<h3 id="5">5. 误区与边界<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<ul>
-<li><strong>有限系统不会产生真正的热力学非解析性。</strong>有限尺寸仍会出现双峰、快速 crossover 和长寿命亚稳态；严格相变要在热力学极限中定义。</li>
-<li><strong>允许三次项不等于“一般必然一级”。</strong>序参量的平移、控制参数、稳定高阶项和终点结构都要一起分析；液气临界点可在适当变量下呈现 Ising 型有效对称性。</li>
-<li><strong><span class="arithmatex">\(\alpha=0\)</span> 需要说明约定。</strong>四次平均场模型给出有限的比热跳跃，常记为 <span class="arithmatex">\(\alpha=0\)</span>；这不是对数发散的自动同义词。</li>
-<li><strong>Landau 是平均场。</strong>靠近低维临界点时，长程涨落会推翻它的定量指数。加入 <span class="arithmatex">\(\frac{c}{2}|\nabla m|^2\)</span> 得到 Landau–Ginzburg 泛函后，Ginzburg 判据才定量告诉我们平均场窗口有多宽。</li>
-</ul>
-<h3 id="6">6. 回到理论：对称性决定允许项，不独自决定答案<a class="headerlink" href="#6" title="Permanent link"></a></h3>
-<p><span class="arithmatex">\(m\mapsto-m\)</span> 对称性在 <span class="arithmatex">\(h=0\)</span> 时排除奇次项；稳定性要求最高保留项系数为正。极小化给平衡态，二阶导给局部响应，参数空间中的等深条件给共存线。Landau 理论的力量来自这条推理链，而不是某一张双井图。</p>
-<h3 id="7">7. 迁移问题<a class="headerlink" href="#7" title="Permanent link"></a></h3>
-<p>把 <span class="arithmatex">\(m\)</span> 换成空间场 <span class="arithmatex">\(m(\mathbf x)\)</span> 后，两个不同符号的区域之间为何不能突然跳变？请用梯度能解释界面宽度和表面张力，并说明为什么临界点附近关联长度增大会让“每个小块只感受平均值”的图景变差。</p>
+<p><a download="landau-frozen-records.json" href="assets/learning/projects/landau-certificates/run-snapshot.json">下载六组完整记录</a>（约25 MB JSON）。包含全部驻点、积分叶区间、尾界、体积/外场扫描与Gaussian维数比较。浮点下溢不是严格零；积分误差为估计。</p>
+</div>
+<noscript>
+<style>.ld184-course span.arithmatex{overflow-wrap:anywhere}.ld184-static{overflow:auto;max-width:100%}.ld184-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}.ld184-static th,.ld184-static td{white-space:nowrap}</style>
+</noscript>
+<h2 id="12">12. 练习：先算一个例子，再改变条件<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>1. 四次近临界模型两侧的响应为什么相差 2？</summary>
+<p>此题明确取 <span class="arithmatex">\(v=0,u&gt;0,h=0\)</span>。高温 <span class="arithmatex">\(m_*=0\)</span>，曲率 <span class="arithmatex">\(t\)</span>，所以 <span class="arithmatex">\(\chi_+=1/t\)</span>。低温 <span class="arithmatex">\(m_*^2=-t/u\)</span>，曲率 <span class="arithmatex">\(t+3um_*^2=-2t=2|t|\)</span>，所以 <span class="arithmatex">\(\chi_-=1/(2|t|)\)</span>。指数同为 1，振幅比为 2。低温答案是选定分支的局部响应，不是对称有限体积双峰的总响应。</p>
+</details>
+<details class="answer">
+<summary>2. 求 u=−1、v=1、h=0 的共存根及曲率。</summary>
+<p>联立驻点与等深关系得到 <span class="arithmatex">\(t=3/16\)</span>，非零极小 <span class="arithmatex">\(m=\pm\sqrt3/2\)</span>，中心 <span class="arithmatex">\(m=0\)</span>。驻点方程还给出 <span class="arithmatex">\(m=\pm1/2\)</span>，它们是分隔低谷的极大。曲率依次为中心 <span class="arithmatex">\(3/16\)</span>、两侧极小 <span class="arithmatex">\(3/4\)</span>、两个极大 <span class="arithmatex">\(-1/4\)</span>。共存条件仅比较极小自由能，不能把五个驻点全当作五个相。</p>
+</details>
+<details class="answer">
+<summary>3. 三种曲率为零的原点分别是什么？</summary>
+<p>取 <span class="arithmatex">\(t=h=0,v=1\)</span>。若 <span class="arithmatex">\(u=1\)</span>，首项是 <span class="arithmatex">\(m^4/4&gt;0\)</span>，原点为四阶平坦极小；若 <span class="arithmatex">\(u=0\)</span>，首项是 <span class="arithmatex">\(m^6/6&gt;0\)</span>，是六阶平坦极小；若 <span class="arithmatex">\(u=-1\)</span>，附近由 <span class="arithmatex">\(-m^4/4\)</span> 主导，是四阶平坦极大。二阶导数在三种情形里都为零，却不能给出同一个稳定性标签。</p>
+</details>
+<details class="answer">
+<summary>4. 纯三临界有限积分的矩能精确算吗？</summary>
+<p>令 <span class="arithmatex">\(t=u=h=0\)</span>，记 <span class="arithmatex">\(a=Vv/6\)</span>。换元 <span class="arithmatex">\(z=am^6\)</span> 给出 <span class="arithmatex">\(Z_V=\Gamma(1/6)/(3a^{1/6})\)</span>，以及 <span class="arithmatex">\(\langle m^{2k}\rangle=a^{-k/3}\Gamma((2k+1)/6)/\Gamma(1/6)\)</span>。奇数阶矩严格为零。</p>
+<p>由 <span class="arithmatex">\(\Gamma(1/6)\Gamma(5/6)=2\pi\)</span>、<span class="arithmatex">\(\Gamma(1/2)^2=\pi\)</span>，可得 <span class="arithmatex">\(\langle m^4\rangle/\langle m^2\rangle^2=2\)</span>，所以 <span class="arithmatex">\(U_4=1/3\)</span>，与 <span class="arithmatex">\(V,v\)</span> 无关。这个精确值属于纯六次的全局序参量积分，不能转称为所有三临界空间模型的普适数值。</p>
+</details>
+<details class="answer">
+<summary>5. 等深共存时三个低谷的渐近概率各是多少？</summary>
+<p>沿用第 2 题，曲率为 <span class="arithmatex">\(3/16,3/4,3/4\)</span>。Laplace 权重正比于曲率平方根的倒数，即 <span class="arithmatex">\(4/\sqrt3,2/\sqrt3,2/\sqrt3\)</span>。归一化后中心占 <span class="arithmatex">\(1/2\)</span>，左右各 <span class="arithmatex">\(1/4\)</span>。</p>
+<p>因此大体积极限下 <span class="arithmatex">\(\langle m\rangle=0\)</span>、<span class="arithmatex">\(\langle m^2\rangle\to3/8\)</span>、<span class="arithmatex">\(\langle m^4\rangle\to9/32\)</span>，给出 <span class="arithmatex">\(U_4\to1/3\)</span>、<span class="arithmatex">\(\chi_V/V\to3/8\)</span>。有限体积时还有峰宽和高阶修正；本题是渐近结果。</p>
+</details>
+<details class="answer">
+<summary>6. 三维 Gaussian 长波积分在 r=κ=Λ=1 时是多少？</summary>
+<p>此时 <span class="arithmatex">\(\xi=1\)</span>、窗口上限 <span class="arithmatex">\(q=1\)</span>、<span class="arithmatex">\(A_3=1/(2\pi^2)\)</span>。积分为 <span class="arithmatex">\(\sigma_{\rm long}^2=(2\pi^2)^{-1}\int_0^1 q^2/(1+q^2)\,dq=(1-\pi/4)/(2\pi^2)\)</span>。将被积式写成 <span class="arithmatex">\(1-1/(1+q^2)\)</span> 即可求出。这个问题只给定 Gaussian 系数；若要再求 <span class="arithmatex">\(G\)</span>，还必须指定所选相的非零 <span class="arithmatex">\(m_*\)</span>。</p>
+</details>
+<details class="answer">
+<summary>7. 为什么四次与三临界的上临界维数不同？</summary>
+<p>两种情形都有 <span class="arithmatex">\(r\sim|t|\)</span>，长波方差都按 <span class="arithmatex">\(|t|^{d/2-1}\)</span> 缩放。区别来自分母：四次线 <span class="arithmatex">\(m_*^2\sim|t|\)</span>，三临界线 <span class="arithmatex">\(m_*^2\sim|t|^{1/2}\)</span>。分别相除后，令幂次为零，得到 <span class="arithmatex">\(d=4\)</span> 与 <span class="arithmatex">\(d=3\)</span>。幂次分析只能给自洽边界与相关性线索，不能算出边界维数的对数修正系数。</p>
+</details>
+<details class="answer">
+<summary>8. “χ_loc 有限，因此没有任何大响应”错在哪里？</summary>
+<p>取零场有序区，左右窄峰位于 <span class="arithmatex">\(\pm m_*\)</span>。每个峰内的曲率有限，使局部 <span class="arithmatex">\(\chi_{\rm loc}\)</span> 有限；但整个对称分布的 <span class="arithmatex">\(\langle m^2\rangle\simeq m_*^2\)</span>、均值为零，所以 <span class="arithmatex">\(\chi_V\simeq V m_*^2\)</span>。小外场可通过改变两个峰的相对权重产生很大的响应。必须先说明是在一个相内求导，还是对允许两相重新分配的有限系综求导。</p>
+</details>
 </section>
-<h2 id="1">1. 相变的语言<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>一级相变通常伴随序参量跳变、潜热与相共存；连续相变的序参量连续变化，而响应和关联长度可发散。序参量是区分相的宏观变量；自发对称破缺意味着控制方程保持对称，而某个平衡态选择了不对称取值。</p>
-<p>有限自由度的配分函数通常是参数的解析函数。热力学极限中 Lee–Yang 零点可逼近实轴，才为非解析性提供机制。</p>
-<h2 id="2-landau">2. 四次 Landau 理论<a class="headerlink" href="#2-landau" title="Permanent link"></a></h2>
-<p>对 <span class="arithmatex">\(m\mapsto-m\)</span> 对称的连续转变，最小展开是</p>
-<div class="arithmatex">\[
-F=F_0+\frac{a(T-T_c)}2m^2+\frac b4m^4-hm,
-\qquad a,b&gt;0.
-\]</div>
-<p>零场极小化给 <span class="arithmatex">\(T&gt;T_c\)</span> 时 <span class="arithmatex">\(m=0\)</span>，<span class="arithmatex">\(T&lt;T_c\)</span> 时 <span class="arithmatex">\(m=\pm\sqrt{a(T_c-T)/b}\)</span>。平均场指数为 <span class="arithmatex">\(\beta=1/2\)</span>、<span class="arithmatex">\(\gamma=1\)</span>、<span class="arithmatex">\(\delta=3\)</span>；平衡自由能的二阶温度导数给有限比热跳跃，常以 <span class="arithmatex">\(\alpha=0\)</span> 记账。</p>
-<h2 id="3_1">3. 空间涨落与平均场失效<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p>Landau–Ginzburg 泛函加入 <span class="arithmatex">\(\frac c2|\nabla m|^2\)</span>，由此产生界面、关联长度和临界涨落。标量短程模型的上临界维数为 4；在 <span class="arithmatex">\(d&lt;4\)</span> 且足够靠近临界点时，平均场指数一般失效。三维 Ising 的 <span class="arithmatex">\(\beta\)</span> 约为 <span class="arithmatex">\(0.326\)</span>，而不是 <span class="arithmatex">\(1/2\)</span>；真正的普适类还取决于维数、序参量分量、对称性与相互作用范围。</p>
-<h2 id="4_1">4. 练习<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<ol>
-<li>从四次模型分别在 <span class="arithmatex">\(t&gt;0\)</span> 与 <span class="arithmatex">\(t&lt;0\)</span> 计算零场磁化率，解释相同指数为何对应不同振幅。</li>
-<li>对 <span class="arithmatex">\(u&lt;0,v&gt;0\)</span> 的六次模型，联立 <span class="arithmatex">\(f'(m)=0\)</span> 与 <span class="arithmatex">\(f(m)=f(0)\)</span> 推导共存点。</li>
-<li>说明有限系统的双峰概率分布为何是相共存的前兆，却不是严格非解析性的证明。</li>
-</ol>
-<hr />
-<p><em>下一页将把这套地形语言与 Ising 微观模型对账，再由重整化群解释平均场为什么会在临界区失手。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="ced-02-radiation.html"><span class="pager-label">上一页</span>电动力学 II · 推迟势与辐射</a>
