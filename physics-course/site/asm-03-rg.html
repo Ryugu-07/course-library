@@ -56,216 +56,273 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-12 22:21</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：把“换尺度”变成一条可读的流</a><ul>
-<li><a href="#rg-learning-title">1. 谜题：粗粒化以后，温度到底往哪儿走？</a></li>
-<li><a href="#2">2. 先预测：先不要点实验台</a></li>
-<li><a href="#3-1d-toy">3. 最小模型：一条精确闭合的 1D 链 + 一个明确的 toy</a></li>
-<li><a href="#4">4. 动手操作：两个页签，先读数再读图</a></li>
-<li><a href="#5">5. 误区 / 边界：这页的公式没有声称什么</a></li>
-<li><a href="#6">6. 正式映射：从一条相线到参数空间的雅可比</a></li>
-<li><a href="#7">7. 迁移问题：换模型时，先问“哪些假设还在？”</a></li>
+<li><a href="#1">1. 少看一半自旋，为什么不能只把它们擦掉？</a><ul>
+<li><a href="#rg186-title">要保留的是剩余变量的概率，而不是原图的样子</a></li>
 </ul>
 </li>
-<li><a href="#1-rg">1. RG 变换：粗粒化 + 重标度</a></li>
-<li><a href="#2-ising-rg">2. 一维 Ising 的精确 RG【推导】</a></li>
-<li><a href="#3">3. 临界指数 = 不动点的线性化</a></li>
-<li><a href="#4-rg">4. RG 的世界观辐射（本页的真正遗产）</a></li>
-<li><a href="#5_1">5. 练习与要点</a></li>
+<li><a href="#2">2. 一次精确消元，需要同时保存三个数</a></li>
+<li><a href="#3">3. 概率保住了，原来的磁化怎样找回来？</a></li>
+<li><a href="#4">4. 相关长度变短了，实际长度却没有变</a></li>
+<li><a href="#5">5. 一个中心自旋，就能产生四体相互作用</a></li>
+<li><a href="#6">6. 删除高阶项后，误差怎样定义？</a></li>
+<li><a href="#7">7. 从格点走向场：为什么四维是一个分界？</a></li>
+<li><a href="#8">8. 一圈流方程：先固定约定，再解释系数</a></li>
+<li><a href="#9">9. 解析流：边缘方向不能只看一个零</a></li>
+<li><a href="#10">10. 临界指数：一阶级数不能冒充无限阶答案</a></li>
+<li><a href="#11">11. 怎样用这节基础课读下一步研究？</a></li>
+<li><a href="#12">12. 八个可核对的练习</a></li>
 </ul>
 </div>
 </details>
-<h1 id="iii">统计进阶 III · 重整化群入门<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<h1 id="iii">统计进阶 III · 重整化群：消去变量之后，怎样保留物理？<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Goldenfeld §9 / Cardy 入门 ｜ <strong>前置</strong>：asm-01/02、ode-03（不动点与线性化——RG 的数学就是它）
-二十世纪后半叶物理学最深的思想（Wilson 1971，诺奖）：<strong>逐尺度看世界</strong>。粗粒化 + 重标度 = 参数空间的动力系统；<strong>临界点 = 不动点，临界指数 = 不动点处线性化的特征值</strong>——普适性（asm-02 之谜）由此得到一个机制解释：满足相同维数、对称性与相互作用范围等条件的系统，可能流向同一不动点；不是所有微观细节都自动无关。</p>
+<p><strong>前置</strong>：有限 Ising 模型的配分函数与转移矩阵、条件概率、Landau 自由能；理解一圈近似还需 Gaussian 积分与低阶微扰展开。
+<strong>本课目标</strong>：亲手核对一次完整消元，找到新产生的相互作用，再把精确变换与临界点附近的截断流区分开。</p>
 </blockquote>
 <div data-learning-page></div>
 
-<section aria-labelledby="rg-learning-title" class="learning-layer">
-<h2 id="_1">学习层：把“换尺度”变成一条可读的流<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="rg-learning-title">1. 谜题：粗粒化以后，温度到底往哪儿走？<a class="headerlink" href="#rg-learning-title" title="Permanent link"></a></h3>
-<p>你把一维铁磁链每隔一个格点抽掉，再把剩下的格距重新命名为一个单位。看起来只是删掉一半变量，参数却发生了确定的变化。<strong>谜题</strong>是：如果每一步都把短距离细节抹掉，为什么还能从流向判断“没有有限温相变”？以及，低温端的“长程关联”是否就等同于“临界点”？</p>
-<h3 id="2">2. 先预测：先不要点实验台<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<ol>
-<li>对无外场一维最近邻链，若 <span class="arithmatex">\(K_0=1\)</span>，预测 <span class="arithmatex">\(K_1\)</span> 与 <span class="arithmatex">\(T_1/J=1/K_1\)</span> 相对 <span class="arithmatex">\(K_0,T_0/J\)</span> 如何变化。</li>
-<li>关联长度用 <strong>connected correlation</strong> 定义时，抽稀一格并重标度后，当前粗粒格单位中的 <span class="arithmatex">\(\xi\)</span> 应该变大、变小还是不变？若换回原始长度单位呢？</li>
-<li>二维 toy 流中若 <span class="arithmatex">\(u_0=0\)</span>，而 <span class="arithmatex">\(v_0\neq0\)</span>，你预测它会不会离开临界流形？若 <span class="arithmatex">\(u_0\neq0\)</span>，即使 <span class="arithmatex">\(v_0\)</span> 很快衰减，最终会发生什么？</li>
-</ol>
-<h3 id="3-1d-toy">3. 最小模型：一条精确闭合的 1D 链 + 一个明确的 toy<a class="headerlink" href="#3-1d-toy" title="Permanent link"></a></h3>
-<p><strong>A：无外场一维 Ising decimation。</strong> 取</p>
+<section aria-labelledby="rg186-title" class="learning-layer rg186-course">
+<h2 id="1">1. 少看一半自旋，为什么不能只把它们擦掉？<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<h3 id="rg186-title">要保留的是剩余变量的概率，而不是原图的样子<a class="headerlink" href="#rg186-title" title="Permanent link"></a></h3>
+<p>把十六个自旋围成一个环，只观察编号为偶数的八个。没有被观察的自旋仍会影响它们：一个隐藏自旋更愿意与两侧同向，因此能在可见邻居之间传递关联。<strong>消元是把隐藏变量的所有可能性加起来</strong>，不是把它们设成零，也不是从原能量里删去有关项。</p>
+<p>若完整概率是 <span class="arithmatex">\(p(x,y)\)</span>，只观察 <span class="arithmatex">\(x\)</span> 就使用边缘概率 <span class="arithmatex">\(p_{\mathrm{keep}}(x)=\sum_y p(x,y)\)</span>。只要这一步做得精确，任意仅依赖保留变量的量 <span class="arithmatex">\(O(x)\)</span> 都满足 <span class="arithmatex">\(\langle O\rangle_p=\langle O\rangle_{p_{\mathrm{keep}}}\)</span>。这就是本课第一条可检查的承诺。</p>
+<p>本课有三个相接的实验：有限一维环的精确消元；四臂星图产生四体耦合的精确例子；临界点附近的一圈截断流。前两项可以逐状态核对，第三项的数值解只对<strong>明写出来的近似方程</strong>精确。它们合在一起，解释为什么重整化群既是一种严格组织方法，也经常需要有边界的近似计算。</p>
+<h2 id="2">2. 一次精确消元，需要同时保存三个数<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>使用无量纲耦合 <span class="arithmatex">\(K=J/T\)</span> 与无量纲场 <span class="arithmatex">\(h=H_{\mathrm{phys}}/T\)</span>。这里的 <span class="arithmatex">\(h\)</span> 与上一课有能量单位的外场不同；本课指数里不再另除一次温度。取偶数 <span class="arithmatex">\(N\)</span> 的周期环，<span class="arithmatex">\(s_i=\pm1\)</span>，</p>
 <div class="arithmatex">\[
-H=-J\sum_i s_i s_{i+1},\qquad s_i=\pm1,\qquad K=\beta J=\frac{J}{k_BT},\qquad b=2.
+Z_N(K,h)=\sum_{\{s\}}\exp\!\left[K\sum_{i=0}^{N-1}s_i s_{i+1}
++h\sum_{i=0}^{N-1}s_i\right]
+=\operatorname{Tr}T(K,h)^N,\qquad
+T(K,h)=
+\begin{pmatrix}
+e^{K-h}&amp;e^{-K}\\
+e^{-K}&amp;e^{K+h}
+\end{pmatrix}.
 \]</div>
-<p>在 <span class="arithmatex">\(h_{\mathrm{phys}}=0\)</span> 且只保留最近邻耦合时，求和掉偶数格点可以精确写成同一形式（外加与自旋无关的自由能常数）：</p>
+<p>矩阵的行、列依次对应 <span class="arithmatex">\(-1,+1\)</span>。每个矩阵因子分担两个端点各一半的外场，所以绕环相乘后，每个自旋恰好得到完整的 <span class="arithmatex">\(h s_i\)</span>。<span class="arithmatex">\(N=2\)</span> 时仍按周期方向保留两条平行键，这与上一课的定义一致。</p>
+<p>消去两个保留自旋中间的一个自旋，就是计算 <span class="arithmatex">\((T^2)_{ab}=\sum_{\sigma=\pm1}T_{a\sigma}T_{\sigma b}\)</span>。写成 <span class="arithmatex">\(T^2=\begin{pmatrix}A&amp;B\\B&amp;D\end{pmatrix}\)</span>，其三个独立的正数可以重新匹配为</p>
 <div class="arithmatex">\[
-\tanh K'=\tanh^2K,\qquad K'=\operatorname{artanh}(\tanh^2K).
+T(K,h)^2=e^{c}\,T(K',h'),\qquad
+K'=\frac14\log\frac{AD}{B^2},\quad
+h'=\frac12\log\frac DA,\quad
+c=\frac14\log(ADB^2).
 \]</div>
-<p>有限温度的对称 Gibbs 状态有 <span class="arithmatex">\(\langle s_i\rangle=0\)</span>，因此本实验的 connected 两点函数为</p>
+<p>由此得到的是 <span class="arithmatex">\(Z_N=e^{Nc/2}Z_{N/2}(K',h')\)</span>。<strong>只记录 <span class="arithmatex">\(K',h'\)</span> 能恢复归一化后的保留自旋概率，却不能恢复配分函数的绝对值。</strong> 常数 <span class="arithmatex">\(c\)</span> 对自由能很重要；“常数不影响物理”这句话必须先说明研究的是哪一种物理量。</p>
+<p>零场时，<span class="arithmatex">\(A=D=2\cosh 2K,\ B=2\)</span>，所以 <span class="arithmatex">\(h'=0\)</span>、<span class="arithmatex">\(K'=\tfrac12\log\cosh2K\)</span>、<span class="arithmatex">\(c=\log2+K'\)</span>。例如 <span class="arithmatex">\(K=1\)</span>，<span class="arithmatex">\(K'\approx0.662501\)</span>，而 <span class="arithmatex">\(\tanh K'=(\tanh1)^2\approx0.580026\)</span>。这里的 <span class="arithmatex">\(0.580026\)</span> 已经是平方后的数，不能再平方一次。</p>
+<p>连续消元时，若第 <span class="arithmatex">\(j\)</span> 次变换前还有 <span class="arithmatex">\(N_j\)</span> 个自旋，则累积常数是 <span class="arithmatex">\(\mathcal C_k=\sum_{j=0}^{k-1}(N_j/2)c_j\)</span>，并且 <span class="arithmatex">\(\log Z_{16}=\mathcal C_k+\log Z_{N_k}(K_k,h_k)\)</span>。实验到 <span class="arithmatex">\(16\to8\to4\to2\)</span> 为止；各级完整矩阵幂与常数都可下载核对。</p>
+<h2 id="3">3. 概率保住了，原来的磁化怎样找回来？<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>固定一次变换后保留的自旋 <span class="arithmatex">\(a_i\)</span>。它们之间的隐藏自旋 <span class="arithmatex">\(\sigma_i\)</span> 在这个条件下彼此独立，且</p>
 <div class="arithmatex">\[
-C_c(r)=\langle s_0s_r\rangle-\langle s_0\rangle\langle s_r\rangle=(\tanh K)^r,\qquad \frac{\xi_c}{a}=-\frac{1}{\log(\tanh K)}.
+\mathbb E(\sigma_i\mid a)
+=\tanh\!\left[h+K(a_i+a_{i+1})\right].
 \]</div>
-<p>这里 <span class="arithmatex">\(a\)</span> 是当前粗粒格距。抽稀后 <span class="arithmatex">\(a'=2a\)</span>，<span class="arithmatex">\(\xi_c/a'\)</span> 由 <span class="arithmatex">\(K'\)</span> 重新计算；换回原始长度单位则 <span class="arithmatex">\(2^n\xi_c(K_n)/a_n\)</span> 保持不变，这是同一物理长度的两种记账。</p>
-<p><strong>B：临界点附近的二维 toy linearized flow。</strong> 这不是某个具体材料或具体模型的指数表，而是用来读懂线性化的教学动力系统：</p>
+<p>因此原来总磁化的条件平均是
+<span class="arithmatex">\(\mathbb E(M_{\mathrm{old}}\mid a)
+=\sum_i a_i+\sum_i\tanh[h+K(a_i+a_{i+1})]\)</span>。
+先按边缘概率平均这个表达式，就能恢复原来的 <span class="arithmatex">\(\langle M_{\mathrm{old}}\rangle\)</span>。这一步称为对观测量一起做变换；它说明有效理论除了变换能量，也要说明如何解释读数。</p>
+<p>均匀周期环具有平移对称性，所以保留子格的<strong>每自旋</strong>平均磁化与完整环相同。但把八个保留自旋的总磁化直接当成原来十六个自旋的总磁化，会漏掉另一半贡献。对非均匀体系，也不能未经证明就沿用每自旋均值相同的结论。</p>
+<p>同样，若从原场 <span class="arithmatex">\(h_0\)</span> 的导数求总磁化，应使用完整链式法则：
+<span class="arithmatex">\(\partial_{h_0}\log Z_{16}
+=\partial_{h_0}\mathcal C_k
++(\partial_{K_k}\log Z_{N_k})\,\partial_{h_0}K_k
++(\partial_{h_k}\log Z_{N_k})\,\partial_{h_0}h_k\)</span>。
+最后一项里的 <span class="arithmatex">\(\partial_{h_k}\)</span> 不是原来那个 <span class="arithmatex">\(\partial_{h_0}\)</span>。实验用全构型条件求和与上述条件自旋公式交叉比较，不靠把两个导数混为一谈。</p>
+<h2 id="4">4. 相关长度变短了，实际长度却没有变<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>先只看<strong>零场无限一维链</strong>。记 <span class="arithmatex">\(q=\tanh K\)</span>，两点相关为 <span class="arithmatex">\(\langle s_0s_r\rangle=q^r\)</span>，相关长度以原晶格间距为单位是 <span class="arithmatex">\(\xi=-1/\log q\)</span>。精确消元给出 <span class="arithmatex">\(q'=q^2\)</span>，所以 <span class="arithmatex">\(\xi'=\xi/2\)</span>。</p>
+<p>这并不意味着同一个样品中的物理关联突然缩短一半：保留格点的实际间距从 <span class="arithmatex">\(a\)</span> 变成 <span class="arithmatex">\(2a\)</span>，因此 <span class="arithmatex">\((2a)\xi'=a\xi\)</span>。连续 <span class="arithmatex">\(k\)</span> 步后，<span class="arithmatex">\(\log q_k=2^k\log q_0\)</span>，<span class="arithmatex">\(2^k\xi_k=\xi_0\)</span>。图中将晶格单位与原始物理单位分列，避免把换刻度读成新动力学。</p>
+<p>数值上，反复计算 <span class="arithmatex">\(\tanh K_k\)</span> 很快会遇到极小数。在实验的四十步零场参考中，<span class="arithmatex">\(\log q_k\)</span> 始终单独保存；即使 <span class="arithmatex">\(q_k\)</span> 已小到浮点数显示为零，仍能由 <span class="arithmatex">\(-1/\log q_k\)</span> 计算相关长度。显示零只是下溢，不能推断某一次有限步变换突然完全丢失了关联。</p>
+<p>有限环的相关函数不同：<span class="arithmatex">\(\langle s_0s_r\rangle_N=(q^r+q^{N-r})/(1+q^N)\)</span>，会在 <span class="arithmatex">\(r=N\)</span> 回到自身。非零场还要区分相关与减去 <span class="arithmatex">\(\langle s\rangle^2\)</span> 的连通相关。因此实验将四十步图明确标作零场无限链参考，即使场控件非零，也不将它冒充当前有限环的相关长度。</p>
+<h2 id="5">5. 一个中心自旋，就能产生四体相互作用<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>一维最近邻链消元后仍能只用 <span class="arithmatex">\(K',h',c\)</span> 描述，是它的特殊结构。要看到一般情况下缺失了什么，考虑四个外自旋 <span class="arithmatex">\(s_1,\ldots,s_4\)</span> 共同连接一个中心自旋 <span class="arithmatex">\(\sigma\)</span>。本例没有外圈键，也没有外自旋场。消去中心后的权重为</p>
 <div class="arithmatex">\[
-u'=b^{y_t}u,\qquad v'=b^{y_i}v,\qquad y_t&gt;0,\quad y_i&lt;0.
+W(s_1,\ldots,s_4)
+=\sum_{\sigma=\pm1}e^{\sigma[h+K(s_1+\cdots+s_4)]}
+=2\cosh\!\left[h+K\sum_i s_i\right].
 \]</div>
-<p>把 <span class="arithmatex">\(u\)</span> 当作热方向的 scaling field、<span class="arithmatex">\(v\)</span> 当作无关方向；<span class="arithmatex">\(u=0\)</span> 是 toy 的临界流形，且在“<span class="arithmatex">\(u\)</span> 就是温度偏离量、标度假设成立”的条件下 <span class="arithmatex">\(\nu=1/y_t\)</span>。这里的 <span class="arithmatex">\(y_t,y_i,\nu\)</span> <strong>只属于这个 toy 的参数化</strong>，不能冒充某种材料或具体模型的指数。</p>
-<h3 id="4">4. 动手操作：两个页签，先读数再读图<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>实验台的 A 页签调 <span class="arithmatex">\(K_0\)</span>（等价地读 <span class="arithmatex">\(T_0/J=1/K_0\)</span>）和迭代步数，逐行显示 <span class="arithmatex">\(K_n,T_n/J,\xi_c/a_n\)</span> 以及换回原始单位的物理关联长度，并用 SVG 画出流向。B 页签调 <span class="arithmatex">\(b,y_t,y_i,u_0,v_0\)</span> 和步数：图中的竖线是 <span class="arithmatex">\(u=0\)</span> 临界流形，横纵方向分别标出 relevant/irrelevant 流；表格给出每一步的 <span class="arithmatex">\(u_n,v_n\)</span>。所有数值都由公式直接计算，不抽样、不卡随机种子。</p>
+<p>外自旋一共有十六个构型。函数 <span class="arithmatex">\(\log W\)</span> 可在十六个自旋乘积上完整展开：
+<span class="arithmatex">\(\log W(s)=\sum_{A\subseteq\{1,2,3,4\}}c_A\prod_{i\in A}s_i\)</span>，其中
+<span class="arithmatex">\(c_A=2^{-4}\sum_s\log W(s)\prod_{i\in A}s_i\)</span>。
+空集乘积等于 <span class="arithmatex">\(1\)</span>，所以常数也属于展开。它是有限的正交基变换，不是小 <span class="arithmatex">\(K\)</span> 展开。</p>
+<p>零场的反号对称性让所有奇数阶系数为零，但不要求四阶系数为零。四体项恰好是
+[
+c_{1234}=\frac18\left[\log\cosh4K-4\log\cosh2K\right]
+=-2K^4+O(K^6).
+]
+例如 <span class="arithmatex">\(K=1\)</span> 时，它约为 <span class="arithmatex">\(-0.249103\)</span>，已经不是可以默默忽略的零。这里系数写在<strong>对数权重</strong>里；若写有效作用量 <span class="arithmatex">\(\mathcal H_{\mathrm{eff}}=-\log W\)</span>，相应项的符号要反过来。</p>
+<p>这个星图是“消元会生成新耦合”的直接反例，不能冒充整个二维方格的精确重整化方案。多个被消去的自旋若彼此相连，它们的联合求和也不能再当成独立的几个星图相乘。</p>
+<h2 id="6">6. 删除高阶项后，误差怎样定义？<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>若只保留 <span class="arithmatex">\(c_A\)</span> 中 <span class="arithmatex">\(|A|\le2\)</span> 的项，会得到 <span class="arithmatex">\(L_2(s)\)</span>。应重新归一化成 <span class="arithmatex">\(q_2(s)=e^{L_2(s)}/Z_2\)</span>，再与精确 <span class="arithmatex">\(p(s)=W(s)/Z\)</span> 比较。使用原来的 <span class="arithmatex">\(Z\)</span> 会让近似概率总和不再为一。</p>
+<p>实验列出全部十六个 <span class="arithmatex">\(p(s)\)</span> 与 <span class="arithmatex">\(q_2(s)\)</span>，以及
+<span class="arithmatex">\(D_{\mathrm{KL}}(p\Vert q_2)=\sum_s p(s)\log[p(s)/q_2(s)]\)</span> 和最大逐态概率差。两者衡量这个有限星图上的明确误差；它们没有自动给出宏观临界指数的误差条。</p>
+<p>注意，这里删项的规则是先在 <span class="arithmatex">\(\log W\)</span> 的完整 Walsh 展开中截去高阶项。它不是对所有二体模型进行最优拟合，也没有声称最小化 KL。若学习者改用矩匹配或变分优化，得到另一种投影，就应重新定义实验和比较标准。</p>
+<p>从这里可以理解真实计算的难点：精确粗粒化可能把有限几个参数带入一个越来越大的耦合空间；只保留其中一部分，才形成可计算的近似。<strong>对称性允许哪些项、尺度变换怎样放大这些项、截断遗漏多大，是三个不同的问题。</strong></p>
+<h2 id="7">7. 从格点走向场：为什么四维是一个分界？<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>长波长下用 <span class="arithmatex">\(n\)</span> 分量场 <span class="arithmatex">\(\phi=(\phi_1,\ldots,\phi_n)\)</span> 描述序参量，考虑具有 <span class="arithmatex">\(O(n)\)</span> 内部对称性的作用量。梯度项已归一化为 <span class="arithmatex">\(\tfrac12(\nabla\phi)^2\)</span>。一次 Wilson 变换包括积分掉高动量壳、重设长度刻度、重新归一化场；少掉后两步，就不能直接比较前后参数。</p>
+<p>在 Gaussian 固定点，用 <span class="arithmatex">\(x=b x'\)</span> 保持梯度积分形式，可得 <span class="arithmatex">\(\phi(x)=b^{-(d-2)/2}\phi'(x')\)</span>。于是质量平方项的线性尺度指数为 <span class="arithmatex">\(2\)</span>，四次项的指数为 <span class="arithmatex">\(4-d\)</span>。正指数称为相关，负指数称为无关；零指数只是边缘，尚不能决定最终流向。</p>
+<p>更一般地，<span class="arithmatex">\(\int d^dx\,(\phi^2)^p\)</span> 的 Gaussian 耦合指数为 <span class="arithmatex">\(y_p=d-p(d-2)\)</span>。在 <span class="arithmatex">\(d=4\)</span>，四次项边缘，六次项的指数为 <span class="arithmatex">\(-2\)</span>。这不是对任意强相互作用固定点都成立的数表；相互作用会修正标度维数。</p>
+<p>“无关”也不等于任何地方都能直接设成零。例如四维以上的有序侧，正四次项仍负责稳定自由能；把它提前删去可能破坏序参量和有限尺寸的推导。使用 <span class="arithmatex">\(2-\alpha=d\nu\)</span> 这样的超标度关系，必须检查是否存在危险无关变量等障碍，而不能只代一个维数进去。</p>
+<h2 id="8">8. 一圈流方程：先固定约定，再解释系数<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>取 <span class="arithmatex">\(d=4-\epsilon\)</span>，将四次势写成 <span class="arithmatex">\(\lambda(\phi^2)^2/4!\)</span>。在截止尺度 <span class="arithmatex">\(\Lambda\)</span> 上定义无量纲 <span class="arithmatex">\(g=\lambda\Lambda^{-\epsilon}/(8\pi^2)\)</span>，并令 <span class="arithmatex">\(\ell=\log b\)</span> 随观察尺度增大而增大。下列方程使用临界面附近的热标度坐标 <span class="arithmatex">\(t\)</span>，它已经减去质量的临界偏移，并不是裸质量平方。</p>
+<div class="arithmatex">\[
+\frac{dg}{d\ell}=\epsilon g-\frac{n+8}{6}g^2,\qquad
+\frac{dt}{d\ell}=\left(2-\frac{n+2}{6}g\right)t .
+\]</div>
+<p>这两式是本实验采用的<strong>一圈截断方程</strong>。更高圈项、非线性热坐标项，以及更一般的耦合没有包含在其中。靠近固定点且 <span class="arithmatex">\(\epsilon\)</span> 很小时可以按阶组织它们；离开这个范围后，数值积分得很精确也不能消除截断误差。</p>
+<p>系数可以与已学过的图计数连接起来。高动量壳积分在四维给出 <span class="arithmatex">\(\int_{\mathrm{shell}}d^4q/[(2\pi)^4q^4]=d\ell/(8\pi^2)\)</span>。<span class="arithmatex">\(O(n)\)</span> 指标收缩使四点修正包含 <span class="arithmatex">\(n+8\)</span>，二点修正包含 <span class="arithmatex">\(n+2\)</span>；与 <span class="arithmatex">\(4!\)</span> 的顶点归一化组合后，分别得到上式的 <span class="arithmatex">\(1/6\)</span> 系数。<span class="arithmatex">\(n=1\)</span> 时，四点系数成为 <span class="arithmatex">\(3/2\)</span>，换回 <span class="arithmatex">\(\lambda\)</span> 就是红外方向的 <span class="arithmatex">\(-3\lambda^2/(16\pi^2)\)</span>，与上一组场论课的约定可直接对照。</p>
+<p>许多场论教材用能标 <span class="arithmatex">\(\mu\)</span> 定义 <span class="arithmatex">\(\mu\,dg/d\mu\)</span>。增大长度与减小能标相对应，所以在匹配同一无量纲约定后，<span class="arithmatex">\(\beta_\ell=-\beta_\mu\)</span>。正负号不同可能只是方向不同；必须先检查方向和耦合的定义。</p>
+<h2 id="9">9. 解析流：边缘方向不能只看一个零<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>记 <span class="arithmatex">\(a=(n+8)/6,\ b=(n+2)/6\)</span>。对 <span class="arithmatex">\(\epsilon&gt;0\)</span>，定义 <span class="arithmatex">\(D(\ell)=1+a g_0(e^{\epsilon\ell}-1)/\epsilon\)</span>，则
+[
+g(\ell)=\frac{g_0e^{\epsilon\ell}}{D(\ell)},\qquad
+\int_0^\ell g(u)\,du=\frac{\log D(\ell)}a,\qquad
+t(\ell)=t_0e^{2\ell}D(\ell)^{-b/a}.
+]</p>
+<p><span class="arithmatex">\(\epsilon=0\)</span> 时直接使用连续极限 <span class="arithmatex">\(D=1+a g_0\ell\)</span>，因此 <span class="arithmatex">\(g(\ell)=g_0/(1+a g_0\ell)\)</span>。正的 <span class="arithmatex">\(g_0\)</span> 缓慢趋向零：虽然线性特征值是零，二次项仍使它<strong>边缘无关</strong>。衰减是 <span class="arithmatex">\(1/\ell\)</span>，对应实际长度的对数修正。实验只允许 <span class="arithmatex">\(g_0\ge0\)</span>，没有把可能不稳定的负四次势画成同一条安全轨迹。</p>
+<p><span class="arithmatex">\(\epsilon&gt;0\)</span> 时有 Gaussian 固定点 <span class="arithmatex">\(g=0\)</span> 和 Wilson–Fisher 固定点 <span class="arithmatex">\(g_*=6\epsilon/(n+8)\)</span>。在热坐标为零的临界面上，任意本实验范围内的正 <span class="arithmatex">\(g_0\)</span> 都趋向 <span class="arithmatex">\(g_*\)</span>；若恰好 <span class="arithmatex">\(g_0=0\)</span>，则始终停在 Gaussian 线上。不能从一张有限精度箭头图抹去这个特殊初值。</p>
+<p>实验保存全部 121 个流点。若 <span class="arithmatex">\(t_0\ne0\)</span> 且窗口内达到 <span class="arithmatex">\(|t|=1\)</span>，另用求根找到交叉尺度 <span class="arithmatex">\(e^{\ell_*}\)</span>。这个阈值只是截断流中的操作性标记，不能直接当作测得的物理相关长度。有关“小参数”的提示同样是诊断，不是误差保证。</p>
+<h2 id="10">10. 临界指数：一阶级数不能冒充无限阶答案<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>在 Wilson–Fisher 点附近，四次耦合方向的特征值为 <span class="arithmatex">\(-\epsilon+O(\epsilon^2)\)</span>，热方向为
+<span class="arithmatex">\(y_t=2-\frac{n+2}{n+8}\epsilon+O(\epsilon^2)\)</span>。
+前者给出趋近固定点的修正指数 <span class="arithmatex">\(\omega=\epsilon+O(\epsilon^2)\)</span>，后者给出
+[
+\nu=\frac1{y_t}
+=\frac12+\frac{n+2}{4(n+8)}\epsilon+O(\epsilon^2).
+]</p>
+<p>为什么实验把 <span class="arithmatex">\(\nu\)</span> 的一阶式与 <span class="arithmatex">\(1/[2-(n+2)\epsilon/(n+8)]\)</span> 分列？后者把一个截断分母直接求倒数，展开后会带入一些二阶、三阶项；这些项没有经过相应圈数的计算，不能当成更准确的预测。</p>
+<p>例如 <span class="arithmatex">\(n=1,\epsilon=1\)</span>，一阶级数给 <span class="arithmatex">\(7/12\approx0.583333\)</span>，直接倒数给 <span class="arithmatex">\(3/5=0.6\)</span>。它们的差异展示了截断处理方式的影响；两者都不是三维 Ising 的精确指数。实验允许 <span class="arithmatex">\(\epsilon=1\)</span> 是为了看这个问题，不是宣布小参数展开在这里已有严格精度保证。</p>
+<p>在通常标度与超标度条件满足、并且只保留一阶 <span class="arithmatex">\(\epsilon\)</span> 的前提下，还可推出
+<span class="arithmatex">\(\alpha=\frac{4-n}{2(n+8)}\epsilon\)</span>、
+<span class="arithmatex">\(\beta=\frac12-\frac{3}{2(n+8)}\epsilon\)</span>、
+<span class="arithmatex">\(\gamma=1+\frac{n+2}{2(n+8)}\epsilon\)</span>、
+<span class="arithmatex">\(\delta=3+\epsilon\)</span>，各式均省略 <span class="arithmatex">\(O(\epsilon^2)\)</span>。
+本阶 <span class="arithmatex">\(\eta=0+O(\epsilon^2)\)</span>，不是说它在真实相互作用固定点上严格为零。将这些级数代入指数关系时，也必须统一截断到同一阶。</p>
+<h2 id="11">11. 怎样用这节基础课读下一步研究？<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p>先完成三个小任务：把有限环的 <span class="arithmatex">\(\mathcal C+\log Z_{\mathrm{effective}}\)</span> 恢复成同一个值；从星图全部十六个权重亲手提取四体项；在 <span class="arithmatex">\(\epsilon=0\)</span> 与 <span class="arithmatex">\(\epsilon&gt;0\)</span> 比较正四次耦合的流向。每个任务都有明确的输入、可观察结果和失败条件，比只记住一张“流向固定点”的图更有用。</p>
+<p>然后回到<a href="qft-03-path-renorm.html">路径积分与重整化</a>，比较 Gaussian 精确消元与相互作用的截断；进入<a href="research-02-quantum-criticality.html">量子临界性</a>时，再问时间方向怎样标度、动力学指数是什么，以及有限温度如何截断量子临界行为。经典平衡 Ising 环没有实时间演化，本页的 RG 步数也不是动力学时间。</p>
+<p>继续研究时，无论采用数值粗粒化、函数重整化群或固定点约束方法，都可以沿用同一套问题：保留哪些自由度与观测量？使用什么投影？误差来自有限尺寸、截断还是数值求解？支持的是某个近似模型，还是已控制极限的结论？本页没有实现这些进一步方法，先把进入它们所需的计算习惯练扎实。</p>
 <div class="learning-lab" data-learning-lab="rg-flow">
-<p><strong>无 JavaScript 时的静态读法：</strong>A 页签以 <span class="arithmatex">\(K_0=1\)</span>、<span class="arithmatex">\(n=4\)</span> 为例；B 页签以 <span class="arithmatex">\(b=2,y_t=1,y_i=-1,u_0=0.25,v_0=0.8,n=4\)</span> 为例。</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: right;">A: <span class="arithmatex">\(n\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(K_n\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(T_n/J\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(\xi_c/a_n\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(2^n\xi_c/a_n\)</span></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">1.000000</td>
-<td style="text-align: right;">1.000000</td>
-<td style="text-align: right;">3.671861</td>
-<td style="text-align: right;">3.671861</td>
-</tr>
-<tr>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0.662501</td>
-<td style="text-align: right;">1.509431</td>
-<td style="text-align: right;">1.835930</td>
-<td style="text-align: right;">3.671861</td>
-</tr>
-<tr>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">0.350061</td>
-<td style="text-align: right;">2.856644</td>
-<td style="text-align: right;">0.917965</td>
-<td style="text-align: right;">3.671861</td>
-</tr>
-<tr>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">0.113672</td>
-<td style="text-align: right;">8.797236</td>
-<td style="text-align: right;">0.458983</td>
-<td style="text-align: right;">3.671861</td>
-</tr>
-<tr>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">0.012812</td>
-<td style="text-align: right;">78.054616</td>
-<td style="text-align: right;">0.229491</td>
-<td style="text-align: right;">3.671861</td>
-</tr>
-</tbody>
-</table>
-<table>
-<thead>
-<tr>
-<th style="text-align: right;">B: <span class="arithmatex">\(n\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(u_n\)</span>（relevant）</th>
-<th style="text-align: right;"><span class="arithmatex">\(v_n\)</span>（irrelevant）</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: right;">0</td>
-<td style="text-align: right;">0.2500</td>
-<td style="text-align: right;">0.8000</td>
-</tr>
-<tr>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">0.5000</td>
-<td style="text-align: right;">0.4000</td>
-</tr>
-<tr>
-<td style="text-align: right;">2</td>
-<td style="text-align: right;">1.0000</td>
-<td style="text-align: right;">0.2000</td>
-</tr>
-<tr>
-<td style="text-align: right;">3</td>
-<td style="text-align: right;">2.0000</td>
-<td style="text-align: right;">0.1000</td>
-</tr>
-<tr>
-<td style="text-align: right;">4</td>
-<td style="text-align: right;">4.0000</td>
-<td style="text-align: right;">0.0500</td>
-</tr>
-</tbody>
-</table>
-<p>所以 A 的 <span class="arithmatex">\(K\)</span> 流向高温固定点 <span class="arithmatex">\(K=0\)</span>，但原始单位的 <span class="arithmatex">\(\xi_c\)</span> 只是在重标度记账下保持；B 中 <span class="arithmatex">\(u_0\neq0\)</span> 最终离开线性化邻域，而 <span class="arithmatex">\(u_0=0\)</span> 才留在 toy 临界流形上。</p>
-</div>
-<h3 id="5">5. 误区 / 边界：这页的公式没有声称什么<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<ul>
-<li><strong>低温固定点不等于有限温临界点</strong>：一维映射的 <span class="arithmatex">\(K=\infty\)</span> 是 <span class="arithmatex">\(T=0\)</span> 端点；在对称零温极限里 <span class="arithmatex">\(\xi_c\)</span> 可发散，但这不是有限温相变。一般有序相还会有 <span class="arithmatex">\(\langle s_0s_r\rangle\to m^2\)</span> 的平台，必须先减去 <span class="arithmatex">\(m^2\)</span> 才能谈 connected correlation length；在精确 <span class="arithmatex">\(T=0\)</span> 的纯基态中，连接涨落甚至可以完全消失。</li>
-<li><strong>A 的精确闭合有边界</strong>：<span class="arithmatex">\(\tanh K'=\tanh^2K\)</span> 只适用于无外场的一维最近邻链、抽稀比例 <span class="arithmatex">\(b=2\)</span>（周期链或无限链的 bulk 记账）；有限开链的端点会带边界项。加外场、长程相互作用或换到更高维后，不能直接套这条一维映射。</li>
-<li><strong>RG 一般会生成新耦合</strong>：精确积掉自由度通常产生外场、次近邻、长程和多自旋项；“仍是 Ising 形”只有在特殊闭合情形成立，或是把完整有效作用量截断并投影回某个 ansatz 的近似，不能说截断后总保持 Ising 形。</li>
-<li><strong><span class="arithmatex">\(\beta\)</span> 的符号要先约定</strong>：本页若写 <span class="arithmatex">\(\beta_{\ell}(g)=\mathrm d g/\mathrm d\ell\)</span>，取 <span class="arithmatex">\(\ell=\log b\)</span> 沿粗粒化、向长距离走；有些场论文本用 <span class="arithmatex">\(\beta_{\mu}(g)=\mathrm d g/\mathrm d\log\mu\)</span>，而 <span class="arithmatex">\(\mu\propto1/L\)</span>，所以两者符号相反。相关/无关的判别以本页的 <span class="arithmatex">\(b^{y_i}\)</span> 约定为准。</li>
-<li><strong>B 是线性化玩具</strong>：它只在临界点附近且变量仍在小邻域时可信；<span class="arithmatex">\(\nu=1/y_t\)</span> 还需要 <span class="arithmatex">\(u\)</span> 确实是热 scaling field、并采用相应的关联长度标度假设。它不是具体材料、格子或模型的数值预测。</li>
-<li><strong>普适性有条件</strong>：同一普适类通常要求维数、序参量对称性、相互作用范围、守恒律/动力学类别等关键结构相同；微观晶格常数等细节可能无关，但改变这些结构可以改变固定点与指数。</li>
-</ul>
-<h3 id="6">6. 正式映射：从一条相线到参数空间的雅可比<a class="headerlink" href="#6" title="Permanent link"></a></h3>
-<p>一般把所有允许的耦合收成 <span class="arithmatex">\(g=(g_1,g_2,\ldots)\)</span>，粗粒化与重标度是</p>
-<div class="arithmatex">\[
-g'=R_b(g),\qquad R_b(g^*)=g^*,\qquad \delta g_i'=b^{y_i}\delta g_i.
-\]</div>
-<p><span class="arithmatex">\(y_i&gt;0\)</span> 的 relevant 方向会放大，必须调准才能落到临界流形；<span class="arithmatex">\(y_i&lt;0\)</span> 的 irrelevant 方向会衰减；<span class="arithmatex">\(y_i=0\)</span> 是 marginal，需要更高阶项判断。若温度偏离量 <span class="arithmatex">\(t\)</span> 沿 <span class="arithmatex">\(y_t&gt;0\)</span> 方向，关联长度满足</p>
-<div class="arithmatex">\[
-\xi(t)=b\,\xi(b^{y_t}t)\quad\Longrightarrow\quad \xi(t)\propto |t|^{-1/y_t},\qquad \nu=\frac1{y_t}.
-\]</div>
-<p>这里的 <span class="arithmatex">\(b\)</span> 是离散粗粒化的尺度因子；把 <span class="arithmatex">\(b=e^\ell\)</span> 取连续极限才得到 beta 函数。固定点、线性化和临界指数的关系是正式映射，A 的一维精确流与 B 的 toy 只是在不同参数空间里的两个可计算投影。</p>
-<h3 id="7">7. 迁移问题：换模型时，先问“哪些假设还在？”<a class="headerlink" href="#7" title="Permanent link"></a></h3>
-<ol>
-<li>对 A 取 <span class="arithmatex">\(K_0=1.5\)</span>，不用实验台先估计 <span class="arithmatex">\(K_1\)</span> 的方向，并说明 <span class="arithmatex">\(T/J\)</span> 与 <span class="arithmatex">\(\xi_c/a_n\)</span> 各自为什么变化；再用 <span class="arithmatex">\(\xi_{\mathrm{phys}}/a_0=2^n\xi_c/a_n\)</span> 检查长度记账。</li>
-<li>在 B 中令 <span class="arithmatex">\(u_0=0,v_0=0.7\)</span>，分别把 <span class="arithmatex">\(y_i\)</span> 调成 <span class="arithmatex">\(-0.2\)</span> 和 <span class="arithmatex">\(-1.5\)</span>，解释两条轨迹都留在临界流形但靠近速度不同；再令 <span class="arithmatex">\(u_0=0.02\)</span>，说明为什么“很小”不等于“无关”。</li>
-<li>把“二维 toy 的 <span class="arithmatex">\(y_t=1\)</span>”换成二维方格 Ising、三维短程磁体或含长程相互作用的模型时，哪些输入（维数、对称性、相互作用范围、是否有外场）必须重新检查？写出一个不能从本页直接搬走的指数，并说明原因。</li>
-</ol>
-</section>
-<h2 id="1-rg">1. RG 变换：粗粒化 + 重标度<a class="headerlink" href="#1-rg" title="Permanent link"></a></h2>
-<p><strong>三步操作</strong>：① <strong>粗粒化</strong>：把 <span class="arithmatex">\(b^d\)</span> 个自旋合成一个块自旋（多数表决/求和）——积掉短波涨落；② <strong>重标度</strong>：长度除以 <span class="arithmatex">\(b\)</span> 恢复原格距；③ <strong>读出新有效作用量</strong>：一般得到更大的耦合空间 <span class="arithmatex">\(g' = R_b(g)\)</span>，其中可能包括外场、长程、次近邻和多自旋项。只有特殊的精确闭合（本页 A）或明确声明的截断投影，才可以把它简写成单个 <span class="arithmatex">\(K'=R(K)\)</span>。</p>
-<p><strong>核心观察</strong>：用 connected 两点函数定义的关联长度，在当前粗粒格单位中按 <span class="arithmatex">\(\xi_c' = \xi_c/b\)</span> 缩短。有限相关长度的相通常流向短程的平庸吸引子；临界固定点才要求 <span class="arithmatex">\(\xi_c/a=\infty\)</span>，即没有有限相关尺度。低温固定点可能是零温有序端点，不能仅凭“低温”或未减去 <span class="arithmatex">\(m^2\)</span> 的总关联就把它叫作临界固定点。</p>
-<h2 id="2-ising-rg">2. 一维 Ising 的精确 RG【推导】<a class="headerlink" href="#2-ising-rg" title="Permanent link"></a></h2>
-<p>抽稀（decimation）：对偶数格点求和。在<strong>无外场一维最近邻链</strong>的 bulk 中，两步转移矩阵 <span class="arithmatex">\(T^2\)</span> 仍可写成同一最近邻 Ising 形式，差一个与自旋无关的加性常数 ⇒ 新耦合满足</p>
-<div class="arithmatex">\[
-\tanh K' = \tanh^2 K \qquad (K = \beta J)
-\]</div>
-<p><strong>流图分析</strong>（ode-03 的一维相线）：对有限 <span class="arithmatex">\(K&gt;0\)</span>，<span class="arithmatex">\(\tanh K &lt; 1\)</span> ⇒ <span class="arithmatex">\(K' &lt; K\)</span>，所以流向高温不动点 <span class="arithmatex">\(K=0\)</span>；扩展参数空间里的 <span class="arithmatex">\(K=\infty\)</span> 是零温端点。它不是有限温临界点，因而得到<strong>一维无有限温相变的 RG 证明</strong>（asm-02 转移矩阵结论的第三种证法，且给出“为什么”：任何有限耦合终会被粗粒化冲淡）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<h2 id="3">3. 临界指数 = 不动点的线性化<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p><strong>无脚本对照：</strong>六组完整固定记录保留精确消元与一圈截断的不同适用范围。</p>
 <figure class="plot">
-<p><img alt="RG 流与不动点" src="assets/img/asm-03-rg-flow.svg" /></p>
-<figcaption><span class="fig-id">图 3.1</span>RG 流：耦合在 \(\beta(g)=0\) 的不动点处停驻；沿本页约定的粗粒化方向，相关/无关方向决定临界流形与临界行为，临界指数由不动点线性化给出。</figcaption>
+<p><img alt="16点环的消元关系、配分函数常数、相关长度刻度、星图四体项、边缘流与热偏离的六面板图。" src="assets/img/asm-03-rg-ledgers.svg" /></p>
+<figcaption>图A是变量关系示意；图B恢复绝对配分函数；图C单独假定零场无限链。图D为孤立星图的完整展开。图E、F只解一圈截断方程，RG尺度不是动力学时间。</figcaption>
 </figure>
-<p>临界不动点 <span class="arithmatex">\(K^*\)</span> 附近线性化（ode-03 的 Jacobi 流程）：<span class="arithmatex">\(\delta K' = \Lambda\,\delta K\)</span>，特征值写成 <span class="arithmatex">\(\Lambda_i = b^{y_i}\)</span>：</p>
-<ul>
-<li><span class="arithmatex">\(y_i &gt; 0\)</span>：<strong>相关方向</strong>（偏离被放大——温度、外场：必须调准才能到临界点，实验上"临界点难伺候"的原因）；</li>
-<li><span class="arithmatex">\(y_i &lt; 0\)</span>：<strong>无关方向</strong>（某些微观细节被冲刷——例如在同一普适类内的格子形状、弱次近邻耦合……）。这解释了普适性的一个机制，但只有在维数、对称性、相互作用范围等关键结构相同的条件下，系统才可能流进同一个不动点。</li>
-</ul>
-<p><strong>指数的换算【推导】</strong>：关联长度 <span class="arithmatex">\(\xi(\delta K) = b\,\xi(b^{y_t}\delta K)\)</span> 迭代至 <span class="arithmatex">\(O(1)\)</span> ⇒ <span class="arithmatex">\(\xi \propto |\delta K|^{-1/y_t}\)</span>——<span class="arithmatex">\(\nu = \frac{1}{y_t}\)</span>；同法产出全部指数并给<strong>标度关系</strong>（<span class="arithmatex">\(\alpha + 2\beta + \gamma = 2\)</span> 等——指数不独立，两个 <span class="arithmatex">\(y\)</span> 生成全家【骨架：自由能的齐次标度形式 <span class="arithmatex">\(f(t, h) = b^{-d}f(b^{y_t}t, b^{y_h}h)\)</span> 逐个求导】）。<strong>有限尺寸标度</strong>一嘴：<span class="arithmatex">\(L\)</span> 有限时 <span class="arithmatex">\(\xi \to L\)</span> 截断——数值模拟提取指数的标准技术（comp-01 的 Ising 模拟由此定量）。</p>
-<h2 id="4-rg">4. RG 的世界观辐射（本页的真正遗产）<a class="headerlink" href="#4-rg" title="Permanent link"></a></h2>
-<ul>
-<li><strong>有效理论哲学</strong>：任何理论都是"某尺度下的有效描述"，无关算符沿流衰减——<strong>为什么低能物理可以不知道高能细节</strong>（工程能用连续介质、化学能不管夸克）：现代物理的认识论支柱；</li>
-<li><strong>场论的重整化</strong>（qft-03）：在动量/能标上也会出现跑动耦合和尺度依赖；RG 是组织紫外与红外描述的框架，但场论与统计物理的变量、可观测量和固定点解释要逐项对应，不能用一句“完全相同”替代映射。</li>
-<li><strong>临界维数</strong>：对短程 Ising/<span class="arithmatex">\(\phi^4\)</span> 普适类，上临界维数为 <span class="arithmatex">\(d_c=4\)</span>；<span class="arithmatex">\(d&gt;4\)</span> 时平均场标度占主导，<span class="arithmatex">\(d=4\)</span> 还会有边际对数修正，<span class="arithmatex">\(4-\epsilon\)</span> 展开【引用 Wilson–Fisher】才是从四维附近系统计算低维指数的方法；这不是任意相互作用的普遍结论。</li>
-<li>🔗 <strong>ML 回声</strong>：深度网络逐层抽象与 RG 粗粒化的类比（层 = 尺度）是活跃研究纲领【引用】；扩散模型逐噪声尺度生成（comfy 课）与"逐尺度处理"同气质——"multi-scale 是自然与算法共享的组织原则"。</li>
-</ul>
-<h2 id="5_1">5. 练习与要点<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<p><strong>例 1（一维 RG 亲手迭代）</strong> <span class="arithmatex">\(K_0 = 1\)</span>：<span class="arithmatex">\(\tanh K' = \tanh^21 \approx 0.58^2\cdots\)</span>——数值迭代四五步看 <span class="arithmatex">\(K \to 0\)</span> 的奔流；换 <span class="arithmatex">\(K_0 = 3\)</span> 依旧——"任何有限耦合终归高温"的手感。</p>
-<p><strong>例 2（二维近似 RG）</strong> 三角格多数表决的实空间 RG（Niemeijer–van Leeuwen 一阶【引用】）：得 <span class="arithmatex">\(K^* \approx 0.34\)</span>、<span class="arithmatex">\(y_t \approx 0.88\)</span>（精确 <span class="arithmatex">\(K^* = 0.275, y_t = 1\)</span>）——粗糙近似已捕捉不动点结构：RG 的稳健性演示。</p>
-<p><strong>例 3（标度关系验证）</strong> 用 asm-02 对照表验证 <span class="arithmatex">\(\alpha + 2\beta + \gamma = 2\)</span>：平均场 <span class="arithmatex">\(0 + 1 + 1 = 2\)</span> ✓；二维 <span class="arithmatex">\(0 + \frac14 + \frac74 = 2\)</span> ✓；三维 <span class="arithmatex">\(0.110 + 0.652 + 1.237 \approx 2\)</span> ✓——三套指数一条恒等式：标度理论的体检单。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一门：广义相对论三页——你的流形几何（grad-math）在此整体变现：引力 = 时空的曲率。</em></p>
+<div aria-label="RG固定记录，可横向滚动" class="rg186-static" role="region" tabindex="0">
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th style="text-align: right;">原始logZ</th>
+<th style="text-align: right;">恢复logZ</th>
+<th style="text-align: right;">星图四体系数</th>
+<th style="text-align: right;">删项KL</th>
+<th style="text-align: right;">ν一阶式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>exact-chain</td>
+<td style="text-align: right;">18.0435777</td>
+<td style="text-align: right;">18.0435777</td>
+<td style="text-align: right;">-0.249102845</td>
+<td style="text-align: right;">0.0258215065</td>
+<td style="text-align: right;">0.516666667</td>
+</tr>
+<tr>
+<td>positive-field</td>
+<td style="text-align: right;">21.1368609</td>
+<td style="text-align: right;">21.1368609</td>
+<td style="text-align: right;">-0.234099852</td>
+<td style="text-align: right;">0.0350103535</td>
+<td style="text-align: right;">0.516666667</td>
+</tr>
+<tr>
+<td>weak-chain</td>
+<td style="text-align: right;">11.1103466</td>
+<td style="text-align: right;">11.1103466</td>
+<td style="text-align: right;">-1.23354308e-05</td>
+<td style="text-align: right;">7.60814216e-11</td>
+<td style="text-align: right;">0.516666667</td>
+</tr>
+<tr>
+<td>strong-chain</td>
+<td style="text-align: right;">48.6938843</td>
+<td style="text-align: right;">48.6938843</td>
+<td style="text-align: right;">-1.24007288</td>
+<td style="text-align: right;">0.0153124511</td>
+<td style="text-align: right;">0.516666667</td>
+</tr>
+<tr>
+<td>marginal</td>
+<td style="text-align: right;">18.0435777</td>
+<td style="text-align: right;">18.0435777</td>
+<td style="text-align: right;">-0.249102845</td>
+<td style="text-align: right;">0.0258215065</td>
+<td style="text-align: right;">0.5</td>
+</tr>
+<tr>
+<td>epsilon-one</td>
+<td style="text-align: right;">18.0435777</td>
+<td style="text-align: right;">18.0435777</td>
+<td style="text-align: right;">-0.249102845</td>
+<td style="text-align: right;">0.0258215065</td>
+<td style="text-align: right;">0.583333333</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><a download="rg-frozen-records.json" href="assets/learning/projects/rg-certificates/run-snapshot.json">下载六组完整记录</a>。含全部矩阵幂、边缘概率、条件观测量、星图系数、扫描与截断ODE流点。固定记录没有把一圈近似升级为精确临界指数。</p>
+</div>
+<noscript>
+<style>.rg186-course span.arithmatex{overflow-wrap:anywhere}.rg186-static{overflow:auto;max-width:100%}.rg186-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}.rg186-static th,.rg186-static td{white-space:nowrap}</style>
+</noscript>
+<h2 id="12">12. 八个可核对的练习<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>1. 为什么少了常数，归一化概率仍对，配分函数却错？</summary>
+<p>零场 <span class="arithmatex">\(K=0\)</span> 时所有自旋独立，<span class="arithmatex">\(Z_N=2^N\)</span>。矩阵 <span class="arithmatex">\(T\)</span> 每项都是 <span class="arithmatex">\(1\)</span>，所以 <span class="arithmatex">\(T^2=2T\)</span>，即 <span class="arithmatex">\(K'=0,c=\log2\)</span>。有效环自己只有 <span class="arithmatex">\(Z_{N/2}=2^{N/2}\)</span>，补回 <span class="arithmatex">\(e^{Nc/2}=2^{N/2}\)</span> 才得到 <span class="arithmatex">\(2^N\)</span>。常数在概率分子与分母同时出现，会约去；在 <span class="arithmatex">\(\log Z\)</span> 中却直接贡献 <span class="arithmatex">\(N\log2/2\)</span>。虽然控件为避免相关长度退化取 <span class="arithmatex">\(K\ge0.05\)</span>，这个解析边界仍可手算。</p>
+</details>
+<details class="answer">
+<summary>2. 推导非零场的一步匹配，并检查小耦合的稳定表达式。</summary>
+<p>直接平方给出 <span class="arithmatex">\(A=e^{2K-2h}+e^{-2K}\)</span>、<span class="arithmatex">\(B=2\cosh h\)</span>、<span class="arithmatex">\(D=e^{2K+2h}+e^{-2K}\)</span>。由对角元比值得 <span class="arithmatex">\(h'=\tfrac12\log(D/A)\)</span>，由对角元乘积与非对角元平方之比得 <span class="arithmatex">\(K'\)</span>。再用非对角元 <span class="arithmatex">\(B=e^{c-K'}\)</span> 得 <span class="arithmatex">\(c=\log B+K'\)</span>。</p>
+<p>由于 <span class="arithmatex">\(AD-B^2=(\det T)^2=4\sinh^2 2K\)</span>，可以改写为
+<span class="arithmatex">\(K'=\tfrac14\log[1+(\sinh2K/\cosh h)^2]\)</span>。
+当 <span class="arithmatex">\(K\)</span> 很小时用 <span class="arithmatex">\(\log(1+x)\)</span> 的稳定计算避免先求两个几乎相等的大数之比再减一。它与完整矩阵匹配是同一个公式，不是额外截断。</p>
+</details>
+<details class="answer">
+<summary>3. 不逐个记录隐藏自旋，怎样恢复一个原始观测量？</summary>
+<p>使用全期望公式 <span class="arithmatex">\(\mathbb E[O]=\mathbb E_a[\mathbb E(O\mid a)]\)</span>。单个隐藏自旋有两种权重 <span class="arithmatex">\(e^{\pm x}\)</span>，所以条件均值是 <span class="arithmatex">\((e^x-e^{-x})/(e^x+e^{-x})=\tanh x\)</span>，其中 <span class="arithmatex">\(x=h+K(a_i+a_{i+1})\)</span>。把全部隐藏自旋的条件均值加到保留总磁化上，再按精确边缘概率求和即可。若观测量含两个隐藏自旋的乘积，还要检查它们在所给条件下是否独立，不能不加说明地把条件期望拆成乘积。</p>
+</details>
+<details class="answer">
+<summary>4. 为什么 \(\xi\) 除以二，却没有改变保留格点的相关？</summary>
+<p>原始相隔 <span class="arithmatex">\(2r\)</span> 个晶格的保留自旋相关为 <span class="arithmatex">\(q^{2r}\)</span>。消元后它们相隔 <span class="arithmatex">\(r\)</span> 个新晶格，相关为 <span class="arithmatex">\((q')^r=(q^2)^r\)</span>，完全相等。写成指数衰减就是 <span class="arithmatex">\(e^{-2r/\xi}=e^{-r/\xi'}\)</span>，因此 <span class="arithmatex">\(\xi'=\xi/2\)</span>。乘上对应的晶格间距后，物理长度相同。这项推导使用零场无限链；有限环须带上绕环项。</p>
+</details>
+<details class="answer">
+<summary>5. 四体项从哪里来？请按十六个构型分组计算。</summary>
+<p>零场时，全同向两种构型的四自旋乘积为 <span class="arithmatex">\(+1\)</span>，权重对数是 <span class="arithmatex">\(\log(2\cosh4K)\)</span>；三正一负及其反号共八种，乘积为 <span class="arithmatex">\(-1\)</span>，权重对数是 <span class="arithmatex">\(\log(2\cosh2K)\)</span>；二正二负六种，乘积为 <span class="arithmatex">\(+1\)</span>，权重对数是 <span class="arithmatex">\(\log2\)</span>。按乘积加权后除以十六，常数 <span class="arithmatex">\(\log2\)</span> 约掉，得到第5节的 <span class="arithmatex">\(c_{1234}\)</span>。</p>
+<p>再用 <span class="arithmatex">\(\log\cosh x=x^2/2-x^4/12+O(x^6)\)</span>，二阶项抵消，四阶项为 <span class="arithmatex">\([-(4K)^4/12+4(2K)^4/12]/8=-2K^4\)</span>。对称性只消除了奇数项，没有消除这项。</p>
+</details>
+<details class="answer">
+<summary>6. 一圈方程的解析解真满足微分方程吗？</summary>
+<p>先取正的 <span class="arithmatex">\(g_0\)</span>。对 <span class="arithmatex">\(D=1+a g_0(e^{\epsilon\ell}-1)/\epsilon\)</span> 求导，得到 <span class="arithmatex">\(D'=a g_0e^{\epsilon\ell}=agD\)</span>。因此 <span class="arithmatex">\((\log g)'=\epsilon-D'/D=\epsilon-ag\)</span>，即 <span class="arithmatex">\(g'=\epsilon g-ag^2\)</span>。对 <span class="arithmatex">\(\log|t|=\log|t_0|+2\ell-(b/a)\log D\)</span> 求导得 <span class="arithmatex">\(t'/t=2-bg\)</span>。<span class="arithmatex">\(t_0=0\)</span> 的解单独是 <span class="arithmatex">\(t=0\)</span>，不应对它取对数。若 <span class="arithmatex">\(g_0=0\)</span>，则直接把 <span class="arithmatex">\(g=0\)</span> 代回四次流方程即可核对，不使用 <span class="arithmatex">\(\log g\)</span>。</p>
+<p><span class="arithmatex">\(\epsilon\to0\)</span> 时，<span class="arithmatex">\((e^{\epsilon\ell}-1)/\epsilon\to\ell\)</span>，于是 <span class="arithmatex">\(g=g_0/(1+a g_0\ell)\)</span>。再微分得到 <span class="arithmatex">\(g'=-ag^2\)</span>。这证明了所写截断方程的解，没有证明被省略的高阶物理项为零。</p>
+</details>
+<details class="answer">
+<summary>7. 为什么正的四次耦合能在一个方向无关，在另一个固定点相关？</summary>
+<p>线性化四次流 <span class="arithmatex">\(\beta(g)=\epsilon g-ag^2\)</span>，得到 <span class="arithmatex">\(\beta'(g)=\epsilon-2ag\)</span>。Gaussian 点 <span class="arithmatex">\(g=0\)</span> 的特征值为 <span class="arithmatex">\(+\epsilon\)</span>，而 Wilson–Fisher 点 <span class="arithmatex">\(g_*=\epsilon/a\)</span> 的特征值为 <span class="arithmatex">\(-\epsilon\)</span>。在同一红外方向约定下，一个小偏离在前者放大，在后者缩小。热方向在 WF 点仍有 <span class="arithmatex">\(y_t&gt;0\)</span>，所以只有调到 <span class="arithmatex">\(t=0\)</span> 才能保持在临界面。线性化结论依赖所选固定点，不能只给“某耦合总是无关”的标签。</p>
+</details>
+<details class="answer">
+<summary>8. 核对 \(\nu\) 的展开，并解释重整化为什么通常没有逆操作。</summary>
+<p>写 <span class="arithmatex">\(r=(n+2)/(n+8)\)</span>，则 <span class="arithmatex">\(1/(2-r\epsilon)=\tfrac12[1+(r/2)\epsilon+(r/2)^2\epsilon^2+\cdots]\)</span>。本课只知道分母到一阶，因此可靠陈述是 <span class="arithmatex">\(\nu=\tfrac12+r\epsilon/4+O(\epsilon^2)\)</span>；后面出现的几何级数系数没有独立的二圈保证。</p>
+<p>至于“群”的名字：连续两次尺度变换确有尺度相乘的组合规律。但一般边缘概率 <span class="arithmatex">\(p(x)=\sum_y p(x,y)\)</span> 不能唯一恢复联合概率，因为不同条件分布 <span class="arithmatex">\(p(y\mid x)\)</span> 可给出同一个 <span class="arithmatex">\(p(x)\)</span>。在一维链这种事先限制好的参数家族里，某个 <span class="arithmatex">\(K\mapsto K'\)</span> 公式可能可逆；这不意味着已经恢复了任意微观条件分布，也不使一般粗粒化成为可逆群操作。</p>
+</details>
+<p>原始讲义核对入口：<a href="https://www.damtp.cam.ac.uk/user/tong/sft/three.pdf">Tong 的重整化群讲义</a>第3节给出 Wilson 变换及固定点的组织方式；<a href="https://www.damtp.cam.ac.uk/user/tong/sft/four.pdf">Tong 的连续对称性讲义</a>第4.2.2节给出一般 <span class="arithmatex">\(O(n)\)</span> 的一圈系数与特征值。本页明确换用 <span class="arithmatex">\(\lambda/4!\)</span> 归一化，并自行推导有限消元、星图展开、解析流与练习。没有把这些讲义中的高阶指数或更广泛的二维结论纳入本实验。</p>
+</section>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="asm-02-ising.html"><span class="pager-label">上一页</span>统计进阶 II · Ising 模型</a>

@@ -1,984 +1,108 @@
-(function () {
-  "use strict";
+(function(hostWindow){"use strict";
 
-  if (
-    typeof window === "undefined" ||
-    !window.CourseLearning ||
-    typeof window.CourseLearning.register !== "function"
-  ) {
-    return;
-  }
+const DEFAULT={coupling:1,field:0,steps:3,epsilon:.2,components:1,initialCoupling:.1,thermal:.01,ellMax:6};
+function config(input={}){if(!input||typeof input!=='object'||Array.isArray(input))throw Error('object');for(const k of Object.keys(input))if(!Object.hasOwn(DEFAULT,k))throw Error('key');const c={...DEFAULT,...input};for(const v of Object.values(c))if(typeof v!=='number'||!Number.isFinite(v))throw Error('finite number');if(c.coupling<.05||c.coupling>3||Math.abs(c.field)>.75||!Number.isInteger(c.steps)||c.steps<0||c.steps>3||c.epsilon<0||c.epsilon>1||!Number.isInteger(c.components)||c.components<1||c.components>8||c.initialCoupling<0||c.initialCoupling>1||Math.abs(c.thermal)>.05||c.ellMax<0||c.ellMax>12)throw Error('domain');return c;}
+const spins=(mask,n)=>Array.from({length:n},(_,i)=>mask>>i&1?1:-1);
+const sum=a=>a.reduce((x,y)=>x+y,0);
+function preciseSum(xs){let total=0,correction=0;for(const x of xs){const next=total+x;correction+=Math.abs(total)>=Math.abs(x)?(total-next)+x:(x-next)+total;total=next;}return total+correction;}
+const logCosh=x=>Math.abs(x)+Math.log1p(Math.exp(-2*Math.abs(x)))-Math.log(2);
+const logAdd=(a,b)=>Math.max(a,b)+Math.log1p(Math.exp(-Math.abs(a-b)));
+const multiply=(a,b)=>a.map((row,i)=>b[0].map((_,j)=>sum(row.map((x,k)=>x*b[k][j]))));
+const trace=a=>sum(a.map((r,i)=>r[i]));
+function matrix(K,h){return [[Math.exp(K-h),Math.exp(-K)],[Math.exp(-K),Math.exp(K+h)]];}
+function finite(K,h,n){const T=matrix(K,h),powers=[[[1,0],[0,1]]];for(let i=1;i<=n;i++)powers.push(multiply(powers.at(-1),T));const Z=trace(powers[n]),S=[[-1,0],[0,1]],mean=trace(multiply(S,powers[n]))/Z,correlations=Array.from({length:n+1},(_,r)=>({distance:r,value:trace(multiply(multiply(multiply(S,powers[r]),S),powers[n-r]))/Z}));return {size:n,matrix:T,powers,partition:Z,logZ:Math.log(Z),mean,correlations};}
+function decimate(K,h){const la=logAdd(2*K-2*h,-2*K),ld=logAdd(2*K+2*h,-2*K),lb=Math.log(2)+logCosh(h),nextK=.25*Math.log1p((Math.sinh(2*K)/Math.cosh(h))**2),nextH=.5*(ld-la),constant=lb+nextK;return {coupling:nextK,field:nextH,constant,logSquaredMatrix:[[la,lb],[lb,ld]],squaredMatrix:multiply(matrix(K,h),matrix(K,h))};}
+const microCache=new Map();
+function microstates(n){if(microCache.has(n))return microCache.get(n);const rows=Array.from({length:2**n},(_,mask)=>{const s=spins(mask,n);return {mask,spins:s,M:sum(s),B:sum(s.map((v,i)=>v*s[(i+1)%n])),retainedMask:sum(s.filter((_,i)=>i%2===0).map((s,j)=>s===1?2**j:0))};});microCache.set(n,rows);return rows;}
+function marginal(K,h,n,next){const count=2**(n/2),weights=Array.from({length:count},()=>[]),weightedMs=Array.from({length:count},()=>[]);for(const state of microstates(n)){const w=Math.exp(K*state.B+h*state.M);weights[state.retainedMask].push(w);weightedMs[state.retainedMask].push(w*state.M);}const rows=Array.from({length:count},(_,mask)=>({mask,spins:spins(mask,n/2),weight:preciseSum(weights[mask]),weightedOriginalM:preciseSum(weightedMs[mask])}));const Z=preciseSum(rows.map(r=>r.weight));const nextFinite=finite(next.coupling,next.field,n/2);for(const r of rows){r.retainedM=sum(r.spins);r.conditionalEliminatedM=preciseSum(r.spins.map((s,i)=>Math.tanh(h+K*(s+r.spins[(i+1)%r.spins.length]))));r.conditionalOriginalM=r.retainedM+r.conditionalEliminatedM;r.directConditionalM=r.weightedOriginalM/r.weight;r.probability=r.weight/Z;r.effectiveB=sum(r.spins.map((s,i)=>s*r.spins[(i+1)%r.spins.length]));r.effectiveLogWeight=next.coupling*r.effectiveB+next.field*r.retainedM;r.reconstructedProbability=Math.exp(r.effectiveLogWeight-nextFinite.logZ);r.reconstructedLogWeight=(n/2)*next.constant+r.effectiveLogWeight;}return {rows,partition:Z,originalMean:preciseSum(rows.map(r=>r.probability*r.conditionalOriginalM))/n,retainedMean:preciseSum(rows.map(r=>r.probability*r.retainedM))/(n/2)};}
+function chain(input={}){const c=config(input),initial=finite(c.coupling,c.field,16),stages=[];let K=c.coupling,h=c.field,n=16,constant=0;stages.push({step:0,coupling:K,field:h,accumulatedConstant:0,physicalSpacing:1,finite:initial,restoredLogZ:initial.logZ,transformation:null,marginal:null});for(let step=1;step<=c.steps;step++){const tr=decimate(K,h),m=marginal(K,h,n,tr);constant+=n/2*tr.constant;n/=2;K=tr.coupling;h=tr.field;const f=finite(K,h,n);stages.push({step,coupling:K,field:h,accumulatedConstant:constant,physicalSpacing:2**step,finite:f,restoredLogZ:constant+f.logZ,transformation:tr,marginal:m});}
+ const q=Math.tanh(c.coupling),logQ=Math.log(q),zeroFieldFlow=Array.from({length:41},(_,step)=>{const lq=2**step*logQ,qv=Math.exp(lq),kv=qv===0?0:.5*(Math.log1p(qv)-Math.log1p(-qv)),xi=-1/lq;return {step,spacing:2**step,logQ:lq,q:qv,coupling:kv,couplingUnderflow:qv===0,correlationLengthLattice:xi,correlationLengthPhysical:2**step*xi};});
+ return {initial,stages,zeroFieldFlow,scope:'Exact finite periodic chain, positive-direction bonds with multiplicity; physical lattice spacing doubles. Separate 40-step correlation-length reference assumes h=0 and an infinite chain, regardless of field control.'};}
+const character=(mask,ss)=>ss.reduce((p,s,i)=>mask>>i&1?p*s:p,1);
+function star(K,h){const rows=Array.from({length:16},(_,mask)=>{const s=spins(mask,4),M=sum(s),x=h+K*M;return {mask,spins:s,M,logWeight:Math.log(2)+logCosh(x),centralMean:Math.tanh(x)};});const coefficients=Array.from({length:16},(_,subset)=>({subset,sites:[0,1,2,3].filter(i=>subset>>i&1),order:[0,1,2,3].filter(i=>subset>>i&1).length,value:sum(rows.map(r=>character(subset,r.spins)*r.logWeight))/16}));for(const r of rows){r.reconstructedLogWeight=sum(coefficients.map(a=>a.value*character(a.subset,r.spins)));r.pairLogWeight=sum(coefficients.filter(a=>a.order<=2).map(a=>a.value*character(a.subset,r.spins)));}const shift=Math.max(...rows.map(r=>r.logWeight)),pairShift=Math.max(...rows.map(r=>r.pairLogWeight)),logZ=shift+Math.log(sum(rows.map(r=>Math.exp(r.logWeight-shift)))),pairLogZ=pairShift+Math.log(sum(rows.map(r=>Math.exp(r.pairLogWeight-pairShift))));for(const r of rows){r.probability=Math.exp(r.logWeight-logZ);r.pairProbability=Math.exp(r.pairLogWeight-pairLogZ);r.logProbabilityRatio=r.logWeight-logZ-r.pairLogWeight+pairLogZ;}
+ return {coupling:K,centralField:h,rows,coefficients,logZ,pairLogZ,klDivergence:sum(rows.map(r=>r.probability*r.logProbabilityRatio)),maxProbabilityError:Math.max(...rows.map(r=>Math.abs(r.probability-r.pairProbability))),scope:'One isolated four-arm star, no external-spin field or outer bonds. Full Walsh expansion exact; order>2 coefficients discarded only in the explicitly renormalized pair approximation. Not an exact whole-square-lattice RG.'};}
+function flowAt(c,ell){const a=(c.components+8)/6,b=(c.components+2)/6,E=Math.exp(c.epsilon*ell),R=c.epsilon===0?ell:Math.expm1(c.epsilon*ell)/c.epsilon,D=1+a*c.initialCoupling*R,g=c.initialCoupling*E/D,integral=Math.log1p(a*c.initialCoupling*R)/a,thermal=c.thermal*Math.exp(2*ell-b*integral);return {ell,lengthScale:Math.exp(ell),denominator:D,coupling:g,couplingIntegral:integral,thermal,betaCoupling:c.epsilon*g-a*g*g,betaThermal:(2-b*g)*thermal,quarticRelativeCorrection:a*g,smallThermal:Math.abs(thermal)<=.1,epsilonSmall:c.epsilon<=.3,quarticCorrectionSmall:a*g<=.3};}
+function flow(input={}){const c=config(input),a=(c.components+8)/6,b=(c.components+2)/6,fixed=c.epsilon/a,yt=2-b*fixed,rows=Array.from({length:121},(_,i)=>flowAt(c,c.ellMax*i/120));let crossing=null;if(c.thermal!==0&&Math.abs(rows.at(-1).thermal)>=1){let lo=0,hi=c.ellMax;for(let i=0;i<80;i++){const mid=(lo+hi)/2;if(Math.abs(flowAt(c,mid).thermal)<1)lo=mid;else hi=mid;}const ell=(lo+hi)/2;crossing={ell,lengthScale:Math.exp(ell),thermal:flowAt(c,ell).thermal,scope:'Threshold |t|=1 in the truncated flow; not a certified physical correlation length.'};}return {dimension:4-c.epsilon,a,b,rows,crossing,fixedPoints:[{kind:'Gaussian',coupling:0,thermal:0,thermalEigenvalue:2,couplingEigenvalue:c.epsilon},...(c.epsilon>0?[{kind:'Wilson-Fisher',coupling:fixed,thermal:0,thermalEigenvalue:yt,couplingEigenvalue:-c.epsilon}]:[])],exponents:{epsilon:c.epsilon,components:c.components,thermalEigenvalue:yt,omega:c.epsilon,nuFirstOrder:.5+(c.components+2)*c.epsilon/(4*(c.components+8)),nuReciprocalTruncation:1/yt,alphaFirstOrder:(4-c.components)*c.epsilon/(2*(c.components+8)),betaFirstOrder:.5-3*c.epsilon/(2*(c.components+8)),gammaFirstOrder:1+(c.components+2)*c.epsilon/(2*(c.components+8)),deltaFirstOrder:3+c.epsilon,etaAtThisOrder:0},scope:'Exact solution of explicitly truncated one-loop O(n) RG equations in local thermal scaling coordinates; ell increases toward IR. Epsilon-series exponents known only through O(epsilon); eta omitted is O(epsilon^2). The reciprocal of a truncated eigenvalue contains uncontrolled higher orders. Smallness flags are diagnostics, not error bounds.'};}
+const core={DEFAULT,config,spins,sum,preciseSum,logCosh,logAdd,multiply,trace,matrix,finite,decimate,microstates,marginal,chain,character,star,flowAt,flow};
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ATTR = "data-cl-rg-flow-style";
-  var INSTANCE_COUNT = 0;
 
-  function finite(value) {
-    return typeof value === "number" && isFinite(value);
-  }
+const PRESETS=[
+ {id:'exact-chain',name:'三次精确消元',parameters:{}},
+ {id:'positive-field',name:'非零场与条件磁化',parameters:{field:.3}},
+ {id:'negative-field',name:'反向外场',parameters:{field:-.75}},
+ {id:'weak-chain',name:'弱耦合与数值下溢',parameters:{coupling:.05}},
+ {id:'strong-chain',name:'强关联与长相关长度',parameters:{coupling:3}},
+ {id:'one-step',name:'只消去一半',parameters:{steps:1}},
+ {id:'zero-step',name:'还没有消元',parameters:{steps:0}},
+ {id:'gaussian',name:'严格零耦合初值',parameters:{initialCoupling:0}},
+ {id:'critical-surface',name:'调到热临界面',parameters:{thermal:0,initialCoupling:.25}},
+ {id:'marginal',name:'四维的边缘无关流',parameters:{epsilon:0,initialCoupling:.3,thermal:0,ellMax:12}},
+ {id:'epsilon-one',name:'ε=1：比较两种截断数值',parameters:{epsilon:1,initialCoupling:.2}},
+ {id:'vector',name:'八分量与近似范围',parameters:{components:8,initialCoupling:1,thermal:-.05,ellMax:12}}
+];
+function compute(input={}){
+ const c=core.config(input),ch=core.chain(c),st=core.star(c.coupling,c.field),f=core.flow(c);
+ const epsilonScan=Array.from({length:21},(_,i)=>{const epsilon=i/20;return core.flow({...c,epsilon,ellMax:0}).exponents;});
+ const starScan=Array.from({length:61},(_,i)=>{const coupling=.05+2.95*i/60,s=core.star(coupling,c.field);return {coupling,field:c.field,coefficients:s.coefficients,klDivergence:s.klDivergence,maxProbabilityError:s.maxProbabilityError,logZ:s.logZ,pairLogZ:s.pairLogZ};});
+ const flowFamily=[...new Set([0,.02,.1,.4,.8,c.initialCoupling])].sort((a,b)=>a-b).map(initialCoupling=>({initialCoupling,rows:core.flow({...c,initialCoupling,thermal:0}).rows}));
+ return {schemaVersion:1,parameters:c,chain:ch,star:st,flow:f,epsilonScan,starScan,flowFamily,scope:'Finite periodic-chain decimation with absolute partition constants and transformed observables; exact isolated-star marginal and Walsh expansion; explicit pair truncation; exact analytic solutions of a stated one-loop O(n) truncation. No claim of an exact two-dimensional RG or certified three-dimensional critical exponents.'};
+}
+const QUESTIONS=[
+ ['把16点环精确消元成8点后，只算新的配分函数，能直接得到原来的自由能吗？',['能，消去的变量已经不再重要','不能，还需累积的配分函数常数'],1,'T²=e^c T′，所以 Z₁₆=e^(8c) Z₈。常数会在归一化概率中约去，却保留在 log Z 和自由能里。'],
+ ['零场无限链消元后晶格单位的 ξ 除以2，是否意味着物理关联长度也减半？',['不是，保留格点的实际间距同时加倍','是，少一半自旋必定少一半关联'],0,'q′=q² 给出 ξ′=ξ/2；新晶格间距为2a，因而2aξ′=aξ。有限环和非零场须另按各自模型求相关。'],
+ ['零场四臂星图消去中心自旋后，反号对称性会消掉四体项吗？',['会，只能留下二体相互作用','不会，对称性只强制奇数阶项为零'],1,'完整展开包含 c₁₂₃₄=[log cosh(4K)−4 log cosh(2K)]/8，弱耦合首项是−2K⁴。删掉它需要说明截断。'],
+ ['ε=1时，直接取一圈 yₜ 的倒数，比先展开 ν 到一阶更有精度保证吗？',['没有，倒数自动加入了未经计算的高阶项','有，保留完整分母就一定更准确'],0,'n=1时一阶 ν=7/12，直接倒数为3/5。差异反映截断处理，不代表后者已获得二圈信息；ε=1也不是受控的小参数极限。']
+];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=QUESTIONS.length||![0,1].includes(j))throw Error('choice');const correct=j===QUESTIONS[i][2];return {correct,text:(correct?'正确。':'需要修正。')+QUESTIONS[i][3]};}
+function fmt(x){if(x===null||x===undefined)return '不适用';if(Array.isArray(x))return '['+x.map(fmt).join(', ')+']';if(typeof x==='boolean')return x?'是':'否';if(typeof x==='number')return Number.isInteger(x)?String(x):Math.abs(x)<1e-4||Math.abs(x)>=1e5?x.toExponential(5):Number(x.toPrecision(7)).toString();return String(x);}
+const COLORS=['#c55b32','#3875ba','#368661','#9860a8','#856722','#646e7c'];
+function frame(key,title,xLabel,yLabel,series,domain,range){const pts=series.flatMap(s=>s.points.filter(Boolean)),xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);let xmin=domain?.[0]??(xs.length?Math.min(...xs):0),xmax=domain?.[1]??(xs.length?Math.max(...xs):1),ymin=range?.[0]??(ys.length?Math.min(...ys):0),ymax=range?.[1]??(ys.length?Math.max(...ys):1);if(xmin===xmax)xmax=xmin+1;if(ymin===ymax)ymax=ymin+1;if(!range){const pad=.08*(ymax-ymin);ymin-=pad;ymax+=pad;}return {key,title,xLabel,yLabel,xMin:xmin,xMax:xmax,yMin:ymin,yMax:ymax,series};}
+function plots(s){const c=s.parameters,stages=s.chain.stages,flow=s.flow;return [
+ frame('partition','消元常数恢复原来的配分函数','消元步数','log Z',[{name:'补回常数后的 log Z',color:COLORS[1],points:stages.map(r=>[r.step,r.restoredLogZ])},{name:'只算有效环的 log Z',color:COLORS[0],points:stages.map(r=>[r.step,r.finite.logZ])},{name:'累积常数 C',color:COLORS[2],points:stages.map(r=>[r.step,r.accumulatedConstant])}],[0,3]),
+ frame('chain','每次消元后的耦合与场','消元步数','无量纲参数',[{name:'Kₖ',color:COLORS[1],markersOnly:true,points:stages.map(r=>[r.step,r.coupling])},{name:'hₖ',color:COLORS[0],markersOnly:true,hollow:true,points:stages.map(r=>[r.step,r.field])}],[0,3]),
+ frame('correlation','零场无限链：改变的是晶格刻度','消元步数（独立零场参考）','log₁₀ ξ',[{name:'晶格单位 ξₖ',color:COLORS[0],points:s.chain.zeroFieldFlow.map(r=>[r.step,Math.log10(r.correlationLengthLattice)])},{name:'原晶格单位 2ᵏξₖ',color:COLORS[1],points:s.chain.zeroFieldFlow.map(r=>[r.step,Math.log10(r.correlationLengthPhysical)])}],[0,40]),
+ frame('star','四臂星图：完整的16个乘积系数','子集编号（二进制位代表四个外自旋）','对数权重系数 c_A',[{name:'奇数阶项',color:COLORS[0],markersOnly:true,points:s.star.coefficients.filter(r=>r.order%2).map(r=>[r.subset,r.value])},{name:'常数与二体项',color:COLORS[1],markersOnly:true,points:s.star.coefficients.filter(r=>r.order===0||r.order===2).map(r=>[r.subset,r.value])},{name:'四体项',color:COLORS[2],markersOnly:true,hollow:true,points:s.star.coefficients.filter(r=>r.order===4).map(r=>[r.subset,r.value])}],[0,15]),
+ frame('quartic','一圈截断流：比较不同初始耦合','ℓ=log b（向红外）','无量纲 g',s.flowFamily.map((r,i)=>({name:'g₀='+fmt(r.initialCoupling),color:COLORS[i%COLORS.length],points:r.rows.map(q=>[q.ell,q.coupling])})),[0,Math.max(1,c.ellMax)]),
+ frame('thermal',c.thermal===0?'热临界面：t 始终为零':'热偏离放大：阈值只属于截断方程','ℓ=log b（不是动力学时间）',c.thermal===0?'t':'log₁₀|t|',[{name:c.thermal===0?'t₀=0 的严格解':'当前热标度场，符号 '+(c.thermal>0?'+':'−'),color:COLORS[0],points:flow.rows.map(r=>[r.ell,c.thermal===0?0:Math.log10(Math.abs(r.thermal))])},...(c.thermal===0?[]:[{name:'|t|=1 阈值',color:COLORS[1],points:[[0,0],[c.ellMax,0]]}])],[0,Math.max(1,c.ellMax)])
+];}
+function tables(s){const c=s.parameters,ch=s.chain;return [
+ {key:'parameters',title:'当前参数与各实验的适用范围',headers:['参数','值','含义'],rows:Object.entries(c).map(([k,v])=>[k,v,({coupling:'链与星图的 J/T',field:'无量纲场；星图只作用于中心',steps:'16点链消元到2点为止',epsilon:'d=4−ε，一圈截断',components:'O(n)分量数',initialCoupling:'无量纲四次耦合初值',thermal:'局部热标度场初值，非裸质量',ellMax:'红外对数尺度窗口'})[k]])},
+ {key:'stages',title:'每一级的常数、配分函数与磁化',headers:['步','自旋数','间距/a','K','h','累积C','有效logZ','恢复logZ','每自旋〈s〉'],rows:ch.stages.map(r=>[r.step,r.finite.size,r.physicalSpacing,r.coupling,r.field,r.accumulatedConstant,r.finite.logZ,r.restoredLogZ,r.finite.mean])},
+ {key:'transfer',title:'各级完整转移矩阵幂',headers:['步','矩阵幂','行自旋','列自旋','元素'],rows:ch.stages.flatMap(r=>r.finite.powers.flatMap((M,k)=>M.flatMap((row,i)=>row.map((v,j)=>[r.step,k,2*i-1,2*j-1,v]))))},
+ {key:'marginal',title:'所有保留构型及原磁化的条件平均',headers:['步','mask','保留自旋','绝对权重','边缘p','有效p','保留M','隐藏M条件均值','原M条件均值','原始求和条件M','恢复log权重'],rows:ch.stages.filter(r=>r.marginal).flatMap(r=>r.marginal.rows.map(q=>[r.step,q.mask,q.spins,q.weight,q.probability,q.reconstructedProbability,q.retainedM,q.conditionalEliminatedM,q.conditionalOriginalM,q.directConditionalM,q.reconstructedLogWeight]))},
+ {key:'finite-correlation',title:'有限环的全部两点相关',headers:['步','N','距离r','原晶格距离','〈s₀sᵣ〉'],rows:ch.stages.flatMap(r=>r.finite.correlations.map(q=>[r.step,r.finite.size,q.distance,r.physicalSpacing*q.distance,q.value]))},
+ {key:'zero-field',title:'独立的零场无限链40步参考',headers:['步','间距/a','log q','q','K','q数值下溢','ξ晶格','ξ原物理单位'],rows:ch.zeroFieldFlow.map(r=>[r.step,r.spacing,r.logQ,r.q,r.coupling,r.couplingUnderflow,r.correlationLengthLattice,r.correlationLengthPhysical])},
+ {key:'star-coefficients',title:'四臂星图的完整乘积基系数',headers:['子集编号','格点编号','阶数','c_A'],rows:s.star.coefficients.map(r=>[r.subset,r.sites,r.order,r.value])},
+ {key:'star-probability',title:'星图精确边缘与重新归一化的二体截断',headers:['mask','外自旋','M外','中心条件均值','log W','完整基重构','截断log权重','精确p','截断p','log(p/q)'],rows:s.star.rows.map(r=>[r.mask,r.spins,r.M,r.centralMean,r.logWeight,r.reconstructedLogWeight,r.pairLogWeight,r.probability,r.pairProbability,r.logProbabilityRatio])},
+ {key:'flow',title:'一圈截断ODE的全部流点（提示不是误差界）',headers:['ℓ','b','g','t','∫g dℓ','dg/dℓ','dt/dℓ','a g','|t|≤0.1','ε≤0.3','a g≤0.3'],rows:s.flow.rows.map(r=>[r.ell,r.lengthScale,r.coupling,r.thermal,r.couplingIntegral,r.betaCoupling,r.betaThermal,r.quarticRelativeCorrection,r.smallThermal,r.epsilonSmall,r.quarticCorrectionSmall])},
+ {key:'exponents',title:'固定分量数的全部ε扫描：一阶式与分母倒数分列',headers:['ε','n','yₜ一阶','ω一阶','ν一阶级数','1/yₜ截断倒数','α一阶','β一阶','γ一阶','δ一阶','η本阶'],rows:s.epsilonScan.map(r=>[r.epsilon,r.components,r.thermalEigenvalue,r.omega,r.nuFirstOrder,r.nuReciprocalTruncation,r.alphaFirstOrder,r.betaFirstOrder,r.gammaFirstOrder,r.deltaFirstOrder,r.etaAtThisOrder])},
+ {key:'star-scan',title:'星图耦合扫描与删项误差',headers:['K','中心h','四体c','KL(p‖q₂)','最大逐态概率差','logZ','截断logZ'],rows:s.starScan.map(r=>[r.coupling,r.field,r.coefficients[15].value,r.klDivergence,r.maxProbabilityError,r.logZ,r.pairLogZ])}
+];}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=10000?v.toExponential(2):Number(v.toFixed(3)).toString();
+function svg(p){const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 580" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+const discrete=['partition','chain','star','correlation'].includes(p.key);const xticks=discrete?[...new Set(Array.from({length:5},(_,i)=>Math.round(p.xMin+(p.xMax-p.xMin)*i/4)))]:Array.from({length:5},(_,i)=>p.xMin+(p.xMax-p.xMin)*i/4);for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+axisFmt(y)+'</text>';}for(const x of xticks){out+='<text x="'+X(x)+'" y="410" text-anchor="middle">'+axisFmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen&&!s.markersOnly?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const marks=s.markersOnly?s.points.filter(Boolean):s.boundaryMarkers?[...new Set([s.points.find(Boolean),s.points.filter(Boolean).at(-1)])].filter(Boolean):s.points.filter(Boolean).length===1?s.points.filter(Boolean):[];marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="'+(s.markerRadius??5)+'" stroke="'+s.color+'" fill="'+(s.hollow?'none':s.open?'var(--bg,#fff)':s.color)+'" stroke-width="'+(s.markerStrokeWidth??2.5)+'"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});if(!p.series.some(s=>s.points.some(Boolean)))out+='<text x="450" y="245" text-anchor="middle">当前模型在此参数下无适用数据</text>';return out+'</svg>';}
 
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-  }
+var mounted=new WeakMap();
+function mount(root){const doc=root.ownerDocument,previous=mounted.get(root);if(previous)previous();root.replaceChildren();root.classList.add('rg186');let c=config(PRESETS[0].parameters),choices={},revealed=false,url=null,current=null,view=0;
+ const el=(tag,attrs={},text)=>{const e=doc.createElement(tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
+ if(!doc.querySelector('[data-rg186-style]')){const style=el('style',{'data-rg186-style':''});style.textContent='.rg186{margin-inline:0!important;width:100%;min-width:0;color:var(--fg,#222);line-height:1.65}.rg186 *{box-sizing:border-box}.rg186 button,.rg186 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.rg186 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.rg186 button:focus-visible,.rg186 select:focus-visible,.rg186 [tabindex]:focus-visible{outline:3px solid #2474bc}.rg186 .rg-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.rg186 label{display:grid;gap:4px;min-width:0}.rg186 input{width:100%;min-height:44px;font:inherit;color:inherit;background:var(--bg,#fff)}.rg186 .rg-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.rg186 .rg-pred>strong{display:block;margin-bottom:6px}.rg186 .rg-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.rg186 .rg-feedback{margin:7px 0}.rg186 .rg-scroll{max-width:100%;overflow:auto}.rg186 svg{display:block;min-width:680px;width:100%;height:auto}.rg186 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.rg186 td,.rg186 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.rg186 [hidden]{display:none!important}.rg186 details{margin:12px 0}.rg186 summary{min-height:44px;cursor:pointer}.rg186 .rg-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.rg186 .rg-correct{color:var(--cl-green,#277540)}.rg186 .rg-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.rg186 .rg-grid{grid-template-columns:1fr}}';doc.head.append(style);}
+ root.append(el('h3',{},'先精确消元，再检查截断遗漏了什么'),el('p',{},'把16点链精确变成8、4、2点，逐一检查配分函数和条件磁化。再用星图观察新耦合，用一圈方程研究临界点附近的尺度变化。'));
+ const presets=el('div',{class:'rg-row','aria-label':'教学预设'});for(const p of PRESETS){const b=el('button',{type:'button','data-preset':p.id},p.name);b.onclick=()=>{c=config(p.parameters);sync();reset();};presets.append(b);}root.append(presets);
+ const fields={},outs={},grid=el('div',{class:'rg-grid'});
+ for(const[key,title,min,max,step]of[['coupling','链／星图耦合 K=J/T',.05,3,.01],['field','无量纲场 h（星图只作用于中心）',-.75,.75,.01],['steps','16点链的消元步数',0,3,1],['epsilon','ε=4−d（小ε展开）',0,1,.01],['components','O(n)分量数 n',1,8,1],['initialCoupling','一圈四次耦合初值 g₀',0,1,.01],['thermal','热标度场初值 t₀',-.05,.05,.001],['ellMax','红外对数尺度上限 ℓ',0,12,.1]]){const label=el('label',{},title),out=el('output'),input=el('input',{type:'range',min,max,step,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.oninput=input.onchange=()=>{try{c=config({...c,[key]:+input.value});sync();reset();}catch(e){reset();status.textContent='参数超出所标范围，请修正。';}};}root.append(grid);
+ const note=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(note,prediction);prediction.append(el('h4',{},'先预测：常数、刻度、新耦合与截断阶数'),el('p',{},'四题的条件固定写在题干里；参数用来检查例子，不自动改变问题。'));
+ const feedbacks=[],buttons=[];QUESTIONS.forEach((q,i)=>{const row=el('div',{class:'rg-pred'});row.append(el('strong',{},q[0]));buttons[i]=[];q[1].forEach((text,j)=>{const b=el('button',{type:'button','data-prediction':i,'data-choice':String(j===0),'aria-pressed':'false'},text);b.onclick=()=>{choices[i]=j;buttons[i].forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));if(revealed)showFeedback();};row.append(b);buttons[i].push(b);});feedbacks[i]=el('p',{class:'rg-feedback','data-feedback':i});row.append(feedbacks[i]);prediction.append(row);});
+ const check=el('button',{type:'button','data-check':''},'核对预测并显示完整结果'),status=el('p',{class:'rg-status','aria-live':'polite'});root.append(check,status);
+ const stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),summary=el('p'),plotButtons=el('div',{class:'rg-row'}),plotWrap=el('div',{class:'rg-scroll',tabindex:0,role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'相关长度图单独假定零场无限链，以log₁₀显示。星图系数属于对数权重。流图的ℓ是观察尺度；热场非零时画log₁₀|t|，严格零初值则直接画t=0。数值解只对所写一圈截断方程精确。'),tableHost=el('div'),download=el('a',{'data-download':'',download:'rg-record.json'},'下载当前完整记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);
+ function sync(){for(const[k,e]of Object.entries(fields))e.value=c[k];}
+ function reset(){revealed=false;choices={};stage.hidden=true;delete root.__rgSnapshot;for(let i=0;i<4;i++){feedbacks[i].textContent='';for(const b of buttons[i])b.setAttribute('aria-pressed','false');}for(const[k,o]of Object.entries(outs))o.textContent=fmt(c[k]);note.textContent='K与h均已除温度。有限链保留周期键重数及全部消元常数；星图没有外圈键。O(n)实验取非负四次耦合，t为局部热坐标。小参数提示不是误差保证。';status.textContent='完成四项预测后显示当前结果。';}
+ function showFeedback(){let n=0;for(let i=0;i<4;i++){if(!Number.isInteger(choices[i]))continue;const f=feedback(i,choices[i]);n+=+f.correct;feedbacks[i].textContent=f.text;feedbacks[i].className='rg-feedback '+(f.correct?'rg-correct':'rg-wrong');}status.textContent='预测核对：'+n+'/4 正确。图、表和下载均对应当前参数。';}
+ function draw(){const ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+ function render(){current=compute(c);root.__rgSnapshot=current;stage.hidden=false;summary.textContent='原始 log Z = '+fmt(current.chain.initial.logZ)+'；第 '+c.steps+' 步补回常数 = '+fmt(current.chain.stages.at(-1).restoredLogZ)+'。星图删去高阶项后的 KL = '+fmt(current.star.klDivergence)+'；ν 的一阶式 '+fmt(current.flow.exponents.nuFirstOrder)+'，截断分母倒数 '+fmt(current.flow.exponents.nuReciprocalTruncation)+'。二者均非真实三维指数的精度保证。';plotButtons.replaceChildren();plots(current).forEach((p,i)=>{const b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();for(const t of tables(current)){const d=el('details',{'data-table':t.key});d.append(el('summary',{},t.title));d.addEventListener('toggle',()=>{if(!d.open||d.children.length>1)return;const wrap=el('div',{class:'rg-scroll',tabindex:0,role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),thead=el('thead'),tr=el('tr'),tbody=el('tbody');for(const h of t.headers)tr.append(el('th',{scope:'col'},h));thead.append(tr);for(const row of t.rows){const r=el('tr');for(const v of row)r.append(el('td',{},fmt(v)));tbody.append(r);}table.append(thead,tbody);wrap.append(table);d.append(wrap);});tableHost.append(d);}if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current)],{type:'application/json'}));download.href=url;showFeedback();}
+ check.onclick=()=>{if(![0,1,2,3].every(i=>Number.isInteger(choices[i]))){status.textContent='请先为四个问题各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
+}
 
-  function number(value, fallback) {
-    var parsed = Number(value);
-    return finite(parsed) ? parsed : fallback;
-  }
-
-  function format(api, value, digits) {
-    if (!finite(value)) return "—";
-    if (api && typeof api.format === "function") {
-      return api.format(value, digits);
-    }
-    var places = digits === undefined ? 3 : digits;
-    if (Math.abs(value) > 0 && (Math.abs(value) < 0.001 || Math.abs(value) >= 10000)) {
-      return value.toExponential(Math.min(places, 4));
-    }
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function formatSigned(api, value, digits) {
-    if (!finite(value)) return "—";
-    var text = format(api, value, digits);
-    return value > 0 ? "+" + text : text;
-  }
-
-  function setAttributes(node, attrs) {
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", String(value));
-      else if (key === "htmlFor") node.setAttribute("for", String(value));
-      else if (key === "text") node.textContent = String(value);
-      else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, String(value));
-    });
-    return node;
-  }
-
-  function appendChildren(node, children, doc) {
-    if (children === undefined || children === null) return node;
-    var list = Array.isArray(children) ? children : [children];
-    list.forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child && child.nodeType ? child : doc.createTextNode(String(child)));
-    });
-    return node;
-  }
-
-  function makeElement(api, doc, tag, attrs, children) {
-    if (api && typeof api.el === "function") {
-      return api.el(tag, attrs || {}, children);
-    }
-    return appendChildren(setAttributes(doc.createElement(tag), attrs || {}), children, doc);
-  }
-
-  function makeSvg(api, doc, tag, attrs, children) {
-    if (api && typeof api.svg === "function") {
-      return api.svg(tag, attrs || {}, children);
-    }
-    return appendChildren(
-      setAttributes(doc.createElementNS(SVG_NS, tag), attrs || {}),
-      children,
-      doc
-    );
-  }
-
-  function clear(node) {
-    while (node && node.firstChild) node.removeChild(node.firstChild);
-  }
-
-  function append(parent, child) {
-    parent.appendChild(child);
-    return child;
-  }
-
-  function svgText(api, doc, x, y, text, attrs) {
-    var values = {
-      x: x,
-      y: y,
-      "font-size": 12,
-      fill: "var(--fg-soft)",
-      "aria-hidden": "true"
-    };
-    Object.keys(attrs || {}).forEach(function (key) {
-      values[key] = attrs[key];
-    });
-    return makeSvg(api, doc, "text", values, [text]);
-  }
-
-  function atanh(value) {
-    return 0.5 * Math.log((1 + value) / (1 - value));
-  }
-
-  function nextK(k) {
-    var tanhK = Math.tanh(k);
-    return atanh(tanhK * tanhK);
-  }
-
-  function correlationLength(k) {
-    if (k <= 0) return 0;
-    var tanhK = Math.tanh(k);
-    if (tanhK >= 1) return Infinity;
-    return -1 / Math.log(tanhK);
-  }
-
-  function computeA(k0, steps) {
-    var rows = [];
-    var k = clamp(number(k0, 1), 0.05, 3);
-    var count = clamp(Math.round(number(steps, 4)), 0, 8);
-    var n;
-    for (n = 0; n <= count; n += 1) {
-      var xi = correlationLength(k);
-      rows.push({
-        n: n,
-        k: k,
-        temperature: 1 / k,
-        xi: xi,
-        physicalXi: Math.pow(2, n) * xi
-      });
-      k = nextK(k);
-    }
-    return rows;
-  }
-
-  function computeB(config) {
-    var rows = [];
-    var b = clamp(number(config.b, 2), 1.2, 4);
-    var yt = clamp(number(config.yt, 1), 0.2, 2);
-    var yi = clamp(number(config.yi, -1), -2, -0.1);
-    var u = clamp(number(config.u, 0.25), -1, 1);
-    var v = clamp(number(config.v, 0.8), -1, 1);
-    var count = clamp(Math.round(number(config.steps, 4)), 0, 8);
-    var uFactor = Math.pow(b, yt);
-    var vFactor = Math.pow(b, yi);
-    var n;
-    for (n = 0; n <= count; n += 1) {
-      rows.push({ n: n, u: u, v: v });
-      u *= uFactor;
-      v *= vFactor;
-    }
-    return {
-      rows: rows,
-      b: b,
-      yt: yt,
-      yi: yi,
-      uFactor: uFactor,
-      vFactor: vFactor,
-      nu: 1 / yt
-    };
-  }
-
-  function installStyles(doc) {
-    if (doc.querySelector("style[" + STYLE_ATTR + "]")) return;
-    var style = doc.createElement("style");
-    style.setAttribute(STYLE_ATTR, "");
-    style.textContent = [
-      ".cl-rg-flow{--cl-rg-flow:var(--accent,#6e56a4);--cl-rg-relevant:var(--cl-red,#b85448);--cl-rg-irrelevant:var(--cl-blue,#3d789c);--cl-rg-critical:var(--fg-soft,#6d7178);margin:1.4rem 0 2rem;color:var(--fg,#202124);min-width:0}",
-      ".cl-rg-flow *{box-sizing:border-box}",
-      ".cl-rg-flow .cl-rg-shell{overflow:hidden;border:1px solid var(--border,#c9cdd3);border-radius:8px;background:var(--bg,#fff)}",
-      ".cl-rg-flow .cl-rg-header{padding:1rem 1.1rem .9rem;border-bottom:1px solid var(--border,#c9cdd3);background:var(--block-bg,var(--bg,#fff))}",
-      ".cl-rg-flow .cl-rg-kicker{margin:0 0 .25rem;color:var(--accent,#6e56a4);font-size:.75rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase}",
-      ".cl-rg-flow .cl-rg-header h3{margin:0;color:var(--fg,#202124);font-size:1.15rem}",
-      ".cl-rg-flow .cl-rg-header p:last-child{margin:.4rem 0 0;color:var(--fg-soft,#5d626a);line-height:1.55}",
-      ".cl-rg-flow .cl-rg-tabs{display:flex;gap:.35rem;padding:.65rem 1.1rem 0;border-bottom:1px solid var(--border,#c9cdd3);background:var(--block-bg,var(--bg,#fff))}",
-      ".cl-rg-flow .cl-rg-tab{min-height:48px;padding:.55rem .8rem;border:1px solid transparent;border-bottom:0;border-radius:6px 6px 0 0;background:transparent;color:var(--fg-soft,#5d626a);cursor:pointer;font:inherit;font-size:.86rem;font-weight:750}",
-      ".cl-rg-flow .cl-rg-tab[aria-selected=\"true\"]{border-color:var(--border,#c9cdd3);background:var(--bg,#fff);color:var(--fg,#202124)}",
-      ".cl-rg-flow .cl-rg-tab:hover{color:var(--fg,#202124)}",
-      ".cl-rg-flow button:focus-visible,.cl-rg-flow input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}",
-      ".cl-rg-flow .cl-rg-panel{padding:1rem 1.1rem 1.1rem;min-width:0}",
-      ".cl-rg-flow .cl-rg-panel[hidden]{display:none}",
-      ".cl-rg-flow .cl-rg-panel-intro{margin:0 0 .85rem;color:var(--fg-soft,#5d626a);font-size:.86rem;line-height:1.55}",
-      ".cl-rg-flow .cl-rg-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;margin-bottom:.85rem}",
-      ".cl-rg-flow .cl-rg-fieldset{min-width:0;margin:0;padding:.7rem .75rem .75rem;border:1px solid var(--border,#c9cdd3);border-radius:6px;background:var(--block-bg,var(--bg,#fff))}",
-      ".cl-rg-flow .cl-rg-fieldset legend{padding:0 .25rem;color:var(--fg-soft,#5d626a);font-size:.78rem;font-weight:750}",
-      ".cl-rg-flow .cl-rg-control{display:grid;gap:.2rem;min-width:0;margin-top:.45rem}",
-      ".cl-rg-flow .cl-rg-control:first-child{margin-top:0}",
-      ".cl-rg-flow .cl-rg-control-head{display:flex;align-items:baseline;justify-content:space-between;gap:.75rem;color:var(--fg-soft,#5d626a);font-size:.82rem}",
-      ".cl-rg-flow .cl-rg-control-head output{color:var(--accent,#6e56a4);font-weight:750;font-variant-numeric:tabular-nums;text-align:right}",
-      ".cl-rg-flow input[type=\"range\"]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent,#6e56a4)}",
-      ".cl-rg-flow .cl-rg-scale{display:flex;justify-content:space-between;color:var(--fg-soft,#5d626a);font-size:.7rem;font-variant-numeric:tabular-nums}",
-      ".cl-rg-flow .cl-rg-presets{display:flex;flex-wrap:wrap;gap:.5rem;margin:-.15rem 0 .85rem}",
-      ".cl-rg-flow button.cl-rg-preset{min-height:44px;padding:.5rem .75rem;border:1px solid var(--border,#c9cdd3);border-radius:6px;background:var(--bg,#fff);color:var(--fg,#202124);cursor:pointer;font:inherit;font-size:.8rem;font-weight:700}",
-      ".cl-rg-flow button.cl-rg-preset:hover{border-color:var(--accent,#6e56a4)}",
-      ".cl-rg-flow .cl-rg-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.55rem;margin-bottom:.85rem}",
-      ".cl-rg-flow .cl-rg-metric{min-width:0;padding:.58rem .62rem;border-top:2px solid var(--border,#c9cdd3);background:var(--block-bg,var(--bg,#fff))}",
-      ".cl-rg-flow .cl-rg-metric[data-kind=\"relevant\"]{border-top-color:var(--cl-rg-relevant)}",
-      ".cl-rg-flow .cl-rg-metric[data-kind=\"irrelevant\"]{border-top-color:var(--cl-rg-irrelevant)}",
-      ".cl-rg-flow .cl-rg-metric[data-kind=\"flow\"]{border-top-color:var(--cl-rg-flow)}",
-      ".cl-rg-flow .cl-rg-metric span{display:block;color:var(--fg-soft,#5d626a);font-size:.71rem;line-height:1.4}",
-      ".cl-rg-flow .cl-rg-metric strong{display:block;margin-top:.18rem;overflow-wrap:anywhere;color:var(--fg,#202124);font-size:.94rem;font-variant-numeric:tabular-nums}",
-      ".cl-rg-flow .cl-rg-status{margin:0 0 .85rem;padding:.65rem .75rem;border-left:3px solid var(--accent,#6e56a4);background:var(--block-bg,var(--bg,#fff));color:var(--fg,#202124);font-size:.84rem;line-height:1.55}",
-      ".cl-rg-flow .cl-rg-chart-card,.cl-rg-flow .cl-rg-table-card{min-width:0;margin-top:.75rem;padding:.75rem;border:1px solid var(--border,#c9cdd3);border-radius:6px;background:var(--block-bg,var(--bg,#fff))}",
-      ".cl-rg-flow .cl-rg-card-title{margin:0 0 .5rem;color:var(--fg-soft,#5d626a);font-size:.82rem;font-weight:750}",
-      ".cl-rg-flow .cl-rg-chart-wrap{max-width:100%;overflow:hidden;border:1px solid var(--border,#c9cdd3);border-radius:5px;background:var(--bg,#fff)}",
-      ".cl-rg-flow .cl-rg-svg{display:block;width:100%;height:auto;max-width:100%;color:var(--fg,#202124)}",
-      ".cl-rg-flow .cl-rg-svg text{font-family:inherit;letter-spacing:0}",
-      ".cl-rg-flow .cl-rg-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}",
-      ".cl-rg-flow table{width:100%;border-collapse:collapse;font-size:.78rem;font-variant-numeric:tabular-nums}",
-      ".cl-rg-flow th,.cl-rg-flow td{padding:.48rem .55rem;border-bottom:1px solid var(--border,#c9cdd3);text-align:right;white-space:nowrap}",
-      ".cl-rg-flow th:first-child,.cl-rg-flow td:first-child{text-align:left}",
-      ".cl-rg-flow th{color:var(--fg-soft,#5d626a);font-weight:750}",
-      ".cl-rg-flow td{color:var(--fg,#202124)}",
-      ".cl-rg-flow .cl-rg-note{margin:.65rem 0 0;color:var(--fg-soft,#5d626a);font-size:.75rem;line-height:1.55}",
-      ".cl-rg-flow .cl-rg-legend{display:flex;flex-wrap:wrap;gap:.55rem 1rem;margin:.6rem 0 0;color:var(--fg-soft,#5d626a);font-size:.75rem}",
-      ".cl-rg-flow .cl-rg-key{display:inline-flex;align-items:center;gap:.35rem}",
-      ".cl-rg-flow .cl-rg-swatch{display:inline-block;width:.85rem;height:.2rem;border-radius:99px;background:var(--cl-rg-flow)}",
-      ".cl-rg-flow .cl-rg-swatch[data-kind=\"relevant\"]{background:var(--cl-rg-relevant)}",
-      ".cl-rg-flow .cl-rg-swatch[data-kind=\"irrelevant\"]{background:var(--cl-rg-irrelevant)}",
-      ".cl-rg-flow .cl-rg-swatch[data-kind=\"critical\"]{height:0;border-top:2px dashed var(--cl-rg-critical);border-radius:0;background:transparent}",
-      "@media (max-width:680px){.cl-rg-flow .cl-rg-controls{grid-template-columns:1fr}.cl-rg-flow .cl-rg-panel{padding:.8rem}.cl-rg-flow .cl-rg-header{padding:.85rem}.cl-rg-flow .cl-rg-tabs{padding-left:.8rem;padding-right:.8rem}.cl-rg-flow .cl-rg-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}",
-      "@media (max-width:390px){.cl-rg-flow .cl-rg-tab{padding-left:.55rem;padding-right:.55rem;font-size:.78rem}.cl-rg-flow .cl-rg-panel{padding:.7rem}.cl-rg-flow .cl-rg-header{padding:.75rem}.cl-rg-flow .cl-rg-metric strong{font-size:.86rem}.cl-rg-flow th,.cl-rg-flow td{padding-left:.42rem;padding-right:.42rem}}"
-    ].join("\n");
-    (doc.head || doc.documentElement || doc.body).appendChild(style);
-  }
-
-  function makeRangeField(api, doc, config) {
-    var output = makeElement(api, doc, "output", { for: config.id, text: "" });
-    var title = makeElement(api, doc, "span", { text: config.label });
-    var head = makeElement(api, doc, "span", { className: "cl-rg-control-head" }, [
-      title,
-      output
-    ]);
-    var input = makeElement(api, doc, "input", {
-      id: config.id,
-      type: "range",
-      min: config.min,
-      max: config.max,
-      step: config.step,
-      value: config.value,
-      "aria-label": config.label
-    });
-    var scale = makeElement(api, doc, "span", { className: "cl-rg-scale" }, [
-      makeElement(api, doc, "span", { text: String(config.minLabel || config.min) }),
-      makeElement(api, doc, "span", { text: String(config.maxLabel || config.max) })
-    ]);
-    var control = makeElement(api, doc, "label", { className: "cl-rg-control", htmlFor: config.id }, [
-      head,
-      input,
-      scale
-    ]);
-    return { control: control, input: input, output: output };
-  }
-
-  function makeFieldset(api, doc, legend, fields) {
-    var children = [makeElement(api, doc, "legend", { text: legend })];
-    fields.forEach(function (field) { children.push(field.control); });
-    return makeElement(api, doc, "fieldset", { className: "cl-rg-fieldset" }, children);
-  }
-
-  function makeMetric(api, doc, label, kind) {
-    var value = makeElement(api, doc, "strong", { text: "—" });
-    var card = makeElement(api, doc, "div", { className: "cl-rg-metric", "data-kind": kind }, [
-      makeElement(api, doc, "span", { text: label }),
-      value
-    ]);
-    return { card: card, value: value };
-  }
-
-  function makeTable(api, doc, headers, rows, rowRenderer, ariaLabel) {
-    var headRow = makeElement(api, doc, "tr", {}, headers.map(function (header) {
-      return makeElement(api, doc, "th", { scope: "col", text: header });
-    }));
-    var bodyRows = rows.map(function (row) {
-      return makeElement(api, doc, "tr", {}, rowRenderer(row).map(function (cell, index) {
-        return makeElement(api, doc, "td", {
-          text: cell,
-          "data-column": String(index)
-        });
-      }));
-    });
-    var table = makeElement(api, doc, "table", { "aria-label": ariaLabel }, [
-      makeElement(api, doc, "thead", {}, [headRow]),
-      makeElement(api, doc, "tbody", {}, bodyRows)
-    ]);
-    return makeElement(api, doc, "div", { className: "cl-rg-table-wrap" }, [table]);
-  }
-
-  function pathFromPoints(points, xScale, yScale, xKey, yKey) {
-    return points.map(function (point, index) {
-      var command = index === 0 ? "M" : "L";
-      return command + xScale(point[xKey]).toFixed(2) + "," + yScale(point[yKey]).toFixed(2);
-    }).join(" ");
-  }
-
-  function drawAChart(api, doc, rows, chartId) {
-    var width = 760;
-    var height = 370;
-    var left = 62;
-    var right = 22;
-    var top = 28;
-    var bottom = 42;
-    var gap = 32;
-    var plotWidth = width - left - right;
-    var plotHeight = (height - top - bottom - gap) / 2;
-    var firstTop = top;
-    var secondTop = top + plotHeight + gap;
-    var maxK = Math.max(0.001, rows.reduce(function (max, row) { return Math.max(max, row.k); }, 0));
-    var maxXi = Math.max(0.001, rows.reduce(function (max, row) { return Math.max(max, row.xi); }, 0));
-    var maxStep = Math.max(1, rows.length - 1);
-    var titleId = chartId + "-title";
-    var descId = chartId + "-desc";
-    var svg = makeSvg(api, doc, "svg", {
-      className: "cl-rg-svg",
-      viewBox: "0 0 " + width + " " + height,
-      role: "img",
-      "aria-labelledby": titleId + " " + descId,
-      preserveAspectRatio: "xMidYMid meet"
-    });
-    append(svg, makeSvg(api, doc, "title", { id: titleId }, ["一维 Ising decimation 的 K 与关联长度流"]));
-    append(svg, makeSvg(api, doc, "desc", { id: descId }, [
-      "横轴为粗粒化步数；上图显示 K_n 向零流动，下图显示当前粗粒格单位的 connected correlation length。"
-    ]));
-    append(svg, makeSvg(api, doc, "rect", {
-      x: 0,
-      y: 0,
-      width: width,
-      height: height,
-      fill: "var(--bg)",
-      stroke: "var(--border)"
-    }));
-
-    function xScale(value) {
-      return left + (value / maxStep) * plotWidth;
-    }
-
-    function drawPanel(panelTop, maximum, key, label, color) {
-      var panelBottom = panelTop + plotHeight;
-      function yScale(value) {
-        return panelBottom - (value / maximum) * (plotHeight - 18);
-      }
-      append(svg, makeSvg(api, doc, "rect", {
-        x: left,
-        y: panelTop,
-        width: plotWidth,
-        height: plotHeight,
-        fill: "var(--block-bg)",
-        stroke: "var(--border)"
-      }));
-      [0, 0.5, 1].forEach(function (ratio) {
-        var y = yScale(maximum * ratio);
-        append(svg, makeSvg(api, doc, "line", {
-          x1: left,
-          y1: y,
-          x2: width - right,
-          y2: y,
-          stroke: "var(--border)",
-          "stroke-dasharray": "3 5",
-          "stroke-opacity": "0.8"
-        }));
-        append(svg, svgText(api, doc, left - 8, y + 4, format(api, maximum * ratio, 2), {
-          "text-anchor": "end",
-          "font-size": 10
-        }));
-      });
-      append(svg, svgText(api, doc, left + 8, panelTop + 16, label, {
-        fill: color,
-        "font-size": 12,
-        "font-weight": 750
-      }));
-      append(svg, makeSvg(api, doc, "path", {
-        d: pathFromPoints(rows, xScale, yScale, "n", key),
-        fill: "none",
-        stroke: color,
-        "stroke-width": 3,
-        "stroke-linecap": "round",
-        "stroke-linejoin": "round"
-      }));
-      rows.forEach(function (row) {
-        append(svg, makeSvg(api, doc, "circle", {
-          cx: xScale(row.n),
-          cy: yScale(row[key]),
-          r: 3.6,
-          fill: color,
-          stroke: "var(--bg)",
-          "stroke-width": 1.5
-        }));
-      });
-    }
-
-    drawPanel(firstTop, maxK, "k", "耦合 K_n（流向 K=0）", "var(--cl-rg-flow)");
-    drawPanel(secondTop, maxXi, "xi", "connected 关联长度 ξ_c/a_n", "var(--cl-rg-irrelevant)");
-    rows.forEach(function (row) {
-      var x = xScale(row.n);
-      append(svg, makeSvg(api, doc, "line", {
-        x1: x,
-        y1: secondTop + plotHeight,
-        x2: x,
-        y2: secondTop + plotHeight + 5,
-        stroke: "var(--fg-soft)"
-      }));
-      append(svg, svgText(api, doc, x, height - 20, String(row.n), {
-        "text-anchor": "middle",
-        "font-size": 10
-      }));
-    });
-    append(svg, svgText(api, doc, left + plotWidth / 2, height - 4, "迭代步 n（每一步 a_n=2^n a_0）", {
-      "text-anchor": "middle",
-      "font-size": 11
-    }));
-    return svg;
-  }
-
-  function drawBChart(api, doc, result, chartId) {
-    var rows = result.rows;
-    var width = 760;
-    var height = 430;
-    var left = 72;
-    var right = 24;
-    var top = 28;
-    var bottom = 54;
-    var plotWidth = width - left - right;
-    var plotHeight = height - top - bottom;
-    var maxAbs = rows.reduce(function (max, row) {
-      return Math.max(max, Math.abs(row.u), Math.abs(row.v));
-    }, 0);
-    var limit = Math.max(1, maxAbs * 1.18);
-    var titleId = chartId + "-title";
-    var descId = chartId + "-desc";
-    var svg = makeSvg(api, doc, "svg", {
-      className: "cl-rg-svg",
-      viewBox: "0 0 " + width + " " + height,
-      role: "img",
-      "aria-labelledby": titleId + " " + descId,
-      preserveAspectRatio: "xMidYMid meet"
-    });
-    append(svg, makeSvg(api, doc, "title", { id: titleId }, ["二维 toy linearized RG flow"]));
-    append(svg, makeSvg(api, doc, "desc", { id: descId }, [
-      "横轴是 relevant 热方向 u，纵轴是 irrelevant 方向 v；虚线 u=0 是 toy 临界流形，轨迹点按迭代步连接。"
-    ]));
-    append(svg, makeSvg(api, doc, "rect", {
-      x: 0,
-      y: 0,
-      width: width,
-      height: height,
-      fill: "var(--bg)",
-      stroke: "var(--border)"
-    }));
-
-    function xScale(value) {
-      return left + ((value + limit) / (2 * limit)) * plotWidth;
-    }
-
-    function yScale(value) {
-      return top + ((limit - value) / (2 * limit)) * plotHeight;
-    }
-
-    var zeroX = xScale(0);
-    var zeroY = yScale(0);
-    append(svg, makeSvg(api, doc, "rect", {
-      x: left,
-      y: top,
-      width: plotWidth,
-      height: plotHeight,
-      fill: "var(--block-bg)",
-      stroke: "var(--border)"
-    }));
-    append(svg, makeSvg(api, doc, "line", {
-      x1: zeroX,
-      y1: top,
-      x2: zeroX,
-      y2: top + plotHeight,
-      stroke: "var(--cl-rg-critical)",
-      "stroke-width": 2,
-      "stroke-dasharray": "7 5"
-    }));
-    append(svg, makeSvg(api, doc, "line", {
-      x1: left,
-      y1: zeroY,
-      x2: left + plotWidth,
-      y2: zeroY,
-      stroke: "var(--fg-soft)",
-      "stroke-opacity": "0.75"
-    }));
-    append(svg, makeSvg(api, doc, "line", {
-      x1: left,
-      y1: top,
-      x2: left,
-      y2: top + plotHeight,
-      stroke: "var(--fg-soft)"
-    }));
-    append(svg, makeSvg(api, doc, "line", {
-      x1: left,
-      y1: top + plotHeight,
-      x2: left + plotWidth,
-      y2: top + plotHeight,
-      stroke: "var(--fg-soft)"
-    }));
-    append(svg, svgText(api, doc, zeroX + 7, top + 16, "u=0：toy 临界流形", {
-      fill: "var(--cl-rg-critical)",
-      "font-size": 11
-    }));
-    append(svg, svgText(api, doc, left + plotWidth - 4, zeroY - 8, "u（relevant）→", {
-      "text-anchor": "end",
-      fill: "var(--cl-rg-relevant)",
-      "font-size": 11
-    }));
-    append(svg, svgText(api, doc, zeroX + 8, top + 30, "v（irrelevant）", {
-      fill: "var(--cl-rg-irrelevant)",
-      "font-size": 11
-    }));
-    append(svg, svgText(api, doc, left + plotWidth / 2, height - 8, "u：偏离临界流形的热方向", {
-      "text-anchor": "middle",
-      "font-size": 11
-    }));
-    append(svg, svgText(api, doc, left - 12, top + plotHeight / 2, "v", {
-      "text-anchor": "middle",
-      "font-size": 12,
-      transform: "rotate(-90 " + (left - 12) + " " + (top + plotHeight / 2) + ")"
-    }));
-    append(svg, makeSvg(api, doc, "path", {
-      d: pathFromPoints(rows, xScale, yScale, "u", "v"),
-      fill: "none",
-      stroke: "var(--cl-rg-flow)",
-      "stroke-width": 3,
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round"
-    }));
-    rows.forEach(function (row, index) {
-      append(svg, makeSvg(api, doc, "circle", {
-        cx: xScale(row.u),
-        cy: yScale(row.v),
-        r: index === rows.length - 1 ? 5.2 : 3.8,
-        fill: index === 0 ? "var(--cl-rg-relevant)" : "var(--cl-rg-flow)",
-        stroke: "var(--bg)",
-        "stroke-width": 1.5
-      }));
-      append(svg, svgText(api, doc, xScale(row.u) + 7, yScale(row.v) - 7, "n=" + row.n, {
-        "font-size": 10
-      }));
-    });
-    append(svg, makeSvg(api, doc, "circle", {
-      cx: zeroX,
-      cy: zeroY,
-      r: 4.5,
-      fill: "var(--fg)",
-      stroke: "var(--bg)",
-      "stroke-width": 1.5
-    }));
-    return svg;
-  }
-
-  function mount(root, api) {
-    var doc = root.ownerDocument || document;
-    var instanceId = INSTANCE_COUNT += 1;
-    var ids = {
-      aTab: "cl-rg-flow-" + instanceId + "-tab-a",
-      bTab: "cl-rg-flow-" + instanceId + "-tab-b",
-      aPanel: "cl-rg-flow-" + instanceId + "-panel-a",
-      bPanel: "cl-rg-flow-" + instanceId + "-panel-b",
-      aChart: "cl-rg-flow-" + instanceId + "-chart-a",
-      bChart: "cl-rg-flow-" + instanceId + "-chart-b"
-    };
-    var state = {
-      tab: "a",
-      a: { k0: 1, steps: 4 },
-      b: { b: 2, yt: 1, yi: -1, u: 0.25, v: 0.8, steps: 4 }
-    };
-
-    installStyles(doc);
-
-    var header = makeElement(api, doc, "div", { className: "cl-rg-header" }, [
-      makeElement(api, doc, "p", { className: "cl-rg-kicker", text: "确定性 RG 实验" }),
-      makeElement(api, doc, "h3", { text: "RG flow · 逐尺度读出" }),
-      makeElement(api, doc, "p", {
-        text: "A 是无外场一维 Ising decimation 的精确流；B 是明确标注的临界点附近二维 toy 线性化流。"
-      })
-    ]);
-
-    var tabA = makeElement(api, doc, "button", {
-      id: ids.aTab,
-      className: "cl-rg-tab",
-      type: "button",
-      role: "tab",
-      "aria-selected": "true",
-      "aria-controls": ids.aPanel,
-      tabindex: "0",
-      text: "A · 1D Ising 精确流"
-    });
-    var tabB = makeElement(api, doc, "button", {
-      id: ids.bTab,
-      className: "cl-rg-tab",
-      type: "button",
-      role: "tab",
-      "aria-selected": "false",
-      "aria-controls": ids.bPanel,
-      tabindex: "-1",
-      text: "B · 二维 toy 线性流"
-    });
-    var tablist = makeElement(api, doc, "div", {
-      className: "cl-rg-tabs",
-      role: "tablist",
-      "aria-label": "重整化群实验页签"
-    }, [tabA, tabB]);
-
-    var aKField = makeRangeField(api, doc, {
-      id: "cl-rg-flow-" + instanceId + "-k0",
-      label: "初始耦合 K₀",
-      min: 0.05,
-      max: 3,
-      step: 0.05,
-      value: 1,
-      minLabel: "0.05",
-      maxLabel: "3"
-    });
-    var aStepField = makeRangeField(api, doc, {
-      id: "cl-rg-flow-" + instanceId + "-a-steps",
-      label: "迭代步数 n",
-      min: 0,
-      max: 8,
-      step: 1,
-      value: 4,
-      minLabel: "0",
-      maxLabel: "8"
-    });
-    var aControls = makeElement(api, doc, "div", { className: "cl-rg-controls" }, [
-      makeFieldset(api, doc, "A · 无外场一维最近邻链", [aKField]),
-      makeFieldset(api, doc, "粗粒化记录", [aStepField])
-    ]);
-    var aPresetLow = makeElement(api, doc, "button", {
-      className: "cl-rg-preset",
-      type: "button",
-      text: "低温起点 K₀=2.4"
-    });
-    var aPresetDefault = makeElement(api, doc, "button", {
-      className: "cl-rg-preset",
-      type: "button",
-      text: "默认 K₀=1"
-    });
-    var aPresets = makeElement(api, doc, "div", {
-      className: "cl-rg-presets",
-      "aria-label": "A 页签预设"
-    }, [aPresetLow, aPresetDefault]);
-    var aStatus = makeElement(api, doc, "p", { className: "cl-rg-status", role: "status" });
-    var aMetricK0 = makeMetric(api, doc, "K₀", "flow");
-    var aMetricK = makeMetric(api, doc, "末步 Kₙ", "flow");
-    var aMetricT = makeMetric(api, doc, "末步 Tₙ/J", "relevant");
-    var aMetricXi = makeMetric(api, doc, "末步 ξ_c/aₙ", "irrelevant");
-    var aMetrics = makeElement(api, doc, "div", { className: "cl-rg-metrics" }, [
-      aMetricK0.card,
-      aMetricK.card,
-      aMetricT.card,
-      aMetricXi.card
-    ]);
-    var aChartHost = makeElement(api, doc, "div", { className: "cl-rg-chart-wrap" });
-    var aChartCard = makeElement(api, doc, "section", {
-      className: "cl-rg-chart-card",
-      "aria-label": "A 页签的流图"
-    }, [
-      makeElement(api, doc, "h4", { className: "cl-rg-card-title", text: "流向：K 与当前粗粒格的 connected 关联长度" }),
-      aChartHost,
-      makeElement(api, doc, "p", {
-        className: "cl-rg-note",
-        text: "ξ_c/aₙ 每次约减半；换回原始单位的物理长度 2ⁿξ_c/aₙ 应保持不变。"
-      })
-    ]);
-    var aTableHost = makeElement(api, doc, "div");
-    var aTableCard = makeElement(api, doc, "section", {
-      className: "cl-rg-table-card",
-      "aria-label": "A 页签的迭代表"
-    }, [
-      makeElement(api, doc, "h4", { className: "cl-rg-card-title", text: "逐步读数" }),
-      aTableHost
-    ]);
-    var aPanel = makeElement(api, doc, "section", {
-      id: ids.aPanel,
-      className: "cl-rg-panel",
-      role: "tabpanel",
-      "aria-labelledby": ids.aTab
-    }, [
-      makeElement(api, doc, "p", {
-        className: "cl-rg-panel-intro",
-        text: "精确使用 tanh K′=tanh²K（忽略自由能加性常数）；K 越小表示 T/J 越高。关联长度严格按 connected correlation 计算。"
-      }),
-      aControls,
-      aPresets,
-      aStatus,
-      aMetrics,
-      aChartCard,
-      aTableCard
-    ]);
-
-    var bField = makeRangeField(api, doc, {
-      id: "cl-rg-flow-" + instanceId + "-b",
-      label: "尺度因子 b",
-      min: 1.2,
-      max: 4,
-      step: 0.1,
-      value: 2,
-      minLabel: "1.2",
-      maxLabel: "4"
-    });
-    var bYtField = makeRangeField(api, doc, {
-      id: "cl-rg-flow-" + instanceId + "-yt",
-      label: "y_t > 0（relevant）",
-      min: 0.2,
-      max: 2,
-      step: 0.1,
-      value: 1,
-      minLabel: "0.2",
-      maxLabel: "2"
-    });
-    var bYiField = makeRangeField(api, doc, {
-      id: "cl-rg-flow-" + instanceId + "-yi",
-      label: "y_i < 0（irrelevant）",
-      min: -2,
-      max: -0.1,
-      step: 0.1,
-      value: -1,
-      minLabel: "-2",
-      maxLabel: "-0.1"
-    });
-    var bUField = makeRangeField(api, doc, {
-      id: "cl-rg-flow-" + instanceId + "-u",
-      label: "初值 u₀",
-      min: -1,
-      max: 1,
-      step: 0.01,
-      value: 0.25,
-      minLabel: "-1",
-      maxLabel: "1"
-    });
-    var bVField = makeRangeField(api, doc, {
-      id: "cl-rg-flow-" + instanceId + "-v",
-      label: "初值 v₀",
-      min: -1,
-      max: 1,
-      step: 0.05,
-      value: 0.8,
-      minLabel: "-1",
-      maxLabel: "1"
-    });
-    var bStepField = makeRangeField(api, doc, {
-      id: "cl-rg-flow-" + instanceId + "-b-steps",
-      label: "迭代步数 n",
-      min: 0,
-      max: 8,
-      step: 1,
-      value: 4,
-      minLabel: "0",
-      maxLabel: "8"
-    });
-    var bControls = makeElement(api, doc, "div", { className: "cl-rg-controls" }, [
-      makeFieldset(api, doc, "B · toy 线性化参数", [bField, bYtField, bYiField]),
-      makeFieldset(api, doc, "初值与步数", [bUField, bVField, bStepField])
-    ]);
-    var bPresetCritical = makeElement(api, doc, "button", {
-      className: "cl-rg-preset",
-      type: "button",
-      text: "临界流形 u₀=0"
-    });
-    var bPresetNear = makeElement(api, doc, "button", {
-      className: "cl-rg-preset",
-      type: "button",
-      text: "近临界 u₀=0.02"
-    });
-    var bPresets = makeElement(api, doc, "div", {
-      className: "cl-rg-presets",
-      "aria-label": "B 页签预设"
-    }, [bPresetCritical, bPresetNear]);
-    var bStatus = makeElement(api, doc, "p", { className: "cl-rg-status", role: "status" });
-    var bMetricU = makeMetric(api, doc, "末步 uₙ", "relevant");
-    var bMetricV = makeMetric(api, doc, "末步 vₙ", "irrelevant");
-    var bMetricNu = makeMetric(api, doc, "toy ν=1/y_t", "flow");
-    var bMetricUFactor = makeMetric(api, doc, "b^{y_t}", "relevant");
-    var bMetrics = makeElement(api, doc, "div", { className: "cl-rg-metrics" }, [
-      bMetricU.card,
-      bMetricV.card,
-      bMetricNu.card,
-      bMetricUFactor.card
-    ]);
-    var bChartHost = makeElement(api, doc, "div", { className: "cl-rg-chart-wrap" });
-    var bChartCard = makeElement(api, doc, "section", {
-      className: "cl-rg-chart-card",
-      "aria-label": "B 页签的二维 toy 流图"
-    }, [
-      makeElement(api, doc, "h4", { className: "cl-rg-card-title", text: "二维 toy 相图：临界流形与两个线性化方向" }),
-      bChartHost,
-      makeElement(api, doc, "div", { className: "cl-rg-legend" }, [
-        makeElement(api, doc, "span", { className: "cl-rg-key" }, [
-          makeElement(api, doc, "i", { className: "cl-rg-swatch", "data-kind": "relevant" }),
-          "起点 / relevant：|u| 放大"
-        ]),
-        makeElement(api, doc, "span", { className: "cl-rg-key" }, [
-          makeElement(api, doc, "i", { className: "cl-rg-swatch", "data-kind": "irrelevant" }),
-          "v 方向：|v| 衰减"
-        ]),
-        makeElement(api, doc, "span", { className: "cl-rg-key" }, [
-          makeElement(api, doc, "i", { className: "cl-rg-swatch", "data-kind": "critical" }),
-          "u=0：toy 临界流形"
-        ])
-      ])
-    ]);
-    var bTableHost = makeElement(api, doc, "div");
-    var bTableCard = makeElement(api, doc, "section", {
-      className: "cl-rg-table-card",
-      "aria-label": "B 页签的迭代表"
-    }, [
-      makeElement(api, doc, "h4", { className: "cl-rg-card-title", text: "逐步读数" }),
-      bTableHost
-    ]);
-    var bPanel = makeElement(api, doc, "section", {
-      id: ids.bPanel,
-      className: "cl-rg-panel",
-      role: "tabpanel",
-      "aria-labelledby": ids.bTab,
-      hidden: true
-    }, [
-      makeElement(api, doc, "p", {
-        className: "cl-rg-panel-intro",
-        text: "明确标注：这是临界点附近的二维 toy linearized flow，不是具体材料或具体模型的指数预测；u′=b^{y_t}u，v′=b^{y_i}v。"
-      }),
-      bControls,
-      bPresets,
-      bStatus,
-      bMetrics,
-      bChartCard,
-      bTableCard
-    ]);
-
-    var shell = makeElement(api, doc, "div", { className: "cl-rg-shell" }, [
-      header,
-      tablist,
-      aPanel,
-      bPanel
-    ]);
-    var wrapper = makeElement(api, doc, "div", { className: "cl-rg-flow" }, [shell]);
-    clear(root);
-    root.appendChild(wrapper);
-
-    function updateA(announce) {
-      state.a.k0 = clamp(number(aKField.input.value, 1), 0.05, 3);
-      state.a.steps = clamp(Math.round(number(aStepField.input.value, 4)), 0, 8);
-      var rows = computeA(state.a.k0, state.a.steps);
-      var last = rows[rows.length - 1];
-      aKField.output.textContent = format(api, state.a.k0, 2);
-      aStepField.output.textContent = String(state.a.steps);
-      aMetricK0.value.textContent = format(api, state.a.k0, 3);
-      aMetricK.value.textContent = format(api, last.k, 5);
-      aMetricT.value.textContent = format(api, last.temperature, 3);
-      aMetricXi.value.textContent = format(api, last.xi, 4);
-      aStatus.textContent =
-        "第 " + last.n + " 步：K=" + format(api, last.k, 5) +
-        "，T/J=" + format(api, last.temperature, 3) +
-        "；当前粗粒格 ξ_c/a_n=" + format(api, last.xi, 4) +
-        "，原始单位 ξ_phys/a_0=" + format(api, last.physicalXi, 4) +
-        "。有限 K 始终向高温固定点 K=0 流。";
-      clear(aChartHost);
-      append(aChartHost, drawAChart(api, doc, rows, ids.aChart));
-      clear(aTableHost);
-      append(aTableHost, makeTable(api, doc, [
-        "n", "K_n", "T_n/J", "ξ_c/a_n", "2ⁿξ_c/a₀"
-      ], rows, function (row) {
-        return [
-          String(row.n),
-          format(api, row.k, 6),
-          format(api, row.temperature, 6),
-          format(api, row.xi, 6),
-          format(api, row.physicalXi, 6)
-        ];
-      }, "一维 Ising decimation 迭代表"));
-      if (announce && api && typeof api.announce === "function") {
-        api.announce(root, "A 页签已更新：K 向零流，connected 关联长度在粗粒格单位中缩短。");
-      }
-    }
-
-    function updateB(announce) {
-      state.b.b = clamp(number(bField.input.value, 2), 1.2, 4);
-      state.b.yt = clamp(number(bYtField.input.value, 1), 0.2, 2);
-      state.b.yi = clamp(number(bYiField.input.value, -1), -2, -0.1);
-      state.b.u = clamp(number(bUField.input.value, 0.25), -1, 1);
-      state.b.v = clamp(number(bVField.input.value, 0.8), -1, 1);
-      state.b.steps = clamp(Math.round(number(bStepField.input.value, 4)), 0, 8);
-      var result = computeB(state.b);
-      var rows = result.rows;
-      var last = rows[rows.length - 1];
-      bField.output.textContent = format(api, result.b, 1);
-      bYtField.output.textContent = format(api, result.yt, 1);
-      bYiField.output.textContent = format(api, result.yi, 1);
-      bUField.output.textContent = formatSigned(api, state.b.u, 2);
-      bVField.output.textContent = formatSigned(api, state.b.v, 2);
-      bStepField.output.textContent = String(state.b.steps);
-      bMetricU.value.textContent = formatSigned(api, last.u, 4);
-      bMetricV.value.textContent = formatSigned(api, last.v, 4);
-      bMetricNu.value.textContent = format(api, result.nu, 3);
-      bMetricUFactor.value.textContent = format(api, result.uFactor, 3);
-      var manifold = Math.abs(state.b.u) < 1e-12
-        ? "u₀=0：轨迹留在 toy 临界流形。"
-        : "u₀≠0：relevant 方向会把轨迹推出线性化邻域。";
-      bStatus.textContent =
-        "第 " + last.n + " 步：u=" + formatSigned(api, last.u, 4) +
-        "，v=" + formatSigned(api, last.v, 4) +
-        "；b^{y_t}=" + format(api, result.uFactor, 3) +
-        "，b^{y_i}=" + format(api, result.vFactor, 3) +
-        "，toy ν=1/y_t=" + format(api, result.nu, 3) + "。" + manifold;
-      clear(bChartHost);
-      append(bChartHost, drawBChart(api, doc, result, ids.bChart));
-      clear(bTableHost);
-      append(bTableHost, makeTable(api, doc, [
-        "n", "u_n · relevant", "v_n · irrelevant"
-      ], rows, function (row) {
-        return [
-          String(row.n),
-          formatSigned(api, row.u, 6),
-          formatSigned(api, row.v, 6)
-        ];
-      }, "二维 toy linearized flow 迭代表"));
-      if (announce && api && typeof api.announce === "function") {
-        api.announce(root, "B 页签已更新：u 是 relevant 方向，v 是 irrelevant 方向；toy ν 已按 1/y_t 重算。");
-      }
-    }
-
-    function setTab(tab, announce) {
-      state.tab = tab === "b" ? "b" : "a";
-      var isA = state.tab === "a";
-      tabA.setAttribute("aria-selected", isA ? "true" : "false");
-      tabB.setAttribute("aria-selected", isA ? "false" : "true");
-      tabA.setAttribute("tabindex", isA ? "0" : "-1");
-      tabB.setAttribute("tabindex", isA ? "-1" : "0");
-      aPanel.hidden = !isA;
-      bPanel.hidden = isA;
-      if (announce && api && typeof api.announce === "function") {
-        api.announce(root, isA ? "已切换到 A：一维 Ising 精确流。" : "已切换到 B：二维 toy 线性化流。");
-      }
-    }
-
-    function setInput(input, value, update) {
-      input.value = String(value);
-      update(true);
-    }
-
-    aKField.input.addEventListener("input", function () { updateA(true); });
-    aStepField.input.addEventListener("input", function () { updateA(true); });
-    aPresetLow.addEventListener("click", function () { setInput(aKField.input, 2.4, updateA); });
-    aPresetDefault.addEventListener("click", function () { setInput(aKField.input, 1, updateA); });
-
-    bField.input.addEventListener("input", function () { updateB(true); });
-    bYtField.input.addEventListener("input", function () { updateB(true); });
-    bYiField.input.addEventListener("input", function () { updateB(true); });
-    bUField.input.addEventListener("input", function () { updateB(true); });
-    bVField.input.addEventListener("input", function () { updateB(true); });
-    bStepField.input.addEventListener("input", function () { updateB(true); });
-    bPresetCritical.addEventListener("click", function () { setInput(bUField.input, 0, updateB); });
-    bPresetNear.addEventListener("click", function () { setInput(bUField.input, 0.02, updateB); });
-
-    tabA.addEventListener("click", function () { setTab("a", true); });
-    tabB.addEventListener("click", function () { setTab("b", true); });
-    tablist.addEventListener("keydown", function (event) {
-      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-      event.preventDefault();
-      var next = event.key === "ArrowLeft" ? "a" : "b";
-      setTab(next, true);
-      (next === "a" ? tabA : tabB).focus();
-    });
-
-    updateA(false);
-    updateB(false);
-    setTab("a", false);
-  }
-
-  window.CourseLearning.register("rg-flow", function (root, api) {
-    mount(root, api);
-  });
-}());
+function selfTest(){let checks=0;const ok=x=>{checks++;if(!x)throw Error('RG invariant '+checks);},near=(x,y)=>ok(Math.abs(x-y)<2e-9*(1+Math.abs(y)));for(const p of PRESETS){const s=compute(p.parameters);ok(plots(s).length===6);ok(tables(s).length===11);for(const r of s.chain.stages){near(r.restoredLogZ,s.chain.initial.logZ);near(r.finite.mean,s.chain.initial.mean);if(r.marginal)for(const q of r.marginal.rows){near(q.probability,q.reconstructedProbability);near(q.conditionalOriginalM,q.directConditionalM);near(Math.log(q.weight),q.reconstructedLogWeight);}}for(const r of s.chain.zeroFieldFlow)near(r.correlationLengthPhysical,s.chain.zeroFieldFlow[0].correlationLengthPhysical);near(s.star.rows.reduce((z,r)=>z+r.probability,0),1);near(s.star.rows.reduce((z,r)=>z+r.pairProbability,0),1);for(const r of s.star.rows)near(r.reconstructedLogWeight,r.logWeight);ok(s.star.klDivergence>=-1e-13);for(let i=0;i<4;i++)ok(feedback(i,QUESTIONS[i][2]).correct);}return {status:'PASS',checks};}
+const API={...core,PRESETS,QUESTIONS,compute,snapshot:compute,plots,tables,svg,feedback,fmt,mount,selfTest};if(typeof module!=="undefined"&&module.exports)module.exports=API;if(hostWindow&&hostWindow.CourseLearning)hostWindow.CourseLearning.register("rg-flow",mount);})(typeof window!=="undefined"?window:null);
