@@ -126,13 +126,13 @@ if __name__=='__main__':
    assert isinstance(b,list) and len(a)==len(b),('replay length',path)
    for i,(x,y) in enumerate(zip(a,b)):replay(x,y,path+'['+str(i)+']')
   elif type(a)in(int,float) and type(b)in(int,float):
-   if type(a)is int and type(b)is int:assert a==b,('replay integer',path,a,b)
+   if type(a)is int or type(b)is int:assert type(a)is type(b) and a==b,('replay integer',path,a,b)
    else:assert math.isfinite(a) and math.isfinite(b) and math.isclose(a,b,rel_tol=2e-12,abs_tol=2e-14),('replay number',path,a,b)
   else:assert type(a)is type(b) and a==b,('replay exact',path,a,b)
  replay(d['frozen'],[r['data']for r in f['records']])
  # The replay accepts last-bit rounding, but rejects structural and numeric drift.
  replay({'x':[1.0,None,True,2]}, {'x':[math.nextafter(1.0,2.0),None,True,2]})
- replayGuardCases=[({'x':1.0},{'x':1.00001}),({'x':1},{'x':2}),({'x':None},{'x':0}),({'x':True},{'x':1}),({'x':[1]},{'x':[]}),({'x':1},{'y':1})]
+ replayGuardCases=[({'x':1.0},{'x':1.00001}),({'x':1},{'x':2}),({'x':1},{'x':1.0}),({'x':1},{'x':1.0000000000001}),({'x':1.0},{'x':1}),({'x':1.0000000000001},{'x':1}),({'x':None},{'x':0}),({'x':True},{'x':1}),({'x':[1]},{'x':[]}),({'x':1},{'y':1})]
  replayGuards=0
  for a,b in replayGuardCases:
   try:replay(a,b)
