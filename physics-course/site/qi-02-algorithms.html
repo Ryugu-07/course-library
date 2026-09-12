@@ -56,256 +56,268 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-12 13:33</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：先看干涉账本，再谈“加速”</a><ul>
-<li><a href="#qi-algorithms-learning-title">1. 具体谜题：黑盒究竟允许你问什么？</a></li>
-<li><a href="#2">2. 先预测：符号翻转之后会发生什么？</a></li>
-<li><a href="#3-good-bad">3. 最小模型：正交的 good / bad 二维几何</a></li>
-<li><a href="#4-oracle">4. 动手验证：把 Oracle、均值反射和过转拆开</a></li>
-<li><a href="#5">5. 误区与边界：平方、查询和停步不是一回事</a></li>
-<li><a href="#6">6. 回到定理，迁移到新问题</a></li>
+<li><a href="#1">1. 同一个问题，先约定什么叫成功</a></li>
+<li><a href="#2">2. 两个反射怎样形成旋转</a></li>
+<li><a href="#3">3. 为什么要在首峰附近停下</a></li>
+<li><a href="#4">4. 解数未知：改变轮数并重新制备</a></li>
+<li><a href="#5-qft">5. QFT：明确相位符号与坐标</a></li>
+<li><a href="#6">6. 相位估计：相量相加生成频率峰</a></li>
+<li><a href="#7">7. 控制位数、查询次数与门数</a></li>
+<li><a href="#8">8. 模乘的额外结构与本征相位</a></li>
+<li><a href="#9">9. 哪些路径干涉，哪些概率相加</a></li>
+<li><a href="#10">10. 连分数候选与逐步验证</a></li>
+<li><a href="#11">11. 两个实验：预测、计算、再检查失败分支</a></li>
+<li><a href="#12">12. 练习与完整答案</a><ul>
+<li><a href="#_1">阅读路径</a></li>
 </ul>
 </li>
-<li><a href="#1-deutschjozsa">1. 干涉计算的最小样本：Deutsch–Jozsa</a></li>
-<li><a href="#2-grover">2. Grover 搜索：无结构问题的平方加速</a></li>
-<li><a href="#3-shor">3. Shor 分解：周期结构与量子多项式</a></li>
-<li><a href="#4">4. 练习与迁移</a></li>
 </ul>
 </div>
 </details>
-<h1 id="ii">量子信息 II · 量子算法<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
+<h1 id="ii">量子信息 II · 干涉、查询与量子算法<a class="headerlink" href="#ii" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Nielsen &amp; Chuang §4–6 ｜ <strong>前置</strong>：qi-01、数论一嘴（Shor 的归约）、信息论线
-量子计算的加速从哪来？<strong>不是“并行试所有答案”</strong>（测量只给一个随机分支），而是把相位编排成可读出的干涉。三种 query contract 要分开：Deutsch–Jozsa 的 <strong>exact quantum vs deterministic exact</strong> 分离；Grover 的无结构搜索二次加速；Shor 的周期结构算法在理想算术模型下是量子多项式，而不是已证明的指数下界。</p>
+<p>前置：<a href="qi-01-qubits.html">量子位与纠缠</a>、复数与酉矩阵、最大公因数。目标：从一个可计算的振幅出发，追踪到测量分布与可验证的经典输出。Grover、相位估计和Shor分别利用什么信息、花费什么资源，要逐步分清。</p>
 </blockquote>
 <div data-learning-page></div>
 
-<figure class="diagram">
-<p><img alt="Grover 搜索中的 Oracle 反射与均值扩散反射示意图。" src="assets/img/qi-02-quantum-circuits.svg" /></p>
-<figcaption><span class="fig-id">图 qi-02.1</span>Grover 的两个反射：Oracle 反相 marked 子空间，diffusion 围绕均匀态（均值）反射。</figcaption>
-</figure>
-<section aria-labelledby="qi-algorithms-learning-title" class="learning-layer">
-<h2 id="_1">学习层：先看干涉账本，再谈“加速”<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="qi-algorithms-learning-title">1. 具体谜题：黑盒究竟允许你问什么？<a class="headerlink" href="#qi-algorithms-learning-title" title="Permanent link"></a></h3>
-<p>把一个黑盒看成只能通过 query 访问的函数，而不是一段已经摊在桌上的答案表。Deutsch–Jozsa 给出承诺：<span class="arithmatex">\(f:\{0,1\}^n\to\{0,1\}\)</span> 不是恒常就是平衡；Grover 给出承诺：<span class="arithmatex">\(N\)</span> 个基态中有 <span class="arithmatex">\(M\)</span> 个 marked；Shor 则把分解归约为模幂函数的周期。三个问题都依赖干涉，但承诺、成功标准和 query 成本完全不同。</p>
-<h3 id="2">2. 先预测：符号翻转之后会发生什么？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>先不打开实验台，回答四问：</p>
-<ol>
-<li>Deutsch–Jozsa 中，若只随机抽 <span class="arithmatex">\(t\)</span> 个输入且结果全相同，能否<strong>精确</strong>断言 <span class="arithmatex">\(f\)</span> 恒常？若允许错误概率 <span class="arithmatex">\(\delta\)</span>，<span class="arithmatex">\(t\)</span> 应如何随 <span class="arithmatex">\(\delta\)</span> 变化？</li>
-<li>Grover 的 <span class="arithmatex">\(N=4,M=1\)</span> 取 marked index <span class="arithmatex">\(2\)</span>。初始四个振幅都是 <span class="arithmatex">\(1/2\)</span>；Oracle 后标记项是哪一个负的？此时均值是多少？再做 <span class="arithmatex">\(a_i\mapsto2\bar a-a_i\)</span>，是否会把成功率推到 1？</li>
-<li>Grover 的 <span class="arithmatex">\(N=8,M=1\)</span> 从 <span class="arithmatex">\(k=0\)</span> 开始，<span class="arithmatex">\(p_0=1/8\)</span>。在 <span class="arithmatex">\(k=1,2,3\)</span> 时你预测概率继续上升，还是在某个峰后回落？</li>
-<li>Shor 的 QFT 是“把所有答案读出来”，还是把周期梳变成频率峰？哪一步仍然需要经典连分数和算术验证？</li>
-</ol>
-<h3 id="3-good-bad">3. 最小模型：正交的 good / bad 二维几何<a class="headerlink" href="#3-good-bad" title="Permanent link"></a></h3>
-<p>Grover 的二维平面不是由 <span class="arithmatex">\(|s\rangle\)</span> 与单个 marked 态 <span class="arithmatex">\(|w\rangle\)</span> 组成的“基底”——它们一般不正交。正确的正交归一方向是</p>
+<section class="algorithms176-course">
+<style>.algorithms176-course .learning-lab{max-width:none;min-width:0}.phase176-static{overflow:auto;max-width:100%}.phase176-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}.phase176-static td,.phase176-static th{white-space:nowrap}</style>
+<noscript>
+<style>.algorithms176-course span.arithmatex{overflow-wrap:anywhere;word-break:break-word;white-space:normal}</style>
+</noscript>
+<p>先想一个具体问题：如果只在频率图上读到一个峰，为什么还不能立刻把它的倒数叫作周期？本页先让两个反射产生可见的概率振荡，再让一组相量形成频率峰，最后跟踪连分数里的每一个候选。失败分支与成功分支使用同一套算术。</p>
+<h2 id="1">1. 同一个问题，先约定什么叫成功<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>Deutsch–Jozsa 的承诺是恒常或平衡，输出只有这一个全局性质。确定性、零错误经典算法最坏要问 <span class="arithmatex">\(2^{n-1}+1\)</span> 个不同输入：少问时，全同的答案仍可以补成平衡函数。辅助位取 <span class="arithmatex">\(|-\rangle\)</span>，一次 <span class="arithmatex">\(U_f\)</span> 把 <span class="arithmatex">\((-1)^{f(x)}\)</span> 留在输入的相位上。第二次 Hadamard 后，全零振幅为 <span class="arithmatex">\(2^{-n}\sum_x(-1)^{f(x)}\)</span>，恒常时为 <span class="arithmatex">\(\pm1\)</span>，平衡时为零。</p>
+<p>允许错误则比较改变。对平衡函数独立、有放回取 <span class="arithmatex">\(t\ge1\)</span> 个输入，全部同号的概率恰为 <span class="arithmatex">\(2(1/2)^t=2^{1-t}\)</span>；恒常函数不会被判错。因此 <span class="arithmatex">\(t\ge\lceil1+\log_2(1/\delta)\rceil\)</span> 即可把错误压到 <span class="arithmatex">\(\delta\)</span>。固定错误率下是常数次查询，不能把前一项零错误分离改写成对所有经典算法的指数下界。</p>
+<h2 id="2">2. 两个反射怎样形成旋转<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>在正交的 <span class="arithmatex">\(|G\rangle,|B\rangle\)</span> 基中，<span class="arithmatex">\(|s\rangle=(\sin\theta,\cos\theta)^T\)</span>，<span class="arithmatex">\(\sin^2\theta=M/N\)</span>，<span class="arithmatex">\(O=\mathrm{diag}(-1,1)\)</span>。计算 <span class="arithmatex">\(D=2ss^T-I\)</span> 后得到</p>
 <div class="arithmatex">\[
-|G\rangle=\frac1{\sqrt M}\sum_{x\in\mathrm{marked}}|x\rangle,
-\qquad
-|B\rangle=\frac1{\sqrt{N-M}}\sum_{x\notin\mathrm{marked}}|x\rangle,
-\qquad \langle G|B\rangle=0.
+DO=\begin{pmatrix}\cos2\theta&amp;\sin2\theta\\-\sin2\theta&amp;\cos2\theta\end{pmatrix},\qquad
+(DO)^k s=\binom{\sin((2k+1)\theta)}{\cos((2k+1)\theta)}.
 \]</div>
-<p>均匀初态在这两个方向上的分解为</p>
+<p>这个坐标顺序下矩阵是通常平面角的负向旋转；向量从 bad 方向向 good 方向靠近。不要只看“旋转”二字而忘记基序。成功率是 good 子空间的总概率 <span class="arithmatex">\(\sin^2((2k+1)\theta)\)</span>，并非单个 marked 态的概率。</p>
+<h2 id="3">3. 为什么要在首峰附近停下<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>连续首峰位于 <span class="arithmatex">\(\kappa=\pi/(4\theta)-1/2\)</span>。只比较非负的 floor/ceil 两个整数，选择较好者；最近整数与 <span class="arithmatex">\(\kappa\)</span> 相差至多 <span class="arithmatex">\(1/2\)</span>，故角度误差至多 <span class="arithmatex">\(\theta\)</span>，首峰失败率至多 <span class="arithmatex">\(\sin^2\theta=M/N\)</span>。当 <span class="arithmatex">\(M\le N/2\)</span> 时这给出至少 <span class="arithmatex">\(1/2\)</span> 成功率；重复并验证候选即可提高成功率。当 <span class="arithmatex">\(M&gt;N/2\)</span> 时经典随机抽一个已具常数成功率，不应套用“任何情况都需要很多Grover轮次”的说法。<span class="arithmatex">\(M=0\)</span> 没有 good 态，<span class="arithmatex">\(M=N\)</span> 没有 bad 态，二维基的定义在这些端点必须另写。</p>
+<h2 id="4">4. 解数未知：改变轮数并重新制备<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>若 <span class="arithmatex">\(M\)</span> 未知，固定按“只有一个解”选择步数可能严重过转。令 <span class="arithmatex">\(J\)</span> 在 <span class="arithmatex">\(0,\ldots,m-1\)</span> 中均匀，先重新制备 <span class="arithmatex">\(s\)</span> 再运行 <span class="arithmatex">\(J\)</span> 轮，平均成功率为</p>
 <div class="arithmatex">\[
-|s\rangle=\sqrt{\frac MN}|G\rangle+\sqrt{1-\frac MN}|B\rangle
-=\sin\theta\,|G\rangle+\cos\theta\,|B\rangle,
-\qquad \sin^2\theta=\frac MN.
+\frac1m\sum_{j=0}^{m-1}\sin^2((2j+1)\theta)
+=\frac12-\frac{\sin(4m\theta)}{4m\sin2\theta}.
 \]</div>
-<p>Oracle <span class="arithmatex">\(O\)</span> 在 good 方向乘 <span class="arithmatex">\(-1\)</span>，在 bad 方向保持不变；扩散 <span class="arithmatex">\(D=2|s\rangle\langle s|-I\)</span>。因此一次 <span class="arithmatex">\(DO\)</span> 把二维向量旋转 <span class="arithmatex">\(2\theta\)</span>，完整迭代 <span class="arithmatex">\(k\)</span> 次后</p>
+<p>证明是把 <span class="arithmatex">\(\sin^2u\)</span> 写成 <span class="arithmatex">\((1-\cos2u)/2\)</span>，再求有限几何级数。对 <span class="arithmatex">\(0&lt;M&lt;N\)</span>，当 <span class="arithmatex">\(m\ge1/\sin2\theta\)</span> 时该值至少 <span class="arithmatex">\(1/4\)</span>。逐轮把搜索窗口乘 <span class="arithmatex">\(1&lt;\lambda&lt;4/3\)</span>，每轮失败后重置，临界窗口前的费用是几何级数，临界后第 <span class="arithmatex">\(j\)</span> 次重试的存活概率至多 <span class="arithmatex">\((3/4)^j\)</span>、窗口费用增长至多常数乘 <span class="arithmatex">\(\lambda^j\)</span>；<span class="arithmatex">\(3\lambda/4&lt;1\)</span> 保证尾部费用可求和。这解释未知 <span class="arithmatex">\(M\)</span> 仍可有期望 <span class="arithmatex">\(O(\sqrt{N/M})\)</span> 查询，而不是盲目沿同一条轨迹一直转。</p>
+<p>这里还需计入每轮的候选验证、整数窗口取整及大于半数解时的简单抽样分支。没有解时不能靠有限次失败给零错误证明；应设总预算，明确其有界错误语义。原论文中可逆lookup与反计算的计数，和本页把phase oracle记作一次的约定不必具有相同常数。</p>
+<p><strong>为什么不能再把无结构搜索降到常数查询？</strong> 单解情形有一个简短的混合论证。设算法作q次phase oracle查询，把中途测量暂存在辅助寄存器中。用无标记oracle运行时，第t次查询前地址x的概率为 <span class="arithmatex">\(p_t(x)\)</span>；改为仅x被标记，最后纯态分别记作 <span class="arithmatex">\(\psi_q^0,\psi_q^x\)</span>。逐次替换oracle并利用酉变换保范数，得 <span class="arithmatex">\(\|\psi_q^x-\psi_q^0\|\le2\sum_t\sqrt{p_t(x)}\)</span>。Cauchy不等式和 <span class="arithmatex">\(\sum_xp_t(x)=1\)</span> 因而给</p>
 <div class="arithmatex">\[
-|\psi_k\rangle=\sin((2k+1)\theta)|G\rangle
- +\cos((2k+1)\theta)|B\rangle,
-\qquad
-p_k=\sin^2((2k+1)\theta).
+\sum_x\|\psi_q^x-\psi_q^0\|^2\le4q^2.
 \]</div>
-<p>这里的“二维”是由两个<strong>正交的均匀子空间方向</strong>支撑的几何，不是说每个 marked 态被压成了一个任意选定的单态；从均匀初态出发，同一类中的每个基态振幅才保持相等。</p>
-<h3 id="4-oracle">4. 动手验证：把 Oracle、均值反射和过转拆开<a class="headerlink" href="#4-oracle" title="Permanent link"></a></h3>
-<p>实验台只维护 <span class="arithmatex">\(N\)</span> 个实振幅，直接显示符号，不把负振幅偷偷平方。它可以按 canonical 的 <span class="arithmatex">\(O\to D\)</span> 顺序逐步执行：初始化或完整迭代后只能进入 Oracle 半步；Oracle 后只能进入 Diffusion 半步，Diffusion 会闭合并计为完整的 <span class="arithmatex">\(k+1\)</span>。下图把振幅柱、标记项、均值轴、半步流程与 <span class="arithmatex">\(p_k\)</span> 振荡放在同一视野。先选“<span class="arithmatex">\(N=4,M=1\)</span>”，预测后再点完整迭代；然后选“过转：<span class="arithmatex">\(N=8,M=1\)</span>”，观察达到峰值后继续运行为什么反而下降。Oracle query 只在 Oracle 半步增加一次，Diffusion 不算一次黑盒查询。</p>
+<p>无标记运行最终输出x的概率记作 <span class="arithmatex">\(b_x\)</span>，其总和至多一，故至少N−2个地址满足 <span class="arithmatex">\(b_x\le1/3\)</span>。若算法对每一个真实标记地址都以至少2/3概率成功，这些地址的输出事件概率改变至少1/3。纯态的任意测量概率差不超过它们的向量范数距离，所以左边至少 <span class="arithmatex">\((N-2)/9\)</span>，得到 <span class="arithmatex">\(q\ge\sqrt{N-2}/6\)</span>。零标记只是分析用的参照运行，不要求算法在这个参照输入上正确。常数并非最佳，但已经证明单解无结构搜索的 <span class="arithmatex">\(\Omega(\sqrt N)\)</span> 查询量级；门电路实现费用仍在此下界之外。</p>
+<h2 id="5-qft">5. QFT：明确相位符号与坐标<a class="headerlink" href="#5-qft" title="Permanent link"></a></h2>
+<p>固定正号约定 <span class="arithmatex">\(F_Q|x\rangle=Q^{-1/2}\sum_y e^{2\pi ixy/Q}|y\rangle\)</span>，<span class="arithmatex">\(Q=2^m\)</span>。两列内积是一组单位根的和，非同列为零、同列为一，因此 <span class="arithmatex">\(F_Q\)</span> 酉。相位估计末尾用 <span class="arithmatex">\(F_Q^\dagger\)</span>，不能把正负号换了却仍沿用同一测量解释。</p>
+<h2 id="6">6. 相位估计：相量相加生成频率峰<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>若 <span class="arithmatex">\(U|u\rangle=e^{2\pi i\phi}|u\rangle\)</span>，受控幂之后控制寄存器为 <span class="arithmatex">\(Q^{-1/2}\sum_xe^{2\pi ix\phi}|x\rangle\)</span>。逆QFT给</p>
+<div class="arithmatex">\[
+\alpha_y=\frac1Q\sum_{x=0}^{Q-1}e^{2\pi ix(\phi-y/Q)},\qquad
+P(y)=\frac{\sin^2(\pi Q\Delta_y)}{Q^2\sin^2(\pi\Delta_y)},\quad \Delta_y=\phi-y/Q\pmod1.
+\]</div>
+<p>分母为零时按原有限和解释：相位正好落在该格，概率为一；若 <span class="arithmatex">\(Q\phi\)</span> 为整数，其他格的解析概率为零。代码同时保存直接浮点求和的实虚部和解析参照，不能用任意小量阈值把第一列修剪成第二列。</p>
+<p>取圆周上最近的测量格，<span class="arithmatex">\(|\Delta|\le1/(2Q)\)</span>。由 <span class="arithmatex">\(|\sin(\pi Q\Delta)|\ge2Q|\Delta|\)</span>、<span class="arithmatex">\(|\sin(\pi\Delta)|\le\pi|\Delta|\)</span>，得该格概率至少 <span class="arithmatex">\(4/\pi^2\)</span>；正好共振时直接取一。两个最近格并列时，合计概率当然也满足此下界。这是一次测量落在最近格的保证，不是“每次测量都保留m位精度”。0和1是同一相位，误差应在圆周上算。</p>
+<h2 id="7">7. 控制位数、查询次数与门数<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>先假定接口已提供受控U或受控幂，不把未知门的受控化当作免费操作。门数要分别列出。精确QFT在允许任意受控相位门的模型中用 <span class="arithmatex">\(m\)</span> 个H、<span class="arithmatex">\(m(m-1)/2\)</span> 个受控相位门及 <span class="arithmatex">\(\lfloor m/2\rfloor\)</span> 个末端SWAP，另有初态制备的 <span class="arithmatex">\(m\)</span> 个H。一般黑盒 <span class="arithmatex">\(U^{2^j}\)</span> 若由基础U重复构造，合计 <span class="arithmatex">\(Q-1\)</span> 次基础U；控制位数的线性增长并不意味着总调用数线性增长。有限门集的旋转综合、近似QFT、线路连接与并行化另影响门数或深度。</p>
+<h2 id="8">8. 模乘的额外结构与本征相位<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>若 <span class="arithmatex">\(\gcd(a,N)=1\)</span>，模乘是 <span class="arithmatex">\(0,\ldots,N-1\)</span> 上的置换；把超出这个范围的二进制地址原样保留，就能在完整的 <span class="arithmatex">\(2^n\)</span> 维空间定义酉。受控幂可通过经典重复平方先计算 <span class="arithmatex">\(a^{2^j}\bmod N\)</span>，再编译对应模乘，不必实际重复同一个模乘 <span class="arithmatex">\(2^j\)</span> 次。这是Shor所利用的结构，不适用于任意黑盒U。</p>
+<p>令真阶为r。模幂轨道的本征态为 <span class="arithmatex">\(|u_j\rangle=r^{-1/2}\sum_{k=0}^{r-1}e^{-2\pi ijk/r}|a^k\bmod N\rangle\)</span>，本征值为 <span class="arithmatex">\(e^{2\pi ij/r}\)</span>；换元 <span class="arithmatex">\(k\mapsto k+1\)</span> 即可验证。又有 <span class="arithmatex">\(|1\rangle=r^{-1/2}\sum_j|u_j\rangle\)</span>，所以控制寄存器的测量分布等于均匀选择 <span class="arithmatex">\(j/r\)</span> 后的相位估计分布混合。</p>
+<h2 id="9">9. 哪些路径干涉，哪些概率相加<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>另一种独立计算从联合态直接出发。对余数v，记 <span class="arithmatex">\(G_v=\{x:a^x\bmod N=v\}\)</span>。逆QFT后，<span class="arithmatex">\((y,v)\)</span> 的联合振幅是 <span class="arithmatex">\(Q^{-1}\sum_{x\in G_v}e^{-2\pi ixy/Q}\)</span>。同一余数内部相干相加，不同余数正交，故</p>
+<div class="arithmatex">\[
+P(y)=\sum_v\left|\frac1Q\sum_{x\in G_v}e^{-2\pi ixy/Q}\right|^2
+=\frac1r\sum_{j=0}^{r-1}P_{j/r}(y).
+\]</div>
+<p>当r不整除Q，各组长度可能差一，给定第二寄存器结果后的条件分布与忽略该寄存器后的分布要区分。本实验逐组保留联合概率、余数权重和条件概率，没有把全部余数的振幅先混在一起。</p>
+<h2 id="10">10. 连分数候选与逐步验证<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>测量给出y，后处理只接收 <span class="arithmatex">\(y,Q,N,a\)</span>。欧几里得算法的商生成渐近分数 <span class="arithmatex">\(p_k/q_k\)</span>，保存每步被除数、除数、商、余数以及递推。Legendre定理给一个充分条件：既约 <span class="arithmatex">\(j/r\)</span> 若满足 <span class="arithmatex">\(|y/Q-j/r|&lt;1/(2r^2)\)</span>，就是某个渐近分数。取 <span class="arithmatex">\(Q\ge N^2\)</span> 且测量得到最近格时，因 <span class="arithmatex">\(r&lt;N\)</span>，误差至多 <span class="arithmatex">\(1/(2Q)&lt;1/(2r^2)\)</span>。若 <span class="arithmatex">\(\gcd(j,r)&gt;1\)</span>，恢复的只是约分后的分母，不是r。</p>
+<p>实验不把诊断用的穷举真阶传给恢复函数，也不凭真阶替候选补倍数。它逐个检查 <span class="arithmatex">\(q&lt;N\)</span> 的渐近分母，计算 <span class="arithmatex">\(a^q\bmod N\)</span>；通过等于一只说明q是阶的倍数。q偶数时再计算 <span class="arithmatex">\(h=a^{q/2}\bmod N\)</span>，并检查 <span class="arithmatex">\(\gcd(h-1,N)\)</span> 和 <span class="arithmatex">\(\gcd(h+1,N)\)</span> 是否为非平凡因子。每个成功因子还满足整数整除校验。</p>
+<p>必须保留的失败包括：y=0；测量精度不足；约分后分母过小；验证指数为奇数；半次幂为±1。多个独立测量可合并分母的信息，但任何有限精度候选仍须验证。本实验的“单次恢复成功概率”仅指当前逐渐近分母、不试猜倍数的策略，不能标成Shor算法的最优成功率。</p>
+<p>若一开始 <span class="arithmatex">\(\gcd(a,N)&gt;1\)</span>，已经得到经典公因子，量子分布保持未定义，图中明确没有执行该步骤。对一般输入，偶数、素数和素数幂等预处理也需纳入完整分解算法；本小模型只提供四个固定合数作教学对照。已知真阶来编译一个玩具线路，以及经典穷举全部概率，都不构成可扩展量子加速的证据。</p>
+<p>重试的保证也有条件。对具有至少两个不同素因子的奇合数，若已取得真阶，随机选择可逆底数时，提取非平凡平方根的经典分支成功概率至少1/2；这一数论结论可由中国剩余定理分析各素数幂分量的阶得到。量子求阶与有限精度后处理的失败概率还要另外计入，不能把这个1/2直接标到本页单次恢复策略上。</p>
+<h2 id="11">11. 两个实验：预测、计算、再检查失败分支<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p><strong>实验一：Grover。</strong> 先选升、降或基本不变，再揭晓下一完整步。图只画当前及此前完整步，不提前显示未来概率。也可先单独做Oracle，读出负振幅和新的均值，再做扩散闭合一轮。“基本不变”采用已注明的数值比较容差，不等于证明两式符号恒等。</p>
+<section aria-label="预测与实验" class="learning-layer">
 <div class="learning-lab" data-learning-lab="grover-amplification">
-<p><strong>无 JavaScript 时的静态读法：</strong>默认预设为 <span class="arithmatex">\(N=4,M=1\)</span>，marked index 为 <span class="arithmatex">\(2\)</span>，即 <span class="arithmatex">\(|10\rangle\)</span>。四个振幅按索引 <span class="arithmatex">\(0,1,2,3\)</span> 排列；<span class="arithmatex">\(p_k\)</span> 是 marked 子空间的总概率，不是单个 marked 振幅本身的平方。</p>
+<p>无脚本时取N=4、标记索引2。以下每行都按索引0、1、2、3排序，marked成功率是相应子空间的总概率。</p>
+<div aria-label="Grover固定半步对照，可横向滚动" class="phase176-static" role="region" tabindex="0">
 <table>
 <thead>
 <tr>
-<th>状态</th>
-<th>signed amplitudes <span class="arithmatex">\((a_0,a_1,a_2,a_3)\)</span></th>
-<th style="text-align: right;">均值 <span class="arithmatex">\(\bar a\)</span></th>
-<th style="text-align: right;">范数 <span class="arithmatex">\(\|a\|_2\)</span></th>
-<th style="text-align: right;">marked 成功率</th>
-<th style="text-align: right;">Oracle query</th>
+<th>阶段</th>
+<th>带符号振幅</th>
+<th style="text-align: right;">均值</th>
+<th style="text-align: right;">范数</th>
+<th style="text-align: right;">marked概率</th>
+<th style="text-align: right;">Oracle查询</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>初始化 <span class="arithmatex">\(k=0\)</span></td>
-<td><span class="arithmatex">\((1/2,1/2,1/2,1/2)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1/2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1/4\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td>初始</td>
+<td>(1/2,1/2,1/2,1/2)</td>
+<td style="text-align: right;">1/2</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1/4</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr>
-<td>Oracle 半步</td>
-<td><span class="arithmatex">\((1/2,1/2,-1/2,1/2)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1/4\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1/4\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td>Oracle后</td>
+<td>(1/2,1/2,−1/2,1/2)</td>
+<td style="text-align: right;">1/4</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1/4</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td>Diffusion 后、完整 <span class="arithmatex">\(k=1\)</span></td>
-<td><span class="arithmatex">\((0,0,1,0)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1/4\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td>扩散后</td>
+<td>(0,0,1,0)</td>
+<td style="text-align: right;">1/4</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
 </tr>
 </tbody>
 </table>
-<p>对任意一组柱，扩散都逐项使用 <span class="arithmatex">\(a_i'=2\bar a-a_i\)</span>；它保持范数，但不保证成功率单调。固定 marked 集与默认预设的理论账如下：</p>
+</div>
+<p>三个零柱保持为零，不能为了“可见”而补出正高度。继续运行，概率会再次回落；运行方向不是单调改善。</p>
+</div>
+<p><strong>实验二：相位估计与求阶。</strong> 先预测四个问题，再打开结果。相位模式依次比较非二进制相位、恰好落格、两格并列和0/1边界；求阶模式比较N=15与N=21，检查各余数分组的长度是否相同。控件y只选中一个条件结果供查看，没有抽样。不要把选择最有利的y当成一次成功的量子运行。</p>
+<div class="learning-lab" data-learning-lab="phase-estimation">
+<p><strong>无脚本对照：</strong>下列五图与六行表读取同一份固定记录。所选y只是查看条件分支，未进行抽样。</p>
+<figure class="plot">
+<p><img alt="相位估计的频率峰、相量累计、精确落格、求阶分布与经典提前分支。" src="assets/img/qi-02-phase-ledgers.svg" /></p>
+<figcaption>图 qi-02.1：直接复振幅求和与解析参照分别保存；正交余数组之间按概率相加。空图意味着本次没有量子步骤。</figcaption>
+</figure>
+<div aria-label="相位估计固定记录，可横向滚动" class="phase176-static" role="region" tabindex="0">
 <table>
 <thead>
 <tr>
 <th>预设</th>
-<th>marked indices</th>
-<th style="text-align: right;"><span class="arithmatex">\(\theta=\arcsin\sqrt{M/N}\)</span></th>
-<th style="text-align: right;">首峰附近精确整数步</th>
-<th style="text-align: right;"><span class="arithmatex">\(\frac\pi4\sqrt{N/M}\)</span> 近似</th>
+<th style="text-align: right;">控制位m</th>
+<th style="text-align: right;">所选y</th>
+<th style="text-align: right;">总概率</th>
+<th style="text-align: right;">总概率−1</th>
+<th style="text-align: right;">最近格总概率</th>
+<th style="text-align: right;">当前策略因子成功概率</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><span class="arithmatex">\(N=4,M=1\)</span></td>
-<td><span class="arithmatex">\(\{2\}\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(\arcsin(1/2)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(k=1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1.571\)</span></td>
+<td>phase</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2.22044605e-16</td>
+<td style="text-align: right;">0.573081224</td>
+<td style="text-align: right;">不适用</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(N=8,M=1\)</span></td>
-<td><span class="arithmatex">\(\{5\}\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(\arcsin(1/\sqrt8)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(k=2\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(2.221\)</span></td>
+<td>binary</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">不适用</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(N=16,M=1\)</span></td>
-<td><span class="arithmatex">\(\{11\}\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(\arcsin(1/4)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(k=3\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(3.142\)</span></td>
+<td>order21</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">85</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-3.33066907e-16</td>
+<td style="text-align: right;">不适用</td>
+<td style="text-align: right;">0.328417276</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(N=16,M=3\)</span></td>
-<td><span class="arithmatex">\(\{1,6,14\}\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(\arcsin(\sqrt3/4)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(k=1\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1.814\)</span></td>
+<td>divisor</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">21</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-1.11022302e-16</td>
+<td style="text-align: right;">不适用</td>
+<td style="text-align: right;">0.287989137</td>
 </tr>
 <tr>
-<td>过转 <span class="arithmatex">\(N=8,M=1\)</span></td>
-<td><span class="arithmatex">\(\{5\}\)</span></td>
-<td style="text-align: right;">同上</td>
-<td style="text-align: right;">先到 <span class="arithmatex">\(k=2\)</span>，再回落</td>
-<td style="text-align: right;">同上</td>
+<td>minus</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">不适用</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>classical</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">不适用</td>
+<td style="text-align: right;">不适用</td>
+<td style="text-align: right;">不适用</td>
+<td style="text-align: right;">不适用</td>
 </tr>
 </tbody>
 </table>
-<p>严格的<strong>首峰</strong>停步不是对所有 <span class="arithmatex">\(k\ge0\)</span> 做全局 <span class="arithmatex">\(\arg\max\)</span>：正弦平方随后会周期性重复，某些 <span class="arithmatex">\(\theta\)</span> 的全局最大值甚至不会在整数 <span class="arithmatex">\(k\)</span> 上取到。先定义连续首峰位置</p>
-<div class="arithmatex">\[
-\kappa=\frac\pi{4\theta}-\frac12,
-\]</div>
-<p>再只比较首峰附近的两个可执行整数</p>
-<div class="arithmatex">\[
-\mathcal K_\kappa=
-\left\{\max(0,\lfloor\kappa\rfloor),\max(0,\lceil\kappa\rceil)\right\},
-\qquad
-k_*\in\arg\max_{k\in\mathcal K_\kappa}p_k.
-\]</div>
-<p>在 <span class="arithmatex">\(M/N\)</span> 很小时，<span class="arithmatex">\(\theta\approx\sqrt{M/N}\)</span>，所以</p>
-<div class="arithmatex">\[
-\kappa\approx\frac\pi4\sqrt{\frac NM}-\frac12,
-\qquad\text{常把查询数量级写作 }\frac\pi4\sqrt{\frac NM}.
-\]</div>
-<p>这里的 <span class="arithmatex">\(\arg\max\)</span> 只在 <span class="arithmatex">\(\mathcal K_\kappa\)</span> 这个首峰邻域内取；整数取整会留下残余失败概率，而且继续多跑会过转。</p>
 </div>
-<h3 id="5">5. 误区与边界：平方、查询和停步不是一回事<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<ul>
-<li><strong>不是指数加速的口号。</strong> Grover 把无结构搜索的 query 数从 <span class="arithmatex">\(O(N/M)\)</span> 降到 <span class="arithmatex">\(O(\sqrt{N/M})\)</span>，是关于候选数 <span class="arithmatex">\(N\)</span> 的二次加速；若用地址位数 <span class="arithmatex">\(n=\log_2N\)</span> 重写，<span class="arithmatex">\(N=2^n\)</span> 与 <span class="arithmatex">\(\sqrt N=2^{n/2}\)</span> 都呈指数形式，但这不改变“平方加速”的标准分类。</li>
-<li><strong>Oracle 不是免费电路。</strong> query complexity 把一次可逆的“判断是否 marked”视为一个单位；总门数、Oracle 的数据访问成本、制备与测量成本另算。若经典算法能排序、哈希或利用结构，问题已经不是无结构搜索，Grover 的比较对象也要改。</li>
-<li><strong><span class="arithmatex">\(M\)</span> 的知识改变停步问题。</strong> 已知或可估 <span class="arithmatex">\(M\)</span> 时可选首峰附近的整数；未知 <span class="arithmatex">\(M\)</span> 时不能盲目重复同一个步数，需用不同轮数的调度、估计或验证策略。测量拿到一个候选后还要经典验证 Oracle，尤其在有多个 marked 时不能把“成功率”误读为“唯一答案”。</li>
-</ul>
-<h3 id="6">6. 回到定理，迁移到新问题<a class="headerlink" href="#6" title="Permanent link"></a></h3>
-<p>把实验台的柱状模型写成两行线性代数：验证 Oracle 是在 good/bad 子空间上的符号反射，Diffusion 是关于 <span class="arithmatex">\(|s\rangle\)</span> 的反射；再用 <span class="arithmatex">\(N=2^{20}=1,048,576\)</span>、<span class="arithmatex">\(M=1\)</span> 估算 <span class="arithmatex">\(\frac\pi4\sqrt N\approx804\)</span> 次 Oracle query，而经典<strong>随机排列</strong>查找单个 marked 项的期望是精确的 <span class="arithmatex">\((N+1)/2=524,288.5\)</span> 次，常简写为约 <span class="arithmatex">\(N/2\)</span>。最后问：如果 Oracle 每次要跑一个昂贵的数据库查询，或者 <span class="arithmatex">\(M\)</span> 随时间改变，这个二次优势的“端到端”声明还缺什么账？</p>
+<p><a href="assets/learning/projects/phase-certificates/run-snapshot.json">下载六组完整记录</a>。先得到公因子的分支没有量子分布，故概率项不适用；不能把“不适用”填成零。</p>
+</div>
+<p>每张图都可查看对应的数据表；下载包含每个地址、每个测量结果、各正交分支及所选y的累计相量。单次后处理概率只针对本页逐渐近分母的恢复策略。先切到“分母只有阶的一部分”，再切到“平方根是−1”，最后查看“先找到公因子”，分别写出阻止继续的那条数学条件。</p>
+<p>进一步的资源问题：给模乘加上可逆工作空间、反计算、有限门集的旋转综合和纠错后，哪个环节支配总费用？Grover只给无结构查询的平方改进；Shor的分解算法在适当理想门模型下是输入位长的多项式时间，但尚不能据最佳已知经典算法断言已证明的指数复杂度分离。RSA与Rabin依赖分解相关问题，离散对数构造有相应量子算法；对称密码和哈希的搜索、碰撞等目标也须分别分析。本页不把玩具规模折算成设备的容错资源结论。</p>
 </section>
-<h2 id="1-deutschjozsa">1. 干涉计算的最小样本：Deutsch–Jozsa<a class="headerlink" href="#1-deutschjozsa" title="Permanent link"></a></h2>
-<p><strong>问题</strong>：黑盒 <span class="arithmatex">\(f:\{0,1\}^n\to\{0,1\}\)</span> 保证恒常（全 0 或全 1）或平衡（恰有一半输入映到 0、一半映到 1），判定是哪种。这里必须写清成功标准：量子算法与下面的经典复杂度都取 <strong>exact</strong>，即不允许错误。</p>
-<p><strong>查询分离（exact quantum vs deterministic exact）</strong>：确定性经典算法的最坏查询复杂度是 <span class="arithmatex">\(2^{n-1}+1\)</span>：前 <span class="arithmatex">\(2^{n-1}\)</span> 个答案仍可能全来自某个平衡函数，必须再问一个才排除平衡。Deutsch–Jozsa 的量子线路只需 <strong>1 次 exact quantum query</strong>。这是一条 exact query separation，但不能写成“所有经典算法都要指数查询”：若允许有界错误的随机抽样，随机取 <span class="arithmatex">\(t\)</span> 个输入，看到不全相同就判平衡、全相同就判恒常；对平衡函数用有放回抽样时误判概率至多 <span class="arithmatex">\(2^{1-t}\)</span>，所以取 <span class="arithmatex">\(t=O(\log(1/\delta))\)</span> 即可把错误压到 <span class="arithmatex">\(\delta\)</span>，固定错误率时甚至是 <span class="arithmatex">\(O(1)\)</span>。代价正是它不再 exact。</p>
-<p><strong>【推导（电路三步）】</strong> 先把辅助位制备为 <span class="arithmatex">\(|-\rangle=(|0\rangle-|1\rangle)/\sqrt2\)</span>，数据寄存器经 <span class="arithmatex">\(H^{\otimes n}\)</span> 变成均匀叠加；相位 Oracle 通过相位回踢实现</p>
-<div class="arithmatex">\[
-|x\rangle|-\rangle\xrightarrow{U_f}(-1)^{f(x)}|x\rangle|-\rangle.
-\]</div>
-<p>再对数据寄存器施 <span class="arithmatex">\(H^{\otimes n}\)</span>，全零态的振幅为</p>
-<div class="arithmatex">\[
-\frac1{2^n}\sum_x(-1)^{f(x)}
-=\begin{cases}
-\pm1,&amp;f\text{ 恒常},\\
-0,&amp;f\text{ 平衡}.
-\end{cases}
-\]</div>
-<p>因此 exact 测量在全零与非全零之间分开。一次 query 把函数的全局性质压进一个可测振幅，但没有把每个 <span class="arithmatex">\(f(x)\)</span> 单独读出来；“查询模型”和“输出目标”是加速声明的一部分。</p>
-<h2 id="2-grover">2. Grover 搜索：无结构问题的平方加速<a class="headerlink" href="#2-grover" title="Permanent link"></a></h2>
-<p><strong>问题</strong>：<span class="arithmatex">\(N\)</span> 个候选中有 <span class="arithmatex">\(M\)</span> 个满足 Oracle；先取 <span class="arithmatex">\(M\)</span> 已知且 <span class="arithmatex">\(1\le M&lt;N\)</span>。经典随机查找的期望 query 数是 <span class="arithmatex">\(\Theta(N/M)\)</span>，量子 Grover 在合适整数停步下使用 <span class="arithmatex">\(\Theta(\sqrt{N/M})\)</span> 次 Oracle query；对 <span class="arithmatex">\(M=1\)</span> 即 <span class="arithmatex">\(O(N)\)</span> 对 <span class="arithmatex">\(O(\sqrt N)\)</span>。BBBV 混淆下界给出无结构搜索的量子 query 下界 <span class="arithmatex">\(\Omega(\sqrt{N/M})\)</span>，所以这个量级不能靠换一套干涉图再消掉。</p>
-<p><strong>正交二维推导</strong>：令</p>
-<div class="arithmatex">\[
-|G\rangle=\frac1{\sqrt M}\sum_{x\in\mathrm{marked}}|x\rangle,
-\quad
-|B\rangle=\frac1{\sqrt{N-M}}\sum_{x\notin\mathrm{marked}}|x\rangle,
-\quad
-|s\rangle=\sin\theta|G\rangle+\cos\theta|B\rangle,
-\quad \sin^2\theta=M/N.
-\]</div>
-<p><span class="arithmatex">\(|G\rangle,|B\rangle\)</span> 是 orthonormal good/bad uniform states。Oracle <span class="arithmatex">\(O\)</span> 反射 good 方向，扩散 <span class="arithmatex">\(D=2|s\rangle\langle s|-I\)</span> 反射均匀态；在这组正交基下，<span class="arithmatex">\(DO\)</span> 是角度 <span class="arithmatex">\(2\theta\)</span> 的旋转。于是</p>
-<div class="arithmatex">\[
-|\psi_k\rangle=\sin((2k+1)\theta)|G\rangle+\cos((2k+1)\theta)|B\rangle,
-\qquad p_k=\sin^2((2k+1)\theta).
-\]</div>
-<p>整数停步只取连续首峰</p>
-<div class="arithmatex">\[
-\kappa=\frac\pi{4\theta}-\frac12
-\]</div>
-<p>附近的 <span class="arithmatex">\(\max(0,\lfloor\kappa\rfloor)\)</span> 与 <span class="arithmatex">\(\max(0,\lceil\kappa\rceil)\)</span>，择其 <span class="arithmatex">\(p_k\)</span> 较大者；在 <span class="arithmatex">\(M/N\)</span> 小时 <span class="arithmatex">\(\kappa\approx\frac\pi4\sqrt{N/M}-\frac12\)</span>，常写查询数量级 <span class="arithmatex">\(\frac\pi4\sqrt{N/M}\)</span>。过转是同一旋转继续前进的必然结果：<span class="arithmatex">\(p_k\)</span> 振荡而非单调。</p>
-<p><strong>复杂度边界</strong>：Grover 的加速是二次而非 Shor 式的周期结构优势。它还要求无结构搜索和可反复调用的相干 Oracle；把 Oracle 造出来的时间、可逆工作空间、错误校正、候选验证和测量重复计入后，才是端到端成本。若 <span class="arithmatex">\(M\)</span> 未知，首峰位置未知，需估计或使用多轮数策略；如果问题有排序、索引、哈希等经典结构，也不能继续拿 <span class="arithmatex">\(O(N)\)</span> 的盲搜当唯一基线。</p>
-<h2 id="3-shor">3. Shor 分解：周期结构与量子多项式<a class="headerlink" href="#3-shor" title="Permanent link"></a></h2>
-<p><strong>归约链（经典部分）</strong>：给定与 <span class="arithmatex">\(N\)</span> 互素的 <span class="arithmatex">\(a\)</span>，寻找 <span class="arithmatex">\(a^x\bmod N\)</span> 的周期 <span class="arithmatex">\(r\)</span>。若 <span class="arithmatex">\(r\)</span> 为偶数且 <span class="arithmatex">\(a^{r/2}\not\equiv-1\pmod N\)</span>，则</p>
-<div class="arithmatex">\[
-\gcd(a^{r/2}-1,N),\qquad \gcd(a^{r/2}+1,N)
-\]</div>
-<p>以非平凡概率给出因子；失败时换 <span class="arithmatex">\(a\)</span> 或重复。<strong>周期求解（量子部分）</strong>的骨架是：</p>
-<ol>
-<li>在第一寄存器叠加上可逆模幂，得到 <span class="arithmatex">\(\sum_x|x\rangle|a^x\bmod N\rangle\)</span>；</li>
-<li>测第二寄存器后，第一寄存器保留间隔约为 <span class="arithmatex">\(r\)</span> 的周期梳；</li>
-<li>QFT 把周期梳变成频率峰，测得接近 <span class="arithmatex">\(kQ/r\)</span> 的有理近似；</li>
-<li>经典连分数、候选验证与欧几里得算法恢复 <span class="arithmatex">\(r\)</span> 和因子。</li>
-</ol>
-<p>若第一寄存器有 <span class="arithmatex">\(n\)</span> 个 qubit，在把受控相位视作基本门的标准<strong>精确</strong> QFT 分解中，包含 <span class="arithmatex">\(n\)</span> 个 Hadamard、<span class="arithmatex">\(n(n-1)/2\)</span> 个受控相位门和 <span class="arithmatex">\(\lfloor n/2\rfloor\)</span> 个末端 SWAP；高层门总数为</p>
-<div class="arithmatex">\[
-n+\frac{n(n-1)}2+\left\lfloor\frac n2\right\rfloor=O(n^2).
-\]</div>
-<p>若把每个 SWAP 再分成 3 个 CNOT，原语门数相应改变。这是门数陈述，不是笼统的“电路 depth <span class="arithmatex">\(O(n^2)\)</span>”；并行化、连线几何和是否允许近似旋转会改变深度与工程代价。</p>
-<p><strong>复杂度应如何比较</strong>：令输入数值 <span class="arithmatex">\(N\)</span> 的位长为 <span class="arithmatex">\(n=\log N\)</span>。在理想可逆算术和门成本模型下，Shor 的模幂、QFT 和经典后处理整体是 <span class="arithmatex">\(n\)</span> 的多项式时间；常见粗略记号会写成某个 <span class="arithmatex">\(O((\log N)^c)\)</span>，<span class="arithmatex">\(c\)</span> 取决于乘法、可逆算术和门模型。最好的已知经典分解算法（数域筛）是亚指数的 <span class="arithmatex">\(L_N[1/3,c]\)</span> 型，而不是已证明的指数下界。因此应说“量子多项式 vs 最佳已知经典亚指数”，不能把它写成已证明的指数级复杂度分离，也不能把 toy 电路的门数当作容错资源估计：逻辑 qubit、纠错码距、蒸馏、并行度、模乘实现与物理连通性都会改变资源账。</p>
-<p><strong>读法与密码学边界</strong>：加速仍来自全局干涉，但它瞄准的是模幂周期结构；RSA/Rabin 一类基于因子分解或离散对数的构造受直接威胁，AES 与哈希在黑盒模型下主要面对 Grover 级别的二次搜索威胁。后量子迁移要按具体参数、协议寿命和“先收集后解密”风险规划，而不是把“量子更快”当作所有密码都同样失效。</p>
-<h2 id="4">4. 练习与迁移<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>例 1（exact 与 bounded-error 分账）</strong>：取 <span class="arithmatex">\(n=3\)</span>，确定性 exact 经典最坏要问 <span class="arithmatex">\(2^2+1=5\)</span> 次；若只容许 <span class="arithmatex">\(\delta=1/16\)</span> 的随机错误，用上面的有放回抽样界取 <span class="arithmatex">\(t\ge5\)</span>，并解释为什么它仍可能在平衡函数上误判恒常。</p>
-<p><strong>例 2（Grover 步数）</strong>：取 <span class="arithmatex">\(N=2^{20}=1,048,576,M=1\)</span>。首峰附近约需 <span class="arithmatex">\(\frac\pi4\sqrt N\approx804\)</span> 次 Oracle query，经典随机排列查找的精确期望是 <span class="arithmatex">\((N+1)/2=524,288.5\)</span> 次；若实际候选数不是 <span class="arithmatex">\(2^n\)</span>，可以嵌入到 <span class="arithmatex">\(2^{\lceil\log_2N\rceil}\)</span> 个地址，但必须让 padding 地址的 Oracle 语义与成功率一起计入，而不是静默改变问题。</p>
-<p><strong>例 3（Shor 纸上 toy）</strong>：<span class="arithmatex">\(N=15,a=7\)</span> 时 <span class="arithmatex">\(7^x\bmod15=7,4,13,1,\ldots\)</span>，周期 <span class="arithmatex">\(r=4\)</span>；<span class="arithmatex">\(\gcd(7^2-1,15)=3\)</span>、<span class="arithmatex">\(\gcd(7^2+1,15)=5\)</span>。这是一个常见的教学 toy，用来核对“周期 → 连分数候选 → gcd”链条；它不代表真实容错设备的资源规模，也不需要附带未经限定的历史优先断言。</p>
-<p><strong>迁移问题</strong>：如果 Oracle 的一次调用本身包含一个深的可逆算术电路，Grover 的 query 级平方加速如何转换成门级或墙钟时间？如果 <span class="arithmatex">\(M\)</span> 只知道范围而不知道精确值，哪一种停步/验证策略会避免系统性过转？如果 QFT 的受控旋转只能近似实现，哪些相位误差会进入周期峰的分辨率？把这三问分别写成“模型假设—可测指标—失败边界”的小表。</p>
-<hr />
-<p><em>下一页：让量子计算在嘈杂世界活下来——退相干、量子纠错与阈值定理，以及 NISQ 时代的现实地图。</em></p>
+<h2 id="12">12. 练习与完整答案<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>1. Deutsch–Jozsa：n=6，允许错误1/16，经典比较究竟是多少？</summary>
+<p>确定性零错误最坏需要 <span class="arithmatex">\(2^5+1=33\)</span> 个不同输入。允许随机有放回抽样时，平衡函数连续5次全相同的概率是 <span class="arithmatex">\(2(1/2)^5=1/16\)</span>；恒常函数不会出现相反答案。因此5次随机查询已达到该错误要求。量子承诺算法一次零错误查询，与33次确定性零错误查询形成分离；不能据此说所有经典算法都至少要33次。</p>
+</details>
+<details class="answer">
+<summary>2. N=4、标记索引2：为什么不是“把负振幅平方后再扩散”？</summary>
+<p>初态为 <span class="arithmatex">\((1/2,1/2,1/2,1/2)\)</span>。Oracle后是 <span class="arithmatex">\((1/2,1/2,-1/2,1/2)\)</span>，均值为 <span class="arithmatex">\(1/4\)</span>，范数平方仍为一，marked成功率仍为 <span class="arithmatex">\(1/4\)</span>。扩散逐项用 <span class="arithmatex">\(a_i'=2\bar a-a_i\)</span>，得 <span class="arithmatex">\((0,0,1,0)\)</span>。这里负号正是干涉的信息；若提前平方，四项都变成 <span class="arithmatex">\(1/4\)</span>，已经换成另一种运算，无法得到正确的反射结果。一轮只包含一次phase oracle查询；扩散与候选验证另记。</p>
+</details>
+<details class="answer">
+<summary>3. N=8、M=1：多跑一轮为什么反而差？</summary>
+<p><span class="arithmatex">\(\sin\theta=1/\sqrt8\)</span>。由倍角递推或两次反射的实矩阵计算，<span class="arithmatex">\(p_0=1/8\)</span>，<span class="arithmatex">\(p_1=25/32\)</span>，<span class="arithmatex">\(p_2=121/128\)</span>，<span class="arithmatex">\(p_3=169/512\)</span>。首峰邻域选 <span class="arithmatex">\(k=2\)</span>；第3轮沿同一旋转继续前进，离good方向变远，所以成功率从约94.5%降至约33.0%。这不是数值噪声。若不知道M，始终沿同一条轨迹增加k并不构成可靠停步策略，需要不同轮数的重新制备、测量和验证。</p>
+</details>
+<details class="answer">
+<summary>4. 五个控制位是否只要五次基础U？</summary>
+<p>先假定接口已经提供受控U或受控幂；这里不把未知门的受控化当作免费操作。所需幂为 <span class="arithmatex">\(U,U^2,U^4,U^8,U^{16}\)</span>。若逐次调用基础受控U，合计 <span class="arithmatex">\(1+2+4+8+16=31\)</span> 次。五只是受控幂模块的数量。</p>
+<p>此时精确QFT在高层门模型中需要5个H、10个受控相位门、2个末端SWAP，共17个高层门；初态的5个H另算。若SWAP分成3个CNOT，该QFT部分变成21个这种原语层的门。不能把这些不同层次的计数都称为电路深度。Shor可以为重复平方得到的模乘常数直接编译线路；普通受控U接口不自动具备这一能力。</p>
+</details>
+<details class="answer">
+<summary>5. 相位恰好落格与落在两格之间，各给什么分布？</summary>
+<p><span class="arithmatex">\(Q=8,\phi=3/8\)</span> 时，<span class="arithmatex">\(y=3\)</span> 的八个相量全部同向，<span class="arithmatex">\(\alpha_3=1\)</span>；其他y对应非平凡单位根之和，解析振幅为零。所以测量确定得到3。</p>
+<p><span class="arithmatex">\(Q=32,\phi=19/64\)</span> 时，<span class="arithmatex">\(Q\phi=9.5\)</span>，最近的9和10并列。每格概率为 <span class="arithmatex">\(1/[1024\sin^2(\pi/64)]\)</span>，约0.40561，合计约0.81122。其他格仍有尾部概率；“两个最近格”不意味着测量只能落在这两格。实验不把直接浮点求和留下的末位残差静默改成解析零。</p>
+</details>
+<details class="answer">
+<summary>6. N=21、a=2、Q=16，为什么不同余数不能先相加再平方？</summary>
+<p>轨道是 <span class="arithmatex">\(1,2,4,8,16,11\)</span>，周期6。16个地址分到六个余数组，组大小为3、3、3、3、2、2，权重分别为组大小除以16。对y=0，每组内部相量同向，联合概率是组大小平方除以 <span class="arithmatex">\(16^2\)</span>。忽略第二寄存器后总概率为 <span class="arithmatex">\((4\times9+2\times4)/256=11/64\)</span>。</p>
+<p>若把六组的振幅先相加再平方，会误算为 <span class="arithmatex">\((16/16)^2=1\)</span>。错误来自把正交的第二寄存器状态当成同一个状态，删除了哪一条路径的信息。若条件于第二寄存器余数1，该分支联合概率为 <span class="arithmatex">\(9/256\)</span>，分支权重 <span class="arithmatex">\(3/16\)</span>，所以条件概率为 <span class="arithmatex">\(3/16\)</span>；它与未条件化的 <span class="arithmatex">\(11/64\)</span> 回答不同问题。</p>
+</details>
+<details class="answer">
+<summary>7. 同样N=21、a=2、Q=64，y=21与y=11的候选如何不同？</summary>
+<p><span class="arithmatex">\(21/64=[0;3,21]\)</span>，渐近分数为 <span class="arithmatex">\(0/1,1/3,21/64\)</span>。范围内的非平凡候选分母3满足 <span class="arithmatex">\(2^3\equiv8\pmod{21}\)</span>，没有通过验证；最后分母64超出当前 <span class="arithmatex">\(q&lt;N\)</span> 的候选范围。这次结果靠近 <span class="arithmatex">\(2/6=1/3\)</span>，约分隐藏了一部分阶的信息，不能直接声称阶是3。</p>
+<p><span class="arithmatex">\(11/64=[0;5,1,4,2]\)</span>，渐近分数是 <span class="arithmatex">\(0/1,1/5,1/6,5/29,11/64\)</span>。候选6通过 <span class="arithmatex">\(2^6\equiv1\pmod{21}\)</span>；半次幂为 <span class="arithmatex">\(2^3\equiv8\)</span>，故 <span class="arithmatex">\(\gcd(7,21)=7\)</span>、<span class="arithmatex">\(\gcd(9,21)=3\)</span>，得到3与7。恢复函数只使用 <span class="arithmatex">\(y,Q,N,a\)</span>，不借用诊断表里穷举出来的真阶。</p>
+</details>
+<details class="answer">
+<summary>8. 找不到因子的三种情况，分别意味着什么？</summary>
+<p>取N=15、a=14，真实阶为2，若恢复候选2，半次幂 <span class="arithmatex">\(14\equiv-1\pmod{15}\)</span>，两次gcd只给1与15；应换底数或重试，不意味着15是素数。取N=21、a=4，阶为3，奇数阶不能直接使用半次幂步骤。若y=0，渐近分数只有 <span class="arithmatex">\(0/1\)</span>，缺少周期信息，也需重试。</p>
+<p>反过来，N=21、a=3时，起始 <span class="arithmatex">\(\gcd(3,21)=3\)</span> 已得到非平凡因子，无需量子步骤。实验此时不给出虚构的量子测量概率。真正的完整分解还包含素性、偶数、素数幂等经典处理；小型示例的单次成功率、玩具电路和一般容错资源估计不能互相替代。</p>
+</details>
+<h3 id="_1">阅读路径<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>可继续阅读<a href="https://arxiv.org/abs/quant-ph/9605034">BBHT的搜索分析</a>中的未知解数算法，以及<a href="https://quantum.cloud.ibm.com/learning/en/courses/fundamentals-of-quantum-algorithms/phase-estimation-and-factoring/shor-algorithm">IBM Quantum的Shor讲义</a>中的模乘、相位估计与经典恢复。查阅时保留各自的查询计数约定。下一页：<a href="qi-03-error-correction.html">噪声、纠错与容错</a>。</p>
+</details>
+</section>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="qi-01-qubits.html"><span class="pager-label">上一页</span>量子信息 I · Qubit、纠缠与 Bell 不等式</a>
@@ -317,5 +329,6 @@ n+\frac{n(n-1)}2+\left\lfloor\frac n2\right\rfloor=O(n^2).
 <script defer src="assets/site.js"></script>
 <script defer src="assets/learning/learning.js"></script>
 <script defer src="assets/learning/labs/grover-amplification.js"></script>
+<script defer src="assets/learning/labs/phase-estimation.js"></script>
 </body>
 </html>

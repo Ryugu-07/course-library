@@ -346,6 +346,8 @@ def sync_learning_assets(md_names):
         shutil.copytree(SHARED / "projects" / "cold-atoms", destination / "projects" / "cold-atoms")
     if "chsh-experiment" in names:
         shutil.copytree(SHARED / "projects" / "chsh-certificates", destination / "projects" / "chsh-certificates")
+    if "phase-estimation" in names:
+        shutil.copytree(SHARED / "projects" / "phase-certificates", destination / "projects" / "phase-certificates")
 
 
 def previous_build_time(out: Path, fallback: str) -> str:

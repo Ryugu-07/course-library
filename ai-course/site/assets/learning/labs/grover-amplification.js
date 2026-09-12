@@ -614,7 +614,7 @@
     svg.setAttribute("aria-label", "Grover 振幅放大：带符号振幅、Oracle 与扩散、成功率振荡");
     svg.setAttribute("aria-labelledby", titleId + " " + descId);
     var title = svgEl("title", { id: titleId }, "Grover 振幅放大：带符号振幅、Oracle 与扩散、成功率振荡");
-    var desc = svgEl("desc", { id: descId }, "上方是每个基态的正负实振幅，标记态用红色；中间是 Oracle 和扩散半步；下方是成功概率随完整迭代次数 k 的理论振荡。");
+    var desc = svgEl("desc", { id: descId }, "上方是每个基态的正负实振幅，标记态用红色；中间是 Oracle 和扩散半步；下方只显示当前及此前完整步的理论成功概率，未来结果不提前显示。");
     svg.appendChild(title);
     svg.appendChild(desc);
 
@@ -624,7 +624,7 @@
     var maxAbs = state.amplitudes.reduce(function (maximum, value) { return Math.max(maximum, Math.abs(value)); }, 0);
     var amplitudeExtent = Math.max(0.15, maxAbs * 1.2);
     var amplitudeScale = 80 / amplitudeExtent;
-    addSvgText(svg, left, 20, "签名振幅 aᵢ（红色 = marked；均值轴 = ā）", { "font-size": "14", "font-weight": "700" });
+    addSvgText(svg, left, 20, "带符号振幅 aᵢ（红色 = marked；均值轴 = ā）", { "font-size": "14", "font-weight": "700" });
     addSvgText(svg, left, 38, "Oracle 只翻转 marked 项的符号；Diffusion 再围绕均值反射。", { className: "ga-muted", "font-size": "11" });
     addSvgLine(svg, left, base, right, base, "ga-zero");
     var meanY = base - state.mean * amplitudeScale;
@@ -647,7 +647,7 @@
       else if (value < 0) className = "ga-bar-negative";
       else className = "ga-bar-positive";
       var y = value >= 0 ? base - height : base;
-      var rect = svgEl("rect", { x: x, y: y, width: barWidth, height: Math.max(1, height), className: className, rx: 2 });
+      var rect = svgEl("rect", { x: x, y: y, width: barWidth, height: height, className: className, rx: 2 });
       rect.appendChild(svgEl("title", {}, binaryLabel(index, state.N) + ": a=" + fmt(value, 4) + (marked ? "，marked" : "，unmarked")));
       svg.appendChild(rect);
       addSvgText(svg, x + barWidth / 2, 183, String(index), { "text-anchor": "middle", "font-size": count > 12 ? "9" : "10" });
@@ -681,7 +681,7 @@
     var chartTop = 372;
     var chartBottom = 530;
     var maxK = Math.max(1, graphMaxK, state.iteration + 1);
-    addSvgText(svg, left, 352, "成功率振荡  pₖ = sin²((2k+1)θ)", { "font-size": "14", "font-weight": "700" });
+    addSvgText(svg, left, 352, "当前及此前完整步  pₖ = sin²((2k+1)θ)", { "font-size": "14", "font-weight": "700" });
     addSvgText(svg, chartRight, 352, "θ=asin√(M/N),  M=" + state.M + ", N=" + state.N, { className: "ga-muted", "text-anchor": "end", "font-size": "11" });
     [0, 0.5, 1].forEach(function (value) {
       var y = chartBottom - value * (chartBottom - chartTop);
@@ -690,7 +690,7 @@
     });
     addSvgLine(svg, chartLeft, chartTop, chartLeft, chartBottom, "ga-axis");
     var points = [];
-    for (var k = 0; k <= maxK; k += 1) {
+    for (var k = 0; k <= Math.min(maxK, state.iteration); k += 1) {
       var probability = formulaProbability(state.N, state.M, k);
       var xPoint = chartLeft + (chartRight - chartLeft) * k / maxK;
       var yPoint = chartBottom - probability * (chartBottom - chartTop);
@@ -789,8 +789,10 @@
     var guessGrid = el("div", { className: "ga-guess-grid", role: "group", "aria-label": "下一步成功率预测" });
     var upButton = el("button", { type: "button" }, "下一步 ↑ 升");
     var downButton = el("button", { type: "button" }, "下一步 ↓ 降");
+    var sameButton = el("button", { type: "button" }, "下一步 ≈ 基本不变");
     guessGrid.appendChild(upButton);
     guessGrid.appendChild(downButton);
+    guessGrid.appendChild(sameButton);
     predictionSection.appendChild(guessGrid);
     var revealButton = el("button", { type: "button", className: "ga-primary" }, "揭晓并执行完整迭代 O → D");
     revealButton.style.marginTop = "7px";
@@ -845,11 +847,12 @@
       setInteractive(iterateButton, canonical || oracleHalf);
       setInteractive(upButton, canonical);
       setInteractive(downButton, canonical);
+      setInteractive(sameButton, canonical);
       iterateButton.textContent = oracleHalf ? "完成扩散 D" : "完整迭代 O → D";
       revealButton.textContent = oracleHalf ? "补做 Diffusion D" : "揭晓并执行完整迭代 O → D";
       actionNote.textContent = oracleHalf
         ? "Oracle 已完成；现在只能执行 Diffusion，执行后立即闭合并计为完整 k+1。"
-        : "当前是初始化或完整迭代后的 canonical 状态；先做 Oracle，再做 Diffusion。";
+        : "当前是初始化或完整迭代后的状态；先做 Oracle，再做 Diffusion。";
       predictionNote.textContent = oracleHalf
         ? "半步状态不接受下一步升降预测；点击 Diffusion 或“补做 Diffusion D”闭合当前迭代。"
         : "现在预测下一次完整迭代的成功率会升还是降，再揭晓。";
@@ -862,18 +865,17 @@
       setMetric(metricProbability, "marked 成功率", percent(state.successProbability));
       setMetric(metricQuery, "Oracle query", String(state.queryCount));
       setMetric(metricPhase, "状态", phaseLabel(state));
-      setMetric(metricStop, "精确推荐 k*", String(optimalIteration(state.N, state.M)));
+      setMetric(metricStop, "首峰推荐 k*", String(optimalIteration(state.N, state.M)));
       var next = predictNext(state);
       formula.textContent = next.available
         ? "θ = asin√(" + state.M + "/" + state.N + ") = " + fmt(Math.asin(Math.sqrt(state.M / state.N)), 5) + ";  p_k = sin²((2k+1)θ);  π/4·√(N/M) ≈ " + fmt(approximateIterations(state.N, state.M), 3)
         : "Oracle 半步：当前柱是 O 后的 signed amplitudes；p_k 只用于 Diffusion 闭合后的完整步。先执行 D，再读 k=" + (state.iteration + 1) + " 的 p_k。";
       if (next.available) {
-        var directionText = next.direction === "up" ? "上升 ↑" : (next.direction === "down" ? "下降 ↓" : "基本不变");
-        prediction.className = "ga-prediction" + (next.direction === "down" ? " ga-down" : "");
-        prediction.textContent = "下一完整步（k=" + next.toK + ") 的理论预测：" + directionText + "，" + percent(next.currentProbability) + " → " + percent(next.nextProbability) + "。" + (guess ? " 你的选择：" + (guess === "up" ? "上升" : "下降") + "。" : "");
+        prediction.className = "ga-prediction";
+        prediction.textContent = "下一完整步的结果尚未揭晓。先预测上升、下降或基本不变，再执行；“基本不变”表示两次理论概率相差不超过10⁻¹²。" + (guess ? " 你的选择：" + (guess === "up" ? "上升" : guess === "down" ? "下降" : "基本不变") + "。" : "");
       } else {
         prediction.className = "ga-prediction";
-        prediction.textContent = "当前是 Oracle 半步；p_k 只解释完整迭代后的 canonical 状态。先执行 Diffusion 闭合 k=" + (state.iteration + 1) + "。";
+        prediction.textContent = "当前是 Oracle 半步；p_k 只解释完整迭代后的 完整步状态。先执行 Diffusion 闭合 k=" + (state.iteration + 1) + "。";
       }
       status.textContent = phaseLabel(state) + "；当前完整步 k=" + state.iteration + "，marked=" + state.marked.map(function (index) { return binaryLabel(index, state.N); }).join(", ") + "。" + guessMessage;
     }
@@ -932,6 +934,12 @@
       guessMessage = "你预测下一步成功率下降；点击揭晓。";
       render();
     });
+    sameButton.addEventListener("click", function () {
+      if (!(state.phase === "init" || state.phase === "iteration")) return;
+      guess = "same";
+      guessMessage = "你预测下一步基本不变；点击揭晓。";
+      render();
+    });
     revealButton.addEventListener("click", function () {
       if (state.phase === "oracle") {
         state = iterate(state);
@@ -943,11 +951,12 @@
       }
       if (!(state.phase === "init" || state.phase === "iteration")) return;
       {
+        if (!guess) { guessMessage = "请先选择上升、下降或基本不变，再揭晓。"; render(); return; }
         var next = predictNext(state);
         var actual = next.direction;
         var verdict = guess && guess === actual ? "预测正确" : (guess ? "预测不符" : "未先选择方向");
         state = iterate(state);
-        guessMessage = verdict + "；现在继续预测下一步。";
+        guessMessage = verdict + "；刚才k=" + next.fromK + "到k=" + next.toK + "的理论概率为" + percent(next.currentProbability) + " → " + percent(next.nextProbability) + "。现在继续预测下一步。";
         guess = null;
         render();
         announce(root, verdict + "，已执行完整迭代。");
