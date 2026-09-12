@@ -1,366 +1,59 @@
-(function (root, factory) {
-  "use strict";
+// Draft only. Not frozen, installed, or accepted.
+(function(hostWindow){'use strict';
+const DEFAULTS={alpha:.8,rho:1,iterations:24,lambda:.75,dualStart:0},B=[3,-1.5];
+function config(o={}){if(!o||typeof o!=='object'||Array.isArray(o))throw Error('参数应为对象');for(const k of Object.keys(o))if(!(k in DEFAULTS))throw Error('未知参数');const c={...DEFAULTS,...o};for(const v of Object.values(c))if(typeof v!=='number'||!Number.isFinite(v))throw Error('参数应为有限数字');if(c.alpha<.1||c.alpha>2.5||c.rho<.125||c.rho>8||c.iterations<1||c.iterations>80||!Number.isInteger(c.iterations)||c.lambda<0||c.lambda>4||Math.abs(c.dualStart)>4)throw Error('超出实验范围');return c;}
+const soft=(x,t)=>x>t?x-t:x< -t?x+t:0,sub=(x,y)=>x.map((v,i)=>v-y[i]),dot=(x,y)=>x.reduce((a,v,i)=>a+v*y[i],0),n2=x=>dot(x,x),norm=x=>Math.hypot(...x),clip=(v,l)=>Math.max(-l,Math.min(l,v));
+function smooth(x){return .5*n2(sub(x,B));}function penalty(x,l){return l*(Math.abs(x[0])+Math.abs(x[1]));}function objective(x,l){return smooth(x)+penalty(x,l);}function star(l){return B.map(v=>soft(v,l));}
+function stableGap(x,l){return x.reduce((a,v,i)=>{const z=soft(B[i],l);return a+.5*(v-z)**2+(z>0?l*(Math.abs(v)-v):z<0?l*(Math.abs(v)+v):l*Math.abs(v)-B[i]*v);},0);}
+function pgStep(x,a,l){return x.map((v,i)=>soft(v-a*(v-B[i]),a*l));}
+function subgradientDistance(x,y,l){return x.map((v,i)=>v>0?y[i]-l:v<0?y[i]+l:y[i]-clip(y[i],l));}
+function dualCertificate(x,candidate,l){const y=candidate.map(v=>clip(v,l)),primal=objective(x,l),dual=dot(B,y)-.5*n2(y);return{candidate:candidate.slice(),candidateFeasible:candidate.every(v=>Math.abs(v)<=l),projection:sub(y,candidate),y,feasible:y.every(v=>Math.abs(v)<=l),primal,dual,gap:primal-dual,quadraticGap:.5*n2(x.map((v,i)=>v-B[i]+y[i])),l1Gap:penalty(x,l)-dot(x,y)};}
+function snapshot(o={}){const c=config(o),opt=star(c.lambda),ystar=sub(B,opt),minimum=objective(opt,c.lambda);let xp=[0,0],x=[0,0],z=[0,0],y=[c.dualStart,-c.dualStart],V=n2(sub(y,ystar))/c.rho+c.rho*n2(sub(z,opt));const pg=[],admm=[];let cumulative=0;
+for(let k=1;k<=c.iterations;k++){const input=xp.slice();xp=pgStep(input,c.alpha,c.lambda);const mappingBefore=sub(input,xp).map(v=>v/c.alpha),mappingAfter=sub(xp,pgStep(xp,c.alpha,c.lambda)).map(v=>v/c.alpha);pg.push({k,input,x:xp.slice(),objective:objective(xp,c.lambda),rawGap:objective(xp,c.lambda)-minimum,gap:stableGap(xp,c.lambda),mappingBefore,mappingAfter,mappingBeforeNorm:norm(mappingBefore),mappingAfterNorm:norm(mappingAfter),stepValid:c.alpha<=1,bound:c.alpha<=1?n2(opt)/(2*c.alpha*k):null,certificate:dualCertificate(xp,sub(B,xp),c.lambda)});
+const previousZ=z.slice(),previousY=y.slice(),previousV=V;x=B.map((v,i)=>(v+c.rho*z[i]-y[i])/(1+c.rho));const proxInput=x.map((v,i)=>v+y[i]/c.rho);z=proxInput.map(v=>soft(v,c.lambda/c.rho));const r=sub(x,z),s=sub(z,previousZ).map(v=>-c.rho*v);y=y.map((v,i)=>v+c.rho*r[i]);V=n2(sub(y,ystar))/c.rho+c.rho*n2(sub(z,opt));const residualCost=c.rho*n2(r)+n2(s)/c.rho;const monotonicityApplies=k>1||Math.abs(c.dualStart)<=c.lambda;if(monotonicityApplies)cumulative+=residualCost;const splitObjective=smooth(x)+penalty(z,c.lambda),splitGap=splitObjective-minimum,lower=-dot(ystar,r),upper=-dot(y,r)+dot(sub(x,opt),s);
+admm.push({k,x:x.slice(),z:z.slice(),y:y.slice(),u:y.map(v=>v/c.rho),previousZ,previousY,proxInput,r,s,primalResidual:norm(r),dualResidual:norm(s),xStationarity:x.map((v,i)=>v-B[i]+y[i]),xStepDefect:x.map((v,i)=>v-B[i]+y[i]-s[i]),zSubgradientDefect:subgradientDistance(z,y,c.lambda),objective:objective(z,c.lambda),rawGap:objective(z,c.lambda)-minimum,gap:stableGap(z,c.lambda),splitObjective,splitGap,splitLower:lower,splitUpper:upper,lowerSlack:splitGap-lower,upperSlack:upper-splitGap,V,previousV,VDrop:previousV-V,residualCost,crossTerm:-2*dot(r,s),descentSlack:previousV-V-residualCost,monotonicityApplies,cumulativeResidualCost:cumulative,certificate:dualCertificate(z,y,c.lambda)});}
+return{version:173,parameters:c,problem:{b:B,star:opt,ystar,minimum,L:1,mu:1,initialZ:[0,0],initialY:[c.dualStart,-c.dualStart]},pg,admm,scope:'共识x=z二块精确ADMM，固定二次加L1。s=-ρΔz；其范数与相反符号约定一致。初始乘子不在∂g(0)时，从第二步使用势函数的残差平方界。'};}
+// Draft only, no frozen record yet.
+const PRESETS=[{key:'standard',label:'标准对照',config:{}},{key:'small-rho',label:'小ρ，分开看两种残差',config:{rho:.125}},{key:'large-rho',label:'大ρ，分开看两种残差',config:{rho:8}},{key:'pg-one-step',label:'PG一步解这个特殊二次',config:{alpha:1}},{key:'pg-overstep',label:'PG超标准步长',config:{alpha:1.25}},{key:'pg-unstable',label:'PG不稳定步长',config:{alpha:2.5,iterations:16}},{key:'unregularized',label:'无正则项',config:{lambda:0}},{key:'allzero',label:'最优点全零',config:{lambda:4}},{key:'consistent-dual',label:'兼容的非零初始乘子',config:{dualStart:.5}},{key:'inconsistent-dual',label:'初始乘子不兼容',config:{dualStart:4}},{key:'one',label:'只读第一步',config:{iterations:1}},{key:'long',label:'末位精度对照',config:{iterations:80}}];
+const QUESTIONS=[['有限步的 f(x)+g(z) 低于原问题最优值，是否证明找到了更优解？',['不是，先检查x=z','是，目标已经更低'],0],['只看 ADMM 的 ‖x−z‖ 很小，能否省略另一种残差？',['可以','不可以，驻点条件也要检查'],1],['ρ改变后，scaled乘子 u 与原乘子 y 的关系是什么？',['y=ρu','y=u，与ρ无关'],0],['初始化乘子不属于∂g(z₀)，能否直接套用需要相邻z最优条件的首步能量界？',['能，所有初始化都一样','不能，应从具备条件的相邻两步开始'],1]];
+const EXPLANATIONS=['分裂目标在x与z不同的时候不是原问题的可行目标。实验并列F(z)、分裂目标、约束残差和真正的对偶下界。','原始残差检查一致性；对偶残差s=-ρΔz对应另一块的驻点缺口。某一个残差为零不能替代全部KKT条件。','scaled写法只是换变量。若运行中改变ρ并想保留同一个y，需要相应缩放u；不能只改旋钮而假设乘子不变。','相邻z子梯度的单调性需要上一乘子与上一z相容。每次精确z更新之后满足此关系，因此一般初始化从第二步使用这条界。'];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=4||![0,1].includes(j))throw Error('选项无效');return{correct:j===QUESTIONS[i][2],text:(j===QUESTIONS[i][2]?'预测正确。':'再检查条件。')+EXPLANATIONS[i]};}
+function fmt(v){if(v===null)return'不适用';if(typeof v==='boolean')return v?'是':'否';if(Array.isArray(v))return '('+v.map(fmt).join(', ')+')';if(typeof v==='number')return v!==0&&(Math.abs(v)<1e-5||Math.abs(v)>1e7)?v.toExponential(5):Number(v.toFixed(6)).toString();return String(v);}
+function makePlot(key,title,yLabel,series,s){const ys=series.flatMap(v=>v.points.filter(Boolean).map(p=>p[1])),lo=ys.length?Math.min(...ys):-1,hi=ys.length?Math.max(...ys):1,pad=Math.max(1e-12,.08*(hi-lo||Math.max(1,Math.abs(hi))));return{key,title,yLabel,xLabel:'迭代次数 k',xMin:s.parameters.iterations===1?0:1,xMax:s.parameters.iterations===1?2:s.parameters.iterations,yMin:lo-pad,yMax:hi+pad,series};}
+function plots(s){const pg=s.pg,ad=s.admm,series=(name,color,rows,key,log=false)=>({name,color,points:rows.map(r=>{const v=typeof key==='function'?key(r):r[key];return v===null||log&&v<=0?null:[r.k,log?Math.log10(v):v];})}),blue='#2874bd',green='#29825a',orange='#c17814';return[
+makePlot('gap','同一可行目标 F：稳定间隙','log₁₀(严格正的间隙)',[series('PG',blue,pg,'gap',true),series('ADMM 的 z',green,ad,'gap',true)],s),
+makePlot('objectives','可行目标与尚未可行的分裂目标','目标值',[series('可行 F(z)',green,ad,'objective'),series('分裂 f(x)+g(z)',blue,ad,'splitObjective'),series('原问题最优值',orange,ad,()=>s.problem.minimum)],s),
+makePlot('residuals','两种 ADMM 残差分别收敛','log₁₀(严格正的范数)',[series('原始 ‖r‖',blue,ad,'primalResidual',true),series('对偶 ‖s‖',green,ad,'dualResidual',true)],s),
+makePlot('potential','距离势函数与残差平方的下降账','原始未归一化读数',[series('V',blue,ad,'V'),series('该步 V 的下降',green,ad,'VDrop'),series('该步残差平方代价',orange,ad,'residualCost')],s),
+makePlot('stationarity','PG映射：分清旧点与新点','log₁₀(严格正的范数)',[series('在旧点的映射',blue,pg,'mappingBeforeNorm',true),series('在当前点的映射',green,pg,'mappingAfterNorm',true)],s),
+makePlot('certificates','可行点减去真正对偶下界','log₁₀(严格正的间隙)',[series('PG 的证书',blue,pg,r=>r.certificate.gap,true),series('ADMM 的证书',green,ad,r=>r.certificate.gap,true)],s)];}
+function tables(s){const make=(key,title,headers,rows)=>({key,title,headers,rows}),get=(rows,keys)=>rows.map(r=>keys.map(k=>r[k])),out=[make('parameters','完整参数、初始条件与最优参照',['项目','值'],[...Object.entries(s.parameters),...Object.entries(s.problem)]),make('pg','PG完整迭代与两处映射',['k','旧点','当前点','F','原始相减间隙','稳定间隙','旧点映射','当前点映射','旧点范数','当前点范数','步长有效','通用界'],get(s.pg,['k','input','x','objective','rawGap','gap','mappingBefore','mappingAfter','mappingBeforeNorm','mappingAfterNorm','stepValid','bound'])),make('admm','ADMM各块、乘子与更新输入',['k','x','z','原乘子 y','scaled乘子 u','上一z','上一y','z近端输入'],get(s.admm,['k','x','z','y','u','previousZ','previousY','proxInput'])),make('residuals','向量残差与KKT条件',['k','r','s=-ρΔz','‖r‖','‖s‖','x驻点缺口','x步等式残差','z次梯度残差'],get(s.admm,['k','r','s','primalResidual','dualResidual','xStationarity','xStepDefect','zSubgradientDefect'])),make('objectives','可行目标、分裂目标及理论夹界',['k','F(z)','原始相减间隙','稳定间隙','分裂目标','分裂目标减最优值','理论下界','理论上界','下界余量','上界余量'],get(s.admm,['k','objective','rawGap','gap','splitObjective','splitGap','splitLower','splitUpper','lowerSlack','upperSlack'])),make('energy','势函数的每一项与首步条件',['k','V','上一V','V下降','残差平方代价','交叉项','下降余量','相邻最优条件适用','累计残差平方代价'],get(s.admm,['k','V','previousV','VDrop','residualCost','crossTerm','descentSlack','monotonicityApplies','cumulativeResidualCost']))];
+for(const [name,rows]of[['pg',s.pg],['admm',s.admm]])out.push(make(name+'-dual',name+'：完整可行对偶证书',['k','候选乘子','候选可行','投影改变量','投影后y','可行','原始值','对偶值','间隙','平方项','L1项'],rows.map(r=>[r.k,...['candidate','candidateFeasible','projection','y','feasible','primal','dual','gap','quadraticGap','l1Gap'].map(k=>r.certificate[k])])));return out;}
+function svg(p){const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 540" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+fmt(y)+'</text><text x="'+X(x)+'" y="410" text-anchor="middle">'+fmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const marks=s.boundaryMarkers?[s.points[0],s.points.at(-1)]:s.points.filter(Boolean).length===1?s.points.filter(Boolean):[];marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="5" stroke="'+s.color+'" fill="'+(s.open?'var(--bg,#fff)':s.color)+'" stroke-width="2.5"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});return out+'</svg>';}
+  var mounted=new WeakMap();
+  function mount(root){const METRICS=QUESTIONS.map((q,i)=>({key:String(i),label:q[0]}));var doc=root.ownerDocument;var previous=mounted.get(root);if(previous)previous();var url=null,c=config(),choices={},revealed=false,view=0;root.replaceChildren();root.classList.add('os173');
+    function el(tag,attrs={},text){var e=doc.createElement(tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));if(text!==undefined)e.textContent=text;return e;}
+    if(!doc.querySelector('[data-os173-style]')){let style=el('style',{'data-os173-style':''});style.textContent='.os173{min-width:0;color:var(--fg,#222);line-height:1.65}.os173 *{box-sizing:border-box}.os173 button,.os173 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.os173 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.os173 button:focus-visible,.os173 select:focus-visible,.os173 [tabindex]:focus-visible{outline:3px solid #2474bc}.os173 .os-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.os173 label{display:grid;gap:4px;min-width:0}.os173 input{width:100%;min-height:44px}.os173 .os-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.os173 .os-pred>strong{display:block;margin-bottom:6px}.os173 .os-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.os173 .os-feedback{margin:7px 0}.os173 .os-scroll{max-width:100%;overflow:auto}.os173 svg{display:block;min-width:680px;width:100%;height:auto}.os173 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.os173 td,.os173 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.os173 [hidden]{display:none!important}.os173 details{margin:12px 0}.os173 summary{min-height:44px;cursor:pointer}.os173 .os-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.os173 .os-correct{color:var(--cl-green,#277540)}.os173 .os-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.os173 .os-grid{grid-template-columns:1fr}}';doc.head.appendChild(style);}
+    root.append(el('h3',{},'同一个优化问题：直接求解与变量分裂'));
+    root.append(el('p',{},'PG与ADMM求解同一个二次加L1问题。ADMM额外保留两组变量、乘子与两种残差；F(z)始终是可行目标，f(x)+g(z)则未必。'));
+    var presets=el('div',{class:'os-row','aria-label':'教学预设'});PRESETS.forEach(p=>{let b=el('button',{type:'button','data-preset':p.key},p.label);b.onclick=()=>{c=config(p.config);sync();reset();};presets.append(b);});root.append(presets);
+    var fields={},grid=el('div',{class:'os-grid'});
+    function select(key,title,options){let label=el('label',{},title),input=el('select',{'data-field':key,'aria-label':title});options.forEach(([v,t])=>input.append(el('option',{value:v},t)));label.append(input);grid.append(label);fields[key]=input;input.onchange=()=>{c[key]=input.value;reset();};}
+    var outs={};[['alpha','PG 步长 α',.1,2.5,.05],['rho','ADMM 参数 ρ',.125,8,.125],['iterations','迭代次数',1,80,1],['lambda','正则化强度 λ',0,4,.125],['dualStart','初始乘子 y₀=(d,−d) 的 d',-4,4,.125]].forEach(([key,title,min,max,step])=>{let label=el('label',{},title),out=el('output'),input=el('input',{type:'range',min,max,step,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.oninput=()=>{c[key]=+input.value;reset();};});root.append(grid);
+    var rateNote=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(rateNote,prediction);prediction.append(el('h4',{},'先预测：可行性、乘子与两种残差'),el('p',{},'四道题的数学条件写在题干里。旋钮用于对照和找反例，不会自动改写题目。'));
+    var predButtons={},feedbacks={};METRICS.forEach(m=>{let row=el('div',{class:'os-pred'});row.append(el('strong',{},m.label));predButtons[m.key]=[];[true,false].forEach(v=>{let b=el('button',{type:'button','data-prediction':m.key,'data-choice':String(v),'aria-pressed':'false'},QUESTIONS[+m.key][1][v?0:1]);b.onclick=()=>{choices[m.key]=v;predButtons[m.key].forEach(b=>b.setAttribute('aria-pressed',String(b.getAttribute('data-choice')===String(v))));if(revealed)showFeedback();};predButtons[m.key].push(b);row.append(b);});let f=el('p',{class:'os-feedback','data-feedback':m.key});feedbacks[m.key]=f;row.append(f);prediction.append(row);});
+    var check=el('button',{type:'button','data-check':''},'核对预测并显示结果'),status=el('p',{class:'os-status','aria-live':'polite'});root.append(check,status);
+    var stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),plotButtons=el('div',{class:'os-row'}),plotWrap=el('div',{class:'os-scroll',tabindex:'0',role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'图表可键盘横向滚动。对数图只画严格正值并在缺失处断开。首步乘子若不兼容，相邻z最优条件从第二步适用；能量表保留这个标记。'),summary=el('p'),tableHost=el('div'),download=el('a',{'data-download':'',download:'splitting-record.json'},'下载当前完整数值记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);var current;
+    function showFeedback(){let total=0;METRICS.forEach(m=>{if(typeof choices[m.key]!=='boolean')return;let f=feedback(+m.key,choices[m.key]?0:1);total+=+f.correct;feedbacks[m.key].textContent=f.text;feedbacks[m.key].className='os-feedback '+(f.correct?'os-correct':'os-wrong');});status.textContent='预测核对：'+total+'/4 正确。读数、曲线和下载均对应当前参数。';}
+    function draw(){var ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+    function render(){current=snapshot(c);root.__splittingSnapshot=current;stage.hidden=false;summary.textContent='原问题最优值='+fmt(current.problem.minimum)+'；ADMM最后原始残差='+fmt(current.admm.at(-1).primalResidual)+'，对偶残差='+fmt(current.admm.at(-1).dualResidual)+'。两种残差对应不同KKT条件。';plotButtons.replaceChildren();plots(current).forEach((p,i)=>{let b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();tables(current).forEach(t=>{let details=el('details',{'data-table':t.key}),heading=el('summary',{},t.title);details.append(heading);details.addEventListener('toggle',()=>{if(!details.open||details.children.length>1)return;let wrap=el('div',{class:'os-scroll',tabindex:'0',role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),head=el('thead'),tr=el('tr'),body=el('tbody');t.headers.forEach(h=>tr.append(el('th',{scope:'col'},h)));head.append(tr);t.rows.forEach(r=>{let row=el('tr');r.forEach(v=>row.append(el('td',{},fmt(v))));body.append(row);});table.append(head,body);wrap.append(table);details.append(wrap);});tableHost.append(details);});if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current,null,2)],{type:'application/json'}));download.href=url;showFeedback();}
+    function sync(){Object.entries(fields).forEach(([k,e])=>e.value=c[k]);}
+    function reset(){c=config(c);revealed=false;choices={};stage.hidden=true;delete root.__splittingSnapshot;METRICS.forEach(m=>{feedbacks[m.key].textContent='';predButtons[m.key].forEach(b=>b.setAttribute('aria-pressed','false'));});Object.entries(outs).forEach(([k,o])=>o.textContent=fmt(c[k]));rateNote.textContent='PG α='+fmt(c.alpha)+'（标准条件α≤1）；ADMM ρ='+fmt(c.rho)+'。初始y₀属于∂g(0)：'+fmt(Math.abs(c.dualStart)<=c.lambda)+'。';status.textContent='参数已就绪。完成四项预测后显示结果。';}
+    check.onclick=()=>{if(!METRICS.every(m=>typeof choices[m.key]==='boolean')){status.textContent='请先为四个量各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
+  }
+function selfTest(){let checks=0;function check(v){if(!v)throw Error('ADMM self check');checks++;}for(const p of PRESETS){const s=snapshot(p.config);check(s.pg.length===s.parameters.iterations&&s.admm.length===s.parameters.iterations&&s.admm.every(r=>Number.isFinite(r.V)&&r.certificate.feasible));}const s=snapshot(),r=s.admm[0];check(r.splitObjective<s.problem.minimum&&r.objective>s.problem.minimum);check(r.s[0]===-.75&&r.s[1]===0);check(r.primalResidual>0&&r.dualResidual>0);check(r.monotonicityApplies);check(!snapshot({dualStart:4}).admm[0].monotonicityApplies);check(snapshot({dualStart:4}).admm[1].monotonicityApplies);check(snapshot({alpha:1}).pg[0].gap===0);check(snapshot({alpha:2.5}).pg[0].bound===null);check(snapshot({lambda:4}).problem.star.every(v=>v===0));check(snapshot({lambda:0}).admm[0].certificate.y.every(v=>v===0));check(s.pg[0].mappingBeforeNorm>s.pg[0].mappingAfterNorm);check(snapshot({rho:.125}).admm[0].dualResidual===0);return{checks,presets:PRESETS.length};}
 
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("operator-splitting", exported.mount);
-  }
-  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module) {
-    try {
-      var report = exported.selfTest();
-      console.log("operator-splitting self-test: PASS (" + report.checks + " checks, " + report.presets + " presets)");
-    } catch (error) {
-      console.error("operator-splitting self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
-  }
-})(typeof window !== "undefined" ? window : null, function (host) {
-  "use strict";
-
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "operator-splitting-lab-styles";
-  var INSTANCE = 0;
-  var EPS = 1e-10;
-  var PROBLEM = {
-    id: "quadratic-l1",
-    b: [3, -1.5],
-    lambda: 0.75,
-    L: 1,
-    start: [0, 0],
-    exact: [2.25, -0.75],
-    exactObjective: 2.8125,
-    note: "F(x)=1/2||x-b||²+λ||x||₁ with b=(3,-3/2), λ=3/4."
-  };
-  var PRESETS = [
-    { id: "textbook", label: "标准 PG + ADMM", alpha: 0.8, rho: 1, iterations: 12, note: "α≤1/L，ρ>0；两条轨迹都可读。" },
-    { id: "small-rho", label: "小 ρ：dual 账变慢", alpha: 0.8, rho: 0.2, iterations: 18, note: "同一解，不同 ADMM 残差尺度和速度。" },
-    { id: "overstep", label: "超出标准 PG 步长", alpha: 1.25, rho: 1, iterations: 12, note: "ADMM 仍可运行；PG 单调下降条件不再满足。" }
-  ];
-  var STYLE_TEXT = [
-    ".os-lab{--os-blue:var(--cl-blue,#315f9d);--os-gold:var(--cl-gold,#95670d);--os-green:var(--cl-green,#347247);--os-red:var(--cl-red,#b13d32);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;overflow-wrap:anywhere}",
-    ".os-lab *,.os-lab *::before,.os-lab *::after{box-sizing:border-box}.os-lab [hidden]{display:none!important}.os-lab h3,.os-lab h4{margin:0;color:var(--fg);letter-spacing:0}.os-lab h3{font-size:1.16rem}.os-lab h4{margin-top:16px;font-size:1rem}.os-lab p{margin:8px 0}.os-lab .os-intro,.os-lab .os-note,.os-lab .os-feedback{color:var(--fg-soft);font-size:13px;line-height:1.65}",
-    ".os-lab fieldset{min-width:0;margin:10px 0;padding:9px 10px;border:1px solid var(--border)}.os-lab legend{max-width:100%;padding:0 4px;font-size:13px;font-weight:750;line-height:1.5}.os-lab .os-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}",
-    ".os-lab button,.os-lab select,.os-lab input{font:inherit}.os-lab button{min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.os-lab button:hover{border-color:var(--accent)}.os-lab button:focus-visible,.os-lab select:focus-visible,.os-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.os-lab button[aria-pressed=true],.os-lab button.os-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750}.os-lab button:disabled{opacity:.55;cursor:not-allowed}",
-    ".os-lab .os-actions{display:flex;flex-wrap:wrap;gap:8px;margin:11px 0}.os-lab .os-actions>*{flex:1 1 170px}.os-lab .os-feedback{min-height:2em;margin:8px 0;font-weight:700}.os-lab .os-pass{color:var(--os-green)}.os-lab .os-warn{color:var(--os-red)}",
-    ".os-lab .os-layout{display:grid;grid-template-columns:minmax(215px,.64fr) minmax(0,1.36fr);gap:16px;align-items:start}.os-lab .os-controls,.os-lab .os-stage{min-width:0}.os-lab .os-controls{display:grid;gap:10px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg)}.os-lab .os-control{display:grid;gap:5px}.os-lab .os-control label{color:var(--fg-soft);font-size:12.5px;font-weight:700}.os-lab .os-control output{color:var(--accent);font-variant-numeric:tabular-nums}.os-lab .os-control select{width:100%;min-height:44px;padding:7px 9px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg)}.os-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent)}",
-    ".os-lab .os-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden}.os-lab .os-svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg)}.os-lab .os-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.os-lab .os-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.7}.os-lab .os-axis{stroke:currentColor;stroke-width:1;stroke-opacity:.6}.os-lab .os-opt{stroke:var(--os-gold);stroke-width:2;stroke-dasharray:6 4}.os-lab .os-pg{fill:none;stroke:var(--os-blue);stroke-width:3}.os-lab .os-admm{fill:none;stroke:var(--os-green);stroke-width:3}.os-lab .os-point-pg{fill:var(--os-blue);stroke:var(--bg);stroke-width:2}.os-lab .os-point-admm{fill:var(--os-green);stroke:var(--bg);stroke-width:2}.os-lab .os-label{font-size:11px}.os-lab .os-small{font-size:10.5px;fill:var(--fg-soft)!important}",
-    ".os-lab .os-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:8px;margin:12px 0}.os-lab .os-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg)}.os-lab .os-metric:nth-child(3n+1){border-color:var(--os-blue)}.os-lab .os-metric:nth-child(3n+2){border-color:var(--os-gold)}.os-lab .os-metric:nth-child(3n){border-color:var(--os-green)}.os-lab .os-metric span{display:block;color:var(--fg-soft);font-size:11.5px}.os-lab .os-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-    ".os-lab .os-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}.os-lab table{width:100%;min-width:850px;border-collapse:collapse;font-size:11.5px;font-variant-numeric:tabular-nums}.os-lab th,.os-lab td{padding:7px 6px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}.os-lab th{color:var(--fg-soft);font-size:11px}.os-lab td.os-center,.os-lab th.os-center{text-align:center}.os-lab .os-certificate{margin-top:11px;padding:10px 12px;border-left:3px solid var(--os-green);background:var(--block-bg,var(--bg));font-size:13px}.os-lab .os-certificate.os-blocked{border-color:var(--os-red)}.os-lab .os-checks{display:grid;gap:6px;margin:10px 0 0;padding:0;list-style:none}.os-lab .os-checks li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;align-items:start}.os-lab .os-check-pass{color:var(--os-green);font-weight:800}.os-lab .os-check-fail{color:var(--os-red);font-weight:800}",
-    "@media(max-width:900px){.os-lab .os-layout{grid-template-columns:minmax(0,1fr)}}@media(max-width:620px){.os-lab .os-choice-grid{grid-template-columns:minmax(0,1fr)}}@media(max-width:420px){.os-lab .os-frame{padding:4px}.os-lab table{font-size:11px}.os-lab th,.os-lab td{padding-left:4px;padding-right:4px}}@media(prefers-reduced-motion:reduce){.os-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
-  ].join("\n");
-
-  function finite(value) { return typeof value === "number" && isFinite(value); }
-  function near(a, b, tolerance) { return Math.abs(a - b) <= (tolerance || EPS) * Math.max(1, Math.abs(a), Math.abs(b)); }
-  function fail(message) { throw new Error("operator-splitting: " + message); }
-  function cloneVector(vector) { return vector.slice(); }
-  function add(a, b) { return a.map(function (value, index) { return value + b[index]; }); }
-  function sub(a, b) { return a.map(function (value, index) { return value - b[index]; }); }
-  function scale(a, factor) { return a.map(function (value) { return value * factor; }); }
-  function dot(a, b) { return a.reduce(function (total, value, index) { return total + value * b[index]; }, 0); }
-  function norm(a) { return Math.sqrt(dot(a, a)); }
-  function soft(value, threshold) {
-    return value.map(function (item) { return item > threshold ? item - threshold : item < -threshold ? item + threshold : 0; });
-  }
-  function objective(problem, x) { return 0.5 * norm(sub(x, problem.b)) * norm(sub(x, problem.b)) + problem.lambda * x.reduce(function (total, value) { return total + Math.abs(value); }, 0); }
-  function smoothObjective(problem, x) { var delta = sub(x, problem.b); return 0.5 * dot(delta, delta); }
-  function nonsmoothObjective(problem, x) { return problem.lambda * x.reduce(function (total, value) { return total + Math.abs(value); }, 0); }
-  function exactSolution(problem) { return soft(problem.b, problem.lambda); }
-  function presetById(id) {
-    for (var i = 0; i < PRESETS.length; i += 1) if (PRESETS[i].id === id) return PRESETS[i];
-    fail("unknown preset: " + id);
-  }
-  function validateConfig(config) {
-    if (!config || !finite(Number(config.alpha)) || Number(config.alpha) <= 0) fail("alpha must be positive and finite");
-    if (!finite(Number(config.rho)) || Number(config.rho) <= 0) fail("rho must be positive and finite");
-    if (!finite(Number(config.iterations)) || Math.floor(Number(config.iterations)) !== Number(config.iterations) || Number(config.iterations) < 1) fail("iterations must be a positive integer");
-    return config;
-  }
-  function cloneConfig(config) { return { id: config.id, label: config.label, alpha: Number(config.alpha), rho: Number(config.rho), iterations: Number(config.iterations), note: config.note }; }
-  function pgAssumption(alpha, problem) { return alpha > 0 && alpha <= 1 / problem.L + EPS; }
-  function runProxGradient(problem, config) {
-    validateConfig(config);
-    var x = cloneVector(problem.start);
-    var rows = [];
-    for (var k = 1; k <= config.iterations; k += 1) {
-      var next = soft(sub(x, scale(sub(x, problem.b), config.alpha)), config.alpha * problem.lambda);
-      var mapping = norm(scale(sub(x, next), 1 / config.alpha));
-      rows.push({ k: k, x: cloneVector(next), objective: objective(problem, next), objectiveGap: objective(problem, next) - problem.exactObjective, primalResidual: mapping, dualResidual: null, step: config.alpha, stationarityResidual: mapping });
-      x = next;
-    }
-    return { method: "prox-gradient", x: x, rows: rows, assumption: pgAssumption(config.alpha, problem), assumptionText: "0 < α ≤ 1/L（标准下降读法）", objective: objective(problem, x), residual: rows.length ? rows[rows.length - 1].primalResidual : null };
-  }
-  function runAdmm(problem, config) {
-    validateConfig(config);
-    var x = cloneVector(problem.start), z = cloneVector(problem.start), u = cloneVector(problem.start);
-    var rows = [];
-    for (var k = 1; k <= config.iterations; k += 1) {
-      x = scale(add(problem.b, scale(sub(z, u), config.rho)), 1 / (1 + config.rho));
-      var previousZ = z;
-      z = soft(add(x, u), problem.lambda / config.rho);
-      u = add(u, sub(x, z));
-      var primal = norm(sub(x, z));
-      var dual = config.rho * norm(sub(z, previousZ));
-      rows.push({ k: k, x: cloneVector(x), z: cloneVector(z), u: cloneVector(u), objective: objective(problem, z), splitObjective: smoothObjective(problem, x) + nonsmoothObjective(problem, z), objectiveGap: objective(problem, z) - problem.exactObjective, primalResidual: primal, dualResidual: dual, step: config.rho });
-    }
-    return { method: "ADMM", x: x, z: z, u: u, rows: rows, assumption: true, assumptionText: "ρ > 0；f,g 闭、真、凸，未增广 Lagrangian 有鞍点，且两子问题的最小值可取", objective: objective(problem, z), splitObjective: smoothObjective(problem, x) + nonsmoothObjective(problem, z), residual: rows.length ? rows[rows.length - 1].primalResidual : null };
-  }
-  function solve(input) {
-    var config = input && input.config ? input.config : (input || PRESETS[0]);
-    var current = cloneConfig(config);
-    validateConfig(current);
-    var problem = input && input.problem ? input.problem : PROBLEM;
-    var pg = runProxGradient(problem, current);
-    var admm = runAdmm(problem, current);
-    return { problem: problem, config: current, exact: exactSolution(problem), exactObjective: problem.exactObjective, pg: pg, admm: admm };
-  }
-  function formatNumber(value, digits) {
-    if (!finite(value)) return "—";
-    var text = Number(value).toFixed(digits === undefined ? 5 : digits);
-    return text.replace(/0+$/, "").replace(/\.$/, "") || "0";
-  }
-  function formatVector(vector) { return "(" + vector.map(function (value) { return formatNumber(value, 4); }).join(", ") + ")"; }
-  function assert(condition, message) { if (!condition) fail(message); }
-  function selfTest() {
-    var checks = 0;
-    var exact = exactSolution(PROBLEM);
-    assert(near(exact[0], 2.25) && near(exact[1], -0.75), "soft-threshold exact solution mismatch"); checks += 1;
-    assert(near(objective(PROBLEM, exact), 2.8125), "exact objective mismatch"); checks += 1;
-    PRESETS.forEach(function (preset) {
-      var result = solve(preset);
-      assert(result.pg.rows.length === preset.iterations && result.admm.rows.length === preset.iterations, preset.id + " iteration count mismatch"); checks += 1;
-      result.pg.rows.concat(result.admm.rows).forEach(function (row) {
-        assert(finite(row.objective) && finite(row.primalResidual) && (row.dualResidual === null || finite(row.dualResidual)), preset.id + " nonfinite ledger row"); checks += 1;
-      });
-      assert(result.admm.rows.every(function (row) { return row.primalResidual >= -EPS && row.dualResidual >= -EPS; }), preset.id + " residual sign mismatch"); checks += 1;
-    });
-    var textbook = solve(PRESETS[0]);
-    assert(textbook.pg.assumption && textbook.admm.assumption, "textbook assumptions should pass"); checks += 1;
-    assert(textbook.pg.rows[textbook.pg.rows.length - 1].primalResidual < textbook.pg.rows[0].primalResidual, "PG residual should decrease in textbook preset"); checks += 1;
-    assert(textbook.admm.rows[textbook.admm.rows.length - 1].primalResidual < textbook.admm.rows[0].primalResidual, "ADMM primal residual should decrease in textbook preset"); checks += 1;
-    var overstep = solve(PRESETS[2]);
-    assert(!overstep.pg.assumption && overstep.admm.assumption, "overstep should separate PG and ADMM assumptions"); checks += 1;
-    var invalid = false;
-    try { solve({ alpha: 0, rho: 1, iterations: 3 }); } catch (error) { invalid = true; }
-    assert(invalid, "zero alpha must be rejected"); checks += 1;
-    invalid = false;
-    try { solve({ alpha: 0.5, rho: 0, iterations: 3 }); } catch (error) { invalid = true; }
-    assert(invalid, "zero rho must be rejected"); checks += 1;
-    return { checks: checks, presets: PRESETS.length };
-  }
-
-  function setAttributes(node, attributes) {
-    Object.keys(attributes || {}).forEach(function (key) {
-      var value = attributes[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", String(value));
-      else if (key === "text") node.textContent = String(value);
-      else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, String(value));
-    });
-    return node;
-  }
-  function appendChildren(node, children, doc) {
-    if (children === undefined || children === null) return node;
-    (Array.isArray(children) ? children : [children]).forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child && child.nodeType ? child : doc.createTextNode(String(child)));
-    });
-    return node;
-  }
-  function element(doc, tag, attributes, children) { return appendChildren(setAttributes(doc.createElement(tag), attributes), children, doc); }
-  function svgElement(doc, tag, attributes, children) { return appendChildren(setAttributes(doc.createElementNS(SVG_NS, tag), attributes), children, doc); }
-  function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
-  function installStyles(doc) {
-    if (doc.getElementById && doc.getElementById(STYLE_ID)) return;
-    var style = doc.createElement("style"); style.id = STYLE_ID; style.textContent = STYLE_TEXT; (doc.head || doc.documentElement).appendChild(style);
-  }
-  function announce(api, root, message) { if (api && typeof api.announce === "function") api.announce(root, message); }
-  function metric(doc, label) { var value = element(doc, "strong", { text: "—" }); return { node: element(doc, "div", { className: "os-metric" }, [element(doc, "span", { text: label }), value]), value: value }; }
-  function questionSpecs(result) {
-    return [
-      { key: "alpha", prompt: "当前 α 是否满足标准 PG 的 0<α≤1/L 下降读法？", expected: result.pg.assumption ? "yes" : "no", choices: [{ value: "yes", label: "满足" }, { value: "no", label: "不满足" }] },
-      { key: "residual", prompt: "ADMM 的 primal / scaled dual residual 应分别看什么？", expected: "split", choices: [{ value: "split", label: "‖x−z‖ 与 ρ‖z_k−z_{k−1}‖" }, { value: "objective", label: "只看目标值差" }, { value: "pg", label: "都用 PG mapping" }] },
-      { key: "finite", prompt: "有限步接近 F* 是否自动证明一般收敛定理？", expected: "no", choices: [{ value: "yes", label: "是，一次图就足够" }, { value: "no", label: "否，还需定理假设" }, { value: "unknown", label: "只看最后一行" }] }
-    ];
-  }
-  function renderPredictions(state, refs) {
-    var result = solve({ config: state.config });
-    var specs = questionSpecs(result);
-    refs.questions.forEach(function (questionRef, index) {
-      var spec = specs[index];
-      questionRef.buttons.forEach(function (buttonRef) {
-        var selected = state.predictions[spec.key] === buttonRef.value;
-        buttonRef.node.setAttribute("aria-pressed", selected ? "true" : "false");
-        if (state.revealed) {
-          var correct = buttonRef.value === spec.expected;
-          buttonRef.node.textContent = (correct ? "✓ " : "") + buttonRef.label;
-          buttonRef.node.className = correct ? "os-pass" : (selected ? "os-warn" : "");
-        } else { buttonRef.node.textContent = buttonRef.label; buttonRef.node.className = ""; }
-      });
-    });
-  }
-  function chartPath(rows, key, width, height, pad, min, max) {
-    if (!rows.length) return "";
-    return rows.map(function (row, index) {
-      var x = pad + (width - 2 * pad) * (rows.length === 1 ? 0 : index / (rows.length - 1));
-      var value = Number(row[key]);
-      var y = height - pad - (height - 2 * pad) * ((value - min) / Math.max(EPS, max - min));
-      return (index === 0 ? "M" : "L") + " " + x.toFixed(2) + " " + y.toFixed(2);
-    }).join(" ");
-  }
-  function drawChart(doc, svg, result, uid) {
-    clear(svg);
-    var width = 720, height = 340, pad = 45;
-    var values = result.pg.rows.concat(result.admm.rows).map(function (row) { return row.objective; }).concat([result.exactObjective]);
-    var min = Math.min.apply(null, values), max = Math.max.apply(null, values);
-    min = Math.max(0, min - 0.15 * Math.max(1, max - min)); max += 0.12 * Math.max(1, max - min);
-    svg.appendChild(svgElement(doc, "desc", {}, "蓝线是 prox-gradient 的 F(x)，绿线是 ADMM 在 z 上的 F(z)，金色虚线是精确最优目标。"));
-    for (var i = 0; i <= 4; i += 1) {
-      var y = height - pad - (height - 2 * pad) * i / 4;
-      svg.appendChild(svgElement(doc, "line", { x1: pad, y1: y, x2: width - pad, y2: y, class: "os-grid" }));
-      svg.appendChild(svgElement(doc, "text", { x: 5, y: y + 4, class: "os-small" }, formatNumber(min + (max - min) * i / 4, 2)));
-    }
-    svg.appendChild(svgElement(doc, "line", { x1: pad, y1: height - pad, x2: width - pad, y2: height - pad, class: "os-axis" }));
-    svg.appendChild(svgElement(doc, "line", { x1: pad, y1: pad, x2: pad, y2: height - pad, class: "os-axis" }));
-    var optimumY = height - pad - (height - 2 * pad) * ((result.exactObjective - min) / Math.max(EPS, max - min));
-    svg.appendChild(svgElement(doc, "line", { x1: pad, y1: optimumY, x2: width - pad, y2: optimumY, class: "os-opt" }));
-    svg.appendChild(svgElement(doc, "path", { d: chartPath(result.pg.rows, "objective", width, height, pad, min, max), class: "os-pg" }));
-    svg.appendChild(svgElement(doc, "path", { d: chartPath(result.admm.rows, "objective", width, height, pad, min, max), class: "os-admm" }));
-    var pgLast = result.pg.rows[result.pg.rows.length - 1], admmLast = result.admm.rows[result.admm.rows.length - 1];
-    [
-      ["os-point-pg", result.pg.rows.length - 1, pgLast.objective, "PG"],
-      ["os-point-admm", result.admm.rows.length - 1, admmLast.objective, "ADMM"]
-    ].forEach(function (item) {
-      var x = pad + (width - 2 * pad) * (result.pg.rows.length === 1 ? 0 : item[1] / (result.pg.rows.length - 1));
-      var y = height - pad - (height - 2 * pad) * ((item[2] - min) / Math.max(EPS, max - min));
-      svg.appendChild(svgElement(doc, "circle", { cx: x, cy: y, r: "5", class: item[0] }));
-      svg.appendChild(svgElement(doc, "text", { x: x + 8, y: y - 6, class: "os-label" }, item[3]));
-    });
-    svg.appendChild(svgElement(doc, "text", { x: width - 155, y: optimumY - 7, class: "os-small" }, "F* = " + formatNumber(result.exactObjective, 3)));
-    svg.appendChild(svgElement(doc, "text", { x: width - 90, y: height - 12, class: "os-small" }, "iteration k"));
-  }
-  function renderTable(doc, hostNode, result) {
-    var body = element(doc, "tbody", {}), length = Math.max(result.pg.rows.length, result.admm.rows.length);
-    for (var i = 0; i < length; i += 1) {
-      var pg = result.pg.rows[i], admm = result.admm.rows[i];
-      body.appendChild(element(doc, "tr", {}, [
-        element(doc, "th", { text: String(i + 1) }),
-        element(doc, "td", { text: pg ? formatVector(pg.x) : "—" }),
-        element(doc, "td", { text: pg ? formatNumber(pg.objective, 5) : "—" }),
-        element(doc, "td", { text: pg ? formatNumber(pg.primalResidual, 5) : "—" }),
-        element(doc, "td", { text: "—" }),
-        element(doc, "td", { text: admm ? formatVector(admm.z) : "—" }),
-        element(doc, "td", { text: admm ? formatNumber(admm.objective, 5) : "—" }),
-        element(doc, "td", { text: admm ? formatNumber(admm.primalResidual, 5) : "—" }),
-        element(doc, "td", { text: admm ? formatNumber(admm.dualResidual, 5) : "—" })
-      ]));
-    }
-    clear(hostNode); hostNode.appendChild(element(doc, "table", {}, [
-      element(doc, "caption", { text: "逐步目标、PG mapping 与 ADMM primal/dual residual 账本" }),
-      element(doc, "thead", {}, [element(doc, "tr", {}, [
-        element(doc, "th", { text: "k" }), element(doc, "th", { text: "PG x_k" }), element(doc, "th", { text: "PG F(x)" }), element(doc, "th", { text: "PG 原始：‖Gα‖" }), element(doc, "th", { text: "PG 对偶" }), element(doc, "th", { text: "ADMM z_k" }), element(doc, "th", { text: "ADMM F(z)" }), element(doc, "th", { text: "ADMM 原始：‖x−z‖" }), element(doc, "th", { text: "ADMM 对偶：ρ‖Δz‖" })
-      ])]), body
-    ]));
-  }
-  function renderChecks(doc, hostNode, result) {
-    var pgLast = result.pg.rows[result.pg.rows.length - 1], admmLast = result.admm.rows[result.admm.rows.length - 1];
-    var checks = [
-      [near(result.exact[0], 2.25) && near(result.exact[1], -0.75) && near(result.exactObjective, 2.8125), "精确参照：x*=(2.25,−0.75)，F*=2.8125。"],
-      [result.pg.assumption, result.pg.assumption ? "PG 步长在 0<α≤1/L 的标准下降读法内。" : "PG 步长超出 0<α≤1/L；不提供标准下降证书。"],
-      [result.admm.assumption && result.config.rho > 0, "ADMM ρ>0，且残差分开记录 primal ‖x−z‖ 与 dual ρ‖Δz‖。"],
-      [finite(pgLast.primalResidual) && finite(admmLast.primalResidual), "两条有限轨迹的残差都已计算，没有用相邻目标差代替可行性。"],
-      [result.config.iterations < 1000, "当前表是有限迭代诊断；它不承担一般收敛证明。"]
-    ];
-    clear(hostNode); hostNode.appendChild(element(doc, "ul", { className: "os-checks" }, checks.map(function (check) { return element(doc, "li", {}, [element(doc, "span", { className: check[0] ? "os-check-pass" : "os-check-fail", text: check[0] ? "✓" : "×" }), element(doc, "span", { text: check[1] })]); })));
-  }
-  function mount(root, api) {
-    if (!root || !root.ownerDocument) return;
-    var doc = root.ownerDocument;
-    installStyles(doc);
-    var uid = "os-" + (++INSTANCE);
-    var state = { config: cloneConfig(PRESETS[0]), revealed: false, predictions: {}, feedback: "" };
-    var refs = { questions: [] };
-    var shell = element(doc, "div", { className: "os-lab" });
-    shell.appendChild(element(doc, "h3", { text: "Operator splitting：目标相同，残差各自说话" }));
-    shell.appendChild(element(doc, "p", { className: "os-intro", text: "固定二元 quadratic + L1 问题，精确解由软阈值给出；蓝线是 prox-gradient，绿线是 ADMM。" }));
-    var prediction = element(doc, "div", {});
-    prediction.appendChild(element(doc, "p", { className: "os-intro", text: "先完成步长、残差身份和有限迭代边界的预测。" }));
-    questionSpecs(solve({ config: state.config })).forEach(function (spec) {
-      var fieldset = element(doc, "fieldset", {}); fieldset.appendChild(element(doc, "legend", { text: spec.prompt }));
-      var grid = element(doc, "div", { className: "os-choice-grid" }); var questionRef = { key: spec.key, buttons: [] };
-      spec.choices.forEach(function (choice) {
-        var button = element(doc, "button", { type: "button", text: choice.label, "aria-pressed": "false" });
-        button.addEventListener("click", function () { state.predictions[spec.key] = choice.value; state.feedback = ""; render(); });
-        questionRef.buttons.push({ value: choice.value, label: choice.label, node: button }); grid.appendChild(button);
-      });
-      fieldset.appendChild(grid); prediction.appendChild(fieldset); refs.questions.push(questionRef);
-    });
-    var actions = element(doc, "div", { className: "os-actions" });
-    var reveal = element(doc, "button", { type: "button", className: "os-primary", text: "核对预测并揭晓" });
-    var reset = element(doc, "button", { type: "button", text: "重置预测" });
-    var feedback = element(doc, "p", { className: "os-feedback", "aria-live": "polite" }); actions.appendChild(reveal); actions.appendChild(reset);
-    var resultShell = element(doc, "div", { hidden: true });
-    var presetSelect = element(doc, "select", { "aria-label": "splitting 预设" }, PRESETS.map(function (preset) { return element(doc, "option", { value: preset.id, text: preset.label }); }));
-    var alphaInput = element(doc, "input", { type: "range", min: "0.1", max: "1.8", step: "0.05", value: "0.8", "aria-label": "prox-gradient alpha" });
-    var alphaOutput = element(doc, "output", { text: "0.8" });
-    var rhoInput = element(doc, "input", { type: "range", min: "0.1", max: "3", step: "0.1", value: "1", "aria-label": "ADMM rho" });
-    var rhoOutput = element(doc, "output", { text: "1" });
-    var iterationInput = element(doc, "input", { type: "range", min: "4", max: "32", step: "1", value: "12", "aria-label": "iteration count" });
-    var iterationOutput = element(doc, "output", { text: "12" });
-    var controls = element(doc, "div", { className: "os-controls" }, [
-      element(doc, "div", { className: "os-control" }, [element(doc, "label", { text: "预设" }), presetSelect]),
-      element(doc, "div", { className: "os-control" }, [element(doc, "label", {}, ["PG α = ", alphaOutput]), alphaInput]),
-      element(doc, "div", { className: "os-control" }, [element(doc, "label", {}, ["ADMM ρ = ", rhoOutput]), rhoInput]),
-      element(doc, "div", { className: "os-control" }, [element(doc, "label", {}, ["迭代步数 = ", iterationOutput]), iterationInput]),
-      element(doc, "p", { className: "os-note", text: "标准 PG 读法用 α≤1/L；ADMM 要求 ρ>0。结果显示后仍可调参数，但每次改动会重新锁门。" })
-    ]);
-    var svg = svgElement(doc, "svg", { className: "os-svg", viewBox: "0 0 720 340", role: "img", "aria-label": "prox-gradient 与 ADMM 目标轨迹" });
-    var frame = element(doc, "div", { className: "os-frame" }, [svg]);
-    var metricsHost = element(doc, "div", { className: "os-metrics" });
-    var tableHost = element(doc, "div", { className: "os-table-wrap" });
-    var checksHost = element(doc, "div");
-    var certificateHost = element(doc, "p", { className: "os-certificate" });
-    resultShell.appendChild(element(doc, "div", { className: "os-layout" }, [controls, element(doc, "div", { className: "os-stage" }, [frame, metricsHost, tableHost, checksHost, certificateHost])]));
-    shell.appendChild(prediction); shell.appendChild(actions); shell.appendChild(feedback); shell.appendChild(resultShell); clear(root); root.appendChild(shell);
-
-    function lockConfig(next) { state.config = cloneConfig(next); state.revealed = false; state.predictions = {}; state.feedback = ""; render(); }
-    presetSelect.addEventListener("change", function () { lockConfig(presetById(presetSelect.value)); });
-    alphaInput.addEventListener("input", function () { var next = cloneConfig(state.config); next.alpha = Number(alphaInput.value); lockConfig(next); });
-    rhoInput.addEventListener("input", function () { var next = cloneConfig(state.config); next.rho = Number(rhoInput.value); lockConfig(next); });
-    iterationInput.addEventListener("input", function () { var next = cloneConfig(state.config); next.iterations = Number(iterationInput.value); lockConfig(next); });
-    reveal.addEventListener("click", function () {
-      var result = solve({ config: state.config }); var specs = questionSpecs(result);
-      if (!specs.every(function (spec) { return state.predictions[spec.key] !== undefined; })) { state.feedback = "请先完成三项预测。"; render(); return; }
-      var correct = specs.filter(function (spec) { return state.predictions[spec.key] === spec.expected; }).length;
-      state.revealed = true; state.feedback = "已揭晓：" + correct + "/" + specs.length + " 命中；现在比较目标与两种残差。"; render(); announce(api, root, state.feedback);
-    });
-    reset.addEventListener("click", function () { state = { config: cloneConfig(PRESETS[0]), revealed: false, predictions: {}, feedback: "" }; render(); announce(api, root, "splitting 预测与账本已重置。"); });
-    function render() {
-      var result = solve({ config: state.config });
-      presetSelect.value = state.config.id; alphaInput.value = String(state.config.alpha); alphaOutput.textContent = formatNumber(state.config.alpha, 2); rhoInput.value = String(state.config.rho); rhoOutput.textContent = formatNumber(state.config.rho, 2); iterationInput.value = String(state.config.iterations); iterationOutput.textContent = String(state.config.iterations);
-      feedback.textContent = state.feedback || ""; feedback.className = "os-feedback" + (state.feedback.indexOf("请先") === 0 ? " os-warn" : ""); renderPredictions(state, refs); resultShell.hidden = !state.revealed; if (!state.revealed) return;
-      drawChart(doc, svg, result, uid);
-      var pgLast = result.pg.rows[result.pg.rows.length - 1], admmLast = result.admm.rows[result.admm.rows.length - 1];
-      var metrics = [metric(doc, "精确 x*"), metric(doc, "精确 F*"), metric(doc, "PG 最后 F"), metric(doc, "PG ‖Gα‖"), metric(doc, "ADMM 最后 F"), metric(doc, "ADMM ‖r‖ / ‖s‖")];
-      clear(metricsHost); metrics.forEach(function (item) { metricsHost.appendChild(item.node); }); metrics[0].value.textContent = formatVector(result.exact); metrics[1].value.textContent = formatNumber(result.exactObjective, 5); metrics[2].value.textContent = formatNumber(pgLast.objective, 5); metrics[3].value.textContent = formatNumber(pgLast.primalResidual, 5); metrics[4].value.textContent = formatNumber(admmLast.objective, 5); metrics[5].value.textContent = formatNumber(admmLast.primalResidual, 5) + " / " + formatNumber(admmLast.dualResidual, 5);
-      renderTable(doc, tableHost, result); renderChecks(doc, checksHost, result);
-      certificateHost.className = "os-certificate" + (result.pg.assumption ? "" : " os-blocked"); certificateHost.textContent = "精确参照为 x*=" + formatVector(result.exact) + "、F*=" + formatNumber(result.exactObjective, 5) + "。PG 的当前 α " + (result.pg.assumption ? "满足" : "不满足") + " 0<α≤1/L 的标准下降读法；ADMM 的当前 ρ=" + formatNumber(state.config.rho, 3) + ">0。表内有限步、目标 gap 和 residual 只是这个 toy 问题的诊断证书，不是一般收敛证明。";
-    }
-    render();
-  }
-
-  return {
-    EPS: EPS,
-    PROBLEM: PROBLEM,
-    PRESETS: PRESETS,
-    soft: soft,
-    objective: objective,
-    exactSolution: exactSolution,
-    runProxGradient: runProxGradient,
-    runAdmm: runAdmm,
-    solve: solve,
-    selfTest: selfTest,
-    mount: mount
-  };
-});
+const api={DEFAULTS,PRESETS,QUESTIONS,config,snapshot,plots,tables,fmt,svg,feedback,mount,selfTest};if(typeof module!=='undefined'&&module.exports)module.exports=api;if(hostWindow.CourseLearning)hostWindow.CourseLearning.register('operator-splitting',mount);})(typeof window!=='undefined'?window:globalThis);
