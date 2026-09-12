@@ -1,448 +1,119 @@
-(function (root, factory) {
-  "use strict";
+(function(hostWindow){"use strict";
 
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("physics-qcd-hadrons", exported.mount);
-  }
-  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module) {
-    try {
-      var report = exported.selfTest();
-      console.log("physics-qcd-hadrons self-test: PASS (" + report.checks + " checks)");
-    } catch (error) {
-      console.error("physics-qcd-hadrons self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
-  }
-})(typeof window !== "undefined" ? window : typeof globalThis !== "undefined" ? globalThis : this, function (host) {
-  "use strict";
+const LIMITS={fixedNf:[0,20],alphaRefMilli:[20,400],logQHundred:[-200,600],thresholdMode:[0,1],colorAngleDegrees:[0,180],sigmaMilli:[0,500],thresholdCenti:[50,500],gapMilli:[0,300]};
+const DEFAULT={fixedNf:5,alphaRefMilli:120,logQHundred:100,thresholdMode:1,colorAngleDegrees:60,sigmaMilli:180,thresholdCenti:120,gapMilli:80};
+function config(input={}){if(input===null||typeof input!=='object'||Array.isArray(input))throw Error('parameters');for(const k of Object.keys(input))if(!Object.prototype.hasOwnProperty.call(LIMITS,k))throw Error('unknown '+k);const c={...DEFAULT,...input};for(const[k,[lo,hi]]of Object.entries(LIMITS))if(!Number.isInteger(c[k])||c[k]<lo||c[k]>hi)throw Error('domain '+k);return c;}
+const PRESETS=[['default','三条推导：尺度、颜色、弦断裂',{}],['fixed','同边界条件：固定五味',{thresholdMode:0}],['low','低能：正耦合分支已越界',{logQHundred:-200}],['hard','硬过程：Q=10000 GeV',{logQHundred:400}],['pure','固定零味：纯规范场',{fixedNf:0,thresholdMode:0}],['sixteen','16味：二圈小零点候选',{fixedNf:16,thresholdMode:0}],['seventeen','17味：一圈不渐近自由',{fixedNf:17,thresholdMode:0}],['uv-pole','20味：紫外极点反例',{fixedNf:20,thresholdMode:0,alphaRefMilli:400,logQHundred:600}],['identity','颜色变换角为0',{colorAngleDegrees:0}],['strong-rotation','非平凡复颜色变换',{colorAngleDegrees:180}],['crossing','关闭通道混合：能级可交叉',{gapMilli:0}],['no-string','关闭弦张力：无正距离交叉',{sigmaMilli:0}]].map(([id,label,p])=>({id,label,parameters:config(p)}));
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1]],mul=(a,b)=>[a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]],conj=a=>[a[0],-a[1]],scale=(a,s)=>[a[0]*s,a[1]*s],sum=arr=>arr.reduce(add,[0,0]),abs2=a=>a[0]*a[0]+a[1]*a[1];
+const mat=(n,f)=>Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>f(i,j))),eye=n=>mat(n,(i,j)=>[i===j?1:0,0]),adj=A=>A[0].map((_,j)=>A.map(r=>conj(r[j]))),mm=(A,B)=>A.map(r=>B[0].map((_,j)=>sum(r.map((z,k)=>mul(z,B[k][j]))))),mv=(A,v)=>A.map(r=>sum(r.map((z,j)=>mul(z,v[j])))),plus=(A,B)=>A.map((r,i)=>r.map((z,j)=>add(z,B[i][j]))),ms=(A,s)=>A.map(r=>r.map(z=>scale(z,s))),inner=(a,b)=>sum(a.map((z,i)=>mul(conj(z),b[i]))),kron=(A,B)=>A.flatMap(r=>B.map(s=>r.flatMap(z=>s.map(w=>mul(z,w))))),trace=A=>sum(A.map((r,i)=>r[i]));
+function gellmann(){const t=[];function off(i,j,imag){const A=mat(3,()=>[0,0]);A[i][j]=imag?[0,-.5]:[.5,0];A[j][i]=imag?[0,.5]:[.5,0];return A;}t.push(off(0,1,false),off(0,1,true),mat(3,(i,j)=>[i===j?[.5,-.5,0][i]:0,0]),off(0,2,false),off(0,2,true),off(1,2,false),off(1,2,true),mat(3,(i,j)=>[i===j?[1,1,-2][i]/(2*Math.sqrt(3)):0,0]));return t;}
+const GENERATORS=gellmann(),HBARC=.1973269804,THRESHOLDS=[1.5,5,175],Q0=100;
+function totalGenerators(kind){const I=eye(3);return GENERATORS.map(T=>kind==='meson'?plus(kron(T,I),ms(kron(I,T.map(r=>r.map(conj))),-1)):kind==='diquark'?plus(kron(T,I),kron(I,T)):plus(plus(kron(kron(T,I),I),kron(kron(I,T),I)),kron(kron(I,I),T)));}
+function colorData(){const meson=Array.from({length:9},(_,i)=>[Math.floor(i/3)===i%3?1/Math.sqrt(3):0,0]),baryon=Array.from({length:27},(_,n)=>{const i=Math.floor(n/9),j=Math.floor(n/3)%3,k=n%3;return[i===j||j===k||i===k?0:((i-j)*(j-k)*(k-i)>0?1:-1)/Math.sqrt(6),0];}),groups={};
+ for(const[kind,n,states,spectrum]of [['meson',9,meson,[[0,1],[3,8]]],['diquark',9,null,[[4/3,3],[10/3,6]]],['baryon',27,baryon,[[0,1],[3,16],[6,10]]]]){const generators=totalGenerators(kind),casimir=generators.reduce((A,T)=>plus(A,mm(T,T)),mat(n,()=>[0,0])),projector=states?states.map(z=>states.map(w=>mul(z,conj(w)))):null;groups[kind]={dimension:n,casimir,spectrum:spectrum.map(([value,multiplicity])=>({value,multiplicity})),singlet:states,projector,actions:states?generators.map(T=>mv(T,states)):null,singletMultiplicity:states?1:0,pairColorOperator:kind==='baryon'?null:ms(plus(casimir,ms(eye(n),-8/3)),.5)};}
+ return{generators:GENERATORS,traceGram:GENERATORS.map(T=>GENERATORS.map(S=>trace(mm(T,S)))),fundamentalCasimir:GENERATORS.reduce((A,T)=>plus(A,mm(T,T)),mat(3,()=>[0,0])),groups};
+}
+function colorRotation(degrees,colors){const t=degrees*Math.PI/180,c=Math.cos(t/2),s=Math.sin(t/2),phase=x=>[Math.cos(x),Math.sin(x)],P=mat(3,(i,j)=>i===j?phase([1,1,-2][i]*t/(2*Math.sqrt(3))):[0,0]),R=[[[c,0],[s,0],[0,0]],[[-s,0],[c,0],[0,0]],[[0,0],[0,0],[1,0]]],U=mm(P,R),meson=colors.groups.meson.singlet,baryon=colors.groups.baryon.singlet,mesonCorrect=mv(kron(U,U.map(r=>r.map(conj))),meson),mesonWrong=mv(kron(U,U),meson),baryonCorrect=mv(kron(kron(U,U),U),baryon);
+ return{degrees,U,unitarity:mm(adj(U),U),mesonCorrect,mesonWrong,baryonCorrect,mesonFidelity:abs2(inner(meson,mesonCorrect)),wrongMesonFidelity:abs2(inner(meson,mesonWrong)),baryonFidelity:abs2(inner(baryon,baryonCorrect)),wrongMesonDistanceSquared:mesonWrong.reduce((s,z,i)=>s+abs2(add(z,scale(meson[i],-1))),0)};
+}
+const beta0=n=>11-2*n/3,beta1=n=>102-38*n/3,active=q=>3+THRESHOLDS.filter(t=>q>=t).length;
+function running(q,c,matched){const alpha0=c.alphaRefMilli/1000,lo=Math.min(Q0,q),hi=Math.max(Q0,q),sign=q>=Q0?1:-1,cuts=[lo,...(matched?THRESHOLDS.filter(t=>lo<t&&t<hi):[]),hi],segments=[];let inverse=1/alpha0;
+ for(let i=0;i<cuts.length-1;i++){const from=cuts[i],to=cuts[i+1],nf=matched?active(Math.sqrt(from*to)):c.fixedNf,logRatio=sign*Math.log(to/from),increment=beta0(nf)*logRatio/(2*Math.PI);inverse+=increment;segments.push({from,to,nf,beta0:beta0(nf),logRatio,increment});}
+ const nf=matched?active(q):c.fixedNf,alpha=inverse>0?1/inverse:null;
+ return{q,matched,referenceScale:Q0,referenceAlpha:alpha0,nf,beta0:beta0(nf),inverse,alpha,status:alpha===null?'outside-positive-coupling-branch':alpha>=1?'large-coupling-warning':'positive-one-loop-branch',slopeInverse:beta0(nf)/(2*Math.PI),betaOneLoop:alpha===null?null:-beta0(nf)*alpha*alpha/(2*Math.PI),segments};
+}
+function stringPoint(r,c){const sigma=c.sigmaMilli/1000,threshold=c.thresholdCenti/100,gap=c.gapMilli/1000,alphaPotential=.3,V=-4/3*alphaPotential*HBARC/r+sigma*r/HBARC,d=V-threshold,split=Math.hypot(d,2*gap),low=(V+threshold-split)/2,high=(V+threshold+split)/2,lowerProjector=split===0?null:[[(1-d/split)/2,-gap/split],[-gap/split,(1+d/split)/2]];
+ return{r,sigma,threshold,gap,alphaPotential,stringEnergy:V,matrix:[[V,gap],[gap,threshold]],eigenvalues:[low,high],splitting:split,lowerProjector,lowerStringWeight:lowerProjector?lowerProjector[0][0]:null};
+}
+let COLOR_CACHE=null;
+function compute(input={}){const c=config(input);if(!COLOR_CACHE)COLOR_CACHE=colorData();const colors=JSON.parse(JSON.stringify(COLOR_CACHE)),q=10**(c.logQHundred/100),fixed=running(q,c,false),matched=running(q,c,true),current=c.thresholdMode?matched:fixed,b0=beta0(c.fixedNf),alpha0=c.alphaRefMilli/1000,poleLog=Math.log(Q0)-2*Math.PI/(b0*alpha0),fixedPole={nf:c.fixedNf,beta0:b0,logScale:poleLog,log10Scale:poleLog/Math.LN10,scale:Number.isFinite(Math.exp(poleLog))&&Math.exp(poleLog)>0?Math.exp(poleLog):null,scaleRepresentable:Number.isFinite(Math.exp(poleLog))&&Math.exp(poleLog)>0,kind:b0>0?'infrared-one-loop-pole':'ultraviolet-one-loop-pole'},runningScan=Array.from({length:401},(_,i)=>{const log10Q=-2+i/50,Q=10**log10Q;return{log10Q,fixed:running(Q,c,false),matched:running(Q,c,true)};}),thresholds=THRESHOLDS.map(Q=>{const r=running(Q,c,true),below=active(Q)-1,above=below+1;return{q:Q,nfBelow:below,nfAbove:above,inverse:r.inverse,alpha:r.alpha,slopeBelow:beta0(below)/(2*Math.PI),slopeAbove:beta0(above)/(2*Math.PI),continuityOnlyAtOneLoop:true};}),rotation=colorRotation(c.colorAngleDegrees,colors),rotationScan=Array.from({length:181},(_,i)=>{const r=colorRotation(i,colors);return{degrees:i,mesonFidelity:r.mesonFidelity,wrongMesonFidelity:r.wrongMesonFidelity,baryonFidelity:r.baryonFidelity,wrongMesonDistanceSquared:r.wrongMesonDistanceSquared};}),stringScan=Array.from({length:301},(_,i)=>stringPoint(.05+2.95*i/300,c)),sigma=c.sigmaMilli/1000,E=c.thresholdCenti/100,crossingR=sigma>0?HBARC*(E+Math.sqrt(E*E+4*sigma*4/3*.3))/(2*sigma):null,crossing=crossingR===null?null:{r:crossingR,energy:E,gap:c.gapMilli/1000,matrix:[[E,c.gapMilli/1000],[c.gapMilli/1000,E]],eigenvalues:[E-c.gapMilli/1000,E+c.gapMilli/1000],lowerStringWeight:c.gapMilli>0?.5:null,rawEvaluation:stringPoint(crossingR,c)},flavors=Array.from({length:21},(_,nf)=>{const b0=beta0(nf),b1=beta1(nf),star=b0>0&&b1<0?-4*Math.PI*b0/b1:null;return{nf,beta0:b0,beta1:b1,asymptoticallyFreeAtOneLoop:b0>0,betaAtReference:-b0*alpha0*alpha0/(2*Math.PI),betaTwoLoopAtReference:-b0*alpha0*alpha0/(2*Math.PI)-b1*alpha0**3/(8*Math.PI*Math.PI),twoLoopPositiveZero:star,twoLoopZeroNotConformalWindowProof:true};});
+ return{schema:'qcd197-v1',parameters:c,units:{energy:'GeV',distance:'fm',stringTension:'GeV^2',hbarc:HBARC,coupling:'dimensionless',color:'Gell-Mann T=lambda/2; complex [real,imag]',model:'one-loop reference running; exact finite color algebra; illustrative two-channel potential'},fixed,matched,current,fixedPole,thresholds,runningScan,colors,rotation,rotationScan,stringScan,crossingR,crossing,flavors,boundaries:{referenceCouplingHeldFixed:true,thresholdsAreTeachingInputs:true,matchingContinuousOnlyAtThisOrder:true,negativeInverseNotNegativePhysicalCoupling:true,alphaOneNotUniversalAccuracyBoundary:true,twoLoopZeroNotPhaseDiagram:true,colorSingletNotSufficientForBoundState:true,finiteColorAlgebraNotConfinementProof:true,potentialParametersNotQCDfit:true,twoChannelMixingNotLatticeCalculation:true,confinementNotIdenticalToMassGap:true,chiralLimitNotPureYangMills:true}};
+}
+const QUESTIONS=[['在相同αs(100 GeV)下，把固定味数从5提高到17，一圈紫外趋势如何？',['仍会渐近自由，因为规范群非阿贝尔','β0变负，耦合在紫外增大'],1,'β0=11−2nf/3。固定同一个参考耦合后，17味的倒数斜率为负；非阿贝尔自作用不能保证战胜任意多物质场的屏蔽。'],['介子色波函数的反夸克因子怎样变换？',['用U的复共轭U*，使δij对应的单态保持不变','和夸克完全相同，都用U'],0,'反基本表示是U*；生成元为−T*。U⊗U*作用δij/√3保持不变，而把反夸克误当基本表示一般会改变这个向量。'],['二夸克的反对称色通道具有吸引势，能否据此把它称为孤立强子？',['可以，吸引就等于色单态','不能：该通道是反三重态，Casimir仍非零'],1,'短距离吸引由T1·T2的负本征值判断；色单态要求总色荷为零。这是两个不同条件。束缚态谱还需要非微扰动力学。'],['两通道模型里关闭混合δ，交叉点处单个最低本征态的组成是否唯一？',['不唯一；简并子空间中的基可以任取','唯一，必定一半弦态、一半双强子态'],0,'δ>0的避免交叉中心具有各半权重；δ=0且两对角元相等时矩阵正比单位阵，单一本征向量未被选定，不能继续硬填1/2。']];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=4||![0,1].includes(j))throw Error('choice');return{correct:j===QUESTIONS[i][2],text:(j===QUESTIONS[i][2]?'正确。':'需要修正。')+QUESTIONS[i][3]};}
+const LABELS={fixedNf:'固定味数 nf（只改固定味数曲线）',alphaRefMilli:'参考αs(100 GeV) ×1000',logQHundred:'当前 log10(Q/GeV) ×100',thresholdMode:'当前读数：0固定味数，1分段匹配',colorAngleDegrees:'颜色变换角 θ（度）',sigmaMilli:'示意弦张力 σ/GeV² ×1000',thresholdCenti:'示意双强子阈值 E/GeV ×100',gapMilli:'示意通道混合 δ/GeV ×1000',referenceCouplingHeldFixed:'比较时固定相同参考耦合',thresholdsAreTeachingInputs:'阈值是教学设置',matchingContinuousOnlyAtThisOrder:'连续匹配仅限当前一圈精度',negativeInverseNotNegativePhysicalCoupling:'负倒数不作为负物理耦合',alphaOneNotUniversalAccuracyBoundary:'α=1不是普适精度边界',twoLoopZeroNotPhaseDiagram:'二圈零点不等于相图',colorSingletNotSufficientForBoundState:'色单态不足以保证束缚态',finiteColorAlgebraNotConfinementProof:'有限色代数不证明禁闭',potentialParametersNotQCDfit:'势参数不是QCD拟合',twoChannelMixingNotLatticeCalculation:'两通道混合不等于格点计算',confinementNotIdenticalToMassGap:'禁闭与质量隙不等同',chiralLimitNotPureYangMills:'有质量为零夸克的理论不等于纯Yang–Mills',meson:'q q̄：介子颜色空间',diquark:'q q：二夸克颜色空间',baryon:'q q q：重子颜色空间','outside-positive-coupling-branch':'越出正耦合分支','large-coupling-warning':'大耦合警示','positive-one-loop-branch':'正的一圈耦合；精度须另查','infrared-one-loop-pole':'一圈红外极点','ultraviolet-one-loop-pole':'一圈紫外极点'};
+Object.assign(LABELS,{nf:'固定味数nf',beta0:'一圈系数β0',logScale:'ln(极点尺度/GeV)',log10Scale:'log10(极点尺度/GeV)',scale:'极点尺度/GeV',scaleRepresentable:'指数是否可由浮点正有限数表示',kind:'极点类型',mesonCorrect:'介子正确变换后向量',mesonWrong:'介子错误变换后向量',baryonCorrect:'重子正确变换后向量',mesonFidelity:'介子正确重叠平方',wrongMesonFidelity:'介子错误重叠平方',baryonFidelity:'重子正确重叠平方',wrongMesonDistanceSquared:'介子错误向量差范数平方'});
+function fmt(x){if(x===null||x===undefined)return'不适用';if(typeof x==='boolean')return x?'是':'否';if(Array.isArray(x))return'['+x.map(fmt).join(', ')+']';if(typeof x==='object')return JSON.stringify(x);if(typeof x==='number')return Number.isInteger(x)&&Math.abs(x)<1e6?String(x):Math.abs(x)<1e-4||Math.abs(x)>=1e5?x.toExponential(5):Number(x.toPrecision(7)).toString();return LABELS[x]??String(x);}
+const COLORS=['#3875ba','#c55b32','#368661','#9860a8','#856722','#646e7c'];
+function frame(key,title,xLabel,yLabel,series,domain,range){const ys=series.flatMap(s=>s.points.filter(Boolean).map(p=>p[1]));let ymin=range?.[0]??Math.min(0,...ys),ymax=range?.[1]??Math.max(0,...ys);if(ymin===ymax)ymax=ymin+1;if(!range){const pad=.07*(ymax-ymin);ymin-=pad;ymax+=pad;}return{key,title,xLabel,yLabel,xMin:domain[0],xMax:domain[1],yMin:ymin,yMax:ymax,series};}
+function plots(s){const series=(name,color,points,extra={})=>({name,color:COLORS[color],points,...extra}),c=s.parameters,point=r=>r.alpha!==null&&r.alpha<=1?[Math.log10(r.q),r.alpha]:null;return[
+ frame('inverse','同一参考耦合：用倒数看清分段斜率','log10(Q/GeV)；2对应参考100 GeV','1/αs；零以下只是公式延拓，不能当正耦合',[
+ series('固定nf='+c.fixedNf,0,s.runningScan.map(p=>[p.log10Q,p.fixed.inverse])),
+ series('分段3→4→5→6味',1,s.runningScan.map(p=>[p.log10Q,p.matched.inverse])),
+ series('当前模式的读数',2,[[c.logQHundred/100,s.current.inverse]],{markersOnly:true,markerRadius:6}),
+ series('正耦合分支边界',5,[[-2,0],[6,0]])
+ ],[-2,6]),
+ frame('running','正耦合曲线：不把大数截成一条假平台','log10(Q/GeV)；大于1的值留在账表','αs；只绘0<αs≤1，缺口不等于没有物理',[
+ series('固定味数的一圈式',0,s.runningScan.map(p=>point(p.fixed))),
+ series('逐段匹配的一圈式',1,s.runningScan.map(p=>point(p.matched))),
+ series('当前读数（若在图示范围内）',2,point(s.current)?[point(s.current)]:[],{markersOnly:true,markerRadius:6})
+ ],[-2,6],[0,1.05]),
+ frame('casimir','色单态是总Casimir的零本征空间','0=q q̄，1=q q，2=q q q；重数见账表','总色荷平方 C2；不是能量或粒子质量',[
+ series('介子空间：1⊕8',0,s.colors.groups.meson.spectrum.map(p=>[0,p.value]),{markersOnly:true,markerRadius:6}),
+ series('二夸克空间：3̄⊕6',1,s.colors.groups.diquark.spectrum.map(p=>[1,p.value]),{markersOnly:true,markerRadius:6}),
+ series('重子空间：1⊕8⊕8⊕10',2,s.colors.groups.baryon.spectrum.map(p=>[2,p.value]),{markersOnly:true,markerRadius:6})
+ ],[0,2],[-.4,6.4]),
+ frame('rotation','反夸克用U*：错误表示会破坏介子单态','颜色变换角 θ（度）；生成元全8项另列','与原向量重叠的模平方；不是散射概率',[
+ series('正确 U⊗U* 介子',0,s.rotationScan.map(p=>[p.degrees,p.mesonFidelity])),
+ series('错误 U⊗U 介子',1,s.rotationScan.map(p=>[p.degrees,p.wrongMesonFidelity])),
+ series('当前错误表示的重叠',2,[[c.colorAngleDegrees,s.rotation.wrongMesonFidelity]],{markersOnly:true,markerRadius:6})
+ ],[0,180],[-.05,1.08]),
+ frame('string','通道混合改变能级：示意弦断裂的读图法','源间距 r/fm；hbar c=0.1973269804 GeV fm','能量/GeV；统一零点；没有进行强子谱拟合',[
+ series('未混合弦态 Vstring',0,s.stringScan.map(p=>[p.r,p.stringEnergy])),
+ series('未混合双强子阈值 E',1,s.stringScan.map(p=>[p.r,p.threshold])),
+ series('混合后的低能级 E−',2,s.stringScan.map(p=>[p.r,p.eigenvalues[0]])),
+ series('混合后的高能级 E+',3,s.stringScan.map(p=>[p.r,p.eigenvalues[1]]))
+ ],[.05,3]),
+ frame('flavors','物质屏蔽能改变紫外趋势','固定味数 nf；17..20是反例理论，不是现实QCD','β0与β1/10；二圈零点只列为候选',[
+ series('一圈 β0=11−2nf/3',0,s.flavors.map(p=>[p.nf,p.beta0])),
+ series('二圈 β1/10（为同图缩放）',1,s.flavors.map(p=>[p.nf,p.beta1/10])),
+ series('当前固定nf的一圈系数',2,[[c.fixedNf,beta0(c.fixedNf)]],{markersOnly:true,markerRadius:6})
+ ],[0,20])
+ ];}
+function tables(s){const groups=Object.entries(s.colors.groups),rr=r=>[r.q,r.nf,r.beta0,r.inverse,r.alpha,r.status,r.slopeInverse,r.betaOneLoop];return[
+ {key:'parameters',title:'8个输入：参考尺度固定100 GeV',headers:['输入','值'],rows:Object.entries(s.parameters)},
+ {key:'current',title:'固定/匹配的当前读数与一圈极点',headers:['对象','Q/GeV或量名','nf或值','β0','1/αs','αs','状态','倒数斜率','一圈β'],rows:[['固定',...rr(s.fixed)],['匹配',...rr(s.matched)],...Object.entries(s.fixedPole).map(([k,v])=>['固定味数极点',k,v,null,null,null,null,null,null])]},
+ {key:'matching',title:'当前Q的完整分段积分与三个阈值',headers:['模式','区间下限/GeV','区间上限/GeV','nf','β0','带方向ln比','倒数增量'],rows:[...s.fixed.segments.map(p=>['固定',p.from,p.to,p.nf,p.beta0,p.logRatio,p.increment]),...s.matched.segments.map(p=>['匹配',p.from,p.to,p.nf,p.beta0,p.logRatio,p.increment]),...s.thresholds.map(p=>['阈值：nf下/上、倒数、斜率下/上',p.q,p.q,[p.nfBelow,p.nfAbove],p.inverse,p.slopeBelow,p.slopeAbove])]},
+ {key:'generators',title:'8个Gell-Mann生成元与trace归一化',headers:['对象','编号/行','完整行或矩阵[Re,Im]'],rows:[...s.colors.generators.map((T,i)=>['T'+(i+1),i,T]),...s.colors.traceGram.map((r,i)=>['tr(TaTb)',i,r]),...s.colors.fundamentalCasimir.map((r,i)=>['ΣTa²=(4/3)I',i,r])]},
+ {key:'matrices',title:'完整色Casimir、单态投影与两体色因子矩阵',headers:['空间','矩阵','行','完整行[Re,Im]'],rows:groups.flatMap(([kind,g])=>[['总Casimir',g.casimir],['单态投影',g.projector],['T1·T2',g.pairColorOperator]].filter(([,M])=>M!==null).flatMap(([name,M])=>M.map((r,i)=>[kind,name,i,r])))},
+ {key:'singlets',title:'归一单态与全部8个总生成元作用',headers:['空间','对象','生成元或分量','复系数或完整向量'],rows:groups.filter(([,g])=>g.singlet!==null).flatMap(([kind,g])=>[...g.singlet.map((z,i)=>[kind,'单态分量',i,z]),...g.actions.map((v,i)=>[kind,'总生成元作用',i+1,v])])},
+ {key:'rotation',title:'实际SU(3)矩阵与正确/错误变换的完整向量',headers:['对象','行/分量','复值或向量'],rows:[...s.rotation.U.map((r,i)=>['U',i,r]),...s.rotation.unitarity.map((r,i)=>['U†U',i,r]),...['mesonCorrect','mesonWrong','baryonCorrect'].flatMap(k=>s.rotation[k].map((v,i)=>[k,i,v])),...['mesonFidelity','wrongMesonFidelity','baryonFidelity','wrongMesonDistanceSquared'].map(k=>[k,'值',s.rotation[k]])]},
+ {key:'spectrum',title:'表示多重数、两体色势因子与模型边界',headers:['空间/对象','Casimir或量名','维数/值','两体色因子（仅qq̄/qq）'],rows:[...groups.flatMap(([kind,g])=>g.spectrum.map(p=>[kind,p.value,p.multiplicity,kind==='baryon'?null:(p.value-8/3)/2])),...Object.entries(s.boundaries).map(([k,v])=>['适用边界',k,v,null])]},
+ {key:'running',title:'401个能标：两种模型的全部原始值',headers:['log10Q','模型','Q/GeV','nf','β0','1/αs','αs','状态','倒数斜率','一圈β'],rows:s.runningScan.flatMap(p=>[['固定',p.fixed],['匹配',p.matched]].map(([name,r])=>[p.log10Q,name,...rr(r)]))},
+ {key:'angles',title:'181个颜色角：单态不变量和错误反例',headers:['角/度','正确介子重叠²','错误介子重叠²','正确重子重叠²','错误介子向量差范数²'],rows:s.rotationScan.map(p=>[p.degrees,p.mesonFidelity,p.wrongMesonFidelity,p.baryonFidelity,p.wrongMesonDistanceSquared])},
+ {key:'string',title:'301个间距及解析交叉点：谱和投影分别保存',headers:['对象','r/fm','2×2矩阵/GeV','低/高能级/GeV','低能级投影','低能级弦态权重'],rows:[...s.stringScan.map(p=>['扫描',p.r,p.matrix,p.eigenvalues,p.lowerProjector,p.lowerStringWeight]),...(s.crossing?[['解析交叉点',s.crossingR,s.crossing.matrix,s.crossing.eigenvalues,null,s.crossing.lowerStringWeight],['交叉点浮点直接代入',s.crossingR,s.crossing.rawEvaluation.matrix,s.crossing.rawEvaluation.eigenvalues,s.crossing.rawEvaluation.lowerProjector,s.crossing.rawEvaluation.lowerStringWeight]]:[['σ=0：无正距离交叉',null,null,null,null,null]])]},
+ {key:'flavors',title:'0..20味：一圈符号和二圈候选零点',headers:['nf','β0','β1','一圈渐近自由','参考α的一圈β','参考α的二圈β','二圈正零点α*'],rows:s.flavors.map(p=>[p.nf,p.beta0,p.beta1,p.asymptoticallyFreeAtOneLoop,p.betaAtReference,p.betaTwoLoopAtReference,p.twoLoopPositiveZero])}
+ ];}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=10000?v.toExponential(2):Number(v.toFixed(3)).toString();
+function svg(p){const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 580" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+const discrete=['casimir','flavors'].includes(p.key);const xticks=discrete?[...new Set(Array.from({length:5},(_,i)=>Math.round(p.xMin+(p.xMax-p.xMin)*i/4)))]:Array.from({length:5},(_,i)=>p.xMin+(p.xMax-p.xMin)*i/4);for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+axisFmt(y)+'</text>';}for(const x of xticks){out+='<text x="'+X(x)+'" y="410" text-anchor="middle">'+axisFmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen&&!s.markersOnly?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const marks=s.markersOnly?s.points.filter(Boolean):s.boundaryMarkers?[...new Set([s.points.find(Boolean),s.points.filter(Boolean).at(-1)])].filter(Boolean):s.points.filter(Boolean).length===1?s.points.filter(Boolean):[];marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="'+(s.markerRadius??5)+'" stroke="'+s.color+'" fill="'+(s.hollow?'none':s.open?'var(--bg,#fff)':s.color)+'" stroke-width="'+(s.markerStrokeWidth??2.5)+'"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});if(!p.series.some(s=>s.points.some(Boolean)))out+='<text x="450" y="245" text-anchor="middle">当前模型在此参数下无适用数据</text>';return out+'</svg>';}
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "physics-qcd-hadrons-lab-styles";
-  var INSTANCE = 0;
-  var EPS = 1e-10;
+var mounted=new WeakMap();
+function mount(root){const doc=root.ownerDocument,previous=mounted.get(root);if(previous)previous();root.replaceChildren();root.classList.add('qcd197');let c=config(PRESETS[0].parameters),choices={},revealed=false,url=null,current=null,view=0,valid=true;
+ const el=(tag,attrs={},text)=>{const e=doc.createElement(tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
+ if(!doc.querySelector('[data-qcd197-style]')){const style=el('style',{'data-qcd197-style':''});style.textContent='.qcd197{margin-inline:0!important;width:100%;min-width:0;color:var(--fg,#222);line-height:1.65}.qcd197 *{box-sizing:border-box}.qcd197 button,.qcd197 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.qcd197 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.qcd197 button:focus-visible,.qcd197 select:focus-visible,.qcd197 [tabindex]:focus-visible{outline:3px solid #2474bc}.qcd197 .qc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.qcd197 label{display:grid;gap:4px;min-width:0}.qcd197 input{width:100%;min-height:44px;font:inherit;color:inherit;background:var(--bg,#fff)}.qcd197 .qc-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.qcd197 .qc-pred>strong{display:block;margin-bottom:6px}.qcd197 .qc-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.qcd197 .qc-feedback{margin:7px 0}.qcd197 .qc-scroll{max-width:100%;overflow:auto}.qcd197 svg{display:block;min-width:680px;width:100%;height:auto}.qcd197 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.qcd197 td,.qcd197 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.qcd197 [hidden]{display:none!important}.qcd197 details{margin:12px 0}.qcd197 summary{min-height:44px;cursor:pointer}.qcd197 .qc-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.qcd197 .qc-correct{color:var(--cl-green,#277540)}.qcd197 .qc-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.qcd197 .qc-grid{grid-template-columns:1fr}}';doc.head.append(style);}
+ root.append(el('h3',{},'从色矩阵到尺度变化：三条可核对的推导'),el('p',{},'同一个参考耦合下比较固定味数与阈值匹配；用完整色矩阵寻找单态；再用两通道模型理解能级混合。数值是教学计算，不是实验拟合。'));
+ const presets=el('div',{class:'qc-row','aria-label':'教学预设'});for(const p of PRESETS){const b=el('button',{type:'button','data-preset':p.id},p.label);b.onclick=()=>{c=config(p.parameters);valid=true;sync();reset();};presets.append(b);}root.append(presets);
+ const fields={},outs={},grid=el('div',{class:'qc-grid'});
 
-  var PRESETS = [
-    { id: "reference", label: "参考：Q=2 GeV", lambda: 0.25, nf: 5, q: 2, note: "进入可计算的低能端，但 αs 已不再是很小的展开参数。" },
-    { id: "jet", label: "喷注尺度：Q=91 GeV", lambda: 0.25, nf: 5, q: 91, note: "高能处耦合较小，微扰喷注计算更可信。" },
-    { id: "near-boundary", label: "靠近 ΛQCD", lambda: 0.25, nf: 4, q: 0.6, note: "Q 只比 Λ 大一截；一圈公式仍可算，但解释要非常谨慎。" },
-    { id: "too-low", label: "越过扰动边界", lambda: 0.25, nf: 5, q: 0.2, note: "Q≤Λ：一圈微扰表达式没有合法实数读数。" }
-  ];
 
-  function finite(value) { return typeof value === "number" && isFinite(value); }
-  function near(a, b, tolerance) { return Math.abs(a - b) <= (tolerance || EPS) * Math.max(1, Math.abs(a), Math.abs(b)); }
-  function clamp(value, lo, hi) { return Math.max(lo, Math.min(hi, value)); }
 
-  function beta0(nf) {
-    return 11 - 2 * nf / 3;
-  }
 
-  function normalize(input) {
-    input = input || {};
-    var lambda = Number(input.lambda === undefined ? input.lambdaQCD : input.lambda);
-    var nf = Number(input.nf);
-    var q = Number(input.q === undefined ? input.Q : input.q);
-    if (!finite(lambda) || !finite(nf) || !finite(q)) throw new TypeError("lambda、nf、Q 必须是有限数");
-    if (!(lambda > 0)) throw new RangeError("ΛQCD 必须为正");
-    if (!(nf >= 0 && nf <= 16 && Math.round(nf) === nf)) throw new RangeError("本 toy 要求 nf 是 0 到 16 的整数");
-    if (!(q > 0)) throw new RangeError("Q 必须为正能标");
-    return { lambda: lambda, nf: nf, q: q, beta0: beta0(nf) };
-  }
+ for(const[key,title]of Object.entries(LABELS).filter(([key])=>Object.hasOwn(LIMITS,key))){const[min,max]=LIMITS[key],label=el('label',{},title),out=el('output'),input=el('input',{type:'range',min,max,step:1,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.oninput=input.onchange=change;}root.append(grid);
+ function change(){try{c=config(Object.fromEntries(Object.entries(fields).map(([k,e])=>[k,e.value===''?NaN:Number(e.value)])));valid=true;sync();reset();}catch(e){valid=false;reset();status.textContent='请使用各控件范围内的整数。请按控件标出的100或1000换算；Q由log10控件恢复。';}}
+ const note=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(note,prediction);prediction.append(el('h4',{},'先预测：味数、反夸克、吸引与能级简并'),el('p',{},'四题的条件固定写在题干里；参数用来检查例子，不自动改变问题。'));
+ const feedbacks=[],buttons=[];QUESTIONS.forEach((q,i)=>{const row=el('div',{class:'qc-pred'});row.append(el('strong',{},q[0]));buttons[i]=[];q[1].forEach((text,j)=>{const b=el('button',{type:'button','data-prediction':i,'data-choice':String(j===0),'aria-pressed':'false'},text);b.onclick=()=>{choices[i]=j;buttons[i].forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));if(revealed)showFeedback();};row.append(b);buttons[i].push(b);});feedbacks[i]=el('p',{class:'qc-feedback','data-feedback':i});row.append(feedbacks[i]);prediction.append(row);});
+ const check=el('button',{type:'button','data-check':''},'核对预测并显示完整结果'),status=el('p',{class:'qc-status','aria-live':'polite'});root.append(check,status);
+ const stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),summary=el('p'),plotButtons=el('div',{class:'qc-row'}),plotWrap=el('div',{class:'qc-scroll',tabindex:0,role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'倒数图保留越界延拓供诊断，正耦合图只绘0<αs≤1而不截成平台。Casimir不是粒子质量；两通道势不是格点模拟。解析交叉点单独列出，浮点直接代入的舍入残差不用于选择简并本征态。'),tableHost=el('div'),download=el('a',{'data-download':'',download:'qc-record.json'},'下载当前完整记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);
+ function sync(){for(const[k,e]of Object.entries(fields))e.value=c[k];}
+ function reset(){if(url){hostWindow.URL.revokeObjectURL(url);url=null;download.removeAttribute('href');}revealed=false;choices={};stage.hidden=true;delete root.__qcdSnapshot;for(let i=0;i<4;i++){feedbacks[i].textContent='';for(const b of buttons[i])b.setAttribute('aria-pressed','false');}for(const[k,o]of Object.entries(outs))o.textContent=fmt(c[k]);note.textContent='两条running曲线都固定αs(100 GeV)。nf控件只改变固定味数曲线，匹配曲线仍按3/4/5/6味计算。α=1只是本图显示范围，不能保证较小α就有足够精度。颜色和势模型参数彼此独立。';status.textContent='完成四项预测后显示当前结果。';}
+ function showFeedback(){let n=0;for(let i=0;i<4;i++){if(!Number.isInteger(choices[i]))continue;const f=feedback(i,choices[i]);n+=+f.correct;feedbacks[i].textContent=f.text;feedbacks[i].className='qc-feedback '+(f.correct?'qc-correct':'qc-wrong');}status.textContent='预测核对：'+n+'/4 正确。图、表和下载均对应当前参数。';}
+ function draw(){const ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+ function render(){current=compute(c);root.__qcdSnapshot=current;stage.hidden=false;summary.textContent='当前Q='+fmt(current.current.q)+' GeV，'+(c.thresholdMode?'分段匹配':'固定味数')+'：αs='+fmt(current.current.alpha)+'，1/αs='+fmt(current.current.inverse)+'。'+fmt(current.current.status)+'。错误反夸克表示的单态重叠平方='+fmt(current.rotation.wrongMesonFidelity)+'；两通道解析交叉距离='+fmt(current.crossingR)+' fm。';plotButtons.replaceChildren();plots(current).forEach((p,i)=>{const b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();for(const t of tables(current)){const d=el('details',{'data-table':t.key});d.append(el('summary',{},t.title));d.addEventListener('toggle',()=>{if(!d.open||d.children.length>1)return;const wrap=el('div',{class:'qc-scroll',tabindex:0,role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),thead=el('thead'),tr=el('tr'),tbody=el('tbody');for(const h of t.headers)tr.append(el('th',{scope:'col'},h));thead.append(tr);for(const row of t.rows){const r=el('tr');for(const v of row)r.append(el('td',{},fmt(v)));tbody.append(r);}table.append(thead,tbody);wrap.append(table);d.append(wrap);});tableHost.append(d);}if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current)],{type:'application/json'}));download.href=url;showFeedback();}
+ check.onclick=()=>{if(!valid){status.textContent='请先修正无效参数。';return;}if(![0,1,2,3].every(i=>Number.isInteger(choices[i]))){status.textContent='请先为四个问题各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
+}
 
-  function alphaS(q, lambda, nf) {
-    q = Number(q);
-    lambda = Number(lambda);
-    nf = Number(nf);
-    if (!finite(q) || !finite(lambda) || !finite(nf)) return { ok: false, status: "invalid-input", message: "Q、ΛQCD、nf 必须是有限数。" };
-    if (!(lambda > 0) || !(q > 0) || nf < 0 || nf > 16 || Math.round(nf) !== nf) {
-      return { ok: false, status: "invalid-input", message: "输入不在本 toy 的物理范围内。" };
-    }
-    var b0 = beta0(nf);
-    if (!(b0 > 0)) return { ok: false, status: "no-asymptotic-freedom", message: "β₀≤0；此一圈模型不再给出渐近自由。", beta0: b0 };
-    if (q <= lambda) return { ok: false, status: "nonperturbative-boundary", message: "Q≤ΛQCD；一圈微扰表达式越过了自己的适用边界。", beta0: b0 };
-    var logarithm = Math.log((q / lambda) * (q / lambda));
-    var value = 4 * Math.PI / (b0 * logarithm);
-    return {
-      ok: true,
-      status: value < 1 ? "perturbative-candidate" : "strong-coupling-warning",
-      q: q,
-      lambda: lambda,
-      nf: nf,
-      beta0: b0,
-      logarithm: logarithm,
-      alpha: value,
-      relativeScale: q / lambda
-    };
-  }
-
-  function analyze(input) {
-    var params;
-    try {
-      params = normalize(input);
-    } catch (error) {
-      return { ok: false, status: "invalid-input", message: error.message };
-    }
-    var running = alphaS(params.q, params.lambda, params.nf);
-    return {
-      ok: running.ok,
-      status: running.status,
-      message: running.message || "",
-      q: params.q,
-      lambda: params.lambda,
-      nf: params.nf,
-      beta0: params.beta0,
-      alpha: running.alpha,
-      logarithm: running.logarithm,
-      relativeScale: params.q / params.lambda,
-      perturbativeCandidate: running.ok && running.alpha < 1,
-      warning: params.q < 2 ? "低能端的微扰展开需要非微扰输入；这里的曲线不是精密 QCD 预言。" : "一圈 running 只提供尺度趋势；真实计算还要处理阈值、圈修正与重整化方案。"
-    };
-  }
-
-  function runningCurve(input) {
-    var params = normalize(input);
-    var start = Math.max(0.1, params.lambda * 1.015);
-    var end = Math.max(1000, params.lambda * 4000);
-    var points = [];
-    for (var i = 0; i <= 120; i += 1) {
-      var fraction = i / 120;
-      var q = start * Math.pow(end / start, fraction);
-      var result = alphaS(q, params.lambda, params.nf);
-      points.push({ q: q, alpha: result.ok ? result.alpha : NaN });
-    }
-    return points;
-  }
-
-  function assert(condition, message) {
-    if (!condition) throw new Error("physics-qcd-hadrons self-test failed: " + message);
-  }
-
-  function selfTest() {
-    var checks = 0;
-    function check(condition, message) { checks += 1; assert(condition, message); }
-    var low = alphaS(2, 0.25, 5);
-    var high = alphaS(91, 0.25, 5);
-    check(low.ok && high.ok, "reference points are valid");
-    check(high.alpha < low.alpha, "asymptotic freedom lowers alpha at high Q");
-    check(near(low.beta0, 23 / 3, 1e-12), "nf=5 beta coefficient");
-    check(alphaS(0.25, 0.25, 5).status === "nonperturbative-boundary", "Q=lambda boundary");
-    check(alphaS(0.2, 0.25, 5).ok === false, "below lambda rejected");
-    check(beta0(16) > 0 && beta0(17) < 0, "beta coefficient boundary");
-    check(analyze({ q: 2, lambda: 0.25, nf: 5 }).perturbativeCandidate, "reference is flagged as candidate");
-    check(analyze({ q: 0.6, lambda: 0.25, nf: 4 }).warning.indexOf("低能端") >= 0, "low-scale caveat");
-    var curveA = runningCurve({ q: 2, lambda: 0.25, nf: 5 });
-    var curveB = runningCurve({ q: 2, lambda: 0.25, nf: 5 });
-    check(JSON.stringify(curveA) === JSON.stringify(curveB), "curve is deterministic");
-    var invalid = analyze({ q: NaN, lambda: 0.25, nf: 5 });
-    check(!invalid.ok && invalid.status === "invalid-input", "invalid numeric input is rejected");
-    var rejected = false;
-    try { normalize({ q: 2, lambda: 0.25, nf: 5.5 }); } catch (error) { rejected = true; }
-    check(rejected, "fractional nf rejected");
-    return { checks: checks, presets: PRESETS.length };
-  }
-
-  function setAttributes(node, attrs) {
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", String(value));
-      else if (key === "htmlFor") node.setAttribute("for", String(value));
-      else if (key === "text") node.textContent = String(value);
-      else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, String(value));
-    });
-    return node;
-  }
-
-  function appendChildren(node, children, doc) {
-    if (children === undefined || children === null) return node;
-    (Array.isArray(children) ? children : [children]).forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child && child.nodeType ? child : doc.createTextNode(String(child)));
-    });
-    return node;
-  }
-
-  function make(api, doc, tag, attrs, children) {
-    if (api && typeof api.el === "function") return api.el(tag, attrs || {}, children);
-    return appendChildren(setAttributes(doc.createElement(tag), attrs || {}), children, doc);
-  }
-
-  function svg(doc, tag, attrs, text) {
-    var node = setAttributes(doc.createElementNS(SVG_NS, tag), attrs || {});
-    if (text !== undefined) node.textContent = String(text);
-    return node;
-  }
-
-  function replaceChildren(node, children, doc) {
-    if (typeof node.replaceChildren === "function") {
-      node.replaceChildren.apply(node, Array.isArray(children) ? children : [children]);
-      return;
-    }
-    while (node.firstChild) node.removeChild(node.firstChild);
-    appendChildren(node, children, doc);
-  }
-
-  function format(value, digits) {
-    if (!finite(value)) return "—";
-    var text = value.toFixed(digits === undefined ? 3 : digits);
-    return text.replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function announce(api, root, message) {
-    if (api && typeof api.announce === "function") api.announce(root, message);
-  }
-
-  function installStyles(doc) {
-    if (!doc || !doc.head || doc.getElementById(STYLE_ID)) return;
-    var style = doc.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = [
-      ".pqcd-lab{color:var(--fg,#20252b);line-height:1.55;overflow-wrap:anywhere}.pqcd-lab *{box-sizing:border-box}.pqcd-lab [hidden]{display:none!important}",
-      ".pqcd-lab h3{margin:0;color:var(--fg,#20252b);font-size:1.15rem}.pqcd-note,.pqcd-feedback,.pqcd-warning{color:var(--fg-soft,var(--muted,#5d6873));font-size:.9rem}.pqcd-lab fieldset{min-width:0;margin:12px 0;padding:9px 10px;border:1px solid var(--border,#c8cdd3)}.pqcd-lab legend{max-width:100%;font-weight:750}.pqcd-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.pqcd-choice{display:flex;gap:7px;align-items:flex-start;min-width:0;padding:8px;border:1px solid var(--border,#c8cdd3);border-radius:6px}.pqcd-choice input{margin-top:3px;accent-color:var(--accent,#1769aa)}",
-      ".pqcd-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.pqcd-lab button,.pqcd-lab select,.pqcd-lab input{font:inherit}.pqcd-lab button{min-height:44px;padding:8px 11px;border:1px solid var(--border,#c8cdd3);border-radius:6px;background:var(--bg,#fff);color:inherit;cursor:pointer}.pqcd-lab button:hover{border-color:var(--accent,#1769aa)}.pqcd-lab button:focus-visible,.pqcd-lab select:focus-visible,.pqcd-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.pqcd-primary{background:var(--accent,#1769aa)!important;color:var(--bg,#fff)!important;font-weight:750}.pqcd-pass{color:var(--cl-green,#2f7547)}.pqcd-warn{color:var(--cl-red,#b43d32)}",
-      ".pqcd-layout{display:grid;grid-template-columns:minmax(190px,.7fr) minmax(0,1.3fr);gap:14px;align-items:start}.pqcd-controls{display:grid;gap:10px;padding:11px;border:1px solid var(--border,#c8cdd3);border-radius:7px}.pqcd-field{display:grid;gap:5px}.pqcd-field label{font-size:.82rem;font-weight:700;color:var(--fg-soft,var(--muted,#5d6873))}.pqcd-field select,.pqcd-field input{width:100%;min-height:42px;padding:7px 8px;border:1px solid var(--border,#c8cdd3);border-radius:5px;background:var(--bg,#fff);color:inherit}.pqcd-field input[type=range]{padding:0;accent-color:var(--accent,#1769aa)}.pqcd-output{font-variant-numeric:tabular-nums;font-weight:750;color:var(--accent,#1769aa)}",
-      ".pqcd-frame{min-width:0;border:1px solid var(--border,#c8cdd3);border-radius:7px;background:var(--bg,#fff);overflow:hidden}.pqcd-svg{display:block;width:100%;height:auto}.pqcd-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.pqcd-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:10px}.pqcd-metric{min-width:0;padding:8px;border-top:2px solid var(--border,#c8cdd3);background:var(--bg,#fff)}.pqcd-metric:nth-child(4n+1){border-color:var(--cl-blue,#2c6aa0)}.pqcd-metric:nth-child(4n+2){border-color:var(--cl-gold,#95670d)}.pqcd-metric:nth-child(4n+3){border-color:var(--cl-green,#347247)}.pqcd-metric:nth-child(4n){border-color:var(--cl-red,#b43d32)}.pqcd-metric span{display:block;color:var(--fg-soft,var(--muted,#5d6873));font-size:.73rem}.pqcd-metric strong{display:block;margin-top:3px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}.pqcd-table-wrap{max-width:100%;overflow-x:auto;margin-top:10px}.pqcd-table{width:100%;min-width:600px;border-collapse:collapse;font-size:.8rem}.pqcd-table th,.pqcd-table td{padding:7px;border-bottom:1px solid var(--border,#c8cdd3);text-align:left;vertical-align:top}.pqcd-table th{color:var(--fg-soft,var(--muted,#5d6873));font-size:.74rem}.pqcd-interpretation{margin-top:10px;padding:9px 11px;border-left:3px solid var(--cl-blue,#2c6aa0);background:var(--block-bg,var(--bg,#fff));font-size:.86rem}",
-      "@media(max-width:760px){.pqcd-layout{grid-template-columns:minmax(0,1fr)}}@media(max-width:600px){.pqcd-choices{grid-template-columns:minmax(0,1fr)}.pqcd-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(prefers-reduced-motion:reduce){.pqcd-lab *{transition:none!important;animation:none!important}}"
-    ].join("\n");
-    doc.head.appendChild(style);
-  }
-
-  function metric(api, doc, label) {
-    var value = make(api, doc, "strong", {}, ["—"]);
-    return make(api, doc, "div", { className: "pqcd-metric" }, [make(api, doc, "span", {}, [label]), value]);
-  }
-
-  function drawChart(doc, node, params, current) {
-    replaceChildren(node, [], doc);
-    node.setAttribute("viewBox", "0 0 760 340");
-    node.setAttribute("role", "img");
-    node.setAttribute("aria-label", "一圈 QCD running coupling alpha_s 随能标 Q 的变化");
-    var left = 58;
-    var right = 730;
-    var top = 30;
-    var bottom = 285;
-    var minQ = 0.1;
-    var maxQ = Math.max(1000, params.lambda * 4000);
-    var maxAlpha = 1.45;
-    var x = function (q) { return left + (Math.log10(q) - Math.log10(minQ)) / (Math.log10(maxQ) - Math.log10(minQ)) * (right - left); };
-    var y = function (alpha) { return bottom - clamp(alpha, 0, maxAlpha) / maxAlpha * (bottom - top); };
-    node.appendChild(svg(doc, "title", { id: "pqcd-title" }, "QCD 一圈 running 曲线"));
-    node.appendChild(svg(doc, "desc", { id: "pqcd-desc" }, "横轴是对数能标 Q，纵轴是 alpha_s；低能区用浅色标出微扰警示，当前参数由红点表示。"));
-    node.setAttribute("aria-labelledby", "pqcd-title pqcd-desc");
-    node.appendChild(svg(doc, "rect", { x: x(minQ), y: top, width: x(Math.min(2, maxQ)) - x(minQ), height: bottom - top, fill: "var(--cl-red,#b43d32)", "fill-opacity": "0.08" }));
-    [0.2, 0.5, 1, 1.4].forEach(function (value) {
-      node.appendChild(svg(doc, "line", { x1: left, y1: y(value), x2: right, y2: y(value), stroke: "var(--border,#c8cdd3)", "stroke-width": "1" }));
-      node.appendChild(svg(doc, "text", { x: left - 8, y: y(value) + 4, "text-anchor": "end", "font-size": "11" }, format(value, 1)));
-    });
-    [0.1, 0.3, 1, 2, 10, 100, 1000].forEach(function (value) {
-      if (value < minQ || value > maxQ) return;
-      node.appendChild(svg(doc, "line", { x1: x(value), y1: top, x2: x(value), y2: bottom, stroke: "var(--border,#c8cdd3)", "stroke-width": "1", "stroke-opacity": "0.65" }));
-      node.appendChild(svg(doc, "text", { x: x(value), y: bottom + 18, "text-anchor": "middle", "font-size": "11" }, value < 1 ? value.toFixed(1) : String(value)));
-    });
-    node.appendChild(svg(doc, "line", { x1: left, y1: bottom, x2: right, y2: bottom, stroke: "currentColor", "stroke-width": "1.2" }));
-    node.appendChild(svg(doc, "line", { x1: left, y1: top, x2: left, y2: bottom, stroke: "currentColor", "stroke-width": "1.2" }));
-    var points = runningCurve(params);
-    var path = "";
-    points.forEach(function (point, index) {
-      if (!finite(point.alpha) || point.alpha > maxAlpha) return;
-      path += (path ? " L " : "M ") + x(point.q).toFixed(2) + " " + y(point.alpha).toFixed(2);
-    });
-    node.appendChild(svg(doc, "path", { d: path, fill: "none", stroke: "var(--cl-blue,#2c6aa0)", "stroke-width": "3", "stroke-linecap": "round" }));
-    var boundaryX = x(params.lambda);
-    node.appendChild(svg(doc, "line", { x1: boundaryX, y1: top, x2: boundaryX, y2: bottom, stroke: "var(--cl-red,#b43d32)", "stroke-width": "1.5", "stroke-dasharray": "5 4" }));
-    node.appendChild(svg(doc, "text", { x: Math.min(right - 4, boundaryX + 6), y: top + 15, "font-size": "11" }, "ΛQCD=" + format(params.lambda, 2) + " GeV"));
-    if (current.ok) {
-      node.appendChild(svg(doc, "circle", { cx: x(current.q), cy: y(current.alpha), r: "6", fill: "var(--cl-red,#b43d32)", stroke: "var(--bg,#fff)", "stroke-width": "2" }));
-      node.appendChild(svg(doc, "text", { x: Math.min(right - 4, x(current.q) + 9), y: Math.max(top + 35, y(current.alpha) - 9), "font-size": "11" }, "当前 Q=" + format(current.q, current.q < 10 ? 2 : 1)));
-    } else {
-      node.appendChild(svg(doc, "text", { x: 470, y: 125, "text-anchor": "middle", "font-size": "13", "font-weight": "700" }, "Q≤Λ：微扰账本停止给出读数"));
-    }
-    node.appendChild(svg(doc, "text", { x: (left + right) / 2, y: 330, "text-anchor": "middle", "font-size": "12" }, "能标 Q / GeV（对数轴）"));
-    node.appendChild(svg(doc, "text", { x: 17, y: (top + bottom) / 2, "text-anchor": "middle", "font-size": "12", transform: "rotate(-90 17 " + ((top + bottom) / 2) + ")" }, "αs(Q)"));
-    node.appendChild(svg(doc, "text", { x: left + 5, y: top + 15, "font-size": "11", fill: "var(--cl-red,#b43d32)" }, "低能微扰警示区（Q<2 GeV）"));
-  }
-
-  function mount(root, api) {
-    if (!root || !root.ownerDocument) return;
-    var doc = root.ownerDocument;
-    installStyles(doc);
-    INSTANCE += 1;
-    var prefix = "pqcd-" + INSTANCE;
-    var state = { presetId: "reference", lambda: 0.25, nf: 5, q: 2, revealed: false, predictions: {}, feedback: "" };
-    var refs = {};
-    root.classList.add("pqcd-lab");
-    var heading = make(api, doc, "h3", { id: prefix + "-heading" }, ["QCD running 账本：先猜尺度，再看 αs(Q)"]);
-    var intro = make(api, doc, "p", { className: "pqcd-note" }, ["这里用固定 nf 的一圈公式做尺度诊断。曲线展示可计算性边界，不把 Landau pole 当成真实物理发散，也不把它单独当作禁闭证明。"]);
-    var form = make(api, doc, "fieldset", {});
-    form.appendChild(make(api, doc, "legend", {}, ["预测门：揭晓前先写下三条判断"]));
-    var questions = [
-      { key: "trend", text: "Q 增大时 αs(Q) 怎样变化？", expected: "decrease", options: [["decrease", "减小"], ["same", "保持不变"], ["increase", "增大"]] },
-      { key: "boundary", text: "Q≤ΛQCD 时，一圈公式应怎样读？", expected: "invalid", options: [["invalid", "越过微扰边界"], ["zero", "趋于 0"], ["exact", "仍是精确读数"]] },
-      { key: "nf", text: "固定 Q、Λ 时，nf 增大对 αs 的一圈趋势？", expected: "increase", options: [["increase", "增大"], ["same", "不变"], ["decrease", "减小"]] }
-    ];
-    var groupNames = [];
-    questions.forEach(function (question) {
-      var group = prefix + "-" + question.key;
-      groupNames.push(group);
-      var block = make(api, doc, "div", {});
-      block.appendChild(make(api, doc, "p", { className: "pqcd-note" }, [question.text]));
-      var choices = make(api, doc, "div", { className: "pqcd-choices" });
-      question.options.forEach(function (option) {
-        var radio = make(api, doc, "input", { type: "radio", name: group, value: option[0] });
-        radio.addEventListener("change", function () { state.predictions[question.key] = option[0]; });
-        choices.appendChild(make(api, doc, "label", { className: "pqcd-choice" }, [radio, make(api, doc, "span", {}, [option[1]])]));
-      });
-      block.appendChild(choices);
-      form.appendChild(block);
-    });
-    var actions = make(api, doc, "div", { className: "pqcd-actions" });
-    var reveal = make(api, doc, "button", { type: "button", className: "pqcd-primary" }, ["核对预测并揭晓"]);
-    var reset = make(api, doc, "button", { type: "button" }, ["重置预测"]);
-    actions.appendChild(reveal);
-    actions.appendChild(reset);
-    refs.feedback = make(api, doc, "p", { className: "pqcd-feedback", "aria-live": "polite", "aria-atomic": "true" }, []);
-    var shell = make(api, doc, "div", { hidden: true });
-    var controls = make(api, doc, "div", { className: "pqcd-controls" });
-    var preset = make(api, doc, "select", { "aria-label": "QCD 预设" });
-    PRESETS.forEach(function (item) { preset.appendChild(make(api, doc, "option", { value: item.id }, [item.label])); });
-    var lambdaInput = make(api, doc, "input", { type: "number", min: "0.05", max: "1", step: "0.01", value: "0.25", "aria-label": "ΛQCD 尺度 / GeV" });
-    var nfInput = make(api, doc, "input", { type: "range", min: "0", max: "16", step: "1", value: "5", "aria-label": "活跃夸克味数 nf" });
-    var nfOutput = make(api, doc, "output", { className: "pqcd-output", for: prefix + "-nf" }, ["5"]);
-    nfInput.id = prefix + "-nf";
-    var qInput = make(api, doc, "input", { type: "range", min: "0.1", max: "1000", step: "0.1", value: "2", "aria-label": "能标 Q / GeV" });
-    var qOutput = make(api, doc, "output", { className: "pqcd-output", for: prefix + "-q" }, ["2 GeV"]);
-    qInput.id = prefix + "-q";
-    controls.appendChild(make(api, doc, "div", { className: "pqcd-field" }, [make(api, doc, "label", { htmlFor: prefix + "-preset" }, ["教学预设"]), preset]));
-    preset.id = prefix + "-preset";
-    controls.appendChild(make(api, doc, "div", { className: "pqcd-field" }, [make(api, doc, "label", { htmlFor: prefix + "-lambda" }, ["ΛQCD 尺度 / GeV"]), lambdaInput]));
-    lambdaInput.id = prefix + "-lambda";
-    controls.appendChild(make(api, doc, "div", { className: "pqcd-field" }, [make(api, doc, "label", { htmlFor: prefix + "-nf" }, ["活跃夸克味数 nf：", nfOutput]), nfInput]));
-    controls.appendChild(make(api, doc, "div", { className: "pqcd-field" }, [make(api, doc, "label", { htmlFor: prefix + "-q" }, ["能标 Q：", qOutput]), qInput]));
-    controls.appendChild(make(api, doc, "p", { className: "pqcd-note" }, ["nf 固定只是教学近似；跨越夸克质量阈值时，真实 running 需要匹配不同有效理论。"]));
-    var stage = make(api, doc, "div", {});
-    var frame = make(api, doc, "div", { className: "pqcd-frame" });
-    var chart = doc.createElementNS(SVG_NS, "svg");
-    chart.setAttribute("class", "pqcd-svg");
-    frame.appendChild(chart);
-    stage.appendChild(frame);
-    var metrics = make(api, doc, "div", { className: "pqcd-metrics" });
-    var tableWrap = make(api, doc, "div", { className: "pqcd-table-wrap" });
-    var interpretation = make(api, doc, "p", { className: "pqcd-interpretation", "aria-live": "polite" }, []);
-    stage.appendChild(metrics);
-    stage.appendChild(tableWrap);
-    stage.appendChild(interpretation);
-    var layout = make(api, doc, "div", { className: "pqcd-layout" }, [controls, stage]);
-    shell.appendChild(layout);
-    root.appendChild(heading);
-    root.appendChild(intro);
-    root.appendChild(form);
-    root.appendChild(actions);
-    root.appendChild(refs.feedback);
-    root.appendChild(shell);
-
-    function applyPreset(id) {
-      var selected = PRESETS.filter(function (item) { return item.id === id; })[0];
-      if (!selected) return;
-      state.presetId = selected.id;
-      state.lambda = selected.lambda;
-      state.nf = selected.nf;
-      state.q = selected.q;
-    }
-
-    function renderLedger(result) {
-      replaceChildren(tableWrap, [], doc);
-      var table = make(api, doc, "table", { className: "pqcd-table" });
-      table.appendChild(make(api, doc, "caption", {}, ["计算账本：观测输入、模型输出与适用边界"]));
-      table.appendChild(make(api, doc, "thead", {}, [make(api, doc, "tr", {}, [make(api, doc, "th", { scope: "col" }, ["量"]), make(api, doc, "th", { scope: "col" }, ["数值"]), make(api, doc, "th", { scope: "col" }, ["解释"])])]));
-      var body = make(api, doc, "tbody");
-      var rows = [
-        ["Q", format(state.q, state.q < 10 ? 2 : 1) + " GeV", "实验者选择的能标"],
-        ["ΛQCD", format(state.lambda, 2) + " GeV", "模型的尺度参数，不是无条件常数"],
-        ["nf", String(state.nf), "固定有效理论中的活跃味数"],
-        ["β0", format(result.beta0, 4), "β0>0 给出一圈渐近自由趋势"],
-        ["αs(Q)", result.ok ? format(result.alpha, 4) : "—", result.ok ? "模型数值；不是直接观测" : "—"],
-        ["状态", result.ok ? (result.perturbativeCandidate ? "可作微扰候选" : "强耦合警示") : result.status, result.ok ? result.warning : result.message]
-      ];
-      rows.forEach(function (row) {
-        body.appendChild(make(api, doc, "tr", {}, row.map(function (value) { return make(api, doc, "td", {}, [value]); })));
-      });
-      table.appendChild(body);
-      tableWrap.appendChild(table);
-    }
-
-    function render() {
-      preset.value = state.presetId;
-      lambdaInput.value = String(state.lambda);
-      nfInput.value = String(state.nf);
-      nfOutput.textContent = String(state.nf);
-      qInput.value = String(state.q);
-      qOutput.textContent = format(state.q, state.q < 10 ? 2 : 1) + " GeV";
-      shell.hidden = !state.revealed;
-      if (!state.revealed) return;
-      var result = analyze({ q: state.q, lambda: state.lambda, nf: state.nf });
-      if (!result.ok && result.status === "invalid-input") {
-        replaceChildren(chart, [], doc);
-        replaceChildren(metrics, [], doc);
-        replaceChildren(tableWrap, [], doc);
-        replaceChildren(interpretation, ["模型停止：" + result.message], doc);
-        interpretation.className = "pqcd-interpretation pqcd-warn";
-        return;
-      }
-      drawChart(doc, chart, { q: state.q, lambda: state.lambda, nf: state.nf }, result);
-      replaceChildren(metrics, [metric(api, doc, "Q / GeV"), metric(api, doc, "β0"), metric(api, doc, "αs(Q)"), metric(api, doc, "Q/Λ")], doc);
-      var values = [format(state.q, state.q < 10 ? 2 : 1), format(result.beta0, 3), result.ok ? format(result.alpha, 4) : "—", format(result.relativeScale, 2)];
-      metrics.querySelectorAll("strong").forEach(function (node, index) { node.textContent = values[index]; });
-      renderLedger(result);
-      interpretation.textContent = result.ok ? "模型判断：" + (result.perturbativeCandidate ? "当前 αs<1，至少可以把微扰展开作为候选工具。" : "当前 αs 已不小，低能非微扰动力学不能被这条曲线替代。") + " 这是由一圈公式得到的推断；喷注、强子谱等才是实验输入。" : "模型停止：" + result.message + " 这里的空白是适用范围的诚实标记，不是 αs=0。";
-      interpretation.className = "pqcd-interpretation " + (result.ok && result.perturbativeCandidate ? "pqcd-pass" : "pqcd-warn");
-    }
-
-    preset.addEventListener("change", function () { applyPreset(preset.value); render(); });
-    lambdaInput.addEventListener("input", function () { state.lambda = Number(lambdaInput.value); state.presetId = "custom"; render(); });
-    nfInput.addEventListener("input", function () { state.nf = Number(nfInput.value); state.presetId = "custom"; render(); });
-    qInput.addEventListener("input", function () { state.q = Number(qInput.value); state.presetId = "custom"; render(); });
-    reveal.addEventListener("click", function () {
-      var missing = questions.filter(function (question) { return !state.predictions[question.key]; });
-      if (missing.length) {
-        state.feedback = "请先完成全部预测，再揭晓。";
-        refs.feedback.textContent = state.feedback;
-        refs.feedback.className = "pqcd-feedback pqcd-warn";
-        announce(api, root, state.feedback);
-        return;
-      }
-      var correct = questions.filter(function (question) { return state.predictions[question.key] === question.expected; }).length;
-      state.revealed = true;
-      state.feedback = "已揭晓：" + correct + "/" + questions.length + " 命中。现在可改变 Q、ΛQCD 和 nf，观察模型边界。";
-      refs.feedback.textContent = state.feedback;
-      refs.feedback.className = "pqcd-feedback " + (correct === questions.length ? "pqcd-pass" : "pqcd-warn");
-      render();
-      announce(api, root, state.feedback);
-    });
-    reset.addEventListener("click", function () {
-      state.presetId = "reference";
-      state.lambda = 0.25;
-      state.nf = 5;
-      state.q = 2;
-      state.revealed = false;
-      state.predictions = {};
-      form.querySelectorAll("input[type=radio]").forEach(function (radio) { radio.checked = false; });
-      refs.feedback.textContent = "";
-      render();
-      announce(api, root, "QCD running 预测已重置。");
-    });
-    render();
-  }
-
-  return {
-    PRESETS: PRESETS,
-    beta0: beta0,
-    normalize: normalize,
-    alphaS: alphaS,
-    analyze: analyze,
-    runningCurve: runningCurve,
-    mount: mount,
-    selfTest: selfTest
-  };
-});
+function selfTest(){let checks=0;const ok=x=>{checks++;if(!x)throw Error('QCD invariant '+checks);};for(const p of PRESETS){const s=compute(p.parameters);ok(plots(s).length===6);ok(tables(s).length===12);for(const g of Object.values(s.colors.groups)){ok(g.spectrum.reduce((n,q)=>n+q.multiplicity,0)===g.dimension);if(g.actions)for(const v of g.actions)for(const z of v)ok(abs2(z)<1e-24);}for(const q of s.rotationScan){ok(Math.abs(q.mesonFidelity-1)<1e-12);ok(Math.abs(q.baryonFidelity-1)<1e-12);}for(const q of s.runningScan)for(const r of [q.fixed,q.matched])ok(r.inverse>0?r.alpha>0&&Math.abs(r.inverse*r.alpha-1)<1e-12:r.alpha===null);for(const plot of plots(s))for(const q of plot.series)for(const point of q.points)if(point)ok(point.every(Number.isFinite));for(let i=0;i<4;i++)ok(feedback(i,QUESTIONS[i][2]).correct);}return{status:'PASS',checks};}
+const API={LIMITS,DEFAULT,config,PRESETS,QUESTIONS,compute,snapshot:compute,plots,tables,svg,feedback,fmt,mount,selfTest,beta0,beta1,active,running,colorData,colorRotation,stringPoint};if(typeof module!=="undefined"&&module.exports)module.exports=API;if(hostWindow&&hostWindow.CourseLearning)hostWindow.CourseLearning.register("physics-qcd-hadrons",mount);})(typeof window!=="undefined"?window:null);

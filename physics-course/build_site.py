@@ -374,6 +374,8 @@ def sync_learning_assets(md_names):
         shutil.copytree(SHARED / "projects" / "gauge-certificates", destination / "projects" / "gauge-certificates")
     if "electroweak-mixing" in names:
         shutil.copytree(SHARED / "projects" / "electroweak-certificates", destination / "projects" / "electroweak-certificates")
+    if "physics-qcd-hadrons" in names:
+        shutil.copytree(SHARED / "projects" / "qcd-certificates", destination / "projects" / "qcd-certificates")
 
 
 def previous_build_time(out: Path, fallback: str) -> str:

@@ -56,194 +56,275 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-13 06:31</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：先用尺度追问“自由”是什么意思</a></li>
-<li><a href="#pp-qcd-learning-title">1. 预测门：同一个强作用，为什么会有两种语言？</a><ul>
-<li><a href="#2-running">2. 最小 running 模型：先看公式的因果链</a></li>
-<li><a href="#3-javascript">3. 无 JavaScript 时的静态读法</a></li>
-<li><a href="#4">4. 不变量、证据与推断要分层</a></li>
-<li><a href="#5">5. 误区、边界与迁移任务</a></li>
-</ul>
-</li>
-<li><a href="#1-qcd">1. QCD 的对象：颜色是局域规范荷</a></li>
-<li><a href="#2">2. 渐近自由：反屏蔽如何进入实验</a><ul>
-<li><a href="#21">2.1 一圈系数的竞争</a></li>
-<li><a href="#22">2.2 阈值与方案</a></li>
-</ul>
-</li>
-<li><a href="#3">3. 禁闭：长距离为什么换成强子语言</a></li>
-<li><a href="#4_1">4. 强子谱：表示论是入口，不是整栋房子</a><ul>
-<li><a href="#41">4.1 介子与重子</a></li>
-<li><a href="#42">4.2 质量从哪里来</a></li>
-</ul>
-</li>
-<li><a href="#5_1">5. 喷注、因子化与可检验性</a></li>
-<li><a href="#6">6. 小结与练习</a></li>
+<li><a href="#1">1. 同一个理论，为什么高能看喷注、低能看强子？</a></li>
+<li><a href="#qcd197-title">先把三个问题分开，再把它们接起来</a></li>
+<li><a href="#2">2. 八个生成元：颜色是一个复向量空间</a></li>
+<li><a href="#3">3. 介子单态：不是“红加绿加蓝等于白”的口号</a></li>
+<li><a href="#4">4. 二夸克与重子：吸引和无色是两件事</a></li>
+<li><a href="#5">5. 为什么反三重态二夸克相吸，却仍然有色？</a></li>
+<li><a href="#6-running">6. 一圈running：先指定同一个参考值再比较</a></li>
+<li><a href="#7">7. 跨阈值：连续的是本阶近似的边界值</a></li>
+<li><a href="#8">8. 二圈零点：可以提出研究问题，不能据此画完相图</a></li>
+<li><a href="#9">9. 两通道势：把“弦断裂”拆成可理解的能级问题</a></li>
+<li><a href="#10">10. 质子质量、手征对称与质量隙：三个名字不能混用</a></li>
+<li><a href="#11">11. 从理论到喷注：真正测量的是什么？</a></li>
+<li><a href="#12">12. 八个迁移问题：把推导带到新情形</a></li>
 </ul>
 </div>
 </details>
-<h1 id="iii-qcd">粒子 III · QCD、夸克与强子<a class="headerlink" href="#iii-qcd" title="Permanent link"></a></h1>
+<h1 id="iii-qcd">粒子 III · QCD：颜色、尺度与强子的三条推导<a class="headerlink" href="#iii-qcd" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Griffiths <em>Introduction to Elementary Particles</em> / Halzen &amp; Martin / Peskin §15–17 ｜ <strong>前置</strong>：pp-01（规范群）、qft-03（重整化群）、aqm-01（对称性）
-夸克的颜色不是一张可以直接拍到的标签，胶子也不会像光子那样自由飞到探测器。可是高能喷注又清楚地显示出近似自由的夸克动力学，低能强子谱却显示出束缚。<strong>QCD 如何在不同尺度上同时容纳这两种表面上相反的事实？</strong></p>
+<p><strong>前置</strong>：<a href="pp-01-gauge.html">规范场</a>的表示与协变导数、<a href="qft-03-path-renorm.html">重整化</a>的尺度观念，以及张量积和厄米矩阵。先完成第1—5节的色代数，再看第6—8节的尺度，最后把第9—11节接到实验。无需先背强子分类表。</p>
 </blockquote>
 <div data-learning-page></div>
 
-<section aria-labelledby="pp-qcd-learning-title" class="learning-layer">
-<h2 id="_1">学习层：先用尺度追问“自由”是什么意思<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h2 id="pp-qcd-learning-title">1. 预测门：同一个强作用，为什么会有两种语言？<a class="headerlink" href="#pp-qcd-learning-title" title="Permanent link"></a></h2>
-<p>把探测器能看到的硬喷注想成短距离探针，把质子和介子想成长距离的整体。这里的“距离”不是另一种新变量，而是由四动量转移 <span class="arithmatex">\(Q\)</span> 标记的分辨率：<span class="arithmatex">\(Q\)</span> 越大，探针越能看见更短的结构。在打开账本前，先回答三件事：</p>
-<ol>
-<li>若 <span class="arithmatex">\(Q\)</span> 从 <span class="arithmatex">\(2\)</span> GeV 提高到 <span class="arithmatex">\(91\)</span> GeV，一圈近似中的 <span class="arithmatex">\(\alpha_s(Q)\)</span> 应变大还是变小？</li>
-<li>当 <span class="arithmatex">\(Q\)</span> 接近 <span class="arithmatex">\(\Lambda_{\rm QCD}\)</span> 时，公式给出的“大数”是一个可精确测量的强耦合，还是微扰展开失效的警报？</li>
-<li>两个夸克的 <span class="arithmatex">\(3\otimes3\)</span> 能否直接组成色单态？为什么介子 <span class="arithmatex">\(q\bar q\)</span> 和重子 <span class="arithmatex">\(qqq\)</span> 可以成为强子？</li>
-</ol>
-<p>下面的实验把答案分开：蓝线是<strong>模型计算</strong>，红点是当前输入，低能阴影是<strong>适用性警示</strong>。它不会把曲线本身冒充实验观测，也不会用一圈 running 单独“证明”禁闭。</p>
-<h3 id="2-running">2. 最小 running 模型：先看公式的因果链<a class="headerlink" href="#2-running" title="Permanent link"></a></h3>
-<p>在 <span class="arithmatex">\(SU(3)_c\)</span> Yang–Mills 理论中，</p>
+<section aria-labelledby="qcd197-title" class="learning-layer qcd197-course">
+<h2 id="1">1. 同一个理论，为什么高能看喷注、低能看强子？<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<h2 id="qcd197-title">先把三个问题分开，再把它们接起来<a class="headerlink" href="#qcd197-title" title="Permanent link"></a></h2>
+<p>如果只说“距离近时夸克自由，距离远时夸克被关住”，读者仍不知道这句话从哪里来。我们需要三种不同的计算：<strong>色代数</strong>问哪些组合能消去总色荷；<strong>重整化群</strong>问同一理论的耦合怎样随分辨尺度变化；<strong>非微扰动力学</strong>问实际出现哪些强子和能级。第一种可用小矩阵精确完成，第二种在微扰范围内展开，第三种通常要用格点、有效理论与数据。前两种都不能独自代替第三种。</p>
+<p>本页实验围绕这三种计算展开。先预测：反夸克该乘<span class="arithmatex">\(U\)</span>还是<span class="arithmatex">\(U^*\)</span>？两个夸克相吸就能成为色单态吗？固定同一个高能参考耦合，增加味数会怎样改变尺度斜率？两个能级相遇时，何时交叉，何时避开？每个答案都能追到一条矩阵或方程。</p>
+<p><strong>符号约定。</strong>沿用前两页的<span class="arithmatex">\(D_\mu=\partial_\mu+ig_sA_\mu\)</span>，其中<span class="arithmatex">\(A_\mu=A_\mu^aT^a\)</span>，<span class="arithmatex">\(T^a\)</span>为厄米矩阵。于是<span class="arithmatex">\([D_\mu,D_\nu]=ig_sF_{\mu\nu}\)</span>，且<span class="arithmatex">\(F_{\mu\nu}=\partial_\mu A_\nu-\partial_\nu A_\mu+ig_s[A_\mu,A_\nu]\)</span>。若写<span class="arithmatex">\([T^a,T^b]=if^{abc}T^c\)</span>，分量中的非线性项带负号。使用<span class="arithmatex">\(D=\partial-igA\)</span>的教材相应改变这一号；不可从两套约定各抄一半。</p>
+<h2 id="2">2. 八个生成元：颜色是一个复向量空间<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>夸克的颜色波函数有三个分量<span class="arithmatex">\(q=(q_r,q_g,q_b)^T\)</span>；<span class="arithmatex">\(r,g,b\)</span>只是基底名称。<span class="arithmatex">\(U\in SU(3)\)</span>满足<span class="arithmatex">\(U^\dagger U=I\)</span>和<span class="arithmatex">\(\det U=1\)</span>，并把<span class="arithmatex">\(q\)</span>变为<span class="arithmatex">\(Uq\)</span>。局域理论允许不同位置选择不同基底，协变导数保证比较相邻位置时的表达一致。</p>
+<p>为什么是八个胶子？一般<span class="arithmatex">\(3\times3\)</span>厄米矩阵有三个实对角元和三个复非对角元，共九个实参数；无迹条件减去一个，留下八个独立方向。取Gell-Mann基<span class="arithmatex">\(T^a=\lambda^a/2\)</span>，例如</p>
 <div class="arithmatex">\[
-\mathcal L_{\rm QCD}=-\frac14F^a_{\mu\nu}F^{a\mu\nu}
- +\sum_{f=1}^{n_f}\bar q_f(i\gamma^\mu D_\mu-m_f)q_f,
+T^1=\frac12\begin{pmatrix}0&amp;1&amp;0\\1&amp;0&amp;0\\0&amp;0&amp;0\end{pmatrix},
+\quad
+T^2=\frac12\begin{pmatrix}0&amp;-i&amp;0\\i&amp;0&amp;0\\0&amp;0&amp;0\end{pmatrix},
+\quad
+T^8=\frac1{2\sqrt3}\operatorname{diag}(1,1,-2).
 \]</div>
-<p>其中</p>
+<p>另外五个矩阵及全部乘积账表在实验中展开。约定<span class="arithmatex">\(\operatorname{tr}(T^aT^b)=\delta^{ab}/2\)</span>后，直接乘矩阵可验证<span class="arithmatex">\(\sum_aT^aT^a=(4/3)I\)</span>。这个<span class="arithmatex">\(C_F=4/3\)</span>是表示的二次Casimir，不是夸克质量，也不是“颜色有<span class="arithmatex">\(4/3\)</span>种”。</p>
+<p>QCD的局部作用量可写成<span class="arithmatex">\(\mathcal L=-\frac14F_{\mu\nu}^aF^{a\mu\nu}+\sum_f\bar q_f(i\gamma^\mu D_\mu-m_f)q_f\)</span>。非线性场强给出三胶子和四胶子相互作用；但规定作用量的形式，并没有完成束缚态求解。色代数和规范约定可对照<a href="https://pdg.lbl.gov/2025/reviews/rpp2025-rev-qcd.pdf">PDG《QCD》§9.1</a>。</p>
+<h2 id="3">3. 介子单态：不是“红加绿加蓝等于白”的口号<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>反夸克在反基本表示中变换。若<span class="arithmatex">\(q\to Uq\)</span>，相应反颜色列向量用<span class="arithmatex">\(U^*\)</span>，无穷小生成元就是<span class="arithmatex">\(-T^{a*}\)</span>。因此<span class="arithmatex">\(q\bar q\)</span>的九维颜色空间上，总生成元为</p>
 <div class="arithmatex">\[
-F^a_{\mu\nu}=\partial_\mu A^a_\nu-\partial_\nu A^a_\mu
- +g_s f^{abc}A^b_\mu A^c_\nu.
+G^a_{q\bar q}=T^a\otimes I-I\otimes T^{a*},
+\qquad
+|S\rangle=\frac{|r\bar r\rangle+|g\bar g\rangle+|b\bar b\rangle}{\sqrt3}.
 \]</div>
-<p>最后的 <span class="arithmatex">\(f^{abc}\)</span> 不是装饰：非阿贝尔规范场自身带色荷，所以胶子彼此相互作用。对 <span class="arithmatex">\(\alpha_s=g_s^2/(4\pi)\)</span>，一圈重整化群方程是</p>
+<p>把系数写成<span class="arithmatex">\(S_{ij}=\delta_{ij}/\sqrt3\)</span>，变换后得到<span class="arithmatex">\(S'_{ij}=\sum_kU_{ik}U^*_{jk}/\sqrt3=(UU^\dagger)_{ij}/\sqrt3=S_{ij}\)</span>。这里真正做事的是幺正性，不是颜色名称。于是每个<span class="arithmatex">\(G^a\)</span>都消去<span class="arithmatex">\(|S\rangle\)</span>。</p>
+<p>定义<span class="arithmatex">\(C_2=\sum_aG^aG^a\)</span>。对任意向量<span class="arithmatex">\(|\psi\rangle\)</span>，有<span class="arithmatex">\(\langle\psi|C_2|\psi\rangle=\sum_a\|G^a|\psi\rangle\|^2\ge0\)</span>。因此<span class="arithmatex">\(C_2\)</span>的零空间恰好是被所有生成元消去的空间。不是只看平均色荷<span class="arithmatex">\(\langle G^a\rangle\)</span>为零：平均值可因正负抵消，而平方范数不能。</p>
+<p>更强的检查是直接算出<span class="arithmatex">\(C_2=3(I-P_S)\)</span>，其中<span class="arithmatex">\(P_S=|S\rangle\langle S|\)</span>，满足<span class="arithmatex">\(P_S^2=P_S\)</span>、<span class="arithmatex">\(\operatorname{tr}P_S=1\)</span>。所以九维空间分成一个<span class="arithmatex">\(C_2=0\)</span>方向和八个<span class="arithmatex">\(C_2=3\)</span>方向，这就给出<span class="arithmatex">\(\mathbf3\otimes\bar{\mathbf3}=\mathbf1\oplus\mathbf8\)</span>。</p>
+<p>实验用<span class="arithmatex">\(U(\theta)=e^{i\theta T^8}e^{i\theta T^2}\)</span>做一族非平凡复变换。它也演示一个反例：误把反夸克乘成<span class="arithmatex">\(U\)</span>，即用<span class="arithmatex">\(U\otimes U\)</span>，原单态一般就不再保持不变。扫描一族<span class="arithmatex">\(U\)</span>只是可见的例子；全八个生成元消去单态才是连通群下不变性的完整理由。</p>
+<h2 id="4">4. 二夸克与重子：吸引和无色是两件事<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>两个夸克都在基本表示，所以<span class="arithmatex">\(G^a_{qq}=T^a\otimes I+I\otimes T^a\)</span>。令交换算符<span class="arithmatex">\(P|ij\rangle=|ji\rangle\)</span>。从生成元的完备关系</p>
 <div class="arithmatex">\[
-\frac{d\alpha_s}{d\ln Q}=-\frac{\beta_0}{2\pi}\alpha_s^2+O(\alpha_s^3),
-\qquad \beta_0=11-\frac23n_f.
+\sum_aT^a_{ij}T^a_{kl}
+=\frac12\left(\delta_{il}\delta_{jk}-\frac13\delta_{ij}\delta_{kl}\right)
 \]</div>
-<p>保留一圈项并用一个尺度参数 <span class="arithmatex">\(\Lambda\)</span> 积分：</p>
+<p>可得<span class="arithmatex">\(\sum_aT^a\otimes T^a=\frac12(P-I/3)\)</span>，进而<span class="arithmatex">\(C_2^{qq}=\frac73I+P\)</span>。在对称子空间<span class="arithmatex">\(P=+1\)</span>，本征值为<span class="arithmatex">\(10/3\)</span>、维数六；在反对称子空间<span class="arithmatex">\(P=-1\)</span>，本征值为<span class="arithmatex">\(4/3\)</span>、维数三。没有零本征值，所以<span class="arithmatex">\(\mathbf3\otimes\mathbf3=\mathbf6\oplus\bar{\mathbf3}\)</span>不含单态。</p>
+<p>再加第三个夸克，总生成元是三个位置上的<span class="arithmatex">\(T^a\)</span>之和。候选单态为</p>
 <div class="arithmatex">\[
-\alpha_s(Q)=\frac{4\pi}{\beta_0\ln(Q^2/\Lambda^2)},
-\qquad Q&gt;\Lambda.
+|B\rangle=\frac1{\sqrt6}\sum_{i,j,k}\epsilon_{ijk}|ijk\rangle.
 \]</div>
-<p>逻辑链很短但每一步都有条件：<span class="arithmatex">\(n_f\)</span> 不太大 <span class="arithmatex">\(\Rightarrow\beta_0&gt;0\)</span>；于是 <span class="arithmatex">\(Q\)</span> 增大时分母增大，<span class="arithmatex">\(\alpha_s\)</span> 变小；反向走到 <span class="arithmatex">\(Q\sim\Lambda\)</span> 时分母变小，微扰级数失去小参数。这里的 <span class="arithmatex">\(\Lambda\)</span> 依赖重整化方案与有效味数，不能脱离定义写成一个不变的“自然常数”。</p>
-<h3 id="3-javascript">3. 无 JavaScript 时的静态读法<a class="headerlink" href="#3-javascript" title="Permanent link"></a></h3>
-<p>默认取 <span class="arithmatex">\(\Lambda=0.25\)</span> GeV、<span class="arithmatex">\(n_f=5\)</span>，所以 <span class="arithmatex">\(\beta_0=23/3\approx7.667\)</span>。直接代入一圈式得到（只保留三位有效读数）：</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: right;"><span class="arithmatex">\(Q\)</span> / GeV</th>
-<th style="text-align: right;"><span class="arithmatex">\(\ln(Q^2/\Lambda^2)\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(\alpha_s^{(1)}(Q)\)</span></th>
-<th>读法</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: right;"><span class="arithmatex">\(0.50\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1.386\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1.183\)</span></td>
-<td>公式已在强耦合警戒区，不能当精密微扰答案</td>
-</tr>
-<tr>
-<td style="text-align: right;"><span class="arithmatex">\(2.00\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(4.159\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.394\)</span></td>
-<td>可作尺度趋势与粗略展开的候选</td>
-</tr>
-<tr>
-<td style="text-align: right;"><span class="arithmatex">\(10.0\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(7.378\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.222\)</span></td>
-<td>高于 <span class="arithmatex">\(2\)</span> GeV，微扰层次更有希望</td>
-</tr>
-<tr>
-<td style="text-align: right;"><span class="arithmatex">\(91.0\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(11.794\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.139\)</span></td>
-<td>硬过程中的小耦合趋势；真实数值还要匹配阈值和高阶修正</td>
-</tr>
-</tbody>
-</table>
-<p>点击实验后，表格会使用同一组 <span class="arithmatex">\(Q,\Lambda,n_f\)</span> 重算这些量。若把 <span class="arithmatex">\(Q\)</span> 调到 <span class="arithmatex">\(0.20\)</span> GeV，因 <span class="arithmatex">\(Q&lt;\Lambda\)</span>，账本明确显示“越过微扰边界”，而不是输出一个看似漂亮的负数或把结果截成 0。</p>
+<p>六个非零项的平方模相加为一。三个<span class="arithmatex">\(U\)</span>作用于<span class="arithmatex">\(\epsilon_{ijk}\)</span>只给出<span class="arithmatex">\(\det U\)</span>，而<span class="arithmatex">\(\det U=1\)</span>，故<span class="arithmatex">\(|B\rangle\)</span>不变。完整27维Casimir的谱为<span class="arithmatex">\(0\)</span>一次、<span class="arithmatex">\(3\)</span>十六次、<span class="arithmatex">\(6\)</span>十次，对应<span class="arithmatex">\(\mathbf1\oplus\mathbf8\oplus\mathbf8\oplus\mathbf{10}\)</span>。两个八重态有相同Casimir；仅凭这个算符不能区分它们。</p>
+<p>这只是颜色部分。相同费米子交换时，<strong>颜色、空间、自旋和味道</strong>的总波函数必须反对称；不能在颜色<span class="arithmatex">\(\epsilon\)</span>之外再随意指定其他部分。不同位置的夸克组合若要写成严格规范不变算符，还须用平行移动连接各位置。上述小矩阵描述同一颜色纤维或已运回共同位置后的表示结构。有关强子颜色组合可参阅<a href="https://davidtong.org/pdfs/teaching/standard-model/standardmodel3.pdf">Tong《Standard Model》第3章</a>。</p>
+<h2 id="5">5. 为什么反三重态二夸克相吸，却仍然有色？<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>短距离单胶子交换中的颜色算符是<span class="arithmatex">\(\mathbf T_1\cdot\mathbf T_2\)</span>。展开<span class="arithmatex">\((\mathbf T_1+\mathbf T_2)^2\)</span>立即得到</p>
+<div class="arithmatex">\[
+\mathbf T_1\cdot\mathbf T_2
+=\frac12(C_{\rm total}-C_1-C_2).
+\]</div>
+<p>在两体基本或反基本表示中<span class="arithmatex">\(C_1=C_2=4/3\)</span>。介子单态于是给<span class="arithmatex">\(-4/3\)</span>，八重态给<span class="arithmatex">\(+1/6\)</span>；二夸克反三重态给<span class="arithmatex">\(-2/3\)</span>，六重态给<span class="arithmatex">\(+1/3\)</span>。在<span class="arithmatex">\(V(r)=\alpha_s(\mathbf T_1\cdot\mathbf T_2)/r\)</span>这一短距离约定下，负值对应吸引，正值对应排斥。</p>
+<p>这里可以精确指出差别：<strong>相吸</strong>要求两体色因子为负；<strong>色单态</strong>要求总Casimir为零。反三重态满足前者但不满足后者。进一步，即使某个组合含单态，也不保证自然界一定存在一个稳定、狭窄或易于辨认的强子。四夸克、五夸克、胶球等都要继续问动力学和观测，而不是只做表示分解。</p>
+<h2 id="6-running">6. 一圈running：先指定同一个参考值再比较<a class="headerlink" href="#6-running" title="Permanent link"></a></h2>
+<p>令<span class="arithmatex">\(\alpha_s=g_s^2/(4\pi)\)</span>。以<span class="arithmatex">\(Q\)</span>代表所选重整化尺度，本页一圈方程为</p>
+<div class="arithmatex">\[
+\frac{d\alpha_s}{d\ln Q}
+=-\frac{\beta_0}{2\pi}\alpha_s^2,
+\qquad
+\beta_0=11-\frac23n_f.
+\]</div>
+<p>不要急着记<span class="arithmatex">\(\Lambda\)</span>公式。先令<span class="arithmatex">\(u=1/\alpha_s\)</span>，链式法则给<span class="arithmatex">\(du/d\ln Q=\beta_0/(2\pi)\)</span>。固定边界<span class="arithmatex">\(\alpha_s(Q_0)=\alpha_0\)</span>后，</p>
+<div class="arithmatex">\[
+\frac1{\alpha_s(Q)}=\frac1{\alpha_0}
++\frac{\beta_0}{2\pi}\ln\frac Q{Q_0}.
+\]</div>
+<p>因此倒数图是一条直线。<span class="arithmatex">\(\beta_0&gt;0\)</span>时，向高能走，倒数增大而耦合减小；<span class="arithmatex">\(n_f=17\)</span>时<span class="arithmatex">\(\beta_0=-1/3\)</span>，方向相反。这是“非阿贝尔不自动等于渐近自由”的实际可操作反例。</p>
+<p>默认取<span class="arithmatex">\(Q_0=100\)</span> GeV、<span class="arithmatex">\(\alpha_0=0.120\)</span>。这是教学边界条件，不是本页测出的世界平均值。在<span class="arithmatex">\(Q&lt;Q_0\)</span>处增加<span class="arithmatex">\(n_f\)</span>，会使正的<span class="arithmatex">\(\beta_0\)</span>减小，倒数减少得更慢，故耦合反而较小。若改成“固定相同<span class="arithmatex">\(\Lambda\)</span>”来比较，则可能得到另一趋势，因为你同时改变了高能边界条件。<strong>讨论参数影响之前，要先说固定的是什么。</strong></p>
+<p>当倒数到零，一圈表达式出现极点。继续延拓会得到负的实数<span class="arithmatex">\(\alpha_s\)</span>；数学上不是“没有实数”，但它不属于从正<span class="arithmatex">\(\alpha_0\)</span>出发、跨极点前的正耦合分支。实验保留倒数用于诊断，将物理读数标为不适用，也不会把大于一的耦合截成一条假平台。</p>
+<p>把积分常数写成<span class="arithmatex">\(\Lambda=Q_0\exp[-2\pi/(\beta_0\alpha_0)]\)</span>可恢复<span class="arithmatex">\(\alpha_s(Q)=4\pi/[\beta_0\ln(Q^2/\Lambda^2)]\)</span>。<span class="arithmatex">\(\beta_0&gt;0\)</span>时它是本近似的红外极点尺度；<span class="arithmatex">\(\beta_0&lt;0\)</span>时却是紫外极点，不能仍称它为现实QCD的低能尺度。极端参数下直接指数可能超出浮点表示范围，账表仍保留<span class="arithmatex">\(\ln\Lambda\)</span>；不把数值下溢当成真的零能标。</p>
+<h2 id="7">7. 跨阈值：连续的是本阶近似的边界值<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>实验同时计算一条匹配曲线：<span class="arithmatex">\(Q&lt;1.5\)</span> GeV用三味，<span class="arithmatex">\(1.5\le Q&lt;5\)</span>用四味，<span class="arithmatex">\(5\le Q&lt;175\)</span>用五味，再高用六味。这三个数是教学阈值。每段都积分<span class="arithmatex">\(du/d\ln Q=\beta_0(n_f)/(2\pi)\)</span>，到边界时把本段的<span class="arithmatex">\(u\)</span>交给下一段，不能重新任取同一个<span class="arithmatex">\(\Lambda\)</span>。</p>
+<p>例如从<span class="arithmatex">\(100\)</span> GeV降到<span class="arithmatex">\(2\)</span> GeV，中间经过<span class="arithmatex">\(5\)</span> GeV：</p>
+<div class="arithmatex">\[
+\frac1{\alpha_s(2)}
+=\frac1{\alpha_s(100)}
++\frac{\beta_0(5)}{2\pi}\ln\frac5{100}
++\frac{\beta_0(4)}{2\pi}\ln\frac25.
+\]</div>
+<p>这解释了图中的折线：值连续，斜率改变。实验把每段上下限、活跃味数、对数比和倒数增量全部列出。固定味数控件只改变固定味数曲线，匹配曲线的三至六味规则不随它改动。</p>
+<p>这种连续性是所选一圈精度下的匹配，不是“running耦合在任意阶都必须连续”的定理。更高阶匹配系数、质量方案和匹配尺度都要一致；最终可观测量的方案依赖在各部分之间补偿。相应公式和约定见<a href="https://pdg.lbl.gov/2025/reviews/rpp2025-rev-qcd.pdf">PDG §9.1.1 的阈值匹配式</a>。</p>
+<h2 id="8">8. 二圈零点：可以提出研究问题，不能据此画完相图<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>在相同<span class="arithmatex">\(\ln Q\)</span>约定下再留一阶，</p>
+<div class="arithmatex">\[
+\beta(\alpha)=-\frac{\beta_0}{2\pi}\alpha^2
+-\frac{\beta_1}{8\pi^2}\alpha^3+\cdots,
+\qquad \beta_1=102-\frac{38}{3}n_f.
+\]</div>
+<p>如果<span class="arithmatex">\(\beta_0&gt;0\)</span>且<span class="arithmatex">\(\beta_1&lt;0\)</span>，截断多项式除了零还有<span class="arithmatex">\(\alpha_*=-4\pi\beta_0/\beta_1\)</span>。比如<span class="arithmatex">\(n_f=16\)</span>时<span class="arithmatex">\(\beta_0=1/3\)</span>、<span class="arithmatex">\(\beta_1=-302/3\)</span>，得<span class="arithmatex">\(\alpha_*=2\pi/151\approx0.04161\)</span>，至少处在小耦合候选范围；把味数往下调，候选零点可能很大，忽略更高阶就缺乏控制。</p>
+<p>对一个真正的弱耦合红外不动点，尺度降低时流可趋近有限耦合，而不是不断变强。因此渐近自由、禁闭、手征对称性破缺和共形行为必须分别讨论。实验只列出二圈候选，不宣称找到了现实QCD的共形窗口下边界。这条研究路线的经典原始工作是<a href="https://cds.cern.ch/record/130029">Banks与Zaks关于无质量矢量型规范理论相结构的论文</a>。</p>
+<h2 id="9">9. 两通道势：把“弦断裂”拆成可理解的能级问题<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>长距离静态源之间的势不能靠一圈running求完。为理解能级图，先规定一个<strong>示意有效模型</strong>：一条弦态和一个双强子态，具有同一能量零点，</p>
+<div class="arithmatex">\[
+H(r)=\begin{pmatrix}V_s(r)&amp;\delta\\\delta&amp;E_{\rm th}\end{pmatrix},
+\qquad
+V_s(r)=-\frac43\frac{\alpha_V\hbar c}{r}
++\frac{\sigma r}{\hbar c}.
+\]</div>
+<p>这里<span class="arithmatex">\(r\)</span>用fm，<span class="arithmatex">\(\sigma\)</span>用GeV²，能量用GeV，<span class="arithmatex">\(\hbar c=0.1973269804\)</span> GeV·fm；<span class="arithmatex">\(\alpha_V=0.3\)</span>是固定示意势参数，与前面的running曲线分开。默认<span class="arithmatex">\(\sigma=0.18\)</span> GeV²、<span class="arithmatex">\(E_{\rm th}=1.2\)</span> GeV、<span class="arithmatex">\(\delta=0.08\)</span> GeV。它们没有拟合实际强子质量。</p>
+<p>解二次特征方程即可得到</p>
+<div class="arithmatex">\[
+E_\pm=\frac{V_s+E_{\rm th}}2
+\pm\frac12\sqrt{(V_s-E_{\rm th})^2+4\delta^2}.
+\]</div>
+<p><span class="arithmatex">\(\delta=0\)</span>时两个对角能量可以直接交叉；<span class="arithmatex">\(\delta&gt;0\)</span>时最小间隔为<span class="arithmatex">\(2\delta\)</span>。低能态中“弦态”的权重由谱投影给出</p>
+<div class="arithmatex">\[
+w_s^-=\frac12\left(1-\frac{V_s-E_{\rm th}}
+{\sqrt{(V_s-E_{\rm th})^2+4\delta^2}}\right).
+\]</div>
+<p>这让图像有了因果关系：短距离低能态主要像弦态；过了交叉区域，它主要像双强子态。若<span class="arithmatex">\(\sigma=0\)</span>且<span class="arithmatex">\(E_{\rm th}&gt;0\)</span>，本模型的<span class="arithmatex">\(V_s\)</span>一直为负，没有正距离交叉；若<span class="arithmatex">\(\delta=0\)</span>且恰好<span class="arithmatex">\(V_s=E_{\rm th}\)</span>，单一本征向量不唯一，权重应标为不适用，不能硬套“各半”。</p>
+<p>解析交叉点由<span class="arithmatex">\(\sigma r^2/(\hbar c)^2-E_{\rm th}r/(\hbar c)-(4/3)\alpha_V=0\)</span>求得。账表把解析交叉点和浮点直接代入分列：最后几位的舍入误差可能假装选中了简并子空间的一侧，那不是物理预测。</p>
+<p>真正的弦断裂研究从格点关联函数提取能级和混合信息，还要控制格距、体积、夸克质量等。本模型只帮你读懂“为什么会出现避免交叉”。可进一步阅读<a href="https://arxiv.org/abs/hep-lat/0505012">Bali等对两味格点QCD弦断裂的原始计算</a>。</p>
 <div class="learning-lab" data-learning-lab="physics-qcd-hadrons">
-<p><strong>无 JavaScript 时的静态 fallback：</strong>默认输入是 <span class="arithmatex">\(Q=2\)</span> GeV、<span class="arithmatex">\(\Lambda=0.25\)</span> GeV、<span class="arithmatex">\(n_f=5\)</span>。一圈公式给 <span class="arithmatex">\(\beta_0=23/3\)</span>、<span class="arithmatex">\(\alpha_s=4\pi/[(23/3)\ln64]\approx0.394\)</span>；把 <span class="arithmatex">\(Q\)</span> 改成 <span class="arithmatex">\(91\)</span> GeV 得 <span class="arithmatex">\(\alpha_s\approx0.139\)</span>。增加 <span class="arithmatex">\(n_f\)</span> 会减小 <span class="arithmatex">\(\beta_0\)</span>，因此在同一 <span class="arithmatex">\(Q\)</span> 下使一圈 <span class="arithmatex">\(\alpha_s\)</span> 增大。<span class="arithmatex">\(Q\le\Lambda\)</span> 时状态是“非微扰边界”，这不是测得的无限耦合。</p>
-<p>强子组合的静态账本是：</p>
+<p><strong>无脚本对照：</strong>六份固定记录包含8个完整Gell-Mann矩阵，9/9/27维总Casimir、单态及其生成元作用、SU(3)变换、401个能标的固定/匹配计算、181个颜色角和301个两通道间距。下表的耦合来自当前模式；颜色与势参数独立。全部都是模型计算。</p>
+<figure class="plot">
+<p><img alt="六图：固定与匹配的一圈耦合、正耦合分支、三种颜色空间的Casimir谱、正确与错误反夸克表示、两通道能级和味数系数。" src="assets/img/pp-03-qcd-certificates.svg" /></p>
+<figcaption>默认αs(100 GeV)=0.120；势的αV=0.3另行固定。大于1的耦合保留在原始表中但不画成平台；色代数不代替禁闭证明。</figcaption>
+</figure>
+<div aria-label="QCD固定模型记录，可横向滚动" class="qcd197-static" role="region" tabindex="0">
 <table>
 <thead>
 <tr>
-<th>组合</th>
-<th>色表示分解</th>
-<th>是否含单态</th>
+<th>预设</th>
+<th style="text-align: right;">Q/GeV</th>
+<th style="text-align: right;">当前nf</th>
+<th style="text-align: right;">1/αs</th>
+<th style="text-align: right;">αs</th>
+<th style="text-align: right;">错误介子重叠²</th>
+<th style="text-align: right;">交叉r/fm</th>
+<th style="text-align: right;">解析交叉处低能弦权重</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><span class="arithmatex">\(q\bar q\)</span></td>
-<td><span class="arithmatex">\(3\otimes\bar3=\mathbf1\oplus\mathbf8\)</span></td>
-<td>是，介子候选</td>
+<td>default</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5.5237469</td>
+<td style="text-align: right;">0.18103654</td>
+<td style="text-align: right;">0.44861399</td>
+<td style="text-align: right;">1.3782929</td>
+<td style="text-align: right;">0.5</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(qq\)</span></td>
-<td><span class="arithmatex">\(3\otimes3=\mathbf6\oplus\bar{\mathbf3}\)</span></td>
-<td>否，不能成为孤立强子</td>
+<td>low</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">-4.0960478</td>
+<td style="text-align: right;">不适用</td>
+<td style="text-align: right;">0.44861399</td>
+<td style="text-align: right;">1.3782929</td>
+<td style="text-align: right;">0.5</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(qqq\)</span></td>
-<td><span class="arithmatex">\(3\otimes3\otimes3\)</span> 含 <span class="arithmatex">\(\mathbf1\)</span></td>
-<td>是，重子候选</td>
+<td>seventeen</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">17</td>
+<td style="text-align: right;">8.4554893</td>
+<td style="text-align: right;">0.11826637</td>
+<td style="text-align: right;">0.44861399</td>
+<td style="text-align: right;">1.3782929</td>
+<td style="text-align: right;">0.5</td>
+</tr>
+<tr>
+<td>uv-pole</td>
+<td style="text-align: right;">1000000</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">-0.92036613</td>
+<td style="text-align: right;">不适用</td>
+<td style="text-align: right;">0.44861399</td>
+<td style="text-align: right;">1.3782929</td>
+<td style="text-align: right;">0.5</td>
+</tr>
+<tr>
+<td>crossing</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5.5237469</td>
+<td style="text-align: right;">0.18103654</td>
+<td style="text-align: right;">0.44861399</td>
+<td style="text-align: right;">1.3782929</td>
+<td style="text-align: right;">不适用</td>
+</tr>
+<tr>
+<td>no-string</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">5.5237469</td>
+<td style="text-align: right;">0.18103654</td>
+<td style="text-align: right;">0.44861399</td>
+<td style="text-align: right;">不适用</td>
+<td style="text-align: right;">不适用</td>
 </tr>
 </tbody>
 </table>
-<p>这些是表示论的硬约束；“色单态会以怎样的谱和寿命出现”还需要 QCD 的非微扰动力学。</p>
 </div>
-<h3 id="4">4. 不变量、证据与推断要分层<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<ul>
-<li><strong>代数不变量：</strong>局域 <span class="arithmatex">\(SU(3)_c\)</span> 变换下可观测量必须是规范不变的，Gauss 约束规定物理态如何承载规范荷；表示论也告诉我们哪些夸克组合包含色单态。可是“自然界没有孤立的有色渐近态”还需要非微扰禁闭动力学，不能只凭规范不变性推出。</li>
-<li><strong>微扰推断：</strong><span class="arithmatex">\(\beta_0&gt;0\)</span> 导出短距离渐近自由。深非弹性散射和喷注中的对数尺度依赖与这一趋势相容；观测先给出截面、事件形状、喷注多重性等数据，<span class="arithmatex">\(\alpha_s(Q)\)</span> 是在指定理论、切割和误差模型下反演的参数。</li>
-<li><strong>非微扰推断：</strong>低能禁闭是 QCD 的核心物理图像，格点 QCD、强子谱、介子/重子散射和强子化现象提供了多条证据。但一圈公式在 <span class="arithmatex">\(Q\sim\Lambda\)</span> 处失效，所以不能把它的极点当成禁闭定理；四维连续 Yang–Mills 的质量隙问题仍是数学物理的深问题。</li>
-</ul>
-<p>把“看到喷注”与“看到自由夸克”分开，是这页最重要的科学卫生：喷注是高能 parton 在强子化后的相关粒子束；我们测到的是稳定或长寿命末态及其四动量，不是一个被放进探测器的孤立色荷。</p>
-<h3 id="5">5. 误区、边界与迁移任务<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<ol>
-<li><strong>误区：<span class="arithmatex">\(Q=\Lambda\)</span> 是自然界的一堵硬墙。</strong> 更准确的说法是：一圈、固定 <span class="arithmatex">\(n_f\)</span> 的微扰表达式在这里不能继续承担定量任务。低能仍有物理，只是要换成格点、有效场论、QCD 求和规则或数据驱动的强子化模型。</li>
-<li><strong>误区：非阿贝尔就必然渐近自由。</strong> <span class="arithmatex">\(\beta_0\)</span> 还包含物质场屏蔽；当 <span class="arithmatex">\(n_f\)</span> 足够大时一圈系数会改变符号，理论的紫外行为也会改变。QCD 的实际夸克内容落在渐近自由一侧，不应把结论推广给所有非阿贝尔理论。</li>
-<li><strong>误区：禁闭等于“夸克之间有一条永远线性的经典绳子”。</strong> <span class="arithmatex">\(V(r)\approx-4\alpha_s/(3r)+\sigma r\)</span> 是长距离势的现象学/格点启发形式；弦张力 <span class="arithmatex">\(\sigma\)</span>、string breaking、轻夸克对产生都会影响其适用范围。</li>
-</ol>
-<p><strong>迁移题：</strong>若实验给出两个尺度 <span class="arithmatex">\(Q_1,Q_2\)</span> 的截面比，为什么比值常能减少归一化系统误差，却不能自动消掉 PDF、阈值和高阶修正？再设想一个 <span class="arithmatex">\(SU(N_c)\)</span> 理论，把一圈系数写成规范场贡献与费米子屏蔽贡献的组合，指出需要哪些新输入才能判断是否渐近自由。</p>
+<p><a download="qcd-frozen-records.json" href="assets/learning/projects/qcd-certificates/run-snapshot.json">下载六份完整记录</a>。不适用值保存为null：包括越过正耦合分支的αs、σ=0时不存在的交叉距离，以及δ=0精确简并时未被选定的单态权重。浮点交叉代入另列，不能拿舍入残差选基。</p>
+</div>
+<h2 id="10">10. 质子质量、手征对称与质量隙：三个名字不能混用<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>“质子由三个价夸克组成”记录的是量子数，不是三个静止小球质量相加。QCD的能动量张量还包含夸克和胶子场的动能、相互作用及量子效应。即使取轻夸克质量很小，强相互作用仍可通过量纲嬗变产生尺度。把质量贡献分拆成百分比时，必须说明算符定义、重整化方案和尺度；不能把某种分解当成唯一的组成饼图。相关推导见<a href="https://arxiv.org/abs/hep-ph/9410274">Ji的核子质量分解原始论文</a>，以及其后对<a href="https://arxiv.org/abs/2102.07830">分解含义与适用范围的说明</a>。</p>
+<p>再区分颜色与味道。颜色<span class="arithmatex">\(SU(3)_c\)</span>是规范结构；忽略少数轻夸克质量时，近似手征对称性作用在左、右手<strong>味空间</strong>。若全局<span class="arithmatex">\(SU(n_f)_L\times SU(n_f)_R\)</span>在真空中降到矢量子群，会有<span class="arithmatex">\(n_f^2-1\)</span>个Goldstone方向；小的显式夸克质量使相应介子成为伪Goldstone。最低阶关系可写成<span class="arithmatex">\(m_\pi^2=B(m_u+m_d)\)</span>，其中<span class="arithmatex">\(B\)</span>是需另行确定的低能常数。这个式子没有说“所有强子质量都正比于夸克质量”，也没有把颜色规范冗余物理地打破。</p>
+<p>“禁闭”关心有色自由渐近态及相关非微扰现象；“质量隙”关心真空上方谱是否有严格正的间隔；“手征破缺”关心全局味对称及真空。含无质量夸克的理论可能有Goldstone玻色子，所以不能照搬纯Yang–Mills的质量隙问题。Clay的正式问题要求在四维构造满足相应公理的非平凡量子Yang–Mills理论并证明正质量隙；它并不把“证明禁闭”写成同一个命题。截至本页复核日期2026-09-13，<a href="https://www.claymath.org/millennium/yang-mills-the-maths-gap/">Clay仍将该问题列为未解决</a>。</p>
+<h2 id="11">11. 从理论到喷注：真正测量的是什么？<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p>实验测量的是末态粒子的动量、能量沉积、轨迹和由此重建的截面或喷注。喷注提供硬部分子动力学的证据，但不是一个有色夸克直接抵达探测器的照片。计算则需明确可观测量，组织短距离系数与长距离输入。</p>
+<p>以适用因子化的强子碰撞截面为例，结构上写成<span class="arithmatex">\(f_{a/h_1}\otimes f_{b/h_2}\otimes\hat\sigma_{ab}\)</span>，并加上所需末态函数和幂次修正。PDF、硬系数和因子化尺度共同构成一个约定一致的预测。改变尺度会在这些部分之间重新分配贡献；有限阶结果的剩余尺度依赖提供不确定性线索，不是全部理论误差。</p>
+<p>有一个可亲手做的判据：若把一个末态粒子换成两个几乎共线、动量和相同的粒子，或添加一个能量趋零的粒子，测量函数是否连续回到原值？这就是红外与共线安全的基本思路。它使实辐射与虚修正中的相关奇异性有机会抵消；初态共线项还要按因子化规则进入PDF。实验切割、喷注定义、强子化和探测器效应都不能因写出“<span class="arithmatex">\(\alpha_s\)</span>很小”就自动消失。</p>
+<p>进阶时可沿三个方向读：用格点连续极限研究强子与弦断裂；用有效理论和高阶计算组织多尺度对数；用不同过程约束PDF与<span class="arithmatex">\(\alpha_s\)</span>并比较一致性。开始前先确认哪一个量是观测，哪一个是反演参数，哪一个只是示意模型输入。</p>
+<h2 id="12">12. 八个迁移问题：把推导带到新情形<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>1 · 平均色荷全为零，就已经是色单态了吗？</summary>
+<p>不够。对某个态，<span class="arithmatex">\(\langle G^a\rangle=0\)</span>可能来自正负抵消；应检查<span class="arithmatex">\(G^a|\psi\rangle=0\)</span>。由于<span class="arithmatex">\(C_2\)</span>是平方和，<span class="arithmatex">\(\langle C_2\rangle=0\)</span>才迫使每项<span class="arithmatex">\(\|G^a|\psi\rangle\|^2\)</span>都为零。混合态也应检查其支撑是否全在零空间，不能只看一组平均值。</p>
+</details>
+<details class="answer">
+<summary>2 · 为什么八个“带颜色又带反颜色”的胶子，不是九个？</summary>
+<p>矩阵空间有九维，分成无迹的八维和单位矩阵的一维。单位矩阵对应<span class="arithmatex">\(\mathbf3\otimes\bar{\mathbf3}\)</span>中的单态方向；<span class="arithmatex">\(SU(3)\)</span>的李代数只取无迹部分，故规范场有八个生成元方向。不能把九个颜色对都当成独立的<span class="arithmatex">\(SU(3)\)</span>胶子。</p>
+</details>
+<details class="answer">
+<summary>3 · 二夸克相吸的色因子−2/3，怎样一步算出来？</summary>
+<p>反对称子空间的总Casimir为<span class="arithmatex">\(4/3\)</span>，每个夸克的Casimir也为<span class="arithmatex">\(4/3\)</span>。代入<span class="arithmatex">\(\frac12(C_{\rm total}-C_1-C_2)\)</span>得<span class="arithmatex">\(\frac12(4/3-4/3-4/3)=-2/3\)</span>。但总Casimir仍非零，说明它有色。负势能系数与色单态不是同一个判断。</p>
+</details>
+<details class="answer">
+<summary>4 · 固定αs(100 GeV)，增大nf后，10 GeV处耦合为什么可能变小？</summary>
+<p>因为<span class="arithmatex">\(\ln(10/100)&lt;0\)</span>。增大<span class="arithmatex">\(n_f\)</span>会减小<span class="arithmatex">\(\beta_0\)</span>，负的倒数增量绝对值随之减小，低能倒数更大，故正耦合更小。这与固定<span class="arithmatex">\(\Lambda\)</span>比较的答案可以不同：那是另一组边界条件。实验的两条曲线始终从同一参考点出发。</p>
+</details>
+<details class="answer">
+<summary>5 · 一圈极点已经出现，是否证明了禁闭？</summary>
+<p>没有。极点首先表明这条微扰表达式不能继续承担定量任务。禁闭还涉及非微扰态空间和长距离动力学，需要额外分析。反例是本页17—20味的固定味数理论：同一个方程可以出现紫外极点，不能把任何极点都解释成低能禁闭。</p>
+</details>
+<details class="answer">
+<summary>6 · 若把δ连续降到0，交叉点的各半混合是不是仍然唯一？</summary>
+<p>对每个<span class="arithmatex">\(\delta&gt;0\)</span>，在<span class="arithmatex">\(V_s=E_{\rm th}\)</span>处的非简并低能态确有各半权重。但在恰好<span class="arithmatex">\(\delta=0\)</span>时，矩阵变成<span class="arithmatex">\(E_{\rm th}I\)</span>，任意正交基都是本征基。极限中选出的向量只是一个可能选择，不能把它提升成简并点本身的唯一物理结论。</p>
+</details>
+<details class="answer">
+<summary>7 · 二圈候选α*很大时，为什么不能宣布一个红外不动点？</summary>
+<p>因为求根只保证被截断的二、三次多项式相消。若<span class="arithmatex">\(\alpha_*\)</span>很大，更高次项可能同样大，根的位置甚至存在性都不受控制。应比较高阶、方案与非微扰信息。弱耦合候选有系统展开的机会；“方程上能求出正根”本身不够。</p>
+</details>
+<details class="answer">
+<summary>8 · 把喷注里的一个粒子裂成两个共线粒子，为什么是有用的检查？</summary>
+<p>它测试测量定义是否对不可分辨的共线结构保持稳定。若测量函数在这个极限中跳变，实辐射与虚修正通常不能按预期抵消，朴素固定阶预测可能不适用。通过这个检查也不意味着全部误差消失：还要处理初态因子化、尺度、多尺度对数、强子化与探测器。</p>
+</details>
+<p>下一步进入<a href="pp-04-flavor-neutrinos.html">味混合与振荡</a>，把颜色空间与味空间彻底分开；再到<a href="pp-05-colliders-detectors.html">对撞机与实验检验</a>，把理论参数接到截面和数据分析。</p>
 </section>
-<h2 id="1-qcd">1. QCD 的对象：颜色是局域规范荷<a class="headerlink" href="#1-qcd" title="Permanent link"></a></h2>
-<p>在电磁学里，电子带一个 <span class="arithmatex">\(U(1)\)</span> 电荷，光子本身不带电；QCD 把这一结构升级为 <span class="arithmatex">\(SU(3)_c\)</span>。夸克场 <span class="arithmatex">\(q_i\)</span> 的颜色指标 <span class="arithmatex">\(i=1,2,3\)</span> 属于基本表示 <span class="arithmatex">\(\mathbf3\)</span>，反夸克属于 <span class="arithmatex">\(\bar{\mathbf3}\)</span>，八个胶子属于伴随表示 <span class="arithmatex">\(\mathbf8\)</span>。这里的“红、绿、蓝”只是基底标签，不是可见光颜色。</p>
-<p>局域变换 <span class="arithmatex">\(q(x)\to U(x)q(x)\)</span> 会让普通导数产生额外项，协变导数 <span class="arithmatex">\(D_\mu=\partial_\mu-ig_sA^a_\mu T^a\)</span> 用八个 <span class="arithmatex">\(A^a_\mu\)</span> 补回局域协变性。由于 <span class="arithmatex">\([T^a,T^b]\ne0\)</span>，场强出现 <span class="arithmatex">\(f^{abc}A^bA^c\)</span>，这就是胶子自作用的来源。规范原理规定了允许的局部结构，却没有单独决定夸克质量、强耦合数值、真空结构或禁闭的完整非微扰解。</p>
-<h2 id="2">2. 渐近自由：反屏蔽如何进入实验<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<h3 id="21">2.1 一圈系数的竞争<a class="headerlink" href="#21" title="Permanent link"></a></h3>
-<p>把量子涨落粗略分成两类：带色的费米子环倾向于屏蔽色荷，非阿贝尔规范场的自作用贡献具有反屏蔽方向。规范场项给正的 <span class="arithmatex">\(11\)</span>，每个活跃夸克味给 <span class="arithmatex">\(-2/3\)</span>，于是</p>
-<div class="arithmatex">\[
-\beta_0=\frac{11}{3}C_A-\frac43T_Rn_f
-\]</div>
-<p>对 <span class="arithmatex">\(SU(3)\)</span>、基本表示的夸克就化为前面的 <span class="arithmatex">\(11-2n_f/3\)</span>。当 <span class="arithmatex">\(\beta_0&gt;0\)</span> 时，<span class="arithmatex">\(Q\)</span> 越高，<span class="arithmatex">\(\alpha_s\)</span> 越低；这叫渐近自由。它不是说夸克在所有距离都不相互作用，而是说短距离展开有一个随 <span class="arithmatex">\(Q\)</span> 变小的耦合参数。</p>
-<h3 id="22">2.2 阈值与方案<a class="headerlink" href="#22" title="Permanent link"></a></h3>
-<p>“活跃味数”是有效理论记账：若 <span class="arithmatex">\(Q\)</span> 远低于某个夸克质量，那个味不能像无质量场一样出现在同一条一圈式中；跨越阈值时要做 matching。<span class="arithmatex">\(\Lambda\)</span> 与重整化方案也会改变数值表达，物理截面不会因换方案而改变，只是参数与高阶项重新分配。因而实验报告通常说明过程、重整化/因子化尺度、阶数、PDF 与误差，不把一串裸的 <span class="arithmatex">\(\alpha_s\)</span> 当成脱离上下文的物质常数。</p>
-<h2 id="3">3. 禁闭：长距离为什么换成强子语言<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>如果把胶子场的色电通量想成电荷周围的场线，非阿贝尔自作用会让场线更倾向于聚成通量管。长距离势常用</p>
-<div class="arithmatex">\[
-V(r)\simeq-\frac{4}{3}\frac{\alpha_s(r)}r+\sigma r
-\]</div>
-<p>描述一段范围：短距离的 Coulomb 项体现渐近自由，长距离的线性项对应通量管的有效弦张力。继续拉长时，真空可以产生 <span class="arithmatex">\(q\bar q\)</span> 对，原来的管会断成两个色单态强子；因此“把一个夸克拉出来”实际产生的是更多强子，而不是孤立色荷。</p>
-<p>这里要保持边界意识。禁闭的经验支持来自强子谱、格点计算、喷注强子化、重夸克偶素势和深非弹性散射的整体一致性；但一圈 running 只告诉我们微扰近似在哪里变差。把低能阴影解释为一条精确的相变线、把“<span class="arithmatex">\(\alpha_s\)</span> 变大”直接等同于“已经证明禁闭”，都是越过证据边界。</p>
-<h2 id="4_1">4. 强子谱：表示论是入口，不是整栋房子<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<h3 id="41">4.1 介子与重子<a class="headerlink" href="#41" title="Permanent link"></a></h3>
-<p>介子的最低颜色结构来自 <span class="arithmatex">\(3\otimes\bar3\)</span> 的单态，重子来自三个 <span class="arithmatex">\(3\)</span> 的完全反对称颜色张量。夸克还带自旋、味、轨道角动量；费米子交换反对称性要求颜色、味道、自旋和空间波函数整体配合。于是“质子 = 两个上夸克加一个下夸克”只是价夸克量子数的简写，质子内部还有胶子、海夸克和量子涨落。</p>
-<h3 id="42">4.2 质量从哪里来<a class="headerlink" href="#42" title="Permanent link"></a></h3>
-<p>轻夸克的当前质量来自 Higgs/Yukawa 结构，但质子约 <span class="arithmatex">\(0.938\)</span> GeV 的大部分质量尺度来自 QCD 束缚态的动能、胶子场能和手征对称性破缺相关的非微扰动力学。这个“来源分解”依赖能动量张量的方案与尺度，不能把它写成一张在任何定义下都唯一的百分比饼图。胶子无静质量也不意味着胶子场不携带能量动量；束缚态质量正是场的动力学账本。</p>
-<h2 id="5_1">5. 喷注、因子化与可检验性<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<p>硬碰撞通常有一条能被微扰 QCD 处理的短距离系数、描述质子内部 parton 的 PDF，以及从 parton 到强子集合的 fragmentation/parton shower 成分。因子化不是把真实过程切成互不相干的三块，而是在指定精度和尺度下组织长短距离贡献。喷注算法再把末态粒子按几何与动量规则聚合成可比较的对象。</p>
-<p>观测层是：喷注能量、角分布、事件形状、重建共振峰和截面随 <span class="arithmatex">\(Q\)</span> 的变化。模型层是：在给定 <span class="arithmatex">\(\alpha_s(Q)\)</span>、PDF、矩阵元、shower 与探测器响应后，预测这些分布。若不同过程给出的 <span class="arithmatex">\(\alpha_s\)</span> 在共同 running 下相容，才构成强证据；一张曲线或一个峰不能独立完成理论判决。</p>
-<h2 id="6">6. 小结与练习<a class="headerlink" href="#6" title="Permanent link"></a></h2>
-<p><strong>例 1：</strong>默认 toy 中 <span class="arithmatex">\(Q\)</span> 从 <span class="arithmatex">\(2\)</span> GeV 变到 <span class="arithmatex">\(91\)</span> GeV，<span class="arithmatex">\(\alpha_s\)</span> 从约 <span class="arithmatex">\(0.394\)</span> 降到约 <span class="arithmatex">\(0.139\)</span>。这支持“短距离微扰更好”的趋势，不等于两个能标上的完整实验拟合。</p>
-<p><strong>例 2：</strong><span class="arithmatex">\(3\otimes\bar3\)</span> 含单态而 <span class="arithmatex">\(3\otimes3\)</span> 不含单态，说明为什么介子是最小的 <span class="arithmatex">\(q\bar q\)</span> 色单态、孤立二夸克不是普通强子。四夸克和五夸克等候选态可以通过更复杂的组合成为单态，但是否形成窄共振还要问动力学与数据。</p>
-<p><strong>例 3：</strong>若把 <span class="arithmatex">\(n_f\)</span> 增到 <span class="arithmatex">\(16\)</span>，<span class="arithmatex">\(\beta_0=1/3\)</span> 仍为正，一圈仍在渐近自由一侧；<span class="arithmatex">\(n_f=17\)</span> 时一圈系数变负，不能再套用 QCD 的结论。这是一个边界测试，而不是现实 QCD 的味数改写。</p>
-<p>下一页将把“味”从颜色中分离出来：中微子振荡告诉我们，粒子被产生时的味态与传播时的质量态并不是同一个基底。</p>
+<noscript><style>.qcd197-course span.arithmatex{overflow-wrap:anywhere}.qcd197-static{overflow:auto;max-width:100%}.qcd197-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}.qcd197-static th,.qcd197-static td{white-space:nowrap}</style></noscript>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="pp-02-electroweak.html"><span class="pager-label">上一页</span>粒子 II · 电弱统一与 Higgs</a>
