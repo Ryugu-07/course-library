@@ -52,156 +52,271 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 04:59</div>
+    <div class="build-time">构建于 2026-09-12 11:59</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：先预测中心路径，再核对两本账</a><ul>
-<li><a href="#1-lp">1. 一个明确的二维 LP</a></li>
-<li><a href="#2-tgap">2. 预测门：t、gap 和边界</a></li>
-<li><a href="#3">3. 透明账本：可行性、对偶性与互补性</a></li>
-<li><a href="#4">4. 反例与迁移边界</a></li>
-</ul>
-</li>
-<li><a href="#1">1. 障碍法：把约束烧进目标</a></li>
-<li><a href="#2">2. 自和谐：复杂度理论的钥匙</a></li>
-<li><a href="#3-sdp">3. 半定规划（SDP）</a></li>
-<li><a href="#4_1">4. 凸优化四页收官盘点</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#ic174-title">学习层：走在内部，不代表已经走在中心路径上</a></li>
+<li><a href="#1-lp">1. 先固定 LP 的符号与对偶</a></li>
+<li><a href="#2">2. 障碍梯度为什么是这个符号？</a></li>
+<li><a href="#3">3. 三角形中心点可以缩成一个标量根</a></li>
+<li><a href="#4-newton">4. 一步 Newton 里究竟检查什么？</a></li>
+<li><a href="#5">5. 初值失败、无严格内部与不可行</a></li>
+<li><a href="#6-hessian">6. 自和谐让局部尺度控制 Hessian</a></li>
+<li><a href="#7">7. 给出一个有起点的短步复杂度论证</a></li>
+<li><a href="#8-sdp">8. SDP 对偶从迹内积推出</a></li>
+<li><a href="#9">9. 为什么矩阵障碍参数是阶数？</a></li>
+<li><a href="#10-sdp">10. 一个能够手算的二阶 SDP</a></li>
+<li><a href="#11">11. 矩阵证书的三个迁移方向</a></li>
+<li><a href="#12">12. 迁移练习与完整解答</a></li>
 </ul>
 </div>
 </details>
-<h1 id="iv">凸优化 IV · 内点法与半定规划<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
+<h1 id="iv-sdp">凸优化 IV · 内点法与 SDP：从内部轨迹到精度证书<a class="headerlink" href="#iv-sdp" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Boyd &amp; Vandenberghe §11 / Nesterov–Nemirovski（理论源头）｜ <strong>前置</strong>：cvx-01–03、本科优化 IV、数值 II
-凸优化收官：<strong>内点法</strong>——让"多项式时间解凸问题"成为定理的算法（本科优化 IV 提过名字，本页给机理与复杂度），及其最重要的应用疆域 <strong>SDP</strong>（半定规划：变量是矩阵的 LP，组合优化与控制论的瑞士军刀）。</p>
+<p><strong>先修</strong>：<a href="cvx-01-conjugate.html">共轭与对偶</a>、<a href="cvx-02-first-order.html">一阶方法</a>、<a href="cvx-03-splitting.html">变量分裂</a>，以及正定矩阵与 Newton 法。<strong>目标</strong>：正确构造中心点的对偶证书，知道有限 Newton 迭代还差什么；把标量互补推广到矩阵互补，并说明复杂度定理的起点和边界。</p>
 </blockquote>
 <div data-learning-page></div>
-
-<section class="learning-layer">
-<h2 id="_1">学习层：先预测中心路径，再核对两本账<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="1-lp">1. 一个明确的二维 LP<a class="headerlink" href="#1-lp" title="Permanent link"></a></h3>
-<p>实验只处理</p>
-<div class="arithmatex">\[
-\min_{x\in\mathbb R^2} c^Tx=-x_1-2x_2
-\quad\mathrm{s.t.}\quad -x_1\leq0,\ -x_2\leq0,\ x_1+x_2\leq1.
-\]</div>
-<p>它有严格可行初值 <span class="arithmatex">\(x_0=(1/3,1/3)\)</span>，最优顶点是 <span class="arithmatex">\((0,1)\)</span>。令</p>
-<div class="arithmatex">\[
-s=(x_1,x_2,1-x_1-x_2),\qquad
-F_t(x)=t(-x_1-2x_2)-\log x_1-\log x_2-\log(1-x_1-x_2).
-\]</div>
-<p>脚本对每个 <span class="arithmatex">\(t&gt;0\)</span> 用带 backtracking 的 Newton 解 <span class="arithmatex">\(\nabla F_t=0\)</span>，并保留每次最终的原始点、slack、乘子和残差，而不是只画一条“看起来像路径”的曲线。</p>
-<h3 id="2-tgap">2. 预测门：t、gap 和边界<a class="headerlink" href="#2-tgap" title="Permanent link"></a></h3>
-<p>先猜：增大 <span class="arithmatex">\(t\)</span> 时路径会靠近哪个顶点？三条不等式给出的对偶间隙是 <span class="arithmatex">\(3/t\)</span> 还是 <span class="arithmatex">\(1/t\)</span>？从边界初值、或从可行集只有 <span class="arithmatex">\((0,0)\)</span> 的退化 LP 启动时，Newton 是否应该给出一个数值答案？提交前结果隐藏；揭晓后可切换 <span class="arithmatex">\(t\)</span> 和四种正常/失败场景。</p>
-<h3 id="3">3. 透明账本：可行性、对偶性与互补性<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>对 <span class="arithmatex">\(Ax\leq b\)</span> 写 <span class="arithmatex">\(s=b-Ax\)</span>。中心路径的驻点给出</p>
-<div class="arithmatex">\[
-\lambda_i(t)=\frac{1}{t s_i},\qquad
-c+A^T\lambda=0,\qquad
-s_i\lambda_i=\frac1t.
-\]</div>
-<p>因此在本例 <span class="arithmatex">\(m=3\)</span> 时，脚本应同时显示</p>
-<div class="arithmatex">\[
-\text{gap}=c^Tx-(-b^T\lambda)=\sum_i s_i\lambda_i=\frac3t,
-\]</div>
-<p>以及 primal slack 全为正、<span class="arithmatex">\(\lambda_i\geq0\)</span>、stationarity residual 和互补 residual。<span class="arithmatex">\(t\to\infty\)</span> 时 <span class="arithmatex">\(x_1\)</span> 与第三个 slack 靠近零，但每个有限 <span class="arithmatex">\(t\)</span> 仍在严格内部。</p>
-<h3 id="4">4. 反例与迁移边界<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<ul>
-<li><strong>不可严格可行</strong>：加入 <span class="arithmatex">\(x_1+x_2\leq0\)</span> 后，和 <span class="arithmatex">\(x_1,x_2\geq0\)</span> 合起来只剩边界点 <span class="arithmatex">\((0,0)\)</span>；log barrier 没有定义域，实验给 <code>no-strict-feasible-point</code> 失败状态。</li>
-<li><strong>非严格/病态初值</strong>：<span class="arithmatex">\(x_1=0\)</span> 在对数项处发散；<span class="arithmatex">\(x_1=10^{-10}\)</span> 虽形式上严格，却触发病态初值状态，不把浮点噪声包装成成功。</li>
-<li><strong>理论边界</strong>：这张二维图只审计一个 LP 的中心路径方程和 Newton 数值，不是一般多项式复杂度证明。自和谐障碍的复杂度定理需要单独的函数类与参数条件；SDP 的 <span class="arithmatex">\(-\log\det X\)</span>、锥内点和秩退化也单列，不能从这个三角形 toy 直接推出。</li>
-</ul>
+<div class="interior174-course">
+<style>.interior174-course .learning-layer,.interior174-course .learning-lab{max-width:none;min-width:0}.interior174-static{overflow:auto;max-width:100%}.interior174-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}.interior174-static td,.interior174-static th{white-space:nowrap}</style>
+<noscript>
+<style>.interior174-course span.arithmatex{overflow-wrap:anywhere;word-break:break-word;white-space:normal}</style>
+</noscript>
+<section aria-labelledby="ic174-title" class="learning-layer">
+<h2 id="ic174-title">学习层：走在内部，不代表已经走在中心路径上<a class="headerlink" href="#ic174-title" title="Permanent link"></a></h2>
+<p>把一张三角形可行域放在桌面上。目标希望把点推向一个顶点，对数障碍则把点从边界推开。两种作用精确平衡时，才能读出中心路径的间隙公式。只走一步 Newton，虽然点仍在内部，平衡关系却可能还差很远。</p>
+<p>实验保留每一步的梯度、Hessian、方向和全部回溯尝试。默认图同时标清独立的精确中心参考与本次真实迭代；另一个二阶矩阵 SDP 用完整矩阵检查正定性和互补。它们各自有明确的问题，不把参考曲线当成失败运行的结果。</p>
 <div class="learning-lab" data-learning-lab="interior-central-path">
-<p><strong>JavaScript 失效时的静态 fallback：</strong>默认 <span class="arithmatex">\(t=1\)</span>、<span class="arithmatex">\(x_0=(1/3,1/3)\)</span>。Newton 得到</p>
-<div class="arithmatex">\[
-x^*(1)\approx(0.311108,0.451606),\quad
-s\approx(0.311108,0.451606,0.237286),
-\]</div>
-<p>并给出</p>
-<div class="arithmatex">\[
-\lambda\approx(3.214320,2.214320,4.214320),\quad
-\text{primal}=-1.214320,\quad
-\text{dual}=-4.214320,
-\]</div>
-<p>这里对偶目标按本页的 <span class="arithmatex">\(Ax\leq b\)</span> 约定是 <span class="arithmatex">\(-b^T\lambda=-\lambda_3\approx-4.214320\)</span>，所以</p>
-<div class="arithmatex">\[
-\text{primal}-\text{dual}=3=\frac{3}{t},
-\]</div>
-<p>且三行 <span class="arithmatex">\(s_i\lambda_i\approx1\)</span>、最小 slack <span class="arithmatex">\(\approx0.237286\)</span>。在 <span class="arithmatex">\(t=10\)</span> 时 <span class="arithmatex">\(x\approx(0.089617,0.863121)\)</span>、gap <span class="arithmatex">\(\approx0.3\)</span>，路径明显靠近 <span class="arithmatex">\((0,1)\)</span>；边界初值、病态初值和无严格可行 LP 都应显示失败原因而非伪造路径。这个二维数值实验不承担一般复杂度或 SDP 结论。</p>
-</div>
-</section>
-<h2 id="1">1. 障碍法：把约束烧进目标<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>约束问题 <span class="arithmatex">\(\min f_0(x)\ \text{s.t.}\ f_i(x) \leq 0\)</span>。<strong>对数障碍</strong>：</p>
-<div class="arithmatex">\[
-\phi(x) = -\sum_i \ln(-f_i(x)), \qquad x^*(t) = \arg\min\ \big[t f_0(x) + \phi(x)\big]
-\]</div>
-<p><span class="arithmatex">\(\phi\)</span> 在边界处爆炸——<strong>迭代点被"电网"关在严格内部</strong>（名字的来历）。<span class="arithmatex">\(\{x^*(t): t &gt; 0\}\)</span> 称<strong>中心路径</strong>。</p>
-<p><strong>定理（中心路径的次优性）【证明】</strong> <span class="arithmatex">\(f_0(x^*(t)) - p^* \leq \dfrac{m}{t}\)</span>（<span class="arithmatex">\(m\)</span> = 约束数）。
-<em>证</em>：<span class="arithmatex">\(x^*(t)\)</span> 的驻点条件 <span class="arithmatex">\(t\nabla f_0 + \sum\frac{-\nabla f_i}{-f_i} = 0\)</span> 表明 <span class="arithmatex">\(\lambda_i(t) = \frac{1}{-t f_i(x^*(t))}\)</span> 是对偶可行点，其对偶间隙 <span class="arithmatex">\(\sum\lambda_i(-f_i) = \frac mt\)</span>——弱对偶收尾。<span class="arithmatex">\(\blacksquare\)</span>
-<strong>读法</strong>：中心路径是"带精度表的高速公路"——走到 <span class="arithmatex">\(t = m/\varepsilon\)</span> 即达 <span class="arithmatex">\(\varepsilon\)</span>-最优；障碍法 = 沿路开车（对递增的 <span class="arithmatex">\(t\)</span> 序列各做几步 Newton——本科优化 II 的 Newton 法在此就业：障碍问题光滑无约束，正是它的主场）。</p>
-<h2 id="2">2. 自和谐：复杂度理论的钥匙<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p>为什么 Newton 步数可以<strong>不依赖条件数</strong>地被控制？Nesterov–Nemirovski 的答案：</p>
-<p><strong>定义（自和谐函数）</strong> <span class="arithmatex">\(|f'''(x)| \leq 2f''(x)^{3/2}\)</span>（多维沿每条直线）——"三阶导被二阶导自己控制"：Hessian 变化的速度以 Hessian 自身为尺度（<strong>仿射不变</strong>的光滑性——比 Lipschitz 梯度更适配 Newton 的几何）。<span class="arithmatex">\(-\ln\)</span> 及对数障碍全家自和谐【验证一行：<span class="arithmatex">\((-\ln)''' = -2x^{-3}, (-\ln)'' = x^{-2}\)</span>，恰取等】。</p>
-<p><strong>定理（路径跟踪复杂度）【引用】</strong> 给定参数为 <span class="arithmatex">\(\nu\)</span> 的自和谐障碍，路径跟踪法达 <span class="arithmatex">\(\varepsilon\)</span>-最优需</p>
-<div class="arithmatex">\[
-O\big(\sqrt{\nu}\,\ln\tfrac{\nu}{\varepsilon}\big)\ \text{次 Newton 迭代}
-\]</div>
-<p>标准 LP 的 <span class="arithmatex">\(m\)</span> 个仿射不等式使用 <span class="arithmatex">\(-\sum_{i=1}^m\log(-f_i)\)</span> 时有 <span class="arithmatex">\(\nu=m\)</span>。但 <span class="arithmatex">\(\nu\)</span> 属于<strong>所选障碍与锥</strong>，不能把“一条二次约束”普遍按 1 计数：Lorentz 锥的标准障碍、半正定锥的 <span class="arithmatex">\(-\log\det X\)</span> 以及一般 QCQP 的建模提升有各自参数；例如 <span class="arithmatex">\(n\times n\)</span> 半正定锥的标准障碍参数为 <span class="arithmatex">\(n\)</span>。这才是<strong>多项式时间凸优化的正式定理</strong>（每次 Newton = 解一个线性系统，数值 II/III 的全部技术在内层服役）。工程事实：实践中几十次迭代解百万变量 LP/SOCP——"内点法迭代数几乎不随规模涨"的口碑之源；与单纯形法（顶点行走、最坏指数、实践极快）形成算法双雄（本科优化 IV 的预告闭环）。</p>
-<h2 id="3-sdp">3. 半定规划（SDP）<a class="headerlink" href="#3-sdp" title="Permanent link"></a></h2>
-<p><strong>定义</strong>：变量为对称矩阵，约束"半正定"：</p>
-<div class="arithmatex">\[
-\min\ \langle C, X\rangle \quad \text{s.t.}\quad \langle A_i, X\rangle = b_i,\quad X \succeq 0
-\]</div>
-<p>（<span class="arithmatex">\(\langle A, B\rangle = \mathrm{tr}(A^\top B)\)</span>；半正定锥是凸锥——高代 VI 的判据划出的集合成为可行域。）LP 是对角矩阵特例；对数障碍 <span class="arithmatex">\(-\ln\det X\)</span> 自和谐（<span class="arithmatex">\(\nu = n\)</span>）⇒ 内点法通吃。<strong>对偶</strong>与 LP 平行（锥对偶：半正定锥自对偶【引用】）。</p>
-<p><strong>三大名应用（每个都值得知道机理）</strong>：</p>
-<ul>
-<li><strong>Goemans–Williamson MaxCut</strong>【骨架】：把 <span class="arithmatex">\(x_i \in \{\pm1\}\)</span> 松弛为单位向量，以半正定 Gram 矩阵 <span class="arithmatex">\(X \succeq 0\)</span> 解 SDP，再用随机超平面取整——<strong>期望 0.878 倍最优</strong>（比值 = <span class="arithmatex">\(\min\frac{\theta/\pi}{(1-\cos\theta)/2}\)</span> 的一页微积分）：组合优化近似算法的巅峰之作，"松弛-取整"范式的旗舰；</li>
-<li><strong>控制论的 LMI</strong>：Lyapunov 不等式 <span class="arithmatex">\(A^\top P + PA \prec 0\)</span>（ode-03 稳定性的矩阵版）是 SDP 可行性问题——"找 Lyapunov 函数"从艺术变成求解器调用；</li>
-<li><strong>多项式优化 / SOS</strong>：<span class="arithmatex">\(p(x) \geq 0\)</span> 的"平方和证书"是 SDP——非凸多项式问题的凸层级逼近（Lasserre 层级【引用】）。</li>
-</ul>
-<h2 id="4_1">4. 凸优化四页收官盘点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
+<p><strong>无脚本对照：</strong>图表读取同一份六组固定记录。LP失败行不会填入一个虚构中心点；最后一列属于另一个已明确说明的二阶SDP模型。</p>
+<figure class="plot">
+<p><img alt="三角形中心参照与Newton轨迹、近边界运行、有限步证书和二阶SDP的本征值及间隙。" src="assets/img/cvx-04-interior-ledgers.svg" /></p>
+<figcaption>图 cvx-04.1：A区分参照与迭代；B保留近边界求解；C不冒充精确中心；D与E把标量互补迁移到矩阵互补。</figcaption>
+</figure>
+<div aria-label="内点法固定记录，可横向滚动" class="interior174-static" role="region" tabindex="0">
 <table>
 <thead>
 <tr>
-<th>页</th>
-<th>资产</th>
-<th>一句话</th>
+<th>预设</th>
+<th>LP状态</th>
+<th style="text-align: right;">接受步数</th>
+<th style="text-align: right;">候选数值差（未认证）</th>
+<th style="text-align: right;">合法LP证书</th>
+<th style="text-align: right;">独立SDP间隙</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>I</td>
-<td>共轭 <span class="arithmatex">\(f^*\)</span>、Fenchel 对偶</td>
-<td>对偶的原子操作；四门课对偶的统一语法</td>
+<td>normal</td>
+<td>达到数值容差</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
-<td>II</td>
-<td>势函数法、加速下界、prox</td>
-<td><span class="arithmatex">\(1/k^2\)</span> 是一阶光速；不可微项交 prox</td>
+<td>t1000</td>
+<td>达到数值容差</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">0.003</td>
+<td style="text-align: right;">0.002</td>
 </tr>
 <tr>
-<td>III</td>
-<td>增广拉格朗日、ADMM</td>
-<td>拆分 + 协调 = 大规模与分布式</td>
+<td>near</td>
+<td>达到数值容差</td>
+<td style="text-align: right;">36</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
-<td>IV</td>
-<td>自和谐、内点法、SDP</td>
-<td>多项式时间的定理；矩阵变量的疆域</td>
+<td>one</td>
+<td>步数耗尽</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-1.42543076</td>
+<td style="text-align: right;">0.565972222</td>
+<td style="text-align: right;">0.002</td>
+</tr>
+<tr>
+<td>noStrict</td>
+<td>无严格内部</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">无LP终点</td>
+<td style="text-align: right;">无LP终点</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr>
+<td>boundary</td>
+<td>初值不合法</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">无LP终点</td>
+<td style="text-align: right;">无LP终点</td>
+<td style="text-align: right;">2</td>
 </tr>
 </tbody>
 </table>
-<p>方法选型的现代地图：超大规模/低精度 → 一阶（II/III）；中规模/高精度/结构约束 → 内点（IV）；两界之间 → 混合（一阶热身 + 二阶精修）。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（中心路径亲算）</strong> <span class="arithmatex">\(\min x\ \text{s.t.}\ x \geq 0\)</span>（一维 LP）：<span class="arithmatex">\(x^*(t) = \arg\min[tx - \ln x] = \frac1t\)</span>——路径从内部滑向最优点 <span class="arithmatex">\(0\)</span>，间隙恰 <span class="arithmatex">\(\frac1t = \frac mt\)</span> ✓（定理在最小例子上的显影）。</p>
-<p><strong>例 2（LMI 上手）</strong> 判定 <span class="arithmatex">\(\dot x = Ax\)</span>，<span class="arithmatex">\(A = \begin{pmatrix}-1 &amp; 2\\ 0 &amp; -3\end{pmatrix}\)</span> 的稳定性：解 <span class="arithmatex">\(A^\top P + PA = -I\)</span>（Lyapunov 方程，线性！）得 <span class="arithmatex">\(P \succ 0\)</span> ⇒ 稳定——ode-03 的特征值判据与 SDP 路线双验证。</p>
-<p><strong>例 3（松弛-取整的体感）</strong> 三角形图 MaxCut：SDP 最优 = 2.25（向量排成 120°），随机超平面期望切 <span class="arithmatex">\(= 3\times\frac{120°}{180°}=2\)</span>，比值 <span class="arithmatex">\(\frac{2}{2.25} \approx 0.889 &gt; 0.878\)</span> ✓——GW 算法在最小非平凡图上走一遍。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一门：数值线性代数——同样的矩阵问题，问"在浮点与有限步的现实里怎么算得又快又稳"。</em></p>
+</div>
+<p><a href="assets/learning/projects/interior-certificates/run-snapshot.json">下载六组完整固定记录</a>。记录包含所有Newton候选、标量根浮点区间和完整SDP矩阵；它不是严格区间算术证书。</p>
+</div>
+<p>试试“只给一步 Newton”“近边界初值仍可解”“可行但没有严格内部”。表中的状态解释比一条绿色曲线更关键。候选乘子与修复后的合法乘子分开保存；对数图不把零或负的读数压成一条假水平线。</p>
+</section>
+<h2 id="1-lp">1. 先固定 LP 的符号与对偶<a class="headerlink" href="#1-lp" title="Permanent link"></a></h2>
+<p>实验的原问题为 <span class="arithmatex">\(\min c^\top x\)</span>、<span class="arithmatex">\(Ax\le b\)</span>，其中</p>
+<div class="arithmatex">\[
+c=(-1,-2),\qquad
+A=\begin{pmatrix}-1&amp;0\\0&amp;-1\\1&amp;1\end{pmatrix},\qquad
+b=(0,0,1),\qquad s=b-Ax=(x_1,x_2,1-x_1-x_2).
+\]</div>
+<p>拉格朗日是 <span class="arithmatex">\(L(x,\lambda)=(c+A^\top\lambda)^\top x-b^\top\lambda\)</span>，原变量在全空间取下确界。因此只有 <span class="arithmatex">\(\lambda\ge0\)</span> 且 <span class="arithmatex">\(c+A^\top\lambda=0\)</span> 时，下确界才是有限的 <span class="arithmatex">\(-b^\top\lambda\)</span>；否则非零线性项使它成为 <span class="arithmatex">\(-\infty\)</span>。</p>
+<p>本例的全部对偶可行乘子可写成 <span class="arithmatex">\(\lambda=(q-1,q-2,q)\)</span>、<span class="arithmatex">\(q\ge2\)</span>，对偶目标是 <span class="arithmatex">\(-q\)</span>。原始最优点 <span class="arithmatex">\((0,1)\)</span>、目标 <span class="arithmatex">\(-2\)</span>，与 <span class="arithmatex">\(q=2\)</span> 的下界吻合。这个简单参数化也让实验能够真正修复一个近似乘子，而非仅把非负性标成“对偶可行”。</p>
+<h2 id="2">2. 障碍梯度为什么是这个符号？<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>对凸可微约束 <span class="arithmatex">\(f_i(x)&lt;0\)</span>，定义 <span class="arithmatex">\(\phi(x)=-\sum_i\log[-f_i(x)]\)</span>。链式法则给出</p>
+<div class="arithmatex">\[
+\nabla\phi(x)=\sum_i\frac{\nabla f_i(x)}{-f_i(x)},\qquad
+\nabla^2\phi(x)=\sum_i\frac{\nabla f_i\nabla f_i^\top}{f_i^2}
++\sum_i\frac{\nabla^2f_i}{-f_i}.
+\]</div>
+<p>例如 <span class="arithmatex">\(f_1(x)=-x_1\)</span>，对应障碍 <span class="arithmatex">\(-\log x_1\)</span> 的导数是 <span class="arithmatex">\(-1/x_1\)</span>，这可以立即检查总公式的符号。设 <span class="arithmatex">\(x(t)\)</span> 在严格内部取得 <span class="arithmatex">\(t f_0+\phi\)</span> 的最小值，并满足驻点；这里需要凸性、可微性与取得，不能从“有严格可行点”直接省略后两项。</p>
+<p>取 <span class="arithmatex">\(\lambda_i=1/[-t f_i(x(t))]&gt;0\)</span>，则 <span class="arithmatex">\(\nabla f_0+\sum_i\lambda_i\nabla f_i=0\)</span>。凸性使 <span class="arithmatex">\(x(t)\)</span> 最小化这个拉格朗日，所以它的对偶值确实等于在 <span class="arithmatex">\(x(t)\)</span> 上的值，得到</p>
+<div class="arithmatex">\[
+f_0(x(t))-g(\lambda(t))=\sum_i\lambda_i[-f_i(x(t))]=\frac mt,
+\qquad 0\le f_0(x(t))-p^*\le\frac mt.
+\]</div>
+<p>有仿射等式时还要带上等式乘子与等式可行性。后面的有限维 LP/SDP 实验均有精确可核查的参照，不借一张图替代这些条件。</p>
+<h2 id="3">3. 三角形中心点可以缩成一个标量根<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>LP 驻点的两个分量是 <span class="arithmatex">\(-t-1/x_1+1/s_3=0\)</span>、<span class="arithmatex">\(-2t-1/x_2+1/s_3=0\)</span>。用第1节的对偶参数 <span class="arithmatex">\(q\)</span> 表示，得到</p>
+<div class="arithmatex">\[
+x_1=\frac1{t(q-1)},\quad x_2=\frac1{t(q-2)},\quad s_3=\frac1{tq},\qquad
+\frac1{t(q-1)}+\frac1{t(q-2)}+\frac1{tq}=1,\quad q&gt;2.
+\]</div>
+<p>令 <span class="arithmatex">\(d=q-2\)</span>。左端在 <span class="arithmatex">\(d&gt;0\)</span> 严格递减，在0右侧趋于无穷；在 <span class="arithmatex">\(d=3/t\)</span> 不超过1，因此有唯一根。实验的精确参考用这个标量区间计算，并导出全部二分上下界。这里导出的区间端点仍是浮点运算读数，不是经过严格区间算术认证的包围证书。Newton 运行则在二维中独立计算，两条路径可以互相检查。</p>
+<p>当 <span class="arithmatex">\(t=1\)</span>，<span class="arithmatex">\(x\approx(0.311108,0.451606)\)</span>，原始目标约 <span class="arithmatex">\(-1.214320\)</span>、对偶约 <span class="arithmatex">\(-4.214320\)</span>，间隙为3。对偶下界很保守并不矛盾；增加 <span class="arithmatex">\(t\)</span> 后，<span class="arithmatex">\(q\downarrow2\)</span>，点朝 <span class="arithmatex">\((0,1)\)</span> 靠近。</p>
+<h2 id="4-newton">4. 一步 Newton 里究竟检查什么？<a class="headerlink" href="#4-newton" title="Permanent link"></a></h2>
+<p>记 <span class="arithmatex">\(h_t=t c^\top x+\phi(x)\)</span>、<span class="arithmatex">\(g=\nabla h_t\)</span>、<span class="arithmatex">\(H=\nabla^2h_t\)</span>。Newton 方向 <span class="arithmatex">\(p\)</span> 解 <span class="arithmatex">\(Hp=-g\)</span>，局部减量为 <span class="arithmatex">\(\delta^2=-g^\top p\)</span>。在线性约束例中，<span class="arithmatex">\(H=\sum_i a_i a_i^\top/s_i^2\succ0\)</span>。实验保留线性方程残差，求解二维系统时把行列式写成三个正项的和，避免两个大数相减。</p>
+<p>回溯先检查候选点仍在严格内部，再检查 Armijo 下降。若位移为 <span class="arithmatex">\(\Delta=\alpha p\)</span>，变化的 slack 为 <span class="arithmatex">\(\Delta s=-A\Delta\)</span>，可直接计算</p>
+<div class="arithmatex">\[
+h_t(x+\Delta)-h_t(x)
+=t c^\top\Delta-\sum_i\log\left(1+\frac{\Delta s_i}{s_i}\right)
+\le\frac14\alpha g^\top p.
+\]</div>
+<p>程序使用 <code>log1p</code> 计算很小的相对变化，以减少两个几乎相同的大目标值相减。默认从 <span class="arithmatex">\(\alpha=1\)</span> 尝试，每次减半；阻尼预设从 <span class="arithmatex">\(1/(1+\delta)\)</span> 开始，再核对同一下降条件。每个被拒绝的候选也保留。</p>
+<p>停止容差是局部减量平方不超过 <span class="arithmatex">\(10^{-22}\)</span>，它属于这份有限精度实验。即使停止了，候选乘子的站立残差也要单独显示；“正好位于中心路径”是数学上的等式，不由一个成功状态自动赋予。</p>
+<h2 id="5">5. 初值失败、无严格内部与不可行<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>初值 <span class="arithmatex">\((0,1/2)\)</span> 使一项对数无定义；<span class="arithmatex">\((0.8,0.5)\)</span> 在三角形外；这两者都只说明当前初值不能启动此障碍法。<span class="arithmatex">\((10^{-10},1/2)\)</span> 虽很靠近边界，却仍是严格内点，本实验保留数值过程而非按一个统一 slack 阈值直接判它不可解。</p>
+<p>把最后一条约束改成 <span class="arithmatex">\(x_1+x_2\le0\)</span> 时，唯一可行点是 <span class="arithmatex">\((0,0)\)</span>，但没有严格内部。可在识别出的低维面上重新建模；这与“可行集为空”不同。一般 phase I 可引入公共松弛变量 <span class="arithmatex">\(\tau\)</span>，最小化 <span class="arithmatex">\(\tau\)</span>，要求 <span class="arithmatex">\(f_i(x)\le\tau\)</span> 并保留等式。找到 <span class="arithmatex">\(\tau&lt;0\)</span> 的可行点即得严格可行初值；最优值大于0才证明原问题不可行；最优值为0时还要区分取得与未取得。</p>
+<p>对于一个严格内点 <span class="arithmatex">\(x\)</span>，候选 <span class="arithmatex">\(\lambda_i=1/(t s_i)\)</span> 总是正的，但设 <span class="arithmatex">\(e=c+A^\top\lambda\)</span>，有</p>
+<div class="arithmatex">\[
+c^\top x+b^\top\lambda=\frac mt+\langle x,e\rangle.
+\]</div>
+<p>因此站立误差不是可以无条件忽略的注脚。实验把 <span class="arithmatex">\(q\)</span> 改为 <span class="arithmatex">\(\max(2,\lambda_3)\)</span>，构造 <span class="arithmatex">\(\widehat\lambda=(q-1,q-2,q)\)</span>，再用 <span class="arithmatex">\(c^\top x+q\)</span> 作为合法原始–对偶间隙。它与候选数值差、修复改变量一同列出；不把候选的有限表达式误称为其真实对偶函数值。</p>
+<h2 id="6-hessian">6. 自和谐让局部尺度控制 Hessian<a class="headerlink" href="#6-hessian" title="Permanent link"></a></h2>
+<p>以下采用 Hessian 正定、定义域开凸且在有限边界处趋于无穷的标准自和谐障碍。沿任意直线的三阶导满足</p>
+<div class="arithmatex">\[
+|D^3\phi(x)[u,u,u]|\le2\bigl(D^2\phi(x)[u,u]\bigr)^{3/2},\qquad
+\|u\|_x=\sqrt{u^\top\nabla^2\phi(x)u}.
+\]</div>
+<p>对一维限制 <span class="arithmatex">\(a(s)=\phi(x+su)\)</span>，上式等价于 <span class="arithmatex">\(|(1/\sqrt{a''})'|\le1\)</span>。积分后得到曲率的上下界，再沿方向积分，得到局部范数小于1的 Dikin 椭球位于定义域内。对 <span class="arithmatex">\(-\log x\)</span>，二、三阶导分别为 <span class="arithmatex">\(x^{-2}\)</span>、<span class="arithmatex">\(-2x^{-3}\)</span>，恰好取等。</p>
+<p>仿射 slack 的对数和是标准例子，但任意非线性约束的对数障碍不能只凭名字就断言自和谐。复杂度还需要障碍参数 <span class="arithmatex">\(\nu\)</span>，即 <span class="arithmatex">\(|D\phi(x)[u]|\le\sqrt\nu\|u\|_x\)</span>。仿射 <span class="arithmatex">\(m\)</span> 项对数和由 Cauchy–Schwarz 得到 <span class="arithmatex">\(\nu=m\)</span>；一个二阶锥的标准障碍参数为2，<span class="arithmatex">\(n\)</span> 阶正定锥的 <span class="arithmatex">\(-\log\det\)</span> 参数为 <span class="arithmatex">\(n\)</span>。</p>
+<h2 id="7">7. 给出一个有起点的短步复杂度论证<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>考虑线性目标与参数为 <span class="arithmatex">\(\nu\ge1\)</span> 的上述障碍，若有等式，先在可行仿射空间上取坐标。假设最优值有限、中心点存在，并已经找到 <span class="arithmatex">\(t_0&gt;0\)</span> 下满足 <span class="arithmatex">\(\delta_{t_0}(x_0)\le1/4\)</span> 的点。寻找这个起点的 phase I 成本另计。</p>
+<p>给 <span class="arithmatex">\(t\)</span> 乘上 <span class="arithmatex">\(1+1/(20\sqrt\nu)\)</span>。由于 Hessian 不随线性目标的 <span class="arithmatex">\(t\)</span> 改变，且 <span class="arithmatex">\(t c=\nabla h_t-\nabla\phi\)</span>，在同一点的新减量满足</p>
+<div class="arithmatex">\[
+\delta_{t^+}(x)\le\frac14+\frac1{20\sqrt\nu}\left(\frac14+\sqrt\nu\right)
+\le\frac5{16}.
+\]</div>
+<p>自和谐 Newton 的局部估计为：若 <span class="arithmatex">\(\delta&lt;1\)</span>，完整一步保持在内部，并使新减量不超过 <span class="arithmatex">\([\delta/(1-\delta)]^2\)</span>。代入 <span class="arithmatex">\(5/16\)</span> 得 <span class="arithmatex">\(25/121&lt;1/4\)</span>。这就形成“调大参数—做一步 Newton—回到同一邻域”的归纳，而不是假定每轮精确求中心点。</p>
+<p>近中心点如何得到原始精度？从曲率下界沿通向精确中心点的线段积分，可得 <span class="arithmatex">\(\|x-x(t)\|_x\le\delta/(1-\delta)\)</span>。因此 <span class="arithmatex">\(|t c^\top(x-x(t))|\le(\delta+\sqrt\nu)\delta/(1-\delta)\le5\sqrt\nu/12\)</span>。精确中心点的次优性不超过 <span class="arithmatex">\(\nu/t\)</span>，故这里用较宽松的 <span class="arithmatex">\(2\nu/t\)</span> 即足够。取 <span class="arithmatex">\(t\ge2\nu/\varepsilon\)</span>，迭代数为</p>
+<div class="arithmatex">\[
+N\le\max\left(0,\left\lceil\frac{\log(2\nu/(t_0\varepsilon))}{\log(1+1/(20\sqrt\nu))}\right\rceil\right)
+=O\!\left(\sqrt\nu\log\frac{2\nu}{t_0\varepsilon}\right)
+\quad\text{（目标精度尚未达到时）}.
+\]</div>
+<p>这数的是理想算术下的 Newton 步；还要计线性方程求解成本、起点和有限精度，才能讨论具体计算模型中的多项式时间。它不意味着任意凸函数的任意表示都有高效可用障碍，也不意味着每步不受数值条件影响。实验用于核对固定 <span class="arithmatex">\(t\)</span> 的中心求解，并未实现这套短步路径跟踪算法。</p>
+<h2 id="8-sdp">8. SDP 对偶从迹内积推出<a class="headerlink" href="#8-sdp" title="Permanent link"></a></h2>
+<p>在实对称矩阵上使用 <span class="arithmatex">\(\langle U,V\rangle=\operatorname{tr}(UV)\)</span>。原始 SDP 与对偶为</p>
+<div class="arithmatex">\[
+\begin{aligned}
+\min_X\ &amp;\langle C,X\rangle\quad\text{s.t. }\langle A_i,X\rangle=b_i,\ X\succeq0,\\
+\max_y\ &amp;b^\top y\quad\text{s.t. }S=C-\sum_i y_iA_i\succeq0.
+\end{aligned}
+\]</div>
+<p>在等式上采用 <span class="arithmatex">\(b^\top y-\sum_i y_i\langle A_i,X\rangle\)</span>，拉格朗日便是 <span class="arithmatex">\(b^\top y+\langle S,X\rangle\)</span>。若 <span class="arithmatex">\(S\succeq0\)</span>，对 <span class="arithmatex">\(X\succeq0\)</span> 取下确界为 <span class="arithmatex">\(b^\top y\)</span>；若 <span class="arithmatex">\(S\)</span> 有负方向 <span class="arithmatex">\(v\)</span>，取 <span class="arithmatex">\(X=\alpha vv^\top\)</span>、<span class="arithmatex">\(\alpha\to\infty\)</span>，下确界为负无穷。这也证明半正定锥自对偶。</p>
+<p>任意原始/对偶可行点满足 <span class="arithmatex">\(\langle C,X\rangle-b^\top y=\operatorname{tr}(XS)\ge0\)</span>：因为它等于正半定矩阵 <span class="arithmatex">\(X^{1/2}SX^{1/2}\)</span> 的迹。存在严格原始可行点且原始最优值有限时，Slater 条件保证无对偶间隙及对偶最优取得；原始取得或另一侧的结论仍要分别说明。只有边界可行点时，不能自动推断不可行或强对偶失败，而要检查具体结构。</p>
+<h2 id="9">9. 为什么矩阵障碍参数是阶数？<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(\phi(X)=-\log\det X\)</span>、<span class="arithmatex">\(X\succ0\)</span>。沿对称方向 <span class="arithmatex">\(H\)</span>，设 <span class="arithmatex">\(K=X^{-1/2}HX^{-1/2}\)</span>，从 <span class="arithmatex">\(\det(X+sH)=\det X\det(I+sK)\)</span> 求导得</p>
+<div class="arithmatex">\[
+D\phi[H]=-\operatorname{tr}K,\qquad
+D^2\phi[H,H]=\operatorname{tr}(K^2),\qquad
+D^3\phi[H,H,H]=-2\operatorname{tr}(K^3).
+\]</div>
+<p>用 <span class="arithmatex">\(K\)</span> 的实本征值 <span class="arithmatex">\(\kappa_i\)</span>，有 <span class="arithmatex">\(|\sum_i\kappa_i^3|\le\sum_i|\kappa_i|^3\le(\sum_i\kappa_i^2)^{3/2}\)</span>，给出自和谐条件；又有 <span class="arithmatex">\(|\sum_i\kappa_i|\le\sqrt n(\sum_i\kappa_i^2)^{1/2}\)</span>，所以 <span class="arithmatex">\(\nu=n\)</span>。这两步把三阶控制与障碍参数分别证明了。</p>
+<p>中心点驻点为 <span class="arithmatex">\(tC-X^{-1}-\sum_i w_iA_i=0\)</span>。取 <span class="arithmatex">\(y_i=w_i/t\)</span>，得到 <span class="arithmatex">\(S=X^{-1}/t\)</span>，故</p>
+<div class="arithmatex">\[
+XS=I/t,\qquad \langle C,X\rangle-b^\top y=\operatorname{tr}(XS)=n/t.
+\]</div>
+<p>矩阵乘积 <span class="arithmatex">\(XS\)</span> 一般不对称，但中心互补处恰为单位阵的倍数。不能把一般数值点的某几个对角乘积替代完整矩阵关系。</p>
+<h2 id="10-sdp">10. 一个能够手算的二阶 SDP<a class="headerlink" href="#10-sdp" title="Permanent link"></a></h2>
+<p>实验取 <span class="arithmatex">\(\operatorname{tr}X=1\)</span>、<span class="arithmatex">\(X\succeq0\)</span>，最小化 <span class="arithmatex">\(\langle C,X\rangle\)</span>，其中 <span class="arithmatex">\(C=\left(\begin{smallmatrix}0&amp;-1\\-1&amp;0\end{smallmatrix}\right)\)</span>。对称性与严格凸障碍给中心点形状 <span class="arithmatex">\(X=\left(\begin{smallmatrix}1/2&amp;q\\q&amp;1/2\end{smallmatrix}\right)\)</span>。把它代入 <span class="arithmatex">\(-2tq-\log(1/4-q^2)\)</span>，求导得 <span class="arithmatex">\(t=q/(1/4-q^2)\)</span>，于是</p>
+<div class="arithmatex">\[
+q(t)=\frac{t}{2(\sqrt{1+t^2}+1)},\qquad
+y(t)=-\frac{\sqrt{1+t^2}+1}{t},\qquad S=C-yI.
+\]</div>
+<p>有 <span class="arithmatex">\(0&lt;q&lt;1/2\)</span>、<span class="arithmatex">\(y&lt;-1\)</span>，所以 <span class="arithmatex">\(X,S\)</span> 均正定。其本征值分别为 <span class="arithmatex">\(1/2\pm q\)</span>、<span class="arithmatex">\(-y\pm1\)</span>，相乘按对应特征方向得到 <span class="arithmatex">\(1/t\)</span>。原始值 <span class="arithmatex">\(-2q\)</span>、对偶值 <span class="arithmatex">\(y\)</span>，间隙 <span class="arithmatex">\(2/t\)</span>。当 <span class="arithmatex">\(t\to\infty\)</span>，<span class="arithmatex">\(q\to1/2\)</span>，<span class="arithmatex">\(X\)</span> 变成秩一边界最优矩阵，目标趋于 <span class="arithmatex">\(-1\)</span>。</p>
+<p>程序使用上面的有理化表达式计算 <span class="arithmatex">\(q\)</span>，避免小 <span class="arithmatex">\(t\)</span> 时直接做 <span class="arithmatex">\(\sqrt{1+t^2}-1\)</span> 的相消。完整表保留 <span class="arithmatex">\(X,S,XS\)</span>、本征值、迹、行列式、互补缺口与两边目标。有限 <span class="arithmatex">\(t\)</span> 的正定性与极限的降秩可以同时看见。</p>
+<h2 id="11">11. 矩阵证书的三个迁移方向<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p><strong>稳定性。</strong> 对 <span class="arithmatex">\(\dot x=Ax\)</span>，若能找到 <span class="arithmatex">\(P\succ0\)</span> 且 <span class="arithmatex">\(A^\top P+PA\prec0\)</span>，那么 <span class="arithmatex">\(V(x)=x^\top Px\)</span> 正定且沿解严格下降。正定条件不能漏掉；只解一个矩阵不等式并不总能获得合法 Lyapunov 函数。实际求解常固定正裕量，例如 <span class="arithmatex">\(P\succeq I\)</span>、<span class="arithmatex">\(A^\top P+PA\preceq-I\)</span>，用齐次缩放把严格不等式转成可计算的形式。</p>
+<p><strong>MaxCut。</strong> 对非负权重，把符号变量换为单位向量，其 Gram 矩阵满足 <span class="arithmatex">\(X\succeq0,X_{ii}=1\)</span>。SDP 最大化 <span class="arithmatex">\(\sum_{i&lt;j}w_{ij}(1-X_{ij})/2\)</span>；超平面随机取整使夹角为 <span class="arithmatex">\(\theta\)</span> 的一条边以 <span class="arithmatex">\(\theta/\pi\)</span> 的概率被切开。因此每条边的期望贡献与松弛贡献之比至少为</p>
+<div class="arithmatex">\[
+\alpha_{\rm GW}=\min_{0&lt;\theta\le\pi}\frac{2\theta}{\pi(1-\cos\theta)}\approx0.87856.
+\]</div>
+<p>非负权重使逐边下界可以直接相加；若 SDP 仅近似解出，其求解误差也要计入最终保证。三角形的三个向量相隔 <span class="arithmatex">\(120^\circ\)</span>，SDP 值为 <span class="arithmatex">\(9/4\)</span>，随机取整的期望切边数为2。负权重情形不能照搬同一个未修改的比例说法。</p>
+<p><strong>多项式证书。</strong> 取单项式向量 <span class="arithmatex">\(v(x)\)</span>，若 <span class="arithmatex">\(p(x)=v(x)^\top Qv(x)\)</span>、<span class="arithmatex">\(Q\succeq0\)</span>，则分解 <span class="arithmatex">\(Q=R^\top R\)</span> 得到平方和。系数匹配是线性的，所以寻找这种 Gram 矩阵是 SDP。平方和是非负性的充分条件，通常不是必要条件；找不到给定次数的证书不能据此认定多项式取负值。</p>
+<h2 id="12">12. 迁移练习与完整解答<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<p><strong>题1：检查障碍梯度。</strong> 从 <span class="arithmatex">\(-\log x_1-\log x_2-\log(1-x_1-x_2)\)</span> 直接求导，并解释为什么符号反了会破坏对偶。</p>
+<p><details class="answer" markdown="1"><summary>展开解答：用最简单的一项验符号</summary></p>
+<p>两个梯度分量是 <span class="arithmatex">\(-1/x_1+1/s_3\)</span>、<span class="arithmatex">\(-1/x_2+1/s_3\)</span>。加入线性目标后分别再减 <span class="arithmatex">\(t\)</span>、<span class="arithmatex">\(2t\)</span>。于是 <span class="arithmatex">\(\lambda_i=1/(t s_i)\)</span> 给出 <span class="arithmatex">\(-1-\lambda_1+\lambda_3=0\)</span>、<span class="arithmatex">\(-2-\lambda_2+\lambda_3=0\)</span>。若把障碍梯度整体写反，得到的是另一组方向，不能推出这两个合法对偶的站立条件。<span class="arithmatex">\(-\log x_1\)</span> 的导数应向负方向，是快速自查的方法。</p>
+</details>
+<p><strong>题2：不在中心的内点也有 <span class="arithmatex">\(3/t\)</span> 证书吗？</strong> 取 <span class="arithmatex">\(x=(1/3,1/3),t=1\)</span>，计算候选、站立误差与修复后的下界。</p>
+<details class="answer">
+<summary>展开解答：非负候选还不是有限对偶点</summary>
+<p>三个 slack 都为 <span class="arithmatex">\(1/3\)</span>，候选 <span class="arithmatex">\(\lambda=(3,3,3)\)</span>。站立误差 <span class="arithmatex">\(e=(-1,-2)\)</span>，原始值为 <span class="arithmatex">\(-1\)</span>。形式上的 <span class="arithmatex">\(-b^\top\lambda=-3\)</span> 与原始相减为2，不是3；恒等式右侧为 <span class="arithmatex">\(3+x\cdot e=2\)</span>。这个候选的真实对偶函数值其实是负无穷，因为站立不成立。修复取 <span class="arithmatex">\(q=3\)</span>、<span class="arithmatex">\(\widehat\lambda=(2,1,3)\)</span>，这次 <span class="arithmatex">\(-3\)</span> 才是合法下界，证书仍为2。相同数字有不同资格，必须通过条件判断。</p>
+</details>
+<p><strong>题3：短步更新为什么留在邻域中？</strong> 验算本页给出的 <span class="arithmatex">\(1/4\)</span>、<span class="arithmatex">\(1/20\)</span> 与下一次减量界，并说明初始化成本在哪里。</p>
+<details class="answer">
+<summary>展开解答：把常数带进归纳</summary>
+<p>对 <span class="arithmatex">\(\nu\ge1\)</span>，新减量不超过 <span class="arithmatex">\(1/4+(1/20)(1+1/4)=5/16&lt;1\)</span>，所以完整 Newton 步位于定义域。该步后的减量至多 <span class="arithmatex">\([(5/16)/(11/16)]^2=25/121&lt;1/4\)</span>，正好回到归纳起点。每轮把 <span class="arithmatex">\(t\)</span> 乘以 <span class="arithmatex">\(1+1/(20\sqrt\nu)\)</span>，达到 <span class="arithmatex">\(2\nu/\varepsilon\)</span> 的轮数取对数即可。证明从已满足邻域条件的 <span class="arithmatex">\(x_0,t_0\)</span> 开始；phase I、首次中心化、每步线性代数与数值精度都没有被这张步数表免费包含。</p>
+</details>
+<p><strong>题4：PSD 锥为什么自对偶？</strong> 给出正方向与负特征方向两边的证明。</p>
+<details class="answer">
+<summary>展开解答：用秩一矩阵测试所有方向</summary>
+<p>若 <span class="arithmatex">\(S,X\succeq0\)</span>，则 <span class="arithmatex">\(\operatorname{tr}(SX)=\operatorname{tr}(X^{1/2}SX^{1/2})\ge0\)</span>。反过来，若对所有 <span class="arithmatex">\(X\succeq0\)</span> 内积非负，特别取 <span class="arithmatex">\(X=vv^\top\)</span>，就有 <span class="arithmatex">\(v^\top Sv\ge0\)</span> 对所有 <span class="arithmatex">\(v\)</span> 成立，即 <span class="arithmatex">\(S\succeq0\)</span>。如果存在负方向，那么沿正倍数 <span class="arithmatex">\(\alpha vv^\top\)</span> 使拉格朗日下确界趋于负无穷，正好得到 SDP 对偶的锥约束。</p>
+</details>
+<p><strong>题5：二阶 SDP 在 <span class="arithmatex">\(t=1\)</span> 时是什么？</strong> 写出 <span class="arithmatex">\(q,y\)</span>、原始/对偶值与极限秩。</p>
+<details class="answer">
+<summary>展开解答：矩阵互补不是逐项乱乘</summary>
+<p><span class="arithmatex">\(q=(\sqrt2-1)/2\)</span>、<span class="arithmatex">\(y=-(\sqrt2+1)\)</span>。原始值为 <span class="arithmatex">\(1-\sqrt2\)</span>，减去对偶值恰为2。<span class="arithmatex">\(X\)</span> 本征值为 <span class="arithmatex">\(\sqrt2/2\)</span> 与 <span class="arithmatex">\(1-\sqrt2/2\)</span>；<span class="arithmatex">\(S\)</span> 在对应方向的本征值为 <span class="arithmatex">\(\sqrt2\)</span> 与 <span class="arithmatex">\(2+\sqrt2\)</span>，分别相乘为1，所以 <span class="arithmatex">\(XS=I\)</span>。<span class="arithmatex">\(t\to\infty\)</span> 时 <span class="arithmatex">\(X\to\frac12\left(\begin{smallmatrix}1&amp;1\\1&amp;1\end{smallmatrix}\right)\)</span>，本征值趋于1和0，秩降为1。有限步都正定，极限可以半正定且奇异。</p>
+</details>
+<p><strong>题6：为线性系统构造一个真正的正定证书。</strong> 对 <span class="arithmatex">\(A=\left(\begin{smallmatrix}-1&amp;2\\0&amp;-3\end{smallmatrix}\right)\)</span>，解 <span class="arithmatex">\(A^\top P+PA=-I\)</span>。</p>
+<details class="answer">
+<summary>展开解答：方程之外还要查正定性</summary>
+<p>令 <span class="arithmatex">\(P=\left(\begin{smallmatrix}a&amp;b\\b&amp;c\end{smallmatrix}\right)\)</span>，左上、非对角、右下三个方程是 <span class="arithmatex">\(-2a=-1\)</span>、<span class="arithmatex">\(2a-4b=0\)</span>、<span class="arithmatex">\(4b-6c=-1\)</span>。得 <span class="arithmatex">\(a=1/2,b=1/4,c=1/3\)</span>。首个顺序主子式 <span class="arithmatex">\(1/2&gt;0\)</span>、行列式 <span class="arithmatex">\(5/48&gt;0\)</span>，故 <span class="arithmatex">\(P\succ0\)</span>。沿系统解有 <span class="arithmatex">\(\dot V=-\|x\|^2\)</span>；再用 <span class="arithmatex">\(V\le\lambda_{\max}(P)\|x\|^2\)</span> 得指数衰减界。没有正定性验证，单独列出方程还不足以称为证书。</p>
+</details>
+<p><strong>题7：证明三角形 MaxCut 的 SDP 值正好是 <span class="arithmatex">\(9/4\)</span>。</strong> 不能只给一个达到该值的向量排列。</p>
+<details class="answer">
+<summary>展开解答：先给上界，再给达到的构造</summary>
+<p>对角为1的 <span class="arithmatex">\(3\times3\)</span> PSD 矩阵满足 <span class="arithmatex">\(\mathbf1^\top X\mathbf1=3+2\sum_{i&lt;j}X_{ij}\ge0\)</span>，所以 <span class="arithmatex">\(\sum_{i&lt;j}X_{ij}\ge-3/2\)</span>。SDP 目标 <span class="arithmatex">\((3-\sum_{i&lt;j}X_{ij})/2\le9/4\)</span>。取平面中相隔 <span class="arithmatex">\(120^\circ\)</span> 的三个单位向量，Gram 非对角元都是 <span class="arithmatex">\(-1/2\)</span>，达到此上界。每条边被随机超平面切开的概率为 <span class="arithmatex">\(2/3\)</span>，三边期望为2，等于整数最优值；期望相对于松弛的比为 <span class="arithmatex">\(8/9\)</span>。</p>
+</details>
+<p><strong>题8：非负为什么不等于平方和？</strong> 对齐次 Motzkin 多项式 <span class="arithmatex">\(M=x^4y^2+x^2y^4+z^6-3x^2y^2z^2\)</span> 先证非负，再检查它能否是三次齐次多项式的平方和。</p>
+<details class="answer">
+<summary>展开解答：系数零也能排除证书</summary>
+<p>三个非负数 <span class="arithmatex">\(x^4y^2,x^2y^4,z^6\)</span> 的几何平均为 <span class="arithmatex">\(x^2y^2z^2\)</span>，AM–GM 给出 <span class="arithmatex">\(M\ge0\)</span>。若它是平方和，由齐次性可只考虑三次齐次多项式的平方。<span class="arithmatex">\(x^6,y^6\)</span> 系数为0，迫使每个被平方的多项式都没有 <span class="arithmatex">\(x^3,y^3\)</span> 项；然后 <span class="arithmatex">\(x^4z^2,y^4z^2\)</span> 系数为0，迫使 <span class="arithmatex">\(x^2z,y^2z\)</span> 项消失；再由 <span class="arithmatex">\(x^2z^4,y^2z^4\)</span> 系数为0，迫使 <span class="arithmatex">\(xz^2,yz^2\)</span> 项消失。剩下的三次单项式只有 <span class="arithmatex">\(x^2y,xy^2,z^3,xyz\)</span>。它们的平方和中，<span class="arithmatex">\(x^2y^2z^2\)</span> 的系数只能是各个 <span class="arithmatex">\(xyz\)</span> 系数的平方和，不能等于 <span class="arithmatex">\(-3\)</span>，矛盾。因此非负但没有这种 SOS 证书。一般多项式平方和若等于齐次六次式，其非三次部分也可由最低/最高非零次数的平方项依次排除。</p>
+</details>
+<p>原始阅读：<a href="https://www.seas.ucla.edu/~vandenbe/236C/lectures/barriers.pdf">Vandenberghe 的障碍函数讲义</a>用于局部范数、减量与自和谐条件；<a href="https://www.seas.ucla.edu/~vandenbe/ee236b/lectures/barrier.pdf">内点法讲义</a>用于中心路径、phase I 与复杂度的起点；<a href="https://math.mit.edu/~goemans/PAPERS/maxcut-jacm.pdf">Goemans–Williamson 原论文</a>第2–3节给出非负权 MaxCut 的松弛与舍入保证。下一步可回到 <a href="nla-01-svd-stability.html">数值线性代数</a>，检查求解 Newton 系统的误差与成本。</p>
+</details>
+</div>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="cvx-03-splitting.html"><span class="pager-label">上一页</span>凸优化 III · 增广拉格朗日与 ADMM</a>

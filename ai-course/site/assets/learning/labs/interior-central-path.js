@@ -1,545 +1,65 @@
-(function (root, factory) {
-  "use strict";
-
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("interior-central-path", exported.mount);
+(function(hostWindow){'use strict';
+const DEFAULTS={logT:0,maxSteps:60,scenario:'normal',method:'backtracking'};
+const STARTS={normal:[1/3,1/3],near:[1e-10,.5],boundary:[0,.5],outside:[.8,.5],noStrict:[0,0]};
+function config(o={}){if(!o||typeof o!=='object'||Array.isArray(o))throw Error('参数必须是对象');for(const k of Object.keys(o))if(!Object.hasOwn(DEFAULTS,k))throw Error('未知参数');const c={...DEFAULTS,...o};for(const k of ['logT','maxSteps'])if(typeof c[k]!=='number'||!Number.isFinite(c[k]))throw Error('数值参数必须有限');if(c.logT< -1||c.logT>3||!Number.isInteger(c.maxSteps)||c.maxSteps<1||c.maxSteps>80||typeof c.scenario!=='string'||!Object.hasOwn(STARTS,c.scenario)||!['backtracking','damped'].includes(c.method))throw Error('参数超出范围');return c;}
+const dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0),sub=(a,b)=>a.map((v,i)=>v-b[i]),norm=a=>Math.hypot(...a);
+function slacks(x){return[x[0],x[1],1-x[0]-x[1]];}
+function barrier(x,t){const s=slacks(x);if(s.some(v=>v<=0))return null;const inv=s.map(v=>1/v),a=inv[0]**2,b=inv[1]**2,d=inv[2]**2,g=[-t-inv[0]+inv[2],-2*t-inv[1]+inv[2]],H=[[a+d,d],[d,b+d]],det=a*b+a*d+b*d,p=[(-(b+d)*g[0]+d*g[1])/det,(d*g[0]-(a+d)*g[1])/det],delta2=-dot(g,p),linearResidual=H.map((r,i)=>dot(r,p)+g[i]);return{x:x.slice(),slacks:s,objective:-x[0]-2*x[1],barrier:-s.reduce((r,v)=>r+Math.log(v),0),value:t*(-x[0]-2*x[1])-s.reduce((r,v)=>r+Math.log(v),0),gradient:g,H,det,direction:p,decrementSquared:delta2,linearResidual,linearResidualNorm:norm(linearResidual)};}
+function candidateLedger(x,t){const s=slacks(x),lambda=s.map(v=>1/(t*v)),stationarity=[-1-lambda[0]+lambda[2],-2-lambda[1]+lambda[2]],candidateValue=-lambda[2],primal=-x[0]-2*x[1],q=Math.max(2,lambda[2]),feasibleLambda=[q-1,q-2,q],dual=-q;return{primal,slacks:s,lambda,nonnegative:lambda.every(v=>v>=0),stationarity,stationarityNorm:norm(stationarity),candidateExactlyFeasible:stationarity.every(v=>v===0),candidateValue,candidateGap:primal-candidateValue,complementarity:s.map((v,i)=>v*lambda[i]),targetGap:3/t,gapIdentityDefect:primal-candidateValue-3/t-dot(x,stationarity),feasibleLambda,projection:sub(feasibleLambda,lambda),dual,certifiedGap:primal-dual,certifiedComplementarity:s.map((v,i)=>v*feasibleLambda[i]),feasibleStationarity:[-1-feasibleLambda[0]+feasibleLambda[2],-2-feasibleLambda[1]+feasibleLambda[2]]};}
+function exactLP(t){let lo=0,hi=3/t;const brackets=[];for(let k=0;k<65;k++){const mid=(lo+hi)/2,value=1/(t*(mid+1))+1/(t*mid)+1/(t*(mid+2))-1;brackets.push({k,lo,hi,mid,value});if(value>0)lo=mid;else hi=mid;}const d=(lo+hi)/2,x=[1/(t*(d+1)),1/(t*d)],q=d+2;return{x,slacks:[...x,1/(t*q)],q,lambda:[q-1,q-2,q],primal:-x[0]-2*x[1],dual:-q,gap:3/t,brackets};}
+function solveLP(c){const t=10**c.logT,start=STARTS[c.scenario].slice(),rows=[];if(c.scenario==='noStrict')return{status:'no-strict-feasible-point',reason:'x₁≥0、x₂≥0、x₁+x₂≤0只留下零点；原问题可行，但完整不等式系统没有严格内部。',start,t,rows,final:null,certificate:null};if(slacks(start).some(v=>v<=0))return{status:'not-strict-feasible-start',reason:'此初值不在对数障碍定义域；不代表整个三角形问题不可行。',start,t,rows,final:null,certificate:null};let x=start.slice(),status='max-steps';for(let k=0;k<c.maxSteps;k++){const data=barrier(x,t);if(data.decrementSquared<=1e-22){status='converged';break;}const p=data.direction;let alpha=c.method==='damped'?1/(1+Math.sqrt(data.decrementSquared)):1,accepted=false;const trials=[];for(let j=0;j<55;j++){const dx=p.map(v=>alpha*v),next=x.map((v,i)=>v+dx[i]),ss=slacks(next),inside=ss.every(v=>v>0),ds=[dx[0],dx[1],-dx[0]-dx[1]],difference=inside?t*(-dx[0]-2*dx[1])-ds.reduce((a,v,i)=>a+Math.log1p(v/data.slacks[i]),0):null,rhs=.25*alpha*dot(data.gradient,p),pass=inside&&Number.isFinite(difference)&&difference<=rhs;trials.push({j,alpha,x:next,slacks:ss,inside,difference,armijo:rhs,accepted:pass});if(pass){x=next;accepted=true;break;}alpha*=.5;}
+rows.push({k:k+1,...data,trials,accepted,alpha:accepted?alpha:null,next:accepted?x.slice():null});if(!accepted){status='line-search-failed';break;}}
+const final=barrier(x,t);if(final.decrementSquared<=1e-22)status='converged';return{status,reason:status==='converged'?'达到本实验Newton局部减量容差；精确可行对偶证书另行构造。':status==='max-steps'?'用完给定步数，保留当前可行点和证书；没有冒充中心点。':'当前数值线搜索没有找到可接受步长，保留失败尝试。',start,t,rows,final,certificate:candidateLedger(x,t)};}
+function sdpPoint(t){const h=Math.hypot(1,t),q=t/(2*(h+1)),y=-(h+1)/t,X=[[.5,q],[q,.5]],S=[[-y,-1],[-1,-y]],product=X.map(row=>S[0].map((_,j)=>row[0]*S[0][j]+row[1]*S[1][j])),eigenX=[.5-q,.5+q],eigenS=[-y-1,-y+1],primal=-2*q;return{t,q,X,y,S,eigenX,eigenS,product,complementarityDefect:product.map((row,i)=>row.map((v,j)=>v-(i===j?1/t:0))),trace:1,primal,dual:y,gap:primal-y,targetGap:2/t,primalGap:1-2*q,determinant:.25-q*q,barrier:-Math.log(.25-q*q),strictPrimal:eigenX.every(v=>v>0),strictDual:eigenS.every(v=>v>0)};}
+function snapshot(o={}){const c=config(o),t=10**c.logT;return{version:174,parameters:c,lp:solveLP(c),reference:exactLP(t),path:[-1,-.75,-.5,-.25,0,.25,.5,.75,1,1.25,1.5,1.75,2,2.25,2.5,2.75,3].map(logT=>({logT,lp:exactLP(10**logT),sdp:sdpPoint(10**logT)})),sdp:sdpPoint(t),scope:'固定三角形LP的Newton记录与解析参照；独立2×2 SDP的闭式中心路径。失败LP状态不抹除被明确标为独立模型的SDP。'};}
+const PRESETS=[{key:'normal',label:'默认中心点',config:{}},{key:'small-t',label:'t=0.1：更靠近内部',config:{logT:-1}},{key:'t10',label:'t=10：接近边界',config:{logT:1}},{key:'t1000',label:'t=1000：更小间隙',config:{logT:3}},{key:'near',label:'近边界初值仍可解',config:{scenario:'near'}},{key:'damped',label:'局部范数阻尼',config:{method:'damped'}},{key:'near-damped',label:'近边界加阻尼',config:{scenario:'near',method:'damped'}},{key:'one',label:'只给一步Newton',config:{maxSteps:1,logT:3}},{key:'two',label:'只给两步Newton',config:{maxSteps:2,logT:3}},{key:'boundary',label:'初值在边界',config:{scenario:'boundary'}},{key:'outside',label:'初值在外部',config:{scenario:'outside'}},{key:'noStrict',label:'可行但没有严格内部',config:{scenario:'noStrict'}}];
+const QUESTIONS=[['LP候选乘子都非负，是否还要检查c+Aᵀλ=0才能把−bᵀλ当成有限对偶值？',['需要，两个条件都要满足','不需要，非负就足够'],0],['对数障碍没有严格可行点，是否等于原问题没有可行点？',['是','不一定，原可行集可能只有边界'],1],['本实验2×2 SDP的精确中心点满足XS=I/t，迹间隙是多少？',['2/t','1/t'],0],['只做一两步Newton，就能把当前点的候选数值差自动当成m/t证书吗？',['能，程序已经开始运行','不能，需要核对驻点与合法对偶'],1]];
+const EXPLANATIONS=['非负保证乘子方向正确；站立等式还保证对线性原变量取下确界时不会落到负无穷。实验把候选数值差与修复后的合法对偶证书分别列出。','x₁≥0、x₂≥0、x₁+x₂≤0的唯一可行点是零点，但三条约束不可能同时严格。可考虑降低到适当的面，不能直接判原问题不可行。','矩阵互补给出tr(XS)=tr(I₂)/t=2/t。障碍参数取决于锥与所用障碍；矩阵阶数不能随意换成某张约束表的行数。','精确中心点才满足相应站立关系。有限步要保留Newton残差、乘子修复与合法证书；步数耗尽并不等于收敛，也不等于问题不可解。'];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=4||![0,1].includes(j))throw Error('非法预测');return{correct:j===QUESTIONS[i][2],text:(j===QUESTIONS[i][2]?'预测正确。':'再检查条件。')+EXPLANATIONS[i]};}
+function fmt(v){if(typeof v==='string'){const names={normal:'三角形内部',near:'近边界初值',boundary:'边界初值',outside:'外部初值',noStrict:'仅零点可行',backtracking:'Armijo回溯',damped:'局部范数阻尼',converged:'达到数值容差','max-steps':'步数耗尽','line-search-failed':'数值线搜索失败','no-strict-feasible-point':'没有严格可行点','not-strict-feasible-start':'初值不在严格内部'};return names[v]||v;}if(v===null)return'不适用';if(typeof v==='boolean')return v?'是':'否';if(Array.isArray(v))return '['+v.map(fmt).join(', ')+']';if(typeof v==='number')return v!==0&&(Math.abs(v)<1e-5||Math.abs(v)>1e7)?v.toExponential(5):Number(v.toFixed(6)).toString();return String(v);}
+function makePlot(key,title,xLabel,yLabel,series,fixedX){const pts=series.flatMap(s=>s.points.filter(Boolean)),ys=pts.map(p=>p[1]),xs=pts.map(p=>p[0]);let lo=ys.length?Math.min(...ys):-1,hi=ys.length?Math.max(...ys):1,a=fixedX?fixedX[0]:xs.length?Math.min(...xs):0,b=fixedX?fixedX[1]:xs.length?Math.max(...xs):1;if(a===b){a-=1;b+=1;}const pad=.08*(hi-lo||Math.max(1,Math.abs(hi)));return{key,title,xLabel,yLabel,xMin:a,xMax:b,yMin:lo-pad,yMax:hi+pad,series};}
+function plots(s){const blue='#2874bd',green='#29825a',orange='#c17814',purple='#9364b7',series=(name,color,rows,xf,yf,log=false)=>({name,color,points:rows.map(r=>{const x=xf(r),y=yf(r);return y===null||log&&y<=0?null:[x,log?Math.log10(y):y];})}),nr=s.lp.rows,trace=nr.map(r=>r.x).concat(s.lp.final?[s.lp.final.x]:[]),cr=nr.map(r=>({k:r.k,...candidateLedger(r.x,s.lp.t)}));return[
+makePlot('geometry','三角形参考中心路径与当前Newton轨迹','x₁','x₂',[{name:'独立三角形边界',color:orange,points:[[0,0],[1,0],[0,1],[0,0]]},{name:'中心方程参照',color:green,points:s.path.map(p=>p.lp.x)},{name:'本次实际Newton点',color:blue,points:trace}],[-.05,1.05]),
+makePlot('newton','局部Newton减量：每次接受步之前','接受步编号','log₁₀(严格正的减量平方)',[series('δ²',blue,nr,r=>r.k,r=>r.decrementSquared,true)]),
+makePlot('certificates','迭代中的候选数值差与合法证书','接受步编号','log₁₀(严格正的差值)',[series('候选数值差，未认证',purple,cr,r=>r.k,r=>r.candidateGap,true),series('合法原始–对偶间隙',green,cr,r=>r.k,r=>r.certifiedGap,true),series('精确中心的3/t',orange,cr,r=>r.k,()=>3/s.lp.t,true)]),
+makePlot('lp-scaling','独立LP中心方程：误差与间隙','log₁₀ t','log₁₀(严格正的值)',[series('原始误差',blue,s.path,r=>r.logT,r=>r.lp.primal+2,true),series('精确对偶间隙3/t',green,s.path,r=>r.logT,r=>r.lp.gap,true)],[-1,3]),
+makePlot('sdp-eigen','独立2×2 SDP：向秩一边界靠近','log₁₀ t','log₁₀(严格正的本征值)',[series('X的较小本征值',blue,s.path,r=>r.logT,r=>r.sdp.eigenX[0],true),series('X的较大本征值',green,s.path,r=>r.logT,r=>r.sdp.eigenX[1],true)],[-1,3]),
+makePlot('sdp-gap','独立2×2 SDP：矩阵互补对应迹间隙','log₁₀ t','log₁₀(严格正的值)',[series('原始误差',blue,s.path,r=>r.logT,r=>r.sdp.primalGap,true),series('原始–对偶间隙2/t',green,s.path,r=>r.logT,r=>r.sdp.gap,true)],[-1,3])];}
+const LABELS={logT:'log₁₀ t',maxSteps:'最多Newton步',scenario:'LP场景',method:'步长选择',x:'当前点x',slacks:'slack向量',objective:'原始目标',barrier:'障碍值',value:'含障碍目标',gradient:'梯度',H:'Hessian',det:'Hessian行列式',direction:'Newton方向',decrementSquared:'局部减量平方',linearResidual:'线性方程残差向量',linearResidualNorm:'线性方程残差范数',primal:'原始值',lambda:'候选乘子λ',nonnegative:'候选是否非负',stationarity:'候选站立误差',stationarityNorm:'站立误差范数',candidateExactlyFeasible:'候选站立读数是否恰为零',candidateValue:'候选形式值（未认证）',candidateGap:'候选数值差（未认证）',complementarity:'候选互补积',targetGap:'精确中心理论间隙',gapIdentityDefect:'含站立误差的间隙恒等式缺口',feasibleLambda:'修复后的合法乘子',projection:'乘子修复改变量',dual:'合法对偶值',certifiedGap:'合法原始–对偶间隙',certifiedComplementarity:'合法乘子的互补积',feasibleStationarity:'合法乘子的站立误差',t:'障碍参数t',q:'非对角元q',X:'原始矩阵X',y:'等式乘子y',S:'对偶slack矩阵S',eigenX:'X本征值（小到大）',eigenS:'S本征值（小到大）',product:'矩阵乘积XS',complementarityDefect:'XS−I/t',trace:'X的迹',gap:'原始–对偶间隙',primalGap:'原始次优性',determinant:'X行列式',strictPrimal:'X是否正定',strictDual:'S是否正定'};const entries=o=>Object.entries(o).map(([k,v])=>[LABELS[k]||k,v]);
+function tables(s){const make=(key,title,headers,rows)=>({key,title,headers,rows}),get=(rows,keys)=>rows.map(r=>keys.map(k=>r[k])),f=s.lp.final,c=s.lp.certificate;return[
+make('parameters','参数与当前LP状态',['项目','值'],[...entries(s.parameters),['t',s.lp.t],['初值',s.lp.start],['状态',s.lp.status],['说明',s.lp.reason]]),
+make('newton','完整Newton局部模型与接受步',['步','x','slack','梯度','H','det H','方向','δ²','线性方程残差','残差范数','接受','步长','下一点'],get(s.lp.rows,['k','x','slacks','gradient','H','det','direction','decrementSquared','linearResidual','linearResidualNorm','accepted','alpha','next'])),
+make('trials','每次回溯尝试：可行性与Armijo',['接受步','尝试','步长','候选点','slack','在内部','目标改变量','Armijo上界','接受'],s.lp.rows.flatMap(r=>r.trials.map(v=>[r.k,...['j','alpha','x','slacks','inside','difference','armijo','accepted'].map(k=>v[k])]))),
+make('final','最后LP点的所有局部读数',['项目','值'],f?entries(f):[['没有数值终点',s.lp.reason]]),
+make('dual','候选乘子与合法证书分别记账',['项目','值'],c?entries(c):[['没有LP证书',s.lp.reason]]),
+make('root','三角形中心参照的标量根区间（浮点）',['步','下界','上界','中点','方程值'],get(s.reference.brackets,['k','lo','hi','mid','value'])),
+make('sdp','独立2×2 SDP全部矩阵与本征值',['项目','值'],entries(s.sdp)),
+make('path','独立LP/SDP中心路径全部节点',['log₁₀t','LP x','LP slacks','LP λ','LP原始','LP对偶','LP间隙','SDP X','SDP y','SDP S','SDP本征值','SDP间隙'],s.path.map(p=>[p.logT,p.lp.x,p.lp.slacks,p.lp.lambda,p.lp.primal,p.lp.dual,p.lp.gap,p.sdp.X,p.sdp.y,p.sdp.S,p.sdp.eigenX,p.sdp.gap]))];}
+function svg(p){const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 540" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+fmt(y)+'</text><text x="'+X(x)+'" y="410" text-anchor="middle">'+fmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const marks=s.boundaryMarkers?[s.points[0],s.points.at(-1)]:s.points.filter(Boolean).length===1?s.points.filter(Boolean):[];marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="5" stroke="'+s.color+'" fill="'+(s.open?'var(--bg,#fff)':s.color)+'" stroke-width="2.5"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});return out+'</svg>';}
+  var mounted=new WeakMap();
+  function mount(root){const METRICS=QUESTIONS.map((q,i)=>({key:String(i),label:q[0]}));var doc=root.ownerDocument;var previous=mounted.get(root);if(previous)previous();var url=null,c=config(),choices={},revealed=false,view=0;root.replaceChildren();root.classList.add('ic174');
+    function el(tag,attrs={},text){var e=doc.createElement(tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));if(text!==undefined)e.textContent=text;return e;}
+    if(!doc.querySelector('[data-ic174-style]')){let style=el('style',{'data-ic174-style':''});style.textContent='.ic174{min-width:0;color:var(--fg,#222);line-height:1.65}.ic174 *{box-sizing:border-box}.ic174 button,.ic174 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.ic174 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.ic174 button:focus-visible,.ic174 select:focus-visible,.ic174 [tabindex]:focus-visible{outline:3px solid #2474bc}.ic174 .ic-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.ic174 label{display:grid;gap:4px;min-width:0}.ic174 input{width:100%;min-height:44px}.ic174 .ic-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.ic174 .ic-pred>strong{display:block;margin-bottom:6px}.ic174 .ic-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.ic174 .ic-feedback{margin:7px 0}.ic174 .ic-scroll{max-width:100%;overflow:auto}.ic174 svg{display:block;min-width:680px;width:100%;height:auto}.ic174 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.ic174 td,.ic174 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.ic174 [hidden]{display:none!important}.ic174 details{margin:12px 0}.ic174 summary{min-height:44px;cursor:pointer}.ic174 .ic-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.ic174 .ic-correct{color:var(--cl-green,#277540)}.ic174 .ic-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.ic174 .ic-grid{grid-template-columns:1fr}}';doc.head.appendChild(style);}
+    root.append(el('h3',{},'从Newton轨迹到合法对偶证书'));
+    root.append(el('p',{},'本次LP运行与独立的三角形中心参照、2×2 SDP模型分开标明。LP运行失败时保留具体原因，不把参照模型当成本次求解结果。'));
+    var presets=el('div',{class:'ic-row','aria-label':'教学预设'});PRESETS.forEach(p=>{let b=el('button',{type:'button','data-preset':p.key},p.label);b.onclick=()=>{c=config(p.config);sync();reset();};presets.append(b);});root.append(presets);
+    var fields={},grid=el('div',{class:'ic-grid'});
+    function select(key,title,options){let label=el('label',{},title),input=el('select',{'data-field':key,'aria-label':title});options.forEach(([v,t])=>input.append(el('option',{value:v},t)));label.append(input);grid.append(label);fields[key]=input;input.onchange=()=>{c[key]=input.value;reset();};}
+    select('scenario','LP初值/约束场景',[['normal','三角形内部'],['near','近边界1e-10'],['boundary','边界初值'],['outside','外部初值'],['noStrict','仅零点可行']]);select('method','Newton步选择',[['backtracking','Armijo回溯'],['damped','局部范数阻尼后检查']]);var outs={};[['logT','log₁₀ t',-1,3,.1],['maxSteps','最多Newton接受步',1,80,1]].forEach(([key,title,min,max,step])=>{let label=el('label',{},title),out=el('output'),input=el('input',{type:'range',min,max,step,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.oninput=()=>{c[key]=+input.value;reset();};});root.append(grid);
+    var rateNote=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(rateNote,prediction);prediction.append(el('h4',{},'先预测：内部、中心与对偶条件'),el('p',{},'四道题的数学条件写在题干里。旋钮用于对照和找反例，不会自动改写题目。'));
+    var predButtons={},feedbacks={};METRICS.forEach(m=>{let row=el('div',{class:'ic-pred'});row.append(el('strong',{},m.label));predButtons[m.key]=[];[true,false].forEach(v=>{let b=el('button',{type:'button','data-prediction':m.key,'data-choice':String(v),'aria-pressed':'false'},QUESTIONS[+m.key][1][v?0:1]);b.onclick=()=>{choices[m.key]=v;predButtons[m.key].forEach(b=>b.setAttribute('aria-pressed',String(b.getAttribute('data-choice')===String(v))));if(revealed)showFeedback();};predButtons[m.key].push(b);row.append(b);});let f=el('p',{class:'ic-feedback','data-feedback':m.key});feedbacks[m.key]=f;row.append(f);prediction.append(row);});
+    var check=el('button',{type:'button','data-check':''},'核对预测并显示结果'),status=el('p',{class:'ic-status','aria-live':'polite'});root.append(check,status);
+    var stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),plotButtons=el('div',{class:'ic-row'}),plotWrap=el('div',{class:'ic-scroll',tabindex:'0',role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'对数图只画严格正值，全部原值保留在表中。初值与约束场景仅作用于本次LP运行；标为独立参考的路径和SDP继续显示各自明确的问题。'),summary=el('p'),tableHost=el('div'),download=el('a',{'data-download':'',download:'interior-record.json'},'下载当前完整数值记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);var current;
+    function showFeedback(){let total=0;METRICS.forEach(m=>{if(typeof choices[m.key]!=='boolean')return;let f=feedback(+m.key,choices[m.key]?0:1);total+=+f.correct;feedbacks[m.key].textContent=f.text;feedbacks[m.key].className='ic-feedback '+(f.correct?'ic-correct':'ic-wrong');});status.textContent='预测核对：'+total+'/4 正确。读数、曲线和下载均对应当前参数。';}
+    function draw(){var ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+    function render(){current=snapshot(c);root.__interiorSnapshot=current;stage.hidden=false;summary.textContent='本次LP状态：'+fmt(current.lp.status)+'。'+current.lp.reason;plotButtons.replaceChildren();plots(current).forEach((p,i)=>{let b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();tables(current).forEach(t=>{let details=el('details',{'data-table':t.key}),heading=el('summary',{},t.title);details.append(heading);details.addEventListener('toggle',()=>{if(!details.open||details.children.length>1)return;let wrap=el('div',{class:'ic-scroll',tabindex:'0',role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),head=el('thead'),tr=el('tr'),body=el('tbody');t.headers.forEach(h=>tr.append(el('th',{scope:'col'},h)));head.append(tr);t.rows.forEach(r=>{let row=el('tr');r.forEach(v=>row.append(el('td',{},fmt(v))));body.append(row);});table.append(head,body);wrap.append(table);details.append(wrap);});tableHost.append(details);});if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current,null,2)],{type:'application/json'}));download.href=url;showFeedback();}
+    function sync(){Object.entries(fields).forEach(([k,e])=>e.value=c[k]);}
+    function reset(){c=config(c);revealed=false;choices={};stage.hidden=true;delete root.__interiorSnapshot;METRICS.forEach(m=>{feedbacks[m.key].textContent='';predButtons[m.key].forEach(b=>b.setAttribute('aria-pressed','false'));});Object.entries(outs).forEach(([k,o])=>o.textContent=fmt(c[k]));rateNote.textContent='t='+fmt(10**c.logT)+'；场景='+fmt(c.scenario)+'；算法='+fmt(c.method)+'。仅在精确中心才使用LP的3/t等式；SDP是独立2×2模型。';status.textContent='参数已就绪。完成四项预测后显示结果。';}
+    check.onclick=()=>{if(!METRICS.every(m=>typeof choices[m.key]==='boolean')){status.textContent='请先为四个量各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
   }
-  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module) {
-    try {
-      var report = exported.selfTest();
-      console.log("interior-central-path self-test: PASS (" + report.checks + " checks, " + report.presets + " presets)");
-    } catch (error) {
-      console.error("interior-central-path self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
-  }
-})(typeof window !== "undefined" ? window : null, function (host) {
-  "use strict";
+function selfTest(){let checks=0;function check(v){if(!v)throw Error('interior self check');checks++;}for(const p of PRESETS){const s=snapshot(p.config);check(s.path.length===17&&s.sdp.strictPrimal&&s.sdp.strictDual&&s.lp.rows.length<=s.parameters.maxSteps);}const n=snapshot(),one=snapshot({logT:3,maxSteps:1});check(n.lp.status==='converged');check(one.lp.status==='max-steps');check(one.lp.certificate.stationarityNorm>1e-5);check(one.lp.certificate.certifiedGap>=0);check(snapshot({scenario:'near'}).lp.status==='converged');check(snapshot({scenario:'boundary'}).lp.final===null);check(snapshot({scenario:'noStrict'}).lp.status==='no-strict-feasible-point');check(n.lp.certificate.feasibleLambda.every(v=>v>=0));check(Math.abs(n.sdp.gap-2)<1e-12);check(snapshot({logT:3}).sdp.eigenX[0]>0);check(snapshot({logT:3}).sdp.eigenX[0]<n.sdp.eigenX[0]);check(snapshot({method:'damped'}).lp.rows[0].alpha<1);return{checks,presets:PRESETS.length};}
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "interior-central-path-lab-styles";
-  var INSTANCE = 0;
-  var EPS = 1e-9;
-  var START_MIN_SLACK = 1e-7;
-  var NEWTON_TOL = 1e-11;
-  var MAX_ITER = 80;
-
-  var PROBLEMS = {
-    triangle: {
-      id: "triangle",
-      title: "严格可行三角形 LP",
-      c: [-1, -2],
-      A: [[-1, 0], [0, -1], [1, 1]],
-      b: [0, 0, 1],
-      start: [1 / 3, 1 / 3],
-      strictFeasible: true,
-      note: "minimize -x₁-2x₂ subject to x₁≥0, x₂≥0, x₁+x₂≤1；最优顶点是 (0,1)。"
-    },
-    noStrict: {
-      id: "no-strict",
-      title: "没有严格可行点的退化 LP",
-      c: [-1, -2],
-      A: [[-1, 0], [0, -1], [1, 1]],
-      b: [0, 0, 0],
-      start: [0, 0],
-      strictFeasible: false,
-      note: "x₁≥0、x₂≥0 且 x₁+x₂≤0 只留下 (0,0)，不存在三条约束同时严格的点。"
-    }
-  };
-
-  var PRESETS = [
-    { id: "normal", label: "正常路径", problemId: "triangle", start: [1 / 3, 1 / 3], t: 1, note: "从严格内部点开始，增大 t 观察靠近 (0,1)。" },
-    { id: "boundary", label: "边界初值", problemId: "triangle", start: [0, 0.5], t: 1, note: "x₁=0 使 log barrier 无定义，应拒绝。" },
-    { id: "ill-conditioned", label: "病态初值", problemId: "triangle", start: [1e-10, 0.5], t: 1, note: "虽形式上严格，但最小 slack 太小，数值条件不可信。" },
-    { id: "no-strict", label: "无严格可行点", problemId: "no-strict", start: [0, 0], t: 1, note: "可行集退化为一个边界点，中心路径前提失败。" }
-  ];
-
-  var STYLE_TEXT = [
-    ".icp-lab{max-width:100%;min-width:0;color:var(--fg,#20252b);line-height:1.55;overflow-wrap:anywhere}.icp-lab *,.icp-lab *::before,.icp-lab *::after{box-sizing:border-box}.icp-lab [hidden]{display:none!important}",
-    ".icp-lab h3,.icp-lab h4{margin:0;color:var(--fg,#20252b);letter-spacing:0}.icp-lab h3{font-size:1.12rem}.icp-lab h4{margin-top:15px;font-size:1rem}.icp-lab p{margin:8px 0}.icp-lab .icp-intro,.icp-lab .icp-note,.icp-lab .icp-feedback{color:var(--fg-soft,var(--muted,#5d6873));font-size:13px;line-height:1.65}",
-    ".icp-lab fieldset{min-width:0;margin:10px 0;padding:9px 10px;border:1px solid var(--border,#c8cdd3)}.icp-lab legend{max-width:100%;padding:0 4px;font-size:13px;font-weight:750;line-height:1.5}.icp-lab .icp-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}",
-    ".icp-lab button,.icp-lab select,.icp-lab input{font:inherit}.icp-lab button{min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--border,#c8cdd3);border-radius:6px;background:var(--bg,#fff);color:var(--fg,#20252b);line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.icp-lab button:hover{border-color:var(--accent,#1769aa)}.icp-lab button:focus-visible,.icp-lab select:focus-visible,.icp-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.icp-lab button[aria-pressed=true],.icp-lab button.icp-primary{border-color:var(--accent,#1769aa);background:var(--accent,#1769aa);color:var(--bg,#fff);font-weight:750}.icp-lab button:disabled{opacity:.55;cursor:not-allowed}",
-    ".icp-lab .icp-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.icp-lab .icp-actions>*{flex:1 1 170px}.icp-lab .icp-feedback{min-height:2em;margin:8px 0;font-weight:700}.icp-lab .icp-pass{color:var(--cl-green,#2f7547)}.icp-lab .icp-warn{color:var(--cl-red,#b43d32)}",
-    ".icp-lab .icp-layout{display:grid;grid-template-columns:minmax(215px,.62fr) minmax(0,1.38fr);gap:14px;align-items:start}.icp-lab .icp-controls,.icp-lab .icp-stage{min-width:0}.icp-lab .icp-controls{display:grid;gap:10px;padding:11px;border:1px solid var(--border,#c8cdd3);border-radius:7px;background:var(--bg,#fff)}.icp-lab .icp-control{display:grid;gap:5px}.icp-lab .icp-control label{color:var(--fg-soft,var(--muted,#5d6873));font-size:12.5px;font-weight:700}.icp-lab .icp-control select{width:100%;min-height:44px;padding:7px 9px;border:1px solid var(--border,#c8cdd3);border-radius:6px;background:var(--bg,#fff);color:var(--fg,#20252b)}.icp-lab .icp-control output{color:var(--accent,#1769aa);font-variant-numeric:tabular-nums}.icp-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent,#1769aa)}.icp-lab .icp-presets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.icp-lab .icp-presets button{font-size:12px}",
-    ".icp-lab .icp-frame{min-width:0;padding:7px;border:1px solid var(--border,#c8cdd3);border-radius:7px;background:var(--bg,#fff);overflow:hidden}.icp-lab .icp-svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg,#20252b)}.icp-lab .icp-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.icp-lab .icp-grid{stroke:var(--border,#c8cdd3);stroke-width:1;stroke-opacity:.75}.icp-lab .icp-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.65}.icp-lab .icp-region{fill:var(--cl-blue,#2c6aa0);fill-opacity:.1;stroke:var(--cl-blue,#2c6aa0);stroke-width:1.5}.icp-lab .icp-path{fill:none;stroke:var(--cl-green,#347247);stroke-width:2.5}.icp-lab .icp-point{fill:var(--cl-gold,#95670d);stroke:var(--bg,#fff);stroke-width:2}.icp-lab .icp-start{fill:var(--cl-red,#b13d32);stroke:var(--bg,#fff);stroke-width:2}.icp-lab .icp-label{font-size:10.5px}.icp-lab .icp-title{font-size:12px;font-weight:800;text-anchor:middle}.icp-lab .icp-bar-bg{fill:var(--border,#c8cdd3)}.icp-lab .icp-bar{fill:var(--cl-green,#347247)}.icp-lab .icp-bar-warn{fill:var(--cl-red,#b13d32)}",
-    ".icp-lab .icp-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:8px;margin:11px 0}.icp-lab .icp-metric{min-width:0;padding:8px;border-top:2px solid var(--border,#c8cdd3);background:var(--bg,#fff)}.icp-lab .icp-metric:nth-child(4n+1){border-color:var(--cl-blue,#2c6aa0)}.icp-lab .icp-metric:nth-child(4n+2){border-color:var(--cl-gold,#95670d)}.icp-lab .icp-metric:nth-child(4n+3){border-color:var(--cl-green,#347247)}.icp-lab .icp-metric:nth-child(4n){border-color:var(--cl-red,#b13d32)}.icp-lab .icp-metric span{display:block;color:var(--fg-soft,var(--muted,#5d6873));font-size:11px}.icp-lab .icp-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-    ".icp-lab .icp-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}.icp-lab table{width:100%;min-width:650px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.icp-lab th,.icp-lab td{padding:7px 7px;border-bottom:1px solid var(--border,#c8cdd3);text-align:left;vertical-align:top}.icp-lab th{color:var(--fg-soft,var(--muted,#5d6873));font-size:11.5px}.icp-lab .icp-checks{display:grid;gap:6px;margin:10px 0 0;padding:0;list-style:none}.icp-lab .icp-checks li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;align-items:start}.icp-lab .icp-check{font-weight:800}.icp-lab .icp-check-pass{color:var(--cl-green,#2f7547)}.icp-lab .icp-check-fail{color:var(--cl-red,#b43d32)}.icp-lab .icp-interpretation{margin-top:10px;padding:9px 11px;border-left:3px solid var(--cl-green,#347247);background:var(--block-bg,var(--bg,#fff));color:var(--fg-soft,var(--muted,#5d6873));font-size:12.5px;line-height:1.65}",
-    "@media(max-width:850px){.icp-lab .icp-layout{grid-template-columns:minmax(0,1fr)}}@media(max-width:620px){.icp-lab .icp-choice-grid{grid-template-columns:minmax(0,1fr)}.icp-lab .icp-presets{grid-template-columns:minmax(0,1fr)}}@media(max-width:420px){.icp-lab .icp-frame{padding:4px}.icp-lab table{font-size:11.5px}.icp-lab th,.icp-lab td{padding-left:5px;padding-right:5px}}@media(prefers-reduced-motion:reduce){.icp-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
-  ].join("\n");
-
-  function finite(value) {
-    return typeof value === "number" && isFinite(value);
-  }
-
-  function copyVector(vector) { return vector.slice(); }
-  function dot(a, b) { return a.reduce(function (total, value, index) { return total + value * b[index]; }, 0); }
-  function norm2(vector) { return Math.sqrt(dot(vector, vector)); }
-  function add(a, b) { return a.map(function (value, index) { return value + b[index]; }); }
-  function scale(a, factor) { return a.map(function (value) { return value * factor; }); }
-
-  function problemById(id) {
-    return PROBLEMS[id] || (id === "no-strict" ? PROBLEMS.noStrict : null);
-  }
-
-  function validateProblem(problem) {
-    if (!problem || !Array.isArray(problem.A) || problem.A.length !== problem.b.length || problem.A.length < 1) throw new TypeError("invalid LP constraint matrix");
-    if (!Array.isArray(problem.c) || problem.c.length !== 2) throw new TypeError("LP must have two variables");
-    problem.A.forEach(function (row) {
-      if (!Array.isArray(row) || row.length !== 2 || row.some(function (value) { return !finite(Number(value)); })) throw new TypeError("LP rows must be finite 2-vectors");
-    });
-    if (problem.b.some(function (value) { return !finite(Number(value)); }) || problem.c.some(function (value) { return !finite(Number(value)); })) throw new TypeError("LP data must be finite");
-    return problem;
-  }
-
-  function slacks(problem, x) {
-    return problem.b.map(function (bValue, index) { return Number(bValue) - dot(problem.A[index], x); });
-  }
-
-  function solve2(matrix, rhs) {
-    var determinant = matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
-    if (!finite(determinant) || Math.abs(determinant) < 1e-18) return null;
-    return [
-      (rhs[0] * matrix[1][1] - matrix[0][1] * rhs[1]) / determinant,
-      (matrix[0][0] * rhs[1] - rhs[0] * matrix[1][0]) / determinant
-    ];
-  }
-
-  function barrierData(problem, t, x) {
-    var currentSlacks = slacks(problem, x);
-    var barrier = currentSlacks.reduce(function (total, slack) { return total - Math.log(slack); }, 0);
-    var gradient = scale(problem.c, t);
-    var hessian = [[0, 0], [0, 0]];
-    currentSlacks.forEach(function (slack, index) {
-      var row = problem.A[index];
-      gradient[0] += row[0] / slack;
-      gradient[1] += row[1] / slack;
-      hessian[0][0] += row[0] * row[0] / (slack * slack);
-      hessian[0][1] += row[0] * row[1] / (slack * slack);
-      hessian[1][0] += row[1] * row[0] / (slack * slack);
-      hessian[1][1] += row[1] * row[1] / (slack * slack);
-    });
-    return { slacks: currentSlacks, barrier: barrier, objective: t * dot(problem.c, x) + barrier, gradient: gradient, hessian: hessian };
-  }
-
-  function failure(status, message, extra) {
-    var result = { ok: false, status: status, failure: message, message: message };
-    Object.keys(extra || {}).forEach(function (key) { result[key] = extra[key]; });
-    return result;
-  }
-
-  function solveCentralPath(input) {
-    input = input || {};
-    var problem = input.problem || problemById(input.problemId || "triangle");
-    if (!problem) return failure("unknown-problem", "找不到这个 LP 预设。");
-    try { validateProblem(problem); } catch (error) { return failure("invalid-problem", error.message); }
-    var t = Number(input.t === undefined ? 1 : input.t);
-    if (!finite(t) || t <= 0) return failure("invalid-barrier", "barrier parameter t must be finite and positive。", { t: t });
-    if (problem.strictFeasible === false) return failure("no-strict-feasible-point", "该 LP 的可行集没有同时严格满足所有不等式的点。", { t: t, problemId: problem.id });
-    var x = input.start ? copyVector(input.start) : copyVector(problem.start || [1 / 3, 1 / 3]);
-    if (!Array.isArray(x) || x.length !== 2 || x.some(function (value) { return !finite(Number(value)); })) return failure("invalid-start", "初值必须是有限的二维向量。", { t: t });
-    x = x.map(Number);
-    var initialSlacks = slacks(problem, x);
-    var minInitialSlack = Math.min.apply(null, initialSlacks);
-    if (minInitialSlack <= 0) return failure("not-strict-feasible-start", "初值在边界外或边界上，log barrier 没有定义。", { t: t, start: x, slacks: initialSlacks });
-    if (minInitialSlack < START_MIN_SLACK) return failure("ill-conditioned-start", "初值离边界太近，Newton Hessian 的尺度已病态；请从更深的内部开始。", { t: t, start: x, slacks: initialSlacks });
-
-    var iterations = 0;
-    var converged = false;
-    for (iterations = 0; iterations < MAX_ITER; iterations += 1) {
-      var data = barrierData(problem, t, x);
-      if (!data.slacks.every(function (slack) { return slack > 0 && finite(slack); })) return failure("left-interior", "Newton 步离开了严格可行域。", { t: t, start: x, slacks: data.slacks, iterations: iterations });
-      var gradientNorm = norm2(data.gradient);
-      if (gradientNorm <= NEWTON_TOL * Math.max(1, t)) { converged = true; break; }
-      var direction = solve2(data.hessian, scale(data.gradient, -1));
-      if (!direction || direction.some(function (value) { return !finite(value); })) return failure("singular-newton-system", "Newton 线性系统不可可靠求解。", { t: t, start: x, iterations: iterations });
-      var directionalDerivative = dot(data.gradient, direction);
-      var step = 1;
-      var accepted = false;
-      while (step > 1e-14) {
-        var candidate = add(x, scale(direction, step));
-        var candidateSlacks = slacks(problem, candidate);
-        if (candidateSlacks.every(function (slack) { return slack > 0 && finite(slack); })) {
-          var candidateData = barrierData(problem, t, candidate);
-          if (candidateData.objective <= data.objective + 1e-4 * step * directionalDerivative) {
-            x = candidate;
-            accepted = true;
-            break;
-          }
-        }
-        step *= 0.5;
-      }
-      if (!accepted) return failure("line-search-failed", "Newton backtracking 找不到保持严格可行且下降的步长。", { t: t, start: x, iterations: iterations });
-    }
-    if (!converged) return failure("newton-max-iterations", "Newton 在限定迭代次数内没有收敛。", { t: t, start: x, iterations: iterations });
-
-    var finalData = barrierData(problem, t, x);
-    var lambda = finalData.slacks.map(function (slack) { return 1 / (t * slack); });
-    var stationarity = problem.c.map(function (value, coordinate) {
-      return value + problem.A.reduce(function (total, row, index) { return total + row[coordinate] * lambda[index]; }, 0);
-    });
-    var primalObjective = dot(problem.c, x);
-    var dualObjective = -dot(problem.b, lambda);
-    var complementarity = finalData.slacks.map(function (slack, index) { return slack * lambda[index]; });
-    var targetComplementarity = 1 / t;
-    var gap = primalObjective - dualObjective;
-    var expectedGap = problem.A.length / t;
-    return {
-      ok: true,
-      status: "ok",
-      problemId: problem.id,
-      x: x,
-      t: t,
-      mu: 1 / t,
-      slacks: finalData.slacks,
-      lambda: lambda,
-      barrier: finalData.barrier,
-      barrierObjective: finalData.objective,
-      primalObjective: primalObjective,
-      dualObjective: dualObjective,
-      gap: gap,
-      expectedGap: expectedGap,
-      complementarity: complementarity,
-      complementarityResidual: Math.max.apply(null, complementarity.map(function (value) { return Math.abs(value - targetComplementarity); })),
-      stationarityResidual: norm2(stationarity),
-      primalFeasible: finalData.slacks.every(function (slack) { return slack >= -EPS; }),
-      strictFeasible: finalData.slacks.every(function (slack) { return slack > 0; }),
-      dualFeasible: lambda.every(function (value) { return value >= -EPS; }),
-      boundaryDistance: Math.min.apply(null, finalData.slacks),
-      iterations: iterations,
-      start: input.start ? copyVector(input.start) : copyVector(problem.start || [1 / 3, 1 / 3])
-    };
-  }
-
-  function centralPath(tValues, start) {
-    return tValues.map(function (t) { return solveCentralPath({ problemId: "triangle", t: t, start: start || PROBLEMS.triangle.start }); });
-  }
-
-  function near(a, b, tolerance) {
-    return Math.abs(a - b) <= (tolerance || EPS) * Math.max(1, Math.abs(a), Math.abs(b));
-  }
-
-  function assert(condition, message) {
-    if (!condition) throw new Error("interior-central-path self-test failed: " + message);
-  }
-
-  function selfTest() {
-    var checks = 0;
-    [0.1, 1, 10, 40].forEach(function (t) {
-      var result = solveCentralPath({ problemId: "triangle", t: t, start: [1 / 3, 1 / 3] });
-      checks += 9;
-      assert(result.ok, "normal path converges at t=" + t);
-      assert(result.primalFeasible && result.strictFeasible, "strict primal feasibility");
-      assert(result.dualFeasible, "dual feasibility");
-      assert(near(result.gap, 3 / t, 1e-8), "gap m/t");
-      assert(near(result.expectedGap, 3 / t, 1e-12), "expected gap");
-      assert(result.stationarityResidual < 1e-8, "stationarity");
-      assert(result.complementarityResidual < 1e-8, "complementarity");
-      assert(result.lambda.every(finite), "finite multipliers");
-      assert(result.boundaryDistance > 0, "positive boundary distance");
-    });
-    var low = solveCentralPath({ problemId: "triangle", t: 0.1 });
-    var high = solveCentralPath({ problemId: "triangle", t: 40 });
-    checks += 3;
-    assert(high.x[1] > low.x[1], "path moves toward optimal vertex");
-    assert(high.x[0] < low.x[0], "path moves toward x1 boundary");
-    assert(high.boundaryDistance < low.boundaryDistance, "path approaches boundary");
-    var failures = [
-      solveCentralPath({ problemId: "no-strict", t: 1 }),
-      solveCentralPath({ problemId: "triangle", t: 1, start: [0, 0.5] }),
-      solveCentralPath({ problemId: "triangle", t: 1, start: [1e-10, 0.5] }),
-      solveCentralPath({ problemId: "triangle", t: 0 }),
-      solveCentralPath({ problemId: "triangle", t: 1, start: [NaN, 0.2] })
-    ];
-    checks += 5;
-    assert(failures[0].status === "no-strict-feasible-point", "no strict feasible failure");
-    assert(failures[1].status === "not-strict-feasible-start", "boundary failure");
-    assert(failures[2].status === "ill-conditioned-start", "ill-conditioned failure");
-    assert(failures[3].status === "invalid-barrier", "invalid barrier failure");
-    assert(failures[4].status === "invalid-start", "invalid start failure");
-    return { checks: checks, presets: PRESETS.length };
-  }
-
-  function installStyles(doc) {
-    if (!doc || !doc.head || doc.getElementById(STYLE_ID)) return;
-    var style = doc.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = STYLE_TEXT;
-    doc.head.appendChild(style);
-  }
-
-  function appendChildren(node, children) {
-    if (children === undefined || children === null) return node;
-    (Array.isArray(children) ? children : [children]).forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child && child.nodeType ? child : node.ownerDocument.createTextNode(String(child)));
-    });
-    return node;
-  }
-
-  function setAttributes(node, attrs) {
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", String(value));
-      else if (key === "htmlFor") node.setAttribute("for", String(value));
-      else if (key === "text") node.textContent = String(value);
-      else if (key.slice(0, 2) === "on" && typeof value === "function") node.addEventListener(key.slice(2).toLowerCase(), value);
-      else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, String(value));
-    });
-    return node;
-  }
-
-  function makeElement(api, doc, tag, attrs, children) {
-    var node = api && typeof api.el === "function" ? api.el(tag, attrs || {}) : setAttributes(doc.createElement(tag), attrs || {});
-    return appendChildren(node, children);
-  }
-
-  function svgNode(doc, tag, attrs, text) {
-    var node = doc.createElementNS(SVG_NS, tag);
-    setAttributes(node, attrs || {});
-    if (text !== undefined) node.textContent = text;
-    return node;
-  }
-
-  function replaceChildren(node, children) {
-    if (node && typeof node.replaceChildren === "function") {
-      node.replaceChildren.apply(node, Array.isArray(children) ? children : [children]);
-      return;
-    }
-    while (node && node.firstChild) node.removeChild(node.firstChild);
-    appendChildren(node, children);
-  }
-
-  function formatNumber(api, value, digits) {
-    if (!finite(value)) return "—";
-    if (Math.abs(value) < 0.0005) value = 0;
-    if (api && typeof api.format === "function") return api.format(value, digits === undefined ? 3 : digits);
-    var text = value.toFixed(digits === undefined ? 3 : digits);
-    return text.indexOf(".") < 0 ? text : text.replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function announce(api, root, message) {
-    if (api && typeof api.announce === "function") api.announce(root, message);
-  }
-
-  function metric(api, doc, label) {
-    var value = makeElement(api, doc, "strong", {}, ["—"]);
-    return { node: makeElement(api, doc, "div", { className: "icp-metric" }, [makeElement(api, doc, "span", {}, [label]), value]), value: value };
-  }
-
-  function drawScene(doc, svg, result, preset) {
-    replaceChildren(svg, []);
-    svg.setAttribute("viewBox", "0 0 720 330");
-    svg.setAttribute("role", "img");
-    svg.setAttribute("aria-label", "二维线性规划可行三角形与 log barrier central path");
-    var plot = { x: 45, y: 38, w: 390, h: 245 };
-    function mapX(value) { return plot.x + value * plot.w; }
-    function mapY(value) { return plot.y + plot.h - value * plot.h; }
-    [0, 0.5, 1].forEach(function (value) {
-      svg.appendChild(svgNode(doc, "line", { x1: mapX(value), y1: plot.y, x2: mapX(value), y2: plot.y + plot.h, class: value === 0 ? "icp-axis" : "icp-grid" }));
-      svg.appendChild(svgNode(doc, "line", { x1: plot.x, y1: mapY(value), x2: plot.x + plot.w, y2: mapY(value), class: value === 0 ? "icp-axis" : "icp-grid" }));
-      svg.appendChild(svgNode(doc, "text", { x: mapX(value), y: plot.y + plot.h + 18, class: "icp-label", "text-anchor": "middle" }, String(value)));
-      svg.appendChild(svgNode(doc, "text", { x: plot.x - 7, y: mapY(value) + 4, class: "icp-label", "text-anchor": "end" }, String(value)));
-    });
-    svg.appendChild(svgNode(doc, "polygon", { points: mapX(0) + "," + mapY(0) + " " + mapX(1) + "," + mapY(0) + " " + mapX(0) + "," + mapY(1), class: "icp-region" }));
-    svg.appendChild(svgNode(doc, "text", { x: plot.x + plot.w / 2, y: 20, class: "icp-title" }, "严格可行域与中心路径"));
-    svg.appendChild(svgNode(doc, "text", { x: plot.x + plot.w + 8, y: mapY(0) + 4, class: "icp-label" }, "x₁"));
-    svg.appendChild(svgNode(doc, "text", { x: plot.x - 3, y: mapY(1) - 8, class: "icp-label", "text-anchor": "end" }, "x₂"));
-    var pathResults = centralPath([0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 40], PROBLEMS.triangle.start).filter(function (item) { return item.ok; });
-    if (pathResults.length > 1) {
-      var path = pathResults.map(function (item, index) { return (index ? "L" : "M") + mapX(item.x[0]).toFixed(2) + "," + mapY(item.x[1]).toFixed(2); }).join(" ");
-      svg.appendChild(svgNode(doc, "path", { d: path, class: "icp-path" }));
-      pathResults.forEach(function (item) { svg.appendChild(svgNode(doc, "circle", { cx: mapX(item.x[0]), cy: mapY(item.x[1]), r: "3.5", class: "icp-point" })); });
-    }
-    svg.appendChild(svgNode(doc, "circle", { cx: mapX(0), cy: mapY(1), r: "5", class: "icp-point" }));
-    svg.appendChild(svgNode(doc, "text", { x: mapX(0) + 8, y: mapY(1) - 7, class: "icp-label" }, "最优 (0,1)"));
-    var current = result && result.x ? result.x : preset.start;
-    if (current && current.length === 2 && current.every(finite)) {
-      svg.appendChild(svgNode(doc, "circle", { cx: mapX(current[0]), cy: mapY(current[1]), r: "6", class: result && result.ok ? "icp-point" : "icp-start" }));
-    }
-    var panel = { x: 500, y: 48, w: 175, h: 215 };
-    svg.appendChild(svgNode(doc, "text", { x: panel.x + panel.w / 2, y: 20, class: "icp-title" }, "当前 slack 账本"));
-    var slackValues = result && result.slacks ? result.slacks : [0, 0, 0];
-    var labels = ["s₁=x₁", "s₂=x₂", "s₃=1−x₁−x₂"];
-    var maxSlack = 1;
-    slackValues.forEach(function (value, index) {
-      var y = panel.y + index * 57;
-      var safe = finite(value) ? Math.max(0, Math.min(maxSlack, value)) : 0;
-      svg.appendChild(svgNode(doc, "text", { x: panel.x, y: y, class: "icp-label" }, labels[index]));
-      svg.appendChild(svgNode(doc, "rect", { x: panel.x, y: y + 8, width: panel.w, height: 18, rx: "2", class: "icp-bar-bg" }));
-      svg.appendChild(svgNode(doc, "rect", { x: panel.x, y: y + 8, width: panel.w * safe, height: 18, rx: "2", class: result && result.ok ? "icp-bar" : "icp-bar-warn" }));
-      svg.appendChild(svgNode(doc, "text", { x: panel.x + panel.w, y: y + 42, class: "icp-label", "text-anchor": "end" }, formatNumber(null, value, 5)));
-    });
-    svg.appendChild(svgNode(doc, "text", { x: panel.x, y: 255, class: "icp-label" }, result && result.ok ? "绿：严格可行；金：中心路径采样" : "红：失败状态，不显示伪造路径"));
-  }
-
-  function renderPrediction(api, state, questions, refs) {
-    questions.forEach(function (question) {
-      question.choices.forEach(function (choice) { choice.node.setAttribute("aria-pressed", state.predictions[question.key] === choice.value ? "true" : "false"); });
-    });
-    var missing = questions.filter(function (question) { return !state.predictions[question.key]; });
-    refs.reveal.disabled = missing.length > 0;
-    refs.feedback.className = "icp-feedback" + (state.feedbackClass ? " " + state.feedbackClass : "");
-    refs.feedback.textContent = state.feedback || (missing.length ? "还差 " + missing.length + " 项预测；提交前隐藏中心路径和残差账本。" : "四项都已回答，可以揭晓。");
-  }
-
-  function makePredictionForm(api, doc, state, refs) {
-    var questions = [
-      { key: "vertex", prompt: "把 t 增大时，正常路径会靠近哪个点？", choices: [{ value: "top", label: "(0,1) 顶点" }, { value: "center", label: "(1/3,1/3)" }, { value: "right", label: "(1,0) 顶点" }], expected: "top" },
-      { key: "gap", prompt: "本 LP 有 3 条不等式；中心路径的原始--对偶间隙应是什么？", choices: [{ value: "3overT", label: "3/t" }, { value: "1overT", label: "1/t" }, { value: "t3", label: "3t" }], expected: "3overT" },
-      { key: "boundary", prompt: "从 x₁=0 的边界初值运行 log barrier，预期状态？", choices: [{ value: "fail", label: "失败并说明原因" }, { value: "continue", label: "照常继续" }, { value: "optimal", label: "直接得到最优" }], expected: "fail" },
-      { key: "nostrict", prompt: "可行集只有 (0,0) 时，是否有中心路径？", choices: [{ value: "fail", label: "没有，给失败状态" }, { value: "yes", label: "有且唯一" }, { value: "unknown", label: "只看 gap" }], expected: "fail" }
-    ];
-    var form = makeElement(api, doc, "form", { className: "icp-prediction", "aria-describedby": "icp-prediction-note" });
-    form.appendChild(makeElement(api, doc, "p", { id: "icp-prediction-note", className: "icp-intro" }, ["先预测路径方向、gap 和失败条件；揭晓前不运行可见的计算账本。"]));
-    questions.forEach(function (question) {
-      var fieldset = makeElement(api, doc, "fieldset", {});
-      fieldset.appendChild(makeElement(api, doc, "legend", {}, [question.prompt]));
-      var grid = makeElement(api, doc, "div", { className: "icp-choice-grid" });
-      question.choices.forEach(function (choice) {
-        var button = makeElement(api, doc, "button", { type: "button", text: choice.label, "aria-pressed": "false" });
-        button.addEventListener("click", function () { state.predictions[question.key] = choice.value; state.feedback = ""; state.feedbackClass = ""; renderPrediction(api, state, questions, refs); });
-        choice.node = button;
-        grid.appendChild(button);
-      });
-      fieldset.appendChild(grid);
-      form.appendChild(fieldset);
-    });
-    refs.questions = questions;
-    return form;
-  }
-
-  function metricNode(api, doc, label) {
-    var value = makeElement(api, doc, "strong", {}, ["—"]);
-    return { node: makeElement(api, doc, "div", { className: "icp-metric" }, [makeElement(api, doc, "span", {}, [label]), value]), value: value };
-  }
-
-  function renderLedger(api, doc, tableHost, result) {
-    if (!result.ok) {
-      replaceChildren(tableHost, [makeElement(api, doc, "p", { className: "icp-interpretation" }, ["失败状态：" + result.status + "；" + result.message])]);
-      return;
-    }
-    var body = makeElement(api, doc, "tbody", {});
-    ["-x₁≤0", "-x₂≤0", "x₁+x₂≤1"].forEach(function (label, index) {
-      body.appendChild(makeElement(api, doc, "tr", {}, [
-        makeElement(api, doc, "th", {}, [label]),
-        makeElement(api, doc, "td", {}, [formatNumber(api, result.slacks[index], 8)]),
-        makeElement(api, doc, "td", {}, [formatNumber(api, result.lambda[index], 8)]),
-        makeElement(api, doc, "td", {}, [formatNumber(api, result.complementarity[index], 8)]),
-        makeElement(api, doc, "td", {}, ["sλ≈1/t"])
-      ]));
-    });
-    replaceChildren(tableHost, [makeElement(api, doc, "table", {}, [
-      makeElement(api, doc, "caption", {}, ["逐约束透明账本：slack、对偶乘子与互补积"]),
-      makeElement(api, doc, "thead", {}, [makeElement(api, doc, "tr", {}, [makeElement(api, doc, "th", {}, ["约束"]), makeElement(api, doc, "th", {}, ["slack sᵢ"]), makeElement(api, doc, "th", {}, ["λᵢ"]), makeElement(api, doc, "th", {}, ["sᵢλᵢ"]), makeElement(api, doc, "th", {}, ["目标"])])]),
-      body
-    ])]);
-  }
-
-  function mount(root, api) {
-    if (!root || typeof document === "undefined") return;
-    var doc = root.ownerDocument || document;
-    installStyles(doc);
-    root.classList.add("icp-lab");
-    var state = { presetId: "normal", t: 1, revealed: false, predictions: {}, feedback: "", feedbackClass: "" };
-    var refs = {};
-    var questions;
-    var heading = makeElement(api, doc, "h3", {}, ["中心路径账本：先预测，再让 Newton 走进三角形"]);
-    var intro = makeElement(api, doc, "p", { className: "icp-intro" }, ["固定二维 LP：minimize -x₁-2x₂，约束 -x₁≤0、-x₂≤0、x₁+x₂≤1。正常预设从 (1/3,1/3) 出发；自和谐复杂度与 SDP 另列，不由这个 toy 图证明。"]);
-    var predictionForm = makePredictionForm(api, doc, state, refs);
-    questions = refs.questions;
-    var actions = makeElement(api, doc, "div", { className: "icp-actions" });
-    var reveal = makeElement(api, doc, "button", { type: "button", className: "icp-primary", text: "核对预测并揭晓" });
-    var reset = makeElement(api, doc, "button", { type: "button", text: "重置预测" });
-    refs.reveal = reveal;
-    refs.feedback = makeElement(api, doc, "p", { className: "icp-feedback", "aria-live": "polite" }, []);
-    actions.appendChild(reveal);
-    actions.appendChild(reset);
-
-    var presetSelect = makeElement(api, doc, "select", { "aria-label": "内点法场景" }, PRESETS.map(function (preset) { return makeElement(api, doc, "option", { value: preset.id, text: preset.label }); }));
-    var tInput = makeElement(api, doc, "input", { type: "range", min: "0.1", max: "40", step: "0.1", value: "1", "aria-label": "barrier parameter t" });
-    var tOutput = makeElement(api, doc, "output", {}, ["1"]);
-    var controls = makeElement(api, doc, "div", { className: "icp-controls" }, [
-      makeElement(api, doc, "div", { className: "icp-control" }, [makeElement(api, doc, "label", {}, ["场景"]), presetSelect]),
-      makeElement(api, doc, "div", { className: "icp-control" }, [makeElement(api, doc, "label", {}, ["barrier parameter t = ", tOutput]), tInput]),
-      makeElement(api, doc, "p", { className: "icp-note" }, ["正常场景用 Newton + backtracking；失败场景不会伪造一个中心点。t 越大，μ=1/t 越小，路径应更接近边界最优点。"])
-    ]);
-    var svg = doc.createElementNS(SVG_NS, "svg");
-    svg.setAttribute("class", "icp-svg");
-    var frame = makeElement(api, doc, "div", { className: "icp-frame" }, [svg]);
-    var metricsHost = makeElement(api, doc, "div", { className: "icp-metrics" });
-    var tableHost = makeElement(api, doc, "div", { className: "icp-table-wrap" });
-    var checksHost = makeElement(api, doc, "ul", { className: "icp-checks" });
-    var interpretationHost = makeElement(api, doc, "p", { className: "icp-interpretation" });
-    var resultShell = makeElement(api, doc, "div", { hidden: true }, [
-      makeElement(api, doc, "div", { className: "icp-layout" }, [controls, makeElement(api, doc, "div", { className: "icp-stage" }, [frame, metricsHost, tableHost, checksHost, interpretationHost])])
-    ]);
-    replaceChildren(root, [heading, intro, predictionForm, actions, refs.feedback, resultShell]);
-
-    reveal.addEventListener("click", function () {
-      var correct = questions.filter(function (question) { return state.predictions[question.key] === question.expected; }).length;
-      state.revealed = true;
-      state.feedback = "已揭晓：" + correct + "/" + questions.length + " 命中；现在可切换 t 与失败场景。";
-      state.feedbackClass = correct === questions.length ? "icp-pass" : "icp-warn";
-      render();
-      announce(api, root, state.feedback);
-    });
-    reset.addEventListener("click", function () {
-      state.presetId = "normal";
-      state.t = 1;
-      state.revealed = false;
-      state.predictions = {};
-      state.feedback = "";
-      state.feedbackClass = "";
-      render();
-      announce(api, root, "预测和中心路径账本已重置。");
-    });
-    presetSelect.addEventListener("change", function () { state.presetId = presetSelect.value; var preset = PRESETS.filter(function (item) { return item.id === state.presetId; })[0]; state.t = preset.t; render(); });
-    tInput.addEventListener("input", function () { state.t = Number(tInput.value); state.presetId = "normal"; render(); });
-
-    function render() {
-      renderPrediction(api, state, questions, refs);
-      resultShell.hidden = !state.revealed;
-      presetSelect.value = state.presetId;
-      tInput.value = String(state.t);
-      tOutput.textContent = formatNumber(api, state.t, 2);
-      if (!state.revealed) return;
-      var preset = PRESETS.filter(function (item) { return item.id === state.presetId; })[0] || PRESETS[0];
-      var result = solveCentralPath({ problemId: preset.problemId, start: preset.start, t: state.t });
-      drawScene(doc, svg, result, preset);
-      replaceChildren(metricsHost, [metricNode(api, doc, "t"), metricNode(api, doc, "μ=1/t"), metricNode(api, doc, "primal / dual"), metricNode(api, doc, "gap") , metricNode(api, doc, "min slack"), metricNode(api, doc, "Newton 次数")]);
-      var metricValues = result.ok ? [result.t, result.mu, result.primalObjective + " / " + result.dualObjective, result.gap, result.boundaryDistance, result.iterations] : [state.t, 1 / state.t, "—", "—", result.status, "—"];
-      metricsHost.querySelectorAll("strong").forEach(function (node, index) { node.textContent = typeof metricValues[index] === "number" ? formatNumber(api, metricValues[index], 7) : String(metricValues[index]); });
-      renderLedger(api, doc, tableHost, result);
-      var checks = result.ok ? [
-        [result.primalFeasible && result.strictFeasible, "primal 严格可行：min slack=" + formatNumber(api, result.boundaryDistance, 8)],
-        [result.dualFeasible, "dual 可行：λᵢ≥0"],
-        [result.stationarityResidual < 1e-8, "stationarity residual=" + formatNumber(api, result.stationarityResidual, 8)],
-        [result.complementarityResidual < 1e-8, "互补性：max|sᵢλᵢ−1/t|=" + formatNumber(api, result.complementarityResidual, 8)],
-        [near(result.gap, result.expectedGap, 1e-8), "对偶间隙：gap=" + formatNumber(api, result.gap, 8) + "，m/t=" + formatNumber(api, result.expectedGap, 8)]
-      ] : [[false, "失败状态：" + result.status], [false, result.message]];
-      replaceChildren(checksHost, checks.map(function (check) { return makeElement(api, doc, "li", {}, [makeElement(api, doc, "span", { className: "icp-check " + (check[0] ? "icp-check-pass" : "icp-check-fail") }, [check[0] ? "✓" : "×"]), makeElement(api, doc, "span", {}, [check[1]])]); }));
-      interpretationHost.textContent = result.ok
-        ? "中心点严格留在三角形内部；λᵢ=1/(t sᵢ)，所以每一行互补积都是 1/t，三行相加得到 gap=3/t。t 增大只是本二维 LP 的路径跟踪演示，不是一般多项式复杂度证明；自和谐障碍的复杂度条件和 SDP 的 -log det 障碍分别看本页后文。"
-        : "这个状态没有被当成数值答案：" + result.message + " 迁移到真实求解器时，先检查严格可行性、尺度和初值，再决定是否重启或改用相应的可行化阶段。";
-    }
-
-    render();
-  }
-
-  return {
-    EPS: EPS,
-    PROBLEMS: PROBLEMS,
-    PRESETS: PRESETS,
-    slacks: slacks,
-    barrierData: barrierData,
-    solveCentralPath: solveCentralPath,
-    solve: solveCentralPath,
-    centralPath: centralPath,
-    selfTest: selfTest,
-    mount: mount
-  };
-});
+const api={DEFAULTS,PRESETS,QUESTIONS,config,snapshot,plots,tables,fmt,svg,feedback,mount,selfTest};if(typeof module!=='undefined')module.exports=api;if(hostWindow.CourseLearning)hostWindow.CourseLearning.register('interior-central-path',mount);})(typeof window!=='undefined'?window:globalThis);
