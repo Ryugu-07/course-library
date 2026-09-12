@@ -52,153 +52,268 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-12 15:43</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#mdp-iteration-learning-title">学习层：三条算法路线，必须交出同一张证书</a><ul>
-<li><a href="#1">1. 具体开场：留在营地，还是去矿区</a></li>
-<li><a href="#2">2. 先预测，再揭示</a></li>
-<li><a href="#3-bellman">3. 形式桥：从 Bellman 算子到三种证书</a></li>
-<li><a href="#4-javascript">4. 静态后备：JavaScript 失效时的可核查账本</a></li>
-<li><a href="#5">5. 边界与常见误读</a></li>
-<li><a href="#6">6. 迁移问题</a></li>
-</ul>
-</li>
-<li><a href="#1-mdp-bellman">1. 有限折现 MDP 与 Bellman 算子</a></li>
-<li><a href="#2_1">2. 价值迭代：每步便宜，残差可审计</a></li>
-<li><a href="#3">3. 策略迭代：评估、改进、停在不动点</a></li>
-<li><a href="#4-bellman-lp">4. Bellman 不等式与 LP 证书</a></li>
-<li><a href="#5_1">5. 证据与迁移边界</a></li>
+<li><a href="#mdp179-title">学习层：算法交出的答案，还需要什么证据？</a></li>
+<li><a href="#1">1. 延续同一座营地：现在限制远行次数</a></li>
+<li><a href="#2">2. 先预测，再打开三种算法的记录</a></li>
+<li><a href="#3-vi">3. VI：一轮究竟计算了什么</a></li>
+<li><a href="#4">4. 策略评估：解线性方程为什么可靠</a></li>
+<li><a href="#5-pi">5. PI：严格改进、并列保留与有限终止</a></li>
+<li><a href="#6">6. 评估只做几步：哪些结论必须重新检查</a></li>
+<li><a href="#7-lp">7. 价值 LP：为什么所有动作都必须受约束</a></li>
+<li><a href="#8">8. 对偶：价值不等式变成访问流守恒</a></li>
+<li><a href="#9">9. 从一张可行流表恢复策略</a></li>
+<li><a href="#10">10. 加预算：为什么随机化可能严格更好</a></li>
+<li><a href="#11">11. 影子价格：再给预算答案一张上界证书</a></li>
+<li><a href="#12">12. 八道复算题：从更新到约束证书</a></li>
 </ul>
 </div>
 </details>
-<h1 id="mdp-ii-lp">MDP II · 价值迭代、策略迭代与 LP<a class="headerlink" href="#mdp-ii-lp" title="Permanent link"></a></h1>
+<h1 id="mdp-ii-lp">MDP II · 价值迭代、策略迭代与占用量 LP<a class="headerlink" href="#mdp-ii-lp" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Puterman §6.3–6.9 ｜ <strong>前置</strong>：mdp-01、本科优化 IV、数值 II
-同一个有限折现 MDP 可以从三条路线求解：Bellman 不动点的价值迭代（VI）、评估与改进交替的策略迭代（PI），以及 Bellman 不等式的线性规划（LP）。本页先把一个 2 状态/2 动作模型算透，再把有限 toy 的证据和一般复杂度边界分开。</p>
+<p><strong>前置</strong>：<a href="mdp-01-bellman.html">Bellman 方程与误差证书</a>、线性方程、有限维线性规划。学完本页，应能分别运行 VI、PI、原始与对偶 LP，解释它们为什么汇合；加入资源约束后，应能恢复并验证随机策略。</p>
 </blockquote>
 <div data-learning-page></div>
 
-<section aria-labelledby="mdp-iteration-learning-title" class="learning-layer">
-<h2 id="mdp-iteration-learning-title">学习层：三条算法路线，必须交出同一张证书<a class="headerlink" href="#mdp-iteration-learning-title" title="Permanent link"></a></h2>
-<h3 id="1">1. 具体开场：留在营地，还是去矿区<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>状态 0 是营地，状态 1 是矿区。营地可以“采集”得到 <span class="arithmatex">\(+1\)</span> 并留在营地，也可以“远行”先付 <span class="arithmatex">\(-2\)</span> 并到矿区。矿区可以“收获”得到 <span class="arithmatex">\(+4\)</span>，以概率 <span class="arithmatex">\(0.4\)</span> 回营地、<span class="arithmatex">\(0.6\)</span> 留在矿区；也可以“返回”得到 <span class="arithmatex">\(+2\)</span> 并回营地。</p>
-<p>短视时，立即的 <span class="arithmatex">\(+1\)</span> 很有吸引力；远视时，先付成本换取长期收获。问题不是“哪个算法看起来走得快”，而是三条路线是否给出同一个 <span class="arithmatex">\(V^*\)</span>、同一个贪心策略和可检查的残差证书。</p>
-<h3 id="2">2. 先预测，再揭示<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>在交互实验中先选择 <span class="arithmatex">\(\gamma\)</span>、共同初值和 VI 步数，然后预测：</p>
-<ol>
-<li>当 <span class="arithmatex">\(0\le\gamma&lt;1\)</span> 时，<span class="arithmatex">\(r(V)=\|TV-V\|_\infty\)</span> 能否给出 <span class="arithmatex">\(\|V-V^*\|_\infty\le r(V)/(1-\gamma)\)</span>？</li>
-<li>在默认的 <span class="arithmatex">\(\gamma=0.8\)</span> 下，最终营地动作更可能是“采集”还是“远行”？</li>
-<li>LP 的每个约束应该检查 <span class="arithmatex">\(V(s)\ge Q_V(s,a)\)</span>，还是只检查当前贪心动作？</li>
-<li><span class="arithmatex">\(\gamma=1\)</span> 时，是否仍可直接沿用折现压缩与残差除法？</li>
-</ol>
-<p>揭示前不显示 VI 数值、PI 评估表或 LP 松弛量。揭示后改变参数会重算所有账本；“重置实验”会重新锁住预测门。</p>
-<h3 id="3-bellman">3. 形式桥：从 Bellman 算子到三种证书<a class="headerlink" href="#3-bellman" title="Permanent link"></a></h3>
-<div class="arithmatex">\[
-Q_V(s,a)=r(s,a)+\gamma\sum_{s'}P(s'\mid s,a)V(s'),
-\qquad
-(TV)(s)=\max_aQ_V(s,a).
-\]</div>
-<p>价值迭代是 <span class="arithmatex">\(V_{k+1}=TV_k\)</span>。若奖励有界、状态动作有限且 <span class="arithmatex">\(0\le\gamma&lt;1\)</span>，<span class="arithmatex">\(T\)</span> 是 sup 范数下的 <span class="arithmatex">\(\gamma\)</span>-压缩，因此</p>
-<div class="arithmatex">\[
-\|V-V^*\|_\infty\le\frac{\|TV-V\|_\infty}{1-\gamma}.
-\]</div>
-<p>策略迭代对固定 <span class="arithmatex">\(\pi\)</span> 解 <span class="arithmatex">\((I-\gamma P^\pi)V=r^\pi\)</span>，再用 <span class="arithmatex">\(V\)</span> 贪心改进。LP 则把所有动作的 Bellman 不等式同时列出：</p>
-<div class="arithmatex">\[
-\min_V c^\mathsf TV\quad\text{s.t.}\quad
-V(s)\ge r(s,a)+\gamma\sum_{s'}P(s'\mid s,a)V(s')\quad\forall(s,a),
-\]</div>
-<p>其中 <span class="arithmatex">\(c_s&gt;0\)</span>。候选点若满足所有不等式且每个状态至少有一个约束紧，则它同时是 Bellman 不动点和 LP 最优点。</p>
-<h3 id="4-javascript">4. 静态后备：JavaScript 失效时的可核查账本<a class="headerlink" href="#4-javascript" title="Permanent link"></a></h3>
-<div class="learning-lab" data-learning-lab="mdp-iteration">
-<p><strong>静态读法：</strong>动作、转移和奖励均为已知的有限 toy；VI/PI 是精确期望更新，不含采样噪声。</p>
+<section aria-labelledby="mdp179-title" class="learning-layer mdp179-course">
+<h2 id="mdp179-title">学习层：算法交出的答案，还需要什么证据？<a class="headerlink" href="#mdp179-title" title="Permanent link"></a></h2>
+<h2 id="1">1. 延续同一座营地：现在限制远行次数<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>沿用上一页的两个状态。每一步先在当前状态选动作、收到期望奖励，再按表中概率转移。所有奖励和转移已知，本页没有从样本学习模型。</p>
 <table>
 <thead>
 <tr>
-<th>设置</th>
-<th>VI/PI 的可读结论</th>
-<th>证书边界</th>
+<th>当前状态</th>
+<th>动作</th>
+<th style="text-align: right;">奖励</th>
+<th style="text-align: right;">下一步营地概率</th>
+<th style="text-align: right;">下一步矿区概率</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><span class="arithmatex">\(\gamma=0.2\)</span></td>
-<td>最优策略为（营地采集，矿区收获）；VI 残差快速下降</td>
-<td><span class="arithmatex">\(r/(1-\gamma)\)</span> 有效；LP 约束可逐项核对</td>
+<td>营地</td>
+<td>采集</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(\gamma=0.8\)</span></td>
-<td>远行的未来收益超过采集；策略为（远行，收获）</td>
-<td>PI 评估线性方程与 VI 极限、LP 顶点应一致</td>
+<td>营地</td>
+<td>远行</td>
+<td style="text-align: right;">−2</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(\gamma=0.95\)</span></td>
-<td>同一有限 toy 的策略保持，但 VI 视界更长</td>
-<td><span class="arithmatex">\(1/(1-\gamma)\)</span> 放大更保守；不能用几步曲线代替证书</td>
+<td>矿区</td>
+<td>收获</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">0.4</td>
+<td style="text-align: right;">0.6</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(\gamma=1\)</span></td>
-<td>可以继续做有限次算术实验</td>
-<td>折现压缩、唯一不动点和 <span class="arithmatex">\(r/(1-\gamma)\)</span> 证书均不自动成立</td>
+<td>矿区</td>
+<td>返回</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
 </tr>
 </tbody>
 </table>
-<p>LP 账本应显示每个 <span class="arithmatex">\((s,a)\)</span> 的 slack <span class="arithmatex">\(V(s)-Q_V(s,a)\ge0\)</span>，以及最优动作的零 slack。它是 Bellman 不等式证书，不是“PI 只跑了几轮”这一条经验观察。</p>
-<h3 id="5">5. 边界与常见误读<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<ul>
-<li><strong>残差上界需要假设。</strong><span class="arithmatex">\(r/(1-\gamma)\)</span> 只在折现压缩条件 <span class="arithmatex">\(0\le\gamma&lt;1\)</span> 下使用；<span class="arithmatex">\(\gamma=1\)</span> 不能硬除。</li>
-<li><strong>有限 toy 的步数不是一般复杂度定理。</strong>本页记录这个 2×2 模型的 VI 行数和 PI 改进次数，不把“PI 很快”升级成所有 MDP 的统一复杂度结论。</li>
-<li><strong>LP 约束不能只看一个动作。</strong>最优值要压住每个动作的 <span class="arithmatex">\(Q\)</span>；紧约束标出一个可选最优动作。</li>
-<li><strong>策略迭代的线性系统与 VI 的不动点不同。</strong>PI 每轮评估的是当前策略，VI 每轮应用最优性算子；两者在最优策略处汇合。</li>
-<li><strong>模型已知。</strong>采样、函数逼近和 off-policy 更新会引入额外误差，不能把这里的精确账本直接当作 Q-learning 的收敛证明。</li>
-</ul>
-<h3 id="6">6. 迁移问题<a class="headerlink" href="#6" title="Permanent link"></a></h3>
-<p>若每次 Bellman 更新有误差 <span class="arithmatex">\(\|\widetilde TV-TV\|_\infty\le\eta\)</span>，试解释为什么稳定上界会出现 <span class="arithmatex">\(\eta/(1-\gamma)\)</span>。再问：在状态数扩大后，哪部分是算术成本，哪部分才是理论迭代复杂度？</p>
+<p>上一页问“长期看哪个动作好”。这一页再问：<strong>每次出发消耗一份资源，如果远行的期望折现次数不能超过 1，如何安排？</strong>这个预算累计的是动作发生次数的折现和，不是“整个旅程最多出发一次”的逐条路径硬限制。后者需要不同的状态与约束建模。</p>
+<p>先把无预算问题算清：VI 反复更新价值；PI 完整评价当前策略后改进；LP 同时处理四条动作不等式。再通过 LP 的对偶变量，把价值转成可核对的访问流量。默认折现 <span class="arithmatex">\(\gamma=4/5\)</span>，初始分布 <span class="arithmatex">\(\mu=(1/2,1/2)\)</span>，预算 <span class="arithmatex">\(B=1\)</span>。</p>
+<h2 id="2">2. 先预测，再打开三种算法的记录<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>实验的八个控制项分工不同：折现影响问题本身；两状态初值与轮数影响 VI 路径；两个初始动作影响 PI 路径；初始分布影响 LP 的加权目标；预算只限制远行动作的折现占用量。</p>
+<p>先回答四道预测：动作精确并列时是否必须切换？LP 目标中有零权重时是否仍唯一选出整个 <span class="arithmatex">\(V^*\)</span>？折现占用量是否总和为 1？加入预算后确定性策略是否仍总够用？每道题的条件写在题干，调旋钮不会改写条件。未完成预测时，数值、曲线与下载保持隐藏。</p>
+<p>数值旋钮支持 <span class="arithmatex">\(0\le\gamma\le0.999\)</span>，以及专门的 <span class="arithmatex">\(\gamma=1\)</span> 边界。定理的折现范围是所有 <span class="arithmatex">\(0\le\gamma&lt;1\)</span>；界面上限用于限制二进制浮点线性求解的条件数。<span class="arithmatex">\(\gamma=1\)</span> 只保留有限轮 VI，不显示不适用的折现评估、LP 或占用量。</p>
+<div class="learning-lab" data-learning-lab="mdp-iteration">
+<p><strong>无脚本对照：</strong>图和下表读取同一份六组固定记录；完整VI每轮、PI每次评估、六个LP交点和预算证书均在下载中。</p>
+<figure class="plot">
+<p><img alt="同一营地矿区模型的VI完整路径、PI评估、六组LP交点、占用量散点和预算收益曲线。" src="assets/img/mdp-02-iteration-ledgers.svg" /></p>
+<figcaption>图 mdp-02.1：默认γ=0.8、初始分布各1/2。图C的六个编号按约束配对(0,1)、(0,2)、(0,3)、(1,2)、(1,3)、(2,3)排列；平行配对不画数值。图E折线连接实际预算采样点，不把离散扫描当作解析证明。</figcaption>
+</figure>
+<div aria-label="MDP固定记录，可横向滚动" class="mdp179-static" role="region" tabindex="0">
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th style="text-align: right;">γ</th>
+<th style="text-align: right;">VI轮数</th>
+<th style="text-align: right;">PI评估次数</th>
+<th style="text-align: right;">无约束目标</th>
+<th style="text-align: right;">预算最优收益</th>
+<th style="text-align: right;">实际远行占用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>budget</td>
+<td style="text-align: right;">0.8</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">10.4545455</td>
+<td style="text-align: right;">9.5</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>patient</td>
+<td style="text-align: right;">0.999</td>
+<td style="text-align: right;">200</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">2284.79566</td>
+<td style="text-align: right;">1008.22566</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>tie</td>
+<td style="text-align: right;">0.625</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">5.06666667</td>
+<td style="text-align: right;">5.06666667</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>camp</td>
+<td style="text-align: right;">0.2</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1.25</td>
+<td style="text-align: right;">1.25</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr>
+<td>boundary</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">不适用</td>
+<td style="text-align: right;">不适用</td>
+<td style="text-align: right;">不适用</td>
+<td style="text-align: right;">不适用</td>
+</tr>
+<tr>
+<td>forbidden</td>
+<td style="text-align: right;">0.8</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">10.4545455</td>
+<td style="text-align: right;">7.88461538</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
 </div>
+<p><a href="assets/learning/projects/mdp-certificates/run-snapshot.json">下载六组完整记录</a>。所有占用量未归一化；γ=1的无限时域量不适用。普通浮点差距和可行性容差保留在完整数据中，不是向外舍入认证。</p>
+</div>
+<noscript>
+<style>.mdp179-course span.arithmatex{overflow-wrap:anywhere}.mdp179-static{overflow:auto;max-width:100%}.mdp179-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}.mdp179-static th,.mdp179-static td{white-space:nowrap}</style>
+</noscript>
+<h2 id="3-vi">3. VI：一轮究竟计算了什么<a class="headerlink" href="#3-vi" title="Permanent link"></a></h2>
+<p>给定 <span class="arithmatex">\(V_k\)</span>，先算四个候选 <span class="arithmatex">\(Q_k(s,a)=r(s,a)+\gamma\sum_{s'}P(s'|s,a)V_k(s')\)</span>，再对每个状态取最大值，得到 <span class="arithmatex">\(V_{k+1}\)</span>。这些是精确期望更新；“精确”指使用完整已知模型，不表示计算机没有舍入误差。</p>
+<p>从零初值、<span class="arithmatex">\(\gamma=4/5\)</span> 出发，<span class="arithmatex">\(V_0=(0,0)\)</span>，<span class="arithmatex">\(V_1=(1,4)\)</span>，<span class="arithmatex">\(V_2=(9/5,156/25)\)</span>。若要求做一轮更新，答案就是 <span class="arithmatex">\(V_1\)</span>；显示第 <span class="arithmatex">\(0,1\)</span> 两行以后再更新一次，会把未展示的 <span class="arithmatex">\(V_2\)</span> 错当末值。实验保存完整 <span class="arithmatex">\(k=0,\ldots,K\)</span>，末值直接取最后一行，不按步长省略中间轮。</p>
+<p>上一页的压缩论证给出 <span class="arithmatex">\(\|V_k-V^*\|_\infty\le\gamma^k\|V_0-V^*\|_\infty\)</span>。更可操作的是根据当前行重新计算 <span class="arithmatex">\(TV_k\)</span>，得到残差 <span class="arithmatex">\(r_k=\|TV_k-V_k\|_\infty\)</span>，再用 <span class="arithmatex">\(r_k/(1-\gamma)\)</span> 控制价值误差。表中同时列四个 <span class="arithmatex">\(Q\)</span>、<span class="arithmatex">\(TV_k\)</span> 与这个界，不能只看曲线平不平。</p>
+<p>若每个状态有至多 <span class="arithmatex">\(m\)</span> 个动作、共 <span class="arithmatex">\(n\)</span> 个状态，稠密转移下一轮直接计算约需 <span class="arithmatex">\(O(mn^2)\)</span> 算术操作；稀疏转移应按非零项计数。迭代轮数还取决于折现、初始误差和容差。这里的两条曲线不能证明大规模问题的统一运行时间。</p>
+<h2 id="4">4. 策略评估：解线性方程为什么可靠<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>固定一个确定性平稳策略 <span class="arithmatex">\(\pi\)</span>，把其所选动作的奖励与转移分别记为 <span class="arithmatex">\(r^\pi,P^\pi\)</span>。按下一步条件期望拆开回报，有 <span class="arithmatex">\(V^\pi=r^\pi+\gamma P^\pi V^\pi\)</span>。于是</p>
+<div class="arithmatex">\[
+V^\pi=(I-\gamma P^\pi)^{-1}r^\pi,
+\qquad
+(I-\gamma P^\pi)^{-1}=\sum_{t=0}^{\infty}\gamma^t(P^\pi)^t.
+\]</div>
+<p>为什么逆矩阵存在？随机矩阵的 sup 范数为 1，故级数尾部被几何级数控制；有限部分乘上 <span class="arithmatex">\(I-\gamma P^\pi\)</span> 后只剩单位阵减一个趋零尾项。这同时说明逆矩阵逐项非负，而且其每一行之和为 <span class="arithmatex">\(1/(1-\gamma)\)</span>。非负性马上会用于证明改进，而不是只用于算数。</p>
+<p>默认先取“营地采集、矿区返回”，策略编码为 <span class="arithmatex">\((0,1)\)</span>。方程是 <span class="arithmatex">\(V_c=1+(4/5)V_c\)</span>、<span class="arithmatex">\(V_m=2+(4/5)V_c\)</span>，因此 <span class="arithmatex">\(V^\pi=(5,6)\)</span>。完整评估是解到该策略的无限时域价值；它和只对 <span class="arithmatex">\(V\)</span> 做一次 Bellman 更新不是同一步。</p>
+<h2 id="5-pi">5. PI：严格改进、并列保留与有限终止<a class="headerlink" href="#5-pi" title="Permanent link"></a></h2>
+<p>用 <span class="arithmatex">\(V^\pi\)</span> 评价所有动作，选择一个贪心策略 <span class="arithmatex">\(\pi'\)</span>。若当前动作已经达到最大值，就保留当前动作。令 <span class="arithmatex">\(a=T_{\pi'}V^\pi-V^\pi\ge0\)</span>，减去两条策略方程可得</p>
+<div class="arithmatex">\[
+V^{\pi'}-V^\pi=(I-\gamma P^{\pi'})^{-1}a\ge0.
+\]</div>
+<p>这不是“贪心看起来更好”的直觉跳跃：右边的逆矩阵非负，所以当前改进经未来访问传播后仍不会变坏。若至少一个状态的 <span class="arithmatex">\(a\)</span> 严格为正，逆矩阵级数中的单位阵项保证该状态价值严格增加。</p>
+<p>有限个确定性策略只有 <span class="arithmatex">\(\prod_s|\mathcal A(s)|\)</span> 种。每次非终止迭代都有严格价值改进，就不能回到以前的策略；保留已最优的当前动作避免只在并列动作间来回切换。因此精确 PI 有限终止。终止时 <span class="arithmatex">\(T V^\pi=T_\pi V^\pi=V^\pi\)</span>，由折现不动点唯一性得到 <span class="arithmatex">\(V^\pi=V^*\)</span>。</p>
+<p>默认模型从 <span class="arithmatex">\((0,1)\)</span> 开始，依次评估 <span class="arithmatex">\((0,1)\)</span>、<span class="arithmatex">\((0,0)\)</span>、<span class="arithmatex">\((1,0)\)</span>，价值依次为 <span class="arithmatex">\((5,6)\)</span>、<span class="arithmatex">\((5,140/13)\)</span>、<span class="arithmatex">\((90/11,140/11)\)</span>，最后稳定。实验保留每轮矩阵、行列式、四个 <span class="arithmatex">\(Q\)</span>、优势及新旧动作。</p>
+<p>数学中的“精确并列”和数值近似不能混用。界面只有当替代动作高出当前值超过 <span class="arithmatex">\(64\epsilon_{\rm machine}\max(1,\max|Q|)\)</span> 时才切换，并记录此容差；这是浮点实现的停止约定，不是把该容差写进精确有限终止定理。</p>
+<h2 id="6">6. 评估只做几步：哪些结论必须重新检查<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>大规模 PI 可以截断策略评估或用迭代线性求解。若近似评估为 <span class="arithmatex">\(\widehat V\)</span>，策略方程残差为 <span class="arithmatex">\(\delta=\|T_\pi\widehat V-\widehat V\|_\infty\)</span>，同样由非负逆矩阵行和得到 <span class="arithmatex">\(\|\widehat V-V^\pi\|_\infty\le\delta/(1-\gamma)\)</span>。设右边为 <span class="arithmatex">\(e\)</span>，任一动作的 <span class="arithmatex">\(Q\)</span> 误差不超过 <span class="arithmatex">\(\gamma e\)</span>。</p>
+<p>因此，只有当某动作在近似 <span class="arithmatex">\(Q\)</span> 中比当前动作高出超过 <span class="arithmatex">\(2\gamma e\)</span>，才能单凭这个误差界保证其对真实 <span class="arithmatex">\(V^\pi\)</span> 也严格更好。小于此门槛不说明一定没有改进，只说明证据不足；可以继续评估或采用另有证明的近似策略迭代方案。本实验使用完整两元线性求解，不把截断评估的结果假装成精确 PI。</p>
+<p>当 <span class="arithmatex">\(\gamma\)</span> 接近 1，<span class="arithmatex">\(1/(1-\gamma)\)</span> 会放大评估误差；小的方程残差也需要结合条件数解释。图上几轮结束只是当前模型的记录，不能作为一般 PI 复杂度定理。</p>
+<h2 id="7-lp">7. 价值 LP：为什么所有动作都必须受约束<a class="headerlink" href="#7-lp" title="Permanent link"></a></h2>
+<p>把每个状态动作的一行写成 <span class="arithmatex">\(A_{(s,a),s'}=\mathbf1_{s=s'}-\gamma P(s'|s,a)\)</span>，则四条约束是 <span class="arithmatex">\(AV\ge r\)</span>。奖励最大化问题对应的价值 LP 却是最小化：</p>
+<div class="arithmatex">\[
+\min_{V\in\mathbb R^2}\mu^\mathsf TV
+\quad\text{使得}\quad AV\ge r.
+\]</div>
+<p>因为 <span class="arithmatex">\(AV\ge r\)</span> 等价于 <span class="arithmatex">\(V\ge TV\)</span>，由单调性反复应用 <span class="arithmatex">\(T\)</span> 得到 <span class="arithmatex">\(V\ge T^kV\to V^*\)</span>。所以所有可行 <span class="arithmatex">\(V\)</span> 都在 <span class="arithmatex">\(V^*\)</span> 的逐坐标上方，而 <span class="arithmatex">\(V^*\)</span> 自身可行。若每个 <span class="arithmatex">\(\mu_s&gt;0\)</span>，任何非零的非负余量都会严格增大目标，故唯一最优解是 <span class="arithmatex">\(V^*\)</span>。</p>
+<p>默认 <span class="arithmatex">\(\gamma=4/5\)</span> 的四条左端依次为 <span class="arithmatex">\((1/5)V_c\)</span>、<span class="arithmatex">\(V_c-(4/5)V_m\)</span>、<span class="arithmatex">\(-(8/25)V_c+(13/25)V_m\)</span>、<span class="arithmatex">\(-(4/5)V_c+V_m\)</span>，右端依次为 <span class="arithmatex">\(1,-2,4,2\)</span>。本实验独立求四条边界的全部六对交点；平行配对记为不适用，其余逐一检查全部四个 slack，最后在可行交点中最小化目标。它没有先拿 PI 的答案冒充 LP 求解。</p>
+<p>在 <span class="arithmatex">\(V^*=(90/11,140/11)\)</span>，四个 slack 为 <span class="arithmatex">\((7/11,0,0,46/11)\)</span>。远行与收获约束紧，另外两项严格为正。选两个约束解出交点不等于证明可行；遗漏的另外两项可能排除它。</p>
+<p>若 <span class="arithmatex">\(\mu\)</span> 有零分量，最优目标仍等于 <span class="arithmatex">\(\mu^\mathsf TV^*\)</span>，但不一定唯一恢复所有状态的 <span class="arithmatex">\(V^*\)</span>。例如 <span class="arithmatex">\(\gamma=1/5,\mu=(1,0)\)</span> 时，所有 <span class="arithmatex">\(V_c=5/4\)</span>、<span class="arithmatex">\(205/44\le V_m\le65/4\)</span> 都最优。营地一直采集时不访问矿区，目标看不见这段矿区余量。可达关系可能进一步约束零权状态，所以也不能反过来断言“有零权就一定不唯一”。</p>
+<h2 id="8">8. 对偶：价值不等式变成访问流守恒<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(x(s,a)\)</span> 表示从初始分布 <span class="arithmatex">\(\mu\)</span> 出发，动作 <span class="arithmatex">\((s,a)\)</span> 的<strong>未归一化折现占用量</strong>：<span class="arithmatex">\(x(s,a)=\mathbb E_\mu\sum_{t\ge0}\gamma^t\mathbf1_{\{S_t=s,A_t=a\}}\)</span>。它可以大于 1。令 <span class="arithmatex">\(z(s)=\sum_a x(s,a)\)</span>，把 <span class="arithmatex">\(t=0\)</span> 与后续访问分开，得到</p>
+<div class="arithmatex">\[
+\sum_a x(s,a)-\gamma\sum_{u,a}P(s|u,a)x(u,a)=\mu(s),
+\qquad x\ge0.
+\]</div>
+<p>矩阵形式就是 <span class="arithmatex">\(A^\mathsf Tx=\mu\)</span>。对状态求和，转移概率归一性给出 <span class="arithmatex">\((1-\gamma)\sum_{s,a}x(s,a)=1\)</span>。所以总质量为 <span class="arithmatex">\(1/(1-\gamma)\)</span>；如果另定义归一化占用量 <span class="arithmatex">\(y=(1-\gamma)x\)</span>，流方程右侧必须同时改为 <span class="arithmatex">\((1-\gamma)\mu\)</span>。</p>
+<p>累计奖励可按状态动作重排为 <span class="arithmatex">\(r^\mathsf Tx\)</span>。因此价值 LP 的对偶是 <span class="arithmatex">\(\max_{x\ge0}r^\mathsf Tx\)</span>，约束 <span class="arithmatex">\(A^\mathsf Tx=\mu\)</span>。更直接地，任一原始可行 <span class="arithmatex">\(V\)</span> 与对偶可行 <span class="arithmatex">\(x\)</span> 满足 <span class="arithmatex">\(\mu^\mathsf TV-r^\mathsf Tx=x^\mathsf T(AV-r)\ge0\)</span>。这同时给出弱对偶和可数值核查的差距分解。</p>
+<p>默认最优占用量按“采集、远行、收获、返回”排序为 <span class="arithmatex">\((0,35/22,75/22,0)\)</span>，总和为 5，奖励为 <span class="arithmatex">\(115/11=\mu^\mathsf TV^*\)</span>。其正分量恰落在零 slack 动作上，所以差距为零。<strong>不能只检查两个目标接近</strong>：还须分别核对流平衡、非负性与所有 Bellman 不等式。</p>
+<h2 id="9">9. 从一张可行流表恢复策略<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>对任意可行 <span class="arithmatex">\(x\)</span>，若 <span class="arithmatex">\(z(s)&gt;0\)</span>，定义 <span class="arithmatex">\(\pi(a|s)=x(s,a)/z(s)\)</span>；若 <span class="arithmatex">\(z(s)=0\)</span>，该状态动作可任选。把它代回流方程就得到 <span class="arithmatex">\(z=\mu+\gamma(P^\pi)^\mathsf Tz\)</span>。由于折现系统有唯一解，这个恢复策略的真实折现访问量正是原来的 <span class="arithmatex">\(z\)</span>，其动作占用量正是 <span class="arithmatex">\(x\)</span>，收益也保持为 <span class="arithmatex">\(r^\mathsf Tx\)</span>。</p>
+<p>这里恢复的是“每次在某状态按固定概率选动作”的平稳随机策略。先随机抽一种确定性策略并整段执行，可以产生占用量的凸组合，但这是另一种行为描述；从该组合按状态归一化恢复后，才得到相同流量与收益的平稳随机策略。不要直接把整段混合系数当作每个状态的动作概率。</p>
+<p>零访问状态没有除以零：当 <span class="arithmatex">\(\mu(s)=0\)</span> 且没有折现流入，该状态的动作选择不影响当前初始分布下的收益。实验明确记录其任选约定，仍复算全部流方程。</p>
+<h2 id="10">10. 加预算：为什么随机化可能严格更好<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(D^\mathsf Tx=x(\text{营地},\text{远行})\)</span>。约束问题是最大化 <span class="arithmatex">\(r^\mathsf Tx\)</span>，同时满足 <span class="arithmatex">\(A^\mathsf Tx=\mu\)</span>、<span class="arithmatex">\(x\ge0\)</span>、<span class="arithmatex">\(D^\mathsf Tx\le B\)</span>。它仍是有限维 LP，但加的一刀可能把原有边切出一个新顶点；因此无约束问题的“存在确定性平稳最优策略”不能原封不动迁移。</p>
+<p>本模型无约束占用量多面体由四种确定性策略占用点的凸包给出。实验保留四个点，再枚举它们两两连线与预算平面的交点。实际边都包含在这些线段中；多枚举的内部点仍可行，不会虚增最优值。最后选收益最大的可行候选，并独立检查恢复策略。这是两状态演示用的完整枚举方法，不是一般大规模约束 MDP 的推荐求解器。</p>
+<p>默认 <span class="arithmatex">\(B=1\)</span> 的最优流为 <span class="arithmatex">\(x=(3/2,1,5/2,0)\)</span>。营地总访问量为 <span class="arithmatex">\(5/2\)</span>，所以每次在营地远行概率是 <span class="arithmatex">\(1/(5/2)=2/5\)</span>，采集概率为 <span class="arithmatex">\(3/5\)</span>；矿区总是收获。其收益为 <span class="arithmatex">\(3/2-2+4(5/2)=19/2\)</span>，远行占用恰好为 1。</p>
+<p>满足这一预算的确定性策略中，最优收益只有 <span class="arithmatex">\(205/26\)</span>；<span class="arithmatex">\(19/2&gt;205/26\)</span>，所以随机化在这个明确例子里严格有益。它限制的是期望折现资源，不保证每一条随机轨迹都满足某个硬次数上限。</p>
+<h2 id="11">11. 影子价格：再给预算答案一张上界证书<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p>为远行附加非负价格 <span class="arithmatex">\(\eta\)</span>，把奖励改为 <span class="arithmatex">\(r-\eta D\)</span>。解这个无约束惩罚 MDP 得到 <span class="arithmatex">\(V_\eta\)</span>。任何预算可行策略都满足原收益不超过 <span class="arithmatex">\(\mu^\mathsf TV_\eta+\eta B\)</span>；因此可最小化这个上界：</p>
+<div class="arithmatex">\[
+\min_{V,\eta\ge0}\mu^\mathsf TV+\eta B
+\quad\text{使得}\quad AV+\eta D\ge r.
+\]</div>
+<p>对任意两侧可行对象，差距分解为 <span class="arithmatex">\(x^\mathsf T(AV+\eta D-r)+\eta(B-D^\mathsf Tx)\)</span>。两项都非负；若相加为零，既证明最优，也说明正访问动作对应零 slack，正价格对应紧预算。注意 <span class="arithmatex">\(\eta\)</span> 是非负标量，<span class="arithmatex">\(V\)</span> 的两个分量不受非负限制。</p>
+<p>默认例子可取 <span class="arithmatex">\(\eta=21/13\)</span>、<span class="arithmatex">\(V_\eta=(5,140/13)\)</span>。上界为 <span class="arithmatex">\(205/26+21/13=19/2\)</span>，恰等于已恢复策略的收益。四个惩罚 slack 为 <span class="arithmatex">\((0,0,0,62/13)\)</span>，预算也紧，所以互补乘积全部为零。</p>
+<p>随预算变化，默认模型的最优收益为 <span class="arithmatex">\(J(B)=205/26+(21/13)B\)</span>，直到 <span class="arithmatex">\(B=35/22\)</span>；以后保持 <span class="arithmatex">\(115/11\)</span>。前一段每增加一份折现远行资源，收益增加 <span class="arithmatex">\(21/13\)</span>；后一段预算已不再限制最优策略，价格可取零。折点处可能有多个最优价格。实验记录所有候选支持线及完整预算扫描，并把范围内的确定性策略远行占用值加入扫描，保留收益曲线可能的折点；普通双精度下的微小差距仍是数值读数，不冒充向外舍入的严格区间证书。</p>
+<h2 id="12">12. 八道复算题：从更新到约束证书<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>1. VI 只做一轮更新，最终价值是什么？</summary>
+<p>取 <span class="arithmatex">\(\gamma=4/5,V_0=(0,0)\)</span>。四个候选为 <span class="arithmatex">\((1,-2,4,2)\)</span>，逐状态取最大得到 <span class="arithmatex">\(V_1=(1,4)\)</span>。完整记录只有第 0 行和第 1 行，末值必须是 <span class="arithmatex">\((1,4)\)</span>。再应用一次算子才得到 <span class="arithmatex">\(V_2=(9/5,156/25)\)</span>；把它作为“一轮”的末值会多做一步。</p>
+</details>
+<details class="answer">
+<summary>2. 默认 PI 从“采集、返回”出发，第一轮为什么只改矿区？</summary>
+<p>评估得到 <span class="arithmatex">\((5,6)\)</span>。营地候选为 <span class="arithmatex">\((5,14/5)\)</span>，保留采集；矿区候选为 <span class="arithmatex">\((212/25,6)\)</span>，切换收获。新策略 <span class="arithmatex">\((0,0)\)</span> 的评估方程给出 <span class="arithmatex">\((5,140/13)\)</span>，此时营地远行候选 <span class="arithmatex">\(-2+(4/5)(140/13)=86/13&gt;5\)</span>，所以再改为 <span class="arithmatex">\((1,0)\)</span>。评估为 <span class="arithmatex">\((90/11,140/11)\)</span> 后两状态均稳定。三次评估中只有两次策略改变。</p>
+</details>
+<details class="answer">
+<summary>3. 两个动作精确并列时，有限终止论证哪里会出问题？</summary>
+<p>在 <span class="arithmatex">\(\gamma=5/8\)</span>，最优值为 <span class="arithmatex">\((8/3,112/15)\)</span>。营地采集的 <span class="arithmatex">\(Q\)</span> 为 <span class="arithmatex">\(1+(5/8)(8/3)=8/3\)</span>，远行为 <span class="arithmatex">\(-2+(5/8)(112/15)=8/3\)</span>。若每次遇到并列都切换，可在两个同价值策略间反复转移，失去“每次改变必有严格价值改进”的论据。保留当前已最优动作即可停止；两种营地动作都可以最优，不应为了唯一标签而制造切换。</p>
+</details>
+<details class="answer">
+<summary>4. 证明零权 LP 例子的整个最优线段。</summary>
+<p>取 <span class="arithmatex">\(\gamma=1/5,\mu=(1,0)\)</span>。采集约束强迫 <span class="arithmatex">\(V_c\ge5/4\)</span>，所以目标最低为 <span class="arithmatex">\(5/4\)</span>。固定该值，远行约束给出 <span class="arithmatex">\(V_m\le65/4\)</span>，收获约束给出 <span class="arithmatex">\(V_m\ge205/44\)</span>，返回约束仅要求 <span class="arithmatex">\(V_m\ge9/4\)</span>，较弱。因此上述闭区间全部可行且最优；只有下端是整个 <span class="arithmatex">\(V^*\)</span>。这是同一目标值与逐状态最优值不同的具体例子。</p>
+</details>
+<details class="answer">
+<summary>5. 用流方程验证无约束最优占用量。</summary>
+<p>默认 <span class="arithmatex">\(x=(0,35/22,75/22,0)\)</span>。营地流残差左端为 <span class="arithmatex">\(35/22-(4/5)(2/5)(75/22)=1/2\)</span>；矿区左端为 <span class="arithmatex">\(75/22-(4/5)[35/22+(3/5)(75/22)]=1/2\)</span>。总质量 <span class="arithmatex">\((35+75)/22=5\)</span>，符合 <span class="arithmatex">\(1/(1-\gamma)\)</span>。收益 <span class="arithmatex">\(-2(35/22)+4(75/22)=115/11\)</span>，与 <span class="arithmatex">\((1/2)(90/11+140/11)\)</span> 相同；配合四项 slack 非负且互补为零，得到最优证书。</p>
+</details>
+<details class="answer">
+<summary>6. 预算为 1 时，为什么混合概率不是直接取整段策略的系数？</summary>
+<p>最优流为 <span class="arithmatex">\((3/2,1,5/2,0)\)</span>，所以营地远行概率为 <span class="arithmatex">\(2/5\)</span>。若把确定性“远行、收获”的占用流与“采集、收获”的占用流整段混合，前者的远行占用为 <span class="arithmatex">\(35/22\)</span>，后者为零，满足预算所需的整段混合系数为 <span class="arithmatex">\(22/35\)</span>。它并不等于 <span class="arithmatex">\(2/5\)</span>：两种策略下营地的访问次数不同。按混合后的状态访问量归一化，才恢复正确的逐状态随机策略。</p>
+</details>
+<details class="answer">
+<summary>7. 预算最优流、影子价格和互补松弛如何一起验证？</summary>
+<p>对 <span class="arithmatex">\(x=(3/2,1,5/2,0)\)</span>，流平衡两行分别是 <span class="arithmatex">\(5/2-(4/5)[3/2+(2/5)(5/2)]=1/2\)</span> 与 <span class="arithmatex">\(5/2-(4/5)[1+(3/5)(5/2)]=1/2\)</span>。取 <span class="arithmatex">\(\eta=21/13,V=(5,140/13)\)</span>，惩罚 slack 是 <span class="arithmatex">\((0,0,0,62/13)\)</span>；第四项占用为零，前三项 slack 为零，预算余量也为零。故差距分解的五个乘积全部为零。原收益和对偶上界都是 <span class="arithmatex">\(19/2\)</span>，不用猜哪条曲线“看起来最高”。</p>
+</details>
+<details class="answer">
+<summary>8. 近似策略评估的残差为 0.01，动作优势 0.1 够不够？</summary>
+<p>取 <span class="arithmatex">\(\gamma=0.9\)</span>，评估误差界为 <span class="arithmatex">\(e=0.01/(1-0.9)=0.1\)</span>，两个动作候选差的误差最多为 <span class="arithmatex">\(2\gamma e=0.18\)</span>。看到近似优势 <span class="arithmatex">\(0.1\)</span> 还不足以保证真实严格改进。若继续评估把残差降到 <span class="arithmatex">\(0.001\)</span>，门槛变成 <span class="arithmatex">\(0.018\)</span>，同样的 <span class="arithmatex">\(0.1\)</span> 优势就足够。这里保证的是对当前策略真实价值的局部严格改进；没有额外论证，不能把它升级成任意近似 PI 的全局收敛率。</p>
+</details>
+<p>来源与进一步阅读：<a href="https://www.cse.iitm.ac.in/~prashla/notes/rlbook/discounted-cost-mdps.html">IIT Madras 的折现 MDP 讲义</a>给出策略评估与改进的基本路线；<a href="https://adityam.github.io/stochastic-control/mdps/linear-programming.html">Aditya Mahajan 的 MDP 线性规划讲义</a>介绍原始/对偶及占用量视角。本页统一采用奖励最大化与未归一化占用量，并逐式推导流量和预算证书，阅读不同材料时须先核对归一化及最大/最小约定。</p>
+<p>下一步把已知转移改成样本、把表格价值改成函数逼近时，更新误差、采样误差和分布改变会进入证明。这里得到的是有限已知模型的算法与优化基础；它为后续强化学习课程提供可复算的参照。</p>
 </section>
-<h2 id="1-mdp-bellman">1. 有限折现 MDP 与 Bellman 算子<a class="headerlink" href="#1-mdp-bellman" title="Permanent link"></a></h2>
-<p>MDP 由有限状态集 <span class="arithmatex">\(\mathcal S\)</span>、有限动作集 <span class="arithmatex">\(\mathcal A(s)\)</span>、转移概率、奖励和折现因子组成。对有界价值向量，</p>
-<div class="arithmatex">\[
-(TV)(s)=\max_{a\in\mathcal A(s)}\left[r(s,a)+\gamma P(\cdot\mid s,a)^\mathsf TV\right].
-\]</div>
-<p>当 <span class="arithmatex">\(0\le\gamma&lt;1\)</span> 时，期望是 sup 范数的非扩张映射，<span class="arithmatex">\(\max\)</span> 也是非扩张映射，因此 <span class="arithmatex">\(T\)</span> 是 <span class="arithmatex">\(\gamma\)</span>-压缩。于是 <span class="arithmatex">\(V^*=TV^*\)</span> 唯一，且从任意有限初值开始的 VI 收敛。</p>
-<p>本页模型的两行候选是</p>
-<div class="arithmatex">\[
-Q(s_0,\text{采集})=1+\gamma V_0,
-\quad Q(s_0,\text{远行})=-2+\gamma V_1,
-\]</div>
-<div class="arithmatex">\[
-Q(s_1,\text{收获})=4+\gamma(0.4V_0+0.6V_1),
-\quad Q(s_1,\text{返回})=2+\gamma V_0.
-\]</div>
-<h2 id="2_1">2. 价值迭代：每步便宜，残差可审计<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<div class="arithmatex">\[V_{k+1}=TV_k\]</div>
-<p>是对最优性算子的直接不动点迭代。实验同时报告当前价值、贪心动作、<span class="arithmatex">\(r_k=\|TV_k-V_k\|_\infty\)</span> 和在 <span class="arithmatex">\(\gamma&lt;1\)</span> 假设下的 <span class="arithmatex">\(r_k/(1-\gamma)\)</span>。后者不需要先知道 <span class="arithmatex">\(V^*\)</span>；只有在这个小模型中通过精确线性求解得到的真误差，才作为额外对照显示。</p>
-<p>若用相邻迭代差作为停机信号，也要先把它换算成残差或误差上界；“曲线看起来平”不是数学证书。</p>
-<h2 id="3">3. 策略迭代：评估、改进、停在不动点<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>固定确定性策略 <span class="arithmatex">\(\pi\)</span> 时，</p>
-<div class="arithmatex">\[
-V^\pi=r^\pi+\gamma P^\pi V^\pi,
-\qquad (I-\gamma P^\pi)V^\pi=r^\pi.
-\]</div>
-<p>策略迭代先解这个线性系统，再选取对 <span class="arithmatex">\(V^\pi\)</span> 贪心的策略。如果改进不再改变策略，则 <span class="arithmatex">\(T^\pi V^\pi=TV^\pi=V^\pi\)</span>，它就是最优价值。有限状态动作空间的标准确定性 PI 在有限步内到达稳定策略；这句话不等同于一个与状态数无关的复杂度上界。</p>
-<h2 id="4-bellman-lp">4. Bellman 不等式与 LP 证书<a class="headerlink" href="#4-bellman-lp" title="Permanent link"></a></h2>
-<p>由 <span class="arithmatex">\(V\ge TV\)</span> 和 <span class="arithmatex">\(T\)</span> 的单调性，反复应用 <span class="arithmatex">\(T\)</span> 得到 <span class="arithmatex">\(V\ge V^*\)</span>。因此正权目标下的 LP</p>
-<div class="arithmatex">\[
-\min_V c^\mathsf TV
-\quad\text{s.t.}\quad
-V(s)-Q_V(s,a)\ge0
-\]</div>
-<p>的最小可行点正是 <span class="arithmatex">\(V^*\)</span>。对本页 2×2 模型，直接列出四个 slack 就能验证：最优动作的 slack 为零，另一个动作的 slack 非负。这个逐项账本比只报一个“LP 已求解”更透明。</p>
-<h2 id="5_1">5. 证据与迁移边界<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<p>VI、PI 和 LP 在本页都使用完整模型，因此可以互相对账；这是一个有限 toy 的确定性证据。一般 MDP 的运行时间还受到状态动作规模、线性系统求解、折现因子和表示方式影响；PI 的迭代次数也不应从本页几行数据外推成普遍复杂度定理。</p>
-<p>去掉模型已知、加入采样或函数逼近后，Bellman 更新可能只近似实现，压缩性也可能被投影或 off-policy 机制破坏。那是 mdp-03 的随机逼近问题，不由本页的精确 VI/PI/LP 账本解决。</p>
-<hr />
-<p><em>下一页：去掉“模型已知”——随机逼近与 Q-learning 的收敛性。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="mdp-01-bellman.html"><span class="pager-label">上一页</span>MDP I · Bellman 算子与压缩</a>
