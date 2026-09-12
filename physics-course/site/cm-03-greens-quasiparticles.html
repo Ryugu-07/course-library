@@ -56,209 +56,450 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-13 03:53</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#greens-quasiparticle-learning-title">学习层：一条谱峰究竟告诉你什么？</a><ul>
-<li><a href="#1">1. 先预测：窄峰、宽峰与“粒子寿命”</a></li>
-<li><a href="#2-retarded-pole">2. 最小可算模型：一个带自能的 retarded pole</a></li>
-<li><a href="#3-gamma">3. 时间域桥：同一个 \(\Gamma\) 如何变成寿命？</a></li>
-<li><a href="#4">4. 静态数值与交互实验</a></li>
-<li><a href="#5">5. 边界检查：峰宽不是万能的测量误差</a></li>
-<li><a href="#6">6. 迁移任务</a></li>
-</ul>
-</li>
-<li><a href="#1-green-function">1. 为什么要从 Green function 开始？</a></li>
-<li><a href="#2">2. 自能：实部改位置，虚部改可活多久</a></li>
-<li><a href="#3">3. 谱函数与测量的字典</a></li>
-<li><a href="#4_1">4. 准粒子何时成立？</a></li>
-<li><a href="#5_1">5. 三个算术检查</a></li>
-<li><a href="#6_1">6. 小结：把“看见一个峰”升级成机制判断</a></li>
+<li><a href="#greens-learning-title">先问峰从哪里来，再问它能活多久</a></li>
+<li><a href="#1">1. 同样两条峰，可以有不同的物理含义</a></li>
+<li><a href="#2-retarded">2. 固定约定：retarded 是因果条件，不是占据概率</a></li>
+<li><a href="#3-lehmann">3. Lehmann 表示：每一条线都能追溯到一对多体态</a></li>
+<li><a href="#4">4. 宽带单峰：什么时候宽度确实给出指数时间？</a></li>
+<li><a href="#5">5. 封闭两能级：两条实极点，完全没有内禀宽度</a></li>
+<li><a href="#6-hamiltonian">6. 从同一 Hamiltonian 算时间：回返不是衰减</a></li>
+<li><a href="#7-hubbard">7. Hubbard 原子：用四个态展开多体谱</a></li>
+<li><a href="#8-green">8. 占据、Green 零点和谱矩：三个不同的检查</a></li>
+<li><a href="#9-dyson">9. Dyson 方程：自能既能来自相互作用，也能来自消元</a></li>
+<li><a href="#10">10. 因果解析性与准粒子近似：哪些条件不能省？</a></li>
+<li><a href="#11-a">11. 把图接回实验：测到的强度并不总是 A</a></li>
+<li><a href="#12">12. 八个逐步核验：用算出来的量纠正直觉</a></li>
 </ul>
 </div>
 </details>
-<h1 id="iii">凝聚态 III · 格林函数、谱函数与准粒子寿命<a class="headerlink" href="#iii" title="Permanent link"></a></h1>
+<h1 id="iii-green">凝聚态 III · Green 函数：谱峰、谱权重与寿命<a class="headerlink" href="#iii-green" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Mahan《Many-Particle Physics》/ Altland &amp; Simons §4 / Fetter &amp; Walecka ｜ <strong>前置</strong>：cm-01、cm-02、qm-04
-实验上看到的是一条有宽度的能谱峰，而不是“某个粒子正在这里”。本页用 retarded Green function 把三件事接起来：因果传播、谱函数的峰形、以及准粒子的有限寿命。峰的位置是能量，峰的宽度是衰减尺度；二者不能混成同一个“能量不确定度”口号。</p>
+<p><strong>前置</strong>：<a href="cm-01-second-quant.html">二次量子化</a>、<a href="cm-02-bcs.html">BCS 的谱权重与占据</a>、复数、二阶矩阵和 Fourier 变换。<strong>目标</strong>：从一个可解 Hamiltonian 计算谱，再判断哪些峰宽能解释成寿命。</p>
+<p>建议分三次学习：第 1–4 节建立字典，第 5–8 节算两个封闭模型，第 9–12 节检查近似与测量。先读图例中的模型名，再比较曲线。</p>
 </blockquote>
 <div data-learning-page></div>
 
-<section aria-labelledby="greens-quasiparticle-learning-title" class="learning-layer">
-<h2 id="greens-quasiparticle-learning-title">学习层：一条谱峰究竟告诉你什么？<a class="headerlink" href="#greens-quasiparticle-learning-title" title="Permanent link"></a></h2>
-<h3 id="1">1. 先预测：窄峰、宽峰与“粒子寿命”<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>光电子谱、隧穿谱或中子散射常把信号画成能量 <span class="arithmatex">\(E\)</span> 的函数。请在打开实验前判断：</p>
-<ol>
-<li>把半宽 <span class="arithmatex">\(\Gamma\)</span> 加倍，谱峰的全宽半高（FWHM）怎样变？峰顶高度怎样变？</li>
-<li>如果谱函数来自一个单一 pole，它在整个能量轴上的面积会不会随 <span class="arithmatex">\(\Gamma\)</span> 改变？</li>
-<li>在本页约定下，振幅包络 <span class="arithmatex">\(e^{-\Gamma t/\hbar}\)</span> 与概率包络 <span class="arithmatex">\(e^{-2\Gamma t/\hbar}\)</span> 的时间尺度哪个更短？</li>
-<li>retarded propagator 在 <span class="arithmatex">\(t&lt;0\)</span> 是否可以响应一个尚未施加的扰动？</li>
-</ol>
-<p>这里的 <span class="arithmatex">\(\Gamma\)</span> 是<strong>能量单位的半宽</strong>，不是频率。先把“峰宽”和“寿命”放进同一套单位账，才能判断一条峰是长寿命准粒子、短寿命激发，还是根本没有清晰 pole。</p>
-<h3 id="2-retarded-pole">2. 最小可算模型：一个带自能的 retarded pole<a class="headerlink" href="#2-retarded-pole" title="Permanent link"></a></h3>
-<p>固定某个动量 <span class="arithmatex">\(k\)</span>，把准粒子的重整化能量记为 <span class="arithmatex">\(\varepsilon_k\)</span>。在忽略能量依赖自能的窄峰近似中，写</p>
+<section aria-labelledby="greens-learning-title" class="learning-layer greens193-course">
+<h2 id="greens-learning-title">先问峰从哪里来，再问它能活多久<a class="headerlink" href="#greens-learning-title" title="Permanent link"></a></h2>
+<h2 id="1">1. 同样两条峰，可以有不同的物理含义<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>让一个电子从轨道 <span class="arithmatex">\(a\)</span> 出发，耦合到另一个轨道 <span class="arithmatex">\(b\)</span>。即使完全没有耗散，测量 <span class="arithmatex">\(a\)</span> 通道的能谱也可能出现两条线。电子的振幅在两个轨道之间往返，系统没有“把粒子消耗掉”。</p>
+<p>再考虑一个局域轨道：放入上自旋电子时，若下自旋已经在场，需要额外付出排斥能 <span class="arithmatex">\(U\)</span>。同一个上自旋通道也会出现两种添加/移除能量。这是相互作用产生的谱结构，但有限封闭原子仍没有连续谱所代表的不可逆衰减。</p>
+<p>最后，若一个轨道耦合到很大的连续环境，局部振幅在适当时间范围内可以近似指数衰减，对应一条 Lorentzian 峰。<strong>峰数、谱质量、峰宽回答不同问题。</strong>本页用这三个模型比较，避免从“看起来更宽”直接跳到“寿命更短”。</p>
+<p>所有实验能量以任意固定单位 <span class="arithmatex">\(E_0\)</span> 表示，时间以 <span class="arithmatex">\(\hbar/E_0\)</span> 表示。界面整数滑块除以 <span class="arithmatex">\(100\)</span> 才是无量纲参数。例如 <span class="arithmatex">\(\Gamma/E_0=0.30\)</span> 并不指定某种材料的 <span class="arithmatex">\(0.30\)</span> meV；若自行选 <span class="arithmatex">\(E_0=1\)</span> meV，时间单位才是约 <span class="arithmatex">\(0.6582\)</span> ps。</p>
+<h2 id="2-retarded">2. 固定约定：retarded 是因果条件，不是占据概率<a class="headerlink" href="#2-retarded" title="Permanent link"></a></h2>
+<p>对一个规范归一化的费米模式 <span class="arithmatex">\(c\)</span>，取巨正则生成元 <span class="arithmatex">\(K=H-\mu N\)</span>，并用 <span class="arithmatex">\(K\)</span> 演化算符。这样单粒子能量相对于化学势计量：</p>
 <div class="arithmatex">\[
-G^R(k,E)=\frac{1}{E-\varepsilon_k-\Sigma^R(k,E)}
-\simeq \frac{1}{E-\varepsilon_k+i\Gamma}.
+c(t)=e^{iKt/\hbar}c\,e^{-iKt/\hbar},\qquad
+G^R(t)=-\frac{i}{\hbar}\theta(t)
+\langle c(t)c^\dagger+c^\dagger c(t)\rangle.
 \]</div>
-<p>谱函数定义为</p>
+<p>第一项记录“先添加，再移除”；第二项记录“先移除，再添加”。它们共同组成反对易函数。一般热态中的 <span class="arithmatex">\(G^R\)</span> 因而不是某个已经准备好的单电子波函数。<span class="arithmatex">\(|i\hbar G^R(t)|^2\)</span> 也不能无条件当成电子占据。</p>
+<p>本页使用能量 Fourier 约定</p>
 <div class="arithmatex">\[
-A(k,E)=-\frac{1}{\pi}\operatorname{Im}G^R(k,E)
-=\frac{1}{\pi}\frac{\Gamma}{(E-\varepsilon_k)^2+\Gamma^2}.
-\]</div>
-<p>它不是“粒子在能量上的概率密度”的无条件替代，而是单粒子添加/移除谱的响应权重；在本单 pole 模型中它满足严格的谱权重和规则</p>
-<div class="arithmatex">\[
-\int_{-\infty}^{\infty}A(k,E)\,dE=1.
-\]</div>
-<p>峰顶为 <span class="arithmatex">\(A(k,\varepsilon_k)=1/(\pi\Gamma)\)</span>，半高点在 <span class="arithmatex">\(|E-\varepsilon_k|=\Gamma\)</span>，所以</p>
-<div class="arithmatex">\[
-\mathrm{FWHM}=2\Gamma.
-\]</div>
-<h3 id="3-gamma">3. 时间域桥：同一个 <span class="arithmatex">\(\Gamma\)</span> 如何变成寿命？<a class="headerlink" href="#3-gamma" title="Permanent link"></a></h3>
-<p>采用能量 Fourier 约定 <span class="arithmatex">\(G^R(E)=\int_{-\infty}^{\infty}dt\,e^{iEt/\hbar}G^R(t)\)</span>；对逆变换的 <span class="arithmatex">\(E\)</span> 积分，在 <span class="arithmatex">\(t&gt;0\)</span> 时闭合到 retarded 的下半平面，pole <span class="arithmatex">\(E=\varepsilon_k-i\Gamma\)</span> 给出</p>
-<div class="arithmatex">\[
-G^R(k,t)=-\frac{i}{\hbar}\,\theta(t)\exp\left(-\frac{i\varepsilon_k t}{\hbar}\right)
-\exp\left(-\frac{\Gamma t}{\hbar}\right).
-\]</div>
-<p>因此本页明确采用两种时间标度：</p>
-<div class="arithmatex">\[
-\tau_{\rm amp}=\frac{\hbar}{\Gamma},
+G^R(E)=\int_{-\infty}^{\infty}dt\,e^{iEt/\hbar}G^R(t),
 \qquad
-\tau_{\rm pop}=\frac{\hbar}{2\Gamma}.
+G^R(t)=\int_{-\infty}^{\infty}\frac{dE}{2\pi\hbar}
+\,e^{-iEt/\hbar}G^R(E).
 \]</div>
-<p>第一项是传播振幅衰减到 <span class="arithmatex">\(e^{-1}\)</span> 的时间，第二项是 <span class="arithmatex">\(|G^R|^2\)</span> 这种概率权重衰减到 <span class="arithmatex">\(e^{-1}\)</span> 的时间。文献若把“寿命”直接写成 <span class="arithmatex">\(\hbar/\Gamma\)</span> 或 <span class="arithmatex">\(\hbar/(2\Gamma)\)</span>，必须先查它把 <span class="arithmatex">\(\Gamma\)</span> 定义成半宽还是全宽，以及讨论的是振幅还是占据。</p>
-<h3 id="4">4. 静态数值与交互实验<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>实验默认取 <span class="arithmatex">\(\varepsilon_k=1\ \mathrm{meV}\)</span>、<span class="arithmatex">\(\Gamma=2\ \mathrm{meV}\)</span>、探测偏移 <span class="arithmatex">\(\delta E=4\ \mathrm{meV}\)</span>，并用 <span class="arithmatex">\(\hbar=0.6582\ \mathrm{meV\,ps}\)</span>。打开后可以拖动中心能量、半宽和偏移，左图画 <span class="arithmatex">\(A(E)\)</span>，右图画 retarded 振幅与概率包络；图中的面积、FWHM 和时间单位同步更新。</p>
-<div class="learning-lab" data-learning-lab="physics-greens-quasiparticle">
-<p><strong>无 JavaScript 时的静态读法：</strong>在单 pole 模型</p>
+<p>因此 <span class="arithmatex">\(G^R(E)\)</span> 的单位是能量倒数。定义</p>
 <div class="arithmatex">\[
-A(E)=\frac{1}{\pi}\frac{\Gamma}{(E-\varepsilon)^2+\Gamma^2}
+A(E)=-\frac1\pi\operatorname{Im}G^R(E).
 \]</div>
-<p>中代入 <span class="arithmatex">\(\varepsilon=1\ \mathrm{meV}\)</span>、<span class="arithmatex">\(\Gamma=2\ \mathrm{meV}\)</span>。由于 <span class="arithmatex">\(\hbar=0.6582\ \mathrm{meV\,ps}\)</span>，以下数字是实验的默认核对值：</p>
+<p>有些资料把谱函数定义为 <span class="arithmatex">\(-2\operatorname{Im}G^R\)</span>；那套约定会把积分中的 <span class="arithmatex">\(2\pi\)</span> 移到别处。比较公式前先核对定义。这里用 <span class="arithmatex">\(F(t)=i\hbar G^R(t)\)</span> 画无量纲时间曲线，<span class="arithmatex">\(t=0\)</span> 采用<strong>右极限</strong> <span class="arithmatex">\(F(0^+)=1\)</span>；负时间另画零线，不用一条斜线跨越因果跳跃。取 <span class="arithmatex">\(\theta(0)=1/2\)</span> 的分布约定不会改变 Fourier 结果。</p>
+<h2 id="3-lehmann">3. Lehmann 表示：每一条线都能追溯到一对多体态<a class="headerlink" href="#3-lehmann" title="Permanent link"></a></h2>
+<p>设 <span class="arithmatex">\(K|m\rangle=K_m|m\rangle\)</span>，热概率为 <span class="arithmatex">\(p_m=e^{-\beta K_m}/\mathcal Z\)</span>，<span class="arithmatex">\(\beta=1/(k_BT)\)</span>。在反对易函数两项中分别插入完备集。令 <span class="arithmatex">\(|n\rangle\)</span> 比 <span class="arithmatex">\(|m\rangle\)</span> 多一个粒子，则</p>
+<div class="arithmatex">\[
+G^R(E)=\sum_{m,n}
+\frac{(p_m+p_n)|\langle n|c^\dagger|m\rangle|^2}
+{E-(K_n-K_m)+i0^+}.
+\]</div>
+<p>分母告诉我们跃迁能量；矩阵元决定该通道能否看到这条线；两种热概率分别提供添加和移除的权重。取虚部得到</p>
+<div class="arithmatex">\[
+A(E)=\sum_{m,n}w_{mn}\,
+\delta\!\left(E-(K_n-K_m)\right),\qquad
+w_{mn}=(p_m+p_n)|\langle n|c^\dagger|m\rangle|^2\ge0.
+\]</div>
+<p>把每个 <span class="arithmatex">\(\delta\)</span> 积掉，再用完备性把中间态求和还原成算符乘积：</p>
+<div class="arithmatex">\[
+\int dE\,A(E)
+=\langle cc^\dagger+c^\dagger c\rangle
+=\langle\{c,c^\dagger\}\rangle=1.
+\]</div>
+<p>这里的正性与单位和规则针对<strong>规范费米子单粒子对角谱</strong>。异常配对谱、非对角矩阵元，或者玻色子对易响应的谱，不应直接套用同一句正性判断。相关约定与推导可核对 <a href="https://johnof.folk.ntnu.no/green-2013.pdf">Fjærestad 的 Green 函数讲义</a>第 2.2、2.5、2.6 节；下文将把一般求和落实为四个态上的具体算术。</p>
+<h2 id="4">4. 宽带单峰：什么时候宽度确实给出指数时间？<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>先独立定义一个常数自能的宽带模型：</p>
+<div class="arithmatex">\[
+G^R_{\rm wb}(E)=\frac1{E-e_a+i\Gamma},\quad
+A_{\rm wb}(E)=\frac{\Gamma}
+{\pi[(E-e_a)^2+\Gamma^2]},\quad \Gamma&gt;0.
+\]</div>
+<p>半高点是 <span class="arithmatex">\(e_a\pm\Gamma\)</span>，所以全宽半高为 <span class="arithmatex">\(2\Gamma\)</span>。闭合 Fourier 积分的下半平面，得到</p>
+<div class="arithmatex">\[
+F_{\rm wb}(t)=\theta(t)e^{-ie_at/\hbar}e^{-\Gamma t/\hbar}.
+\]</div>
+<p>在一个明确允许把这项当作局部一粒子生存振幅的 Markov 衰减模型中，</p>
+<div class="arithmatex">\[
+\tau_{\rm amp}=\frac{\hbar}{\Gamma},\qquad
+P_{\rm surv}(t)=e^{-2\Gamma t/\hbar},\qquad
+\tau_{\rm surv}=\frac{\hbar}{2\Gamma}.
+\]</div>
+<p>相差的 <span class="arithmatex">\(2\)</span> 来自振幅取模平方，不是两种能量单位。一般相互作用热态的占据演化还要知道 lesser 相关函数或动力学方程；不能只凭 retarded 峰宽给所有“人口寿命”赋值。<a href="https://courses.physics.illinois.edu/phys561/fa2005/lnotes/lec6a.pdf">Illinois PHYS561 的原始课程讲义</a>分别列出 retarded、greater 和 lesser 对象，适合核对这些区别。</p>
+<p>全轴面积为 <span class="arithmatex">\(1\)</span>，有限窗 <span class="arithmatex">\([-W,W]\)</span> 的面积却是</p>
+<div class="arithmatex">\[
+M_{\rm wb}(W)=\frac1\pi\left[
+\arctan\frac{W-e_a}{\Gamma}
+-\arctan\frac{-W-e_a}{\Gamma}\right].
+\]</div>
+<p>默认 <span class="arithmatex">\(e_a/E_0=1,\Gamma/E_0=0.3,W/E_0=10\)</span> 时，窗内约为 <span class="arithmatex">\(0.98071457\)</span>，余下的约 <span class="arithmatex">\(1.93\%\)</span> 在图外。把图上曲线重新缩放到面积 <span class="arithmatex">\(1\)</span> 会藏掉这部分信息。</p>
+<p><span class="arithmatex">\(\Gamma=0\)</span> 时必须回到 <span class="arithmatex">\(\delta(E-e_a)\)</span>：此时没有有限峰高，也没有有限衰减时间。实验改画谱线质量 <span class="arithmatex">\(1\)</span>，相关时标留空并标明 <span class="arithmatex">\(\infty\)</span>。宽带模型的 Lorentzian 尾部还使普通一阶矩不绝对收敛、二阶矩发散；它不是任意高能、任意短时都精确的有限带宽系统。</p>
+<h2 id="5">5. 封闭两能级：两条实极点，完全没有内禀宽度<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>在单粒子基底 <span class="arithmatex">\((|a\rangle,|b\rangle)\)</span> 中，设</p>
+<div class="arithmatex">\[
+h=\begin{pmatrix}e_a&amp;v\\v&amp;e_b\end{pmatrix},\qquad
+\bar e=\frac{e_a+e_b}{2},\quad d=\frac{e_a-e_b}{2},\quad
+R=\sqrt{d^2+v^2}.
+\]</div>
+<p>因为 <span class="arithmatex">\((h-\bar e I)^2=R^2I\)</span>，无需猜本征矢相位便可写出能量和投影：</p>
+<div class="arithmatex">\[
+E_\pm=\bar e\pm R,\qquad
+P_\pm=\frac12\left(I\pm\frac{h-\bar e I}{R}\right).
+\]</div>
+<p><span class="arithmatex">\(a\)</span> 通道只取投影的 <span class="arithmatex">\(aa\)</span> 元素，因此</p>
+<div class="arithmatex">\[
+Z_\pm=(P_\pm)_{aa}=\frac12\left(1\pm\frac dR\right),
+\qquad
+G^R_{aa}(E)=\frac{Z_-}{E-E_-+i0^+}
++\frac{Z_+}{E-E_++i0^+}.
+\]</div>
+<p>两谱线质量相加为 <span class="arithmatex">\(1\)</span>。若 <span class="arithmatex">\(v=0\)</span> 且 <span class="arithmatex">\(e_a\ne e_b\)</span>，其中一个 <span class="arithmatex">\(a\)</span> 通道权重为 <span class="arithmatex">\(0\)</span>：Hamiltonian 有那个本征能量，并不表示每个实验通道都看得到。若同时 <span class="arithmatex">\(R=0\)</span>，两个能量简并；此时直接使用整个简并子空间投影 <span class="arithmatex">\(I\)</span>，<span class="arithmatex">\(a\)</span> 通道只有一条质量为 <span class="arithmatex">\(1\)</span> 的线，不计算 <span class="arithmatex">\(d/R\)</span>。</p>
+<p>默认 <span class="arithmatex">\((e_a,e_b,v)/E_0=(1,-1,1)\)</span> 给 <span class="arithmatex">\(E_\pm/E_0=\pm\sqrt2\)</span>，权重约 <span class="arithmatex">\(0.14644661\)</span> 与 <span class="arithmatex">\(0.85355339\)</span>。相互作用尚未出现，单纯轨道杂化已经重新分配谱权重。</p>
+<h2 id="6-hamiltonian">6. 从同一 Hamiltonian 算时间：回返不是衰减<a class="headerlink" href="#6-hamiltonian" title="Permanent link"></a></h2>
+<p>从 <span class="arithmatex">\(|a\rangle\)</span> 出发，矩阵指数可以直接展开为</p>
+<div class="arithmatex">\[
+e^{-iht/\hbar}
+=e^{-i\bar e t/\hbar}\left[
+I\cos\frac{Rt}{\hbar}
+-i\frac{h-\bar e I}{R}\sin\frac{Rt}{\hbar}\right].
+\]</div>
+<p>因此</p>
+<div class="arithmatex">\[
+\begin{aligned}
+a(t)&amp;=e^{-i\bar e t/\hbar}
+\left(\cos\frac{Rt}{\hbar}-i\frac dR\sin\frac{Rt}{\hbar}\right),\\
+b(t)&amp;=-i e^{-i\bar e t/\hbar}\frac vR\sin\frac{Rt}{\hbar},\\
+P_{a\to b}(t)&amp;=\frac{v^2}{R^2}\sin^2\frac{Rt}{\hbar},\qquad
+P_{a\to a}(t)=1-P_{a\to b}(t).
+\end{aligned}
+\]</div>
+<p>两概率在每个时刻相加为 <span class="arithmatex">\(1\)</span>。共振 <span class="arithmatex">\(e_a=e_b\)</span> 且 <span class="arithmatex">\(v\ne0\)</span> 时可完全转移；失谐时最大转移概率只有 <span class="arithmatex">\(v^2/R^2\)</span>。概率周期为 <span class="arithmatex">\(\pi\hbar/R\)</span>，而复振幅还携带整体相位；不要只看实部穿过零就断言粒子消失。</p>
+<p>这里 <span class="arithmatex">\(a(t)=Z_-e^{-iE_-t/\hbar}+Z_+e^{-iE_+t/\hbar}\)</span> 同时是 <span class="arithmatex">\(F_{aa}(t&gt;0)\)</span>，因为<strong>这个二次型模型的一粒子传播有明确的态准备</strong>。这给了模平方一个合法的生存概率解释。后面的热态原子反对易函数不具备相同解释。</p>
+<p>为了看清谱线，实验用 <span class="arithmatex">\(z=E+i\eta\)</span> 显示</p>
+<div class="arithmatex">\[
+A_\eta(E)=\sum_{\nu=\pm}
+\frac{Z_\nu\eta}{\pi[(E-E_\nu)^2+\eta^2]}.
+\]</div>
+<p>这是给每条 <span class="arithmatex">\(\delta\)</span> 线做 Lorentzian 平滑。在 Fourier 空间它会乘 <span class="arithmatex">\(e^{-\eta|t|/\hbar}\)</span>。真实 <span class="arithmatex">\(h\)</span> 并没有改变；图中把 <span class="arithmatex">\(e^{-2\eta t/\hbar}|a(t)|^2\)</span> 特别标成“平滑后的模平方”，与真实回返概率并列。<strong>只调 <span class="arithmatex">\(\eta\)</span>，真实回返不能改变。</strong>具体仪器未必是 Lorentzian，这里只是一个解析可核验的分辨率示例。</p>
+<h2 id="7-hubbard">7. Hubbard 原子：用四个态展开多体谱<a class="headerlink" href="#7-hubbard" title="Permanent link"></a></h2>
+<p>取一个没有空间跃迁的原子轨道，局域裸能量设为 <span class="arithmatex">\(0\)</span>：</p>
+<div class="arithmatex">\[
+K=U n_\uparrow n_\downarrow-\mu(n_\uparrow+n_\downarrow),\qquad U\ge0.
+\]</div>
+<p>完整基底和能量是</p>
 <table>
 <thead>
 <tr>
-<th>账本</th>
-<th>公式</th>
-<th style="text-align: right;">默认结果</th>
+<th>编号</th>
+<th>态</th>
+<th><span class="arithmatex">\(K\)</span></th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>峰顶</td>
-<td><span class="arithmatex">\(1/(\pi\Gamma)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.15915\ \mathrm{meV}^{-1}\)</span></td>
+<td>0</td>
+<td>空态</td>
+<td><span class="arithmatex">\(0\)</span></td>
 </tr>
 <tr>
-<td>FWHM</td>
-<td><span class="arithmatex">\(2\Gamma\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(4\ \mathrm{meV}\)</span></td>
+<td>1</td>
+<td>仅上自旋</td>
+<td><span class="arithmatex">\(-\mu\)</span></td>
 </tr>
 <tr>
-<td>振幅时间</td>
-<td><span class="arithmatex">\(\hbar/\Gamma\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.3291\ \mathrm{ps}\)</span></td>
+<td>2</td>
+<td>仅下自旋</td>
+<td><span class="arithmatex">\(-\mu\)</span></td>
 </tr>
 <tr>
-<td>概率时间</td>
-<td><span class="arithmatex">\(\hbar/(2\Gamma)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.1646\ \mathrm{ps}\)</span></td>
-</tr>
-<tr>
-<td>偏移 <span class="arithmatex">\(\delta E=4\ \mathrm{meV}\)</span> 处</td>
-<td><span class="arithmatex">\(A(\varepsilon+\delta E)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.03183\ \mathrm{meV}^{-1}\)</span></td>
-</tr>
-<tr>
-<td>相对峰顶</td>
-<td><span class="arithmatex">\(A(\varepsilon+4)/A(\varepsilon)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.2000\)</span></td>
-</tr>
-<tr>
-<td>谱权重</td>
-<td><span class="arithmatex">\(\int A(E)dE\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td>3</td>
+<td>双占据</td>
+<td><span class="arithmatex">\(U-2\mu\)</span></td>
 </tr>
 </tbody>
 </table>
-<p>所以把 <span class="arithmatex">\(\Gamma\)</span> 加倍会使 FWHM 从 <span class="arithmatex">\(4\)</span> 变成 <span class="arithmatex">\(8\ \mathrm{meV}\)</span>，峰顶减半，谱权重仍为 <span class="arithmatex">\(1\)</span>；概率寿命从 <span class="arithmatex">\(0.1646\)</span> 变成 <span class="arithmatex">\(0.0823\ \mathrm{ps}\)</span>。retarded 时间图在 <span class="arithmatex">\(t&lt;0\)</span> 保持为零，这个因果边界不是画图约定，而是 <span class="arithmatex">\(\theta(t)\)</span> 的定义。</p>
-<p><strong>反例与迁移：</strong>真实系统可以有多个 pole、连续谱、能量依赖的 <span class="arithmatex">\(\Sigma^R\)</span> 或非 Lorentzian 尾巴。此时“FWHM = <span class="arithmatex">\(2\Gamma\)</span>”只属于窄峰近似；谱权重总和规则仍需把所有峰和连续部分一起积分，不能只对可见的局部峰归一化。</p>
+<p>为了避免低温指数溢出，计算时先减去最小能量：<span class="arithmatex">\(p_j=e^{-(K_j-K_{\min})/(k_BT)}/\sum_\ell e^{-(K_\ell-K_{\min})/(k_BT)}\)</span>。这不改变任何概率。在 <span class="arithmatex">\(T=0\)</span>，实验取所有简并基态等权的热极限；若实际准备了某个特定纯态，则应换成那份密度矩阵。</p>
+<p>上自旋产生算符只有两条允许跃迁：<span class="arithmatex">\(0\to1\)</span> 的能量为 <span class="arithmatex">\(-\mu\)</span>，<span class="arithmatex">\(2\to3\)</span> 的能量为 <span class="arithmatex">\(U-\mu\)</span>。令 <span class="arithmatex">\(\bar n=\langle n_\downarrow\rangle=p_2+p_3\)</span>，则</p>
+<div class="arithmatex">\[
+\begin{aligned}
+G^R_\uparrow(E)&amp;=
+\frac{1-\bar n}{E+\mu+i0^+}
++\frac{\bar n}{E+\mu-U+i0^+},\\
+A_\uparrow(E)&amp;=(1-\bar n)\delta(E+\mu)
++\bar n\,\delta(E+\mu-U).
+\end{aligned}
+\]</div>
+<p>第一条谱权重为 <span class="arithmatex">\(p_0+p_1=1-\bar n\)</span>，第二条为 <span class="arithmatex">\(p_2+p_3=\bar n\)</span>；其中的添加权重分别是 <span class="arithmatex">\(p_0,p_2\)</span>，移除权重分别是 <span class="arithmatex">\(p_1,p_3\)</span>。这正是一般 Lehmann 求和的一次完整展开。</p>
+<p>在默认 <span class="arithmatex">\(U/E_0=4,\mu/E_0=2,k_BT/E_0=0.5\)</span> 时，<span class="arithmatex">\(\bar n=1/2\)</span>，两条线位于 <span class="arithmatex">\(\pm2E_0\)</span>，各有质量 <span class="arithmatex">\(1/2\)</span>。双占据概率却只有约 <span class="arithmatex">\(0.00899310\)</span>。看到负能谱线质量 <span class="arithmatex">\(1/2\)</span>，不等于“双占据概率为 <span class="arithmatex">\(1/2\)</span>”。</p>
+<h2 id="8-green">8. 占据、Green 零点和谱矩：三个不同的检查<a class="headerlink" href="#8-green" title="Permanent link"></a></h2>
+<p>热平衡中，费米因子 <span class="arithmatex">\(f(E)=1/(e^{E/(k_BT)}+1)\)</span> 把总谱拆成已占据和未占据部分。对原子逐条计算，有</p>
+<div class="arithmatex">\[
+\langle n_\uparrow\rangle=\int dE\,f(E)A_\uparrow(E)
+=(1-\bar n)f(-\mu)+\bar n f(U-\mu).
+\]</div>
+<p>这与 <span class="arithmatex">\(p_1+p_3\)</span> 相同；实验把两种算法并列显示。在 <span class="arithmatex">\(T=0,E=0\)</span> 的热极限使用 <span class="arithmatex">\(f(0)=1/2\)</span>，必须同时使用相应简并混合态，不能一边选纯态一边套热权重。</p>
+<p>原子时间函数为</p>
+<div class="arithmatex">\[
+F_\uparrow(t&gt;0)=(1-\bar n)e^{i\mu t/\hbar}
++\bar n e^{-i(U-\mu)t/\hbar}.
+\]</div>
+<p>默认半填充时它是 <span class="arithmatex">\(\cos(Ut/(2\hbar))\)</span>。其模平方从 <span class="arithmatex">\(1\)</span> 振荡到 <span class="arithmatex">\(0\)</span>，但平衡态 <span class="arithmatex">\(\langle n_\uparrow\rangle=1/2\)</span> 始终不变。这是“反对易 Green 函数平方就是占据”的具体反例。</p>
+<p>再把原子的两个分式合并：</p>
+<div class="arithmatex">\[
+G_\uparrow(z)=
+\frac{z+\mu-U(1-\bar n)}
+{(z+\mu)(z+\mu-U)}.
+\]</div>
+<p>若 <span class="arithmatex">\(U&gt;0\)</span> 且 <span class="arithmatex">\(0&lt;\bar n&lt;1\)</span>，两极点之间有一个<strong>Green 函数零点</strong> <span class="arithmatex">\(z=U(1-\bar n)-\mu\)</span>。它是复响应相消的结果，不要求负谱权重。若 <span class="arithmatex">\(\bar n=0\)</span> 或 <span class="arithmatex">\(1\)</span>，相应因子可约掉，不应保留一个假的零点。</p>
+<p>最后检查未平滑谱的矩 <span class="arithmatex">\(M_j=\int dE\,E^jA(E)\)</span>。两能级给</p>
+<div class="arithmatex">\[
+(M_0,M_1,M_2)=(1,e_a,e_a^2+v^2),
+\]</div>
+<p>原子给</p>
+<div class="arithmatex">\[
+(M_0,M_1,M_2)
+=\left(1,-\mu+U\bar n,\mu^2-2\mu U\bar n+U^2\bar n\right).
+\]</div>
+<p>这些是理想离散谱的矩。给它们加 Lorentzian 显示尾部后，高阶普通矩不再具有同样的收敛性质。不要拿有限显示窗截断后的二阶积分，冒充精确的 <span class="arithmatex">\(M_2\)</span>。</p>
+<h2 id="9-dyson">9. Dyson 方程：自能既能来自相互作用，也能来自消元<a class="headerlink" href="#9-dyson" title="Permanent link"></a></h2>
+<p>把两能级的 <span class="arithmatex">\(b\)</span> 分量消去，<span class="arithmatex">\(a\)</span> 通道的 resolvent 是</p>
+<div class="arithmatex">\[
+G_{aa}(z)=\frac{z-e_b}{(z-e_a)(z-e_b)-v^2}
+=\frac1{z-e_a-\Sigma_a(z)},\qquad
+\Sigma_a(z)=\frac{v^2}{z-e_b}.
+\]</div>
+<p>这项自能已经存在于无相互作用的轨道投影中。它说明“被省略的自由度怎样反作用于所保留通道”，并不自动等于多体散射率。若 <span class="arithmatex">\(v\ne0\)</span>，一个非零权重实极点满足</p>
+<div class="arithmatex">\[
+Z_\nu=\left[1-\Sigma_a'(E_\nu)\right]^{-1}
+=\left[1+\frac{v^2}{(E_\nu-e_b)^2}\right]^{-1},
+\]</div>
+<p>与谱投影的 <span class="arithmatex">\(aa\)</span> 元素完全相同。实验同时列出这两种留数计算。解耦暗态和简并情况单独取极限，避免对不存在的可见极点机械求导。</p>
+<p>对原子，以 <span class="arithmatex">\(G_{0,\uparrow}(z)=1/(z+\mu)\)</span> 为裸参考，代入 Dyson 方程可得</p>
+<div class="arithmatex">\[
+\Sigma_\uparrow(z)=U\bar n+
+\frac{U^2\bar n(1-\bar n)}
+{z+\mu-U(1-\bar n)}.
+\]</div>
+<p>第一项是静态 Hartree 位移，第二项含有频率依赖。<span class="arithmatex">\(U=0\)</span> 或 <span class="arithmatex">\(\bar n=0,1\)</span> 时，动态项直接消失，不做 <span class="arithmatex">\(0/0\)</span> 运算。实验在同一个 <span class="arithmatex">\(z=E+i\eta\)</span> 上取其实部和虚部；由此出现的平滑负虚部不能被当成原子真实寿命。</p>
+<h2 id="10">10. 因果解析性与准粒子近似：哪些条件不能省？<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>对本页有正谱权重的模型，</p>
+<div class="arithmatex">\[
+G(z)=\int dE'\,\frac{A(E')}{z-E'},\qquad \operatorname{Im}z&gt;0
+\]</div>
+<p>在上半平面解析。对实轴边界，实部是主值积分</p>
+<div class="arithmatex">\[
+\operatorname{Re}G^R(E)=
+\mathcal P\int dE'\frac{A(E')}{E-E'},\qquad
+\operatorname{Im}G^R(E)=-\pi A(E).
+\]</div>
+<p>两部分来自同一个函数，不能任意拼接。自能若含常数高频极限，应先减掉该常数再写通常的色散积分；原子的 <span class="arithmatex">\(U\bar n\)</span> 正是一个例子。宽带常数虚自能是特定无限带宽理想化，不能把它当成具有正确全部高频矩的有限带宽自能。</p>
+<p>对真正有窄共振的连续系统，若在峰附近自能变化足够缓慢、与其他峰和阈值分开，可以在</p>
+<div class="arithmatex">\[
+E_k-\epsilon_k-\operatorname{Re}\Sigma^R(k,E_k)=0
+\]</div>
+<p>附近线性展开。忽略高阶项和虚部导数的影响，定义</p>
+<div class="arithmatex">\[
+Z_k=\left[1-\partial_E\operatorname{Re}\Sigma^R(k,E_k)\right]^{-1},
+\qquad \Gamma_k=-Z_k\operatorname{Im}\Sigma^R(k,E_k),
+\]</div>
+<p>得到局部近似</p>
+<div class="arithmatex">\[
+G^R(k,E)\simeq\frac{Z_k}{E-E_k+i\Gamma_k},
+\qquad
+A(k,E)\simeq\frac{Z_k\Gamma_k}
+{\pi[(E-E_k)^2+\Gamma_k^2]}.
+\]</div>
+<p>这需要正且可解释的谱权重，以及 <span class="arithmatex">\(\Gamma_k\)</span> 小于自能、背景和相邻结构变化的能标。靠近阈值、多个峰重叠、强烈能量依赖或没有分离的共振时，不能把拟合参数直接称为准粒子留数和寿命。稳定孤立实极点的正留数可以解释为谱质量；宽共振中简单实导数公式只是近似。</p>
+<p>遗漏的权重可能在其他离散峰，也可能在连续背景，<strong>不总是“非相干连续部分”</strong>。有限封闭系统先有实离散谱；连续谱和合适的极限才允许宽共振与近似不可逆时间行为。总系统能量守恒与所观察通道的振幅减小不矛盾。</p>
+<h2 id="11-a">11. 把图接回实验：测到的强度并不总是 A<a class="headerlink" href="#11-a" title="Permanent link"></a></h2>
+<p>在常用的光电子谱近似中，移除电子信号含有矩阵元和 <span class="arithmatex">\(f(E)A(k,E)\)</span>，随后还受能量、动量分辨率与背景影响。隧穿电导要结合电极态密度、隧穿矩阵元和热卷积；<a href="cm-02-bcs.html">上一课的 BCS 实验</a>已把理想谱与热卷积分开。中子散射主要连接相应的自旋或密度关联，不能直接把本页单粒子 <span class="arithmatex">\(A\)</span> 的和规则套过去。输运也往往需要电流关联和顶角信息，不能只把某个单粒子峰宽倒数当作电阻率。</p>
+<p>因此，“峰高下降一半”至少要继续检查：峰的积分质量是否变化、图窗是否收全、分辨率是否改变、是否有未分辨的第二条线，以及所用响应函数是否正确。谱质量小与寿命短没有必然等价关系。</p>
+<p>原子例子是理解 Hubbard 谱结构的起点，但没有空间传播与晶格热力学极限，不能由两条原子线宣布已经完成 Mott 转变的证明。向研究课程迁移时，应依次加入跃迁、动量依赖、连续谱和自洽近似，再检查正性、和规则、解析性与收敛。</p>
+<div class="learning-lab" data-learning-lab="physics-greens-quasiparticle">
+<p><strong>无脚本对照：</strong>六份记录保留8项参数、两能级谱投影、原子四态与两条Lehmann跃迁、复Green函数与自能、211个时间点和100个有限窗积分。Γ仅属于宽带模型；η只平滑封闭谱，真实动力学不含η。</p>
+<figure class="plot">
+<p><img alt="Green函数六面板：宽带谱、封闭谱、复时间函数、真实回返与显示平滑、自能、有限窗质量。" src="assets/img/cm-03-greens-certificates.svg" /></p>
+<figcaption>所有面板使用默认参数。A预设宽带衰减；B—E的两能级与原子是封闭模型，η不代表内禀寿命；F逐窗积分而不把每个图窗强行归一。</figcaption>
+</figure>
+<div aria-label="Green函数固定记录，可横向滚动" class="greens193-static" role="region" tabindex="0">
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th style="text-align: right;">Γ/E0</th>
+<th style="text-align: right;">η/E0</th>
+<th style="text-align: right;">宽带窗内质量</th>
+<th style="text-align: right;">两能级平滑谱窗内质量</th>
+<th style="text-align: right;">原子平滑谱窗内质量</th>
+<th style="text-align: right;">原子每自旋占据</th>
+<th style="text-align: right;">逐谱线fA总和</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>default</td>
+<td style="text-align: right;">0.3</td>
+<td style="text-align: right;">0.1</td>
+<td style="text-align: right;">0.98071457</td>
+<td style="text-align: right;">0.99350412</td>
+<td style="text-align: right;">0.99336881</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">0.5</td>
+</tr>
+<tr>
+<td>resonant</td>
+<td style="text-align: right;">0.3</td>
+<td style="text-align: right;">0.1</td>
+<td style="text-align: right;">0.98090713</td>
+<td style="text-align: right;">0.99356972</td>
+<td style="text-align: right;">0.99336881</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">0.5</td>
+</tr>
+<tr>
+<td>sharp</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.99935039</td>
+<td style="text-align: right;">0.99933685</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">0.5</td>
+</tr>
+<tr>
+<td>blurred</td>
+<td style="text-align: right;">0.3</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.98071457</td>
+<td style="text-align: right;">0.93527611</td>
+<td style="text-align: right;">0.9339519</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">0.5</td>
+</tr>
+<tr>
+<td>atomic-degenerate</td>
+<td style="text-align: right;">0.3</td>
+<td style="text-align: right;">0.1</td>
+<td style="text-align: right;">0.98071457</td>
+<td style="text-align: right;">0.99350412</td>
+<td style="text-align: right;">0.99322992</td>
+<td style="text-align: right;">0.33333333</td>
+<td style="text-align: right;">0.33333333</td>
+</tr>
+<tr>
+<td>empty</td>
+<td style="text-align: right;">0.3</td>
+<td style="text-align: right;">0.1</td>
+<td style="text-align: right;">0.98071457</td>
+<td style="text-align: right;">0.99350412</td>
+<td style="text-align: right;">0.99336881</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
 </div>
-<h3 id="5">5. 边界检查：峰宽不是万能的测量误差<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<ul>
-<li><span class="arithmatex">\(\Gamma\)</span> 描述相互作用、自能虚部与不可逆散射在该模型中的合成效果；仪器分辨率、温度卷积和杂质展宽也会拓宽实验曲线，但不自动等同于内禀寿命。</li>
-<li>一个峰变宽可能是单粒子寿命变短，也可能是多个未分辨分支叠加。只有拟合的自能、动量依赖和独立的分辨率模型都支持时，才可把宽度解释为内禀散射。</li>
-<li><span class="arithmatex">\(A(k,E)\)</span> 的正性和积分规则是强检查；“峰顶越高所以粒子越多”是错误读法，面积才是本单 pole 模型中固定的谱权重。</li>
-<li>retarded 的 <span class="arithmatex">\(t&lt;0\)</span> 为零只表达因果边界；它不等于系统没有量子涨落。涨落要由相关函数或 Keldysh/greater-lesser Green functions 另行记录。</li>
-</ul>
-<h3 id="6">6. 迁移任务<a class="headerlink" href="#6" title="Permanent link"></a></h3>
-<p>若 ARPES 在同一 <span class="arithmatex">\(k\)</span> 点观察到峰顶下降一半、FWHM 增加一倍，先判断是 <span class="arithmatex">\(\Gamma\)</span> 加倍还是谱权重减少，再说明需要什么额外数据来区分：至少要检查背景、仪器卷积、峰面积、动量依赖和温度依赖。这个任务把“读峰”迁移成实验建模，而不是只套 <span class="arithmatex">\(\tau=\hbar/\Gamma\)</span>。</p>
+<p><a download="greens-frozen-records.json" href="assets/learning/projects/greens-certificates/run-snapshot.json">下载六份完整记录</a>。默认图窗是[-10E0,10E0]。Γ=0改用δ线质量；落在积分窗边时取半质量。T=0采用简并基态等权热极限。高阶谱矩表对应未平滑离散谱，不能从Lorentzian显示尾部作无穷区间积分得到。</p>
+</div>
+<h2 id="12">12. 八个逐步核验：用算出来的量纠正直觉<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>练习 1：默认宽带峰的半高、时标与图外质量</summary>
+<p>取 <span class="arithmatex">\(e_a/E_0=1,\Gamma/E_0=0.3\)</span>。峰顶是 <span class="arithmatex">\(E_0A(e_a)=1/(0.3\pi)\simeq1.06103295\)</span>；在 <span class="arithmatex">\(E/E_0=0.7,1.3\)</span> 达到半高，FWHM 为 <span class="arithmatex">\(0.6E_0\)</span>。</p>
+<p>振幅时标为 <span class="arithmatex">\((10/3)\hbar/E_0\)</span>；在指定生存模型下，平方时标为 <span class="arithmatex">\((5/3)\hbar/E_0\)</span>。若选 <span class="arithmatex">\(E_0=1\)</span> meV，则约为 <span class="arithmatex">\(2.194\)</span> ps 与 <span class="arithmatex">\(1.097\)</span> ps。</p>
+<p>窗 <span class="arithmatex">\([-10E_0,10E_0]\)</span> 的质量由两项 arctan 之差给出 <span class="arithmatex">\(0.98071457\)</span>；全轴仍为 <span class="arithmatex">\(1\)</span>。减去窗内质量得到 <span class="arithmatex">\(0.01928543\)</span>，这部分不是数值归一化失败，而是模型的窗外尾部。</p>
+</details>
+<details class="answer">
+<summary>练习 2：默认两能级为什么有两个不同强度的峰？</summary>
+<p><span class="arithmatex">\(h/E_0=\left(\begin{smallmatrix}1&amp;1\\1&amp;-1\end{smallmatrix}\right)\)</span>，所以 <span class="arithmatex">\(\bar e=0,d=E_0,R=\sqrt2E_0\)</span>。能量为 <span class="arithmatex">\(\pm\sqrt2E_0\)</span>，而 <span class="arithmatex">\(Z_\pm=(1\pm1/\sqrt2)/2\)</span>。</p>
+<p>先验算 <span class="arithmatex">\(Z_-+Z_+=1\)</span>。再算一阶矩：</p>
+<div class="arithmatex">\[
+Z_-(-\sqrt2E_0)+Z_+(\sqrt2E_0)=E_0=e_a.
+\]</div>
+<p>二阶矩为 <span class="arithmatex">\((Z_-+Z_+)2E_0^2=2E_0^2=e_a^2+v^2\)</span>。能量、权重和两个矩必须同时一致，不能只把两个峰画在正确位置。</p>
+</details>
+<details class="answer">
+<summary>练习 3：半个回返周期时，粒子是否已经消失？</summary>
+<p>默认模型的概率周期为 <span class="arithmatex">\(T_{\rm ret}=\pi\hbar/(\sqrt2E_0)\)</span>。在 <span class="arithmatex">\(t=T_{\rm ret}/2\)</span>，正弦平方为 <span class="arithmatex">\(1\)</span>，所以</p>
+<div class="arithmatex">\[
+P_{a\to b}=\frac12,\qquad P_{a\to a}=\frac12.
+\]</div>
+<p>它只转移了一半；总概率仍为 <span class="arithmatex">\(1\)</span>。把失谐调为零且保留 <span class="arithmatex">\(v\ne0\)</span>，最大转移才变成 <span class="arithmatex">\(1\)</span>。在整个回返周期后 <span class="arithmatex">\(P_{a\to a}=1\)</span>，无法用一个单调指数寿命描述这条曲线。</p>
+<p>短时间还可展开 <span class="arithmatex">\(P_{a\to a}=1-v^2t^2/\hbar^2+O(t^4)\)</span>，起初没有线性损失项。宽带指数 <span class="arithmatex">\(e^{-2\Gamma t/\hbar}\)</span> 却有线性项；两种模型的极短时行为本来就不同。</p>
+</details>
+<details class="answer">
+<summary>练习 4：只调 eta，哪条“衰减”是显示造成的？</summary>
+<p>固定默认两能级，只把 <span class="arithmatex">\(\eta/E_0\)</span> 从 <span class="arithmatex">\(0.1\)</span> 调到 <span class="arithmatex">\(1\)</span>。Hamiltonian、<span class="arithmatex">\(E_\pm\)</span>、<span class="arithmatex">\(Z_\pm\)</span>、真实 <span class="arithmatex">\(P_{a\to a}\)</span> 与 <span class="arithmatex">\(P_{a\to b}\)</span> 全部不变。</p>
+<p>显示谱的每条 Lorentzian 却由 FWHM <span class="arithmatex">\(0.2E_0\)</span> 变成 <span class="arithmatex">\(2E_0\)</span>。其 Fourier 平滑函数的平方多出 <span class="arithmatex">\(e^{-2\eta t/\hbar}\)</span>，所以看起来快速消失。它描述显示卷积的作用，不是实验在此封闭 Hamiltonian 中发现了新的耗散项。</p>
+<p>还可检查窗外质量：<span class="arithmatex">\(\eta\)</span> 变大，有限窗漏掉的尾部增多，但全轴质量仍为 <span class="arithmatex">\(1\)</span>。</p>
+</details>
+<details class="answer">
+<summary>练习 5：半填充原子的两个半权重峰怎样给出占据？</summary>
+<p><span class="arithmatex">\(U=4E_0,\mu=2E_0,k_BT=0.5E_0\)</span> 时，移位 Boltzmann 权重为 <span class="arithmatex">\((e^{-4},1,1,e^{-4})\)</span>。归一化后</p>
+<div class="arithmatex">\[
+p_0=p_3\simeq0.00899310,\qquad
+p_1=p_2\simeq0.49100690.
+\]</div>
+<p>因此每自旋占据为 <span class="arithmatex">\(p_1+p_3=1/2\)</span>。两谱线在 <span class="arithmatex">\(\pm2E_0\)</span>，各有质量 <span class="arithmatex">\(1/2\)</span>；对应 Fermi 因子约 <span class="arithmatex">\(0.98201379,0.01798621\)</span>。逐项相乘再相加，仍为 <span class="arithmatex">\(1/2\)</span>。</p>
+<p>此时 <span class="arithmatex">\(F_\uparrow(t)=\cos(2E_0t/\hbar)\)</span>，在 <span class="arithmatex">\(t=\pi\hbar/(4E_0)\)</span> 为零。平衡占据仍为 <span class="arithmatex">\(1/2\)</span>；这直接反驳把其模平方当作电子占据的读法。</p>
+</details>
+<details class="answer">
+<summary>练习 6：零温简并点为什么不是随便取一个占据？</summary>
+<p>取 <span class="arithmatex">\(U&gt;0,\mu=0,T=0\)</span>。空态与两个单占据态能量都为 <span class="arithmatex">\(0\)</span>，双占据能量为 <span class="arithmatex">\(U\)</span>。按本实验规定的热极限，前三态各有概率 <span class="arithmatex">\(1/3\)</span>，故 <span class="arithmatex">\(\bar n=1/3\)</span>。</p>
+<p>上自旋谱在 <span class="arithmatex">\(E=0\)</span> 的质量为 <span class="arithmatex">\(2/3\)</span>，在 <span class="arithmatex">\(E=U\)</span> 的质量为 <span class="arithmatex">\(1/3\)</span>。配合 <span class="arithmatex">\(f(0)=1/2,f(U)=0\)</span>，得到</p>
+<div class="arithmatex">\[
+\int fA\,dE=\frac23\cdot\frac12+\frac13\cdot0=\frac13.
+\]</div>
+<p>若另行准备了纯上自旋态，占据为 <span class="arithmatex">\(1\)</span>，那已经换了密度矩阵；不能继续使用等权热态的谱与 Fermi 分解来描述它。</p>
+</details>
+<details class="answer">
+<summary>练习 7：从原子自能还原谱，检查一个容易漏的常数</summary>
+<p>半填充 <span class="arithmatex">\(\mu=U/2,\bar n=1/2\)</span> 时，</p>
+<div class="arithmatex">\[
+\Sigma_\uparrow(z)=\frac U2+\frac{U^2}{4z}.
+\]</div>
+<p>Dyson 分母是 <span class="arithmatex">\(z+\mu-\Sigma=z-U^2/(4z)\)</span>，所以</p>
+<div class="arithmatex">\[
+G_\uparrow(z)=\frac{z}{z^2-U^2/4}
+=\frac12\left(\frac1{z-U/2}+\frac1{z+U/2}\right).
+\]</div>
+<p>两极点各有质量 <span class="arithmatex">\(1/2\)</span>，中间 <span class="arithmatex">\(z=0\)</span> 是零点。若漏掉 Hartree 常数 <span class="arithmatex">\(U/2\)</span>，化学势不再抵消，会误移谱峰。若把 <span class="arithmatex">\(\Sigma(E+i\eta)\)</span> 的平滑虚部解释成真实衰减，也会错误地给封闭原子赋予有限寿命。</p>
+</details>
+<details class="answer">
+<summary>练习 8：一个很弱的可见峰，能不能仍然非常长寿命？</summary>
+<p>先关闭所有真正的耗散，只考虑两能级。取 <span class="arithmatex">\(|e_a-e_b|\gg v\)</span>，则主要来自 <span class="arithmatex">\(b\)</span> 的那条本征态在 <span class="arithmatex">\(a\)</span> 通道的质量约为</p>
+<div class="arithmatex">\[
+Z_{\rm weak}\simeq\frac{v^2}{(e_a-e_b)^2}.
+\]</div>
+<p>它可以非常小，但其理想谱仍是 <span class="arithmatex">\(\delta\)</span> 线，封闭模型没有内禀宽度。因而“权重小”并不推出“寿命短”。</p>
+<p>迁移到实测谱时，应分别拟合分支位置、积分质量、连续背景与分辨率，再判断是否存在孤立窄共振。只凭峰顶亮暗或两条线是否分开，无法完成这个机制判断。下一课的<a href="cm-04-transport-correlations.html">关联输运</a>会进一步区分单粒子传播与电流响应。</p>
+</details>
 </section>
-<h2 id="1-green-function">1. 为什么要从 Green function 开始？<a class="headerlink" href="#1-green-function" title="Permanent link"></a></h2>
-<p>直接追踪一个受相互作用的电子，必须同时处理所有其他电子的扰动；单粒子波函数通常不再是稳定的本征态。Green function 换了一个问题：在 <span class="arithmatex">\(t=0\)</span> 加入一个具有动量 <span class="arithmatex">\(k\)</span> 的粒子，系统在之后的时间和位置上留下多大的传播振幅？这个“从源到响应”的对象既能编码传播，也能接到实验的谱强度。</p>
-<p>对费米子，retarded Green function 可写成</p>
-<div class="arithmatex">\[
-G^R(k,t)=-\frac{i}{\hbar}\theta(t)
-\left\langle\{c_k(t),c_k^\dagger(0)\}\right\rangle.
-\]</div>
-<p>反对易子让添加粒子和移除粒子都进入同一对象；<span class="arithmatex">\(\theta(t)\)</span> 则把响应限制在源之后。对玻色子把反对易子换成对易子，因果结构仍在。</p>
-<p>在平移不变的系统里做时间傅里叶变换，非相互作用电子给</p>
-<div class="arithmatex">\[
-G_0^R(k,E)=\frac{1}{E-\varepsilon_k+i0^+},
-\qquad
-A_0(k,E)=\delta(E-\varepsilon_k).
-\]</div>
-<p>无相互作用时谱是一条理想的 delta 峰；相互作用把 <span class="arithmatex">\(i0^+\)</span> 替换成由自能产生的有限虚部，同时也会移动峰的位置。</p>
-<h2 id="2">2. 自能：实部改位置，虚部改可活多久<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p>Dyson 方程把所有相互作用修正打包进自能：</p>
-<div class="arithmatex">\[
-G^R=G_0^R+G_0^R\Sigma^R G^R,
-\qquad
-G^R(k,E)=\frac{1}{E-\varepsilon_k-\Sigma^R(k,E)}.
-\]</div>
-<p>写 <span class="arithmatex">\(\Sigma^R=\operatorname{Re}\Sigma^R+i\operatorname{Im}\Sigma^R\)</span>。retarded 函数的耗散约定使稳定的谱峰满足 <span class="arithmatex">\(\operatorname{Im}\Sigma^R\le0\)</span>。峰位置近似由</p>
-<div class="arithmatex">\[
-E_k-\varepsilon_k-\operatorname{Re}\Sigma^R(k,E_k)=0
-\]</div>
-<p>决定；若在峰附近忽略自能的能量导数，也就是取 <span class="arithmatex">\(Z_k\simeq1\)</span>，再把 <span class="arithmatex">\(-\operatorname{Im}\Sigma^R\)</span> 近似为常数 <span class="arithmatex">\(\Gamma\)</span>，就得到学习层的 Lorentzian。</p>
-<p>更精细地，若自能随能量变化，准粒子 residue 为</p>
-<div class="arithmatex">\[
-Z_k=\left[1-\left.\frac{\partial\operatorname{Re}\Sigma^R(k,E)}{\partial E}\right|_{E_k}\right]^{-1}.
-\]</div>
-<p>把分母在 <span class="arithmatex">\(E_k\)</span> 附近展开后，物理半高半宽应定义为</p>
-<div class="arithmatex">\[
-\Gamma_k=-Z_k\operatorname{Im}\Sigma^R(k,E_k)&gt;0.
-\]</div>
-<p>于是窄峰近似变成 <span class="arithmatex">\(A\simeq Z_k\Gamma_k/[\pi((E-E_k)^2+\Gamma_k^2)]\)</span>。这里的 <span class="arithmatex">\(Z_k\)</span> 同时重标度色散斜率与 pole 宽度，不能沿用 <span class="arithmatex">\(Z_k=1\)</span> 时的 <span class="arithmatex">\(-\operatorname{Im}\Sigma^R\)</span> 而漏掉它；剩余谱权重进入非相干连续部分。residue 小也不等于寿命短：一个激发可能有清晰但权重很小的 pole，也可能有很宽而难以称为准粒子的峰。</p>
-<h2 id="3">3. 谱函数与测量的字典<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>谱函数的 Lehmann 表示把它写成真实跃迁的加权和。对费米系统，在给定温度下实验强度还会乘上 Fermi 分布和矩阵元；所以 ARPES 的原始亮度不是裸的 <span class="arithmatex">\(A(k,E)\)</span>。隧穿谱还会卷积探针态密度、温度和电压转换。学习层画的是最小模型的 intrinsic spectral function，目的是先锁住 pole、宽度和面积三者的关系。</p>
-<p>三条检查可以跨实验复用：</p>
-<ol>
-<li><strong>正性</strong>：物理谱权重不能在可测区间凭空变成负数。</li>
-<li><strong>和规则</strong>：对规范归一化的单粒子谱，<span class="arithmatex">\(\int dE\,A(k,E)=1\)</span>；如果局部拟合的峰面积变化，需问权重是否转移到了背景或另一支。</li>
-<li><strong>因果解析性</strong>：retarded 函数在复能量上解析于上半平面，实部与虚部由 Kramers–Kronig 关系相连。随意独立调节峰位和损耗，可能构造出不对应任何因果响应的曲线。</li>
-</ol>
-<p>这些检查比“看起来像一条峰”更强：一个数值拟合若破坏和规则或解析性，即便残差漂亮，也不能自动叫作物理自能。</p>
-<h2 id="4_1">4. 准粒子何时成立？<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p>准粒子不是额外添加的一种粒子，而是 Green function 在复能量平面上的长寿命 pole。若</p>
-<div class="arithmatex">\[
-\Gamma_k\ll E_{\rm scale}
-\]</div>
-<p>并且在峰宽内自能变化不大，时间上才有许多振荡周期，能量上才有可分辨的峰。Fermi 液体在费米面附近常见 <span class="arithmatex">\(\Gamma\to0\)</span> 的长寿命趋势；高温、强无序、接近量子临界区或低维强涨落时，<span class="arithmatex">\(\Gamma\)</span> 可能与能量尺度同阶，准粒子语言便需要谨慎。</p>
-<p>“寿命有限所以违反能量守恒”也是误解。完整平移不变系统仍有时间平移对称与总能量守恒；有限宽度描述的是一个添加粒子态向许多多体末态散射，单粒子子空间的能量分布变宽。把整个系统的守恒量和某个投影态的衰减混为一谈，会得到错误的悖论。</p>
-<h2 id="5_1">5. 三个算术检查<a class="headerlink" href="#5_1" title="Permanent link"></a></h2>
-<p><strong>例 1（半高点）</strong> 若 <span class="arithmatex">\(\Gamma=0.50\ \mathrm{meV}\)</span>，则 <span class="arithmatex">\(A(\varepsilon+0.50)/A(\varepsilon)=1/2\)</span>，FWHM 为 <span class="arithmatex">\(1.00\ \mathrm{meV}\)</span>；不能把 <span class="arithmatex">\(\Gamma\)</span> 本身叫全宽。</p>
-<p><strong>例 2（时标）</strong> 若峰的能量半宽为 <span class="arithmatex">\(0.10\ \mathrm{meV}\)</span>，且 <span class="arithmatex">\(\hbar=0.6582\ \mathrm{meV\,ps}\)</span>，则 <span class="arithmatex">\(\tau_{\rm amp}=6.582\ \mathrm{ps}\)</span>、<span class="arithmatex">\(\tau_{\rm pop}=3.291\ \mathrm{ps}\)</span>。振幅的指数率与概率的指数率相差一倍，这正是单位和二次方都要写出来的原因。</p>
-<p><strong>例 3（面积）</strong> 两个峰各自面积为 <span class="arithmatex">\(0.6\)</span> 与 <span class="arithmatex">\(0.4\)</span>，即便第二个峰很宽，合计单粒子谱权重仍可为 <span class="arithmatex">\(1\)</span>；不能用峰高比较权重。</p>
-<h2 id="6_1">6. 小结：把“看见一个峰”升级成机制判断<a class="headerlink" href="#6_1" title="Permanent link"></a></h2>
-<p>Green function 给传播，retarded 条件给因果，谱函数给实验可见的能量权重，自能的实部和虚部分别控制重整化位置与衰减。窄 Lorentzian 只是一个可检验的局部模型；和规则、解析性、独立卷积模型以及动量/温度依赖共同决定它能否被称为准粒子。</p>
-<p>下一页的相关输运会把“谱峰如何衰减”换成“空间密度模式如何扩散”：那里的相关长度与扩散时间是另一套账，不应把单粒子 lifetime 当作宏观输运系数。</p>
-<hr />
-<p><em>核心句：准粒子是一个 pole 的近似语言；谱峰位置、谱权重与谱宽分别回答不同问题。</em></p>
+<noscript><style>.greens193-course span.arithmatex{overflow-wrap:anywhere}.greens193-static{overflow:auto;max-width:100%}.greens193-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}.greens193-static th,.greens193-static td{white-space:nowrap}</style></noscript>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="cm-02-bcs.html"><span class="pager-label">上一页</span>凝聚态 II · 超导 BCS</a>
