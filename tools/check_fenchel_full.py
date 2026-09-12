@@ -130,7 +130,8 @@ for change in ['star','gap','feasible','curve','null']:
  except(AssertionError,TypeError):mutations+=1
  else:raise AssertionError('undetected mutation '+change)
 if not staging:
- for course in ['ai-course','grad-math','math-course','physics-course']:assert(root/course/'site/assets/learning/labs/fenchel-duality.js').read_bytes()==js.read_bytes()
+ # Physics copies only labs referenced by its own lectures; this lab is math-only.
+ for course in ['ai-course','grad-math','math-course']:assert(root/course/'site/assets/learning/labs/fenchel-duality.js').read_bytes()==js.read_bytes()
  assert(root/'grad-math/site/assets/learning/projects/fenchel-certificates/run-snapshot.json').read_bytes()==fixture.read_bytes()
  assert(root/'grad-math/images/cvx-01-fenchel-ledgers.svg').read_bytes()==(root/'grad-math/site/assets/img/cvx-01-fenchel-ledgers.svg').read_bytes()
  raw=(root/'grad-math/lectures/cvx-01-conjugate.md').read_text();assert len(re.findall(r'^## \d+\.',raw,re.M))==12 and raw.count('<details class="answer"')==8 and raw.count('$$')==38
