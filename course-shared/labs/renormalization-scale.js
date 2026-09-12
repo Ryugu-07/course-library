@@ -1,683 +1,128 @@
-(function (host, factory) {
-  "use strict";
+(function(hostWindow){
+"use strict";
+const zeros=(n,m=n)=>Array.from({length:n},()=>Array(m).fill(0));
+const identity=n=>Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>+(i===j)));
+const transpose=A=>A[0].map((_,j)=>A.map(r=>r[j]));
+const multiply=(A,B)=>A.map(row=>B[0].map((_,j)=>row.reduce((s,x,k)=>s+x*B[k][j],0)));
+const mv=(A,x)=>A.map(r=>r.reduce((s,a,j)=>s+a*x[j],0));
+const dot=(x,y)=>x.reduce((s,a,j)=>s+a*y[j],0);
+const subtract=(A,B)=>A.map((r,i)=>r.map((x,j)=>x-B[i][j]));
+const maxAbs=A=>Math.max(0,...A.flat().map(Math.abs));
+function inverse(A){const n=A.length,T=A.map((row,i)=>row.concat(identity(n)[i]));let determinant=1;const pivots=[];for(let j=0;j<n;j++){let at=j;for(let i=j+1;i<n;i++)if(Math.abs(T[i][j])>Math.abs(T[at][j]))at=i;if(Math.abs(T[at][j])<1e-12)return {inverse:null,determinant:0,pivots};if(at!==j){[T[j],T[at]]=[T[at],T[j]];determinant=-determinant;}const value=T[j][j];determinant*=value;pivots.push({column:j,row:at,pivot:value});for(let k=0;k<2*n;k++)T[j][k]/=value;for(let i=0;i<n;i++)if(i!==j){const scale=T[i][j];for(let k=0;k<2*n;k++)T[i][k]-=scale*T[j][k];}}return {inverse:T.map(r=>r.slice(n)),determinant,pivots};}
+function ring(N,m2,kappa){const K=zeros(N);for(let i=0;i<N;i++){K[i][i]+=m2;const j=(i+1)%N;K[i][i]+=kappa;K[j][j]+=kappa;K[i][j]-=kappa;K[j][i]-=kappa;}return K;}
+function gaussian(input={}){
+ const c={size:8,mass:1,kappa:1,sourceProfile:'cos',sourceAmplitude:.5,...input};
+ if(![4,6,8,10,12].includes(c.size)||!(c.mass===0||c.mass>=.2&&c.mass<=2)||!(c.kappa>=.1&&c.kappa<=2)||!['uniform','cos','point'].includes(c.sourceProfile)||!(c.sourceAmplitude>=-1&&c.sourceAmplitude<=1))throw Error('Gaussian domain');
+ const N=c.size,m2=c.mass**2,K=ring(N,m2,c.kappa),source=Array.from({length:N},(_,j)=>c.sourceAmplitude*(c.sourceProfile==='uniform'?1:c.sourceProfile==='point'?+(j===0):Math.cos(2*Math.PI*j/N))),sourceMean=c.sourceProfile==='uniform'?c.sourceAmplitude:source.reduce((s,x)=>s+x,0)/N,projectedSource=source.map(x=>x-sourceMean),spectrum=Array.from({length:N},(_,k)=>({k,angle:2*Math.PI*k/N,eigenvalue:m2+4*c.kappa*Math.sin(Math.PI*k/N)**2,zero:k===0&&m2===0}));
+ const constrainedCov=zeros(N),cov=m2?zeros(N):null,terms=[];
+ for(let i=0;i<N;i++)for(let j=0;j<N;j++)for(const mode of spectrum){const cosine=Math.cos(mode.angle*(i-j)),weight=mode.zero?null:cosine/(N*mode.eigenvalue),constrained=mode.k===0?0:weight;if(cov)cov[i][j]+=weight;constrainedCov[i][j]+=constrained;terms.push({i,j,k:mode.k,cosine,eigenvalue:mode.eigenvalue,fullContribution:weight,constrainedContribution:constrained});}
+ const mean=cov?mv(cov,source):null,constrainedMean=mv(constrainedCov,projectedSource),logDet=m2?spectrum.reduce((s,k)=>s+Math.log(k.eigenvalue),0):null,logPseudoDet=spectrum.slice(1).reduce((s,k)=>s+Math.log(k.eigenvalue),0),logRatio=cov?dot(source,mean)/2:null,logZ0=m2?N/2*Math.log(2*Math.PI)-logDet/2:null;
+ const low=Array.from({length:N/2},(_,j)=>2*j),high=low.map(j=>j+1),block=(is,js)=>is.map(i=>js.map(j=>K[i][j])),Kll=block(low,low),Klh=block(low,high),Khl=transpose(Klh),Khh=block(high,high),highInverse=inverse(Khh),correction=multiply(multiply(Klh,highInverse.inverse),Khl),Schur=subtract(Kll,correction),lowInverse=m2?inverse(Schur):{inverse:null,determinant:0,pivots:[]},Jl=low.map(i=>source[i]),Jh=high.map(i=>source[i]),sourceCorrection=mv(multiply(Klh,highInverse.inverse),Jh),effectiveSource=Jl.map((v,j)=>v-sourceCorrection[j]),constant=dot(Jh,mv(highInverse.inverse,Jh))/2;
+ const effKappa=c.kappa**2/(m2+2*c.kappa),effM2=m2*(m2+4*c.kappa)/(m2+2*c.kappa),analyticSchur=ring(N/2,effM2,effKappa),highLogFactor=N/4*Math.log(2*Math.PI)-Math.log(highInverse.determinant)/2+constant,lowLogZ=m2?N/4*Math.log(2*Math.PI)-Math.log(lowInverse.determinant)/2+dot(effectiveSource,mv(lowInverse.inverse,effectiveSource))/2:null;
+ const lowProbe=low.map(i=>.25*Math.cos(2*Math.PI*i/N)),conditionRhs=Jh.map((x,j)=>x-mv(Khl,lowProbe)[j]),conditionalMean=mv(highInverse.inverse,conditionRhs),lowCov=cov?low.map(i=>low.map(j=>cov[i][j])):null;
+ const matrixRows=[];for(let i=0;i<N/2;i++)for(let j=0;j<N/2;j++)matrixRows.push({i,j,Kll:Kll[i][j],Klh:Klh[i][j],Khh:Khh[i][j],inverseHigh:highInverse.inverse[i][j],eliminationCorrection:correction[i][j],Schur:Schur[i][j],analyticSchur:analyticSchur[i][j],lowCov:lowCov?lowCov[i][j]:null,inverseSchur:lowInverse.inverse?lowInverse.inverse[i][j]:null});
+ const chosen=[0,1,N/2,N-1],wickTerms=[];
+ if(cov){wickTerms.push({kind:'four means',value:chosen.reduce((s,i)=>s*mean[i],1)});for(let a=0;a<4;a++)for(let b=a+1;b<4;b++){const rest=[0,1,2,3].filter(i=>i!==a&&i!==b);wickTerms.push({kind:'one covariance',indices:[chosen[a],chosen[b]],value:cov[chosen[a]][chosen[b]]*mean[chosen[rest[0]]]*mean[chosen[rest[1]]]});}for(const pair of [[[0,1],[2,3]],[[0,2],[1,3]],[[0,3],[1,2]]])wickTerms.push({kind:'two covariances',indices:pair.map(row=>row.map(i=>chosen[i])),value:cov[chosen[pair[0][0]]][chosen[pair[0][1]]]*cov[chosen[pair[1][0]]][chosen[pair[1][1]]]});}
+ return {parameters:c,K,source,sourceMean,projectedSource,spectrum,covariance:cov,mean,logDeterminant:logDet,logZ0,logRatio,ratio:logRatio===null?null:Math.exp(logRatio),logZ:logZ0===null?null:logZ0+logRatio,constrained:{covariance:constrainedCov,mean:constrainedMean,logPseudoDeterminant:logPseudoDet,logRatio:dot(projectedSource,constrainedMean)/2,logZ0:(N-1)/2*Math.log(2*Math.PI)-logPseudoDet/2,projector:identity(N).map(r=>r.map(x=>x-1/N))},terms,schur:{low,high,Kll,Klh,Khl,Khh,highInverse,correction,matrix:Schur,lowInverse,Jl,Jh,sourceCorrection,effectiveSource,constant,effectiveMassSquared:effM2,effectiveKappa:effKappa,analyticMatrix:analyticSchur,analyticResidual:maxAbs(subtract(Schur,analyticSchur)),lowCovariance:lowCov,covarianceResidual:lowCov?maxAbs(subtract(lowCov,lowInverse.inverse)):null,highLogFactor,lowLogZ,totalLogZ:lowLogZ===null?null:highLogFactor+lowLogZ,determinantResidual:logDet===null?null:Math.log(highInverse.determinant)+Math.log(lowInverse.determinant)-logDet,lowProbe,conditionalMean,conditionalCovariance:highInverse.inverse,rows:matrixRows},wick:{indices:chosen,terms:wickTerms,fourthMoment:cov?wickTerms.reduce((s,r)=>s+r.value,0):null,fourthCumulant:cov?0:null}};
+}
 
-  var exported = factory(host);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (host && host.CourseLearning && typeof host.CourseLearning.register === "function") {
-    host.CourseLearning.register("renormalization-scale", exported.mount);
-  }
-  if (
-    typeof module === "object" && module.exports &&
-    typeof require === "function" && require.main === module
-  ) {
-    try {
-      var report = exported.selfTest();
-      console.log(
-        "renormalization-scale self-test: PASS (" + report.checks + " checks, " +
-        report.ledgerRows + " cutoff rows, " + report.runningPoints + " running points)"
-      );
-    } catch (error) {
-      console.error("renormalization-scale self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
-  }
-}(
-  typeof window !== "undefined" ? window : typeof self !== "undefined" ? self : null,
-  function (host) {
-    "use strict";
+"use strict";
+const LOOP=1/(16*Math.PI**2),BETA=3*LOOP;
+function integrate(fn,tolerance=2e-12){
+ const rows=[];let calls=0;const f=x=>{calls++;const y=fn(x);if(!Number.isFinite(y))throw Error('nonfinite integrand');return y;},a=0,b=Math.PI,m=(a+b)/2,fa=f(a),fm=f(m),fb=f(b),whole=(b-a)*(fa+4*fm+fb)/6;
+ function rec(a,b,fa,fm,fb,coarse,tol,depth){const m=(a+b)/2,l=(a+m)/2,r=(m+b)/2,fl=f(l),fr=f(r),left=(m-a)*(fa+4*fl+fm)/6,right=(b-m)*(fm+4*fr+fb)/6,fine=left+right,correction=(fine-coarse)/15,error=Math.abs(correction);if(error<=tol||depth===0){const value=fine+correction;rows.push({a,b,fa,fl,fm,fr,fb,coarse,fine,correction,value,error,tolerance:tol,depth,converged:error<=tol});return value;}return rec(a,m,fa,fl,fm,left,tol/2,depth-1)+rec(m,b,fm,fr,fb,right,tol/2,depth-1);}
+ const value=rec(a,b,fa,fm,fb,whole,tolerance,24);return {value,estimatedError:rows.reduce((s,r)=>s+r.error,0),tolerance,calls,converged:rows.every(r=>r.converged),rows};
+}
+function weighted(theta,mass,Q,callback){if(theta===0||theta===Math.PI)return 0;const x=Math.sin(theta/2)**2,jac=Math.sin(theta)/2,delta=mass**2+x*(1-x)*Q**2;return jac*callback(delta,x);}
+function bubble(mass,Q,cutoff){if(mass===0&&Q===0)return {value:null,integral:null,analyticConstant:null,reason:'massless zero-momentum infrared divergence'};const analyticConstant=mass===0?Math.log(cutoff**2/Q**2)+1:0,integral=integrate(t=>weighted(t,mass,Q,d=>{if(mass===0)return Math.log1p(d/cutoff**2)+d/(cutoff**2+d);const y=cutoff**2/d;return Math.log1p(y)-y/(1+y);}));return {value:LOOP*(analyticConstant+integral.value),integral,analyticConstant,reason:null};}
+function subtraction(mass,Q){if(mass===0&&Q===0)return {value:null,integral:null,analyticConstant:null,reason:'massless zero-momentum infrared divergence'};const analyticConstant=mass===0?-Math.log(Q**2):0,integral=integrate(t=>mass===0?0:weighted(t,mass,Q,(d,x)=>-Math.log(d/(mass**2+x*(1-x)))));return {value:LOOP*(analyticConstant+integral.value),integral,analyticConstant,reason:null};}
+function threshold(mass,Q){if(mass===0&&Q===0)return {value:null,integral:null,reason:'undefined infrared subtraction point'};const integral=integrate(t=>weighted(t,mass,Q,(d,x)=>mass===0?1:x*(1-x)*Q**2/d));return {value:integral.value,integral,reason:null};}
+function loopRecord(input={}){
+ const c={mass:1,cutoff:16,momentum:1,coupling:.2,...input};
+ if(!(c.mass===0||c.mass>=.2&&c.mass<=2)||!(c.cutoff>=1&&c.cutoff<=1024)||!(c.momentum>=0&&c.momentum<=4)||!(c.coupling>=0&&c.coupling<=2))throw Error('loop domain');
+ const selected=bubble(c.mass,c.momentum,c.cutoff),reference=bubble(c.mass,1,c.cutoff),renormalized=subtraction(c.mass,c.momentum),mom=threshold(c.mass,c.momentum),counterterm=1.5*c.coupling**2*reference.value;
+ const scan=Array.from(new Set([...Array.from({length:11},(_,i)=>2**i),c.cutoff])).sort((a,b)=>a-b).map(cutoff=>{const q=bubble(c.mass,c.momentum,cutoff),r=bubble(c.mass,1,cutoff),difference=q.value===null?null:q.value-r.value;return {cutoff,Bq:q.value,Breference:r.value,difference,limit:renormalized.value,error:difference===null?null:difference-renormalized.value,counterterm:1.5*c.coupling**2*r.value,bareCoupling:c.coupling+1.5*c.coupling**2*r.value,fixedBareVertex:q.value===null?null:c.coupling-1.5*c.coupling**2*q.value,tunedVertex:difference===null?null:c.coupling-1.5*c.coupling**2*difference,limitVertex:renormalized.value===null?null:c.coupling-1.5*c.coupling**2*renormalized.value,qError:q.integral?LOOP*q.integral.estimatedError:null,referenceError:LOOP*r.integral.estimatedError};});
+ const momentumScan=Array.from(new Set([...Array.from({length:41},(_,i)=>i/10),c.momentum])).sort((a,b)=>a-b).map(Q=>{const br=subtraction(c.mass,Q),h=threshold(c.mass,Q);return {Q,renormalizedBubble:br.value,vertex:br.value===null?null:c.coupling-1.5*c.coupling**2*br.value,threshold:h.value,betaMOM:h.value===null?null:BETA*c.coupling**2*h.value,betaMS:BETA*c.coupling**2};});
+ const a=c.momentum/2,momenta=[[a,a,a,0],[a,-a,-a,0],[-a,a,-a,0],[-a,-a,a,0]],dot=(x,y)=>x.reduce((s,v,i)=>s+v*y[i],0),kinematics=[];for(let i=0;i<4;i++)for(let j=i;j<4;j++)kinematics.push({i,j,dot:dot(momenta[i],momenta[j]),pairSquared:i===j?null:dot(momenta[i].map((x,k)=>x+momenta[j][k]),momenta[i].map((x,k)=>x+momenta[j][k]))});
+ const pole=c.coupling?1/(BETA*c.coupling):null,ells=[...Array.from({length:97},(_,i)=>-8+i/2),0];if(pole!==null&&pole<=40)ells.push(pole);const rg=Array.from(new Set(ells)).sort((a,b)=>a-b).map(ell=>{const denominator=1-BETA*c.coupling*ell,valid=pole===null||ell<pole,g=valid?c.coupling/denominator:null;return {ell,denominator,coupling:g,derivative:g===null?null:BETA*g*g,loopParameter:g===null?null:g*LOOP,status:valid?'connected one-loop branch':ell===pole?'Landau pole':'outside connected branch'};});
+ return {parameters:c,coefficient:LOOP,betaCoefficient:BETA,selected,reference,renormalized,mom,counterterm,bareCoupling:c.coupling+counterterm,cutoffScan:scan,momentumScan,momenta,kinematics,rg,pole,scope:{bubble:'Feynman parameter first, shifted Euclidean radial cutoff; regulator choice is part of the definition.',vertex:'Three equal off-shell Euclidean channel invariants Q^2, through O(g_R^2); not a scattering observable.',rg:'Mass-independent MS one-loop equation; MOM threshold shown separately; pole is outside perturbative reliability.',quadrature:'Adaptive Simpson error estimate is numerical evidence, not a rigorous enclosure.'}};
+}
 
-    var SVG_NS = "http://www.w3.org/2000/svg";
-    var STYLE_ID = "cl-renormalization-scale-style";
-    var INSTANCE = 0;
-    var CUTOFFS = [1, 2, 4, 8, 16];
+const DEFAULT={size:8,mass:1,kappa:1,sourceProfile:'cos',sourceAmplitude:.5,cutoff:16,momentum:1,coupling:.2};
+function config(input={}){if(!input||typeof input!=='object'||Array.isArray(input))throw Error('parameter object');for(const k of Object.keys(input))if(!Object.prototype.hasOwnProperty.call(DEFAULT,k))throw Error('unknown '+k);const c={...DEFAULT,...input};for(const k of Object.keys(DEFAULT))if(k!=='sourceProfile'&&(typeof c[k]!=='number'||!Number.isFinite(c[k])))throw Error('finite number '+k);if(![4,6,8,10,12].includes(c.size)||!(c.mass===0||c.mass>=.2&&c.mass<=2)||!(c.kappa>=.1&&c.kappa<=2)||!['uniform','cos','point'].includes(c.sourceProfile)||Math.abs(c.sourceAmplitude)>1||c.cutoff<1||c.cutoff>1024||c.momentum<0||c.momentum>4||c.coupling<0||c.coupling>2)throw Error('outside teaching domain');return c;}
+function compute(input={}){const c=config(input),g=gaussian(Object.fromEntries(['size','mass','kappa','sourceProfile','sourceAmplitude'].map(k=>[k,c[k]]))),l=loopRecord({mass:c.mass,cutoff:c.cutoff,momentum:c.momentum,coupling:c.coupling});return {version:1,parameters:c,gaussian:g,loop:l,scope:{units:'Finite ring uses lattice spacing and k_B T set to one. Four-dimensional loop uses reference momentum Q0=1; the shared mass slider compares two separate models.',gaussian:'Exact finite-dimensional Euclidean Gaussian measure for m>0; zero-mean constrained measure is a separately specified model. Odd-site elimination includes determinant and source terms.',loop:l.scope}};}
+const PRESETS=[
+{key:'gaussian',label:'有限Gaussian与一次精确消元',config:{}},
+{key:'four',label:'四格点消元的双边界耦合',config:{size:4,kappa:2}},
+{key:'massless-uniform',label:'无质量均匀源：完整测度未定义',config:{mass:0,sourceProfile:'uniform',momentum:1}},
+{key:'massless-cos',label:'零均值约束保留波动',config:{mass:0,sourceProfile:'cos',sourceAmplitude:1,momentum:4}},
+{key:'point',label:'点源如何传到其他格点',config:{size:12,mass:.2,sourceProfile:'point',sourceAmplitude:1}},
+{key:'strong-source',label:'大Z比值用log Z核对',config:{size:12,mass:.2,kappa:.1,sourceAmplitude:-1}},
+{key:'threshold',label:'低于质量尺度的MOM减速',config:{mass:2,momentum:.1,cutoff:1024}},
+{key:'high-q',label:'提高外动量观察减法',config:{mass:.2,momentum:4,cutoff:1024}},
+{key:'low-cutoff',label:'小截断尚未接近减法极限',config:{cutoff:1,momentum:4}},
+{key:'infrared',label:'无质量零动量是红外问题',config:{mass:0,momentum:0,sourceProfile:'uniform'}},
+{key:'free',label:'零耦合的RG固定点',config:{coupling:0,momentum:0}},
+{key:'pole',label:'单圈Landau极点不能接到负耦合支',config:{coupling:2,cutoff:1024,momentum:4}}
+];
+const QUESTIONS=[
+['积掉Gaussian系统中的奇数格点，是否只须删掉对应矩阵行列？',['是，剩余子矩阵就是有效作用量','不是，还产生Schur补、有效源和归一化因子'],1,'完成平方后得到K_eff=K_ll−K_lh K_hh⁻¹ K_hl；源也改变，并留下det K_hh与二次源常数。直接删行列相当于固定那些变量为零，不是对它们积分。'],
+['周期无质量Gaussian的源总和为零，是否足以使完整场积分归一化？',['不足，常数平移方向仍有无限体积','足够，线性源不作用于零模就会消除它'],0,'零均值源没有给零模提供二次约束。完整积分仍沿常数场方向发散；显式限制场的均值为零，才定义另一个有限维测度。'],
+['用相同截断计算BΛ(Q)−BΛ(1)，是否自动消除了无质量Q=0的红外发散？',['不会，紫外减法不消除该红外奇点','会，两个发散量相减后所有奇点都消失'],0,'同一处方下的减法取消共同的紫外对数。无质量且零外动量时，低动量端仍发散；实验对此留空，而不把无穷减无穷当数值。'],
+['单圈g(ℓ)=g0/(1−b g0ℓ)跨过极点变负，能否当成同一正耦合物理流？',['能，代数公式在分母非零时都有效','不能，极点截断该初值解的连通区间'],1,'正耦合初值解在有限ℓ发散；极点另一侧不是跨越奇点延续出的同一解。实际上接近极点前微扰展开已失去可靠性，单圈极点也不是理论存在性的完整证明。']
+];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=4||![0,1].includes(j))throw Error('prediction');const correct=j===QUESTIONS[i][2];return {correct,text:(correct?'预测正确。':'需要修正。')+QUESTIONS[i][3]};}
 
-    var LEDGER_QUESTIONS = [
-      {
-        key: "fixedBare",
-        label: "固定 g_bare 而增大 Lambda 时，toy O 会怎样？",
-        options: [
-          { value: "changes", label: "随 log(Lambda / mu) 改变" },
-          { value: "fixed", label: "自动保持不变" },
-          { value: "undefined", label: "没有任何数值" }
-        ],
-        expected: "changes"
-      },
-      {
-        key: "counterterm",
-        label: "施加 O_R(mu)=g_R(mu) 后，counterterm 的作用是？",
-        options: [
-          { value: "cancels", label: "逐项抵消 cutoff log" },
-          { value: "amplifies", label: "放大 cutoff log" },
-          { value: "removesScheme", label: "消灭所有 scheme 信息" }
-        ],
-        expected: "cancels"
-      },
-      {
-        key: "roles",
-        label: "Lambda、mu、O 的角色应怎样区分？",
-        options: [
-          { value: "roles", label: "regulator / scale / observable" },
-          { value: "allPhysical", label: "都是可观测量" },
-          { value: "allCutoff", label: "都是 cutoff 参数" }
-        ],
-        expected: "roles"
-      }
-    ];
+function fmt(v){if(v===null)return'不适用';if(Array.isArray(v)||typeof v==='object')return JSON.stringify(v);if(typeof v==='boolean')return v?'是':'否';if(typeof v!=='number')return String(v);if(!Number.isFinite(v))throw Error('nonfinite');if(v===0)return'0';return Math.abs(v)<.0001||Math.abs(v)>=1e6?v.toExponential(5):Number(v.toFixed(6)).toString();}
+const COLORS=['#2479bc','#c97906','#23845a','#a33b66'];
+function plot(key,title,xLabel,yLabel,series){const ps=series.flatMap(s=>s.points.filter(Boolean)),xs=ps.map(p=>p[0]),ys=ps.map(p=>p[1]);let xMin=xs.length?Math.min(...xs):0,xMax=xs.length?Math.max(...xs):1,yMin=ys.length?Math.min(...ys):0,yMax=ys.length?Math.max(...ys):1;if(xMax===xMin)xMax=xMin+1;const pad=(yMax-yMin||Math.max(1,Math.abs(yMax)))*.08;return {key,title,xLabel,yLabel,xMin,xMax,yMin:yMin-pad,yMax:yMax+pad,series};}
+function plots(s){const g=s.gaussian,l=s.loop,S=(name,points,color,markersOnly=false)=>({name,points,color,markersOnly,boundaryMarkers:!markersOnly});const out=[
+plot('covariance','有限Gaussian：两种指定测度的关联','格点 j（完整离散周期）','连接二点函数 C[0,j]',[S('完整测度 m>0',Array.from({length:s.parameters.size},(_,j)=>g.covariance?[j,g.covariance[0][j]]:null),COLORS[0],true),S('明确限制均值为零',g.constrained.covariance[0].map((v,j)=>[j,v]),COLORS[1],true)]),
+plot('spectrum','精确二次型的全部本征值','Fourier模编号 k','λ_k = m² + 4κ sin²(πk/N)',[S('全部N个模（含零模）',g.spectrum.map(r=>[r.k,r.eigenvalue]),COLORS[0],true)]),
+plot('bubble','同一截断下的两个泡积分','log₂ Λ','四维Euclidean泡积分 BΛ',[S('BΛ(Q)',l.cutoffScan.map(r=>r.Bq===null?null:[Math.log2(r.cutoff),r.Bq]),COLORS[0]),S('BΛ(1)',l.cutoffScan.map(r=>[Math.log2(r.cutoff),r.Breference]),COLORS[1])]),
+plot('vertex','调整裸参数后检查离壳四点顶点','log₂ Λ','Γ⁽⁴⁾ 对称点；只保留至 g_R²',[S('固定裸g为g_R',l.cutoffScan.map(r=>r.fixedBareVertex===null?null:[Math.log2(r.cutoff),r.fixedBareVertex]),COLORS[0]),S('在Q0=1重新调参',l.cutoffScan.map(r=>r.tunedVertex===null?null:[Math.log2(r.cutoff),r.tunedVertex]),COLORS[1]),S('减法Λ→∞极限',l.cutoffScan.map(r=>r.limitVertex===null?null:[Math.log2(r.cutoff),r.limitVertex]),COLORS[2])]),
+plot('threshold','MOM质量阈值与MS系数分别显示','Euclidean外动量 Q','单圈 β（两种方案，不混同）',[S('MOM：含质量阈值',l.momentumScan.map(r=>r.betaMOM===null?null:[r.Q,r.betaMOM]),COLORS[0]),S('MS：质量无关',l.momentumScan.map(r=>[r.Q,r.betaMS]),COLORS[1])]),
+plot('rg','单圈RG只画初值解的连通分支','ℓ = log(μ/μ0)','log₁₀(1+g)，原始g在表中',[S('正耦合分支；极点及以后留空',l.rg.map(r=>r.coupling===null?null:[r.ell,Math.log10(1+r.coupling)]),COLORS[0])])];out[5].xMin=-8;out[5].xMax=40;return out;}
+function tables(s){const g=s.gaussian,l=s.loop;return [
+{key:'parameters',title:'参数、归一化与适用范围',headers:['项目','值'],rows:Object.entries(s.parameters).concat(Object.entries({logDetK:g.logDeterminant,logZ0:g.logZ0,logRatio:g.logRatio,Zratio:g.ratio,logZ:g.logZ,constrainedLogPseudoDet:g.constrained.logPseudoDeterminant,constrainedLogZ0:g.constrained.logZ0,constrainedLogRatio:g.constrained.logRatio,highLogFactor:g.schur.highLogFactor,lowLogZ:g.schur.lowLogZ,SchurTotalLogZ:g.schur.totalLogZ,effectiveMassSquared:g.schur.effectiveMassSquared,effectiveKappa:g.schur.effectiveKappa,effectiveSource:g.schur.effectiveSource,sourceConstant:g.schur.constant,lowProbe:g.schur.lowProbe,conditionalMean:g.schur.conditionalMean,bubbleAnalyticConstant:l.selected.analyticConstant,subtractionAnalyticConstant:l.renormalized.analyticConstant,counterterm:l.counterterm,bareCoupling:l.bareCoupling,LandauPole:l.pole,scope:s.scope}))},
+{key:'gaussian',title:'完整精度矩阵、两种协方差与源响应',headers:['i','j','K_ij','C_ij 完整','C_ij 零均值','J_i','完整均值_i','约束均值_i'],rows:g.K.flatMap((row,i)=>row.map((v,j)=>[i,j,v,g.covariance?g.covariance[i][j]:null,g.constrained.covariance[i][j],g.source[i],g.mean?g.mean[i]:null,g.constrained.mean[i]]))},
+{key:'modes',title:'每个矩阵元的全部N项Fourier求和',headers:['i','j','k','cos相位','λ_k','完整测度贡献','零均值测度贡献'],rows:g.terms.map(r=>[r.i,r.j,r.k,r.cosine,r.eigenvalue,r.fullContribution,r.constrainedContribution])},
+{key:'schur',title:'所有Schur矩阵元：积分与删变量逐项对照',headers:['i','j','K_ll','K_lh','K_hh','K_hh逆','消元修正','Schur补','解析粗格点','原C_ll','Schur逆'],rows:g.schur.rows.map(r=>[r.i,r.j,r.Kll,r.Klh,r.Khh,r.inverseHigh,r.eliminationCorrection,r.Schur,r.analyticSchur,r.lowCov,r.inverseSchur])},
+{key:'wick',title:'有源Gaussian四点矩的全部10项',headers:['项','类型','缩并指标','数值'],rows:g.wick.terms.map((r,i)=>[i,r.kind,r.indices??g.wick.indices,r.value]).concat([['合计','四点矩',g.wick.indices,g.wick.fourthMoment],['累积量','四阶连通',g.wick.indices,g.wick.fourthCumulant]])},
+{key:'integral',title:'四个当前积分的全部自适应叶区间',headers:['积分','a','b','f(a)','f(1/4)','f(1/2)','f(3/4)','f(b)','粗','细','修正','值','误差估计','局部容差','深度','满足'],rows:['selected','reference','renormalized','mom'].flatMap(k=>(l[k].integral?.rows??[]).map(r=>[k,r.a,r.b,r.fa,r.fl,r.fm,r.fr,r.fb,r.coarse,r.fine,r.correction,r.value,r.error,r.tolerance,r.depth,r.converged]))},
+{key:'cutoff',title:'全部截断：泡图、减法、反项与离壳顶点',headers:['Λ','B(Q)','B(1)','差','差的极限','差减极限','δg','g裸','固定裸Γ','调参Γ','极限Γ','B(Q)误差估计','B(1)误差估计'],rows:l.cutoffScan.map(r=>[r.cutoff,r.Bq,r.Breference,r.difference,r.limit,r.error,r.counterterm,r.bareCoupling,r.fixedBareVertex,r.tunedVertex,r.limitVertex,r.qError,r.referenceError])},
+{key:'momentum',title:'全部外动量：有限减法与质量阈值',headers:['Q','B_R','离壳Γ','阈值因子','β_MOM','β_MS'],rows:l.momentumScan.map(r=>[r.Q,r.renormalizedBubble,r.vertex,r.threshold,r.betaMOM,r.betaMS])},
+{key:'kinematics',title:'Euclidean对称点：四动量和全部内积',headers:['i','j','p_i','p_j','点积','两动量和的平方（i≠j）'],rows:l.kinematics.map(r=>[r.i,r.j,l.momenta[r.i],l.momenta[r.j],r.dot,r.pairSquared])},
+{key:'rg',title:'完整RG扫描：极点前、极点与域外分别记录',headers:['ℓ','分母','g','dg/dℓ','g/(16π²)','状态'],rows:l.rg.map(r=>[r.ell,r.denominator,r.coupling,r.derivative,r.loopParameter,r.status])}
+];}
 
-    var RUNNING_QUESTIONS = [
-      {
-        key: "solution",
-        label: "一圈 toy 解的分母是哪一项？",
-        options: [
-          { value: "denominator", label: "1 - b g0 log(mu / mu0)" },
-          { value: "numerator", label: "1 + b g0 log(mu / mu0)" },
-          { value: "constant", label: "1" }
-        ],
-        expected: "denominator"
-      },
-      {
-        key: "uvSign",
-        label: "b > 0 且 g0 > 0 时，UV 方向的 toy 趋势是？",
-        options: [
-          { value: "grows", label: "g 增大并靠近 UV-side pole" },
-          { value: "shrinks", label: "g 减小到零" },
-          { value: "constant", label: "g 完全不变" }
-        ],
-        expected: "grows"
-      },
-      {
-        key: "pole",
-        label: "极点边界由什么给出？",
-        options: [
-          { value: "denominatorZero", label: "分母为零，ell=1/(b g0)" },
-          { value: "betaZero", label: "beta(g)=0" },
-          { value: "lambdaZero", label: "Lambda=0" }
-        ],
-        expected: "denominatorZero"
-      }
-    ];
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=10000?v.toExponential(2):Number(v.toFixed(3)).toString();
+function svg(p){const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 540" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+const discrete=['covariance','spectrum'].includes(p.key);const xticks=discrete?[...new Set(Array.from({length:5},(_,i)=>Math.round(p.xMin+(p.xMax-p.xMin)*i/4)))]:Array.from({length:5},(_,i)=>p.xMin+(p.xMax-p.xMin)*i/4);for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+axisFmt(y)+'</text>';}for(const x of xticks){out+='<text x="'+X(x)+'" y="410" text-anchor="middle">'+axisFmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen&&!s.markersOnly?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const marks=s.markersOnly?s.points.filter(Boolean):s.boundaryMarkers?[...new Set([s.points.find(Boolean),s.points.filter(Boolean).at(-1)])].filter(Boolean):s.points.filter(Boolean).length===1?s.points.filter(Boolean):[];marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="'+(s.markerRadius??5)+'" stroke="'+s.color+'" fill="'+(s.hollow?'none':s.open?'var(--bg,#fff)':s.color)+'" stroke-width="'+(s.markerStrokeWidth??2.5)+'"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});if(!p.series.some(s=>s.points.some(Boolean)))out+='<text x="450" y="245" text-anchor="middle">当前模型在此参数下无适用数据</text>';return out+'</svg>';}
 
-    var STYLE_TEXT = [
-      ".renorm-lab{--ren-blue:var(--cl-blue,#315f9d);--ren-green:var(--cl-green,#39734d);--ren-red:var(--cl-red,#b64335);--ren-gold:var(--cl-gold,#9b6a12);--ren-muted:var(--fg-soft,#666);--ren-block:var(--block-bg,var(--bg,#fff));color:var(--fg);line-height:1.5;min-width:0;overflow:hidden}",
-      ".renorm-lab *,.renorm-lab *::before,.renorm-lab *::after{box-sizing:border-box}.renorm-lab h3,.renorm-lab h4,.renorm-lab p{margin-top:0}.renorm-lab .ren-intro,.renorm-lab .ren-feedback{color:var(--ren-muted);overflow-wrap:anywhere}",
-      ".renorm-lab .ren-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:14px 0 10px}.renorm-lab button,.renorm-lab select,.renorm-lab input{font:inherit;letter-spacing:0}.renorm-lab button,.renorm-lab select{min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:inherit;cursor:pointer;overflow-wrap:anywhere}.renorm-lab button:hover{border-color:var(--accent)}.renorm-lab button[aria-pressed=\"true\"],.renorm-lab .ren-primary{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:700}.renorm-lab button:focus-visible,.renorm-lab select:focus-visible,.renorm-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}",
-      ".renorm-lab .ren-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 14px;margin:12px 0;padding:12px 14px;border-top:2px solid var(--accent);border-bottom:1px solid var(--border);background:var(--ren-block)}.renorm-lab .ren-control{display:grid;gap:5px;min-width:0}.renorm-lab .ren-control label{color:var(--ren-muted);font-size:13px;font-weight:700}.renorm-lab .ren-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}.renorm-lab output{color:var(--accent);font-variant-numeric:tabular-nums}.renorm-lab input[type=range]{width:100%;min-height:44px;margin:0;accent-color:var(--accent)}",
-      ".renorm-lab .ren-gate{margin:15px 0;padding:13px 14px;border-left:3px solid var(--ren-gold);background:var(--ren-block)}.renorm-lab .ren-gate h4{margin:0 0 9px;color:var(--accent)}.renorm-lab .ren-questions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.renorm-lab .ren-question{display:grid;gap:5px;min-width:0}.renorm-lab .ren-question label{font-size:13px;font-weight:700;overflow-wrap:anywhere}.renorm-lab .ren-question select{width:100%}.renorm-lab .ren-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.renorm-lab .ren-actions>*{flex:1 1 150px}.renorm-lab .ren-feedback{min-height:1.5em;margin:9px 0 0}.renorm-lab .ren-pass{color:var(--ren-green);font-weight:700}.renorm-lab .ren-warn{color:var(--ren-red);font-weight:700}",
-      ".renorm-lab .ren-results{margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}.renorm-lab .ren-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:0 0 13px}.renorm-lab .ren-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--ren-block)}.renorm-lab .ren-metric:nth-child(3n+1){border-top-color:var(--ren-blue)}.renorm-lab .ren-metric:nth-child(3n+2){border-top-color:var(--ren-gold)}.renorm-lab .ren-metric:nth-child(3n){border-top-color:var(--ren-green)}.renorm-lab .ren-metric span{display:block;color:var(--ren-muted);font-size:11px;overflow-wrap:anywhere}.renorm-lab .ren-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-      ".renorm-lab .ren-chart{min-width:0;margin:12px 0;padding:7px;border:1px solid var(--border);border-radius:6px;background:var(--bg);overflow:hidden}.renorm-lab .ren-chart svg{display:block;width:100%;height:auto;max-width:100%;color:var(--fg)}.renorm-lab .ren-chart svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.renorm-lab .ren-ledger{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:12px}.renorm-lab table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.renorm-lab .ren-ledger table{min-width:900px}.renorm-lab th,.renorm-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere}.renorm-lab th{color:var(--ren-muted);font-size:11px;font-weight:750}",
-      ".renorm-lab .ren-callout{margin:11px 0 0;padding:10px 12px;border-left:3px solid var(--ren-green);background:var(--ren-block);font-size:13px;line-height:1.65;overflow-wrap:anywhere}.renorm-lab .ren-boundary{border-left-color:var(--ren-red)}.renorm-lab [hidden]{display:none!important}",
-      "@media(max-width:700px){.renorm-lab .ren-controls,.renorm-lab .ren-questions{grid-template-columns:minmax(0,1fr)}}@media(max-width:430px){.renorm-lab .ren-gate,.renorm-lab .ren-controls{padding-left:10px;padding-right:10px}.renorm-lab .ren-tabs{grid-template-columns:minmax(0,1fr)}}@media(prefers-reduced-motion:reduce){.renorm-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
-    ].join("\n");
+var mounted=new WeakMap();
+function mount(root){const doc=root.ownerDocument,previous=mounted.get(root);if(previous)previous();root.replaceChildren();root.classList.add('pr183');let c=config(PRESETS[0].config),choices={},revealed=false,url=null,current=null,view=0;
+ const el=(tag,attrs={},text)=>{const e=doc.createElement(tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
+ if(!doc.querySelector('[data-pr183-style]')){const style=el('style',{'data-pr183-style':''});style.textContent='.pr183{margin-inline:0!important;width:100%;min-width:0;color:var(--fg,#222);line-height:1.65}.pr183 *{box-sizing:border-box}.pr183 button,.pr183 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.pr183 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.pr183 button:focus-visible,.pr183 select:focus-visible,.pr183 [tabindex]:focus-visible{outline:3px solid #2474bc}.pr183 .pr-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.pr183 label{display:grid;gap:4px;min-width:0}.pr183 input{width:100%;min-height:44px;font:inherit;color:inherit;background:var(--bg,#fff)}.pr183 .pr-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.pr183 .pr-pred>strong{display:block;margin-bottom:6px}.pr183 .pr-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.pr183 .pr-feedback{margin:7px 0}.pr183 .pr-scroll{max-width:100%;overflow:auto}.pr183 svg{display:block;min-width:680px;width:100%;height:auto}.pr183 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.pr183 td,.pr183 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.pr183 [hidden]{display:none!important}.pr183 details{margin:12px 0}.pr183 summary{min-height:44px;cursor:pointer}.pr183 .pr-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.pr183 .pr-correct{color:var(--cl-green,#277540)}.pr183 .pr-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.pr183 .pr-grid{grid-template-columns:1fr}}';doc.head.append(style);}
+ root.append(el('h3',{},'从有限Gaussian积分，到实际泡图减法'),el('p',{},'先对有限格点精确积分，再计算指定截断下的四维φ⁴泡图。完整场测度与零均值约束测度分别显示；离壳顶点和方案参数也分别记账。'));
+ const presets=el('div',{class:'pr-row','aria-label':'教学预设'});for(const p of PRESETS){const b=el('button',{type:'button','data-preset':p.key},p.label);b.onclick=()=>{c=config(p.config);sync();reset();};presets.append(b);}root.append(presets);
+ const fields={},outs={},grid=el('div',{class:'pr-grid'});
+ for(const[key,title,values]of[['size','周期格点数 N',[4,6,8,10,12]],['mass','两个模型的质量 m',[0,.2,.5,1,2]],['sourceProfile','格点源的形状',['uniform','cos','point']]]){const label=el('label',{},title),select=el('select',{'data-field':key,'aria-label':title});for(const v of values)select.append(el('option',{value:v},({uniform:'均匀源',cos:'余弦源',point:'0号格点的点源'})[v]??String(v)));label.append(select);grid.append(label);fields[key]=select;select.onchange=()=>{c[key]=key==='sourceProfile'?select.value:+select.value;sync();reset();};}
+ for(const[key,title,min,max,step]of[['kappa','近邻耦合 κ（仅有限格点）',.1,2,.1],['sourceAmplitude','源幅度 J（仅有限格点）',-1,1,.05],['cutoff','四维动量截断 Λ',1,1024,1],['momentum','Euclidean对称点外动量 Q',0,4,.01],['coupling','φ⁴重整化耦合 g_R',0,2,.01]]){const label=el('label',{},title),out=el('output'),input=el('input',{type:'range',min,max,step,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.oninput=input.onchange=()=>{c[key]=+input.value;sync();reset();};}root.append(grid);
+ const note=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(note,prediction);prediction.append(el('h4',{},'先预测：消元、零模、紫外减法和极点'),el('p',{},'四题的条件固定写在题干里；参数用来检查例子，不自动改变问题。'));
+ const feedbacks=[],buttons=[];QUESTIONS.forEach((q,i)=>{const row=el('div',{class:'pr-pred'});row.append(el('strong',{},q[0]));buttons[i]=[];q[1].forEach((text,j)=>{const b=el('button',{type:'button','data-prediction':i,'data-choice':String(j===0),'aria-pressed':'false'},text);b.onclick=()=>{choices[i]=j;buttons[i].forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));if(revealed)showFeedback();};row.append(b);buttons[i].push(b);});feedbacks[i]=el('p',{class:'pr-feedback','data-feedback':i});row.append(feedbacks[i]);prediction.append(row);});
+ const check=el('button',{type:'button','data-check':''},'核对预测并显示完整结果'),status=el('p',{class:'pr-status','aria-live':'polite'});root.append(check,status);
+ const stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),summary=el('p'),plotButtons=el('div',{class:'pr-row'}),plotWrap=el('div',{class:'pr-scroll',tabindex:0,role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'格点与Fourier模是离散点；截断轴是log₂Λ，RG纵轴是log₁₀(1+g)。原始读数全部保存在表中。零模、红外发散与极点以“不适用”保留；自适应积分误差是估计，不是严格区间证书。'),tableHost=el('div'),download=el('a',{'data-download':'',download:'renormalization-record.json'},'下载当前完整记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);
+ function sync(){for(const[k,e]of Object.entries(fields))e.value=c[k];}
+ function reset(){revealed=false;choices={};stage.hidden=true;delete root.__renormalizationSnapshot;for(let i=0;i<4;i++){feedbacks[i].textContent='';for(const b of buttons[i])b.setAttribute('aria-pressed','false');}for(const[k,o]of Object.entries(outs))o.textContent=fmt(c[k]);note.textContent='有限格点取格距和k_BT为1；四维泡图以Q0=1作减法点。二者是不同模型，共用质量滑块用于比较。均匀零模不因源的平均值为零而自动获得归一化。';status.textContent='完成四项预测后显示当前结果。';}
+ function showFeedback(){let n=0;for(let i=0;i<4;i++){if(!Number.isInteger(choices[i]))continue;const f=feedback(i,choices[i]);n+=+f.correct;feedbacks[i].textContent=f.text;feedbacks[i].className='pr-feedback '+(f.correct?'pr-correct':'pr-wrong');}status.textContent='预测核对：'+n+'/4 正确。图、表和下载均对应当前参数。';}
+ function draw(){const ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+ function render(){current=compute(c);root.__renormalizationSnapshot=current;stage.hidden=false;summary.textContent='完整Gaussian log Z = '+fmt(current.gaussian.logZ)+'；精确消元后 log Z = '+fmt(current.gaussian.schur.totalLogZ)+'。泡图减法 B_R(Q) = '+fmt(current.loop.renormalized.value)+'；MS单圈极点 ℓ = '+fmt(current.loop.pole)+'。';plotButtons.replaceChildren();plots(current).forEach((p,i)=>{const b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();for(const t of tables(current)){const d=el('details',{'data-table':t.key});d.append(el('summary',{},t.title));d.addEventListener('toggle',()=>{if(!d.open||d.children.length>1)return;const wrap=el('div',{class:'pr-scroll',tabindex:0,role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),thead=el('thead'),tr=el('tr'),tbody=el('tbody');for(const h of t.headers)tr.append(el('th',{scope:'col'},h));thead.append(tr);for(const row of t.rows){const r=el('tr');for(const v of row)r.append(el('td',{},fmt(v)));tbody.append(r);}table.append(thead,tbody);wrap.append(table);d.append(wrap);});tableHost.append(d);}if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current)],{type:'application/json'}));download.href=url;showFeedback();}
+ check.onclick=()=>{if(![0,1,2,3].every(i=>Number.isInteger(choices[i]))){status.textContent='请先为四个问题各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
+}
 
-    function finite(value) {
-      return typeof value === "number" && isFinite(value);
-    }
+function selfTest(){let checks=0;const ok=x=>{checks++;if(!x)throw Error('renormalization invariant '+checks);},near=(a,b)=>ok(Math.abs(a-b)<=1e-9*(1+Math.abs(b)));for(const p of PRESETS){const s=compute(p.config),g=s.gaussian,l=s.loop,n=s.parameters.size;ok(g.terms.length===n**3);ok(plots(s).length===6);ok(tables(s).length===10);for(const row of multiply(g.K,g.constrained.covariance).map((r,i)=>r.map((v,j)=>[v,g.constrained.projector[i][j]])))for(const[a,b]of row)near(a,b);if(s.parameters.mass){near(g.logZ,g.schur.totalLogZ);near(g.wick.fourthCumulant,0);for(const row of multiply(g.K,g.covariance).map((r,i)=>r.map((v,j)=>[v,+(i===j)])))for(const[a,b]of row)near(a,b);}else{ok(g.logZ===null);ok(g.covariance===null);}for(const k of['selected','reference','renormalized','mom'])if(l[k].integral)ok(l[k].integral.converged);for(const r of l.rg){if(l.pole!==null&&r.ell>=l.pole)ok(r.coupling===null);else near(r.derivative,l.betaCoefficient*r.coupling**2);}for(const r of l.cutoffScan)if(s.parameters.momentum===1)near(r.tunedVertex,s.parameters.coupling);for(let i=0;i<4;i++)ok(feedback(i,QUESTIONS[i][2]).correct);}return {status:'PASS',checks};}
 
-    function near(left, right, tolerance) {
-      var scale = Math.max(1, Math.abs(left), Math.abs(right));
-      return Math.abs(left - right) <= (tolerance || 1e-10) * scale;
-    }
-
-    function positive(value, label) {
-      var parsed = Number(value);
-      if (!finite(parsed) || parsed <= 0) throw new RangeError(label + " must be positive");
-      return parsed;
-    }
-
-    function integer(value, minimum, label) {
-      var parsed = Number(value);
-      if (!finite(parsed) || Math.floor(parsed) !== parsed || parsed < minimum) {
-        throw new RangeError(label + " must be an integer >= " + minimum);
-      }
-      return parsed;
-    }
-
-    function formatNumber(api, value, digits) {
-      if (value === null || value === undefined) return "-";
-      if (value === Infinity) return "+inf";
-      if (value === -Infinity) return "-inf";
-      if (!finite(value)) return "-";
-      if (api && typeof api.format === "function") return api.format(value, digits);
-      return value.toFixed(digits === undefined ? 4 : digits).replace(/0+$/, "").replace(/\.$/, "");
-    }
-
-    function cutoffLedger(beta, renormalized, mu, lambdas) {
-      var b = Number(beta);
-      var gR = Number(renormalized);
-      var scale = positive(mu, "mu");
-      if (!finite(b) || !finite(gR)) throw new RangeError("beta and gR must be finite");
-      if (!Array.isArray(lambdas) || lambdas.length < 1) throw new RangeError("lambdas must be a nonempty array");
-      var rows = lambdas.map(function (value) {
-        var cutoff = positive(value, "Lambda");
-        var logRatio = Math.log(cutoff / scale);
-        var loop = b * logRatio;
-        var counterterm = -loop;
-        var fixedBare = gR;
-        var tunedBare = gR + counterterm;
-        return {
-          Lambda: cutoff,
-          logRatio: logRatio,
-          loop: loop,
-          fixedBare: fixedBare,
-          fixedObservable: fixedBare + loop,
-          counterterm: counterterm,
-          tunedBare: tunedBare,
-          tunedObservable: tunedBare + loop,
-          residual: tunedBare + loop - gR
-        };
-      });
-      return {
-        beta: b,
-        gR: gR,
-        mu: scale,
-        scheme: "subtraction at mu; finite part = 0",
-        physicalObservable: gR,
-        rows: rows,
-        boundary: "Lambda is a regulator; the analytic tuned residual is the cancellation check, not a new physical prediction."
-      };
-    }
-
-    function runningData(beta, initial, ellMin, ellMax, points) {
-      var b = Number(beta);
-      var g0 = positive(initial, "g0");
-      var low = Number(ellMin);
-      var high = Number(ellMax);
-      var count = integer(points === undefined ? 41 : points, 2, "running points");
-      if (!finite(b) || !finite(low) || !finite(high) || !(high > low)) {
-        throw new RangeError("running beta and ell interval must be finite with ellMin < ellMax");
-      }
-      var poleEll = b === 0 ? null : 1 / (b * g0);
-      var rows = [];
-      for (var i = 0; i < count; i += 1) {
-        var ell = low + (high - low) * i / (count - 1);
-        var denominator = b === 0 ? 1 : 1 - b * g0 * ell;
-        var value = Math.abs(denominator) < 1e-7 ? (denominator < 0 ? -Infinity : Infinity) : g0 / denominator;
-        rows.push({
-          index: i,
-          ell: ell,
-          denominator: denominator,
-          coupling: value,
-          betaAtCoupling: finite(value) ? b * value * value : (value === Infinity ? Infinity : -Infinity),
-          status: Math.abs(denominator) < 1e-7 ? "pole boundary" : "one-loop toy"
-        });
-      }
-      return {
-        beta: b,
-        g0: g0,
-        ellMin: low,
-        ellMax: high,
-        points: count,
-        poleEll: poleEll,
-        poleRatio: poleEll === null ? null : Math.exp(poleEll),
-        poleInside: poleEll !== null && poleEll >= low && poleEll <= high,
-        betaAtInitial: b * g0 * g0,
-        uvTrend: b > 0 ? "g grows toward UV; pole is on the UV side" : b < 0 ? "g decreases toward UV; pole is on the IR side" : "g is constant when beta coefficient is zero",
-        rows: rows,
-        boundary: "The denominator-zero point is a boundary of this one-loop toy solution; perturbation theory is not certified there."
-      };
-    }
-
-    function predictionAnswers(mode) {
-      var questions = mode === "ledger" ? LEDGER_QUESTIONS : RUNNING_QUESTIONS;
-      var answers = {};
-      questions.forEach(function (question) { answers[question.key] = question.expected; });
-      return answers;
-    }
-
-    function scoreAnswers(mode, prediction) {
-      var questions = mode === "ledger" ? LEDGER_QUESTIONS : RUNNING_QUESTIONS;
-      var expected = predictionAnswers(mode);
-      var correct = 0;
-      questions.forEach(function (question) { if (prediction[question.key] === expected[question.key]) correct += 1; });
-      return { correct: correct, total: questions.length };
-    }
-
-    function makeElement(api, doc, tag, attrs, children) {
-      if (api && typeof api.el === "function") return api.el(tag, attrs || {}, children);
-      var node = doc.createElement(tag);
-      Object.keys(attrs || {}).forEach(function (key) {
-        var value = attrs[key];
-        if (value === undefined || value === null || value === false) return;
-        if (key === "className") node.setAttribute("class", value);
-        else if (key === "text") node.textContent = value;
-        else if (value === true) node.setAttribute(key, "");
-        else node.setAttribute(key, String(value));
-      });
-      (Array.isArray(children) ? children : [children]).forEach(function (child) {
-        if (child !== undefined && child !== null && child !== false) node.appendChild(child.nodeType ? child : doc.createTextNode(String(child)));
-      });
-      return node;
-    }
-
-    function makeSvg(api, doc, tag, attrs, children) {
-      if (api && typeof api.svg === "function") return api.svg(tag, attrs || {}, children);
-      var node = doc.createElementNS(SVG_NS, tag);
-      Object.keys(attrs || {}).forEach(function (key) {
-        var value = attrs[key];
-        if (value !== undefined && value !== null && value !== false) node.setAttribute(key, String(value));
-      });
-      (Array.isArray(children) ? children : [children]).forEach(function (child) {
-        if (child !== undefined && child !== null && child !== false) node.appendChild(child.nodeType ? child : doc.createTextNode(String(child)));
-      });
-      return node;
-    }
-
-    function clear(node) {
-      while (node && node.firstChild) node.removeChild(node.firstChild);
-    }
-
-    function replaceChildren(node, children) {
-      clear(node);
-      (children || []).forEach(function (child) { if (child) node.appendChild(child); });
-    }
-
-    function installStyles(doc) {
-      if (doc.getElementById(STYLE_ID)) return;
-      var style = doc.createElement("style");
-      style.id = STYLE_ID;
-      style.textContent = STYLE_TEXT;
-      (doc.head || doc.documentElement).appendChild(style);
-    }
-
-    function metric(api, label, value) {
-      return makeElement(api, null, "div", { className: "ren-metric" }, [makeElement(api, null, "span", {}, [label]), makeElement(api, null, "strong", {}, [value])]);
-    }
-
-    function svgText(api, doc, x, y, text, attrs) {
-      var values = { x: x, y: y, "font-size": 11, fill: "var(--fg-soft)", "aria-hidden": "true" };
-      Object.keys(attrs || {}).forEach(function (key) { values[key] = attrs[key]; });
-      return makeSvg(api, doc, "text", values, [text]);
-    }
-
-    function pathFrom(points, mapX, mapY) {
-      var path = "";
-      points.forEach(function (point, index) {
-        path += (index === 0 ? "M" : "L") + mapX(point[0]).toFixed(2) + " " + mapY(point[1]).toFixed(2) + " ";
-      });
-      return path.trim();
-    }
-
-    function drawLedgerChart(api, doc, data) {
-      var width = 700;
-      var height = 280;
-      var left = 48;
-      var right = 674;
-      var top = 26;
-      var bottom = 230;
-      var minLambda = data.rows[0].Lambda;
-      var maxLambda = data.rows[data.rows.length - 1].Lambda;
-      var minY = Infinity;
-      var maxY = -Infinity;
-      data.rows.forEach(function (row) {
-        minY = Math.min(minY, row.fixedObservable, row.tunedObservable);
-        maxY = Math.max(maxY, row.fixedObservable, row.tunedObservable);
-      });
-      var range = Math.max(0.1, maxY - minY);
-      minY -= range * 0.18;
-      maxY += range * 0.18;
-      var mapX = function (value) { return left + (right - left) * (Math.log(value) - Math.log(minLambda)) / (Math.log(maxLambda) - Math.log(minLambda) || 1); };
-      var mapY = function (value) { return bottom - (bottom - top) * (value - minY) / (maxY - minY); };
-      var svg = makeSvg(api, doc, "svg", { viewBox: "0 0 " + width + " " + height, role: "img", "aria-label": "fixed bare cutoff dependence and counterterm cancellation" });
-      svg.appendChild(makeSvg(api, doc, "title", {}, ["cutoff ledger"]));
-      svg.appendChild(makeSvg(api, doc, "desc", {}, ["The red line changes when bare coupling is fixed. The green line stays on the renormalized physical target after the counterterm is tuned."]));
-      [minLambda, Math.sqrt(minLambda * maxLambda), maxLambda].forEach(function (lambda) {
-        var x = mapX(lambda);
-        svg.appendChild(makeSvg(api, doc, "line", { x1: x, y1: top, x2: x, y2: bottom, stroke: "var(--border)", "stroke-width": 1 }));
-        svg.appendChild(svgText(api, doc, x, bottom + 17, formatNumber(api, lambda, 2), { "text-anchor": "middle" }));
-      });
-      [minY, (minY + maxY) / 2, maxY].forEach(function (value) {
-        var y = mapY(value);
-        svg.appendChild(makeSvg(api, doc, "line", { x1: left, y1: y, x2: right, y2: y, stroke: "var(--border)", "stroke-width": 1 }));
-        svg.appendChild(svgText(api, doc, left - 7, y + 4, formatNumber(api, value, 3), { "text-anchor": "end" }));
-      });
-      svg.appendChild(makeSvg(api, doc, "path", { d: pathFrom(data.rows.map(function (row) { return [row.Lambda, row.fixedObservable]; }), mapX, mapY), fill: "none", stroke: "var(--ren-red)", "stroke-width": 2.4 }));
-      svg.appendChild(makeSvg(api, doc, "path", { d: pathFrom(data.rows.map(function (row) { return [row.Lambda, row.tunedObservable]; }), mapX, mapY), fill: "none", stroke: "var(--ren-green)", "stroke-width": 2.4 }));
-      svg.appendChild(svgText(api, doc, left, 16, "O(Lambda) = g_bare + beta log(Lambda / mu)", { "font-size": 13, "font-weight": 700 }));
-      svg.appendChild(svgText(api, doc, right, 16, "red = fixed bare; green = cancellation", { "text-anchor": "end", "font-size": 10 }));
-      return svg;
-    }
-
-    function drawRunningChart(api, doc, data) {
-      var width = 700;
-      var height = 290;
-      var left = 48;
-      var right = 674;
-      var top = 28;
-      var bottom = 238;
-      var cap = 5;
-      data.rows.forEach(function (row) { if (finite(row.coupling)) cap = Math.max(cap, Math.min(1000, Math.abs(row.coupling))); });
-      cap = Math.min(1000, cap * 1.08);
-      var mapX = function (ell) { return left + (right - left) * (ell - data.ellMin) / (data.ellMax - data.ellMin); };
-      var mapY = function (value) {
-        var clipped = Math.max(-cap, Math.min(cap, value));
-        return bottom - (bottom - top) * (clipped + cap) / (2 * cap);
-      };
-      var svg = makeSvg(api, doc, "svg", { viewBox: "0 0 " + width + " " + height, role: "img", "aria-label": "one-loop running coupling and pole boundary" });
-      svg.appendChild(makeSvg(api, doc, "title", {}, ["one-loop running coupling"]));
-      svg.appendChild(makeSvg(api, doc, "desc", {}, ["The curve follows g0 divided by the one-loop denominator. A dashed vertical line marks the denominator-zero boundary when it lies in the window."]));
-      [data.ellMin, 0, data.ellMax].forEach(function (ell) {
-        if (ell < data.ellMin || ell > data.ellMax) return;
-        var x = mapX(ell);
-        svg.appendChild(makeSvg(api, doc, "line", { x1: x, y1: top, x2: x, y2: bottom, stroke: "var(--border)", "stroke-width": 1 }));
-        svg.appendChild(svgText(api, doc, x, bottom + 17, formatNumber(api, ell, 2), { "text-anchor": "middle" }));
-      });
-      var zeroY = mapY(0);
-      svg.appendChild(makeSvg(api, doc, "line", { x1: left, y1: zeroY, x2: right, y2: zeroY, stroke: "currentColor", "stroke-width": 1.1 }));
-      var finiteRows = data.rows.filter(function (row) { return finite(row.coupling); });
-      if (finiteRows.length > 1) {
-        svg.appendChild(makeSvg(api, doc, "path", { d: pathFrom(finiteRows.map(function (row) { return [row.ell, row.coupling]; }), mapX, mapY), fill: "none", stroke: data.beta >= 0 ? "var(--ren-red)" : "var(--ren-blue)", "stroke-width": 2.4 }));
-      }
-      if (data.poleInside) {
-        var poleX = mapX(data.poleEll);
-        svg.appendChild(makeSvg(api, doc, "line", { x1: poleX, y1: top, x2: poleX, y2: bottom, stroke: "var(--ren-gold)", "stroke-width": 1.8, "stroke-dasharray": "5 4" }));
-        svg.appendChild(svgText(api, doc, poleX + 5, top + 14, "pole boundary", { "font-size": 10 }));
-      }
-      svg.appendChild(svgText(api, doc, left, 17, "g(ell) = g0 / (1 - b g0 ell)", { "font-size": 13, "font-weight": 700 }));
-      svg.appendChild(svgText(api, doc, right, 17, data.uvTrend, { "text-anchor": "end", "font-size": 10 }));
-      return svg;
-    }
-
-    function rangeControl(api, doc, uid, label, min, max, step, value, onInput) {
-      var id = uid + "-" + label.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
-      var output = makeElement(api, doc, "output", { for: id }, [String(value)]);
-      var input = makeElement(api, doc, "input", { id: id, type: "range", min: min, max: max, step: step, value: value, "aria-label": label });
-      input.addEventListener("input", function () { onInput(Number(input.value)); });
-      return {
-        wrap: makeElement(api, doc, "div", { className: "ren-control" }, [makeElement(api, doc, "div", { className: "ren-head" }, [makeElement(api, doc, "span", {}, [label]), output]), input]),
-        input: input,
-        output: output
-      };
-    }
-
-    function selectControl(api, doc, uid, label, options, value, onChange) {
-      var id = uid + "-" + label.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
-      var select = makeElement(api, doc, "select", { id: id, "aria-label": label });
-      options.forEach(function (option) { select.appendChild(makeElement(api, doc, "option", { value: option.value }, [option.label])); });
-      select.value = value;
-      select.addEventListener("change", function () { onChange(select.value); });
-      return { wrap: makeElement(api, doc, "div", { className: "ren-control" }, [makeElement(api, doc, "label", { htmlFor: id }, [label]), select]), input: select };
-    }
-
-    function renderLedgerResults(api, doc, section, data) {
-      replaceChildren(section, []);
-      var metrics = makeElement(api, doc, "div", { className: "ren-metrics" });
-      metrics.appendChild(metric(api, "beta", formatNumber(api, data.beta, 4)));
-      metrics.appendChild(metric(api, "gR(mu)", formatNumber(api, data.gR, 6)));
-      metrics.appendChild(metric(api, "mu", formatNumber(api, data.mu, 4)));
-      metrics.appendChild(metric(api, "scheme", data.scheme));
-      section.appendChild(metrics);
-      section.appendChild(makeElement(api, doc, "div", { className: "ren-chart" }, [drawLedgerChart(api, doc, data)]));
-      var ledger = makeElement(api, doc, "div", { className: "ren-ledger" });
-      var table = makeElement(api, doc, "table", {});
-      table.appendChild(makeElement(api, doc, "thead", {}, [makeElement(api, doc, "tr", {}, [
-        makeElement(api, doc, "th", {}, ["Lambda"]), makeElement(api, doc, "th", {}, ["loop log"]), makeElement(api, doc, "th", {}, ["fixed bare / O"]), makeElement(api, doc, "th", {}, ["counterterm"]), makeElement(api, doc, "th", {}, ["tuned bare / O"]), makeElement(api, doc, "th", {}, ["residual"])
-      ])]));
-      var body = makeElement(api, doc, "tbody");
-      data.rows.forEach(function (row) {
-        body.appendChild(makeElement(api, doc, "tr", {}, [
-          makeElement(api, doc, "td", {}, [formatNumber(api, row.Lambda, 4)]),
-          makeElement(api, doc, "td", {}, [formatNumber(api, row.loop, 8)]),
-          makeElement(api, doc, "td", {}, [formatNumber(api, row.fixedBare, 6) + " / " + formatNumber(api, row.fixedObservable, 8)]),
-          makeElement(api, doc, "td", {}, [formatNumber(api, row.counterterm, 8)]),
-          makeElement(api, doc, "td", {}, [formatNumber(api, row.tunedBare, 6) + " / " + formatNumber(api, row.tunedObservable, 8)]),
-          makeElement(api, doc, "td", {}, [formatNumber(api, row.residual, 8)])
-        ]));
-      });
-      table.appendChild(body);
-      ledger.appendChild(table);
-      section.appendChild(ledger);
-      section.appendChild(makeElement(api, doc, "p", { className: "ren-callout" }, ["Physical observable target: ", formatNumber(api, data.physicalObservable, 8), ". ", data.boundary]));
-      section.appendChild(makeElement(api, doc, "p", { className: "ren-callout" }, ["Migration hint: when the regulator or scheme changes, rewrite the parameter definition and re-check the observable; do not compare bare parameters across schemes as if they were measurements."]));
-    }
-
-    function renderRunningResults(api, doc, section, data) {
-      replaceChildren(section, []);
-      var poleText = data.poleEll === null ? "none (b=0)" : formatNumber(api, data.poleEll, 6) + " in ell";
-      var metrics = makeElement(api, doc, "div", { className: "ren-metrics" });
-      metrics.appendChild(metric(api, "b, g0", formatNumber(api, data.beta, 4) + ", " + formatNumber(api, data.g0, 5)));
-      metrics.appendChild(metric(api, "beta(g0)", formatNumber(api, data.betaAtInitial, 7)));
-      metrics.appendChild(metric(api, "pole ell", poleText));
-      metrics.appendChild(metric(api, "pole ratio", data.poleRatio === null ? "none" : formatNumber(api, data.poleRatio, 6)));
-      section.appendChild(metrics);
-      section.appendChild(makeElement(api, doc, "div", { className: "ren-chart" }, [drawRunningChart(api, doc, data)]));
-      var ledger = makeElement(api, doc, "div", { className: "ren-ledger" });
-      var table = makeElement(api, doc, "table", {});
-      table.appendChild(makeElement(api, doc, "thead", {}, [makeElement(api, doc, "tr", {}, [makeElement(api, doc, "th", {}, ["ell"]), makeElement(api, doc, "th", {}, ["denominator"]), makeElement(api, doc, "th", {}, ["g(ell)"]), makeElement(api, doc, "th", {}, ["beta(g)"]), makeElement(api, doc, "th", {}, ["status"])] )]));
-      var body = makeElement(api, doc, "tbody");
-      data.rows.forEach(function (row, index) {
-        if (index % Math.max(1, Math.floor(data.rows.length / 10)) !== 0 && index !== data.rows.length - 1) return;
-        body.appendChild(makeElement(api, doc, "tr", {}, [makeElement(api, doc, "td", {}, [formatNumber(api, row.ell, 5)]), makeElement(api, doc, "td", {}, [formatNumber(api, row.denominator, 7)]), makeElement(api, doc, "td", {}, [formatNumber(api, row.coupling, 8)]), makeElement(api, doc, "td", {}, [formatNumber(api, row.betaAtCoupling, 8)]), makeElement(api, doc, "td", {}, [row.status])]));
-      });
-      table.appendChild(body);
-      ledger.appendChild(table);
-      section.appendChild(ledger);
-      section.appendChild(makeElement(api, doc, "p", { className: "ren-callout ren-boundary" }, ["Boundary: ", data.boundary, " ", data.uvTrend, ". This is not a full QED/QCD/phi4 calculation."]));
-      section.appendChild(makeElement(api, doc, "p", { className: "ren-callout" }, ["Migration hint: check the sign convention for beta and the direction of ell before transferring the words UV, IR, screening, or asymptotic freedom to another theory."]));
-    }
-
-    function mount(root, api) {
-      var doc = root.ownerDocument;
-      installStyles(doc);
-      root.classList.add("renorm-lab");
-      var uid = "ren-" + (INSTANCE += 1);
-      var state = {
-        mode: "ledger",
-        beta: 0.2,
-        gR: 0.8,
-        runningBeta: 0.5,
-        runningG0: 0.25,
-        ellMin: -5,
-        ellMax: 5,
-        points: 41,
-        revealed: { ledger: false, running: false },
-        prediction: { ledger: {}, running: {} }
-      };
-      var modeButtons = {};
-      var ledgerPanel;
-      var runningPanel;
-      var ledgerResults;
-      var runningResults;
-      var feedback;
-      var ledgerQuestions = {};
-      var runningQuestions = {};
-      var betaControl;
-      var gRControl;
-      var runningBetaControl;
-      var runningG0Control;
-
-      function announce(message) {
-        if (api && typeof api.announce === "function") api.announce(root, message);
-      }
-
-      function lock(mode) {
-        state.revealed[mode] = false;
-        state.prediction[mode] = {};
-        render();
-      }
-
-      function questionNode(mode, question) {
-        var id = uid + "-" + mode + "-" + question.key;
-        var select = makeElement(api, doc, "select", { id: id, "aria-label": question.label });
-        select.appendChild(makeElement(api, doc, "option", { value: "" }, ["请选择"]));
-        question.options.forEach(function (option) { select.appendChild(makeElement(api, doc, "option", { value: option.value }, [option.label])); });
-        select.addEventListener("change", function () { state.prediction[mode][question.key] = select.value; renderGate(mode); });
-        return { node: makeElement(api, doc, "div", { className: "ren-question" }, [makeElement(api, doc, "label", { htmlFor: id }, [question.label]), select]), select: select };
-      }
-
-      function complete(mode) {
-        var questions = mode === "ledger" ? LEDGER_QUESTIONS : RUNNING_QUESTIONS;
-        return questions.every(function (question) { return state.prediction[mode][question.key]; });
-      }
-
-      function renderGate(mode) {
-        var questions = mode === "ledger" ? LEDGER_QUESTIONS : RUNNING_QUESTIONS;
-        var nodes = mode === "ledger" ? ledgerQuestions : runningQuestions;
-        questions.forEach(function (question) { nodes[question.key].select.value = state.prediction[mode][question.key] || ""; });
-        if (state.revealed[mode]) {
-          var score = scoreAnswers(mode, state.prediction[mode]);
-          feedback.className = "ren-feedback " + (score.correct === score.total ? "ren-pass" : "ren-warn");
-          feedback.textContent = "预测得分 " + score.correct + "/" + score.total + "；现在对照账本的角色和边界。";
-        } else {
-          feedback.className = "ren-feedback";
-          feedback.textContent = complete(mode) ? "预测已记录，点击“提交预测并揭示”。" : "先完成当前模式的三项判断。";
-        }
-      }
-
-      function render() {
-        modeButtons.ledger.setAttribute("aria-pressed", state.mode === "ledger" ? "true" : "false");
-        modeButtons.running.setAttribute("aria-pressed", state.mode === "running" ? "true" : "false");
-        ledgerPanel.hidden = state.mode !== "ledger";
-        runningPanel.hidden = state.mode !== "running";
-        ledgerResults.hidden = !state.revealed.ledger || state.mode !== "ledger";
-        runningResults.hidden = !state.revealed.running || state.mode !== "running";
-        if (betaControl) { betaControl.input.value = String(state.beta); betaControl.output.textContent = formatNumber(api, state.beta, 2); }
-        if (gRControl) { gRControl.input.value = String(state.gR); gRControl.output.textContent = formatNumber(api, state.gR, 2); }
-        if (runningBetaControl) { runningBetaControl.input.value = String(state.runningBeta); runningBetaControl.output.textContent = formatNumber(api, state.runningBeta, 2); }
-        if (runningG0Control) { runningG0Control.input.value = String(state.runningG0); runningG0Control.output.textContent = formatNumber(api, state.runningG0, 2); }
-        renderGate(state.mode);
-        if (state.revealed.ledger && state.mode === "ledger") renderLedgerResults(api, doc, ledgerResults, cutoffLedger(state.beta, state.gR, 1, CUTOFFS));
-        else clear(ledgerResults);
-        if (state.revealed.running && state.mode === "running") renderRunningResults(api, doc, runningResults, runningData(state.runningBeta, state.runningG0, state.ellMin, state.ellMax, state.points));
-        else clear(runningResults);
-      }
-
-      var shell = makeElement(api, doc, "div", { className: "ren-shell", "aria-labelledby": uid + "-title" });
-      shell.appendChild(makeElement(api, doc, "h3", { id: uid + "-title" }, ["Renormalization scale lab: ledger before rhetoric"]));
-      shell.appendChild(makeElement(api, doc, "p", { className: "ren-intro" }, ["This is a labeled logarithmic toy. It is not a complete QED, QCD, or phi4 loop calculation."]));
-      var tabs = makeElement(api, doc, "div", { className: "ren-tabs", role: "tablist", "aria-label": "renormalization lab mode" });
-      modeButtons.ledger = makeElement(api, doc, "button", { type: "button", role: "tab", "aria-pressed": "true" }, ["cutoff ledger"]);
-      modeButtons.running = makeElement(api, doc, "button", { type: "button", role: "tab", "aria-pressed": "false" }, ["one-loop running"]);
-      tabs.appendChild(modeButtons.ledger);
-      tabs.appendChild(modeButtons.running);
-      shell.appendChild(tabs);
-
-      ledgerPanel = makeElement(api, doc, "section", { className: "ren-controls", "aria-label": "cutoff ledger controls" });
-      betaControl = rangeControl(api, doc, uid, "beta", -1, 1, 0.1, state.beta, function (value) { state.beta = Math.round(value * 10) / 10; lock("ledger"); });
-      gRControl = rangeControl(api, doc, uid, "gR(mu)", 0.2, 1.2, 0.05, state.gR, function (value) { state.gR = Math.round(value * 20) / 20; lock("ledger"); });
-      ledgerPanel.appendChild(betaControl.wrap);
-      ledgerPanel.appendChild(gRControl.wrap);
-      shell.appendChild(ledgerPanel);
-      runningPanel = makeElement(api, doc, "section", { className: "ren-controls", "aria-label": "running coupling controls", hidden: true });
-      runningBetaControl = rangeControl(api, doc, uid, "b coefficient", -1, 1, 0.1, state.runningBeta, function (value) { state.runningBeta = Math.round(value * 10) / 10; lock("running"); });
-      runningG0Control = rangeControl(api, doc, uid, "g0", 0.1, 1, 0.05, state.runningG0, function (value) { state.runningG0 = Math.round(value * 20) / 20; lock("running"); });
-      runningPanel.appendChild(runningBetaControl.wrap);
-      runningPanel.appendChild(runningG0Control.wrap);
-      shell.appendChild(runningPanel);
-
-      var gate = makeElement(api, doc, "section", { className: "ren-gate", "aria-labelledby": uid + "-gate-title" });
-      gate.appendChild(makeElement(api, doc, "h4", { id: uid + "-gate-title" }, ["Prediction gate: submit before the toy ledger opens"]));
-      var questions = makeElement(api, doc, "div", { className: "ren-questions" });
-      LEDGER_QUESTIONS.forEach(function (question) {
-        var item = questionNode("ledger", question);
-        ledgerQuestions[question.key] = item;
-        questions.appendChild(item.node);
-      });
-      RUNNING_QUESTIONS.forEach(function (question) {
-        var item = questionNode("running", question);
-        item.node.hidden = true;
-        runningQuestions[question.key] = item;
-        questions.appendChild(item.node);
-      });
-      gate.appendChild(questions);
-      var actions = makeElement(api, doc, "div", { className: "ren-actions" });
-      var submit = makeElement(api, doc, "button", { type: "button", className: "ren-primary" }, ["提交预测并揭示"]);
-      var reset = makeElement(api, doc, "button", { type: "button" }, ["重置"]);
-      actions.appendChild(submit);
-      actions.appendChild(reset);
-      gate.appendChild(actions);
-      feedback = makeElement(api, doc, "p", { className: "ren-feedback", "aria-live": "polite" }, ["先完成当前模式的三项判断。"]);
-      gate.appendChild(feedback);
-      shell.appendChild(gate);
-      ledgerResults = makeElement(api, doc, "section", { className: "ren-results", hidden: true, "aria-label": "cutoff ledger results" });
-      runningResults = makeElement(api, doc, "section", { className: "ren-results", hidden: true, "aria-label": "running results" });
-      shell.appendChild(ledgerResults);
-      shell.appendChild(runningResults);
-      root.replaceChildren(shell);
-
-      function setMode(mode) {
-        state.mode = mode;
-        questions.querySelectorAll(".ren-question").forEach(function (node, index) {
-          node.hidden = mode === "ledger" ? index >= LEDGER_QUESTIONS.length : index < LEDGER_QUESTIONS.length;
-        });
-        render();
-      }
-      modeButtons.ledger.addEventListener("click", function () { setMode("ledger"); });
-      modeButtons.running.addEventListener("click", function () { setMode("running"); });
-      submit.addEventListener("click", function () {
-        if (!complete(state.mode)) {
-          feedback.className = "ren-feedback ren-warn";
-          feedback.textContent = "还缺判断；当前模式的三项都要填写。";
-          announce(feedback.textContent);
-          return;
-        }
-        state.revealed[state.mode] = true;
-        render();
-        announce("toy 账本已揭示。");
-      });
-      reset.addEventListener("click", function () {
-        state.mode = "ledger";
-        state.beta = 0.2;
-        state.gR = 0.8;
-        state.runningBeta = 0.5;
-        state.runningG0 = 0.25;
-        state.revealed = { ledger: false, running: false };
-        state.prediction = { ledger: {}, running: {} };
-        setMode("ledger");
-        announce("已重置 toy 参数和预测。");
-      });
-      render();
-    }
-
-    function selfTest() {
-      var checks = 0;
-      function assert(condition, message) {
-        checks += 1;
-        if (!condition) throw new Error(message);
-      }
-      function close(left, right, message, tolerance) {
-        assert(near(left, right, tolerance || 1e-9), message + ": " + left + " vs " + right);
-      }
-
-      var ledger = cutoffLedger(0.2, 0.8, 1, [1, 2, 4, 8]);
-      assert(ledger.rows.length === 4, "cutoff endpoint row count");
-      close(ledger.rows[0].loop, 0, "cutoff at mu has zero log");
-      close(ledger.rows[0].fixedObservable, 0.8, "fixed observable at mu");
-      ledger.rows.forEach(function (row) { close(row.tunedObservable, 0.8, "counterterm cancellation", 1e-8); close(row.residual, 0, "zero residual", 1e-8); });
-      assert(ledger.rows[3].fixedObservable > ledger.rows[1].fixedObservable, "fixed bare cutoff dependence");
-      var negative = cutoffLedger(-0.2, 0.8, 1, [1, 2]);
-      assert(negative.rows[1].fixedObservable < negative.rows[0].fixedObservable, "negative beta ledger direction");
-      var running = runningData(0.5, 0.25, -5, 5, 11);
-      close(running.rows[5].coupling, 0.25, "running ell zero endpoint");
-      close(running.poleEll, 8, "positive beta pole location");
-      close(running.betaAtInitial, 0.03125, "beta at initial coupling");
-      close(runningData(-0.5, 0.25, -5, 5, 11).poleEll, -8, "negative beta IR pole location");
-      close(runningData(0, 0.25, -5, 5, 3).rows[2].coupling, 0.25, "zero beta constant identity");
-      assert(predictionAnswers("ledger").counterterm === "cancels", "ledger prediction answer");
-      assert(predictionAnswers("running").pole === "denominatorZero", "running prediction answer");
-      var threw = false;
-      try { cutoffLedger(0.2, 0.8, 0, [1]); } catch (error) { threw = true; }
-      assert(threw, "zero mu rejected");
-      threw = false;
-      try { cutoffLedger(0.2, 0.8, 1, [0]); } catch (error) { threw = true; }
-      assert(threw, "nonpositive Lambda rejected");
-      threw = false;
-      try { runningData(0.5, 0, -1, 1, 3); } catch (error) { threw = true; }
-      assert(threw, "nonpositive g0 rejected");
-      threw = false;
-      try { runningData(0.5, 0.2, 2, 1, 3); } catch (error) { threw = true; }
-      assert(threw, "reversed ell interval rejected");
-      return { checks: checks, ledgerRows: ledger.rows.length, runningPoints: running.rows.length };
-    }
-
-    return {
-      CUTOFFS: CUTOFFS,
-      LEDGER_QUESTIONS: LEDGER_QUESTIONS,
-      RUNNING_QUESTIONS: RUNNING_QUESTIONS,
-      cutoffLedger: cutoffLedger,
-      runningData: runningData,
-      predictionAnswers: predictionAnswers,
-      mount: mount,
-      selfTest: selfTest
-    };
-  }
-));
+const API={DEFAULT,PRESETS,QUESTIONS,config,compute,snapshot:compute,gaussian,loopRecord,bubble,subtraction,threshold,integrate,plots,tables,svg,feedback,fmt,mount,selfTest};if(typeof module!=="undefined"&&module.exports)module.exports=API;if(hostWindow&&hostWindow.CourseLearning)hostWindow.CourseLearning.register("renormalization-scale",mount);})(typeof window!=="undefined"?window:null);
