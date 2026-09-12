@@ -46,9 +46,9 @@
 
 </div>
 
-<noscript><style>.fy182-course span.arithmatex{overflow-wrap:anywhere}.fy182-static{overflow:auto;max-width:100%}.fy182-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}.fy182-static th,.fy182-static td{white-space:nowrap}</style></noscript>
+<noscript><style>.fy182-persistent{display:none}.fy182-course span.arithmatex{overflow-wrap:anywhere}.fy182-static{overflow:auto;max-width:100%}.fy182-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}.fy182-static th,.fy182-static td{white-space:nowrap}</style></noscript>
 
-<figure class="diagram" markdown="1">
+<figure class="diagram fy182-persistent" markdown="1">
 ![由完整配对生成的树图和鱼图，以及逐阶系数、渐近误差与阈值截面。](assets/img/qft-02-feynman-ledgers.svg)
 <figcaption>图中的连接来自编号场槽；数值曲线来自同一份可下载记录。空心点表示阈值以上的极限，不是零通量处的截面值。</figcaption>
 </figure>
