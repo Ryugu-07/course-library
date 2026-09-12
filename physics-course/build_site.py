@@ -350,6 +350,8 @@ def sync_learning_assets(md_names):
         shutil.copytree(SHARED / "projects" / "phase-certificates", destination / "projects" / "phase-certificates")
     if "qec-channel" in names:
         shutil.copytree(SHARED / "projects" / "qec-certificates", destination / "projects" / "qec-certificates")
+    if "canonical-field-modes" in names:
+        shutil.copytree(SHARED / "projects" / "canonical-certificates", destination / "projects" / "canonical-certificates")
 
 
 def previous_build_time(out: Path, fallback: str) -> str:

@@ -1,528 +1,68 @@
-(function (root, factory) {
-  "use strict";
-
-  var exported = factory(root);
-
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("canonical-field-modes", exported.mount);
+(function(hostWindow){'use strict';
+const DEFAULTS={mass:1,length:2*Math.PI,cutoff:4,profile:'one-cos',time:.8,rFraction:.25,ladderDim:6,level:0};
+function config(o={}){if(!o||typeof o!=='object'||Array.isArray(o))throw Error('参数对象');for(const k of Object.keys(o))if(!Object.hasOwn(DEFAULTS,k))throw Error('未知参数');const c={...DEFAULTS,...o};for(const k of Object.keys(c).filter(k=>k!=='profile'))if(typeof c[k]!=='number'||!Number.isFinite(c[k]))throw Error('有限数');if(!['vacuum','one-cos','product-three'].includes(c.profile)||c.mass<0||c.mass>2||(c.mass>0&&c.mass<.1)||c.length<4||c.length>12||!Number.isInteger(c.cutoff)||c.cutoff<0||c.cutoff>16||Math.abs(c.time)>2||c.rFraction<0||c.rFraction>.5||!Number.isInteger(c.ladderDim)||c.ladderDim<2||c.ladderDim>12||!Number.isInteger(c.level)||c.level<0||c.level>=c.ladderDim)throw Error('参数范围');return c;}
+const sum=a=>a.reduce((s,v)=>s+v,0),matrix=(n,f)=>Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>f(i,j))),mul=(a,b)=>a.map(row=>b[0].map((_,j)=>sum(row.map((v,k)=>v*b[k][j])))),sub=(a,b)=>a.map((row,i)=>row.map((v,j)=>v-b[i][j]));
+function requested(n,r,profile){return profile==='one-cos'?+(n===1&&r==='cos'):profile==='product-three'?+(n<=2&&(r==='zero'||r==='cos')):0;}
+function modes(c,K=c.cutoff){const rows=[];for(let n=0;n<=K;n++){const k=2*Math.PI*n/c.length,omega=Math.hypot(k,c.mass);for(const basis of n===0?['zero']:['cos','sin']){const ask=requested(n,basis,c.profile),oscillator=omega>0,occupation=oscillator?ask:null;rows.push({n,basis,k,omega,normalization:Math.sqrt((n===0?1:2)/c.length),requestedOccupation:ask,occupation,zeroPoint:oscillator?omega/2:null,excitation:oscillator?occupation*omega:null,level:oscillator?(occupation+.5)*omega:null,kind:oscillator?'oscillator':'free-particle-zero-mode'});}}return rows;}
+function energy(c,K=c.cutoff){const rows=modes(c,K),massless=c.mass===0,missing=[];for(let n=K+1;n<=2;n++)for(const b of ['cos','sin'])if(requested(n,b,c.profile))missing.push({n,basis:b,occupation:1});const positive=rows.filter(r=>r.omega>0),positiveZero=sum(positive.map(r=>r.zeroPoint)),positiveExcitation=sum(positive.map(r=>r.excitation)),zeroRequested=massless&&requested(0,'zero',c.profile)>0;return{cutoff:K,modeCount:1+2*K,momentumCutoff:2*Math.PI*K/c.length,positiveZero,positiveExcitation,positiveTotal:positiveZero+positiveExcitation,zeroPoint:massless?null:positiveZero,excitation:zeroRequested?null:positiveExcitation,total:massless?null:positiveZero+positiveExcitation,particleNumber:zeroRequested?null:sum(positive.map(r=>r.occupation)),momentumMean:zeroRequested?null:0,momentumVariance:zeroRequested?null:sum(positive.map(r=>r.k*r.k*r.occupation)),identityResidual:massless?null:(positiveZero+positiveExcitation)-positiveZero-positiveExcitation,missing,zeroMode:massless?'Hamiltonian p0²/2; no normalizable oscillator vacuum':'massive oscillator'};}
+function j0(z){let term=1,total=1;for(let n=1;n<=40;n++){term*=-(z*z/4)/(n*n);total+=term;}return total;}
+function continuum(c,t,r){if(t===0)return{value:0,boundary:false,images:[]};let value=0;const images=[];for(let j=-1;j<=1;j++){const d=r+j*c.length,margin=t*t-d*d;if(Math.abs(margin)<1e-12)return{value:null,boundary:true,images:[]};if(margin>0){const argument=c.mass*Math.sqrt(margin),bessel=j0(argument),contribution=Math.sign(t)*bessel/2;images.push({j,d,argument,bessel,contribution});value+=contribution;}}return{value,boundary:false,images};}
+function terms(c,t,r,K=c.cutoff){const rows=[];for(let n=0;n<=K;n++){const g=n===0?1:2,k=2*Math.PI*n/c.length,omega=Math.hypot(k,c.mass),cos=Math.cos(k*r),weight=g*cos/c.length,C=weight*(omega===0?t:Math.sin(omega*t)/omega),delta=weight,dC=weight*Math.cos(omega*t),W=omega===0?null:[weight*Math.cos(omega*t)/(2*omega),-weight*Math.sin(omega*t)/(2*omega)];rows.push({n,g,k,omega,cos,delta,C,dC,W});}return rows;}
+function point(c,t,r){const rows=terms(c,t,r),C=sum(rows.map(v=>v.C)),delta=sum(rows.map(v=>v.delta)),dC=sum(rows.map(v=>v.dC)),W=c.mass===0?null:[sum(rows.map(v=>v.W[0])),sum(rows.map(v=>v.W[1]))],DF=W===null?null:[W[0],t<0?-W[1]:W[1]],Gret=t>0?C:0,reference=continuum(c,t,r);return{t,r,delta,C,dC,W,DF,Gret,continuum:reference.value,continuumRetarded:reference.value===null?null:t>0?reference.value:0,boundary:reference.boundary,images:reference.images,spacelike:Math.abs(r)>Math.abs(t),difference:reference.value===null?null:C-reference.value,relationResidual:W===null?null:C+2*W[1]};}
+function projection(c){const M=128,rows=[];for(const h of [0,1,2,3,7,20]){const terms=[];for(let j=0;j<M;j++){const y=c.length*j/M,kernel=sum(Array.from({length:c.cutoff+1},(_,n)=>(n===0?1:2)*Math.cos(2*Math.PI*n*y/c.length)/c.length)),test=Math.cos(2*Math.PI*h*y/c.length),contribution=c.length/M*kernel*test;terms.push({j,y,kernel,test,contribution});}rows.push({h,points:M,value:sum(terms.map(r=>r.contribution)),expected:h<=c.cutoff?1:0,terms});}return rows;}
+function ladder(c){const N=c.ladderDim,a=matrix(N,(i,j)=>j===i+1?Math.sqrt(j):0),ad=matrix(N,(i,j)=>i===j+1?Math.sqrt(i):0),q=matrix(N,(i,j)=>(a[i][j]+ad[i][j])/Math.SQRT2),pImag=matrix(N,(i,j)=>(ad[i][j]-a[i][j])/Math.SQRT2),commutator=sub(mul(a,ad),mul(ad,a)),qpImag=sub(mul(q,pImag),mul(pImag,q)),qq=mul(q,q),pp=mul(pImag,pImag),fromQP=matrix(N,(i,j)=>(qq[i][j]-pp[i][j])/2),projectedH=matrix(N,(i,j)=>i===j?i+.5:0),defect=sub(fromQP,projectedH),rows=Array.from({length:N},(_,n)=>({n,commutator:commutator[n][n],qpImag:qpImag[n][n],fromQP:fromQP[n][n],projectedH:projectedH[n][n],defect:defect[n][n]}));return{dimension:N,frequency:1,a,ad,q,pImag,commutator,qpImag,fromQP,projectedH,defect,rows,probe:rows[c.level],trace:sum(rows.map(r=>r.commutator)),scope:'独立单位频率振子的N级矩阵投影；不是K个场模式的总Hilbert空间维数。有限矩阵不满足精确CCR。'};}
+function snapshot(o={}){const c=config(o),r=c.rFraction*c.length;const spacePoints=Array.from({length:129},(_,i)=>c.length*(i/128-.5)),timePoints=Array.from({length:101},(_,i)=>-2+i/25);for(let j=-1;j<=1;j++)for(const sign of [-1,1]){const x=sign*Math.abs(c.time)-j*c.length;if(x>=-c.length/2&&x<=c.length/2)spacePoints.push(x);const t=sign*Math.abs(r+j*c.length);if(t>=-2&&t<=2)timePoints.push(t);}const unique=a=>[...new Set(a)].sort((x,y)=>x-y);return{version:181,parameters:c,modes:modes(c),energy:energy(c),cutoffScan:Array.from({length:17},(_,K)=>energy(c,K)),probe:point(c,c.time,r),probeTerms:terms(c,c.time,r),space:unique(spacePoints).map(x=>point(c,c.time,x)),timeScan:unique(timePoints).map(t=>point(c,t,r)),projection:projection(c),ladder:ladder(c),scope:'有限周期实场的精确模式和及独立单位振子的有限矩阵。mass=0保留自由粒子零模：真空相关与总零点能不适用。有限动量截断通常破坏精确微因果；连续参考仅在光锥边界外给普通函数值。浮点读数未作区间认证。'};}
+const PRESETS=[{key:'spacelike',label:'截断后的类空交换子',config:{}},{key:'timelike',label:'光锥内部',config:{time:1.2,rFraction:.05}},{key:'equal',label:'等时核',config:{time:0}},{key:'past',label:'负时间与时序',config:{time:-.8}},{key:'massless',label:'无质量零模边界',config:{mass:0}},{key:'zero-only',label:'只留自由粒子零模',config:{mass:0,cutoff:0}},{key:'heavy',label:'较重场与短盒',config:{mass:2,length:4}},{key:'cone',label:'光锥边界不读普通值',config:{length:4,time:2,rFraction:.5}},{key:'cutoff',label:'提高到16个壳',config:{cutoff:16}},{key:'top',label:'有限矩阵顶层',config:{level:5}},{key:'vacuum',label:'有质量真空',config:{profile:'vacuum'}},{key:'product',label:'三个振子的积态',config:{profile:'product-three',ladderDim:2,level:1}}];
+const QUESTIONS=[['保留有限动量模式后，[φK(x),πK(y)]中的核是哪一个？',['有限傅里叶投影核δK','所有测试函数上的精确δ'],0,'有限模式只重现所保留频率的测试函数，等时交换子是iδK。δK不是逐点极限意义的普通δ函数；移除截断要按分布或涂抹后的量理解。'],['有限N×N矩阵a能否严格满足[a,a†]=I？',['可以，只要数值精度够高','不可以，交换子的迹为0而I的迹为N'],1,'投影振子满足[aN,aN†]=I−N|N−1><N−1|，缺陷集中于顶层。低层读数正确不等于整个有限矩阵满足正则对易关系。'],['周期盒里m=0的空间常数模式，能否直接设ω=0套振子真空公式？',['可以，零频振子就是零能真空','不可以，它是自由粒子，没有这样的可归一化真空'],1,'零模哈密顿量是p0²/2，真空方差1/(2ω)不能在ω=0代入。其交换子仍有良好t/L贡献；有无真空是另一件事，不能直接删去零模。'],['一个cos模式占据1，是否就是动量+k的确定单粒子？',['不是，它是+k与−k的等幅叠加','是，cos只有一个正动量'],0,'实基与动量基通过酉变换相连。bcos†|0>=(a+k†+a−k†)|0>/√2，能量确定，平均动量为0但动量方差k²；三个振子各占据1则是三粒子积态。']];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=4||![0,1].includes(j))throw Error('预测');const correct=j===QUESTIONS[i][2];return{correct,text:(correct?'预测正确。':'需要修正。')+QUESTIONS[i][3]};}
+function fmt(v){if(v===null)return'不适用';if(Array.isArray(v))return v.map(fmt).join(' · ');if(typeof v==='boolean')return v?'是':'否';if(typeof v==='object')return JSON.stringify(v);if(typeof v!=='number')return String(v);if(!Number.isFinite(v))throw Error('非有限读数');if(v===0)return'0';return Math.abs(v)<.0001||Math.abs(v)>=1e6?v.toExponential(5):Number(v.toFixed(6)).toString();}
+const COLORS=['#2479bc','#c97906','#23845a','#a33b66'];
+function plot(key,title,xLabel,yLabel,series){const ps=series.flatMap(s=>s.points.filter(Boolean)),xs=ps.map(p=>p[0]),ys=ps.map(p=>p[1]);let xMin=xs.length?Math.min(...xs):0,xMax=xs.length?Math.max(...xs):1,yMin=ys.length?Math.min(...ys):0,yMax=ys.length?Math.max(...ys):1;if(xMax===xMin)xMax=xMin+1;const pad=(yMax-yMin||Math.max(1,Math.abs(yMax)))*.08;return{key,title,xLabel,yLabel,xMin,xMax,yMin:yMin-pad,yMax:yMax+pad,series};}
+function plots(s){const series=(name,points,color,markersOnly=false)=>({name,points,color,markersOnly,boundaryMarkers:!markersOnly}),sp=s.space,l=s.ladder;return[
+plot('dispersion','每个壳的频率','|k|','ω',[series('ω=√(k²+m²)',s.modes.filter(r=>r.basis!=='sin').map(r=>[r.k,r.omega]),COLORS[0])]),
+plot('energy','改变模式截断：零点与激发分账','cutoff K','能量',[series('全部零点E0',s.cutoffScan.map(r=>r.zeroPoint===null?null:[r.cutoff,r.zeroPoint]),COLORS[0]),series('定义良好的振子激发项',s.cutoffScan.map(r=>r.excitation===null?null:[r.cutoff,r.excitation]),COLORS[1])]),
+plot('kernel','等时交换子：有限投影核','位置差 r','δK(r)',[series('完整有限傅里叶和',sp.map(r=>[r.r,r.delta]),COLORS[0])]),
+plot('commutator','交换子：动量截断与连续参考','位置差 r','i[φ(t,r),φ(0,0)]',[series('有限K',sp.map(r=>[r.r,r.C]),COLORS[0]),series('连续周期KG（光锥处留空）',sp.map(r=>r.continuum===null?null:[r.r,r.continuum]),COLORS[1])]),
+plot('wightman','真空相关函数与交换子分开读','位置差 r','W(t,r)',[series('Re W',sp.map(r=>r.W===null?null:[r.r,r.W[0]]),COLORS[0]),series('Im W',sp.map(r=>r.W===null?null:[r.r,r.W[1]]),COLORS[1])]),
+plot('ladder','有限振子矩阵：顶层CCR缺陷','能级编号 n','[aN,aN†]对角',[series('实际有限矩阵',l.rows.map(r=>[r.n,r.commutator]),COLORS[0]),series('无限CCR的单位矩阵',l.rows.map(r=>[r.n,1]),COLORS[1]),series('当前检查能级',[[l.probe.n,l.probe.commutator]],COLORS[3],true)])];}
+function tables(s){const c=s.parameters,l=s.ladder;return[
+{key:'parameters',title:'参数与两个截断',headers:['参数','值'],rows:Object.entries(c)},
+{key:'modes',title:'全部独立实模式',headers:['n','实基','|k|','ω','归一化','请求占据','有效占据','零点','激发','总能级','模式类型'],rows:s.modes.map(r=>[r.n,r.basis,r.k,r.omega,r.normalization,r.requestedOccupation,r.occupation,r.zeroPoint,r.excitation,r.level,r.kind])},
+{key:'energy',title:'当前有限盒能量总账',headers:['项目','值'],rows:Object.entries(s.energy)},
+{key:'cutoff',title:'K=0到16的全部能量',headers:['K','实模式数','Λ','非零频E0','非零频激发','完整E0','有效激发','完整H','振子粒子数','平均动量','动量方差','排除占据'],rows:s.cutoffScan.map(r=>[r.cutoff,r.modeCount,r.momentumCutoff,r.positiveZero,r.positiveExcitation,r.zeroPoint,r.excitation,r.total,r.particleNumber,r.momentumMean,r.momentumVariance,r.missing])},
+{key:'space',title:'完整空间核与相关函数',headers:['r','t','δK','CK','∂tCK','Re/Im W','Re/Im DF','Gret','连续C','连续Gret','差','光锥边界','类空','C+2ImW'],rows:s.space.map(r=>[r.r,r.t,r.delta,r.C,r.dC,r.W,r.DF,r.Gret,r.continuum,r.continuumRetarded,r.difference,r.boundary,r.spacelike,r.relationResidual])},
+{key:'terms',title:'当前点的逐壳传播贡献',headers:['n','重数','|k|','ω','cos(kr)','δ项','C项','∂tC项','W项'],rows:s.probeTerms.map(r=>[r.n,r.g,r.k,r.omega,r.cos,r.delta,r.C,r.dC,r.W])},
+{key:'projection',title:'六个测试频率的全部求和项',headers:['h','采样j','y','δK(y)','cos测试值','加权贡献','求和','精确投影值'],rows:s.projection.flatMap(m=>m.terms.map(r=>[m.h,r.j,r.y,r.kernel,r.test,r.contribution,m.value,m.expected]))},
+{key:'matrices',title:'单振子全部有限矩阵元',headers:['i','j','a','a†','q','Im p','[a,a†]','Im[q,p]','由q/p计算H','投影H','两H之差'],rows:Array.from({length:l.dimension*l.dimension},(_,v)=>{const i=Math.floor(v/l.dimension),j=v%l.dimension;return[i,j,...['a','ad','q','pImag','commutator','qpImag','fromQP','projectedH','defect'].map(k=>l[k][i][j])];})},
+{key:'ladder',title:'所有能级的CCR与哈密顿量',headers:['n','[a,a†]','Im[q,p]','H(qN,pN)','PN H PN','能量差'],rows:l.rows.map(r=>[r.n,r.commutator,r.qpImag,r.fromQP,r.projectedH,r.defect])},
+{key:'time',title:'完整时间扫描：W、DF、Gret',headers:['t','r','C','W','DF','Gret','连续C','连续Gret','边界','差'],rows:s.timeScan.map(r=>[r.t,r.r,r.C,r.W,r.DF,r.Gret,r.continuum,r.continuumRetarded,r.boundary,r.difference])}];}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=10000?v.toExponential(2):Number(v.toFixed(3)).toString();
+function svg(p){const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 540" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+const discrete=['energy','ladder'].includes(p.key);const xticks=discrete?[...new Set(Array.from({length:5},(_,i)=>Math.round(p.xMin+(p.xMax-p.xMin)*i/4)))]:Array.from({length:5},(_,i)=>p.xMin+(p.xMax-p.xMin)*i/4);for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+axisFmt(y)+'</text>';}for(const x of xticks){out+='<text x="'+X(x)+'" y="410" text-anchor="middle">'+axisFmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen&&!s.markersOnly?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const marks=s.markersOnly?s.points.filter(Boolean):s.boundaryMarkers?[...new Set([s.points.find(Boolean),s.points.filter(Boolean).at(-1)])].filter(Boolean):s.points.filter(Boolean).length===1?s.points.filter(Boolean):[];marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="'+(s.markerRadius??5)+'" stroke="'+s.color+'" fill="'+(s.hollow?'none':s.open?'var(--bg,#fff)':s.color)+'" stroke-width="'+(s.markerStrokeWidth??2.5)+'"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});if(!p.series.some(s=>s.points.some(Boolean)))out+='<text x="450" y="245" text-anchor="middle">无质量零模：此真空量不适用</text>';return out+'</svg>';}
+  var mounted=new WeakMap();
+  function mount(root){const METRICS=QUESTIONS.map((q,i)=>({key:String(i),label:q[0]}));var doc=root.ownerDocument;var previous=mounted.get(root);if(previous)previous();var url=null,c=config(),choices={},revealed=false,view=0;root.replaceChildren();root.classList.add('cf181');
+    function el(tag,attrs={},text){var e=doc.createElement(tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));if(text!==undefined)e.textContent=text;return e;}
+    if(!doc.querySelector('[data-cf181-style]')){let style=el('style',{'data-cf181-style':''});style.textContent='.cf181{min-width:0;color:var(--fg,#222);line-height:1.65}.cf181 *{box-sizing:border-box}.cf181 button,.cf181 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.cf181 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.cf181 button:focus-visible,.cf181 select:focus-visible,.cf181 [tabindex]:focus-visible{outline:3px solid #2474bc}.cf181 .cf-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.cf181 label{display:grid;gap:4px;min-width:0}.cf181 input{width:100%;min-height:44px;font:inherit;color:inherit;background:var(--bg,#fff)}.cf181 .cf-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.cf181 .cf-pred>strong{display:block;margin-bottom:6px}.cf181 .cf-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.cf181 .cf-feedback{margin:7px 0}.cf181 .cf-scroll{max-width:100%;overflow:auto}.cf181 svg{display:block;min-width:680px;width:100%;height:auto}.cf181 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.cf181 td,.cf181 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.cf181 [hidden]{display:none!important}.cf181 details{margin:12px 0}.cf181 summary{min-height:44px;cursor:pointer}.cf181 .cf-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.cf181 .cf-correct{color:var(--cl-green,#277540)}.cf181 .cf-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.cf181 .cf-grid{grid-template-columns:1fr}}';doc.head.appendChild(style);}
+    root.append(el('h3',{},'先把模式、交换子与两种截断分清'));
+    root.append(el('p',{},'从有限周期实基展开自由场，逐项查看能量、投影核和相关函数；另用一个有限振子矩阵揭示能级截断的边界。'));
+    var presets=el('div',{class:'cf-row','aria-label':'教学预设'});PRESETS.forEach(p=>{let b=el('button',{type:'button','data-preset':p.key},p.label);b.onclick=()=>{c=config(p.config);sync();reset();};presets.append(b);});root.append(presets);
+    var fields={},grid=el('div',{class:'cf-grid'});
+    var outs={};
+    [['mass','质量 m（0为自由粒子零模边界）',0,2,.1],['length','周期盒长 L',4,12,'any'],['cutoff','动量壳截断 K',0,16,1],['time','时间差 t',-2,2,.01],['rFraction','位置差 r/L',0,.5,.005],['ladderDim','单振子矩阵维数 N',2,12,1],['level','检查的能级 n',0,c.ladderDim-1,1]].forEach(([key,title,min,max,step])=>{let label=el('label',{},title),out=el('output'),input=el('input',{type:'range',min,max,step,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.onchange=input.oninput=()=>{c[key]=+input.value;if(key==='ladderDim')c.level=Math.min(c.level,c.ladderDim-1);sync();reset();};});
+    const label=el('label',{},'实模式的占据方案'),select=el('select',{'data-field':'profile','aria-label':'实模式的占据方案'});for(const[value,title]of[['vacuum','无振子激发'],['one-cos','n=1 cos模式占据1'],['product-three','n=0、1cos、2cos各占据1']])select.append(el('option',{value},title));label.append(select);grid.append(label);fields.profile=select;select.onchange=()=>{c.profile=select.value;sync();reset();};root.append(grid);
+    var rateNote=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(rateNote,prediction);prediction.append(el('h4',{},'先预测：投影核、有限矩阵、零模与动量'),el('p',{},'四道题的数学条件写在题干里。旋钮用于对照和找反例，不会自动改写题目。'));
+    var predButtons={},feedbacks={};METRICS.forEach(m=>{let row=el('div',{class:'cf-pred'});row.append(el('strong',{},m.label));predButtons[m.key]=[];[true,false].forEach(v=>{let b=el('button',{type:'button','data-prediction':m.key,'data-choice':String(v),'aria-pressed':'false'},QUESTIONS[+m.key][1][v?0:1]);b.onclick=()=>{choices[m.key]=v;predButtons[m.key].forEach(b=>b.setAttribute('aria-pressed',String(b.getAttribute('data-choice')===String(v))));if(revealed)showFeedback();};predButtons[m.key].push(b);row.append(b);});let f=el('p',{class:'cf-feedback','data-feedback':m.key});feedbacks[m.key]=f;row.append(f);prediction.append(row);});
+    var check=el('button',{type:'button','data-check':''},'核对预测并显示结果'),status=el('p',{class:'cf-status','aria-live':'polite'});root.append(check,status);
+    var stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),plotButtons=el('div',{class:'cf-row'}),plotWrap=el('div',{class:'cf-scroll',tabindex:'0',role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'折线连接全部记录点，不代表能级之间还有连续能级。光锥边界的连续参考留空；有限动量截断可能留下类空交换子。无质量零模仍在交换子里，真空相关和完整零点能不适用，空值不是零。'),summary=el('p'),tableHost=el('div'),download=el('a',{'data-download':'',download:'cf-record.json'},'下载当前完整数值记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);var current;
+    function showFeedback(){let total=0;METRICS.forEach(m=>{if(typeof choices[m.key]!=='boolean')return;let f=feedback(+m.key,choices[m.key]?0:1);total+=+f.correct;feedbacks[m.key].textContent=f.text;feedbacks[m.key].className='cf-feedback '+(f.correct?'cf-correct':'cf-wrong');});status.textContent='预测核对：'+total+'/4 正确。读数、曲线和下载均对应当前参数。';}
+    function draw(){var ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+    function render(){current=snapshot(c);root.__fieldSnapshot=current;stage.hidden=false;summary.textContent='实模式数 '+current.energy.modeCount+'；完整零点能 '+fmt(current.energy.zeroPoint)+'；有效振子激发 '+fmt(current.energy.excitation)+'。当前r='+fmt(current.probe.r)+'、t='+fmt(current.probe.t)+'：有限C='+fmt(current.probe.C)+'，连续C='+fmt(current.probe.continuum)+'。单振子第'+c.level+'层CCR读数='+fmt(current.ladder.probe.commutator)+'。';plotButtons.replaceChildren();plots(current).forEach((p,i)=>{let b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();tables(current).forEach(t=>{let details=el('details',{'data-table':t.key}),heading=el('summary',{},t.title);details.append(heading);details.addEventListener('toggle',()=>{if(!details.open||details.children.length>1)return;let wrap=el('div',{class:'cf-scroll',tabindex:'0',role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),head=el('thead'),tr=el('tr'),body=el('tbody');t.headers.forEach(h=>tr.append(el('th',{scope:'col'},h)));head.append(tr);t.rows.forEach(r=>{let row=el('tr');r.forEach(v=>row.append(el('td',{},fmt(v))));body.append(row);});table.append(head,body);wrap.append(table);details.append(wrap);});tableHost.append(details);});if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current,null,2)],{type:'application/json'}));download.href=url;showFeedback();}
+    function sync(){fields.level.max=c.ladderDim-1;Object.entries(fields).forEach(([k,e])=>e.value=c[k]);}
+    function reset(){c=config(c);revealed=false;choices={};stage.hidden=true;delete root.__fieldSnapshot;METRICS.forEach(m=>{feedbacks[m.key].textContent='';predButtons[m.key].forEach(b=>b.setAttribute('aria-pressed','false'));});Object.entries(outs).forEach(([k,o])=>o.textContent=fmt(c[k]));rateNote.textContent='K控制保留的场模式，N仅控制独立单位频率振子的矩阵维数；降低N时检查能级同步到可用范围。相关函数是有质量真空的读数，不随占据方案改变。盒长滑块连续调整，L=2π预设保留该参数。';status.textContent='参数已就绪。完成四项预测后显示结果。';}
+    check.onclick=()=>{if(!METRICS.every(m=>typeof choices[m.key]==='boolean')){status.textContent='请先为四个量各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
   }
-  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module) {
-    try {
-      var report = exported.selfTest();
-      console.log("canonical-field-modes self-test: PASS (" + report.checks + " checks, " + report.presets + " presets)");
-    } catch (error) {
-      console.error("canonical-field-modes self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
-  }
-})(typeof window !== "undefined" ? window : null, function (host) {
-  "use strict";
+function selfTest(){let checks=0;const ok=(x,m)=>{checks++;if(!x)throw Error(m);},near=(a,b)=>ok(Math.abs(a-b)<1e-8*Math.max(1,Math.abs(b)),'numerical invariant');for(const p of PRESETS){const s=snapshot(p.config),c=s.parameters;ok(s.modes.length===1+2*c.cutoff,'real modes');for(const e of s.cutoffScan){if(e.total!==null)near(e.total,e.zeroPoint+e.excitation);ok(e.modeCount===1+2*e.cutoff,'cutoff count');}for(const x of s.space){if(x.W!==null)near(x.C,-2*x.W[1]);if(c.time===0)near(x.C,0);if(x.spacelike&&x.continuum!==null)near(x.continuum,0);}for(const p of s.projection)near(p.value,p.expected);for(const r of s.ladder.rows){near(r.commutator,r.n===c.ladderDim-1?1-c.ladderDim:1);near(r.defect,r.n===c.ladderDim-1?-c.ladderDim/2:0);}near(s.ladder.trace,0);}near(j0(0),1);const z=snapshot({mass:0,cutoff:0});near(z.probe.C,z.parameters.time/z.parameters.length);ok(z.probe.W===null&&z.energy.total===null,'massless vacuum boundary');const p=snapshot({profile:'product-three'});near(p.energy.particleNumber,3);near(p.energy.momentumVariance,5);return{status:'PASS',checks};}
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "cl-canonical-field-modes-styles";
-  var INSTANCE = 0;
-  var EPS = 1e-10;
-
-  var PRESETS = [
-    { id: "vacuum", label: "真空：所有 q=0", mass: 1, length: 2 * Math.PI, cutoff: 4, profile: "vacuum" },
-    { id: "one-particle", label: "单模激发：n=1", mass: 1, length: 2 * Math.PI, cutoff: 4, profile: "one" },
-    { id: "low-band", label: "低频有限波包", mass: 0.75, length: 2 * Math.PI, cutoff: 5, profile: "packet" }
-  ];
-  var DEFAULT = {
-    presetId: "one-particle",
-    mass: 1,
-    length: 2 * Math.PI,
-    cutoff: 4,
-    profile: "one"
-  };
-
-  var STYLE_TEXT = [
-    ".cfm-lab{--cfm-blue:var(--cl-blue,#315f9d);--cfm-gold:var(--cl-gold,#9b6a12);--cfm-green:var(--cl-green,#39734d);--cfm-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg);line-height:1.55;}",
-    ".cfm-lab *,.cfm-lab *::before,.cfm-lab *::after{box-sizing:border-box;}.cfm-lab [hidden]{display:none!important;}.cfm-lab h3,.cfm-lab h4{margin:0;color:var(--fg);}.cfm-lab h3{font-size:1.18rem;}.cfm-lab h4{margin-top:16px;font-size:1rem;}",
-    ".cfm-lab button,.cfm-lab input{font:inherit;}.cfm-lab button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);line-height:1.35;cursor:pointer;overflow-wrap:anywhere;}.cfm-lab button:hover{border-color:var(--accent);}.cfm-lab button[aria-pressed='true'],.cfm-lab button.cfm-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:700;}.cfm-lab button:disabled{cursor:not-allowed;opacity:.55;}.cfm-lab button:focus-visible,.cfm-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px;}",
-    ".cfm-lab .cfm-note,.cfm-lab .cfm-feedback{color:var(--fg-soft);font-size:13px;line-height:1.65;overflow-wrap:anywhere;}.cfm-lab .cfm-prompt{margin:14px 0;padding:12px 14px;border-left:3px solid var(--cfm-gold);background:var(--bg);}.cfm-lab fieldset{min-width:0;margin:0;padding:0;border:0;}.cfm-lab legend{margin-bottom:8px;color:var(--fg-soft);font-size:13px;font-weight:750;}.cfm-lab .cfm-question-list{display:grid;gap:12px;}.cfm-lab .cfm-question{min-width:0;padding:10px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg);}.cfm-lab .cfm-choice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}.cfm-lab .cfm-choice-grid button{font-size:12px;}.cfm-lab .cfm-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}.cfm-lab .cfm-actions>*{flex:1 1 170px;}.cfm-lab .cfm-feedback{min-height:2em;margin:8px 0 0;font-weight:700;}.cfm-lab .cfm-pass{color:var(--cfm-green);}.cfm-lab .cfm-warn{color:var(--cfm-red);}",
-    ".cfm-lab .cfm-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.cfm-lab .cfm-layout{display:grid;grid-template-columns:minmax(210px,.72fr) minmax(0,1.28fr);gap:16px;align-items:start;min-width:0;}.cfm-lab .cfm-controls,.cfm-lab .cfm-stage{min-width:0;}.cfm-lab .cfm-controls{display:grid;gap:12px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}.cfm-lab .cfm-control{display:grid;gap:5px;min-width:0;}.cfm-lab .cfm-control label,.cfm-lab .cfm-control-title{color:var(--fg-soft);font-size:13px;font-weight:700;}.cfm-lab .cfm-control output{color:var(--accent);font-variant-numeric:tabular-nums;}.cfm-lab .cfm-control input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent);}.cfm-lab .cfm-scale{display:flex;justify-content:space-between;gap:8px;color:var(--fg-soft);font-size:11px;}.cfm-lab .cfm-preset-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}.cfm-lab .cfm-preset-grid button{font-size:12px;}",
-    ".cfm-lab .cfm-stage-frame{min-width:0;padding:9px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}.cfm-lab .cfm-stage-title{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin:0 0 8px;color:var(--fg-soft);font-size:13px;}.cfm-lab .cfm-svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg);}.cfm-lab .cfm-svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.cfm-lab .cfm-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.68;}.cfm-lab .cfm-axis{stroke:currentColor;stroke-width:1.2;stroke-opacity:.72;}.cfm-lab .cfm-zero{fill:var(--cfm-blue);}.cfm-lab .cfm-exc{fill:var(--cfm-gold);}.cfm-lab .cfm-cutoff{stroke:var(--cfm-red);stroke-width:2;stroke-dasharray:6 4;}",
-    ".cfm-lab .cfm-legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin:8px 0 0;color:var(--fg-soft);font-size:12px;}.cfm-lab .cfm-legend span{display:inline-flex;align-items:center;gap:5px;}.cfm-lab .cfm-swatch{display:inline-block;width:18px;height:3px;background:currentColor;}.cfm-lab .cfm-swatch-blue{color:var(--cfm-blue);}.cfm-lab .cfm-swatch-gold{color:var(--cfm-gold);}.cfm-lab .cfm-swatch-red{color:var(--cfm-red);}.cfm-lab .cfm-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(122px,1fr));gap:8px;margin:12px 0;}.cfm-lab .cfm-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.cfm-lab .cfm-metric:nth-child(1),.cfm-lab .cfm-metric:nth-child(4){border-top-color:var(--cfm-blue);}.cfm-lab .cfm-metric:nth-child(2),.cfm-lab .cfm-metric:nth-child(5){border-top-color:var(--cfm-gold);}.cfm-lab .cfm-metric:nth-child(3),.cfm-lab .cfm-metric:nth-child(6){border-top-color:var(--cfm-red);}.cfm-lab .cfm-metric span{display:block;color:var(--fg-soft);font-size:11.5px;line-height:1.4;}.cfm-lab .cfm-metric strong{display:block;margin-top:3px;color:var(--fg);font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}",
-    ".cfm-lab .cfm-table-wrap{max-width:100%;margin-top:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.cfm-lab table{width:100%;min-width:760px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.cfm-lab th,.cfm-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}.cfm-lab th{color:var(--fg-soft);font-size:11.5px;font-weight:750;}.cfm-lab .cfm-interpretation{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--cfm-green);background:var(--bg);font-size:13px;line-height:1.7;overflow-wrap:anywhere;}",
-    "@media(max-width:900px){.cfm-lab .cfm-layout{grid-template-columns:minmax(0,1fr);}}@media(max-width:760px){.cfm-lab .cfm-choice-grid{grid-template-columns:minmax(0,1fr);}.cfm-lab .cfm-preset-grid{grid-template-columns:minmax(0,1fr);}}@media(max-width:420px){.cfm-lab .cfm-stage-frame{padding:6px;}.cfm-lab table{font-size:11.5px;}.cfm-lab th,.cfm-lab td{padding-left:5px;padding-right:5px;}}@media(prefers-reduced-motion:reduce){.cfm-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important;}}"
-  ].join("\n");
-
-  function finite(value) {
-    return typeof value === "number" && isFinite(value);
-  }
-
-  function near(left, right, tolerance) {
-    var scale = Math.max(1, Math.abs(left), Math.abs(right));
-    return Math.abs(left - right) <= (tolerance || EPS) * scale;
-  }
-
-  function clamp(value, minimum, maximum) {
-    return Math.max(minimum, Math.min(maximum, value));
-  }
-
-  function presetById(id) {
-    for (var index = 0; index < PRESETS.length; index += 1) {
-      if (PRESETS[index].id === id) return PRESETS[index];
-    }
-    return PRESETS[0];
-  }
-
-  function presetState(preset) {
-    return {
-      presetId: preset.id,
-      mass: preset.mass,
-      length: preset.length,
-      cutoff: preset.cutoff,
-      profile: preset.profile
-    };
-  }
-
-  function degeneracy(n) {
-    return n === 0 ? 1 : 2;
-  }
-
-  function occupationVector(n, count, profile) {
-    var values = [];
-    for (var index = 0; index < count; index += 1) values.push(0);
-    if (profile === "one" && n === 1 && count > 0) values[0] = 1;
-    if (profile === "packet") {
-      if (n === 0 && count > 0) values[0] = 1;
-      if (n === 1 && count > 0) values[0] = 1;
-      if (n === 2 && count > 0) values[0] = 1;
-    }
-    return values;
-  }
-
-  function sum(values) {
-    return values.reduce(function (total, value) { return total + value; }, 0);
-  }
-
-  function compute(spec) {
-    var options = spec || {};
-    var preset = presetById(options.presetId || DEFAULT.presetId);
-    var mass = options.mass === undefined ? preset.mass : Number(options.mass);
-    var length = options.length === undefined ? preset.length : Number(options.length);
-    var cutoff = options.cutoff === undefined ? preset.cutoff : Math.round(Number(options.cutoff));
-    var profile = options.profile === undefined ? preset.profile : options.profile;
-    if (!finite(mass) || mass <= 0) throw new RangeError("mass must be positive");
-    if (!finite(length) || length <= 0) throw new RangeError("length must be positive");
-    if (!finite(cutoff) || cutoff < 0 || cutoff > 12) throw new RangeError("cutoff must be in [0, 12]");
-    if (["vacuum", "one", "packet"].indexOf(profile) === -1) throw new RangeError("unknown occupation profile");
-
-    var modes = [];
-    var zeroPoint = 0;
-    var excitation = 0;
-    var total = 0;
-    for (var n = 0; n <= cutoff; n += 1) {
-      var k = 2 * Math.PI * n / length;
-      var omega = Math.sqrt(k * k + mass * mass);
-      var count = degeneracy(n);
-      var occupations = occupationVector(n, count, profile);
-      var levels = occupations.map(function (occupation) { return (occupation + 0.5) * omega; });
-      var zeroShell = 0.5 * count * omega;
-      var excitationShell = sum(occupations) * omega;
-      var totalShell = zeroShell + excitationShell;
-      modes.push({
-        n: n,
-        k: k,
-        omega: omega,
-        degeneracy: count,
-        occupations: occupations,
-        levels: levels,
-        zeroPoint: zeroShell,
-        excitation: excitationShell,
-        total: totalShell
-      });
-      zeroPoint += zeroShell;
-      excitation += excitationShell;
-      total += totalShell;
-    }
-    return {
-      label: options.presetId === "custom" ? "自定义" : preset.label,
-      preset: preset,
-      mass: mass,
-      length: length,
-      cutoff: cutoff,
-      profile: profile,
-      modes: modes,
-      modeCount: 1 + 2 * cutoff,
-      cutoffMomentum: 2 * Math.PI * cutoff / length,
-      zeroPoint: zeroPoint,
-      excitation: excitation,
-      total: total,
-      identityResidual: Math.abs(total - zeroPoint - excitation),
-      lastZeroPoint: modes[modes.length - 1].zeroPoint,
-      lastExcitation: modes[modes.length - 1].excitation
-    };
-  }
-
-  function format(value, digits) {
-    if (!finite(value)) return "—";
-    var places = digits === undefined ? 4 : digits;
-    if (Math.abs(value) < 0.0005 && value !== 0) return value.toExponential(Math.min(places, 4));
-    var text = value.toFixed(places);
-    return text.indexOf(".") === -1 ? text : text.replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function formatOccupations(values) {
-    return "[" + values.join(",") + "]";
-  }
-
-  function formatLevels(values) {
-    return values.map(function (value) { return format(value, 5); }).join(", ");
-  }
-
-  function profileLabel(profile) {
-    return profile === "vacuum" ? "真空 q=0" : profile === "one" ? "n=1 单模占据" : "n=0,1,2 低频有限占据";
-  }
-
-  function setAttributes(node, attrs) {
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", String(value));
-      else if (key === "htmlFor") node.setAttribute("for", String(value));
-      else if (key === "text") node.textContent = String(value);
-      else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, String(value));
-    });
-    return node;
-  }
-
-  function appendChildren(node, children) {
-    var list = Array.isArray(children) ? children : [children];
-    list.forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child && child.nodeType ? child : node.ownerDocument.createTextNode(String(child)));
-    });
-    return node;
-  }
-
-  function element(doc, tag, attrs, children) {
-    return appendChildren(setAttributes(doc.createElement(tag), attrs || {}), children || []);
-  }
-
-  function svgElement(doc, tag, attrs, children) {
-    return appendChildren(setAttributes(doc.createElementNS(SVG_NS, tag), attrs || {}), children || []);
-  }
-
-  function clear(node) {
-    while (node && node.firstChild) node.removeChild(node.firstChild);
-  }
-
-  function installStyles(doc) {
-    if (!doc || !doc.head || doc.getElementById(STYLE_ID)) return;
-    var style = doc.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = STYLE_TEXT;
-    doc.head.appendChild(style);
-  }
-
-  function metric(doc, label) {
-    var value = element(doc, "strong", {}, ["—"]);
-    return { node: element(doc, "div", { className: "cfm-metric" }, [element(doc, "span", {}, [label]), value]), value: value };
-  }
-
-  function table(doc, label, headers) {
-    return element(doc, "table", { "aria-label": label }, [
-      element(doc, "thead", {}, [element(doc, "tr", {}, headers.map(function (header) { return element(doc, "th", { scope: "col" }, [header]); }))]),
-      element(doc, "tbody", {}, [])
-    ]);
-  }
-
-  function replaceRows(target, rows) {
-    var body = target.querySelector("tbody");
-    clear(body);
-    rows.forEach(function (row) {
-      body.appendChild(element(target.ownerDocument, "tr", {}, row.map(function (value) {
-        return element(target.ownerDocument, "td", {}, [value]);
-      })));
-    });
-  }
-
-  function drawSvg(doc, svg, data, uid) {
-    clear(svg);
-    svg.setAttribute("aria-labelledby", uid + "-svg-title " + uid + "-svg-desc");
-    svg.appendChild(svgElement(doc, "title", { id: uid + "-svg-title" }, ["有限模式的零点项与占据项堆叠图"]));
-    svg.appendChild(svgElement(doc, "desc", { id: uid + "-svg-desc" }, ["每个 n 壳的蓝色部分是零点项，金色部分是占据项；横轴到 cutoff 为止。"]));
-    var left = 46;
-    var right = 676;
-    var top = 46;
-    var bottom = 260;
-    var maximum = Math.max(1, Math.max.apply(null, data.modes.map(function (mode) { return mode.total; })) * 1.18);
-    var mapY = function (value) { return bottom - (bottom - top) * value / maximum; };
-    svg.appendChild(svgElement(doc, "text", { x: left, y: 23, "font-size": 12, "font-weight": 700 }, ["H_K 的模式分账：蓝 E₀，金 E_exc"]));
-    svg.appendChild(svgElement(doc, "line", { x1: left, y1: bottom, x2: right, y2: bottom, class: "cfm-axis" }, []));
-    [0, maximum / 2, maximum].forEach(function (value) {
-      var y = mapY(value);
-      svg.appendChild(svgElement(doc, "line", { x1: left, y1: y, x2: right, y2: y, class: "cfm-grid" }, []));
-      svg.appendChild(svgElement(doc, "text", { x: left - 8, y: y + 4, "text-anchor": "end", "font-size": 10 }, [format(value, 1)]));
-    });
-    var group = (right - left) / data.modes.length;
-    data.modes.forEach(function (mode, index) {
-      var x = left + group * index + group * 0.2;
-      var width = group * 0.6;
-      var zeroY = mapY(mode.zeroPoint);
-      var totalY = mapY(mode.total);
-      svg.appendChild(svgElement(doc, "rect", { x: x, y: zeroY, width: width, height: bottom - zeroY, class: "cfm-zero" }, []));
-      svg.appendChild(svgElement(doc, "rect", { x: x, y: totalY, width: width, height: zeroY - totalY, class: "cfm-exc" }, []));
-      svg.appendChild(svgElement(doc, "text", { x: x + width / 2, y: bottom + 17, "text-anchor": "middle", "font-size": 10 }, ["n=" + mode.n]));
-      svg.appendChild(svgElement(doc, "text", { x: x + width / 2, y: totalY - 6, "text-anchor": "middle", "font-size": 10 }, [format(mode.total, 2)]));
-    });
-    var cutoffX = left + group * (data.modes.length - 0.5);
-    svg.appendChild(svgElement(doc, "line", { x1: cutoffX, y1: top, x2: cutoffX, y2: bottom, class: "cfm-cutoff" }, []));
-    svg.appendChild(svgElement(doc, "text", { x: cutoffX + 5, y: top + 12, "font-size": 10 }, ["K=" + data.cutoff]));
-  }
-
-  function mount(root, api) {
-    if (!root || !root.ownerDocument || !root.appendChild) return;
-    var doc = root.ownerDocument;
-    installStyles(doc);
-    INSTANCE += 1;
-    var uid = "cl-cfm-" + INSTANCE;
-    var shell = element(doc, "div", { className: "cfm-lab" }, []);
-    var state = presetState(presetById(DEFAULT.presetId));
-    var prediction = { oscillator: null, cutoff: null, boundary: null, antiparticle: null };
-    var revealed = false;
-    var score = 0;
-    var refs = {};
-    root.replaceChildren(shell);
-
-    function announce(message) {
-      if (api && typeof api.announce === "function") api.announce(root, message);
-    }
-
-    function complete() {
-      return Object.keys(prediction).every(function (key) { return prediction[key] !== null; });
-    }
-
-    function addQuestion(container, key, prompt, options) {
-      var fieldset = element(doc, "fieldset", { className: "cfm-question" }, [element(doc, "legend", {}, [prompt])]);
-      var row = element(doc, "div", { className: "cfm-choice-grid", role: "group", "aria-label": prompt }, []);
-      options.forEach(function (option) {
-        var button = element(doc, "button", { type: "button", "aria-pressed": prediction[key] === option.value ? "true" : "false", disabled: revealed }, [option.label]);
-        button.addEventListener("click", function () {
-          if (revealed) return;
-          prediction[key] = option.value;
-          renderShell();
-        });
-        row.appendChild(button);
-      });
-      fieldset.appendChild(row);
-      container.appendChild(fieldset);
-    }
-
-    function buildPrediction() {
-      shell.appendChild(element(doc, "h3", {}, ["正则量子化分账台：有限盒、有限模式、有限声称"]));
-      shell.appendChild(element(doc, "p", { className: "cfm-note" }, [revealed ? "预测已提交；现在可以调节质量、盒长、cutoff 与占据 profile。" : "先判断每一项能量和模型边界，再打开确定的模式账本。"]));
-      shell.appendChild(element(doc, "div", { className: "cfm-prompt" }, [revealed ? "蓝色是零点项，金色是占据项；本模型是自由实标量场的有限正则化桥梁，不是相互作用 QFT 的非微扰构造。" : "预测门：把谐振子能级、占据数、零点能和 cutoff 分开。"]));
-      var questions = element(doc, "div", { className: "cfm-question-list" }, []);
-      addQuestion(questions, "oscillator", "1 · 每个独立实模式的能级怎样写？", [
-        { value: "level", label: "E=(q+1/2)ω" }, { value: "classical", label: "E=qω，无零点项" }, { value: "linear", label: "E=q+ω/2 与 q 无关" }
-      ]);
-      addQuestion(questions, "cutoff", "2 · 增大 cutoff 时，哪笔账通常显式变化？", [
-        { value: "zero", label: "零点项 E₀(K)" }, { value: "none", label: "所有总能量不变" }, { value: "particle", label: "每个已占据 q 自动变大" }
-      ]);
-      addQuestion(questions, "boundary", "3 · 这个有限模型的正确定位是？", [
-        { value: "bridge", label: "自由场的调节桥梁" }, { value: "nonperturbative", label: "相互作用 QFT 的非微扰构造" }, { value: "continuum", label: "已经完成连续极限" }
-      ]);
-      addQuestion(questions, "antiparticle", "4 · 实标量场的 a† 产生什么？", [
-        { value: "neutral", label: "同一种中性粒子" }, { value: "pair", label: "自动产生独立反粒子" }, { value: "charge", label: "一个带电粒子" }
-      ]);
-      shell.appendChild(questions);
-      var actions = element(doc, "div", { className: "cfm-actions" }, []);
-      var check = element(doc, "button", { type: "button", className: "cfm-primary", disabled: revealed || !complete() }, [revealed ? "已提交，账本已揭示" : "提交预测并揭示"]);
-      check.addEventListener("click", function () {
-        if (!complete()) return;
-        var answers = { oscillator: "level", cutoff: "zero", boundary: "bridge", antiparticle: "neutral" };
-        score = Object.keys(answers).reduce(function (total, key) { return total + (prediction[key] === answers[key] ? 1 : 0); }, 0);
-        revealed = true;
-        renderShell();
-        announce("预测已提交，有限模式、零点和 cutoff 账本已揭示。");
-      });
-      var reset = element(doc, "button", { type: "button" }, [revealed ? "重新预测" : "重置"]);
-      reset.addEventListener("click", resetToGate);
-      actions.appendChild(check);
-      actions.appendChild(reset);
-      shell.appendChild(actions);
-      var feedback = !complete() ? "请为四个判断各选一项。" : revealed ? "预测已提交，" + score + "/4 命中。" : "四项预测已记录，点击提交后才会显示模式表。";
-      shell.appendChild(element(doc, "p", { className: "cfm-feedback " + (revealed ? (score === 4 ? "cfm-pass" : "cfm-warn") : ""), "aria-live": "polite" }, [feedback]));
-    }
-
-    function addRange(container, key, label, minimum, maximum, step, formatter) {
-      var id = uid + "-" + key;
-      var output = element(doc, "output", { for: id }, [""]);
-      var input = element(doc, "input", { id: id, type: "range", min: String(minimum), max: String(maximum), step: String(step), value: String(state[key]), "aria-label": label }, []);
-      input.addEventListener("input", function () {
-        state[key] = clamp(Number(input.value), minimum, maximum);
-        state.presetId = "custom";
-        renderResults();
-      });
-      container.appendChild(element(doc, "div", { className: "cfm-control" }, [
-        element(doc, "label", { htmlFor: id }, [label + " = ", output]), input,
-        element(doc, "div", { className: "cfm-scale" }, [element(doc, "span", {}, [formatter(minimum)]), element(doc, "span", {}, [formatter((minimum + maximum) / 2)]), element(doc, "span", {}, [formatter(maximum)])])
-      ]));
-      return { input: input, output: output };
-    }
-
-    function buildControls() {
-      var controls = element(doc, "section", { className: "cfm-controls", "aria-labelledby": uid + "-controls" }, [element(doc, "h4", { id: uid + "-controls" }, ["揭示后的参数"])]);
-      refs.mass = addRange(controls, "mass", "质量 m", 0.5, 2, 0.25, function (value) { return format(value, 2); });
-      refs.length = addRange(controls, "length", "盒长 L", 4, 12, 0.5, function (value) { return format(value, 1); });
-      refs.cutoff = addRange(controls, "cutoff", "模式 cutoff K", 0, 8, 1, function (value) { return String(Math.round(value)); });
-      var presetSet = element(doc, "fieldset", {}, [element(doc, "legend", {}, ["教学预设"])]);
-      var presetGrid = element(doc, "div", { className: "cfm-preset-grid" }, []);
-      PRESETS.forEach(function (preset) {
-        var button = element(doc, "button", { type: "button", "aria-pressed": preset.id === state.presetId ? "true" : "false" }, [preset.label]);
-        button.addEventListener("click", function () {
-          state = presetState(preset);
-          renderResults();
-          announce("已切换到" + preset.label + "。");
-        });
-        presetGrid.appendChild(button);
-      });
-      presetSet.appendChild(presetGrid);
-      controls.appendChild(presetSet);
-      controls.appendChild(element(doc, "p", { className: "cfm-note" }, ["实场的 n>0 shell 用两个独立实模式计数；q 向量逐个振子列出，零点项是每个振子的 ω/2。"]));
-      var reset = element(doc, "button", { type: "button" }, ["重新预测"]);
-      reset.addEventListener("click", resetToGate);
-      controls.appendChild(reset);
-      return controls;
-    }
-
-    function buildStage() {
-      var stage = element(doc, "section", { className: "cfm-stage", "aria-labelledby": uid + "-stage" }, []);
-      refs.svg = svgElement(doc, "svg", { class: "cfm-svg", width: "720", height: "320", viewBox: "0 0 720 320", role: "img" }, []);
-      stage.appendChild(element(doc, "div", { className: "cfm-stage-frame" }, [
-        element(doc, "div", { className: "cfm-stage-title" }, [element(doc, "span", { id: uid + "-stage" }, ["零点项与占据项的 cutoff 分账"]), element(doc, "span", {}, ["蓝：E₀；金：E_exc；红虚线：K"])]),
-        refs.svg,
-        element(doc, "div", { className: "cfm-legend" }, [element(doc, "span", {}, [element(doc, "i", { className: "cfm-swatch cfm-swatch-blue" }, []), "零点项"]), element(doc, "span", {}, [element(doc, "i", { className: "cfm-swatch cfm-swatch-gold" }, []), "占据项"]), element(doc, "span", {}, [element(doc, "i", { className: "cfm-swatch cfm-swatch-red" }, []), "cutoff"])])
-      ]));
-      refs.metrics = [metric(doc, "独立实振子 M_K"), metric(doc, "cutoff K"), metric(doc, "零点 E₀(K)"), metric(doc, "占据 E_exc(K)"), metric(doc, "总 H_K"), metric(doc, "对账残差")];
-      stage.appendChild(element(doc, "div", { className: "cfm-metrics" }, refs.metrics.map(function (item) { return item.node; })));
-      stage.appendChild(element(doc, "h4", {}, ["cutoff / 零点 / 占据总账"]));
-      refs.ledgerTable = table(doc, "有限模式总账", ["账本项", "数值", "读法"]);
-      stage.appendChild(element(doc, "div", { className: "cfm-table-wrap" }, [refs.ledgerTable]));
-      stage.appendChild(element(doc, "h4", {}, ["每个模式的谐振子能级与占据数"]));
-      refs.modeTable = table(doc, "有限实模式逐项账本", ["n", "g_n", "|k_n|", "ω_n", "q_{n,r}", "能级 (q+1/2)ω", "E₀ 壳", "E_exc 壳", "合计"]);
-      stage.appendChild(element(doc, "div", { className: "cfm-table-wrap" }, [refs.modeTable]));
-      refs.interpretation = element(doc, "p", { className: "cfm-interpretation", "aria-live": "polite" }, [""]);
-      stage.appendChild(refs.interpretation);
-      return stage;
-    }
-
-    function renderResults() {
-      if (!revealed) return;
-      var data = compute(state);
-      refs.mass.input.value = String(data.mass);
-      refs.mass.output.textContent = format(data.mass, 2);
-      refs.length.input.value = String(data.length);
-      refs.length.output.textContent = format(data.length, 2);
-      refs.cutoff.input.value = String(data.cutoff);
-      refs.cutoff.output.textContent = String(data.cutoff);
-      refs.metrics[0].value.textContent = String(data.modeCount);
-      refs.metrics[1].value.textContent = String(data.cutoff);
-      refs.metrics[2].value.textContent = format(data.zeroPoint, 6);
-      refs.metrics[3].value.textContent = format(data.excitation, 6);
-      refs.metrics[4].value.textContent = format(data.total, 6);
-      refs.metrics[5].value.textContent = format(data.identityResidual, 3);
-      drawSvg(doc, refs.svg, data, uid);
-      replaceRows(refs.ledgerTable, [
-        ["盒与 cutoff", "L=" + format(data.length, 5) + "；K=" + data.cutoff + "；Λ=" + format(data.cutoffMomentum, 5), "有限盒、有限模式；M_K=1+2K=" + data.modeCount],
-        ["质量与 profile", "m=" + format(data.mass, 5) + "；" + profileLabel(data.profile), "自由实标量场的确定占据规则"],
-        ["零点项", format(data.zeroPoint, 10), "E₀(K)=1/2 Σ g_nω_n；随 cutoff 改变"],
-        ["占据项", format(data.excitation, 10), "E_exc(K)=Σ q_{n,r}ω_n；由占据数逐项决定"],
-        ["总哈密顿量", format(data.total, 10), "H_K=E₀(K)+E_exc(K)"],
-        ["代数残差", format(data.identityResidual, 10), "H_K−E₀(K)−E_exc(K)=0"],
-        ["最后一壳增量", "ΔE₀=" + format(data.lastZeroPoint, 8) + "；ΔE_exc=" + format(data.lastExcitation, 8), "把 cutoff 账分到新增 shell"]
-      ]);
-      replaceRows(refs.modeTable, data.modes.map(function (mode) {
-        return [String(mode.n), String(mode.degeneracy), format(mode.k, 5), format(mode.omega, 7), formatOccupations(mode.occupations), formatLevels(mode.levels), format(mode.zeroPoint, 7), format(mode.excitation, 7), format(mode.total, 7)];
-      }));
-      refs.interpretation.textContent = data.label + "：有限盒内共有 " + data.modeCount + " 个独立实振子，当前 cutoff Λ=" + format(data.cutoffMomentum, 5) + "。零点项、占据项和总能量逐项相加且残差为零；这只验证自由、有限、受监管模型的正则量子化账本，不是相互作用 QFT 的非微扰构造。";
-    }
-
-    function buildRevealed() {
-      var panel = element(doc, "section", { className: "cfm-revealed" }, [element(doc, "h4", {}, ["结果与透明账本"]), element(doc, "p", { className: "cfm-note" }, ["调节 cutoff 会新增实模式和零点项；调节 profile 只改变占据项。改变盒长会移动离散动量和每个谐振子的频率。"])]);
-      panel.appendChild(element(doc, "div", { className: "cfm-layout" }, [buildControls(), buildStage()]));
-      shell.appendChild(panel);
-      renderResults();
-    }
-
-    function renderShell() {
-      refs = {};
-      shell.replaceChildren();
-      buildPrediction();
-      if (revealed) buildRevealed();
-    }
-
-    function resetToGate() {
-      state = presetState(presetById(DEFAULT.presetId));
-      prediction = { oscillator: null, cutoff: null, boundary: null, antiparticle: null };
-      revealed = false;
-      score = 0;
-      renderShell();
-      announce("已重置；请重新完成有限场模式预测。");
-    }
-
-    renderShell();
-  }
-
-  function selfTest() {
-    var checks = 0;
-    function assert(condition, message) {
-      checks += 1;
-      if (!condition) throw new Error(message);
-    }
-
-    var vacuum = compute(presetState(PRESETS[0]));
-    assert(vacuum.modeCount === 9, "vacuum mode count");
-    assert(vacuum.modes.length === 5, "vacuum shell count");
-    assert(vacuum.modes[0].degeneracy === 1 && vacuum.modes[1].degeneracy === 2, "real mode degeneracy");
-    assert(near(vacuum.modes[1].k, 1, 1e-12), "L=2pi momentum");
-    assert(near(vacuum.excitation, 0, 1e-12), "vacuum excitation zero");
-    assert(vacuum.zeroPoint > 0, "vacuum zero point positive");
-    assert(near(vacuum.identityResidual, 0, 1e-12), "vacuum ledger identity");
-
-    var one = compute(presetState(PRESETS[1]));
-    assert(one.modes[1].occupations[0] === 1, "one particle occupation");
-    assert(one.modes[1].occupations[1] === 0, "one particle does not double count real partner");
-    assert(near(one.excitation, one.modes[1].omega, 1e-12), "one particle excitation energy");
-    one.modes.forEach(function (mode) {
-      assert(mode.levels.length === mode.degeneracy, "level count for n=" + mode.n);
-      mode.levels.forEach(function (level, index) {
-        assert(near(level, (mode.occupations[index] + 0.5) * mode.omega, 1e-12), "oscillator level n=" + mode.n);
-      });
-      assert(near(mode.total, mode.zeroPoint + mode.excitation, 1e-12), "shell ledger n=" + mode.n);
-    });
-
-    var smallerCutoff = compute({ presetId: "custom", mass: 1, length: 2 * Math.PI, cutoff: 2, profile: "one" });
-    var largerCutoff = compute({ presetId: "custom", mass: 1, length: 2 * Math.PI, cutoff: 4, profile: "one" });
-    assert(largerCutoff.zeroPoint > smallerCutoff.zeroPoint, "zero point grows with cutoff");
-    assert(near(largerCutoff.excitation, smallerCutoff.excitation, 1e-12), "fixed occupied mode excitation stable after cutoff");
-    var zeroCutoff = compute({ presetId: "custom", mass: 1, length: 2 * Math.PI, cutoff: 0, profile: "one" });
-    assert(near(zeroCutoff.excitation, 0, 1e-12), "occupied n=1 excluded by cutoff");
-
-    var packet = compute(presetState(PRESETS[2]));
-    assert(packet.excitation > one.excitation, "packet has more finite occupation");
-    assert(packet.modes[0].occupations[0] === 1 && packet.modes[2].occupations[0] === 1, "packet profile deterministic");
-    PRESETS.forEach(function (preset) {
-      var data = compute(presetState(preset));
-      assert(finite(data.total) && finite(data.cutoffMomentum), preset.id + " finite regulated totals");
-      assert(near(data.identityResidual, 0, 1e-12), preset.id + " total ledger identity");
-    });
-    return { checks: checks, presets: PRESETS.length };
-  }
-
-  return {
-    DEFAULT: DEFAULT,
-    PRESETS: PRESETS,
-    degeneracy: degeneracy,
-    occupationVector: occupationVector,
-    compute: compute,
-    mount: mount,
-    selfTest: selfTest
-  };
-});
+const API={DEFAULTS,config,modes,energy,j0,continuum,terms,point,projection,ladder,snapshot,PRESETS,QUESTIONS,feedback,fmt,plots,tables,svg,mount,selfTest};if(typeof module==='object'&&module.exports)module.exports=API;if(hostWindow?.CourseLearning)hostWindow.CourseLearning.register('canonical-field-modes',mount);})(typeof window==='undefined'?null:window);
