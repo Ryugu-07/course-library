@@ -52,142 +52,238 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-12 23:09</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：先猜复杂度，再把定理与一次数据分开</a><ul>
-<li><a href="#pac-learning-title">1. 具体谜题：同一个有限假设类，保证和观测各自说什么？</a></li>
-<li><a href="#2-varepsilondelta-h">2. 先预测：\(\varepsilon\)、\(\delta\) 和 \(H\) 到底怎样收费？</a></li>
-<li><a href="#3">3. 两个有限类上界：先写清量词</a></li>
-<li><a href="#4">4. 动手实验：先选答案，再揭示两本账</a></li>
-<li><a href="#5">5. 误区 / 边界：先挑后估为什么要统一控制？</a></li>
-<li><a href="#6">6. 迁移题</a></li>
+<li><a href="#1">1. 先看一个会误导人的满分</a><ul>
+<li><a href="#pac187-title">训练六次都答对，究竟说明了多少？</a></li>
 </ul>
 </li>
-<li><a href="#1">1. 形式框架</a></li>
-<li><a href="#2">2. 有限类定理（两种情形全证）</a></li>
-<li><a href="#3_1">3. 没有免费午餐（严格版）</a></li>
-<li><a href="#4_1">4. 练习与要点</a></li>
+<li><a href="#2">2. 写清风险、基准与两个概率层次</a></li>
+<li><a href="#3-pac">3. PAC 的量词，哪些东西必须预先固定？</a></li>
+<li><a href="#4">4. 可实现有限类：把坏规则一条条排除</a></li>
+<li><a href="#5">5. 不可知有限类：从同时接近推出选得接近</a></li>
+<li><a href="#6">6. 把概率空间缩到可以算完</a></li>
+<li><a href="#7">7. 一个能手算的完整例子</a></li>
+<li><a href="#8">8. 一次轨迹、理想概率与保留测试</a></li>
+<li><a href="#9">9. 没有免费午餐：完整的有限样本论证</a></li>
+<li><a href="#10">10. 为什么有限域和无限域结论不同？</a></li>
+<li><a href="#11">11. 动手顺序与向后续课程的连接</a></li>
+<li><a href="#12">12. 八个可核对的练习</a></li>
 </ul>
 </div>
 </details>
 <h1 id="i-pac">统计学习 I · PAC 框架与有限假设类<a class="headerlink" href="#i-pac" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Shalev-Shwartz &amp; Ben-David <em>UML</em> §2–4 ｜ <strong>前置</strong>：hdp-01、本科 ai 课 01 讲
-统计学习理论回答一个问题：<strong>"从数据学出的规则，凭什么对新数据有效？"</strong> 本页把 ai 课 01 讲的泛化故事升级为正式理论：PAC 可学性的定义、有限类的完整定理（可实现与不可知两种情形全证）、以及"没有免费午餐"的严格版。</p>
+<p><strong>前置</strong>：有限概率空间、条件概率、独立抽样、并集界与 Hoeffding 不等式（hdp-01）。<strong>本页目标</strong>：能说清泛化保证在对什么取概率，能完整证明有限类的两条充分样本量界，并能区分有限域与无限域上的“没有免费午餐”。</p>
 </blockquote>
 <div data-learning-page></div>
 
-<section aria-labelledby="pac-learning-title" class="learning-layer">
-<h2 id="_1">学习层：先猜复杂度，再把定理与一次数据分开<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="pac-learning-title">1. 具体谜题：同一个有限假设类，保证和观测各自说什么？<a class="headerlink" href="#pac-learning-title" title="Permanent link"></a></h3>
-<p>先固定一个有限类 <span class="arithmatex">\(\mathcal H\)</span>，大小记为 <span class="arithmatex">\(H=|\mathcal H|\)</span>，再固定容许精度 <span class="arithmatex">\(\varepsilon\)</span> 与失败概率 <span class="arithmatex">\(\delta\)</span>。本实验同时放入两本账：一本文字上可推广到所有 i.i.d. 分布的 <strong>PAC 定理账</strong>，以及一份固定数据排列上的 <strong>realized train/test 观测账</strong>。后者不是前者的替身。</p>
-<h3 id="2-varepsilondelta-h">2. 先预测：<span class="arithmatex">\(\varepsilon\)</span>、<span class="arithmatex">\(\delta\)</span> 和 <span class="arithmatex">\(H\)</span> 到底怎样收费？<a class="headerlink" href="#2-varepsilondelta-h" title="Permanent link"></a></h3>
-<p>揭示前先回答：</p>
-<ol>
-<li>在有限类可实现情形，union bound 给出的样本复杂度按 <span class="arithmatex">\(1/\varepsilon\)</span> 还是 <span class="arithmatex">\(1/\varepsilon^2\)</span> 增长？不可知情形呢？</li>
-<li>把 <span class="arithmatex">\(H\)</span> 加倍，定理中的代价是加倍还是只增加一个对数项？</li>
-<li>一次固定训练/测试划分得到的 test error，是否自动等于 PAC 上界，或能替代概率 <span class="arithmatex">\(1-\delta\)</span> 的量词？</li>
-</ol>
-<h3 id="3">3. 两个有限类上界：先写清量词<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>在 realizable 假设下，存在零风险假设且一致 ERM 的经典有限类账本是</p>
+<section aria-labelledby="pac187-title" class="learning-layer pac187-course">
+<h2 id="1">1. 先看一个会误导人的满分<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<h3 id="pac187-title">训练六次都答对，究竟说明了多少？<a class="headerlink" href="#pac187-title" title="Permanent link"></a></h3>
+<p>设机器只会遇到三种输入：<span class="arithmatex">\(x=0,1,2\)</span>，概率依次是 <span class="arithmatex">\(0.4,0.3,0.3\)</span>。真实标签依次为 <span class="arithmatex">\(1,0,1\)</span>。我们允许它从全部八条二分类规则中挑一条；每条规则就是一张三格真值表。它选择训练错误最少的规则；并列时，取编号最小的那条。</p>
+<p>暂时不加标签噪声。不管抽到什么训练样本，总有真实规则能拿满分，所以 ERM 的训练错误始终为零。可是，如果没有见到 <span class="arithmatex">\(x=0\)</span>，它可能不知道第一格该填 <span class="arithmatex">\(1\)</span>；没有见到 <span class="arithmatex">\(x=2\)</span>，第三格也可能填错。<strong>训练满分只回答已经抽到的格子，没有自动补上未见的格子。</strong></p>
+<p>本页把三个问题分别算清：</p>
+<ul>
+<li>一条确定规则面对未来数据的错误比例是多少？这是<strong>真实风险</strong>。</li>
+<li>重新抽一整份训练集后，学习器选出坏规则的概率是多少？这是<strong>学习失败概率</strong>。</li>
+<li>一个只知道规则数、容许误差和信心水平的定理，最多能保证什么？这是<strong>分布无关的上界</strong>。</li>
+</ul>
+<p>实验中的分布刻意设为已知，方便我们计算真实答案。实际学习任务通常不知道这个分布；定理的用途恰好是不用先知道它。</p>
+<h2 id="2">2. 写清风险、基准与两个概率层次<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>一次带标签观测为 <span class="arithmatex">\(Z=(X,Y)\)</span>，服从分布 <span class="arithmatex">\(\mathcal D\)</span>。对一条规则 <span class="arithmatex">\(h\)</span>，损失为 <span class="arithmatex">\(\ell(h,Z)=\mathbf1\{h(X)\ne Y\}\)</span>。真实风险是 <span class="arithmatex">\(L_{\mathcal D}(h)=\mathbb E_{Z\sim\mathcal D}\ell(h,Z)\)</span>；在训练集 <span class="arithmatex">\(S=(Z_1,\ldots,Z_m)\)</span> 上，经验风险是 <span class="arithmatex">\(L_S(h)=m^{-1}\sum_{i=1}^m\ell(h,Z_i)\)</span>。</p>
+<p>先固定非空有限类 <span class="arithmatex">\(\mathcal H\)</span>，令 <span class="arithmatex">\(H=|\mathcal H|\)</span>。经验风险最小化为 <span class="arithmatex">\(\widehat h=A(S)\in\arg\min_{h\in\mathcal H}L_S(h)\)</span>。并列规则也是算法定义的一部分，本实验约定取最小编号。类内最优风险记作 <span class="arithmatex">\(L^*=\min_{h\in\mathcal H}L_{\mathcal D}(h)\)</span>；<strong>超额风险</strong>是 <span class="arithmatex">\(L_{\mathcal D}(\widehat h)-L^*\)</span>。</p>
+<p>这里有两层随机性。内层的 <span class="arithmatex">\(L_{\mathcal D}(h)\)</span> 已经对未来一个观测平均；外层 <span class="arithmatex">\(\Pr_{S\sim\mathcal D^m}\)</span> 再对整个训练集取概率，因为不同训练集会选出不同的 <span class="arithmatex">\(\widehat h\)</span>。不要把二者混成“每条预测正确的概率至少 <span class="arithmatex">\(1-\delta\)</span>”。</p>
+<p>若 <span class="arithmatex">\(\mathcal H\)</span> 只有一条总是答错的规则，则 <span class="arithmatex">\(L_{\mathcal D}(\widehat h)=L^*=1\)</span>，超额风险仍是零。<strong>不可知 PAC 承诺接近类内最好规则；它没有承诺这个类本身够好。</strong></p>
+<h2 id="3-pac">3. PAC 的量词，哪些东西必须预先固定？<a class="headerlink" href="#3-pac" title="Permanent link"></a></h2>
+<p>不可知 PAC 可学性要求：存在一个固定学习算法 <span class="arithmatex">\(A\)</span> 和有限样本量函数 <span class="arithmatex">\(m_{\mathcal H}(\varepsilon,\delta)\)</span>，使得对任意 <span class="arithmatex">\(\varepsilon,\delta\in(0,1)\)</span>、任意分布 <span class="arithmatex">\(\mathcal D\)</span>，任意 <span class="arithmatex">\(m\ge m_{\mathcal H}(\varepsilon,\delta)\)</span>，都有</p>
 <div class="arithmatex">\[
-m_{\mathrm{real}}(\varepsilon,\delta,H)=\left\lceil\frac{\ln(H/\delta)}{\varepsilon}\right\rceil,
-\qquad
-\Pr(\exists\text{ 坏假设全程不犯错})\le H e^{-m\varepsilon}.
+\Pr_{S\sim\mathcal D^m}\!\left(
+L_{\mathcal D}(A(S))- \min_{h\in\mathcal H}L_{\mathcal D}(h)&gt;\varepsilon
+\right)\le\delta.
 \]</div>
-<p>在 agnostic 情形，用 Hoeffding 加 union bound 控制所有有限假设的经验风险偏差，可用</p>
+<p><span class="arithmatex">\(\varepsilon\)</span> 限制输出规则离基准有多远，<span class="arithmatex">\(\delta\)</span> 限制训练过程失手的概率。同一个样本量门槛要对所有允许的 <span class="arithmatex">\(\mathcal D\)</span> 有效；它不能暗中依赖未知分布。分布无关不等于没有假设：本页仍要求训练数据独立同分布、损失有界、类预先固定。允许时间相关、分布漂移或看完数据才无限制地挑类，需要重新论证。</p>
+<p><strong>可实现情形</strong>另加 <span class="arithmatex">\(L^*=0\)</span> 的前提；此时超额风险就是风险本身。不可知情形不要求有零风险规则，既容许标签噪声，也容许真规则没有包含在类内。“不可知”不是说无法推理，而是说不先保证类能完全解释数据。</p>
+<p>以下写出的都是<strong>充分样本量上界</strong>，不是每个问题都必须付出的最小样本数。即使某条界大于现有样本量，也只能说这条界没有保证，不能推出学习一定失败。</p>
+<h2 id="4">4. 可实现有限类：把坏规则一条条排除<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>固定一个风险 <span class="arithmatex">\(r_h=L_{\mathcal D}(h)&gt;\varepsilon\)</span> 的坏规则。一次观测不揭穿它的概率是 <span class="arithmatex">\(1-r_h\)</span>。独立抽 <span class="arithmatex">\(m\)</span> 次，始终不犯错的概率恰好是 <span class="arithmatex">\((1-r_h)^m\)</span>。即使输入重复抽到，独立观测的乘法仍然成立。</p>
+<p>可实现时存在零风险规则，它以概率一在训练集上零错；因此任何 ERM 也零错。令 <span class="arithmatex">\(F=\{L_{\mathcal D}(\widehat h)&gt;\varepsilon\}\)</span>，<span class="arithmatex">\(B=\{\exists h:r_h&gt;\varepsilon,\ L_S(h)=0\}\)</span>。有 <span class="arithmatex">\(F\subseteq B\)</span>，但并列选择可能让包含严格成立。继续用并集界：</p>
+<p><span class="arithmatex">\(\Pr(F)\le\Pr(B)\le\sum_{h:r_h&gt;\varepsilon}(1-r_h)^m\le H(1-\varepsilon)^m\le He^{-m\varepsilon}\)</span>。</p>
+<p>最后一步由 <span class="arithmatex">\(\log(1-u)\le-u\)</span>。于是 <span class="arithmatex">\(m\ge\lceil\log(H/\delta)/\varepsilon\rceil\)</span> 足以使失败概率不超过 <span class="arithmatex">\(\delta\)</span>。若表达式超过 <span class="arithmatex">\(1\)</span>，概率界可截成 <span class="arithmatex">\(1\)</span>；这不会把它变成精确概率。</p>
+<p>推导中有三次可能损失精度：把指定 ERM 的失败换成“存在坏一致规则”；把多个事件的并集换成概率之和；把每条规则不同的风险都换成同一个门槛 <span class="arithmatex">\(\varepsilon\)</span>。实验会逐项显示这些差距。定理故意只保留 <span class="arithmatex">\(H,\varepsilon,\delta\)</span>，因此换到另一分布时仍能使用。</p>
+<h2 id="5">5. 不可知有限类：从同时接近推出选得接近<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>现在训练数据可能有噪声，没有哪条规则能保证零错。对于<strong>抽样前固定</strong>的一条 <span class="arithmatex">\(h\)</span>，<span class="arithmatex">\(m\)</span> 个损失是独立的 <span class="arithmatex">\([0,1]\)</span> 随机变量。Hoeffding 给出
+<span class="arithmatex">\(\Pr(|L_S(h)-L_{\mathcal D}(h)|&gt;\varepsilon/2)\le2\exp(-m\varepsilon^2/2)\)</span>。
+对 <span class="arithmatex">\(H\)</span> 条规则取并集界，统一偏差事件 <span class="arithmatex">\(U=\{\max_h|L_S(h)-L_{\mathcal D}(h)|&gt;\varepsilon/2\}\)</span> 满足 <span class="arithmatex">\(\Pr(U)\le2H\exp(-m\varepsilon^2/2)\)</span>。</p>
+<p>若 <span class="arithmatex">\(U\)</span> 没有发生，取类内真实风险最优的 <span class="arithmatex">\(h^*\)</span>，逐步得到</p>
 <div class="arithmatex">\[
-m_{\mathrm{agn}}(\varepsilon,\delta,H)=\left\lceil\frac{2\ln(2H/\delta)}{\varepsilon^2}\right\rceil.
+L_{\mathcal D}(\widehat h)
+\le L_S(\widehat h)+\frac{\varepsilon}{2}
+\le L_S(h^*)+\frac{\varepsilon}{2}
+\le L_{\mathcal D}(h^*)+\varepsilon.
 \]</div>
-<p>前者的 <span class="arithmatex">\(1/\varepsilon\)</span> 与后者的 <span class="arithmatex">\(1/\varepsilon^2\)</span> 是不同噪声假设下的<strong>定理上界</strong>。它们都不是某一次数据的 test error 预测，更不是从一次 ERM 运行反推分布保证。</p>
-<h3 id="4">4. 动手实验：先选答案，再揭示两本账<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>实验使用一个固定的有限二分类规则集和一份固定排列的 20 个样本。你可以改变 <span class="arithmatex">\(H,\varepsilon,\delta\)</span> 与训练前缀长度 <span class="arithmatex">\(m\)</span>，先选择三项答案，再揭示：realizable/agnostic 的样本复杂度、union-bound 失败项、ERM 在这一次数据上的 train error 与 test error。最后两项只标为 <strong>realized observation</strong>，不写成 PAC 保证。</p>
+<p>第一步与第三步用同时控制的偏差；中间一步只用 ERM 的定义。因此超额风险失败事件包含在 <span class="arithmatex">\(U\)</span> 中。取 <span class="arithmatex">\(m\ge\lceil2\log(2H/\delta)/\varepsilon^2\rceil\)</span> 就得到所需保证。</p>
+<p>为何不能把 <span class="arithmatex">\(\widehat h\)</span> 直接代进“预先固定规则”的 Hoeffding？因为 <span class="arithmatex">\(\widehat h\)</span> 是用同一份样本选出来的，选择改变了相关性；单条规则的结论并未自动覆盖这种选择。统一收敛是一种足够的解决方法，独立保留测试、稳定性或其他方法也可能适用，不应写成只有并集界这一条路。</p>
+<p>这里 <span class="arithmatex">\(1/\varepsilon\)</span> 与 <span class="arithmatex">\(1/\varepsilon^2\)</span> 比较的是不同前提下的一般保证。它不表示任何一点噪声都会使每个具体问题付出平方代价；有额外结构时可改进，<span class="arithmatex">\(H=1\)</span> 的超额风险更始终为零。</p>
+<h2 id="6">6. 把概率空间缩到可以算完<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>实验定义 <span class="arithmatex">\(x=0,1,2\)</span>，<span class="arithmatex">\(p_0=s/100\)</span>，<span class="arithmatex">\(p_1=p_2=(100-s)/200\)</span>，其中 <span class="arithmatex">\(s\)</span> 是偏斜百分数。真实标签由编号 <span class="arithmatex">\(t\in\{0,\ldots,7\}\)</span> 的三位二进制给出：最低位对应 <span class="arithmatex">\(x=0\)</span>。候选类为编号 <span class="arithmatex">\(0,\ldots,H-1\)</span>。例如 <span class="arithmatex">\(t=5\)</span> 的预测依次是 <span class="arithmatex">\(1,0,1\)</span>，不要把显示顺序误读成高位在前。</p>
+<p>标签以概率 <span class="arithmatex">\(\eta=q/100\)</span> 独立翻转。于是六个类别 <span class="arithmatex">\(j=2x+y\)</span> 的概率为 <span class="arithmatex">\(p_j=P(X=x,Y=y)\)</span>；它们都能写成整数除以 <span class="arithmatex">\(D=20000\)</span>。若标签与真值相同，<span class="arithmatex">\(x=0\)</span> 类别的分子是 <span class="arithmatex">\(2s(100-q)\)</span>；<span class="arithmatex">\(x=1,2\)</span> 类别的分子是 <span class="arithmatex">\((100-s)(100-q)\)</span>。翻转类别把 <span class="arithmatex">\(100-q\)</span> 换成 <span class="arithmatex">\(q\)</span>。所有分子之和恰好为 <span class="arithmatex">\(20000\)</span>。</p>
+<p>类内每条规则的真实风险可以直接求和：<span class="arithmatex">\(r_h=\sum_jp_j\mathbf1\{h(x_j)\ne y_j\}\)</span>。由于三个输入概率均正且 <span class="arithmatex">\(\eta&lt;1/2\)</span>，本实验可实现当且仅当 <span class="arithmatex">\(q=0\)</span> 且 <span class="arithmatex">\(t&lt;H\)</span>。没有噪声但真规则在类外，依然可能不可实现。</p>
+<p>一次有序训练序列含 <span class="arithmatex">\(m\)</span> 个类别，共 <span class="arithmatex">\(6^m\)</span> 种。但 ERM 只看六个类别的计数 <span class="arithmatex">\(\mathbf n=(n_0,\ldots,n_5)\)</span>。同一计数对应 <span class="arithmatex">\(M(\mathbf n)=m!/\prod_jn_j!\)</span> 个有序序列，其概率为 <span class="arithmatex">\(M(\mathbf n)\prod_jp_j^{n_j}\)</span>。在 <span class="arithmatex">\(m=12\)</span> 时只需 <span class="arithmatex">\(\binom{17}{5}=6188\)</span> 行。<strong>压缩后各行不等概率；必须保留这个重数。</strong></p>
+<p>每行列出所有规则的训练错误数、并列后选中的规则和三个事件指标。再按上述概率加权求和，得到完整的失败概率。整数分子和 <span class="arithmatex">\(D^m\)</span> 分母保留在下载中；小数只是显示近似。零概率行也保留，事件判定可定义在这些行上，但它们不会增加概率。约定 <span class="arithmatex">\(0^0=1\)</span>，表示该类别没有出现时无需乘上它的概率。</p>
+<h2 id="7">7. 一个能手算的完整例子<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>回到默认分布 <span class="arithmatex">\((0.4,0.3,0.3)\)</span>、真实规则 <span class="arithmatex">\(5\)</span>、<span class="arithmatex">\(H=8\)</span>、无噪声、<span class="arithmatex">\(\varepsilon=0.2\)</span>。最小编号的零错规则会给所有未见输入填 <span class="arithmatex">\(0\)</span>。因此只有没有见到真标签为 <span class="arithmatex">\(1\)</span> 的 <span class="arithmatex">\(x=0\)</span> 或 <span class="arithmatex">\(x=2\)</span> 才会失败；错其中任一个就已超过 <span class="arithmatex">\(0.2\)</span>。</p>
+<p>用容斥，<span class="arithmatex">\(m\)</span> 点训练的精确失败概率为
+<span class="arithmatex">\(P(F)=0.6^m+0.7^m-0.3^m\)</span>。
+减去的 <span class="arithmatex">\(0.3^m\)</span> 对应训练数据全部落在 <span class="arithmatex">\(x=1\)</span>：此时两个“未见”事件同时发生，只应算一次。</p>
+<p><span class="arithmatex">\(m=6\)</span> 时，<span class="arithmatex">\(P(F)=0.163576\)</span>。训练风险每次都为零，但真实风险的期望为 <span class="arithmatex">\(0.4(0.6)^6+0.3(0.7)^6=0.0539571\)</span>。这两个数不相等：一个问“超过门槛的概率”，另一个问“错误程度的平均”。</p>
+<p>“存在坏一致规则”则只要三个输入中任意一个没见到就可能发生，概率为 <span class="arithmatex">\(0.6^6+2(0.7)^6-2(0.3)^6-0.4^6=0.2764\)</span>。逐坏规则的精确并集上界为 <span class="arithmatex">\(0.287508\)</span>；进一步粗化的 <span class="arithmatex">\(8e^{-1.2}\)</span> 大于 <span class="arithmatex">\(1\)</span>，截断后只能给 <span class="arithmatex">\(1\)</span>。这些数满足证明要求的方向，但松紧差别很大。</p>
+<p>增到 <span class="arithmatex">\(m=12\)</span> 后，精确失败概率为 <span class="arithmatex">\(0.016017538096\)</span>，而可实现指数上界约为 <span class="arithmatex">\(0.725744\)</span>。取 <span class="arithmatex">\(\delta=0.1\)</span> 时，通用充分样本量是 <span class="arithmatex">\(22\)</span>；这个特定分布却已经在 <span class="arithmatex">\(12\)</span> 点满足要求。它没有推翻定理，只说明通用保证没有利用这份分布的细节。</p>
+<h2 id="8">8. 一次轨迹、理想概率与保留测试<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>实验另给出一份由非零 uint32 种子生成的可复现训练轨迹，再生成 <span class="arithmatex">\(32\)</span> 个保留测试观测。训练规则只由训练部分确定，测试部分不参与并列选择、调参或挑选预设。换种子会换这条轨迹；<strong>不会改变理想 i.i.d. 概率空间的精确失败概率</strong>。</p>
+<p>这里的 xorshift32 是确定性伪随机序列，类别映射位于 <span class="arithmatex">\(2^{32}\)</span> 个格点上，并非精确的理想独立抽样。课程把原始整数和映射结果全部列出，是为了让观察可复现；没有用一次轨迹证明 PAC 量词。</p>
+<p>若真正独立地另取 <span class="arithmatex">\(32\)</span> 个理想测试样本，并条件于已经选定的规则，其错误数满足 <span class="arithmatex">\(K\sim\operatorname{Binomial}(32,r_{\widehat h})\)</span>，即 <span class="arithmatex">\(P(K=k)=\binom{32}{k}r_{\widehat h}^{\,k}(1-r_{\widehat h})^{32-k}\)</span>。实验将 <span class="arithmatex">\(33\)</span> 个可能值全部列出。<span class="arithmatex">\(r=0\)</span> 或 <span class="arithmatex">\(r=1\)</span> 时，概率分别集中在 <span class="arithmatex">\(k=0\)</span> 或 <span class="arithmatex">\(k=32\)</span>；不要用人为最小柱高把零概率画成正数。</p>
+<p>一次测试错误率 <span class="arithmatex">\(K/32\)</span> 是随机读数，不会自动等于真实风险。反复看测试结果再挑规则，会让“条件于已固定规则、测试独立”的前提失效；要额外保留新数据或处理选择带来的偏差。</p>
+<h2 id="9">9. 没有免费午餐：完整的有限样本论证<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>令输入域至少含 <span class="arithmatex">\(2m\)</span> 个点。固定任意学习算法 <span class="arithmatex">\(A\)</span>，允许它在类外输出预测，也允许额外的内部随机性。在其中 <span class="arithmatex">\(N=2m\)</span> 个点上均匀抽样；先为每个点独立掷一次公平硬币，作为目标函数 <span class="arithmatex">\(f\)</span> 的标签。之后所有训练与测试标签都由同一个 <span class="arithmatex">\(f\)</span> 决定，<strong>不是每次观测重新翻标签</strong>，所以每个目标分布都可实现于全函数类。</p>
+<p>给定训练中看到的输入及标签，任何未见点的标签仍是独立公平硬币。无论算法怎样猜，对随机目标平均的错误率都是 <span class="arithmatex">\(1/2\)</span>。某个固定点在 <span class="arithmatex">\(m\)</span> 次有放回抽样中未出现的概率为 <span class="arithmatex">\((1-1/N)^m\)</span>。因此对随机目标、训练集和算法随机性共同平均，
+<span class="arithmatex">\(\mathbb E_{f,S,A}L_{\mathcal D_f}(A(S))\ge\frac12(1-1/N)^m\)</span>。
+“至少”是因为已见点也可能被算法答错；记住已见标签的算法在那里不会错，等号成立。</p>
+<p>Bernoulli 不等式给 <span class="arithmatex">\((1-1/(2m))^m\ge1-m/(2m)=1/2\)</span>，故上述平均至少为 <span class="arithmatex">\(1/4\)</span>。有限多个目标函数的平均不大于最大值，于是<strong>存在一个固定目标 <span class="arithmatex">\(f\)</span></strong>，使 <span class="arithmatex">\(\mathbb E_{S,A}L_{\mathcal D_f}(A(S))\ge1/4\)</span>。这个 <span class="arithmatex">\(f\)</span> 可依赖算法和样本量，不能依赖已经实现的训练集；这正是先平均、再固定目标的作用。</p>
+<p>再把期望下界变成失败概率。写 <span class="arithmatex">\(L=L_{\mathcal D_f}(A(S))\in[0,1]\)</span>、<span class="arithmatex">\(p=P(L&gt;1/8)\)</span>。分事件估计得 <span class="arithmatex">\(\mathbb EL\le(1-p)/8+p=1/8+7p/8\)</span>。结合 <span class="arithmatex">\(\mathbb EL\ge1/4\)</span>，推出 <span class="arithmatex">\(p\ge1/7\)</span>。这就得到：对任意算法、每个这样的 <span class="arithmatex">\(m\)</span>，存在零最优风险的分布，使风险超过 <span class="arithmatex">\(1/8\)</span> 的概率至少为 <span class="arithmatex">\(1/7\)</span>。</p>
+<p>实验还独立枚举 <span class="arithmatex">\(N=6,m=3\)</span> 的全部 <span class="arithmatex">\(64\)</span> 个目标与 <span class="arithmatex">\(6^3\)</span> 个有序输入样本。对“记住已见标签，未见填零”的具体算法，平均风险恰为 <span class="arithmatex">\(\frac12(5/6)^3=125/432\)</span>。这是可以逐项核对的有限见证；“任意算法”的量词由上面的条件概率证明承担。</p>
+<h2 id="10">10. 为什么有限域和无限域结论不同？<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>若输入域无限，全函数类允许在任意大的有限支持上任意标注。假设存在分布无关 PAC 样本量，固定 <span class="arithmatex">\(\varepsilon=\delta=1/8\)</span>，再取任意超过门槛的 <span class="arithmatex">\(m\)</span>。上节仍能选 <span class="arithmatex">\(2m\)</span> 个点，找到失败概率至少 <span class="arithmatex">\(1/7&gt;1/8\)</span> 的分布，与保证矛盾。所以无限域上的全二分类函数类不具有这种分布无关 PAC 可学性。</p>
+<p>若输入域固定为 <span class="arithmatex">\(N&lt;\infty\)</span> 个点，全函数类只有 <span class="arithmatex">\(2^N\)</span> 条规则。可实现有限类定理给出充分样本量 <span class="arithmatex">\(\lceil(N\log2+\log(1/\delta))/\varepsilon\rceil\)</span>；不可知情形也能用有限类定理。<strong>不能一边固定 <span class="arithmatex">\(N\)</span>，一边对任意大的 <span class="arithmatex">\(m\)</span> 继续使用 <span class="arithmatex">\(N\ge2m\)</span>。</strong></p>
+<p>图中刻意放两条线。第一条每次随 <span class="arithmatex">\(m\)</span> 另取支持大小 <span class="arithmatex">\(N=2m\)</span>，随机目标平均风险保持不低于 <span class="arithmatex">\(1/4\)</span>。第二条固定 <span class="arithmatex">\(N=6\)</span>，记忆学习器的平均风险 <span class="arithmatex">\(\frac12(5/6)^m\)</span> 趋于零。它们描述不同的问题族。</p>
+<p>也不要从 NFL 推出“越复杂一定越差”。扩大类使类内最优风险不会升高，但对某个分布和算法，估计误差不必单调变大；我们得到的是一般保证中出现的复杂度代价。风险分解 <span class="arithmatex">\(L_{\mathcal D}(\widehat h)=L^*+[L_{\mathcal D}(\widehat h)-L^*]\)</span> 是精确等式，单个任务如何取舍仍要看结构和数据。</p>
+<h2 id="11">11. 动手顺序与向后续课程的连接<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p>先用“无噪声”与“12点训练”预设，核对第7节容斥公式。再加标签噪声，观察可实现界变为“不适用”，但不可知界仍有意义。然后比较“唯一规则也完全正确”与“唯一规则处处预测错”：超额风险都为零，实际风险相反。最后只改 <span class="arithmatex">\(\delta\)</span> 或种子，检查哪些结果应当保持不变。</p>
+<p>看计数表时，先挑一行手算重数和概率。例如默认 <span class="arithmatex">\(m=6\)</span> 的计数 <span class="arithmatex">\([0,2,3,0,0,1]\)</span> 表示 <span class="arithmatex">\(x=0\)</span> 两次、<span class="arithmatex">\(x=1\)</span> 三次、<span class="arithmatex">\(x=2\)</span> 一次，概率为 <span class="arithmatex">\(\frac{6!}{2!3!1!}(0.4)^2(0.3)^4=0.07776\)</span>。因为三个输入都见过，唯一一致规则是真规则 <span class="arithmatex">\(5\)</span>。完整表中的分子共同使用分母 <span class="arithmatex">\(20000^6\)</span>。</p>
+<p>界中的 <span class="arithmatex">\(\log H\)</span> 是对预先固定的有限候选集合计数。若模型由 <span class="arithmatex">\(d\)</span> 个各有至多 <span class="arithmatex">\(2^b\)</span> 种编码的参数确定，而且其余流程固定，输出规则数至多 <span class="arithmatex">\(2^{bd}\)</span>，于是 <span class="arithmatex">\(\log H\le bd\log2\)</span>。这给出一个可能很松的界；它不证明“每个参数固定付几个样本”，也没有解释具体过参数模型的泛化机制。无限类需要分析可区分的标注模式或其他结构，下一课的 VC 维由此进入。</p>
+<p>本页有限类定理及 NFL 的教材定位见作者公开的 <a href="https://www.cs.huji.ac.il/~shais/UnderstandingMachineLearning/understanding-machine-learning-theory-algorithms.pdf">Understanding Machine Learning，§2.3、§4、§5.1</a>。本页三点分布、精确计数实验和边界练习均显式给出模型，可脱离随机轨迹单独复算。</p>
 <div class="learning-lab" data-learning-lab="pac-sample-complexity">
-<p><strong>无 JavaScript 时的静态读法：</strong>默认取 <span class="arithmatex">\(H=8,\varepsilon=0.20,\delta=0.10,m=12\)</span>。理论项先独立记账：
-<span class="arithmatex">\(m_{\mathrm{real}}=\lceil\ln(8/0.1)/0.2\rceil=22\)</span>，
-<span class="arithmatex">\(m_{\mathrm{agn}}=\lceil2\ln(16/0.1)/0.2^2\rceil=254\)</span>，
-而 <span class="arithmatex">\(\min(1,8e^{-0.2\cdot12})\approx0.726\)</span> 是 realizable union-bound failure 上界，不是实际失败频率。</p>
+<p><strong>无脚本对照：</strong>六组固定记录保留全部理想训练计数与一次种子轨迹；二者不混同。</p>
+<figure class="plot">
+<p><img alt="三输入真值表、精确失败概率与上界、规则风险和被选概率、独立测试二项分布、NFL支持集对照六面板图。" src="assets/img/slt-01-pac-ledgers.svg" /></p>
+<figcaption>A 是默认无噪声模型。B 展示不同事件和上界的差距。C、D 区分一次训练与所有训练集。E 是条件于已选规则的理想独立测试分布；F 比较固定有限域与随样本量增大的支持集。整数点之间的线只帮助读图。</figcaption>
+</figure>
+<div aria-label="PAC固定记录，可横向滚动" class="pac187-static" role="region" tabindex="0">
 <table>
 <thead>
 <tr>
-<th>账本种类</th>
-<th style="text-align: right;">数值/读法</th>
-<th>量词与身份</th>
+<th>预设</th>
+<th style="text-align: right;">精确ERM失败概率</th>
+<th style="text-align: right;">统一偏差概率</th>
+<th style="text-align: right;">本次训练风险</th>
+<th style="text-align: right;">本次规则真实风险</th>
+<th style="text-align: right;">本次32点测试风险</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>有限类大小 <span class="arithmatex">\(H\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(8\)</span></td>
-<td>被 union bound 计数的假设数</td>
+<td>realizable</td>
+<td style="text-align: right;">0.163576</td>
+<td style="text-align: right;">0.88336</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr>
-<td>realizable 样本复杂度</td>
-<td style="text-align: right;"><span class="arithmatex">\(22\)</span></td>
-<td>若 <span class="arithmatex">\(m\ge22\)</span>，给出相应的 <span class="arithmatex">\(\varepsilon,\delta\)</span> 定理保证</td>
+<td>twelve</td>
+<td style="text-align: right;">0.0160175381</td>
+<td style="text-align: right;">0.7624631066</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
 </tr>
 <tr>
-<td>agnostic 样本复杂度</td>
-<td style="text-align: right;"><span class="arithmatex">\(254\)</span></td>
-<td>噪声不被排除时的另一条上界</td>
+<td>one-sample</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.7</td>
+<td style="text-align: right;">0.65625</td>
 </tr>
 <tr>
-<td>本次实际训练误差</td>
-<td style="text-align: right;">ERM 选 <span class="arithmatex">\(h_2\)</span>：<span class="arithmatex">\(1/12\approx0.0833\)</span></td>
-<td>一次 realized observation</td>
+<td>noisy</td>
+<td style="text-align: right;">0.2101505209</td>
+<td style="text-align: right;">0.9408184377</td>
+<td style="text-align: right;">0.25</td>
+<td style="text-align: right;">0.2</td>
+<td style="text-align: right;">0.21875</td>
 </tr>
 <tr>
-<td>本次实际测试误差</td>
-<td style="text-align: right;">同一 <span class="arithmatex">\(h_2\)</span> 在剩余 8 点：<span class="arithmatex">\(4/8=0.5\)</span></td>
-<td>一次 realized observation，不是上界</td>
+<td>always-wrong</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>skewed</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.5393647575</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
 </tr>
 </tbody>
 </table>
-<p>静态阅读时，先把最后两行和前面三行分开：理论上界描述对随机样本的概率事件；一次 train/test 数字只描述这份已实现数据。即使 test error 小于上界，也不能把一次观测升级成证明；即使它大于某个未满足前提的数，也不能反向否定定理。</p>
 </div>
-<h3 id="5">5. 误区 / 边界：先挑后估为什么要统一控制？<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<ul>
-<li>单个预先指定的 <span class="arithmatex">\(h\)</span> 可以用 Hoeffding；但 ERM 的 <span class="arithmatex">\(\hat h\)</span> 依赖同一份样本，必须对整个有限类做 union bound，不能把“挑完再估”伪装成单假设事件。</li>
-<li><span class="arithmatex">\(m_{\mathrm{real}}\)</span> 和 <span class="arithmatex">\(m_{\mathrm{agn}}\)</span> 是给定 <span class="arithmatex">\(H,\varepsilon,\delta\)</span> 的 sufficient upper bounds，常数和更精细的算法/下界可改进，但不能把它们写成一次实验的预测值。</li>
-<li>固定 train/test 划分不是自动的 i.i.d. 概率实验；本页把它标成审计样本，用来练习 ERM、误差分账和量词纪律。</li>
-<li>有限类假设是关键归纳偏置；当 <span class="arithmatex">\(H\)</span> 无限时，逐函数 union bound 失效，要转向 VC、Rademacher、稳定性或其他复杂度。</li>
-</ul>
-<h3 id="6">6. 迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h3>
-<p>若把 <span class="arithmatex">\(H\)</span> 从 <span class="arithmatex">\(8\)</span> 增长到 <span class="arithmatex">\(8\times10^6\)</span>，在固定 <span class="arithmatex">\(\varepsilon,\delta\)</span> 下两条公式各增加多少？若把同一算法换成一个依赖测试集调参的流程，为什么“test error”不再是一个干净的 hold-out 观测？把这两个问题分别用 <span class="arithmatex">\(\ln H\)</span> 与“数据依赖的选择”回答。</p>
+<p><a download="pac-frozen-records.json" href="assets/learning/projects/pac-certificates/run-snapshot.json">下载六组完整记录</a>。包含所有计数行的整数分子、重数与事件、全部规则风险、扫描、uint32轨迹、理想二项分布及64目标NFL见证。小数是显示近似，概率证书中的整数分子与分母可独立核算。</p>
+</div>
+<noscript>
+<style>.pac187-course span.arithmatex{overflow-wrap:anywhere}.pac187-static{overflow:auto;max-width:100%}.pac187-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}.pac187-static th,.pac187-static td{white-space:nowrap}</style>
+</noscript>
+<h2 id="12">12. 八个可核对的练习<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<p><strong>1. 从满分反推保证？</strong> 默认分布只训练一次，为什么训练风险必为零，而超过 <span class="arithmatex">\(0.2\)</span> 的失败概率却为 <span class="arithmatex">\(1\)</span>？</p>
+<details class="answer">
+<summary>查看推导：列出一次样本的三种情况</summary>
+<p>若见到 <span class="arithmatex">\(x=0\)</span>，最小一致规则是 <span class="arithmatex">\(h_1=(1,0,0)\)</span>，风险 <span class="arithmatex">\(0.3\)</span>；若见到 <span class="arithmatex">\(x=1\)</span>，选 <span class="arithmatex">\(h_0=(0,0,0)\)</span>，风险 <span class="arithmatex">\(0.7\)</span>；若见到 <span class="arithmatex">\(x=2\)</span>，选 <span class="arithmatex">\(h_4=(0,0,1)\)</span>，风险 <span class="arithmatex">\(0.4\)</span>。三种情形的训练错误都为零，真实风险却全大于 <span class="arithmatex">\(0.2\)</span>。失败概率为 <span class="arithmatex">\(0.4+0.3+0.3=1\)</span>；平均风险为 <span class="arithmatex">\(0.4(0.3)+0.3(0.7)+0.3(0.4)=0.45\)</span>。概率与风险平均再次不同。</p>
+</details>
+<p><strong>2. 为什么容斥减去 <span class="arithmatex">\(0.3^m\)</span>？</strong> 默认例的两种漏看事件是否独立？</p>
+<details class="answer">
+<summary>查看推导：两个事件的交集</summary>
+<p>令 <span class="arithmatex">\(A_0\)</span> 为没见过输入 <span class="arithmatex">\(0\)</span>，<span class="arithmatex">\(A_2\)</span> 为没见过输入 <span class="arithmatex">\(2\)</span>。分别有 <span class="arithmatex">\(P(A_0)=0.6^m\)</span>、<span class="arithmatex">\(P(A_2)=0.7^m\)</span>。同时没见过这两者，意味着每次都抽到输入 <span class="arithmatex">\(1\)</span>，故 <span class="arithmatex">\(P(A_0\cap A_2)=0.3^m\)</span>，一般不等于 <span class="arithmatex">\(0.42^m\)</span>。所以 <span class="arithmatex">\(P(A_0\cup A_2)=0.6^m+0.7^m-0.3^m\)</span>。独立的是不同抽样时刻，不是由同一训练集定义的这两个事件。</p>
+</details>
+<p><strong>3. 阈值等号应放哪边？</strong> 取偏斜 <span class="arithmatex">\(s=80\)</span>、无噪声、真实规则 <span class="arithmatex">\(6=(0,1,1)\)</span>、<span class="arithmatex">\(\varepsilon=0.2\)</span>，为什么本实验 ERM 的失败概率是零？</p>
+<details class="answer">
+<summary>查看推导：严格大于与大于等于</summary>
+<p>最小编号一致规则把未见位置填 <span class="arithmatex">\(0\)</span>。输入 <span class="arithmatex">\(0\)</span> 的真标签已是 <span class="arithmatex">\(0\)</span>，因此始终不会在那里错；最多把输入 <span class="arithmatex">\(1,2\)</span> 的两个 <span class="arithmatex">\(1\)</span> 漏掉，总风险不超过 <span class="arithmatex">\(0.1+0.1=0.2\)</span>。本页失败事件定义为风险<strong>严格大于</strong> <span class="arithmatex">\(\varepsilon\)</span>，故概率为零。若改成大于等于，则所有训练都落在输入 <span class="arithmatex">\(0\)</span> 的事件会贡献 <span class="arithmatex">\(0.8^m\)</span>；不能在数值比较时随意替换关系符号。</p>
+</details>
+<p><strong>4. 一行计数如何变成概率？</strong> 对默认例的计数 <span class="arithmatex">\([0,2,3,0,0,1]\)</span>，从有序序列数推导概率，并解释为何不能给所有计数行相同权重。</p>
+<details class="answer">
+<summary>查看推导：先选位置，再乘概率</summary>
+<p>在六个位置选两个放类别 <span class="arithmatex">\(1\)</span>，再从余下四个选三个放类别 <span class="arithmatex">\(2\)</span>，最后一个放类别 <span class="arithmatex">\(5\)</span>，共有 <span class="arithmatex">\(\binom62\binom43=60\)</span> 种有序序列。每种概率为 <span class="arithmatex">\(0.4^2 0.3^4=0.001296\)</span>，合计 <span class="arithmatex">\(0.07776\)</span>。全部六次都为类别 <span class="arithmatex">\(1\)</span> 的计数只有一种排列，概率为 <span class="arithmatex">\(0.4^6=0.004096\)</span>。压缩计数没有抹掉样本的排列重数或类别概率。</p>
+</details>
+<p><strong>5. 噪声为何改变真实风险？</strong> 在独立对称翻转概率 <span class="arithmatex">\(\eta&lt;1/2\)</span> 下，令规则与原真标签不一致的输入概率为 <span class="arithmatex">\(d_h\)</span>。证明 <span class="arithmatex">\(r_h=\eta+(1-2\eta)d_h\)</span>。</p>
+<details class="answer">
+<summary>查看推导：按是否同意原标签分两组</summary>
+<p>在规则同意原标签的 <span class="arithmatex">\(1-d_h\)</span> 部分，只有翻转才错，贡献 <span class="arithmatex">\((1-d_h)\eta\)</span>；在规则不同意的 <span class="arithmatex">\(d_h\)</span> 部分，不翻转才错，贡献 <span class="arithmatex">\(d_h(1-\eta)\)</span>。相加为 <span class="arithmatex">\(\eta+(1-2\eta)d_h\)</span>。真规则在类内时达到最小风险 <span class="arithmatex">\(\eta\)</span>；其余规则的超额风险是 <span class="arithmatex">\((1-2\eta)d_h\)</span>。若真规则不在类内，应减去类内最小的 <span class="arithmatex">\(d_h\)</span>，不能仍把基准强行设为 <span class="arithmatex">\(\eta\)</span>。</p>
+</details>
+<p><strong>6. 多一个数量级规则要多多少样本？</strong> 暂不计取整，固定 <span class="arithmatex">\(\varepsilon,\delta\)</span>，把 <span class="arithmatex">\(H\)</span> 乘 <span class="arithmatex">\(10\)</span>；再固定 <span class="arithmatex">\(H,\varepsilon\)</span>，把 <span class="arithmatex">\(\delta\)</span> 除以 <span class="arithmatex">\(10\)</span>。</p>
+<details class="answer">
+<summary>查看推导：对数项与取整的区别</summary>
+<p>两种操作都让相应对数增加 <span class="arithmatex">\(\log10\)</span>。可实现充分样本量表达式增加 <span class="arithmatex">\(\log10/\varepsilon\)</span>；不可知表达式增加 <span class="arithmatex">\(2\log10/\varepsilon^2\)</span>。取整后实际整数差不必等于这些实数，但相差小于 <span class="arithmatex">\(1\)</span>。这只比较两条通用充分界；在 <span class="arithmatex">\(H=1\)</span> 的例子里，超额风险已经恒零，仍不能把公式差当必需代价。</p>
+</details>
+<p><strong>7. 把期望下界变成失败概率下界。</strong> 已知 <span class="arithmatex">\(0\le L\le1\)</span>、<span class="arithmatex">\(\mathbb EL\ge1/4\)</span>，完整推出 <span class="arithmatex">\(P(L&gt;1/8)\ge1/7\)</span>。哪里用到了损失上界？</p>
+<details class="answer">
+<summary>查看推导：对两个事件分别估计</summary>
+<p>设 <span class="arithmatex">\(p=P(L&gt;1/8)\)</span>。在补事件上 <span class="arithmatex">\(L\le1/8\)</span>，在失败事件上 <span class="arithmatex">\(L\le1\)</span>，所以 <span class="arithmatex">\(\mathbb EL\le(1-p)/8+p\)</span>。因此 <span class="arithmatex">\(1/4\le1/8+7p/8\)</span>，移项得 <span class="arithmatex">\(p\ge1/7\)</span>。上界 <span class="arithmatex">\(1\)</span> 防止极小概率的巨大损失单独撑起期望；若损失无界，这个推导不能照搬。</p>
+</details>
+<p><strong>8. NFL 是否禁止在一个固定字典上学全部标签？</strong> 字典固定为 <span class="arithmatex">\(N=100\)</span> 个输入，全二分类函数类大小是多少？为什么不能拿“对每个 <span class="arithmatex">\(m\)</span> 都选 <span class="arithmatex">\(2m\)</span> 个点”证明它不可学？</p>
+<details class="answer">
+<summary>查看推导：保持输入域固定</summary>
+<p>类大小是 <span class="arithmatex">\(2^{100}\)</span>，仍是有限数。在可实现情形，<span class="arithmatex">\(m\ge\lceil(100\log2+\log(1/\delta))/\varepsilon\rceil\)</span> 就有本页保证。当 <span class="arithmatex">\(m&gt;50\)</span> 时，字典已经放不下 <span class="arithmatex">\(2m\)</span> 个互异输入，NFL 的该支持构造无法继续使用。无限域的不可学证明能对每个更大的 <span class="arithmatex">\(m\)</span> 换取更大的支持；固定有限域不满足这个量词。这里没有要求样本覆盖全部输入，有限类保证控制的是分布加权风险。</p>
+</details>
 </section>
-<h2 id="1">1. 形式框架<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>要素</strong>：域 <span class="arithmatex">\(\mathcal{Z} = \mathcal{X}\times\mathcal{Y}\)</span>、未知分布 <span class="arithmatex">\(\mathcal{D}\)</span>、假设类 <span class="arithmatex">\(\mathcal{H}\)</span>、损失 <span class="arithmatex">\(\ell\)</span>（本页取 0-1）。<strong>真实风险</strong> <span class="arithmatex">\(L_{\mathcal{D}}(h) = E_{\mathcal{D}}[\ell(h, Z)]\)</span>；<strong>经验风险</strong> <span class="arithmatex">\(L_S(h) = \frac1m\sum\ell(h, z_i)\)</span>；学习算法 = 从样本 <span class="arithmatex">\(S \sim \mathcal{D}^m\)</span> 到假设的映射，<strong>ERM</strong>：<span class="arithmatex">\(\hat h \in \arg\min_{h\in\mathcal{H}} L_S(h)\)</span>。</p>
-<p><strong>定义（PAC 可学，agnostic 版）</strong> <span class="arithmatex">\(\mathcal{H}\)</span> 可学：存在算法与样本复杂度 <span class="arithmatex">\(m(\varepsilon, \delta)\)</span>，对<strong>一切</strong>分布 <span class="arithmatex">\(\mathcal{D}\)</span>，<span class="arithmatex">\(m \geq m(\varepsilon,\delta)\)</span> 个样本以概率 <span class="arithmatex">\(\geq 1-\delta\)</span> 保证</p>
-<div class="arithmatex">\[
-L_{\mathcal{D}}(\hat h) \leq \min_{h\in\mathcal{H}} L_{\mathcal{D}}(h) + \varepsilon
-\]</div>
-<p>（<strong>P</strong>robably（<span class="arithmatex">\(\delta\)</span>）<strong>A</strong>pproximately（<span class="arithmatex">\(\varepsilon\)</span>）<strong>C</strong>orrect；"对一切分布"是与经典统计的分野——<strong>无分布假设，只押注假设类</strong>。）</p>
-<h2 id="2">2. 有限类定理（两种情形全证）<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p><strong>定理 A（可实现情形：存在零风险假设）</strong> <span class="arithmatex">\(|\mathcal{H}| &lt; \infty\)</span>，则 <span class="arithmatex">\(m \geq \frac{\ln(|\mathcal{H}|/\delta)}{\varepsilon}\)</span> 使 ERM（此时 = 挑任一零经验风险假设）以概率 <span class="arithmatex">\(1-\delta\)</span> 满足 <span class="arithmatex">\(L_{\mathcal{D}}(\hat h) \leq \varepsilon\)</span>。
-<strong>【证明】</strong> 坏假设 <span class="arithmatex">\(h\)</span>（<span class="arithmatex">\(L_{\mathcal{D}}(h) &gt; \varepsilon\)</span>）在单个样本上"装好"的概率 <span class="arithmatex">\(\leq 1 - \varepsilon\)</span>，在整个 <span class="arithmatex">\(S\)</span> 上零错的概率 <span class="arithmatex">\(\leq (1-\varepsilon)^m \leq e^{-\varepsilon m}\)</span>；union bound 于至多 <span class="arithmatex">\(|\mathcal{H}|\)</span> 个坏假设：<span class="arithmatex">\(P(\text{某坏假设全对}) \leq |\mathcal{H}|e^{-\varepsilon m} \leq \delta\)</span>。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>定理 B（不可知情形）</strong> <span class="arithmatex">\(m \geq \frac{2\ln(2|\mathcal{H}|/\delta)}{\varepsilon^2}\)</span> 使 ERM 满足 agnostic PAC。
-<strong>【证明】</strong> 两步。① <strong>一致收敛</strong>：对每个 <span class="arithmatex">\(h\)</span>，Hoeffding（hdp-01）给 <span class="arithmatex">\(P(|L_S(h) - L_{\mathcal{D}}(h)| &gt; \frac\varepsilon2) \leq 2e^{-m\varepsilon^2/2}\)</span>；union bound 得 <span class="arithmatex">\(\sup_{h}|L_S - L_{\mathcal{D}}| \leq \frac\varepsilon2\)</span> w.p. <span class="arithmatex">\(1-\delta\)</span>。② <strong>ERM 的两步三角</strong>：</p>
-<div class="arithmatex">\[
-L_{\mathcal{D}}(\hat h) \leq L_S(\hat h) + \tfrac\varepsilon2 \leq L_S(h^*) + \tfrac\varepsilon2 \leq L_{\mathcal{D}}(h^*) + \varepsilon
-\]</div>
-<p>（中间用 ERM 定义。）<span class="arithmatex">\(\blacksquare\)</span>
-<strong>结构读法</strong>：<strong>"一致收敛 ⇒ ERM 成功"</strong>——泛化理论的中心三段论（后两页只是把 ① 的工具从 union bound 升级为 VC/Rademacher）；<span class="arithmatex">\(\varepsilon\)</span> vs <span class="arithmatex">\(\varepsilon^2\)</span> 的速率差（可实现 <span class="arithmatex">\(\frac1m\)</span> vs 不可知 <span class="arithmatex">\(\frac{1}{\sqrt m}\)</span>）：零风险情形"好消息更容易确认"——<strong>噪声让学习贵一个平方</strong>。</p>
-<h2 id="3_1">3. 没有免费午餐（严格版）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p><strong>定理（NFL）</strong> 0-1 损失、<span class="arithmatex">\(|\mathcal{X}| \geq 2m\)</span>：对任何学习算法 <span class="arithmatex">\(A\)</span>，存在分布 <span class="arithmatex">\(\mathcal{D}\)</span>（且可实现于全函数类）使 <span class="arithmatex">\(E_S[L_{\mathcal{D}}(A(S))] \geq \frac18\)</span>（同时最优假设风险为 0）。
-<strong>【骨架】</strong> 在 <span class="arithmatex">\(2m\)</span> 个点上均匀支撑、标签由随机函数生成：算法只见过一半的点，未见点上任何预测对"平均的真函数"错一半；对函数取平均后必存在单个坏函数（概率方法——期望论证的反向使用，图论组合线的老朋友）。<span class="arithmatex">\(\blacksquare\)</span>
-<strong>读法</strong>：<strong>全函数类不可学</strong>（<span class="arithmatex">\(m(\varepsilon,\delta) = \infty\)</span>）——学习必须先押注归纳偏置（ai 课 01 讲 NFL 的正式版）；"<span class="arithmatex">\(\mathcal{H}\)</span> 的复杂度"因此不是技术参数而是<strong>知识论承诺的度量</strong>，量化它正是后两页的全部内容。</p>
-<p><strong>误差分解定型</strong>：<span class="arithmatex">\(L_{\mathcal{D}}(\hat h) = \underbrace{\min_{\mathcal{H}}L_{\mathcal{D}}}_{\text{逼近误差}} + \underbrace{(L_{\mathcal{D}}(\hat h) - \min)}_{\text{估计误差}}\)</span>——类越大逼近越好、估计越难：<strong>偏差–方差权衡的学习论版本</strong>，模型选择（SRM/正则化，slt-04）在此谱系上运作。</p>
-<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（样本复杂度手算）</strong> 一百万个假设、<span class="arithmatex">\(\varepsilon = 0.01, \delta = 0.001\)</span>：不可知情形 <span class="arithmatex">\(m \geq \frac{2(\ln 2\times10^6 + \ln 10^3)}{10^{-4}} \approx 4.3\times10^5\)</span>——<strong>假设数取对数后几乎免费</strong>（<span class="arithmatex">\(|\mathcal{H}|\)</span> 翻倍只加 <span class="arithmatex">\(\ln 2\)</span>）；贵的是精度平方（hdp-01 例 2 的口诀重现：对数便宜、平方贵）。</p>
-<p><strong>例 2（离散化论证）</strong> 实参数模型（如 <span class="arithmatex">\(d\)</span> 个 32 位浮点权重的网络）：<span class="arithmatex">\(|\mathcal{H}| \leq 2^{32d}\)</span> ⇒ <span class="arithmatex">\(m = O\big(\frac{d + \ln(1/\delta)}{\varepsilon^2}\big)\)</span>——<strong>参数量级的样本复杂度</strong>，有限类定理已能给深度网络一个（粗糙的）界；"每个参数付常数个样本"的工程口感由此。但它解释不了过参数化网络为何泛化（<span class="arithmatex">\(d \gg m\)</span> 仍工作）——经典理论的著名裂缝（ai 课 01/07 的未解之谜在正式理论中的位置）。</p>
-<p><strong>例 3（① 与 ② 的分工自检）</strong> 若只要求"输出的 <span class="arithmatex">\(\hat h\)</span> 泛化"而不比 <span class="arithmatex">\(h^*\)</span>：单假设 Hoeffding 够吗？——不够：<span class="arithmatex">\(\hat h\)</span> 依赖 <span class="arithmatex">\(S\)</span>（挑出来的），单点界失效——<strong>"先挑后估必须一致界"</strong>，ai 课 01 讲那个 1000 人抛硬币的比喻在此是定理结构。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：从有限到无限——VC 维、Sauer 引理与学习论基本定理：ai 课 01 讲欠下的"完整证明"在此清偿。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="as-03-testing-asymptotics.html"><span class="pager-label">上一页</span>渐近统计 III · 三大检验与局部理论</a>

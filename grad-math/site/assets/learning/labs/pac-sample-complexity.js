@@ -1,424 +1,115 @@
-(function (root, factory) {
-  "use strict";
+(function(hostWindow){"use strict";
 
-  var exported = factory();
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("pac-sample-complexity", exported.mount);
-  }
-  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module) {
-    try {
-      var report = exported.selfTest();
-      console.log("pac-sample-complexity self-test: PASS (" + report.checks + " checks, " + report.hypotheses + " hypotheses)");
-    } catch (error) {
-      console.error("pac-sample-complexity self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
-  }
-})(typeof window !== "undefined" ? window : typeof globalThis !== "undefined" ? globalThis : this, function () {
-  "use strict";
+const DEFAULT={hypotheses:8,epsilonPercent:20,deltaPercent:10,trainCount:6,noisePercent:0,truthMask:5,skewPercent:40,seed:123456789};
+const LIMITS={hypotheses:[1,8],epsilonPercent:[2,50],deltaPercent:[1,30],trainCount:[1,12],noisePercent:[0,40],truthMask:[0,7],skewPercent:[10,80],seed:[1,4294967295]};
+const D=20000;
+function config(input={}){if(!input||typeof input!=="object"||Array.isArray(input))throw Error("object");for(const k of Object.keys(input))if(!Object.hasOwn(DEFAULT,k))throw Error("key");const c={...DEFAULT,...input};for(const [k,v]of Object.entries(c)){const [lo,hi]=LIMITS[k];if(typeof v!=="number"||!Number.isInteger(v)||v<lo||v>hi)throw Error("integer domain: "+k);}return c;}
+const sum=a=>a.reduce((s,x)=>s+x,0);
+const bit=(mask,x)=>(mask>>x)&1;
+const FACT=[1n];for(let i=1;i<=32;i++)FACT.push(FACT[i-1]*BigInt(i));
+function rational(n,d){return {numerator:String(n),denominator:String(d),value:Number(n)/Number(d)};}
+function compositions(n,k){const rows=[];function walk(left,prefix){if(prefix.length===k-1){rows.push([...prefix,left]);return;}for(let i=0;i<=left;i++)walk(left-i,[...prefix,i]);}walk(n,[]);return rows;}
+function distribution(c){const px=[2*c.skewPercent,100-c.skewPercent,100-c.skewPercent];return Array.from({length:6},(_,j)=>{const x=Math.floor(j/2),y=j%2;return {category:j,x,y,numerator:px[x]*(y===bit(c.truthMask,x)?100-c.noisePercent:c.noisePercent),denominator:D};});}
+function hypotheses(c,cats){return Array.from({length:c.hypotheses},(_,mask)=>{const losses=cats.map(z=>+(bit(mask,z.x)!==z.y)),riskNumerator=sum(losses.map((l,j)=>l*cats[j].numerator));return {mask,predictions:[0,1,2].map(x=>bit(mask,x)),losses,riskNumerator,risk:riskNumerator/D};});}
+function eventFor(counts,hs,c){const errors=hs.map(h=>sum(h.losses.map((l,j)=>l*counts[j]))),min=Math.min(...errors),selected=errors.indexOf(min),best=Math.min(...hs.map(h=>h.riskNumerator)),gap=hs[selected].riskNumerator-best,deviations=hs.map((h,i)=>Math.abs(c.trainCount*h.riskNumerator-D*errors[i]));
+return {errors,selected,minimumErrors:min,excessNumerator:gap,maximumDeviationNumerator:Math.max(...deviations),failure:100*gap>c.epsilonPercent*D,uniformFailure:200*Math.max(...deviations)>c.epsilonPercent*D*c.trainCount,badConsistent:hs.some((h,i)=>100*h.riskNumerator>c.epsilonPercent*D&&errors[i]===0)};}
+function ensemble(input={},includeRows=true){const c=config(input),cats=distribution(c),hs=hypotheses(c,cats),m=c.trainCount,den=BigInt(D)**BigInt(m),powers=cats.map(z=>Array.from({length:m+1},(_,i)=>BigInt(z.numerator)**BigInt(i))),selected=hs.map(()=>0n),events={failure:0n,uniformFailure:0n,badConsistent:0n},totals={train:0n,risk:0n,excess:0n,deviation:0n};let total=0n,positiveRows=0;const rows=[];
+for(const counts of compositions(m,6)){let multiplicity=FACT[m];for(const n of counts)multiplicity/=FACT[n];let weight=multiplicity;for(let j=0;j<6;j++)weight*=powers[j][counts[j]];const e=eventFor(counts,hs,c);total+=weight;if(weight>0n)positiveRows++;selected[e.selected]+=weight;for(const name of Object.keys(events))if(e[name])events[name]+=weight;totals.train+=weight*BigInt(e.minimumErrors);totals.risk+=weight*BigInt(hs[e.selected].riskNumerator);totals.excess+=weight*BigInt(e.excessNumerator);totals.deviation+=weight*BigInt(e.maximumDeviationNumerator);if(includeRows)rows.push({counts,multiplicity:String(multiplicity),weightNumerator:String(weight),...e});}
+if(total!==den)throw Error("probability mass");const realizable=c.noisePercent===0&&c.truthMask<c.hypotheses,epsilon=c.epsilonPercent/100,delta=c.deltaPercent/100;let union=0n;for(const h of hs)if(100*h.riskNumerator>c.epsilonPercent*D)union+=BigInt(D-h.riskNumerator)**BigInt(m);
+return {parameters:c,categories:cats,hypotheses:hs,realizable,denominator:String(den),rowCount:compositions(m,6).length,positiveRows,total:rational(total,den),events:Object.fromEntries(Object.entries(events).map(([k,n])=>[k,rational(n,den)])),selectedDistribution:selected.map((n,mask)=>({mask,...rational(n,den)})),expectations:{trainRisk:rational(totals.train,den*BigInt(m)),trueRisk:rational(totals.risk,den*BigInt(D)),excessRisk:rational(totals.excess,den*BigInt(D)),uniformDeviation:rational(totals.deviation,den*BigInt(D*m))},bounds:{agnosticRaw:2*c.hypotheses*Math.exp(-m*epsilon**2/2),agnostic:Math.min(1,2*c.hypotheses*Math.exp(-m*epsilon**2/2)),realizableRaw:realizable?c.hypotheses*Math.exp(-m*epsilon):null,realizable:realizable?Math.min(1,c.hypotheses*Math.exp(-m*epsilon)):null,realizableUnion:realizable?rational(union<den?union:den,den):null,realizableUnionRaw:realizable?rational(union,den):null,agnosticSufficientSamples:Math.ceil(2*Math.log(2*c.hypotheses/delta)/epsilon**2),realizableSufficientSamples:realizable?Math.ceil(Math.log(c.hypotheses/delta)/epsilon):null},rows};}
+function observation(input={}){const c=config(input),cats=distribution(c),hs=hypotheses(c,cats);let state=c.seed;const raw=[];function draw(){state^=state<<13;state^=state>>>17;state^=state<<5;state>>>=0;let cumulative=0,j=0;for(;j<5;j++){cumulative+=cats[j].numerator;if(BigInt(state)*BigInt(D)<BigInt(cumulative)*4294967296n)break;}const z=cats[j],r={index:raw.length,uint32:state,category:j,x:z.x,y:z.y};raw.push(r);return r;}const training=Array.from({length:c.trainCount},draw),counts=Array(6).fill(0);for(const z of training)counts[z.category]++;const e=eventFor(counts,hs,c),holdout=Array.from({length:32},draw).map(z=>({...z,prediction:bit(e.selected,z.x),error:+(bit(e.selected,z.x)!==z.y)})),risk=hs[e.selected].riskNumerator,den=BigInt(D)**32n;const binomial=Array.from({length:33},(_,k)=>({errors:k,multiplicity:String(FACT[32]/FACT[k]/FACT[32-k]),...rational(FACT[32]/FACT[k]/FACT[32-k]*BigInt(risk)**BigInt(k)*BigInt(D-risk)**BigInt(32-k),den)}));return {training,trainingCounts:counts,...e,trainingRisk:e.minimumErrors/c.trainCount,trueRisk:risk/D,holdout,holdoutRisk:sum(holdout.map(z=>z.error))/32,binomial,finalState:state,scope:"A deterministic xorshift32 trace mapped to categories on a 2^32 grid; not an exact i.i.d. draw from the ideal rational law. Holdout is never used to select the rule. Binomial law is the ideal independent 32-sample law conditional on the selected rule, not a certificate for this one PRNG trace."};}
+function noFreeLunch(){const N=6,m=3,den=BigInt(N)**BigInt(m),occupancy=compositions(m,N).map(counts=>{let mult=FACT[m];for(const n of counts)mult/=FACT[n];return {counts,multiplicity:String(mult),unseen:counts.filter(n=>!n).length};}),targets=Array.from({length:2**N},(_,mask)=>{let wrong=0n,failed=0n;for(const r of occupancy){const errors=sum(r.counts.map((n,x)=>!n?bit(mask,x):0)),w=BigInt(r.multiplicity);wrong+=w*BigInt(errors);if(errors*8>N)failed+=w;}return {mask,expectedRisk:rational(wrong,den*BigInt(N)),failureProbability:rational(failed,den)};});const avg=targets.reduce((s,t)=>s+BigInt(t.expectedRisk.numerator),0n),rows=Array.from({length:24},(_,i)=>{const m=i+1;return {samples:m,adversarialSupport:2*m,adversarialUnseen:(1-1/(2*m))**m,adversarialAverageRisk:.5*(1-1/(2*m))**m,fixedSupport:N,fixedUnseen:(1-1/N)**m,fixedAverageRisk:.5*(1-1/N)**m};});return {support:N,samples:m,occupancy,targets,averageRisk:rational(avg,den*BigInt(N*2**N)),analyticAverageRisk:rational(BigInt(N-1)**BigInt(m),2n*BigInt(N)**BigInt(m)),rows,scope:"Exact witness: memorise observed labels, predict 0 on unseen inputs; average uniformly over all 64 targets and all 6^3 ordered input samples, compressed by counts. General theorem also covers other algorithms; witness alone does not prove that quantifier."};}
+const core={DEFAULT,LIMITS,D,config,sum,bit,FACT,rational,compositions,distribution,hypotheses,eventFor,ensemble,observation,noFreeLunch};
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var INSTANCE = 0;
-  var SAMPLE_X = [0, 5, 7, 12, 14, 19, 3, 8, 11, 16, 1, 4, 6, 9, 10, 13, 15, 17, 18, 2];
 
-  function targetLabel(x) {
-    return x % 4 === 0 || x === 7 || x === 14 ? 1 : 0;
-  }
+const PRESETS=[
+{id:"realizable",name:"无噪声：概率与上界",parameters:{}},
+{id:"twelve",name:"12 点训练，全部 6188 种计数",parameters:{trainCount:12}},
+{id:"one-sample",name:"只看一个样本",parameters:{trainCount:1}},
+{id:"noisy",name:"20% 标签噪声",parameters:{noisePercent:20,trainCount:8}},
+{id:"high-noise",name:"40% 噪声与严格精度",parameters:{noisePercent:40,epsilonPercent:2,trainCount:12}},
+{id:"misspecified",name:"真规则不在类内",parameters:{hypotheses:3,truthMask:7}},
+{id:"singleton",name:"只有一个规则，超额风险恒零",parameters:{hypotheses:1,truthMask:7,noisePercent:20}},
+{id:"perfect-singleton",name:"唯一规则也完全正确",parameters:{hypotheses:1,truthMask:0}},
+{id:"always-wrong",name:"唯一规则处处预测错",parameters:{hypotheses:1,truthMask:7}},
+{id:"skewed",name:"常见输入遮住稀有输入",parameters:{skewPercent:80,truthMask:6,trainCount:12}},
+{id:"threshold",name:"严格大于 ε 的边界",parameters:{skewPercent:10,epsilonPercent:45,truthMask:7,deltaPercent:30}},
+{id:"seed-boundary",name:"最大合法种子与低 δ",parameters:{seed:4294967295,deltaPercent:1,epsilonPercent:50,noisePercent:1}}
+];
+function summary(e){return {samples:e.parameters.trainCount,realizable:e.realizable,rowCount:e.rowCount,positiveRows:e.positiveRows,denominator:e.denominator,events:e.events,selectedDistribution:e.selectedDistribution,expectations:e.expectations,bounds:e.bounds};}
+function compute(input={}){const c=core.config(input),exact=core.ensemble(c),observed=core.observation(c),sampleScan=Array.from({length:12},(_,i)=>summary(core.ensemble({...c,trainCount:i+1},false)));return {schemaVersion:1,parameters:c,exact,observed,sampleScan,nfl:core.noFreeLunch(),scope:"Finite three-input binary classification under an explicitly known rational i.i.d. law; smallest-mask ERM tie-breaking. Exact multinomial ensemble is distinct from a deterministic PRNG illustration and from distribution-free sufficient bounds. Counts enumerate ordered samples with their multinomial multiplicities. The finite enumeration cap m<=12 does not cap the sample-complexity theorem."};}
+const QUESTIONS=[
+ ['本页 H=1，即使唯一规则的真实风险是 1，ERM 的超额风险是否仍为 0？',['是，比较基准就是同一个规则','否，真实风险 1 就是超额风险 1'],0,'超额风险减去了类内最优风险。只有一个规则时，两项完全相等；这没有承诺预测准确。'],
+ ['无噪声且真规则在类内时，“存在坏的一致规则”与“指定并列规则的 ERM 失败”必定是同一事件吗？',['是，存在一个坏规则就一定选中它','不是，ERM 也可能在并列时选中好规则'],1,'ERM 失败事件包含在坏一致规则存在事件中。并集上界再把多个坏规则的事件相加，重复计数会使上界更松。'],
+ ['已经固定训练数据与规则，仅把 δ 从 0.1 改成 0.01，会自动改变真实失败概率吗？',['会，更严格的信心会直接减少错误','不会，δ 改变保证要求，不改变这里的 ERM'],1,'这里 δ 只进入充分样本量和目标保证；输入分布、样本量与选模算法不变时，精确失败概率不变。'],
+ ['固定有限输入域有 N 个点，所有 2ᴺ 个二分类函数是否因此不可 PAC 学？',['仍可学；N 固定时这是一个有限类','不可学；没有免费午餐排除了所有函数类'],0,'有限类定理仍适用。无限域上的反例可以针对每个 m 选取 2m 个点；不能把随 m 改变的支持集偷换成一个固定有限域。']
+];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=4||![0,1].includes(j))throw Error('choice');const correct=j===QUESTIONS[i][2];return {correct,text:(correct?'正确。':'需要修正。')+QUESTIONS[i][3]};}
+function fmt(x){if(x===null||x===undefined)return '不适用';if(Array.isArray(x))return '['+x.map(fmt).join(', ')+']';if(typeof x==='boolean')return x?'是':'否';if(typeof x==='number')return Number.isInteger(x)?String(x):Math.abs(x)<1e-4||Math.abs(x)>=1e5?x.toExponential(5):Number(x.toPrecision(7)).toString();return String(x);}
+const COLORS=['#c55b32','#3875ba','#368661','#9860a8','#856722','#646e7c'];
+function frame(key,title,xLabel,yLabel,series,domain,range){const pts=series.flatMap(s=>s.points.filter(Boolean)),xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);let xmin=domain?.[0]??Math.min(...xs),xmax=domain?.[1]??Math.max(...xs),ymin=range?.[0]??Math.min(...ys),ymax=range?.[1]??Math.max(...ys);if(xmin===xmax)xmax=xmin+1;if(ymin===ymax)ymax=ymin+1;if(!range){const pad=.08*(ymax-ymin);ymin-=pad;ymax+=pad;}return {key,title,xLabel,yLabel,xMin:xmin,xMax:xmax,yMin:ymin,yMax:ymax,series};}
+function plots(s){const e=s.exact,c=s.parameters;return [
+ frame('failure','固定分布：精确失败事件与通用上界','训练样本数 m','概率（上界截在 1）',[
+  {name:'ERM 超额风险 > ε',color:COLORS[0],points:s.sampleScan.map(r=>[r.samples,r.events.failure.value])},
+  {name:'统一偏差 > ε/2',color:COLORS[1],points:s.sampleScan.map(r=>[r.samples,r.events.uniformFailure.value])},
+  {name:'不可知 Hoeffding 上界',color:COLORS[3],points:s.sampleScan.map(r=>[r.samples,r.bounds.agnostic])},
+  ...(e.realizable?[{name:'坏一致规则存在',color:COLORS[2],points:s.sampleScan.map(r=>[r.samples,r.events.badConsistent.value])},{name:'逐坏规则精确并集上界',color:COLORS[4],points:s.sampleScan.map(r=>[r.samples,r.bounds.realizableUnion.value])},{name:'可实现指数上界',color:COLORS[5],points:s.sampleScan.map(r=>[r.samples,r.bounds.realizable])}]:[])
+ ],[1,12],[0,1]),
+ frame('risk','同一个类：真实风险与本次训练风险','规则编号（并列取最小）','错误比例',[
+  {name:'真实风险（分布已知才能算）',color:COLORS[1],markersOnly:true,points:e.hypotheses.map(h=>[h.mask,h.risk])},
+  {name:'本次训练错误率',color:COLORS[0],markersOnly:true,hollow:true,points:e.hypotheses.map(h=>[h.mask,s.observed.errors[h.mask]/c.trainCount])}
+ ],[0,Math.max(1,c.hypotheses-1)],[0,1]),
+ frame('selected','重复抽样时，各规则被 ERM 选中的概率','规则编号','精确概率',[{name:'全部理想训练样本的加权结果',color:COLORS[1],markersOnly:true,points:e.selectedDistribution.map(r=>[r.mask,r.value])}],[0,Math.max(1,c.hypotheses-1)],[0,1]),
+ frame('expectation','训练、真实与超额风险的期望','训练样本数 m','全部样本上的期望',[
+  {name:'训练风险',color:COLORS[0],points:s.sampleScan.map(r=>[r.samples,r.expectations.trainRisk.value])},
+  {name:'真实风险',color:COLORS[1],points:s.sampleScan.map(r=>[r.samples,r.expectations.trueRisk.value])},
+  {name:'超额风险',color:COLORS[2],points:s.sampleScan.map(r=>[r.samples,r.expectations.excessRisk.value])}
+ ],[1,12],[0,1]),
+ frame('holdout','固定已选规则：理想独立 32 点测试集','测试错误数 k（不是百分比）','条件二项概率',[{name:'Binomial(32, 真实风险)',color:COLORS[1],markersOnly:true,points:s.observed.binomial.map(r=>[r.errors,r.value])}],[0,32],[0,Math.max(.1,...s.observed.binomial.map(r=>r.value))*1.05]),
+ frame('nfl','NFL：支持集随 m 扩大，和固定 N=6 的差别','训练样本数 m','随机目标平均风险',[
+  {name:'每次另取 N=2m 个点',color:COLORS[0],points:s.nfl.rows.map(r=>[r.samples,r.adversarialAverageRisk])},
+  {name:'固定 N=6 的记忆学习器',color:COLORS[1],points:s.nfl.rows.map(r=>[r.samples,r.fixedAverageRisk])},
+  {name:'N=2m 的下界 1/4',color:COLORS[2],points:[[1,.25],[24,.25]]}
+ ],[1,24],[0,.5])
+];}
+function tables(s){const e=s.exact,o=s.observed;return [
+ {key:'parameters',title:'参数：概率要求与数据机制分列',headers:['参数','值'],rows:Object.entries(s.parameters)},
+ {key:'categories',title:'六个输入–标签类别：整数概率',headers:['类别','输入 x','标签 y','概率分子','统一分母'],rows:e.categories.map(r=>[r.category,r.x,r.y,r.numerator,r.denominator])},
+ {key:'rules',title:'全部假设的真值表、风险与被选概率',headers:['mask','在 x=0,1,2 上的预测','六类别损失','真实风险分子','真实风险','本次训练错误数','被选概率'],rows:e.hypotheses.map(r=>[r.mask,r.predictions,r.losses,r.riskNumerator,r.risk,o.errors[r.mask],e.selectedDistribution[r.mask].value])},
+ {key:'events',title:'精确概率与定理上界（不是同一个事件）',headers:['量','值','精确分子','精确分母'],rows:[...Object.entries(e.events).map(([k,r])=>[k,r.value,r.numerator,r.denominator]),...Object.entries(e.expectations).map(([k,r])=>[k,r.value,r.numerator,r.denominator]),...Object.entries(e.bounds).map(([k,r])=>[k,r&&typeof r==='object'?r.value:r,r&&typeof r==='object'?r.numerator:'—',r&&typeof r==='object'?r.denominator:'—'])]},
+ {key:'counts',title:'全部 '+e.rowCount+' 种训练计数（零概率行也保留）',headers:['六类别计数','有序样本重数','概率分子','各规则错误数','选中规则','超额风险分子','最大偏差分子','ERM失败','统一偏差失败','坏一致存在'],rows:e.rows.map(r=>[r.counts,r.multiplicity,r.weightNumerator,r.errors,r.selected,r.excessNumerator,r.maximumDeviationNumerator,r.failure,r.uniformFailure,r.badConsistent])},
+ {key:'sample-scan',title:'1–12 点全样本枚举：概率与期望',headers:['m','计数行数','正概率行数','ERM失败概率','统一偏差概率','坏一致概率','可实现上界','不可知上界','平均训练风险','平均真实风险','平均超额风险'],rows:s.sampleScan.map(r=>[r.samples,r.rowCount,r.positiveRows,r.events.failure.value,r.events.uniformFailure.value,r.events.badConsistent.value,r.bounds.realizable,r.bounds.agnostic,r.expectations.trainRisk.value,r.expectations.trueRisk.value,r.expectations.excessRisk.value])},
+ {key:'training',title:'本次伪随机训练轨迹：保留原始 uint32',headers:['顺序','原始 uint32','类别','输入','标签'],rows:o.training.map(r=>[r.index,r.uint32,r.category,r.x,r.y])},
+ {key:'holdout',title:'本次 32 点保留测试轨迹：不参与选模',headers:['顺序','原始 uint32','类别','输入','标签','预测','错误'],rows:o.holdout.map(r=>[r.index,r.uint32,r.category,r.x,r.y,r.prediction,r.error])},
+ {key:'binomial',title:'理想独立测试集的全部 33 个错误数',headers:['错误数','二项系数','概率分子','概率分母','概率'],rows:o.binomial.map(r=>[r.errors,r.multiplicity,r.numerator,r.denominator,r.value])},
+ {key:'nfl-targets',title:'N=6、m=3：全 64 个目标的记忆学习器核对',headers:['目标编号','期望风险分子','分母','期望风险','风险 > 1/8 的概率'],rows:s.nfl.targets.map(r=>[r.mask,r.expectedRisk.numerator,r.expectedRisk.denominator,r.expectedRisk.value,r.failureProbability.value])},
+ {key:'nfl-occupancy',title:'NFL 输入样本的全部 56 种计数',headers:['六输入计数','有序样本重数','未见点数'],rows:s.nfl.occupancy.map(r=>[r.counts,r.multiplicity,r.unseen])}
+];}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=10000?v.toExponential(2):Number(v.toFixed(3)).toString();
+function svg(p){const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 580" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+const discrete=true;const xticks=discrete?[...new Set(Array.from({length:5},(_,i)=>Math.round(p.xMin+(p.xMax-p.xMin)*i/4)))]:Array.from({length:5},(_,i)=>p.xMin+(p.xMax-p.xMin)*i/4);for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+axisFmt(y)+'</text>';}for(const x of xticks){out+='<text x="'+X(x)+'" y="410" text-anchor="middle">'+axisFmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen&&!s.markersOnly?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const marks=s.markersOnly?s.points.filter(Boolean):s.boundaryMarkers?[...new Set([s.points.find(Boolean),s.points.filter(Boolean).at(-1)])].filter(Boolean):s.points.filter(Boolean).length===1?s.points.filter(Boolean):[];marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="'+(s.markerRadius??5)+'" stroke="'+s.color+'" fill="'+(s.hollow?'none':s.open?'var(--bg,#fff)':s.color)+'" stroke-width="'+(s.markerStrokeWidth??2.5)+'"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});if(!p.series.some(s=>s.points.some(Boolean)))out+='<text x="450" y="245" text-anchor="middle">当前模型在此参数下无适用数据</text>';return out+'</svg>';}
 
-  var DATASET = SAMPLE_X.map(function (x, index) {
-    return { id: index + 1, x: x, y: targetLabel(x) };
-  });
+var mounted=new WeakMap();
+function mount(root){const doc=root.ownerDocument,previous=mounted.get(root);if(previous)previous();root.replaceChildren();root.classList.add('pac187');let c=config(PRESETS[0].parameters),choices={},revealed=false,url=null,current=null,view=0,valid=true;
+ const el=(tag,attrs={},text)=>{const e=doc.createElement(tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
+ if(!doc.querySelector('[data-pac187-style]')){const style=el('style',{'data-pac187-style':''});style.textContent='.pac187{margin-inline:0!important;width:100%;min-width:0;color:var(--fg,#222);line-height:1.65}.pac187 *{box-sizing:border-box}.pac187 button,.pac187 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.pac187 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.pac187 button:focus-visible,.pac187 select:focus-visible,.pac187 [tabindex]:focus-visible{outline:3px solid #2474bc}.pac187 .pac-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.pac187 label{display:grid;gap:4px;min-width:0}.pac187 input{width:100%;min-height:44px;font:inherit;color:inherit;background:var(--bg,#fff)}.pac187 .pac-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.pac187 .pac-pred>strong{display:block;margin-bottom:6px}.pac187 .pac-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.pac187 .pac-feedback{margin:7px 0}.pac187 .pac-scroll{max-width:100%;overflow:auto}.pac187 svg{display:block;min-width:680px;width:100%;height:auto}.pac187 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.pac187 td,.pac187 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.pac187 [hidden]{display:none!important}.pac187 details{margin:12px 0}.pac187 summary{min-height:44px;cursor:pointer}.pac187 .pac-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.pac187 .pac-correct{color:var(--cl-green,#277540)}.pac187 .pac-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.pac187 .pac-grid{grid-template-columns:1fr}}';doc.head.append(style);}
+ root.append(el('h3',{},'把 PAC 的概率量词变成可以算完的实验'),el('p',{},'只有三个输入、最多八条规则。精确枚举所有训练计数，比较真实失败概率、证明中的放大步骤和一次可复现观测。'));
+ const presets=el('div',{class:'pac-row','aria-label':'教学预设'});for(const p of PRESETS){const b=el('button',{type:'button','data-preset':p.id},p.name);b.onclick=()=>{c=config(p.parameters);valid=true;sync();reset();};presets.append(b);}root.append(presets);
+ const fields={},outs={},grid=el('div',{class:'pac-grid'});
+ for(const[key,title]of [['hypotheses','候选规则数 H（mask 从 0 开始）'],['epsilonPercent','容许超额风险 ε（百分数）'],['deltaPercent','容许失败概率 δ（百分数）'],['trainCount','训练样本数 m'],['noisePercent','对称标签翻转概率（百分数）'],['truthMask','真实规则的真值表编号'],['skewPercent','输入 x=0 的概率（百分数）'],['seed','非零 uint32 种子']]){const[min,max]=LIMITS[key],label=el('label',{},title),out=el('output'),input=el('input',{type:key==='seed'?'number':'range',min,max,step:1,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.oninput=input.onchange=()=>{try{const values=Object.fromEntries(Object.entries(fields).map(([k,e])=>[k,e.value===''?NaN:Number(e.value)]));c=config(values);valid=true;sync();reset();}catch(e){valid=false;reset();status.textContent='参数必须是所标范围内的整数；请修正后再核对。';}};}root.append(grid);
+ const note=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(note,prediction);prediction.append(el('h4',{},'先预测：风险基准、事件包含、δ 与有限域'),el('p',{},'四题的条件固定写在题干里；参数用来检查例子，不自动改变问题。'));
+ const feedbacks=[],buttons=[];QUESTIONS.forEach((q,i)=>{const row=el('div',{class:'pac-pred'});row.append(el('strong',{},q[0]));buttons[i]=[];q[1].forEach((text,j)=>{const b=el('button',{type:'button','data-prediction':i,'data-choice':String(j===0),'aria-pressed':'false'},text);b.onclick=()=>{choices[i]=j;buttons[i].forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));if(revealed)showFeedback();};row.append(b);buttons[i].push(b);});feedbacks[i]=el('p',{class:'pac-feedback','data-feedback':i});row.append(feedbacks[i]);prediction.append(row);});
+ const check=el('button',{type:'button','data-check':''},'核对预测并显示完整结果'),status=el('p',{class:'pac-status','aria-live':'polite'});root.append(check,status);
+ const stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),summary=el('p'),plotButtons=el('div',{class:'pac-row'}),plotWrap=el('div',{class:'pac-scroll',tabindex:0,role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'所有样本数横轴都是离散整数，连线只帮助读图。蓝色测试分布是固定已选规则后的理想独立二项分布；本次种子轨迹另列在表中。概率为零的点保持为零。'),tableHost=el('div'),download=el('a',{'data-download':'',download:'pac-record.json'},'下载当前完整记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);
+ function sync(){for(const[k,e]of Object.entries(fields))e.value=c[k];}
+ function reset(){revealed=false;choices={};stage.hidden=true;delete root.__pacSnapshot;for(let i=0;i<4;i++){feedbacks[i].textContent='';for(const b of buttons[i])b.setAttribute('aria-pressed','false');}for(const[k,o]of Object.entries(outs))o.textContent=fmt(c[k]);note.textContent='理想类别概率用整数/20000 表示。训练样本独立有放回；计数行按多项式重数加权。真规则编号须小于 H 且噪声为零，才满足可实现前提。m≤12 是枚举成本限制，定理的充分样本量不受此限。';status.textContent='完成四项预测后显示当前结果。';}
+ function showFeedback(){let n=0;for(let i=0;i<4;i++){if(!Number.isInteger(choices[i]))continue;const f=feedback(i,choices[i]);n+=+f.correct;feedbacks[i].textContent=f.text;feedbacks[i].className='pac-feedback '+(f.correct?'pac-correct':'pac-wrong');}status.textContent='预测核对：'+n+'/4 正确。图、表和下载均对应当前参数。';}
+ function draw(){const ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+ function render(){current=compute(c);root.__pacSnapshot=current;stage.hidden=false;summary.textContent='精确 ERM 失败概率 '+fmt(current.exact.events.failure.value)+'；不可知通用上界 '+fmt(current.exact.bounds.agnostic)+'。本次选中 h_'+current.observed.selected+'，训练风险 '+fmt(current.observed.trainingRisk)+'，真实风险 '+fmt(current.observed.trueRisk)+'，32 点保留测试风险 '+fmt(current.observed.holdoutRisk)+'。这些量含义不同。可实现前提：'+fmt(current.exact.realizable)+'。';plotButtons.replaceChildren();plots(current).forEach((p,i)=>{const b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();for(const t of tables(current)){const d=el('details',{'data-table':t.key});d.append(el('summary',{},t.title));d.addEventListener('toggle',()=>{if(!d.open||d.children.length>1)return;const wrap=el('div',{class:'pac-scroll',tabindex:0,role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),thead=el('thead'),tr=el('tr'),tbody=el('tbody');for(const h of t.headers)tr.append(el('th',{scope:'col'},h));thead.append(tr);for(const row of t.rows){const r=el('tr');for(const v of row)r.append(el('td',{},fmt(v)));tbody.append(r);}table.append(thead,tbody);wrap.append(table);d.append(wrap);});tableHost.append(d);}if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current)],{type:'application/json'}));download.href=url;showFeedback();}
+ check.onclick=()=>{if(!valid){status.textContent='请先修正无效参数。';return;}if(![0,1,2,3].every(i=>Number.isInteger(choices[i]))){status.textContent='请先为四个问题各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
+}
 
-  var RULES = [
-    { id: "zero", label: "h₀：恒 0", predict: function () { return 0; } },
-    { id: "one", label: "h₁：恒 1", predict: function () { return 1; } },
-    { id: "even", label: "h₂：x 为偶数", predict: function (x) { return x % 2 === 0 ? 1 : 0; } },
-    { id: "multiple-four", label: "h₃：4 的倍数", predict: function (x) { return x % 4 === 0 ? 1 : 0; } },
-    { id: "lower-half", label: "h₄：x < 10", predict: function (x) { return x < 10 ? 1 : 0; } },
-    { id: "upper-half", label: "h₅：x ≥ 10", predict: function (x) { return x >= 10 ? 1 : 0; } },
-    { id: "mod-four-half", label: "h₆：x mod 4 < 2", predict: function (x) { return x % 4 < 2 ? 1 : 0; } },
-    { id: "multiple-three", label: "h₇：3 的倍数", predict: function (x) { return x % 3 === 0 ? 1 : 0; } }
-  ];
-
-  var DEFAULTS = { hypothesisCount: 8, epsilon: 0.20, delta: 0.10, trainCount: 12 };
-
-  var STYLE_TEXT = [
-    ".pac-lab{--pac-blue:var(--cl-blue,#315f9d);--pac-green:var(--cl-green,#39734d);--pac-gold:var(--cl-gold,#9b6a12);--pac-red:var(--cl-red,#b64335);max-width:100%;min-width:0;color:var(--fg,#292722);line-height:1.55;overflow-wrap:anywhere}",
-    ".pac-lab *,.pac-lab *::before,.pac-lab *::after{box-sizing:border-box}.pac-lab [hidden]{display:none!important}.pac-lab h3,.pac-lab h4{margin:0;color:var(--fg,#292722);letter-spacing:0}.pac-lab h3{font-size:1.12rem}.pac-lab h4{font-size:1rem}.pac-lab p{margin:8px 0}.pac-lab .pac-note,.pac-lab .pac-feedback,.pac-lab .pac-detail{color:var(--fg-soft,var(--muted,#6b6557));font-size:13px;line-height:1.65}.pac-lab .pac-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 12px;margin:11px 0;padding:12px;border:1px solid var(--border,#d7d0c2);background:var(--block-bg,var(--bg,#fff))}.pac-lab .pac-control{display:grid;gap:4px;min-width:0}.pac-lab .pac-control label{font-size:12.5px;font-weight:700;color:var(--fg-soft,var(--muted,#6b6557))}.pac-lab .pac-control output{color:var(--pac-blue);font-variant-numeric:tabular-nums}.pac-lab select,.pac-lab input{font:inherit;min-width:0}.pac-lab select{height:44px;min-height:44px;padding:5px 7px;border:1px solid var(--border,#d7d0c2);border-radius:5px;background:var(--bg,#fff);color:inherit}.pac-lab input[type=range]{display:block;width:100%;height:44px;min-height:44px;margin:0;accent-color:var(--pac-blue)}.pac-lab select:focus-visible,.pac-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.pac-lab .pac-predict{margin-top:12px;padding:12px;border:1px solid var(--border,#d7d0c2);background:var(--block-bg,var(--bg,#fff))}.pac-lab .pac-question{margin:10px 0 0;padding:9px;border:1px solid var(--border,#d7d0c2);min-width:0}.pac-lab .pac-question legend{max-width:100%;padding:0 4px;font-size:13px;font-weight:750;line-height:1.5}.pac-lab .pac-choice-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.pac-lab button{font:inherit;min-width:0;min-height:44px;padding:8px 10px;border:1px solid var(--border,#d7d0c2);border-radius:6px;background:var(--bg,#fff);color:inherit;line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.pac-lab button:hover{border-color:var(--pac-blue)}.pac-lab button:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.pac-lab button[aria-pressed=true],.pac-lab .pac-primary{border-color:var(--pac-blue);background:var(--pac-blue);color:var(--bg,#fff);font-weight:750}.pac-lab .pac-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}.pac-lab .pac-actions>*{flex:1 1 160px}.pac-lab .pac-feedback{min-height:2em;margin:8px 0 0;font-weight:700}.pac-lab .pac-pass{color:var(--pac-green)}.pac-lab .pac-warn{color:var(--pac-red)}.pac-lab .pac-results{margin-top:18px;padding-top:16px;border-top:1px solid var(--border,#d7d0c2)}.pac-lab .pac-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:11px 0}.pac-lab .pac-metric{min-width:0;padding:8px;border-top:2px solid var(--border,#d7d0c2);background:var(--block-bg,var(--bg,#fff))}.pac-lab .pac-metric:nth-child(4n+1){border-color:var(--pac-blue)}.pac-lab .pac-metric:nth-child(4n+2){border-color:var(--pac-green)}.pac-lab .pac-metric:nth-child(4n+3){border-color:var(--pac-gold)}.pac-lab .pac-metric:nth-child(4n){border-color:var(--pac-red)}.pac-lab .pac-metric span{display:block;color:var(--fg-soft,var(--muted,#6b6557));font-size:11px;line-height:1.4}.pac-lab .pac-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.pac-lab .pac-chart-frame{min-width:0;padding:7px;border:1px solid var(--border,#d7d0c2);border-radius:6px;background:var(--bg,#fff);overflow:hidden}.pac-lab svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg,#292722)}.pac-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.pac-lab .pac-axis{stroke:currentColor;stroke-opacity:.22;stroke-width:1}.pac-lab .pac-bar-eps{fill:var(--pac-gold)}.pac-lab .pac-bar-train{fill:var(--pac-blue)}.pac-lab .pac-bar-test{fill:var(--pac-red)}.pac-lab .pac-small-label{font-size:10px;fill:var(--fg-soft,var(--muted,#6b6557))}.pac-lab .pac-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:13px}.pac-lab table{width:100%;min-width:670px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.pac-lab caption{padding:0 0 7px;text-align:left;color:var(--fg-soft,var(--muted,#6b6557));font-size:12px}.pac-lab th,.pac-lab td{padding:7px 8px;border-bottom:1px solid var(--border,#d7d0c2);text-align:left;vertical-align:top}.pac-lab th{color:var(--fg-soft,var(--muted,#6b6557));font-size:11.5px}.pac-lab .pac-ledger-note{margin-top:12px;padding:9px 11px;border-left:3px solid var(--pac-gold);background:var(--block-bg,var(--bg,#fff));color:var(--fg-soft,var(--muted,#6b6557));font-size:12.5px;line-height:1.65}",
-    "@media(max-width:900px){.pac-lab .pac-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.pac-lab .pac-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}",
-    "@media(max-width:600px){.pac-lab .pac-choice-row{grid-template-columns:minmax(0,1fr)}}",
-    "@media(max-width:420px){.pac-lab .pac-controls,.pac-lab .pac-metrics{grid-template-columns:minmax(0,1fr)}.pac-lab .pac-predict{padding:9px}.pac-lab .pac-chart-frame{padding:4px}.pac-lab table{font-size:11.5px}.pac-lab th,.pac-lab td{padding-left:5px;padding-right:5px}}",
-    "@media(prefers-reduced-motion:reduce){.pac-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
-  ].join("\n");
-
-  function clamp(value, minimum, maximum) {
-    return Math.max(minimum, Math.min(maximum, value));
-  }
-
-  function normalizeConfig(input) {
-    var source = input || DEFAULTS;
-    var hypothesisCount = Math.round(Number(source.hypothesisCount));
-    var epsilon = Number(source.epsilon);
-    var delta = Number(source.delta);
-    var trainCount = Math.round(Number(source.trainCount));
-    return {
-      hypothesisCount: clamp(Number.isFinite(hypothesisCount) ? hypothesisCount : DEFAULTS.hypothesisCount, 1, RULES.length),
-      epsilon: clamp(Number.isFinite(epsilon) ? epsilon : DEFAULTS.epsilon, 1e-6, 1),
-      delta: clamp(Number.isFinite(delta) ? delta : DEFAULTS.delta, 1e-9, 1 - 1e-9),
-      trainCount: clamp(Number.isFinite(trainCount) ? trainCount : DEFAULTS.trainCount, 1, DATASET.length - 1)
-    };
-  }
-
-  function sampleComplexityRealizable(hypothesisCount, epsilon, delta) {
-    return Math.ceil(Math.log(hypothesisCount / delta) / epsilon);
-  }
-
-  function sampleComplexityAgnostic(hypothesisCount, epsilon, delta) {
-    return Math.ceil(2 * Math.log((2 * hypothesisCount) / delta) / (epsilon * epsilon));
-  }
-
-  function unionBoundFailureRealizable(hypothesisCount, sampleCount, epsilon) {
-    return Math.min(1, hypothesisCount * Math.exp(-sampleCount * epsilon));
-  }
-
-  function unionBoundFailureAgnostic(hypothesisCount, sampleCount, epsilon) {
-    return Math.min(1, 2 * hypothesisCount * Math.exp(-sampleCount * epsilon * epsilon / 2));
-  }
-
-  function selectHypotheses(count) {
-    return RULES.slice(0, count);
-  }
-
-  function empiricalError(hypothesis, examples) {
-    if (!examples.length) return 0;
-    var errors = examples.reduce(function (total, example) {
-      return total + (hypothesis.predict(example.x) === example.y ? 0 : 1);
-    }, 0);
-    return errors / examples.length;
-  }
-
-  function errorRows(hypotheses, examples) {
-    return hypotheses.map(function (hypothesis) {
-      var errors = examples.reduce(function (total, example) {
-        return total + (hypothesis.predict(example.x) === example.y ? 0 : 1);
-      }, 0);
-      return { id: hypothesis.id, label: hypothesis.label, errors: errors, count: examples.length, error: examples.length ? errors / examples.length : 0 };
-    });
-  }
-
-  function ermAudit(hypothesisCount, trainCount) {
-    var config = normalizeConfig({ hypothesisCount: hypothesisCount, trainCount: trainCount });
-    var hypotheses = selectHypotheses(config.hypothesisCount);
-    var train = DATASET.slice(0, config.trainCount);
-    var test = DATASET.slice(config.trainCount);
-    var trainRows = errorRows(hypotheses, train);
-    var testRows = errorRows(hypotheses, test);
-    var selectedIndex = 0;
-    trainRows.forEach(function (row, index) {
-      if (row.error < trainRows[selectedIndex].error) selectedIndex = index;
-    });
-    return {
-      hypotheses: hypotheses,
-      train: train,
-      test: test,
-      trainRows: trainRows,
-      testRows: testRows,
-      selected: hypotheses[selectedIndex],
-      selectedIndex: selectedIndex,
-      trainError: trainRows[selectedIndex].error,
-      testError: testRows[selectedIndex].error,
-      trainErrors: trainRows[selectedIndex].errors,
-      testErrors: testRows[selectedIndex].errors
-    };
-  }
-
-  function analyze(input) {
-    var config = normalizeConfig(input);
-    var audit = ermAudit(config.hypothesisCount, config.trainCount);
-    return {
-      hypothesisCount: config.hypothesisCount,
-      epsilon: config.epsilon,
-      delta: config.delta,
-      trainCount: config.trainCount,
-      testCount: DATASET.length - config.trainCount,
-      realizable: {
-        sampleComplexity: sampleComplexityRealizable(config.hypothesisCount, config.epsilon, config.delta),
-        failureBound: unionBoundFailureRealizable(config.hypothesisCount, config.trainCount, config.epsilon)
-      },
-      agnostic: {
-        sampleComplexity: sampleComplexityAgnostic(config.hypothesisCount, config.epsilon, config.delta),
-        failureBound: unionBoundFailureAgnostic(config.hypothesisCount, config.trainCount, config.epsilon)
-      },
-      audit: audit
-    };
-  }
-
-  function near(first, second, tolerance) {
-    return Math.abs(first - second) <= (tolerance || 1e-9) * Math.max(1, Math.abs(first), Math.abs(second));
-  }
-
-  function selfTest() {
-    var checks = 0;
-    function check(condition, message) {
-      checks += 1;
-      if (!condition) throw new Error(message);
-    }
-    var defaultResult = analyze(DEFAULTS);
-    check(DATASET.length === 20, "fixed realized dataset length");
-    check(RULES.length === 8, "finite hypothesis class length");
-    check(defaultResult.realizable.sampleComplexity === 22, "realizable default sample complexity");
-    check(defaultResult.agnostic.sampleComplexity === 254, "agnostic default sample complexity");
-    check(defaultResult.realizable.sampleComplexity < defaultResult.agnostic.sampleComplexity, "agnostic bound is more expensive");
-    check(unionBoundFailureRealizable(8, 12, 0.2) < 1, "realizable failure bound is clipped correctly");
-    check(unionBoundFailureRealizable(8, 20, 0.2) < unionBoundFailureRealizable(8, 12, 0.2), "realizable bound decreases with samples");
-    check(near(defaultResult.audit.train.length / DATASET.length, 0.6), "default train split");
-    check(defaultResult.audit.selectedIndex >= 0 && defaultResult.audit.selectedIndex < 8, "ERM selects a finite hypothesis");
-    check(defaultResult.audit.trainError >= 0 && defaultResult.audit.trainError <= 1, "realized train error range");
-    check(defaultResult.audit.testError >= 0 && defaultResult.audit.testError <= 1, "realized test error range");
-    defaultResult.audit.trainRows.forEach(function (row) { check(row.count === 12, row.id + " train row count"); });
-    defaultResult.audit.testRows.forEach(function (row) { check(row.count === 8, row.id + " test row count"); });
-    check(sampleComplexityRealizable(2, 0.5, 0.5) === 3, "small realizable formula");
-    check(sampleComplexityAgnostic(2, 0.5, 0.5) === 17, "small agnostic formula");
-    check(empiricalError(RULES[0], [{ x: 0, y: 0 }, { x: 1, y: 1 }]) === 0.5, "empirical error");
-    return { checks: checks, hypotheses: RULES.length };
-  }
-
-  function element(doc, tag, attrs, children) {
-    var node = doc.createElement(tag);
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "text") node.textContent = String(value);
-      else if (key === "className") node.className = String(value);
-      else if (key === "htmlFor") node.htmlFor = String(value);
-      else node.setAttribute(key, value === true ? "" : String(value));
-    });
-    var list = children === undefined || children === null ? [] : (Array.isArray(children) ? children : [children]);
-    list.forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child.nodeType ? child : doc.createTextNode(String(child)));
-    });
-    return node;
-  }
-
-  function svgNode(doc, tag, attrs, children) {
-    var node = doc.createElementNS(SVG_NS, tag);
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      node.setAttribute(key, value === true ? "" : String(value));
-    });
-    var list = children === undefined || children === null ? [] : (Array.isArray(children) ? children : [children]);
-    list.forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child.nodeType ? child : doc.createTextNode(String(child)));
-    });
-    return node;
-  }
-
-  function clear(node) {
-    while (node && node.firstChild) node.removeChild(node.firstChild);
-  }
-
-  function format(value, digits) {
-    var places = digits === undefined ? 3 : digits;
-    if (!Number.isFinite(value)) return "-";
-    if (Math.abs(value) < 1e-4 && value !== 0) return value.toExponential(places);
-    return value.toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function metric(doc, label, value) {
-    var box = element(doc, "div", { className: "pac-metric" });
-    box.appendChild(element(doc, "span", { text: label }));
-    box.appendChild(element(doc, "strong", { text: value }));
-    return box;
-  }
-
-  function errorChart(doc, result) {
-    var svg = svgNode(doc, "svg", { viewBox: "0 0 640 220", role: "img", "aria-label": "目标 epsilon、一次训练误差和一次测试误差比较" });
-    svg.appendChild(svgNode(doc, "title", {}, "理论 epsilon 与 realized train/test error 的分账"));
-    var rows = [
-      { label: "epsilon", value: result.epsilon, className: "pac-bar-eps" },
-      { label: "train error", value: result.audit.trainError, className: "pac-bar-train" },
-      { label: "test error", value: result.audit.testError, className: "pac-bar-test" }
-    ];
-    var left = 126, width = 450;
-    [0, 0.5, 1].forEach(function (value) {
-      var x = left + width * value;
-      svg.appendChild(svgNode(doc, "line", { x1: x, y1: 26, x2: x, y2: 184, class: "pac-axis" }));
-      svg.appendChild(svgNode(doc, "text", { x: x, y: 204, "text-anchor": "middle", class: "pac-small-label" }, format(value, 1)));
-    });
-    rows.forEach(function (row, index) {
-      var y = 53 + index * 48;
-      svg.appendChild(svgNode(doc, "text", { x: 8, y: y + 5, class: "pac-small-label" }, row.label));
-      svg.appendChild(svgNode(doc, "rect", { x: left, y: y - 12, width: Math.max(1, width * row.value), height: 18, class: row.className }));
-      svg.appendChild(svgNode(doc, "text", { x: left + width * row.value + 7, y: y + 3, class: "pac-small-label" }, format(row.value, 3)));
-    });
-    return svg;
-  }
-
-  function table(doc, caption, headers, rows) {
-    var wrap = element(doc, "div", { className: "pac-table-wrap" });
-    var node = element(doc, "table", {});
-    node.appendChild(element(doc, "caption", { text: caption }));
-    var head = element(doc, "thead", {}), headRow = element(doc, "tr", {});
-    headers.forEach(function (header) { headRow.appendChild(element(doc, "th", { scope: "col", text: header })); });
-    head.appendChild(headRow); node.appendChild(head);
-    var body = element(doc, "tbody", {});
-    rows.forEach(function (row) {
-      var tr = element(doc, "tr", {});
-      row.forEach(function (cell) { tr.appendChild(element(doc, "td", { text: cell })); });
-      body.appendChild(tr);
-    });
-    node.appendChild(body); wrap.appendChild(node); return wrap;
-  }
-
-  function mount(root, api) {
-    if (!root || typeof document === "undefined") return;
-    var doc = root.ownerDocument || document;
-    if (!doc.getElementById("pac-sample-complexity-styles")) {
-      var style = element(doc, "style", { id: "pac-sample-complexity-styles", text: STYLE_TEXT });
-      (doc.head || doc.documentElement).appendChild(style);
-    }
-    INSTANCE += 1;
-    var uid = "pac-" + INSTANCE;
-    var state = { hypothesisCount: DEFAULTS.hypothesisCount, epsilon: DEFAULTS.epsilon, delta: DEFAULTS.delta, trainCount: DEFAULTS.trainCount, predictions: {}, revealed: false };
-    var shell = element(doc, "div", { className: "pac-shell" });
-    shell.appendChild(element(doc, "p", { className: "pac-note", text: "蓝色/绿色是定理或上界账，红色/蓝色 error 是同一份固定数据上的一次 realized ERM 观测；两者始终分栏。" }));
-    var controls = element(doc, "div", { className: "pac-controls", "aria-label": "PAC 参数控制" });
-    var hypothesisSelect = element(doc, "select", { id: uid + "-h", "aria-label": "有限假设类大小" });
-    [2, 4, 6, 8].forEach(function (count) { hypothesisSelect.appendChild(element(doc, "option", { value: count, text: "H=" + count })); });
-    var hControl = element(doc, "div", { className: "pac-control" }); hControl.appendChild(element(doc, "label", { htmlFor: uid + "-h", text: "有限类大小 H" })); hControl.appendChild(hypothesisSelect); controls.appendChild(hControl);
-    function rangeControl(key, labelText, min, max, step, digits, suffix) {
-      var input = element(doc, "input", { id: uid + "-" + key, type: "range", min: min, max: max, step: step, value: state[key], "aria-label": labelText });
-      var output = element(doc, "output", { for: uid + "-" + key, text: "" });
-      var label = element(doc, "label", { htmlFor: uid + "-" + key }, [labelText + " = ", output]);
-      var box = element(doc, "div", { className: "pac-control" }); box.appendChild(label); box.appendChild(input);
-      input.addEventListener("input", function () { state[key] = Number(input.value); state.revealed = false; renderControls(); renderStatus(); });
-      return { box: box, input: input, output: output, digits: digits, suffix: suffix || "" };
-    }
-    var epsilonControl = rangeControl("epsilon", "精度 ε", 0.05, 0.5, 0.05, 2, "");
-    var deltaControl = rangeControl("delta", "失败概率 δ", 0.01, 0.30, 0.01, 2, "");
-    var trainControl = rangeControl("trainCount", "训练样本 m", 4, 19, 1, 0, "");
-    controls.appendChild(epsilonControl.box); controls.appendChild(deltaControl.box); controls.appendChild(trainControl.box); shell.appendChild(controls);
-    hypothesisSelect.addEventListener("change", function () { state.hypothesisCount = Number(hypothesisSelect.value); state.revealed = false; renderControls(); renderStatus(); });
-
-    var questions = [
-      { id: "rate", label: "可实现 / 不可知样本复杂度的 ε 代价？", choices: [["one-vs-two", "1/ε vs 1/ε²"], ["same", "两者相同"]] },
-      { id: "count", label: "H 加倍时，有限类公式怎样变化？", choices: [["log", "只加一个 ln H 项"], ["linear", "整体线性加倍"]] },
-      { id: "realized", label: "一次 test error 在账本中是什么？", choices: [["observation", "一次 realized observation"], ["guarantee", "PAC 上界本身"]] }
-    ];
-    var prediction = element(doc, "section", { className: "pac-predict", "aria-labelledby": uid + "-predict-title" });
-    prediction.appendChild(element(doc, "h4", { id: uid + "-predict-title", text: "先预测三件事，再揭示两本账" }));
-    var questionButtons = {};
-    questions.forEach(function (question) {
-      var fieldset = element(doc, "fieldset", { className: "pac-question" }); fieldset.appendChild(element(doc, "legend", { text: question.label }));
-      var choices = element(doc, "div", { className: "pac-choice-row" }); questionButtons[question.id] = [];
-      question.choices.forEach(function (choice) {
-        var button = element(doc, "button", { type: "button", "aria-pressed": "false", text: choice[1] });
-        button.addEventListener("click", function () { state.predictions[question.id] = choice[0]; state.revealed = false; renderPrediction(); renderStatus(); });
-        questionButtons[question.id].push({ value: choice[0], node: button }); choices.appendChild(button);
-      });
-      fieldset.appendChild(choices); prediction.appendChild(fieldset);
-    });
-    var actions = element(doc, "div", { className: "pac-actions" });
-    var reveal = element(doc, "button", { type: "button", className: "pac-primary", text: "揭示并核对" });
-    var reset = element(doc, "button", { type: "button", text: "重置预测" }); actions.appendChild(reveal); actions.appendChild(reset); prediction.appendChild(actions);
-    var feedback = element(doc, "p", { className: "pac-feedback", "aria-live": "polite", text: "每题先作一个预测。" }); prediction.appendChild(feedback); shell.appendChild(prediction);
-
-    var results = element(doc, "section", { className: "pac-results", hidden: true, "aria-labelledby": uid + "-results-title" });
-    results.appendChild(element(doc, "h4", { id: uid + "-results-title", text: "PAC theorem ledger / realized data ledger" }));
-    var metrics = element(doc, "div", { className: "pac-metrics" }); results.appendChild(metrics);
-    var chartFrame = element(doc, "div", { className: "pac-chart-frame" }); results.appendChild(chartFrame);
-    var theoremHost = element(doc, "div", {}); var errorHost = element(doc, "div", {}); results.appendChild(theoremHost); results.appendChild(errorHost);
-    results.appendChild(element(doc, "p", { className: "pac-ledger-note", text: "定理项只在对应 realizable/agnostic、i.i.d.、有限类与量词条件下提供概率保证；train/test 两行只描述当前固定 20 点样本和当前 ERM 选择，绝不把一次 realized test error 写成预测或上界。" }));
-    shell.appendChild(results); root.classList.add("pac-lab"); clear(root); root.appendChild(shell);
-
-    function announce(message) {
-      feedback.textContent = message;
-      if (api && typeof api.announce === "function") api.announce(root, message);
-    }
-
-    function renderControls() {
-      hypothesisSelect.value = String(state.hypothesisCount);
-      [epsilonControl, deltaControl, trainControl].forEach(function (control) {
-        var key = control.input.id.slice((uid + "-").length);
-        control.input.value = String(state[key]);
-        control.output.textContent = format(state[key], control.digits) + control.suffix;
-      });
-    }
-
-    function renderPrediction() {
-      questions.forEach(function (question) {
-        questionButtons[question.id].forEach(function (item) { item.node.setAttribute("aria-pressed", state.predictions[question.id] === item.value ? "true" : "false"); });
-      });
-    }
-
-    function renderStatus() {
-      var count = Object.keys(state.predictions).length;
-      feedback.className = "pac-feedback";
-      if (!state.revealed) feedback.textContent = count === 3 ? "三项预测已记录，点击“揭示并核对”。" : "已记录 " + count + "/3 项预测。";
-    }
-
-    function render() {
-      renderControls(); renderPrediction(); renderStatus();
-      if (!state.revealed) { results.hidden = true; return; }
-      var result = analyze(state);
-      var expected = { rate: "one-vs-two", count: "log", realized: "observation" };
-      var correct = questions.every(function (question) { return state.predictions[question.id] === expected[question.id]; });
-      feedback.className = "pac-feedback " + (correct ? "pac-pass" : "pac-warn");
-      feedback.textContent = (correct ? "三项预测都命中。" : "预测已揭示，请按量词和分账复盘。") + " ERM 选择了 " + result.audit.selected.label + "。";
-      if (api && typeof api.announce === "function") api.announce(root, feedback.textContent);
-      results.hidden = false;
-      metrics.replaceChildren(
-        metric(doc, "H", String(result.hypothesisCount)),
-        metric(doc, "ε / δ", format(result.epsilon, 2) + " / " + format(result.delta, 2)),
-        metric(doc, "训练 m", String(result.trainCount)),
-        metric(doc, "测试数", String(result.testCount)),
-        metric(doc, "realizable m(ε,δ)", String(result.realizable.sampleComplexity)),
-        metric(doc, "agnostic m(ε,δ)", String(result.agnostic.sampleComplexity)),
-        metric(doc, "realizable failure bound", format(result.realizable.failureBound, 3)),
-        metric(doc, "agnostic failure bound", format(result.agnostic.failureBound, 3))
-      );
-      clear(chartFrame); chartFrame.appendChild(errorChart(doc, result));
-      clear(theoremHost);
-      theoremHost.appendChild(table(doc, "定理账本：上界与当前 m 的关系", ["情形", "样本复杂度上界", "union-bound failure 形式", "当前 m"], [
-        ["realizable", String(result.realizable.sampleComplexity), "min(1, H exp(-mε)) = " + format(result.realizable.failureBound, 4), result.trainCount + (result.trainCount >= result.realizable.sampleComplexity ? " ≥ bound" : " < bound")],
-        ["agnostic", String(result.agnostic.sampleComplexity), "min(1, 2H exp(-mε²/2)) = " + format(result.agnostic.failureBound, 4), result.trainCount + (result.trainCount >= result.agnostic.sampleComplexity ? " ≥ bound" : " < bound")]
-      ]));
-      clear(errorHost);
-      var errorRowsForTable = result.audit.hypotheses.map(function (hypothesis, index) {
-        return [hypothesis.label, String(result.audit.trainRows[index].errors) + "/" + result.trainCount, format(result.audit.trainRows[index].error, 3), String(result.audit.testRows[index].errors) + "/" + result.testCount, format(result.audit.testRows[index].error, 3), hypothesis.id === result.audit.selected.id ? "ERM 选中" : ""];
-      });
-      errorHost.appendChild(table(doc, "一次 realized train/test error 账本（只对当前固定数据负责）", ["假设", "train 错误", "train error", "test 错误", "test error", "选择"], errorRowsForTable));
-      announce(feedback.textContent);
-    }
-
-    reveal.addEventListener("click", function () {
-      if (Object.keys(state.predictions).length !== questions.length) {
-        feedback.className = "pac-feedback pac-warn"; feedback.textContent = "请先完成三项预测，再揭示两本账。"; return;
-      }
-      state.revealed = true; render();
-    });
-    reset.addEventListener("click", function () { state.predictions = {}; state.revealed = false; render(); });
-    render();
-  }
-
-  return {
-    DATASET: DATASET,
-    RULES: RULES,
-    DEFAULTS: DEFAULTS,
-    targetLabel: targetLabel,
-    normalizeConfig: normalizeConfig,
-    sampleComplexityRealizable: sampleComplexityRealizable,
-    sampleComplexityAgnostic: sampleComplexityAgnostic,
-    unionBoundFailureRealizable: unionBoundFailureRealizable,
-    unionBoundFailureAgnostic: unionBoundFailureAgnostic,
-    empiricalError: empiricalError,
-    ermAudit: ermAudit,
-    analyze: analyze,
-    mount: mount,
-    selfTest: selfTest
-  };
-});
+function selfTest(){let checks=0;const ok=x=>{checks++;if(!x)throw Error('PAC invariant '+checks);};for(const p of PRESETS){const s=compute(p.parameters),e=s.exact;ok(plots(s).length===6);ok(tables(s).length===11);ok(e.rows.reduce((v,r)=>v+BigInt(r.weightNumerator),0n)===BigInt(e.denominator));ok(e.selectedDistribution.reduce((v,r)=>v+BigInt(r.numerator),0n)===BigInt(e.denominator));ok(BigInt(e.events.failure.numerator)<=BigInt(e.events.uniformFailure.numerator));for(const r of e.rows)if(BigInt(r.weightNumerator)>0n){ok(!r.failure||r.uniformFailure);if(e.realizable)ok(!r.failure||r.badConsistent);}if(s.parameters.hypotheses===1)ok(e.events.failure.numerator==='0');ok(s.observed.binomial.reduce((v,r)=>v+BigInt(r.numerator),0n)===BigInt(s.observed.binomial[0].denominator));for(let i=0;i<4;i++)ok(feedback(i,QUESTIONS[i][2]).correct);}return {status:'PASS',checks};}
+const API={...core,PRESETS,QUESTIONS,compute,snapshot:compute,plots,tables,svg,feedback,fmt,mount,selfTest};if(typeof module!=="undefined"&&module.exports)module.exports=API;if(hostWindow&&hostWindow.CourseLearning)hostWindow.CourseLearning.register("pac-sample-complexity",mount);})(typeof window!=="undefined"?window:null);
