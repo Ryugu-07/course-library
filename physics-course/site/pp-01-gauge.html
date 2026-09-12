@@ -56,170 +56,391 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-13 05:16</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#wilson">学习层：从“相位怎么比较”到 Wilson 回路</a><ul>
-<li><a href="#pp-gauge-learning-title">1. 先分清：global symmetry 与 gauge redundancy</a></li>
-<li><a href="#2">2. 先做预测：哪一些量会跟着“换坐标”改变？</a></li>
-<li><a href="#3-u1">3. 最小格点模型：一个 U(1) 方格</a></li>
-<li><a href="#4">4. 回到连续理论：规范原理约束什么，又没有决定什么？</a></li>
-<li><a href="#5">5. 误区与迁移</a></li>
-</ul>
-</li>
-<li><a href="#1">1. 规范原理：对称性生成相互作用</a></li>
-<li><a href="#2_1">2. 标准模型点名册</a></li>
-<li><a href="#3">3. 守恒律与费曼图速判（工作技能）</a></li>
-<li><a href="#4_1">4. 练习与要点</a></li>
+<li><a href="#gauge-learning-title">学习层：每个地点都能换相位，什么还能被测量？</a></li>
+<li><a href="#1">1. 从比较规则开始：两支箭头不一定用同一把尺</a></li>
+<li><a href="#2">2. 开路径与闭回路：端点什么时候消失？</a></li>
+<li><a href="#3-hamiltonian">3. 不只检查一圈相位：把 Hamiltonian 也写出来</a></li>
+<li><a href="#4">4. 通量周期：为什么“同一条谱线”可以换名字？</a></li>
+<li><a href="#5">5. 概率、流与连续性：局部的验证比总和更严格</a></li>
+<li><a href="#6">6. 连续规范原理：允许什么，没有决定什么？</a></li>
+<li><a href="#7">7. 非阿贝尔回路：为什么必须取迹？</a></li>
+<li><a href="#8">8. 标准模型的“粒子表”其实是一张表示表</a></li>
+<li><a href="#9">9. 手算一次异常抵消：重复数不是装饰</a></li>
+<li><a href="#10-higgs-yukawa">10. Higgs 与 Yukawa：超荷对上还不够，表示也要成单态</a></li>
+<li><a href="#11">11. 从“看粒子猜相互作用”改成检查振幅</a></li>
+<li><a href="#12">12. 八道自检：能否指出每个“不变”的对象？</a></li>
 </ul>
 </div>
 </details>
-<h1 id="i">粒子 I · 规范原理与标准模型粒子谱<a class="headerlink" href="#i" title="Permanent link"></a></h1>
+<h1 id="i">粒子 I · 规范原理、可观测量与标准模型粒子谱<a class="headerlink" href="#i" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Halzen &amp; Martin / Griffiths <em>Elementary Particles</em> ｜ <strong>前置</strong>：qft-01/02、aqm-01（对称性）、抽代（群）
-二十世纪物理的一条主线：<strong>相互作用的允许形式受到对称性深刻约束，但模型还需要额外的物理输入</strong>。本页先立起规范原理（局域描述的协变性 ⇒ 需要连接/规范场），再按 <span class="arithmatex">\(SU(3)\times SU(2)\times U(1)\)</span> 盘点标准模型的粒子谱与三种相互作用的结构。</p>
+<p><strong>前置</strong>：<a href="qft-01-canonical.html">量子场的正则量子化</a>、<a href="aqm-01-symmetry.html">对称性</a>、复数、矩阵与群表示。</p>
+<p><strong>目标</strong>：算清“换一种局部表示”和“改变物理状态”的区别；从四站环的能谱、概率和回路开始，再用精确表示表核对标准模型的一代粒子，而不是只背一张粒子名录。</p>
 </blockquote>
 <div data-learning-page></div>
 
-<section aria-labelledby="pp-gauge-learning-title" class="learning-layer">
-<h2 id="wilson">学习层：从“相位怎么比较”到 Wilson 回路<a class="headerlink" href="#wilson" title="Permanent link"></a></h2>
-<h3 id="pp-gauge-learning-title">1. 先分清：global symmetry 与 gauge redundancy<a class="headerlink" href="#pp-gauge-learning-title" title="Permanent link"></a></h3>
-<p>把复场的相位写成“可转动的内部方向”很有用，但两个相近的说法不能混在一起。</p>
-<p><strong>全局内部对称性。</strong> 使用同一个常数 <span class="arithmatex">\(\alpha\)</span>：<span class="arithmatex">\(\psi(x)\to e^{i\alpha}\psi(x)\)</span>。若作用量在运动方程和边界条件下保持不变，Noether 定理给出</p>
+<section aria-labelledby="gauge-learning-title" class="learning-layer gauge195-course">
+<h2 id="gauge-learning-title">学习层：每个地点都能换相位，什么还能被测量？<a class="headerlink" href="#gauge-learning-title" title="Permanent link"></a></h2>
+<h2 id="1">1. 从比较规则开始：两支箭头不一定用同一把尺<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>把复数的相位画成箭头很直观。但若每个地点都独立选择“零度方向”，两个地点箭头角度的差就不能直接当成物理差别。你还需要一条规则：先把一个地点的表示搬到另一个地点，再比较。这条规则就是联络。</p>
+<p>本页把四个地点编号为 <span class="arithmatex">\(0,1,2,3\)</span>，排成一圈。复振幅 <span class="arithmatex">\(\psi_i\)</span> 在站点上，链路 <span class="arithmatex">\(U_{ij}\)</span> <strong>把 <span class="arithmatex">\(j\)</span> 点的表示搬到 <span class="arithmatex">\(i\)</span> 点</strong>。选定约定后，局域换基写成</p>
 <div class="arithmatex">\[
-j^\mu=\bar\psi\gamma^\mu\psi,\qquad \partial_\mu j^\mu=0,\qquad Q=\int d^3x\,j^0 .
+\psi_i'=e^{i\chi_i}\psi_i,\qquad
+U_{ij}'=e^{i\chi_i}U_{ij}e^{-i\chi_j}.
 \]</div>
-<p>这里的 <span class="arithmatex">\(Q\)</span> 是对应的 Noether 荷；它是场的内部对称性所产生的守恒量。它不同于“量子态矢量整体相位不改变射线”的另一种描述冗余。</p>
-<p><strong>局域规范冗余。</strong> 允许每个点独立选相位：<span class="arithmatex">\(\psi(x)\to e^{i\chi(x)}\psi(x)\)</span>。在本页的格点模型里，<span class="arithmatex">\(\chi_i\)</span> 改变的是同一个物理配置的描述，并不是制造了一个新的局域可观测自由度；真正能比较的量应当在局域变换下不变。</p>
-<p>为什么要引入联络？因为不同点的 <span class="arithmatex">\(\psi_i\)</span> 可以用不同的局部相位基底表示，直接的 <span class="arithmatex">\(\psi_i^*\psi_j\)</span> 会多出 <span class="arithmatex">\(e^{-i\chi_i}e^{i\chi_j}\)</span>，不能直接比较。链路变量</p>
-<div class="arithmatex">\[
-U_{ij}=e^{ia_{ij}}
-\]</div>
-<p>扮演“把 <span class="arithmatex">\(j\)</span> 点的相位搬到 <span class="arithmatex">\(i\)</span> 点再比较”的联络。我们全程采用同一套约定：</p>
-<div class="arithmatex">\[
-\psi_i\to e^{i\chi_i}\psi_i,\qquad
-U_{ij}\to e^{i\chi_i}U_{ij}e^{-i\chi_j},\qquad
-a_{ij}\to a_{ij}+\chi_i-\chi_j .
-\]</div>
-<p>因此</p>
+<p>于是 <span class="arithmatex">\(\psi_i^*\psi_j\)</span> 一般会变，但</p>
 <div class="arithmatex">\[
 \psi_i^*U_{ij}\psi_j
-\quad\text{和}\quad
-W=U_{12}U_{23}U_{34}U_{41}
 \]</div>
-<p>都不变。前者是带联络的相邻点比较，后者是绕一圈的 holonomy（Wilson plaquette）；四个端点的相位在闭回路中逐项抵消，剩下的 <span class="arithmatex">\(\arg W\)</span> 才是这个小方格能测到的通量信息。</p>
-<h3 id="2">2. 先做预测：哪一些量会跟着“换坐标”改变？<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>在下面的实验中选一个顶点，给它施加 <span class="arithmatex">\(\chi_i\)</span>。预先判断：顶点 <span class="arithmatex">\(\psi_i\)</span> 的箭头会转动；与它相连的有向边的 <span class="arithmatex">\(a_{ij}\)</span> 会按 <span class="arithmatex">\(+\chi_i-\chi_j\)</span> 改写；但 <span class="arithmatex">\(\arg W\)</span> 与每个 <span class="arithmatex">\(\psi_i^*U_{ij}\psi_j\)</span> 应保持不变。注意：这不是把场真的“推了一下”，而是检验规范冗余如何把局部记号重新分配。</p>
-<h3 id="3-u1">3. 最小格点模型：一个 U(1) 方格<a class="headerlink" href="#3-u1" title="Permanent link"></a></h3>
-<p>四个顶点带单位模的 <span class="arithmatex">\(\psi_i=e^{i\theta_i}\)</span>。边 <span class="arithmatex">\(U_{ij}\)</span> 的箭头按约定表示 <span class="arithmatex">\(j\to i\)</span>，所以方格的闭合乘积正是 <span class="arithmatex">\(U_{12}U_{23}U_{34}U_{41}\)</span>。角度都按模 <span class="arithmatex">\(2\pi\)</span> 处理；单条边的 <span class="arithmatex">\(a_{ij}\)</span> 依赖局部表示，但闭回路相位和带联络的双线性组合不依赖表示。</p>
-<div class="learning-lab" data-learning-lab="u1-plaquette">
-<p><strong>无 JavaScript 时的静态读法：</strong>局域变换为
-<span class="arithmatex">\(\psi_i\to e^{i\chi_i}\psi_i\)</span>、
-<span class="arithmatex">\(U_{ij}\to e^{i\chi_i}U_{ij}e^{-i\chi_j}\)</span>、
-<span class="arithmatex">\(a_{ij}\to a_{ij}+\chi_i-\chi_j\)</span>。例如只在顶点 2 施加 <span class="arithmatex">\(\chi_2=\pi/3\)</span>，则 <span class="arithmatex">\(\theta_2\)</span> 增加 <span class="arithmatex">\(\pi/3\)</span>，<span class="arithmatex">\(a_{12}\)</span> 减少 <span class="arithmatex">\(\pi/3\)</span>，<span class="arithmatex">\(a_{23}\)</span> 增加 <span class="arithmatex">\(\pi/3\)</span>，其余边不变；<span class="arithmatex">\(W\)</span> 的四项增量相加为 0，<span class="arithmatex">\(\psi_i^*U_{ij}\psi_j\)</span> 的相位也逐项抵消。</p>
+<p>不变：左端、链路两端和右端的相位逐项抵消。实验会同时显示变换前后的复数，而不只显示折回 <span class="arithmatex">\([-\pi,\pi]\)</span> 的角度；这样跨过角度分支边界时不会误判。</p>
+<p><strong>三个容易混淆的对象</strong>：量子态矢量的整体相位不改变射线；自由场理论的全局内部对称性可给出 Noether 流；规范描述中的局域冗余则需要场和联络一起变换。它们有关联，但不能用同一句“相位不重要”全部代替。Noether 定理要求作用量在变换下具有相应不变性，随后才在运动方程成立时得到守恒流，并非只要在解上某个量不变就够了。</p>
+<div data-learning-lab="u1-plaquette">
+<p><strong>无脚本对照：</strong>六份固定记录包含U(1)场/链路/Hamiltonian变换、四个本征态、201个时间点的复振幅与概率流、241个通量点、完整SU(2)回路矩阵和181个链路角，以及一代标准模型的精确有理数异常账。</p>
+<figure class="plot">
+<p><img alt="有向四站方格与六图：局域相位、带链路比较、通量谱分支、规范不变概率、SU(2)回路迹、标准模型异常抵消。" src="assets/img/pp-01-gauge-certificates.svg" /></p>
+<figcaption>默认参数。方格和A/B采用静态比较态；D另用站点0初态。实线/实点与空心圈表示换规范前后。F的列编号代表不同左手场，精确分数保留在记录中。</figcaption>
+</figure>
+<div aria-label="规范变换固定记录，可横向滚动" class="gauge195-static" role="region" tabindex="0">
 <table>
 <thead>
 <tr>
 <th>预设</th>
-<th style="text-align: right;"><span class="arithmatex">\((a_{12},a_{23},a_{34},a_{41})\)</span>（rad）</th>
-<th style="text-align: right;"><span class="arithmatex">\(\arg W\)</span>（模 <span class="arithmatex">\(2\pi\)</span>）</th>
+<th style="text-align: right;">Φ(度)</th>
+<th style="text-align: right;">J/E0</th>
+<th style="text-align: right;">ReW(U1)</th>
+<th style="text-align: right;">ImW(U1)</th>
+<th style="text-align: right;">ReTrW(SU2)/2</th>
+<th style="text-align: right;">当前总概率</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>零通量</td>
-<td style="text-align: right;"><span class="arithmatex">\((0.80,-1.20,0.60,-0.20)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
+<td>default</td>
+<td style="text-align: right;">90</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-1.110223e-16</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td>非零通量</td>
-<td style="text-align: right;"><span class="arithmatex">\((0.70,-0.40,1.10,0.90)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(2.30\)</span></td>
+<td>zero</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">1</td>
 </tr>
 <tr>
-<td>随机但固定</td>
-<td style="text-align: right;"><span class="arithmatex">\((-2.40,1.25,2.05,-0.55)\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.35\)</span></td>
+<td>single</td>
+<td style="text-align: right;">90</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-1.110223e-16</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>flux-quantum</td>
+<td style="text-align: right;">360</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-2.4492936e-16</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>decoupled</td>
+<td style="text-align: right;">90</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-1.110223e-16</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>noncommuting</td>
+<td style="text-align: right;">90</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-1.110223e-16</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-1</td>
+<td style="text-align: right;">1</td>
 </tr>
 </tbody>
 </table>
-<p>按钮只做确定性的数值更新：图中的四个 <span class="arithmatex">\(\psi_i\)</span> 箭头、四条 link angle、<span class="arithmatex">\(\arg W\)</span>，以及四个 <span class="arithmatex">\(\psi_i^*U_{ij}\psi_j\)</span> 的相位都会重画；“本次变化 <span class="arithmatex">\(|\Delta|\)</span>”把施加前后的复数直接相减，数值应在舍入误差内为 0。重置回到零通量预设。</p>
 </div>
-<h3 id="4">4. 回到连续理论：规范原理约束什么，又没有决定什么？<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>在同一符号约定下，一个最小的连续补偿方案可以写成</p>
+<p><a download="gauge-frozen-records.json" href="assets/learning/projects/gauge-certificates/run-snapshot.json">下载六份完整记录</a>。U(1)通量与SU(2)交换子回路是两个并列模型；SU(2)局域角用exp(iχσ/2)，不与U(1)的exp(iχ)混用。表中接近0的浮点残差不代表异常未抵消；异常合计另用精确分数0/1记录。</p>
+</div>
+<h2 id="2">2. 开路径与闭回路：端点什么时候消失？<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>沿 <span class="arithmatex">\(2\to1\to0\)</span> 的开路径，搬运矩阵是</p>
 <div class="arithmatex">\[
-D_\mu=\partial_\mu+ieA_\mu,\qquad
-A_\mu\to A_\mu-\frac1e\partial_\mu\chi .
+U_{01}U_{12}\longmapsto
+e^{i\chi_0}(U_{01}U_{12})e^{-i\chi_2}.
 \]</div>
-<p>它说明局域协变性为什么需要 connection；但“需要 connection”不等于一条原则就选定了完整理论。规范原理本身不决定规范群是 <span class="arithmatex">\(U(1)\)</span> 还是非阿贝尔群、不决定物质场取哪些表示/电荷、不决定耦合常数，也不决定所有动力学项、势能、真空和对称性破缺方式。这些是额外的模型输入、实验约束或一致性条件。局域规范冗余限制允许的写法，却不会把“全部结构”一键锁死。</p>
-<p>同理，光子无质量不能简单归结为“局域相位自由”单独推出。在标准模型中，Higgs 机制破缺电弱群后仍未破缺的 <span class="arithmatex">\(U(1)_{em}\)</span> 对应光子；这个未破缺规范结构保护通常微扰描述中的零质量，而 <span class="arithmatex">\(W/Z\)</span> 的质量来自破缺后的实现。保留哪一个未破缺子群是模型的整体结构，不是局域化一个相位的自动结论。</p>
-<h3 id="5">5. 误区与迁移<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<ul>
-<li>非阿贝尔场强中的 <span class="arithmatex">\([A_\mu,A_\nu]\)</span> 产生规范玻色子的自作用，这是渐近自由的关键来源之一；但 <span class="arithmatex">\(\beta\)</span> 函数的符号还取决于费米子、标量等物质内容。对 <span class="arithmatex">\(\beta(g)=-b_0g^3/(16\pi^2)+\cdots\)</span>，规范场的正贡献必须压过物质场的屏蔽贡献，才有 <span class="arithmatex">\(b_0&gt;0\)</span>。QCD 的实际内容满足这一条件，不应把“有自作用”说成任意非阿贝尔理论都必然渐近自由。</li>
-<li>“弱力只搭左手”是简写而非完整表述：带电流 <span class="arithmatex">\(W^\pm\)</span> 只耦合左手费米子（等价地，右手反费米子）；中性流 <span class="arithmatex">\(Z\)</span> 对带电费米子的左、右手分量都可有耦合。三代复制的是 gauge quantum numbers，不是只差质量；夸克的 CKM、轻子的 PMNS 等混合矩阵也是谱的一部分。</li>
-<li>color 是 <span class="arithmatex">\(SU(3)_c\)</span> 的规范荷，不是普通的严格全局守恒可观测量。物理态受 Gauss 约束并在 QCD 中表现为色单态/禁闭；反应判定应检查规范表示能否组成 singlet，而不是把 color 当成和电荷一样的全局标签。</li>
-<li>在最小、无中微子质量的重整化标准模型里，重子数 <span class="arithmatex">\(B\)</span> 与总轻子数 <span class="arithmatex">\(L\)</span> 是经典/微扰层面的偶然对称；电弱异常在非微扰的 instanton/sphaleron 过程中破坏 <span class="arithmatex">\(B+L\)</span> 而保留 <span class="arithmatex">\(B-L\)</span>。中微子振荡已经证明中微子有质量和混合，现实理论需加入质量来源（或有效高维算符），因此不能把各轻子味道说成无条件精确守恒；总 <span class="arithmatex">\(L\)</span> 是否保留还取决于质量机制（Dirac 质量可保留它，Majorana 质量则可破坏它）。</li>
-</ul>
-<p>迁移题：把方格换成一条链，验证开路径的 <span class="arithmatex">\(\psi_i^*U_{ij}\psi_j\)</span> 需要两端场一起变换；再把链闭合，说明为什么 <span class="arithmatex">\(W\)</span> 的相位可以在不选规范的情况下代表通量。最后回答：若把 <span class="arithmatex">\(U_{ij}\)</span> 删除，哪个相位比较步骤首先失去局部规范协变性？</p>
-</section>
-<figure class="diagram">
-<p><img alt="标准模型粒子表（夸克/轻子三代 + 规范玻色子 + Higgs）。" src="assets/img/pp-01-standard-model.svg" /></p>
-<figcaption><span class="fig-id">图 pp-01.1</span>标准模型粒子表（夸克/轻子三代 + 规范玻色子 + Higgs）。</figcaption>
-</figure>
-<h2 id="1">1. 规范原理：对称性生成相互作用<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>逻辑链【推导级】</strong>：自由 Dirac 场的 <span class="arithmatex">\(\mathcal L\)</span> 在<strong>全局</strong>相位变换 <span class="arithmatex">\(\psi \to e^{i\alpha}\psi\)</span> 下不变（Noether ⇒ 电流与电荷，qft-01）。<strong>升级要求</strong>：<span class="arithmatex">\(\alpha \to \alpha(x)\)</span>（<strong>局域</strong>——各处独立选相位）——<span class="arithmatex">\(\partial_\mu\psi\)</span> 不再按同样方式变换；在保持场内容和最小局域耦合的假设下，一个补偿方案是引入联络 <span class="arithmatex">\(A_\mu\)</span>、换协变导数</p>
+<p>中间点 <span class="arithmatex">\(1\)</span> 的相位消掉了，两端仍在。加上端点物质场后，<span class="arithmatex">\(\psi_0^*U_{01}U_{12}\psi_2\)</span> 才成为不变量。</p>
+<p>闭回路取 <span class="arithmatex">\(0\to3\to2\to1\to0\)</span>，按矩阵作用从右往左读：</p>
 <div class="arithmatex">\[
-D_\mu = \partial_\mu + ieA_\mu, \qquad A_\mu \to A_\mu - \frac{1}{e}\partial_\mu\alpha
+W=U_{01}U_{12}U_{23}U_{30}.
 \]</div>
-<p>——这给出 QED 中的最小耦合顶点 <span class="arithmatex">\(-ie\bar\psi\gamma^\mu\psi A_\mu\)</span>，并强制许多项必须以规范协变方式出现；但规范原理并不单独选定规范群、物质表示、耦合常数或全部动力学。光子在标准模型中保持无质量，是未破缺 <span class="arithmatex">\(U(1)_{em}\)</span> 与整个电弱破缺结构的结果，不是“局域相位”一条要求把所有性质锁死。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>非阿贝尔推广（Yang–Mills）</strong>：对称群换成非交换的 <span class="arithmatex">\(SU(N)\)</span>（抽代线的群论上岗）：规范场自带指标、场强多出自作用项 <span class="arithmatex">\([A_\mu, A_\nu]\)</span>——<strong>规范玻色子彼此相互作用</strong>。这个自作用是渐近自由的关键来源之一，但 <span class="arithmatex">\(\beta\)</span> 的最终符号还要看物质场的屏蔽贡献；QCD 的实际物质内容使 <span class="arithmatex">\(\beta(g)&lt;0\)</span>（qft-03），不能把结论推广成“任意非阿贝尔理论都必然渐近自由”。</p>
-<h2 id="2_1">2. 标准模型点名册<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p><strong>规范群</strong> <span class="arithmatex">\(SU(3)_c \times SU(2)_L \times U(1)_Y\)</span>——三因子是统一描述的起点；电弱混合和 Higgs 破缺后才得到熟悉的 <span class="arithmatex">\(W/Z\)</span> 与光子：</p>
+<p>在 <span class="arithmatex">\(U(1)\)</span> 中所有因子可交换，因此 <span class="arithmatex">\(W'=W\)</span>。若 <span class="arithmatex">\(U_{ij}=e^{ia_{ij}}\)</span>，则 <span class="arithmatex">\(W=e^{i\Phi}\)</span>，其中</p>
+<div class="arithmatex">\[
+\Phi=a_{01}+a_{12}+a_{23}+a_{30}\pmod{2\pi}.
+\]</div>
+<p>反向走同一条边用 <span class="arithmatex">\(U_{ji}=U_{ij}^*\)</span>；反向回路给 <span class="arithmatex">\(W^*\)</span>。不能把所有有向边都不加区别地用同一个角度。</p>
+<p>在一条没有闭环的开放链上，可以递归选择站点相位，把全部链路角移除。闭环中若 <span class="arithmatex">\(W\ne1\)</span>，最后一条边会留下无法同时消掉的信息。<strong>规范变换能重新分配链路角，不能随意抹去回路通量。</strong></p>
+<p>格点上的链路、逆边共轭、闭回路取迹和开路径加端点场，都来自同一套平行搬运结构。<a href="https://www.damtp.cam.ac.uk/user/tong/gaugetheory/4lattice.pdf">Tong，格点规范理论 §4.2.1</a></p>
+<h2 id="3-hamiltonian">3. 不只检查一圈相位：把 Hamiltonian 也写出来<a class="headerlink" href="#3-hamiltonian" title="Permanent link"></a></h2>
+<p>只验证 <span class="arithmatex">\(W\)</span> 不变还不够，我们可以进一步检查真实的量子演化。选固定外加链路，单粒子四站 Hamiltonian 为</p>
+<div class="arithmatex">\[
+H=-J\sum_{(i,j)=(0,1),(1,2),(2,3),(3,0)}
+\left(U_{ij}|i\rangle\langle j|
++U_{ij}^*|j\rangle\langle i|\right).
+\]</div>
+<p>这里 <span class="arithmatex">\(J\ge0\)</span> 是跃迁能量，实验以 <span class="arithmatex">\(E_0\)</span> 为单位；时间以 <span class="arithmatex">\(\hbar/E_0\)</span> 为单位。令</p>
+<div class="arithmatex">\[
+\Omega=\operatorname{diag}(e^{i\chi_0},e^{i\chi_1},e^{i\chi_2},e^{i\chi_3}),
+\qquad H'=\Omega H\Omega^\dagger.
+\]</div>
+<p>这是幺正相似变换，故本征值集合不变，本征向量相应变成 <span class="arithmatex">\(\Omega|u_n\rangle\)</span>。对任何初态，也应一起换成 <span class="arithmatex">\(|\psi'(0)\rangle=\Omega|\psi(0)\rangle\)</span>，这样</p>
+<div class="arithmatex">\[
+|\psi'(t)\rangle=e^{-iH't/\hbar}\Omega|\psi(0)\rangle
+=\Omega e^{-iHt/\hbar}|\psi(0)\rangle.
+\]</div>
+<p>因此 <span class="arithmatex">\(|\psi_i'(t)|^2=|\psi_i(t)|^2\)</span>。若只变换初态而把链路和 Hamiltonian 固定，通常已经改变了相对相位关系，可以得到不同能量和动力学；那不是本页测试的规范冗余。</p>
+<p>本页使用<strong>不随时间变化</strong>的 <span class="arithmatex">\(\Omega\)</span>。若局域换基依赖时间，变换后的 Hamiltonian 还须包含时间导数项，不能只保留 <span class="arithmatex">\(\Omega H\Omega^\dagger\)</span>。此外，链路在这里是外加背景；我们没有给电场建立共轭变量，也没有构造完整规范场量子理论的 Gauss 约束物理态空间。</p>
+<h2 id="4">4. 通量周期：为什么“同一条谱线”可以换名字？<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>在均匀规范中，每条有向链路取 <span class="arithmatex">\(U=e^{i\Phi/4}\)</span>。Fourier 本征态为</p>
+<div class="arithmatex">\[
+\langle j|n\rangle=\frac12e^{ik_nj},
+\qquad k_n=\frac{2\pi n}{4},\quad n=0,1,2,3.
+\]</div>
+<p>代入 Hamiltonian 得</p>
+<div class="arithmatex">\[
+E_n(\Phi)=-2J\cos\left(k_n+\frac\Phi4\right).
+\]</div>
+<p>例如零通量时能谱为 <span class="arithmatex">\(\{-2J,0,0,2J\}\)</span>。加上一个通量量子，</p>
+<div class="arithmatex">\[
+E_n(\Phi+2\pi)=E_{n+1\ \mathrm{mod}\ 4}(\Phi).
+\]</div>
+<p>整个能谱以 <span class="arithmatex">\(2\pi\)</span> 为周期，但固定动量标签的分支可以被置换。实验按 <span class="arithmatex">\(n\)</span> 标注曲线，不在每个通量点重新按能量排序；这样能看清“谱集合相同”和“分支标签不变”不是同一件事。</p>
+<p>默认 <span class="arithmatex">\(\Phi=\pi/2,J=E_0\)</span> 时，四条动量分支的能量约为 <span class="arithmatex">\((-1.847759,\ 0.765367,\ 1.847759,\ -0.765367)E_0\)</span>。改变四个 <span class="arithmatex">\(\chi_i\)</span> 后这些数值不变。把 <span class="arithmatex">\(J\)</span> 降到零，所有站点都不再跃迁，能谱全为零；外加链路及其 <span class="arithmatex">\(W\)</span> 仍可定义，但这个解耦粒子的动力学不再探测它。</p>
+<h2 id="5">5. 概率、流与连续性：局部的验证比总和更严格<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>动力学实验从站点 <span class="arithmatex">\(0\)</span> 出发，而前面链路比较表采用各分量模为 <span class="arithmatex">\(1/2\)</span> 的另一份静态比较态。两份状态各自归一化，不能把它们的能量或双线性数值混用。</p>
+<p>站点 <span class="arithmatex">\(0\)</span> 初态的完整振幅可以用四个本征态相加：</p>
+<div class="arithmatex">\[
+\psi_j(t)=\frac14\sum_{n=0}^{3}
+e^{ik_nj}e^{-iE_nt/\hbar}.
+\]</div>
+<p>归一化应满足 <span class="arithmatex">\(\sum_j|\psi_j(t)|^2=1\)</span>，但这还不能排除站点之间的流算错。以无量纲时间计，从 <span class="arithmatex">\(j\)</span> 流向 <span class="arithmatex">\(i\)</span> 的概率流为</p>
+<div class="arithmatex">\[
+\mathcal J_{j\to i}
+ =2\operatorname{Im}(\psi_i^*H_{ij}\psi_j)
+ =-2J\operatorname{Im}(\psi_i^*U_{ij}\psi_j).
+\]</div>
+<p>设第 <span class="arithmatex">\(i\)</span> 条边对应 <span class="arithmatex">\(i+1\to i\)</span>，则</p>
+<div class="arithmatex">\[
+\frac{d|\psi_i|^2}{dt}=\mathcal J_i-\mathcal J_{i-1}.
+\]</div>
+<p>恢复物理时间时，右边要除以 <span class="arithmatex">\(\hbar\)</span>。实验逐站保留振幅导数、密度导数、流入减流出三份结果，并分别核对变换前后流不变。概率图中的实线与空心圈表示两种规范下的同一次物理实验；它们应当重合。</p>
+<h2 id="6">6. 连续规范原理：允许什么，没有决定什么？<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>对于电荷参数为 <span class="arithmatex">\(q\)</span> 的 Dirac 场，取自然单位 <span class="arithmatex">\(\hbar=c=1\)</span>，使用与前文一致的约定</p>
+<div class="arithmatex">\[
+D_\mu=\partial_\mu+iqA_\mu,\qquad
+\psi'=e^{i\chi}\psi,\qquad
+A_\mu'=A_\mu-\frac1q\partial_\mu\chi.
+\]</div>
+<p>逐项求导可验证 <span class="arithmatex">\(D_\mu'\psi'=e^{i\chi}D_\mu\psi\)</span>。Lagrangian 展开为</p>
+<div class="arithmatex">\[
+\mathcal L=\bar\psi(i\gamma^\mu D_\mu-m)\psi
+=\bar\psi(i\gamma^\mu\partial_\mu-m)\psi
+-q\bar\psi\gamma^\mu\psi A_\mu.
+\]</div>
+<p><strong>Lagrangian 中的相互作用项是最后一项，不额外乘一个 <span class="arithmatex">\(i\)</span></strong>；在相应微扰约定下，费曼顶点因子是 <span class="arithmatex">\(-iq\gamma^\mu\)</span>。二者来自不同步骤，不能把顶点因子原样塞回 Lagrangian。</p>
+<p>此约定下，从 <span class="arithmatex">\(j\)</span> 到 <span class="arithmatex">\(i\)</span> 的连续平行搬运为 <span class="arithmatex">\(U_{ij}=\exp[-iq\int_j^i A_\mu dx^\mu]\)</span>，所以它恰好按前面的端点规则变换。格点角 <span class="arithmatex">\(a_{ij}\)</span> 是这个无量纲线积分的负耦合倍数；改变方向或改用 <span class="arithmatex">\(D=\partial-iqA\)</span> 都会改变符号，必须整套同步。</p>
+<p>对非阿贝尔群，<span class="arithmatex">\(\Omega\)</span> 与 <span class="arithmatex">\(A_\mu\)</span> 是矩阵。若取 <span class="arithmatex">\(D_\mu=\partial_\mu+igA_\mu\)</span>，则</p>
+<div class="arithmatex">\[
+A_\mu'=\Omega A_\mu\Omega^\dagger
++\frac{i}{g}(\partial_\mu\Omega)\Omega^\dagger,\qquad
+[D_\mu,D_\nu]=igF_{\mu\nu},
+\]</div>
+<div class="arithmatex">\[
+F_{\mu\nu}=\partial_\mu A_\nu-\partial_\nu A_\mu
++ig[A_\mu,A_\nu].
+\]</div>
+<p>规范协变性约束了允许的相互作用形式，但还没有选择规范群、物质表示、电荷、耦合强度、势能和真空。给定场内容、Lorentz 对称性、局域性及某个算符维数截断后，才可以系统列出允许项。高维有效算符并不会因为不在最小重整化模型中就自动消失。</p>
+<h2 id="7">7. 非阿贝尔回路：为什么必须取迹？<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>现在把 <span class="arithmatex">\(U(1)\)</span> 单位复数换成 <span class="arithmatex">\(SU(2)\)</span> 矩阵。每条边依旧按</p>
+<div class="arithmatex">\[
+U_{ij}'=\Omega_iU_{ij}\Omega_j^\dagger
+\]</div>
+<p>变换。闭环相乘后，中间端点消掉，但起点仍留下</p>
+<div class="arithmatex">\[
+W'=\Omega_0W\Omega_0^\dagger.
+\]</div>
+<p>所以 <span class="arithmatex">\(W\)</span> 矩阵一般不保持逐元素不变；它的迹与本征值保持不变。对 <span class="arithmatex">\(U(1)\)</span>，共轭变换因交换性退化为恒等，这才得到第 2 节更简单的结论。</p>
+<p>实验选择</p>
+<div class="arithmatex">\[
+A=e^{i\alpha\sigma_x},\qquad B=e^{i\alpha\sigma_z},
+\qquad W=ABA^\dagger B^\dagger.
+\]</div>
+<p>利用 <span class="arithmatex">\(\sigma_a^2=I\)</span>，可写 <span class="arithmatex">\(e^{i\alpha\sigma_a}=\cos\alpha\,I+i\sin\alpha\,\sigma_a\)</span>，直接乘出</p>
+<div class="arithmatex">\[
+\frac12\operatorname{Tr}W=1-2\sin^4\alpha.
+\]</div>
+<p>在 <span class="arithmatex">\(\alpha=\pi/2\)</span>，<span class="arithmatex">\(A=i\sigma_x,B=i\sigma_z\)</span>，回路为 <span class="arithmatex">\(-I\)</span>，归一迹为 <span class="arithmatex">\(-1\)</span>；对应的阿贝尔交换子回路总是 <span class="arithmatex">\(1\)</span>。在 <span class="arithmatex">\(\alpha=\pi\)</span>，两条链路都为中心元素 <span class="arithmatex">\(-I\)</span>，又变得可交换。</p>
+<p>四个局域变换分别取 <span class="arithmatex">\(\Omega_j=\exp(i\chi_j\sigma_{a_j}/2)\)</span>，轴依次为 <span class="arithmatex">\(x,y,z,x\)</span>。这里的 <span class="arithmatex">\(\chi_j/2\)</span> 来自生成元 <span class="arithmatex">\(\sigma_a/2\)</span> 的约定，与 <span class="arithmatex">\(U(1)\)</span> 的 <span class="arithmatex">\(e^{i\chi_j}\)</span> 分开。若回路恰好为 <span class="arithmatex">\(\pm I\)</span>，共轭后矩阵也会保持原样，这是特殊参数，不是一般定理。</p>
+<p>反向回路为 <span class="arithmatex">\(W^\dagger\)</span>。<span class="arithmatex">\(SU(2)\)</span> 的这个归一迹是实数，反向后仍相同；因此<strong>只有迹相同，不能反推两条有向路径相同</strong>。同样，一次有限回路的数值不变性不构成对禁闭或渐近自由的证明。</p>
+<h2 id="8">8. 标准模型的“粒子表”其实是一张表示表<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>通常把局部规范结构写作 <span class="arithmatex">\(SU(3)_c\times SU(2)_L\times U(1)_Y\)</span>。这里 <span class="arithmatex">\(U(1)_Y\)</span> 是超荷，不是破缺后的电磁群。全局规范群还可能涉及中心子群的商；仅写 Lie 代数和下面的局部表示表，不能决定所有全局拓扑问题。</p>
+<p>取电荷约定 <span class="arithmatex">\(Q_{\mathrm{em}}=T_3+Y\)</span>。为了统一异常核算，<strong>所有费米子都写成左手 Weyl 场</strong>：</p>
 <table>
 <thead>
 <tr>
-<th>力</th>
-<th>群</th>
-<th>规范玻色子</th>
-<th>特征</th>
+<th>左手场</th>
+<th><span class="arithmatex">\(SU(3)_c\)</span></th>
+<th><span class="arithmatex">\(SU(2)_L\)</span></th>
+<th style="text-align: right;"><span class="arithmatex">\(Y\)</span></th>
+<th>分量的 <span class="arithmatex">\(Q_{\mathrm{em}}\)</span></th>
+<th style="text-align: right;">Weyl 分量数</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>强</td>
-<td><span class="arithmatex">\(SU(3)_c\)</span>（色）</td>
-<td>8 胶子</td>
-<td>自作用与实际物质内容共同给出渐近自由；低能表现为禁闭（qft-03）</td>
+<td><span class="arithmatex">\(Q\)</span></td>
+<td><span class="arithmatex">\(\mathbf3\)</span></td>
+<td><span class="arithmatex">\(\mathbf2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1/6\)</span></td>
+<td><span class="arithmatex">\(2/3,-1/3\)</span>，各三色</td>
+<td style="text-align: right;"><span class="arithmatex">\(6\)</span></td>
 </tr>
 <tr>
-<td>弱（电弱破缺后）</td>
-<td><span class="arithmatex">\(SU(2)_L\times U(1)_Y\)</span></td>
-<td><span class="arithmatex">\(W^\pm, Z\)</span></td>
-<td>带电流 <span class="arithmatex">\(W\)</span> 只耦合左手费米子/右手反费米子；<span class="arithmatex">\(Z\)</span> 的中性流可同时耦合左、右手分量；质量来自 Higgs 机制（→ pp-02）</td>
+<td><span class="arithmatex">\(L\)</span></td>
+<td><span class="arithmatex">\(\mathbf1\)</span></td>
+<td><span class="arithmatex">\(\mathbf2\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(-1/2\)</span></td>
+<td><span class="arithmatex">\(0,-1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(2\)</span></td>
 </tr>
 <tr>
-<td>电磁</td>
-<td>未破缺的 <span class="arithmatex">\(U(1)_{em}\)</span></td>
-<td>光子</td>
-<td>在标准模型的通常微扰描述中无质量、长程；不是局域相位单独决定</td>
+<td><span class="arithmatex">\(u^c\)</span></td>
+<td><span class="arithmatex">\(\overline{\mathbf3}\)</span></td>
+<td><span class="arithmatex">\(\mathbf1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(-2/3\)</span></td>
+<td><span class="arithmatex">\(-2/3\)</span>，三色</td>
+<td style="text-align: right;"><span class="arithmatex">\(3\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(d^c\)</span></td>
+<td><span class="arithmatex">\(\overline{\mathbf3}\)</span></td>
+<td><span class="arithmatex">\(\mathbf1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1/3\)</span></td>
+<td><span class="arithmatex">\(1/3\)</span>，三色</td>
+<td style="text-align: right;"><span class="arithmatex">\(3\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(e^c\)</span></td>
+<td><span class="arithmatex">\(\mathbf1\)</span></td>
+<td><span class="arithmatex">\(\mathbf1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
+<td><span class="arithmatex">\(1\)</span></td>
+<td style="text-align: right;"><span class="arithmatex">\(1\)</span></td>
 </tr>
 </tbody>
 </table>
-<p><strong>物质场（费米子，三代复印件）</strong>：每代 = 两夸克（上型 + 下型，各三色）+ 带电轻子 + 中微子；三代复制的是相同的 gauge quantum numbers，而质量矩阵对角化后还留下夸克 CKM、轻子 PMNS 等混合，不能简化成“只差质量”。<strong>夸克禁闭与强子</strong>：可观测强子是色单态——介子（<span class="arithmatex">\(q\bar q\)</span>）、重子（<span class="arithmatex">\(qqq\)</span>）。质子质量主要来自 QCD 的非微扰动力学、夸克/胶子动能与场能；当前夸克质量是重要但较小的显式贡献，不给出脱离重整化方案和尺度的可疑精确百分比。</p>
-<p><strong>中微子一嘴</strong>：振荡实验（诺奖 2015）⇒ 有质量且发生混合 ⇒ 最小、无质量中微子的标准模型需要加入质量来源（或有效高维算符）。这也是粒子物理现存最便宜的“新物理”窗口【引用】。</p>
-<h2 id="3">3. 守恒律与费曼图速判（工作技能）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p><strong>守恒与约束要分层看</strong>：电荷、能动量和角动量分别受未破缺规范结构、时空平移/旋转对称控制；色是局域规范荷，不是普通严格全局守恒可观测量，物理反应要检查规范表示与 singlet 结构。重子数 <span class="arithmatex">\(B\)</span> 与总轻子数 <span class="arithmatex">\(L\)</span> 在最小标准模型中是经典/微扰层面的偶然对称，而非无条件精确定律：电弱异常的非微扰过程破坏 <span class="arithmatex">\(B+L\)</span>、保留 <span class="arithmatex">\(B-L\)</span>；现实的中微子质量/混合也使轻子味道不能当作普遍精确守恒量，总 <span class="arithmatex">\(L\)</span> 是否保留则取决于质量机制（Dirac 可保留，Majorana 可破坏）。<strong>弱作用中可破坏</strong>宇称 P，CP 也有小但关键的破坏（宇宙正反物质不对称的必要条件之一：Sakharov 条件【引用】——粒子物理与宇宙学（cosmo 线）的深接口）；夸克味通过 CKM 混合改变——<span class="arithmatex">\(s \to u\)</span> 衰变因此有许可证。</p>
-<p><strong>判衰变/反应三步</strong>：① 守恒量核对（电荷/重子/轻子数）；② 能量学（<span class="arithmatex">\(\Delta m &gt; 0\)</span>？——sr-01 四动量）；③ 走哪种力（有中微子/变味 = 弱、有光子 = 电磁、其余强）——寿命量级随之而定（强 <span class="arithmatex">\(10^{-23}\)</span> s、电磁 <span class="arithmatex">\(10^{-16}\)</span>、弱 <span class="arithmatex">\(10^{-10}\)</span> 以上——<strong>寿命是相互作用强度的秒表</strong>）。</p>
-<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（规范原理练手）</strong> 对复标量场执行 §1 的升级流程：在选定 <span class="arithmatex">\(U(1)\)</span> 电荷与最小耦合后得标量 QED（协变导数 + <span class="arithmatex">\(|D\phi|^2\)</span> 展开出三点/四点顶点）——“局域化一个对称、得到一组被允许的相互作用”是完整仪式，但不是从规范原理单独推出唯一模型（pp-02 Higgs 场用的正是这类结构）。</p>
-<p><strong>例 2（判衰变）</strong> 在忽略中微子质量与非微扰效应的通常微扰近似下，<span class="arithmatex">\(n \to p + e^- + \bar\nu_e\)</span>：电荷 ✓ 重子数 ✓ 轻子数 ✓、<span class="arithmatex">\(Q=m_n-m_p-m_e\approx0.782\)</span> MeV <span class="arithmatex">\(&gt;0\)</span> ✓、有中微子 ⇒ 弱作用——寿命 ~15 min（弱 + 相空间小的双重压制）✓；对照 <span class="arithmatex">\(\Delta^{++} \to p\pi^+\)</span>（强，<span class="arithmatex">\(10^{-23}\)</span> s）：三步法的两端样本。</p>
-<p><strong>例 3（色代数最小题）</strong> 为什么没有色非单态的孤立 <span class="arithmatex">\(qq\)</span> 强子：<span class="arithmatex">\(3\otimes3 = 6\oplus\bar3\)</span> 无单态；<span class="arithmatex">\(q\bar q\)</span>：<span class="arithmatex">\(3\otimes\bar3 = 8\oplus\mathbf 1\)</span> ✓、<span class="arithmatex">\(qqq\)</span>：<span class="arithmatex">\(3^{\otimes3} \ni \mathbf 1\)</span> ✓——<strong>“哪些组合能成为可观测强子”受群表示与禁闭动力学共同约束</strong>，不是把 color 当作普通全局守恒数（抽代线的张量积在自然界的直接执法）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：最后一块拼图——电弱统一与 Higgs 机制【骨架】：质量从哪来、2012 年找到的那个粒子到底是什么。</em></p>
+<p><span class="arithmatex">\(u^c\)</span> 是原右手上型夸克的左手共轭场，因此表示和电荷都与原场共轭；不能把表中的 <span class="arithmatex">\(-2/3\)</span> 当成上夸克本身的电荷。<span class="arithmatex">\(SU(2)\)</span> 的基本表示是赝实的，双重态共轭的写法可以通过反对称张量联系，但手征性仍要分清。</p>
+<p>一代共有 <span class="arithmatex">\(6+2+3+3+1=15\)</span> 个 Weyl 分量。这既不是“15种被实验单独命名的粒子”，也不是把粒子和反粒子再重复加一次。三代复制相同规范表示；质量和混合来自更进一步的结构。最小表没有加入右手中微子，Higgs 则是额外的复标量双重态，表示为 <span class="arithmatex">\((\mathbf1,\mathbf2)_{1/2}\)</span>，分量电荷为 <span class="arithmatex">\((1,0)\)</span>。</p>
+<p>规范玻色子的数目来自相应 Lie 代数维数：<span class="arithmatex">\(8\)</span> 个胶子、<span class="arithmatex">\(3\)</span> 个弱同位旋规范场和 <span class="arithmatex">\(1\)</span> 个超荷场。电弱破缺后，后四者重组为 <span class="arithmatex">\(W^\pm,Z,\gamma\)</span>；不要在破缺前把超荷场直接叫光子。这份表示结构与后面的异常、Yukawa 条件互相核对。<a href="https://davidtong.org/pdfs/teaching/standard-model/standardmodel5.pdf">Tong，标准模型 §5.1</a></p>
+<h2 id="9">9. 手算一次异常抵消：重复数不是装饰<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>手征规范理论需要通过量子一致性检查。这里核算一代左手费米子的微扰规范异常，采用 <span class="arithmatex">\(T(\mathbf3)=T(\mathbf2)=1/2\)</span>，以及立方指标 <span class="arithmatex">\(A(\mathbf3)=1,A(\overline{\mathbf3})=-1\)</span>。实验使用约分后的有理数，不用近似小数“接近零”替代精确抵消。</p>
+<p>超荷立方异常为</p>
+<div class="arithmatex">\[
+\mathcal A_{Y^3}
+=6\left(\frac16\right)^3
++2\left(-\frac12\right)^3
++3\left(-\frac23\right)^3
++3\left(\frac13\right)^3+1=0.
+\]</div>
+<p>与引力混合的超荷异常系数是</p>
+<div class="arithmatex">\[
+\mathcal A_{\mathrm{grav}^2Y}
+=6\left(\frac16\right)+2\left(-\frac12\right)
++3\left(-\frac23\right)+3\left(\frac13\right)+1=0.
+\]</div>
+<p>含两个非阿贝尔生成元时，要乘相应 Dynkin 指标和另一种表示的重复数：</p>
+<div class="arithmatex">\[
+\mathcal A_{SU(3)^2Y}
+=\frac12\left[2\left(\frac16\right)-\frac23+\frac13\right]=0,
+\qquad
+\mathcal A_{SU(2)^2Y}
+=\frac12\left[3\left(\frac16\right)-\frac12\right]=0.
+\]</div>
+<p>纯 <span class="arithmatex">\(SU(3)^3\)</span> 异常则是 <span class="arithmatex">\(2-1-1=0\)</span>。这里共轭表示的<strong>立方</strong>指标反号，而 <span class="arithmatex">\(T(\mathbf3)=T(\overline{\mathbf3})\)</span> 不反号；不能对所有指标机械地用同一条规则。</p>
+<p><span class="arithmatex">\(SU(2)\)</span> 基本表示没有这种微扰立方异常，但还有全局 Witten 异常的检查：本表的基本双重态数为三色夸克提供的 <span class="arithmatex">\(3\)</span> 加上轻子的 <span class="arithmatex">\(1\)</span>，合计 <span class="arithmatex">\(4\)</span>，为偶数。Higgs 是标量，不进入这些费米异常和，也不补救一个奇数 Weyl 双重态理论。</p>
+<p>这些抵消是该模型的一致性条件，不是从一条原则唯一推出整套标准模型；也不意味着我们已经处理所有可能的全局规范群、引力和高维扩展问题。<strong>如果少算一种场或漏一个颜色重复数，精确的零就会被破坏。</strong></p>
+<h2 id="10-higgs-yukawa">10. Higgs 与 Yukawa：超荷对上还不够，表示也要成单态<a class="headerlink" href="#10-higgs-yukawa" title="Permanent link"></a></h2>
+<p>在全左手记号下，可以示意写出三类 Yukawa 组合：</p>
+<div class="arithmatex">\[
+QHu^c,\qquad QH^\dagger d^c,\qquad LH^\dagger e^c.
+\]</div>
+<p>它们的超荷和分别为</p>
+<div class="arithmatex">\[
+\frac16+\frac12-\frac23=0,\qquad
+\frac16-\frac12+\frac13=0,\qquad
+-\frac12-\frac12+1=0.
+\]</div>
+<p>还要把颜色、弱表示和 Weyl 自旋指标正确缩并：例如 <span class="arithmatex">\(\mathbf3\otimes\overline{\mathbf3}\)</span> 含颜色单态，两个弱双重态可借助反对称张量形成单态，双重态与其对偶可用自然配对。只检查电荷相加为零，不足以证明一个算符允许。</p>
+<p>在指定 Higgs 真空后，电弱群留下未破缺的电磁子群，光子保持无质量，<span class="arithmatex">\(W/Z\)</span> 获得质量；具体质量和混合仍依赖耦合及 Yukawa 矩阵。带电弱流只作用于左手费米子分量及其共轭反粒子结构，中性 <span class="arithmatex">\(Z\)</span> 流一般也耦合右手带电费米子分量。对有质量粒子，手征性与螺旋度不能无条件等同。</p>
+<p>中微子质量需要在最小无质量中微子模型之外指定来源，例如加入适当的额外场或有效算符；本表的异常抵消本身不决定采用 Dirac 还是 Majorana 机制。详细的真空、质量矩阵和混合将在 <a href="pp-02-electroweak.html">电弱统一与 Higgs</a> 及 <a href="pp-04-flavor-neutrinos.html">味与中微子</a> 中展开。</p>
+<h2 id="11">11. 从“看粒子猜相互作用”改成检查振幅<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p>一个过程允许与否，应分几层检查：能动量及准确的量子数约束；初末态可否通过允许的算符连接；有无相空间；哪些振幅在给定能区占主导。不能只看末态是否有光子或中微子，更不能用“其余都是强作用”兜底。</p>
+<p>例如辐射型轻子衰变可以同时包含弱顶点与光子辐射，出现光子不使整个过程变成纯电磁衰变。某些全强子末态的奇异粒子衰变改变奇异味，仍由弱作用主导。寿命还受质量差、相空间、选择定则、混合角和振幅干涉影响；强弱相互作用的典型量级不是所有粒子的固定秒表。</p>
+<p>同样，非阿贝尔场有自作用，不表示任意物质内容都渐近自由。规范场与物质的贡献共同决定 <span class="arithmatex">\(\beta\)</span> 函数符号。颜色表示能否形成单态，是分析低能 QCD 强子的一项必要结构检查，但禁闭及质量谱还需要动力学。重子数、轻子数和各味道的守恒也须标明模型与近似，不能与严格的电荷约束混为一谈。</p>
+<p>本页的数值实验只验证指定有限模型的规范协变性、幺正演化及一代标准模型表示的一致性。它不是散射截面的模拟，也不把一次回路实验当成对标准模型全部动力学的证明。</p>
+<h2 id="12">12. 八道自检：能否指出每个“不变”的对象？<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>1 · 只在站点1施加χ，四条U(1)边怎样变化？</summary>
+<p>边 <span class="arithmatex">\(U_{01}\)</span> 乘 <span class="arithmatex">\(e^{-i\chi}\)</span>，<span class="arithmatex">\(U_{12}\)</span> 乘 <span class="arithmatex">\(e^{i\chi}\)</span>，另外两条不变。闭环乘积中两因子抵消。<span class="arithmatex">\(\psi_1\)</span> 同时乘 <span class="arithmatex">\(e^{i\chi}\)</span>，所以含站点1的两条带场双线性也各自不变。这要求场和链路一起变换，只改箭头不是同一个检验。</p>
+</details>
+<details class="answer">
+<summary>2 · 给定H′=ΩHΩ†，证明能谱与站点概率不变。</summary>
+<p>若 <span class="arithmatex">\(H|u\rangle=E|u\rangle\)</span>，则 <span class="arithmatex">\(H'\Omega|u\rangle=E\Omega|u\rangle\)</span>。静态 <span class="arithmatex">\(\Omega\)</span> 下，指数函数按相似变换满足 <span class="arithmatex">\(e^{-iH't}=\Omega e^{-iHt}\Omega^\dagger\)</span>。初态也变成 <span class="arithmatex">\(\Omega|\psi(0)\rangle\)</span> 后，<span class="arithmatex">\(\psi'_j(t)=e^{i\chi_j}\psi_j(t)\)</span>，模平方不变。这个证明没有要求能级非简并。</p>
+</details>
+<details class="answer">
+<summary>3 · 零通量与2π通量的四条能量为什么看上去换了顺序？</summary>
+<p>零通量按动量标签是 <span class="arithmatex">\((-2J,0,2J,0)\)</span>；在 <span class="arithmatex">\(2\pi\)</span> 通量时是 <span class="arithmatex">\((0,2J,0,-2J)\)</span>，表中接近零的舍入残差按解析零理解。它们是同一个集合，满足 <span class="arithmatex">\(E_n(\Phi+2\pi)=E_{n+1}(\Phi)\)</span>。若分别对每个通量排序，就看不到动量标签的置换；若只比较固定 <span class="arithmatex">\(n\)</span>，又会误以为周期性失效。</p>
+</details>
+<details class="answer">
+<summary>4 · 证明SU(2)回路只在起点共轭变换，并算α=π/2。</summary>
+<p>把四条 <span class="arithmatex">\(U_{ij}'=\Omega_iU_{ij}\Omega_j^\dagger\)</span> 依次相乘，中间的 <span class="arithmatex">\(\Omega_j^\dagger\Omega_j\)</span> 全部消掉，留下 <span class="arithmatex">\(\Omega_0W\Omega_0^\dagger\)</span>。迹的循环性给 <span class="arithmatex">\(\operatorname{Tr}W'=\operatorname{Tr}W\)</span>。当 <span class="arithmatex">\(A=i\sigma_x,B=i\sigma_z\)</span> 时，Pauli 矩阵反交换，<span class="arithmatex">\(ABA^\dagger B^\dagger=-I\)</span>；归一迹为 <span class="arithmatex">\(-1\)</span>。此点矩阵恰好在中心，共轭后不变是特殊情况。</p>
+</details>
+<details class="answer">
+<summary>5 · 原右手上夸克有Y=2/3，表里为什么写−2/3？</summary>
+<p>异常表统一用左手 Weyl 场，因此把 <span class="arithmatex">\(u_R\)</span> 换成左手共轭 <span class="arithmatex">\(u^c\)</span>。它的超荷反号，颜色 <span class="arithmatex">\(\mathbf3\)</span> 变为 <span class="arithmatex">\(\overline{\mathbf3}\)</span>。对 <span class="arithmatex">\(Y^3\)</span> 和引力混合异常，电荷反号产生对应负贡献；对纯颜色立方异常，共轭表示的立方指标反号。这个记号变换没有改变上夸克本身的实际电荷。</p>
+</details>
+<details class="answer">
+<summary>6 · 忘记颜色重复数，SU(2)²Y与Witten检查会怎样？</summary>
+<p>正确的混合异常为 <span class="arithmatex">\(\frac12[3(1/6)+(-1/2)]=0\)</span>。若漏掉颜色的 <span class="arithmatex">\(3\)</span>，会错误得到 <span class="arithmatex">\(-1/6\)</span>。Witten 检查也必须按 Weyl 基本双重态计数：三个夸克颜色加一个轻子，共四个。Higgs 虽然也是弱双重态，却是标量，不计入这一费米全局异常。</p>
+</details>
+<details class="answer">
+<summary>7 · Lagrangian中的−qψbarγψA与顶点−iqγ，为什么相差i？</summary>
+<p>协变导数展开给出实作用量所需的相互作用项 <span class="arithmatex">\(-q\bar\psi\gamma^\mu\psi A_\mu\)</span>。构造微扰展开时，作用量出现在 <span class="arithmatex">\(e^{iS}\)</span> 中，相应产生顶点因子 <span class="arithmatex">\(-iq\gamma^\mu\)</span>。一个是Lagrangian的项，一个是振幅的计算规则，不能混写。改动协变导数或Fourier符号约定时，需要同步重推整套规则。</p>
+</details>
+<details class="answer">
+<summary>8 · 回路不变、异常抵消，是否已经证明了完整标准模型？</summary>
+<p>没有。回路实验检查指定外加背景与物质表示的局域协变性；异常账检查给定手征场内容的若干量子一致性条件。它们没有决定耦合常数、Yukawa矩阵、三代来源、真空选择、强耦合谱或中微子质量机制，也未完成全局规范结构的所有检查。正确的用法是把这些结果当作进入更完整理论前必须通过的条件。</p>
+</details>
+<p>继续学习时，先进入 <a href="pp-02-electroweak.html">电弱与 Higgs</a>，再比较 <a href="pp-03-qcd-hadrons.html">QCD 与强子</a>、<a href="pp-04-flavor-neutrinos.html">味与中微子</a> 和 <a href="pp-05-colliders-detectors.html">对撞机与探测器</a>。读新公式时先找规范群、表示、约定与可观测量，再讨论近似和实验结果。</p>
+</section>
+<noscript><style>.gauge195-course span.arithmatex{overflow-wrap:anywhere}.gauge195-static{overflow:auto;max-width:100%}.gauge195-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}.gauge195-static th,.gauge195-static td{white-space:nowrap}</style></noscript>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="cm-04-transport-correlations.html"><span class="pager-label">上一页</span>凝聚态 IV · 强关联与量子输运</a>

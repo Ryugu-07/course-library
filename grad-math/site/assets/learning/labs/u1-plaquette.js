@@ -1,576 +1,130 @@
-(function () {
-  "use strict";
+(function(hostWindow){"use strict";
 
-  if (
-    typeof window === "undefined" ||
-    !window.CourseLearning ||
-    typeof window.CourseLearning.register !== "function"
-  ) {
-    return;
-  }
+const LIMITS={fluxDegrees:[-360,360],chi0Degrees:[-360,360],chi1Degrees:[-360,360],chi2Degrees:[-360,360],chi3Degrees:[-360,360],hoppingPercent:[0,200],timeTenths:[0,200],nonabelianDegrees:[0,180]};
+const DEFAULT={fluxDegrees:90,chi0Degrees:60,chi1Degrees:-90,chi2Degrees:120,chi3Degrees:-30,hoppingPercent:100,timeTenths:10,nonabelianDegrees:45};
+function config(input={}){if(input===null||typeof input!=='object'||Array.isArray(input))throw Error('parameters');for(const k of Object.keys(input))if(!Object.prototype.hasOwnProperty.call(LIMITS,k))throw Error('unknown '+k);const c={...DEFAULT,...input};for(const[k,[lo,hi]]of Object.entries(LIMITS))if(!Number.isInteger(c[k])||c[k]<lo||c[k]>hi)throw Error('domain '+k);return c;}
+const PRESETS=[
+['default','默认：非零通量与局部换基',{}],
+['zero','零通量、零变换',{fluxDegrees:0,chi0Degrees:0,chi1Degrees:0,chi2Degrees:0,chi3Degrees:0}],
+['pi','半个通量量子：谱简并',{fluxDegrees:180}],
+['flux-quantum','一个通量量子：谱分支置换',{fluxDegrees:360}],
+['single','只变换站点1',{chi0Degrees:0,chi1Degrees:90,chi2Degrees:0,chi3Degrees:0}],
+['global','各站同一个U(1)相位',{chi0Degrees:70,chi1Degrees:70,chi2Degrees:70,chi3Degrees:70}],
+['alternating','交替局域变换',{chi0Degrees:180,chi1Degrees:-180,chi2Degrees:180,chi3Degrees:-180}],
+['decoupled','关闭跃迁：外加通量仍可定义',{hoppingPercent:0}],
+['commuting','SU(2)零角：平凡回路',{nonabelianDegrees:0}],
+['noncommuting','SU(2)角90度：回路为负单位阵',{nonabelianDegrees:90}],
+['central','SU(2)角180度：链路在中心',{nonabelianDegrees:180}],
+['branch','穿过角度分支边界',{fluxDegrees:-360,chi0Degrees:-360,chi1Degrees:360,chi2Degrees:-179,chi3Degrees:179}]
+].map(([id,label,p])=>({id,label,parameters:config(p)}));
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1]],mul=(a,b)=>[a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]],conj=a=>[a[0],-a[1]],scale=(a,s)=>[a[0]*s,a[1]*s],phase=x=>[Math.cos(x),Math.sin(x)],abs2=a=>a[0]*a[0]+a[1]*a[1],sum=arr=>arr.reduce(add,[0,0]);
+const mat=(n,fn)=>Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>fn(i,j))),eye=n=>mat(n,(i,j)=>[+(i===j),0]),dag=A=>A[0].map((_,j)=>A.map(row=>conj(row[j]))),mm=(A,B)=>A.map(row=>B[0].map((_,j)=>sum(row.map((a,k)=>mul(a,B[k][j]))))),mv=(A,v)=>A.map(row=>sum(row.map((a,j)=>mul(a,v[j])))),trace=A=>sum(A.map((row,i)=>row[i]));
+const EDGES=[[0,1],[1,2],[2,3],[3,0]],THETA=[0,Math.PI/2,Math.PI,-Math.PI/2];
+function linksHamiltonian(links,J){const H=mat(4,()=>[0,0]);EDGES.forEach(([i,j],e)=>{H[i][j]=scale(links[e],-J);H[j][i]=conj(H[i][j]);});return H;}
+function loop(links){return links.reduce(mul,[1,0]);}
+function bilinears(psi,links){return EDGES.map(([i,j],e)=>mul(conj(psi[i]),mul(links[e],psi[j])));}
+function ring(c){const flux=c.fluxDegrees*Math.PI/180,J=c.hoppingPercent/100,chi=Array.from({length:4},(_,i)=>c['chi'+i+'Degrees']*Math.PI/180),omega=chi.map(phase),links=Array.from({length:4},()=>phase(flux/4)),transformedLinks=links.map((u,e)=>mul(omega[EDGES[e][0]],mul(u,conj(omega[EDGES[e][1]])))),psi=THETA.map(x=>scale(phase(x),.5)),transformedPsi=psi.map((z,i)=>mul(omega[i],z));
+ const H=linksHamiltonian(links,J),transformedH=linksHamiltonian(transformedLinks,J),eigen=Array.from({length:4},(_,n)=>{const momentum=Math.PI*n/2,energy=-2*J*Math.cos(momentum+flux/4),vector=Array.from({length:4},(_,j)=>scale(phase(momentum*j),.5));return{index:n,momentum,energy,vector,transformedVector:vector.map((v,j)=>mul(omega[j],v))};});
+ const matter=bilinears(psi,links),transformedMatter=bilinears(transformedPsi,transformedLinks),wrongMatter=bilinears(transformedPsi,links),W=loop(links),transformedW=loop(transformedLinks),open=mul(links[0],links[1]),transformedOpen=mul(transformedLinks[0],transformedLinks[1]);
+ return{flux,J,chi,omega,links,transformedLinks,psi,transformedPsi,H,transformedH,eigen,matter,transformedMatter,wrongMatter,energyExpectation:-2*J*matter.reduce((s,z)=>s+z[0],0),transformedEnergyExpectation:-2*J*transformedMatter.reduce((s,z)=>s+z[0],0),wrongEnergyExpectation:-2*J*wrongMatter.reduce((s,z)=>s+z[0],0),wilson:W,transformedWilson:transformedW,reversedWilson:conj(W),wilsonPhase:Math.atan2(W[1],W[0]),wilsonAction:1-W[0],open,transformedOpen,dressedOpen:mul(conj(psi[0]),mul(open,psi[2])),transformedDressedOpen:mul(conj(transformedPsi[0]),mul(transformedOpen,transformedPsi[2])),initial:[[1,0],[0,0],[0,0],[0,0]],transformedInitial:[omega[0],[0,0],[0,0],[0,0]]};}
+function dynamics(r,t){const amplitude=Array.from({length:4},(_,j)=>sum(r.eigen.map(p=>scale(mul(p.vector[j],phase(-p.energy*t)),.5)))),derivative=Array.from({length:4},(_,j)=>sum(r.eigen.map(p=>scale(mul(mul([0,-p.energy],p.vector[j]),phase(-p.energy*t)),.5)))),transformedAmplitude=amplitude.map((z,j)=>mul(r.omega[j],z)),probability=amplitude.map(abs2),transformedProbability=transformedAmplitude.map(abs2),current=bilinears(amplitude,r.links).map(z=>-2*r.J*z[1]),transformedCurrent=bilinears(transformedAmplitude,r.transformedLinks).map(z=>-2*r.J*z[1]),densityDerivative=amplitude.map((z,j)=>2*mul(conj(z),derivative[j])[0]),continuity=current.map((v,j)=>v-current[(j+3)%4]);
+ return{time:t,amplitude,transformedAmplitude,derivative,probability,transformedProbability,current,transformedCurrent,densityDerivative,continuity,norm:probability.reduce((a,b)=>a+b,0)};}
+const PAULI={x:[[[0,0],[1,0]],[[1,0],[0,0]]],y:[[[0,0],[0,-1]],[[0,1],[0,0]]],z:[[[1,0],[0,0]],[[0,0],[-1,0]]]};
+function su2(axis,a){return mat(2,(i,j)=>add([i===j?Math.cos(a):0,0],mul([0,Math.sin(a)],PAULI[axis][i][j])));}
+function nonabelian(c){const alpha=c.nonabelianDegrees*Math.PI/180,A=su2('x',alpha),B=su2('z',alpha),links=[A,B,dag(A),dag(B)],axes=['x','y','z','x'],omega=axes.map((axis,i)=>su2(axis,c['chi'+i+'Degrees']*Math.PI/360)),transformedLinks=links.map((U,e)=>mm(mm(omega[EDGES[e][0]],U),dag(omega[EDGES[e][1]]))),K=links.reduce(mm,eye(2)),transformedK=transformedLinks.reduce(mm,eye(2)),reverse=dag(K),commutator=mm(A,B).map((row,i)=>row.map((z,j)=>add(z,scale(mm(B,A)[i][j],-1)))),norm=Math.sqrt(commutator.flat().reduce((s,z)=>s+abs2(z),0));return{alpha,axes,omega,links,transformedLinks,A,B,wilson:K,transformedWilson:transformedK,reversedWilson:reverse,normalizedTrace:scale(trace(K),.5),transformedNormalizedTrace:scale(trace(transformedK),.5),reversedNormalizedTrace:scale(trace(reverse),.5),commutator,norm,abelianCommutator:[1,0]};}
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b)[a,b]=[b,a%b];return a||1;}
+function frac(n,d=1){if(d<0){n=-n;d=-d;}const g=gcd(n,d);return[n/g,d/g];}
+const fadd=(a,b)=>frac(a[0]*b[1]+b[0]*a[1],a[1]*b[1]),fmul=(a,b)=>frac(a[0]*b[0],a[1]*b[1]),fsum=xs=>xs.reduce(fadd,[0,1]);
+function standardModel(){const defs=[['Q','3',3,2,1],['L','1',1,2,-3],['u^c','bar3',3,1,-4],['d^c','bar3',3,1,2],['e^c','1',1,1,6]],fields=defs.map(([name,color,colorDimension,weakDimension,y6])=>{const Y=frac(y6,6),multiplicity=colorDimension*weakDimension,T3=weakDimension===2?[[1,2],[-1,2]]:[[0,1]],charges=T3.map(t=>fadd(t,Y)),colorSign=color==='3'?1:color==='bar3'?-1:0;
+ const anomaly={hyperchargeCubed:fmul([multiplicity,1],fmul(Y,fmul(Y,Y))),gravityHypercharge:fmul([multiplicity,1],Y),colorSquaredHypercharge:colorDimension===3?fmul([weakDimension,2],Y):[0,1],weakSquaredHypercharge:weakDimension===2?fmul([colorDimension,2],Y):[0,1],colorCubed:[weakDimension*colorSign,1]};
+ return{name,chirality:'left-handed Weyl',color,colorDimension,weakDimension,multiplicity,Y,T3,charges,anomaly,weakDoublets:weakDimension===2?colorDimension:0};});
+ const keys=Object.keys(fields[0].anomaly),totals=Object.fromEntries(keys.map(k=>[k,fsum(fields.map(f=>f.anomaly[k]))])),doublets=fields.reduce((s,f)=>s+f.weakDoublets,0),higgs={name:'H',spin:0,color:'1',weakDimension:2,Y:[1,2],charges:[[1,1],[0,1]],includedInFermionAnomalies:false};
+ const yukawa=[{name:'Q H u^c',hypercharges:[fields[0].Y,higgs.Y,fields[2].Y]},{name:'Q H† d^c',hypercharges:[fields[0].Y,[-1,2],fields[3].Y]},{name:'L H† e^c',hypercharges:[fields[1].Y,[-1,2],fields[4].Y]}].map(x=>({...x,sum:fsum(x.hypercharges)}));
+ return{convention:'all fermions left-handed; Qelectric=T3+Y; T(fundamental)=1/2; A(3)=1',fields,totals,weylComponents:fields.reduce((s,f)=>s+f.multiplicity,0),weakDoublets:doublets,wittenParity:doublets%2,higgs,yukawa,rightHandedNeutrinoIncluded:false};}
+function compute(input={}){const c=config(input),r=ring(c),n=nonabelian(c),time=Array.from({length:201},(_,i)=>dynamics(r,i/10)),fluxScan=Array.from({length:241},(_,i)=>{const degrees=-360+3*i,flux=degrees*Math.PI/180;return{degrees,flux,energies:Array.from({length:4},(_,j)=>-2*r.J*Math.cos(Math.PI*j/2+flux/4))};}),nonabelianScan=Array.from({length:181},(_,degrees)=>{const alpha=degrees*Math.PI/180,A=su2('x',alpha),B=su2('z',alpha),K=mm(mm(mm(A,B),dag(A)),dag(B));return{degrees,alpha,normalizedTrace:scale(trace(K),.5),abelian:1};});
+ return{schema:'gauge195-v1',parameters:c,units:{energy:'E0',time:'hbar/E0',phase:'radians; controls in degrees',flux:'dimensionless U(1) holonomy angle; period 2pi',sites:'four-site periodic ring; external nondynamical links'},ring:r,nonabelian:n,standardModel:standardModel(),time,selectedTime:dynamics(r,c.timeTenths/10),fluxScan,nonabelianScan,boundaries:{externalLinksNotFullGaugeDynamics:true,transformInitialStateTogether:true,onlyDressedOpenPathInvariant:true,nonabelianWilsonMatrixCovariant:true,nonabelianTraceInvariant:true,fluxPeriodPermutesBranches:true,gaugePrincipleDoesNotFixMatter:true,allLeftHandedAnomalyConvention:true,higgsNotInFermionAnomalies:true,anomalyCancellationNotUniqueSMProof:true,noDecayLifetimeHeuristic:true}};
+}
+const QUESTIONS=[
+['把站点场与链路一起做静态规范变换，环的能谱会怎样？',['保持不变；Hamiltonian 只做幺正相似变换','跟随局域相位一起改变'],0,'H′=ΩHΩ†。初态也一起变换时，站点概率及带链路的流保持不变。只改场而固定链路通常是另一个物理配置。'],
+['SU(2)闭合回路的矩阵本身在换规范后必须不变吗？',['必须；闭合就使全部矩阵因子消掉','不必须；它在起点共轭变换，迹才不变'],1,'中间端点抵消后仍留下 Ω0 W Ω0†。U(1)因交换性才可把这些端点因子完全抵消。'],
+['通量 Φ 增加 2π，固定动量标签 n 的能量必须逐条不变吗？',['必须；每条曲线都单独具有2π周期','不必须；四条谱分支可以置换，能谱集合不变'],1,'四站环 E_n=−2J cos(2πn/4+Φ/4)。增加2π等价于 n→n+1；比较整个谱，不能只盯住同一个分支标签。'],
+['做标准模型异常核算，能省掉颜色和弱双重态的重复数吗？',['不能；必须逐个手征分量计数','能；粒子名字已经计入所有重复'],0,'左手夸克双重态有3×2个Weyl分量；右手场若改写成左手共轭场，表示和超荷都要共轭。Higgs是标量，不进入这里的费米异常和。']
+];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=4||![0,1].includes(j))throw Error('choice');return{correct:j===QUESTIONS[i][2],text:(j===QUESTIONS[i][2]?'正确。':'需要修正。')+QUESTIONS[i][3]};}
+const LABELS={fluxDegrees:'U(1)回路通量角 Φ（度）',chi0Degrees:'站点0局域角 χ0（度）',chi1Degrees:'站点1局域角 χ1（度）',chi2Degrees:'站点2局域角 χ2（度）',chi3Degrees:'站点3局域角 χ3（度）',hoppingPercent:'跃迁 J/E0 ×100',timeTenths:'观察时间 E0/ℏ ×10',nonabelianDegrees:'SU(2)链路角 α（度）',externalLinksNotFullGaugeDynamics:'固定外加链路，不是完整规范场量子动力学',transformInitialStateTogether:'初态与Hamiltonian一起变换',onlyDressedOpenPathInvariant:'开路径需要端点物质场形成不变量',nonabelianWilsonMatrixCovariant:'非Abelian回路矩阵在起点共轭变换',nonabelianTraceInvariant:'非Abelian回路迹不变',fluxPeriodPermutesBranches:'通量周期可以置换谱分支',gaugePrincipleDoesNotFixMatter:'规范原理不单独决定物质内容',allLeftHandedAnomalyConvention:'异常统一使用左手Weyl约定',higgsNotInFermionAnomalies:'Higgs不进入费米异常和',anomalyCancellationNotUniqueSMProof:'异常消除不是唯一推导标准模型',noDecayLifetimeHeuristic:'不从粒子标签单独判定衰变率'};
+function fmt(x){if(x===null||x===undefined)return'不适用';if(typeof x==='boolean')return x?'是':'否';if(Array.isArray(x))return'['+x.map(fmt).join(', ')+']';if(typeof x==='object')return JSON.stringify(x);if(typeof x==='number')return Number.isInteger(x)&&Math.abs(x)<1e6?String(x):Math.abs(x)<1e-4||Math.abs(x)>=1e5?x.toExponential(5):Number(x.toPrecision(7)).toString();return LABELS[x]??String(x);}
+const value=q=>q[0]/q[1],fraction=q=>q[1]===1?String(q[0]):q[0]+'/'+q[1];
+const COLORS=['#3875ba','#c55b32','#368661','#9860a8','#856722','#646e7c'];
+function frame(key,title,xLabel,yLabel,series,domain,range){const ys=series.flatMap(s=>s.points.filter(Boolean).map(p=>p[1]));let ymin=range?.[0]??Math.min(0,...ys),ymax=range?.[1]??Math.max(0,...ys);if(ymin===ymax)ymax=ymin+1;if(!range){const pad=.07*(ymax-ymin);ymin-=pad;ymax+=pad;}return{key,title,xLabel,yLabel,xMin:domain[0],xMax:domain[1],yMin:ymin,yMax:ymax,series};}
+function plots(s){const series=(name,color,points,extra={})=>({name,color:COLORS[color],points,...extra}),r=s.ring,angle=z=>Math.atan2(z[1],z[0]),anomalyKeys=['hyperchargeCubed','gravityHypercharge','colorSquaredHypercharge','weakSquaredHypercharge','colorCubed'];
+ return[
+ frame('phases','局域相位会变：这不是一次物理扰动','站点编号 j；相位折回[−π,π]','arg ψj（rad）；全部点的模为1/2',[
+ series('换规范前',0,r.psi.map((z,j)=>[j,angle(z)]),{markersOnly:true}),
+ series('换规范后（空心）',1,r.transformedPsi.map((z,j)=>[j,angle(z)]),{markersOnly:true,hollow:true,markerRadius:7})
+ ],[0,3],[-Math.PI,Math.PI]),
+ frame('matter','带链路比较：实点与空心圈应重合','边编号：0=01，1=12，2=23，3=30','ψi* Uij ψj 的实部 / 虚部',[
+ series('Re：变换前',0,r.matter.map((z,j)=>[j,z[0]]),{markersOnly:true}),
+ series('Im：变换前',1,r.matter.map((z,j)=>[j,z[1]]),{markersOnly:true}),
+ series('Re：变换后空心',0,r.transformedMatter.map((z,j)=>[j,z[0]]),{markersOnly:true,hollow:true,markerRadius:8}),
+ series('Im：变换后空心',1,r.transformedMatter.map((z,j)=>[j,z[1]]),{markersOnly:true,hollow:true,markerRadius:8})
+ ],[0,3],[-.28,.28]),
+ frame('spectrum','通量变2π：整个能谱周期，分支可以置换','Φ/π；固定动量标签 n','E/E0；所有规范使用同一个能谱',Array.from({length:4},(_,n)=>series('动量分支 n='+n,n,s.fluxScan.map(q=>[q.flux/Math.PI,q.energies[n]]))),[-2,2],r.J?[-2.1*r.J,2.1*r.J]:[-1,1]),
+ frame('time','一起变换初态：测量概率保持相同','t E0/ℏ；初态位于站点0','站点概率；线=变换前，圈=变换后',[
+ ...Array.from({length:4},(_,j)=>series('站点'+j+'：变换前',j,s.time.map(q=>[q.time,q.probability[j]]))),
+ ...Array.from({length:4},(_,j)=>series('站点'+j+'：变换后空心',j,s.time.filter((_,i)=>i%20===0).map(q=>[q.time,q.transformedProbability[j]]),{markersOnly:true,hollow:true,markerRadius:4}))
+ ],[0,20],[0,1.05]),
+ frame('nonabelian','交换次序留下信息：SU(2)回路与U(1)对照','α（度）；A=exp(iασx)，B=exp(iασz)','W=ABA†B†；使用归一迹Tr(W)/2',[
+ series('SU(2)：归一迹实部',0,s.nonabelianScan.map(q=>[q.degrees,q.normalizedTrace[0]])),
+ series('U(1)交换子回路恒为1',1,s.nonabelianScan.map(q=>[q.degrees,q.abelian])),
+ series('SU(2)：归一迹虚部',2,s.nonabelianScan.map(q=>[q.degrees,q.normalizedTrace[1]])),
+ series('当前α下的回路',3,[[s.parameters.nonabelianDegrees,s.nonabelian.normalizedTrace[0]]],{markersOnly:true,markerRadius:6})
+ ],[0,180],[-1.1,1.1]),
+ frame('anomalies','一代左手Weyl场：每项有贡献，合计为零','0=Q，1=L，2=uᶜ，3=dᶜ，4=eᶜ，5=合计','异常系数；已含颜色/弱表示重复数',anomalyKeys.map((key,i)=>series(['Y³','引力²Y','SU(3)²Y','SU(2)²Y','SU(3)³'][i],i,[...s.standardModel.fields.map((f,j)=>[j,value(f.anomaly[key])]),[5,value(s.standardModel.totals[key])]],{markersOnly:true,markerRadius:4+i*.5,hollow:i>=2})),[0,5],[-2.2,2.2])
+ ];}
+function tables(s){const r=s.ring,n=s.nonabelian,sm=s.standardModel;return[
+ {key:'parameters',title:'8个参数：角度以度输入，计算以弧度记录',headers:['输入','值'],rows:Object.entries(s.parameters)},
+ {key:'vertices',title:'四站场与局域基底：静态比较态各分量模为1/2',headers:['站点','χ(rad)','Ω','ψ','变换后ψ'],rows:r.psi.map((v,j)=>[j,r.chi[j],r.omega[j],v,r.transformedPsi[j]])},
+ {key:'links',title:'有向边j→i：链路与带场双线性',headers:['边i,j','Uij','变换后Uij','ψi*Uijψj','一起变换后','只改ψ而固定U（另一配置）'],rows:EDGES.map((edge,j)=>[edge,r.links[j],r.transformedLinks[j],r.matter[j],r.transformedMatter[j],r.wrongMatter[j]])},
+ {key:'wilson',title:'闭回路、开路径、能量：不变量与协变量分开',headers:['对象','原规范','变换后'],rows:[['U(1)闭回路',r.wilson,r.transformedWilson],['裸开路径U01U12',r.open,r.transformedOpen],['带端点开路径',r.dressedOpen,r.transformedDressedOpen],['静态比较态能量/E0',r.energyExpectation,r.transformedEnergyExpectation],['反向U(1)回路',r.reversedWilson,conj(r.transformedWilson)],['只改ψ的能量（通常不是规范变换）',r.energyExpectation,r.wrongEnergyExpectation],['SU(2)归一迹',n.normalizedTrace,n.transformedNormalizedTrace]]},
+ {key:'hamiltonian',title:'完整四维Hamiltonian：复数写成[Re,Im]',headers:['规范','行','完整行'],rows:[...r.H.map((row,j)=>['原规范',j,row]),...r.transformedH.map((row,j)=>['变换后',j,row])]},
+ {key:'eigen',title:'完整本征向量：简并时这些仍是一组合法正交基',headers:['动量n','k','能量/E0','原本征向量','变换后本征向量'],rows:r.eigen.map(p=>[p.index,p.momentum,p.energy,p.vector,p.transformedVector])},
+ {key:'time',title:'201个时间点：完整复振幅、概率、流与连续性方程',headers:['tE0/ℏ','原振幅4项','变换后振幅4项','振幅时间导数','原概率4项','变换后概率4项','原边流4项','变换后边流4项','密度导数4项','流入减流出4项','总概率'],rows:s.time.map(q=>[q.time,q.amplitude,q.transformedAmplitude,q.derivative,q.probability,q.transformedProbability,q.current,q.transformedCurrent,q.densityDerivative,q.continuity,q.norm])},
+ {key:'flux',title:'241个通量：按动量标签而不是能量高低排列',headers:['Φ(度)','Φ(rad)','四条动量谱分支/E0'],rows:s.fluxScan.map(q=>[q.degrees,q.flux,q.energies])},
+ {key:'su2',title:'SU(2)完整矩阵：回路本身共轭变换',headers:['对象','完整2×2矩阵'],rows:[['A',n.A],['B',n.B],['AB−BA',n.commutator],['W',n.wilson],['变换后W',n.transformedWilson],['反向回路W†',n.reversedWilson],...n.omega.map((q,i)=>['局域Ω'+i+'，轴'+n.axes[i],q]),...n.links.map((q,i)=>['原链路'+i,q]),...n.transformedLinks.map((q,i)=>['变换后链路'+i,q])]},
+ {key:'su2scan',title:'181个SU(2)链路角：交换子回路的归一迹',headers:['α(度)','α(rad)','ReTrW/2','ImTrW/2','U(1)交换子回路'],rows:s.nonabelianScan.map(q=>[q.degrees,q.alpha,...q.normalizedTrace,q.abelian])},
+ {key:'matter',title:'标准模型一代：全部写成左手Weyl，共轭场勿当成原右手场',headers:['场','SU(3)','SU(2)维数','Weyl分量数','Y','电荷T3+Y','Y³','引力²Y','SU(3)²Y','SU(2)²Y','SU(3)³'],rows:sm.fields.map(f=>[f.name,f.color,f.weakDimension,f.multiplicity,fraction(f.Y),f.charges.map(fraction).join(', '),...Object.values(f.anomaly).map(fraction)])},
+ {key:'checks',title:'精确异常合计、Higgs/Yukawa与适用边界',headers:['对象','值'],rows:[...Object.entries(sm.totals).map(([k,v])=>[k+'合计',fraction(v)]),['Weyl分量总数',sm.weylComponents],['SU(2)基本双重态数',sm.weakDoublets],['Witten奇偶性',sm.wittenParity],['Higgs Y',fraction(sm.higgs.Y)],['Higgs电荷',sm.higgs.charges.map(fraction).join(', ')],['Higgs进入费米异常和',sm.higgs.includedInFermionAnomalies],...sm.yukawa.map(v=>[v.name+'的超荷和',fraction(v.sum)]),...Object.entries(s.boundaries)]}
+ ];}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=10000?v.toExponential(2):Number(v.toFixed(3)).toString();
+function svg(p){const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 580" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+const discrete=['phases','matter','anomalies'].includes(p.key);const xticks=discrete?[...new Set(Array.from({length:5},(_,i)=>Math.round(p.xMin+(p.xMax-p.xMin)*i/4)))]:Array.from({length:5},(_,i)=>p.xMin+(p.xMax-p.xMin)*i/4);for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+axisFmt(y)+'</text>';}for(const x of xticks){out+='<text x="'+X(x)+'" y="410" text-anchor="middle">'+axisFmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen&&!s.markersOnly?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const marks=s.markersOnly?s.points.filter(Boolean):s.boundaryMarkers?[...new Set([s.points.find(Boolean),s.points.filter(Boolean).at(-1)])].filter(Boolean):s.points.filter(Boolean).length===1?s.points.filter(Boolean):[];marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="'+(s.markerRadius??5)+'" stroke="'+s.color+'" fill="'+(s.hollow?'none':s.open?'var(--bg,#fff)':s.color)+'" stroke-width="'+(s.markerStrokeWidth??2.5)+'"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});if(!p.series.some(s=>s.points.some(Boolean)))out+='<text x="450" y="245" text-anchor="middle">当前模型在此参数下无适用数据</text>';return out+'</svg>';}
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var PI = Math.PI;
-  var TAU = 2 * PI;
-  var TOLERANCE = 1e-9;
-  var SERIAL = 0;
-  var PRESET_ORDER = ["zero", "nonzero", "fixed"];
-  var VERTICES = [
-    { x: 170, y: 115, labelY: 47, thetaY: 65 },
-    { x: 550, y: 115, labelY: 47, thetaY: 65 },
-    { x: 550, y: 315, labelY: 391, thetaY: 409 },
-    { x: 170, y: 315, labelY: 391, thetaY: 409 }
-  ];
-  var LINKS = [
-    { id: "12", i: 0, j: 1, labelX: 360, labelY: 66, labelW: 142 },
-    { id: "23", i: 1, j: 2, labelX: 650, labelY: 215, labelW: 132 },
-    { id: "34", i: 2, j: 3, labelX: 360, labelY: 365, labelW: 142 },
-    { id: "41", i: 3, j: 0, labelX: 82, labelY: 215, labelW: 132 }
-  ];
-  var PRESETS = {
-    zero: {
-      label: "零通量",
-      psi: [0, PI / 2, PI, -PI / 2],
-      links: [0.8, -1.2, 0.6, -0.2]
-    },
-    nonzero: {
-      label: "非零通量",
-      psi: [0.35, -0.8, 1.2, -2.0],
-      links: [0.7, -0.4, 1.1, 0.9]
-    },
-    fixed: {
-      label: "随机但固定",
-      psi: [2.4, -1.7, 0.25, -2.65],
-      links: [-2.4, 1.25, 2.05, -0.55]
-    }
-  };
+var mounted=new WeakMap();
+function mount(root){const doc=root.ownerDocument,previous=mounted.get(root);if(previous)previous();root.replaceChildren();root.classList.add('gauge195');let c=config(PRESETS[0].parameters),choices={},revealed=false,url=null,current=null,view=0,valid=true;
+ const el=(tag,attrs={},text)=>{const e=doc.createElement(tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
+ if(!doc.querySelector('[data-gauge195-style]')){const style=el('style',{'data-gauge195-style':''});style.textContent='.gauge195{margin-inline:0!important;width:100%;min-width:0;color:var(--fg,#222);line-height:1.65}.gauge195 *{box-sizing:border-box}.gauge195 button,.gauge195 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.gauge195 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.gauge195 button:focus-visible,.gauge195 select:focus-visible,.gauge195 [tabindex]:focus-visible{outline:3px solid #2474bc}.gauge195 .ga-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.gauge195 label{display:grid;gap:4px;min-width:0}.gauge195 input{width:100%;min-height:44px;font:inherit;color:inherit;background:var(--bg,#fff)}.gauge195 .ga-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.gauge195 .ga-pred>strong{display:block;margin-bottom:6px}.gauge195 .ga-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.gauge195 .ga-feedback{margin:7px 0}.gauge195 .ga-scroll{max-width:100%;overflow:auto}.gauge195 svg{display:block;min-width:680px;width:100%;height:auto}.gauge195 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.gauge195 td,.gauge195 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.gauge195 [hidden]{display:none!important}.gauge195 details{margin:12px 0}.gauge195 summary{min-height:44px;cursor:pointer}.gauge195 .ga-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.gauge195 .ga-correct{color:var(--cl-green,#277540)}.gauge195 .ga-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.gauge195 .ga-grid{grid-template-columns:1fr}}';doc.head.append(style);}
+ root.append(el('h3',{},'换一种局部表示，哪些量保持不变？'),el('p',{},'先在四站U(1)环上同时变换场、链路、Hamiltonian与初态，再看SU(2)回路为什么需要取迹。标准模型表示与异常表是固定的一代参考账，不随滑块改写。'));
+ const presets=el('div',{class:'ga-row','aria-label':'教学预设'});for(const p of PRESETS){const b=el('button',{type:'button','data-preset':p.id},p.label);b.onclick=()=>{c=config(p.parameters);valid=true;sync();reset();};presets.append(b);}root.append(presets);
+ const fields={},outs={},grid=el('div',{class:'ga-grid'});
 
-  function setAttributes(node, attrs) {
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", String(value));
-      else if (key === "htmlFor") node.setAttribute("for", String(value));
-      else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, String(value));
-    });
-    return node;
-  }
 
-  function appendChildren(node, children, doc) {
-    if (children === undefined || children === null) return node;
-    (Array.isArray(children) ? children : [children]).forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child && child.nodeType ? child : doc.createTextNode(String(child)));
-    });
-    return node;
-  }
 
-  function makeElement(doc, tag, attrs, children) {
-    return appendChildren(setAttributes(doc.createElement(tag), attrs), children, doc);
-  }
 
-  function makeSvg(doc, tag, attrs, children) {
-    return appendChildren(
-      setAttributes(doc.createElementNS(SVG_NS, tag), attrs),
-      children,
-      doc
-    );
-  }
+ for(const[key,title]of Object.entries(LABELS).filter(([key])=>Object.hasOwn(LIMITS,key))){const[min,max]=LIMITS[key],label=el('label',{},title),out=el('output'),input=el('input',{type:'range',min,max,step:1,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.oninput=input.onchange=change;}root.append(grid);
+ function change(){try{c=config(Object.fromEntries(Object.entries(fields).map(([k,e])=>[k,e.value===''?NaN:Number(e.value)])));valid=true;sync();reset();}catch(e){valid=false;reset();status.textContent='请使用各控件范围内的整数。角度以度输入；J除以100，时间除以10。';}}
+ const note=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(note,prediction);prediction.append(el('h4',{},'先预测：能谱、回路、通量周期与异常计数'),el('p',{},'四题的条件固定写在题干里；参数用来检查例子，不自动改变问题。'));
+ const feedbacks=[],buttons=[];QUESTIONS.forEach((q,i)=>{const row=el('div',{class:'ga-pred'});row.append(el('strong',{},q[0]));buttons[i]=[];q[1].forEach((text,j)=>{const b=el('button',{type:'button','data-prediction':i,'data-choice':String(j===0),'aria-pressed':'false'},text);b.onclick=()=>{choices[i]=j;buttons[i].forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));if(revealed)showFeedback();};row.append(b);buttons[i].push(b);});feedbacks[i]=el('p',{class:'ga-feedback','data-feedback':i});row.append(feedbacks[i]);prediction.append(row);});
+ const check=el('button',{type:'button','data-check':''},'核对预测并显示完整结果'),status=el('p',{class:'ga-status','aria-live':'polite'});root.append(check,status);
+ const stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),summary=el('p'),plotButtons=el('div',{class:'ga-row'}),plotWrap=el('div',{class:'ga-scroll',tabindex:0,role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'站点相位折回到[−π,π]，跨过分支边界不代表物理突变。概率图的线与空心圈对应两种规范，应当重合；能谱按固定动量标签绘制，2π通量可置换分支。SU(2)采用各站轴x/y/z/x，局域矩阵为exp(iχσ/2)，与U(1)的exp(iχ)约定分开。'),tableHost=el('div'),download=el('a',{'data-download':'',download:'ga-record.json'},'下载当前完整记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);
+ function sync(){for(const[k,e]of Object.entries(fields))e.value=c[k];}
+ function reset(){if(url){hostWindow.URL.revokeObjectURL(url);url=null;download.removeAttribute('href');}revealed=false;choices={};stage.hidden=true;delete root.__gaugeSnapshot;for(let i=0;i<4;i++){feedbacks[i].textContent='';for(const b of buttons[i])b.setAttribute('aria-pressed','false');}for(const[k,o]of Object.entries(outs))o.textContent=fmt(c[k]);note.textContent='两个规范模型并列计算：Φ、J作用于U(1)环，α作用于SU(2)回路，四个χ用于各自规定的局域变换。观察时间只改变结果概览，完整动力学曲线仍覆盖0到20。链路是外加背景，本实验没有量子化规范场。';status.textContent='完成四项预测后显示当前结果。';}
+ function showFeedback(){let n=0;for(let i=0;i<4;i++){if(!Number.isInteger(choices[i]))continue;const f=feedback(i,choices[i]);n+=+f.correct;feedbacks[i].textContent=f.text;feedbacks[i].className='ga-feedback '+(f.correct?'ga-correct':'ga-wrong');}status.textContent='预测核对：'+n+'/4 正确。图、表和下载均对应当前参数。';}
+ function draw(){const ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+ function render(){current=compute(c);root.__gaugeSnapshot=current;stage.hidden=false;summary.textContent='当前观察时间='+fmt(current.selectedTime.time)+' ℏ/E0，四站概率='+fmt(current.selectedTime.probability)+'，总概率='+fmt(current.selectedTime.norm)+'。U(1)回路='+fmt(current.ring.wilson)+'；SU(2)归一迹='+fmt(current.nonabelian.normalizedTrace)+'。标准模型一代15个左手Weyl分量，4个SU(2)基本双重态，表中五项异常总和均为精确的0。';plotButtons.replaceChildren();plots(current).forEach((p,i)=>{const b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();for(const t of tables(current)){const d=el('details',{'data-table':t.key});d.append(el('summary',{},t.title));d.addEventListener('toggle',()=>{if(!d.open||d.children.length>1)return;const wrap=el('div',{class:'ga-scroll',tabindex:0,role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),thead=el('thead'),tr=el('tr'),tbody=el('tbody');for(const h of t.headers)tr.append(el('th',{scope:'col'},h));thead.append(tr);for(const row of t.rows){const r=el('tr');for(const v of row)r.append(el('td',{},fmt(v)));tbody.append(r);}table.append(thead,tbody);wrap.append(table);d.append(wrap);});tableHost.append(d);}if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current)],{type:'application/json'}));download.href=url;showFeedback();}
+ check.onclick=()=>{if(!valid){status.textContent='请先修正无效参数。';return;}if(![0,1,2,3].every(i=>Number.isInteger(choices[i]))){status.textContent='请先为四个问题各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
+}
 
-  function replaceChildren(node) {
-    if (typeof node.replaceChildren === "function") {
-      node.replaceChildren();
-      return;
-    }
-    while (node.firstChild) node.removeChild(node.firstChild);
-  }
-
-  function injectStyles(doc) {
-    if (doc.querySelector && doc.querySelector("style[data-cl-u1-style]")) return;
-    var style = doc.createElement("style");
-    style.setAttribute("data-cl-u1-style", "true");
-    style.textContent = [
-      ".cl-u1-lab { --u1-panel: var(--block-bg, #f4f1e9); --u1-bg: var(--bg, #fff); --u1-fg: var(--fg, #292722); --u1-muted: var(--fg-soft, #6b6557); --u1-border: var(--border, #d7d0c2); --u1-accent: var(--cl-blue, #315f9d); --u1-good: var(--cl-green, #39734d); --u1-warn: var(--cl-red, #b64335); color: var(--u1-fg); font-size: .95em; line-height: 1.55; }",
-      "html[data-theme=\"dark\"] .cl-u1-lab { --u1-accent: #83c8ff; --u1-good: #72bd8b; --u1-warn: #f08c7d; }",
-      ".cl-u1-lab *, .cl-u1-lab *::before, .cl-u1-lab *::after { box-sizing: border-box; }",
-      ".cl-u1-heading { margin: 0 0 .25rem; color: var(--u1-accent); font-size: 1.25rem; }",
-      ".cl-u1-intro, .cl-u1-note, .cl-u1-status { color: var(--u1-muted); }",
-      ".cl-u1-intro { margin: 0 0 1rem; }",
-      ".cl-u1-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-items: start; }",
-      ".cl-u1-controls, .cl-u1-stage { min-width: 0; }",
-      ".cl-u1-controls { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, .9fr) minmax(0, 1.2fr); gap: 16px; align-items: start; }",
-      ".cl-u1-section, .cl-u1-section:first-child { margin: 0; padding-top: .75rem; border-top: 1px solid var(--u1-border); }",
-      ".cl-u1-section h4 { margin: 0 0 .45rem; font-size: 1rem; }",
-      ".cl-u1-button-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }",
-      ".cl-u1-vertex-row { grid-template-columns: repeat(4, minmax(0, 1fr)); }",
-      ".cl-u1-action-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }",
-      ".cl-u1-button { min-width: 0; min-height: 44px; padding: 7px 8px; border: 1px solid var(--u1-border); border-radius: 6px; background: var(--u1-bg); color: inherit; cursor: pointer; font: inherit; line-height: 1.35; overflow-wrap: anywhere; }",
-      ".cl-u1-button:hover:not(:disabled) { border-color: var(--u1-accent); }",
-      ".cl-u1-button[aria-pressed=true], .cl-u1-primary { border-color: var(--u1-accent); background: var(--u1-accent); color: var(--u1-bg); font-weight: 700; }",
-      ".cl-u1-button:disabled { cursor: not-allowed; opacity: .5; }",
-      ".cl-u1-button:focus-visible, .cl-u1-input:focus-visible { outline: 3px solid var(--cl-focus, #1769aa); outline-offset: 2px; }",
-      ".cl-u1-field { display: grid; gap: 5px; margin-top: .65rem; }",
-      ".cl-u1-field-caption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; color: var(--u1-muted); font-size: .9em; font-weight: 650; }",
-      ".cl-u1-output { color: var(--u1-accent); font-variant-numeric: tabular-nums; }",
-      ".cl-u1-input[type=range] { display: block; width: 100%; min-height: 44px; margin: 0; accent-color: var(--u1-accent); }",
-      ".cl-u1-small { color: var(--u1-muted); font-size: .86em; }",
-      ".cl-u1-selection { margin: .75rem 0 0; color: var(--u1-good); font-weight: 700; }",
-      ".cl-u1-stage-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }",
-      ".cl-u1-stage-title { color: var(--u1-muted); font-size: .9em; }",
-      ".cl-u1-svg-scroll { max-width: 100%; overflow-x: auto; border: 1px solid var(--u1-border); border-radius: 6px; background: var(--u1-bg); -webkit-overflow-scrolling: touch; }",
-      ".cl-u1-svg { display: block; width: 100%; max-width: 100%; height: auto; color: var(--u1-fg); }",
-      ".cl-u1-svg text { fill: currentColor; font-family: inherit; letter-spacing: 0; }",
-      ".cl-u1-square { fill: none; stroke: var(--u1-border); stroke-width: 2; }",
-      ".cl-u1-link { fill: none; stroke: var(--u1-accent); stroke-linecap: round; stroke-width: 3; }",
-      ".cl-u1-link-hot { stroke: var(--u1-warn); stroke-width: 4; }",
-      ".cl-u1-arrow { fill: var(--u1-accent); }",
-      ".cl-u1-phase { fill: none; stroke: var(--u1-good); stroke-linecap: round; stroke-width: 4; }",
-      ".cl-u1-phase-arrow { fill: var(--u1-good); }",
-      ".cl-u1-ring { fill: var(--u1-panel); stroke: var(--u1-border); stroke-width: 2; }",
-      ".cl-u1-center { fill: var(--u1-fg); }",
-      ".cl-u1-selected { fill: none; stroke: var(--u1-warn); stroke-dasharray: 5 4; stroke-width: 3; }",
-      ".cl-u1-vertex-label { fill: var(--u1-accent) !important; font-size: 18px; font-weight: 750; }",
-      ".cl-u1-angle-label { fill: var(--u1-muted) !important; font-size: 13px; }",
-      ".cl-u1-link-box, .cl-u1-w-box { fill: var(--u1-panel); stroke: var(--u1-border); stroke-width: 1; }",
-      ".cl-u1-link-label { fill: var(--u1-fg) !important; font-size: 14px; font-weight: 650; }",
-      ".cl-u1-w-label { fill: var(--u1-accent) !important; font-size: 15px; font-weight: 750; }",
-      ".cl-u1-w-small { fill: var(--u1-muted) !important; font-size: 13px; }",
-      ".cl-u1-legend { fill: var(--u1-muted) !important; font-size: 13px; }",
-      ".cl-u1-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 10px; }",
-      ".cl-u1-metric { min-width: 0; padding: 9px; border-top: 2px solid var(--u1-border); background: var(--u1-panel); }",
-      ".cl-u1-metric span { display: block; color: var(--u1-muted); font-size: 11.5px; }",
-      ".cl-u1-metric strong { display: block; margin-top: 3px; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }",
-      ".cl-u1-check-wrap { max-width: 100%; overflow-x: auto; margin-top: 10px; }",
-      ".cl-u1-check { width: 100%; min-width: 430px; border-collapse: collapse; font-size: .86em; }",
-      ".cl-u1-check caption { margin-bottom: 5px; color: var(--u1-muted); text-align: left; }",
-      ".cl-u1-check th, .cl-u1-check td { border-bottom: 1px solid var(--u1-border); padding: 6px 5px; text-align: left; vertical-align: top; }",
-      ".cl-u1-check th { color: var(--u1-muted); font-weight: 650; }",
-      ".cl-u1-pass { color: var(--u1-good); font-weight: 750; }",
-      ".cl-u1-fail { color: var(--u1-warn); font-weight: 750; }",
-      ".cl-u1-status { min-height: 1.5em; margin: .7rem 0 0; }",
-      "@media (max-width: 700px) { .cl-u1-lab { margin-left: -8px; margin-right: -8px; padding: 14px; } .cl-u1-controls { grid-template-columns: minmax(0, 1fr); } .cl-u1-section { margin-top: 1rem; padding-top: .85rem; } .cl-u1-section:first-child { margin-top: 0; padding-top: 0; border-top: 0; } .cl-u1-svg { width: 690px; min-width: 690px; max-width: none; } .cl-u1-action-row { grid-template-columns: minmax(0, 1fr); } .cl-u1-metrics { grid-template-columns: minmax(0, 1fr); } }",
-      "@media (prefers-reduced-motion: reduce) { .cl-u1-lab * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }"
-    ].join("\n");
-    var host = doc.head || doc.documentElement || doc.body;
-    if (host) host.appendChild(style);
-  }
-
-  function wrapAngle(value) {
-    var result = value % TAU;
-    if (result >= PI) result -= TAU;
-    if (result < -PI) result += TAU;
-    return result;
-  }
-
-  function number(value, fallback) {
-    var parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  }
-
-  function formatNumber(api, value, digits) {
-    if (api && typeof api.format === "function") return api.format(value, digits);
-    if (!Number.isFinite(value)) return "-";
-    var places = digits === undefined ? 3 : digits;
-    var text = value.toFixed(places);
-    while (text.indexOf(".") >= 0 && text.charAt(text.length - 1) === "0") text = text.slice(0, -1);
-    if (text.charAt(text.length - 1) === ".") text = text.slice(0, -1);
-    return text;
-  }
-
-  function angleText(api, value) {
-    var angle = wrapAngle(value);
-    if (Math.abs(angle) < 0.0005) return "0";
-    if (Math.abs(Math.abs(angle) - PI) < 0.0005) return "π";
-    return (angle > 0 ? "+" : "−") + formatNumber(api, Math.abs(angle), 2) + " rad";
-  }
-
-  function cloneArray(values) {
-    return values.map(function (value) { return wrapAngle(value); });
-  }
-
-  function complex(angle) {
-    return { re: Math.cos(angle), im: Math.sin(angle) };
-  }
-
-  function multiply(left, right) {
-    return {
-      re: left.re * right.re - left.im * right.im,
-      im: left.re * right.im + left.im * right.re
-    };
-  }
-
-  function conjugate(value) {
-    return { re: value.re, im: -value.im };
-  }
-
-  function magnitude(value) {
-    return Math.sqrt(value.re * value.re + value.im * value.im);
-  }
-
-  function phase(value) {
-    return wrapAngle(Math.atan2(value.im, value.re));
-  }
-
-  function distance(left, right) {
-    return magnitude({ re: left.re - right.re, im: left.im - right.im });
-  }
-
-  function snapshot(state) {
-    var psi = state.vertexPhases.map(complex);
-    var links = state.linkAngles.map(complex);
-    var plaquette = { re: 1, im: 0 };
-    links.forEach(function (link) {
-      plaquette = multiply(plaquette, link);
-    });
-    var matter = LINKS.map(function (link, index) {
-      return multiply(
-        conjugate(psi[link.i]),
-        multiply(links[index], psi[link.j])
-      );
-    });
-    return { plaquette: plaquette, matter: matter };
-  }
-
-  function stateFromPreset(id) {
-    var preset = PRESETS[id];
-    var state = {
-      presetId: id,
-      vertexPhases: cloneArray(preset.psi),
-      linkAngles: cloneArray(preset.links),
-      selected: 0,
-      chi: PI / 3,
-      lastAction: "已载入“" + preset.label + "”预设；等待施加局域变换。"
-    };
-    var initial = snapshot(state);
-    state.lastCheck = { before: initial, after: initial };
-    return state;
-  }
-
-  function makeMarker(doc, id, className) {
-    var marker = makeSvg(doc, "marker", {
-      id: id,
-      viewBox: "0 0 8 8",
-      markerWidth: "8",
-      markerHeight: "8",
-      refX: "7",
-      refY: "4",
-      orient: "auto",
-      markerUnits: "userSpaceOnUse"
-    });
-    marker.appendChild(makeSvg(doc, "path", { d: "M0,0 L8,4 L0,8 Z", className: className }));
-    return marker;
-  }
-
-  function segmentFor(link) {
-    var source = VERTICES[link.j];
-    var target = VERTICES[link.i];
-    var dx = target.x - source.x;
-    var dy = target.y - source.y;
-    var length = Math.sqrt(dx * dx + dy * dy);
-    var inset = 43;
-    var ux = dx / length;
-    var uy = dy / length;
-    return {
-      x1: source.x + ux * inset,
-      y1: source.y + uy * inset,
-      x2: target.x - ux * inset,
-      y2: target.y - uy * inset
-    };
-  }
-
-  function mount(root, api) {
-    var doc = root.ownerDocument || (typeof document !== "undefined" ? document : null);
-    if (!doc) return;
-    injectStyles(doc);
-    root.classList.add("cl-u1-lab");
-    SERIAL += 1;
-    var serial = SERIAL;
-    var ids = {
-      chi: "cl-u1-chi-" + serial,
-      svgTitle: "cl-u1-svg-title-" + serial,
-      svgDesc: "cl-u1-svg-desc-" + serial,
-      arrow: "cl-u1-arrow-" + serial,
-      phaseArrow: "cl-u1-phase-arrow-" + serial
-    };
-    var state = stateFromPreset("zero");
-    var refs = {
-      presetButtons: Object.create(null),
-      vertexButtons: []
-    };
-
-    var shell = makeElement(doc, "div", { className: "cl-u1-shell" });
-    shell.appendChild(makeElement(doc, "h3", { className: "cl-u1-heading" }, "U(1) 格点：局域重标相后什么不变？"));
-    shell.appendChild(makeElement(doc, "p", { className: "cl-u1-intro" }, "四顶点方格用单位复数 ψᵢ 表示顶点相位，用 Uᵢⱼ=e^{iaᵢⱼ} 连接相邻点。选一个顶点、调 χᵢ，再施加 ψᵢ→e^{iχᵢ}ψᵢ 与 Uᵢⱼ→e^{iχᵢ}Uᵢⱼe^{-iχⱼ}；观察局部记号改变而规范不变量不变。"));
-
-    var grid = makeElement(doc, "div", { className: "cl-u1-grid" });
-    var controls = makeElement(doc, "div", { className: "cl-u1-controls" });
-    var stage = makeElement(doc, "div", { className: "cl-u1-stage" });
-    grid.appendChild(controls);
-    grid.appendChild(stage);
-    shell.appendChild(grid);
-
-    var presetSection = makeElement(doc, "section", { className: "cl-u1-section" });
-    presetSection.appendChild(makeElement(doc, "h4", {}, "预设：固定的链路角度"));
-    var presetRow = makeElement(doc, "div", { className: "cl-u1-button-row", role: "group", "aria-label": "方格预设" });
-    PRESET_ORDER.forEach(function (id) {
-      var button = makeElement(doc, "button", { type: "button", className: "cl-u1-button", "aria-pressed": id === state.presetId ? "true" : "false" }, PRESETS[id].label);
-      button.addEventListener("click", function () { loadPreset(id); });
-      refs.presetButtons[id] = button;
-      presetRow.appendChild(button);
-    });
-    presetSection.appendChild(presetRow);
-    controls.appendChild(presetSection);
-
-    var vertexSection = makeElement(doc, "section", { className: "cl-u1-section" });
-    vertexSection.appendChild(makeElement(doc, "h4", {}, "选择施加 χ 的顶点"));
-    var vertexRow = makeElement(doc, "div", { className: "cl-u1-button-row cl-u1-vertex-row", role: "group", "aria-label": "选择顶点" });
-    for (var vertexIndex = 0; vertexIndex < 4; vertexIndex += 1) {
-      (function (index) {
-        var button = makeElement(doc, "button", { type: "button", className: "cl-u1-button", "aria-pressed": index === state.selected ? "true" : "false", "aria-label": "选择顶点 " + (index + 1) }, "ψ" + (index + 1));
-        button.addEventListener("click", function () { selectVertex(index); });
-        button.addEventListener("keydown", function (event) {
-          var key = event.key;
-          if (key !== "ArrowRight" && key !== "ArrowDown" && key !== "ArrowLeft" && key !== "ArrowUp") return;
-          event.preventDefault();
-          var next = (index + (key === "ArrowRight" || key === "ArrowDown" ? 1 : 3)) % 4;
-          selectVertex(next);
-          refs.vertexButtons[next].focus();
-        });
-        refs.vertexButtons[index] = button;
-        vertexRow.appendChild(button);
-      }(vertexIndex));
-    }
-    vertexSection.appendChild(vertexRow);
-    controls.appendChild(vertexSection);
-
-    var chiSection = makeElement(doc, "section", { className: "cl-u1-section" });
-    chiSection.appendChild(makeElement(doc, "h4", {}, "调节局域相位"));
-    var chiCaption = makeElement(doc, "div", { className: "cl-u1-field-caption" });
-    chiCaption.appendChild(makeElement(doc, "label", { htmlFor: ids.chi }, "χᵢ（rad）"));
-    refs.chiOutput = makeElement(doc, "output", { className: "cl-u1-output", htmlFor: ids.chi }, angleText(api, state.chi));
-    chiCaption.appendChild(refs.chiOutput);
-    var chiField = makeElement(doc, "div", { className: "cl-u1-field" });
-    chiField.appendChild(chiCaption);
-    refs.chi = makeElement(doc, "input", { id: ids.chi, className: "cl-u1-input", type: "range", min: String(-PI), max: String(PI), step: "0.01", value: String(state.chi), "aria-label": "局域相位 χ" });
-    refs.chi.addEventListener("input", function () {
-      state.chi = wrapAngle(number(refs.chi.value, 0));
-      render();
-    });
-    chiField.appendChild(refs.chi);
-    chiField.appendChild(makeElement(doc, "p", { className: "cl-u1-small" }, "角度按模 2π 归一化；只在点击“施加局域变换”后改写格点数据。"));
-    chiSection.appendChild(chiField);
-    refs.selection = makeElement(doc, "p", { className: "cl-u1-selection", "aria-live": "polite" });
-    chiSection.appendChild(refs.selection);
-    var actionRow = makeElement(doc, "div", { className: "cl-u1-action-row" });
-    refs.apply = makeElement(doc, "button", { type: "button", className: "cl-u1-button cl-u1-primary" }, "施加局域变换");
-    refs.apply.addEventListener("click", applyTransform);
-    actionRow.appendChild(refs.apply);
-    refs.reset = makeElement(doc, "button", { type: "button", className: "cl-u1-button" }, "重置");
-    refs.reset.addEventListener("click", function () { loadPreset("zero", true); });
-    actionRow.appendChild(refs.reset);
-    chiSection.appendChild(actionRow);
-    controls.appendChild(chiSection);
-
-    var stageHead = makeElement(doc, "div", { className: "cl-u1-stage-head" });
-    stageHead.appendChild(makeElement(doc, "strong", {}, "四顶点方格"));
-    stageHead.appendChild(makeElement(doc, "span", { className: "cl-u1-stage-title" }, "W = U12 U23 U34 U41；箭头方向为 j → i"));
-    stage.appendChild(stageHead);
-    var svgScroll = makeElement(doc, "div", { className: "cl-u1-svg-scroll" });
-    refs.svg = makeSvg(doc, "svg", { className: "cl-u1-svg", viewBox: "0 0 720 435", role: "img", "aria-labelledby": ids.svgTitle + " " + ids.svgDesc });
-    svgScroll.appendChild(refs.svg);
-    stage.appendChild(svgScroll);
-    refs.metrics = makeElement(doc, "div", { className: "cl-u1-metrics", "aria-label": "Wilson 回路数值" });
-    stage.appendChild(refs.metrics);
-    var checkWrap = makeElement(doc, "div", { className: "cl-u1-check-wrap" });
-    refs.checkTable = makeElement(doc, "table", { className: "cl-u1-check" });
-    checkWrap.appendChild(refs.checkTable);
-    stage.appendChild(checkWrap);
-    refs.status = makeElement(doc, "p", { className: "cl-u1-status", role: "status", "aria-live": "polite" });
-    stage.appendChild(refs.status);
-    refs.note = makeElement(doc, "p", { className: "cl-u1-note" }, "数值检验比较施加前后的复数，而不是比较被模 2π 折回的角度；因此跨过 −π/π 边界时仍能正确判断“不变”。");
-    stage.appendChild(refs.note);
-
-    root.replaceChildren(shell);
-
-    function announce(message) {
-      if (api && typeof api.announce === "function") api.announce(root, message);
-    }
-
-    function selectVertex(index) {
-      state.selected = index;
-      state.lastAction = "已选择顶点 " + (index + 1) + "；尚未施加新的局域变换。";
-      render();
-      announce(state.lastAction);
-    }
-
-    function loadPreset(id, resetControls) {
-      var next = stateFromPreset(id);
-      if (!resetControls) {
-        next.selected = state.selected;
-        next.chi = state.chi;
-      }
-      state.presetId = next.presetId;
-      state.vertexPhases = next.vertexPhases;
-      state.linkAngles = next.linkAngles;
-      state.selected = next.selected;
-      state.chi = next.chi;
-      state.lastCheck = next.lastCheck;
-      state.lastAction = next.lastAction;
-      render();
-      announce(state.lastAction);
-    }
-
-    function applyTransform() {
-      var before = snapshot(state);
-      var charges = [0, 0, 0, 0];
-      charges[state.selected] = state.chi;
-      state.vertexPhases = state.vertexPhases.map(function (angle, index) {
-        return wrapAngle(angle + charges[index]);
-      });
-      state.linkAngles = state.linkAngles.map(function (angle, index) {
-        var link = LINKS[index];
-        return wrapAngle(angle + charges[link.i] - charges[link.j]);
-      });
-      var after = snapshot(state);
-      state.lastCheck = { before: before, after: after };
-      state.lastAction = "已在顶点 " + (state.selected + 1) + " 施加 χ=" + angleText(api, state.chi) + "；检查 W 与四条带联络双线性组合。";
-      render();
-      announce(state.lastAction);
-    }
-
-    function renderControls() {
-      PRESET_ORDER.forEach(function (id) {
-        refs.presetButtons[id].setAttribute("aria-pressed", id === state.presetId ? "true" : "false");
-      });
-      refs.vertexButtons.forEach(function (button, index) {
-        button.setAttribute("aria-pressed", index === state.selected ? "true" : "false");
-      });
-      refs.chi.value = String(state.chi);
-      refs.chiOutput.textContent = angleText(api, state.chi);
-      refs.selection.textContent = "当前选择：顶点 " + (state.selected + 1) + "（ψ" + (state.selected + 1) + "）；将施加 χ" + (state.selected + 1) + "=" + angleText(api, state.chi) + "。";
-    }
-
-    function renderSvg() {
-      var current = snapshot(state);
-      replaceChildren(refs.svg);
-      var defs = makeSvg(doc, "defs");
-      defs.appendChild(makeMarker(doc, ids.arrow, "cl-u1-arrow"));
-      defs.appendChild(makeMarker(doc, ids.phaseArrow, "cl-u1-phase-arrow"));
-      refs.svg.appendChild(defs);
-      refs.svg.appendChild(makeSvg(doc, "title", { id: ids.svgTitle }, "U(1) 四顶点格点与局域规范变换"));
-      refs.svg.appendChild(makeSvg(doc, "desc", { id: ids.svgDesc }, "四个带相位箭头的顶点和四条有向链路；显示 link angle、Wilson plaquette 相位以及选定顶点的局域变换。"));
-      refs.svg.appendChild(makeSvg(doc, "text", { x: "18", y: "24", className: "cl-u1-legend" }, "Uij 的箭头表示 j → i；选中顶点的虚线圆环表示施加 χ 的位置"));
-      refs.svg.appendChild(makeSvg(doc, "rect", { x: "126", y: "71", width: "468", height: "288", rx: "6", className: "cl-u1-square" }));
-
-      LINKS.forEach(function (link, index) {
-        var segment = segmentFor(link);
-        var hot = link.i === state.selected || link.j === state.selected;
-        refs.svg.appendChild(makeSvg(doc, "line", {
-          x1: segment.x1,
-          y1: segment.y1,
-          x2: segment.x2,
-          y2: segment.y2,
-          className: "cl-u1-link" + (hot ? " cl-u1-link-hot" : ""),
-          "marker-end": "url(#" + ids.arrow + ")"
-        }));
-        var boxX = link.labelX - link.labelW / 2;
-        var boxY = link.labelY - 18;
-        refs.svg.appendChild(makeSvg(doc, "rect", { x: boxX, y: boxY, width: link.labelW, height: "30", rx: "4", className: "cl-u1-link-box" }));
-        refs.svg.appendChild(makeSvg(doc, "text", { x: link.labelX, y: link.labelY + 2, "text-anchor": "middle", className: "cl-u1-link-label" }, "U" + link.id + " · a" + link.id + "=" + angleText(api, state.linkAngles[index])));
-      });
-
-      VERTICES.forEach(function (vertex, index) {
-        var angle = state.vertexPhases[index];
-        var endX = vertex.x + 28 * Math.cos(angle);
-        var endY = vertex.y - 28 * Math.sin(angle);
-        refs.svg.appendChild(makeSvg(doc, "circle", { cx: vertex.x, cy: vertex.y, r: "35", className: "cl-u1-ring" }));
-        if (index === state.selected) {
-          refs.svg.appendChild(makeSvg(doc, "circle", { cx: vertex.x, cy: vertex.y, r: "45", className: "cl-u1-selected" }));
-        }
-        refs.svg.appendChild(makeSvg(doc, "line", { x1: vertex.x, y1: vertex.y, x2: endX, y2: endY, className: "cl-u1-phase", "marker-end": "url(#" + ids.phaseArrow + ")" }));
-        refs.svg.appendChild(makeSvg(doc, "circle", { cx: vertex.x, cy: vertex.y, r: "4", className: "cl-u1-center" }));
-        refs.svg.appendChild(makeSvg(doc, "text", { x: vertex.x, y: vertex.labelY, "text-anchor": "middle", className: "cl-u1-vertex-label" }, "ψ" + (index + 1)));
-        refs.svg.appendChild(makeSvg(doc, "text", { x: vertex.x, y: vertex.thetaY, "text-anchor": "middle", className: "cl-u1-angle-label" }, "θ" + (index + 1) + "=" + angleText(api, angle)));
-      });
-
-      refs.svg.appendChild(makeSvg(doc, "rect", { x: "258", y: "178", width: "204", height: "75", rx: "6", className: "cl-u1-w-box" }));
-      refs.svg.appendChild(makeSvg(doc, "text", { x: "360", y: "201", "text-anchor": "middle", className: "cl-u1-w-label" }, "W = U12 U23 U34 U41"));
-      refs.svg.appendChild(makeSvg(doc, "text", { x: "360", y: "224", "text-anchor": "middle", className: "cl-u1-w-small" }, "arg W = " + angleText(api, phase(current.plaquette))));
-      refs.svg.appendChild(makeSvg(doc, "text", { x: "360", y: "244", "text-anchor": "middle", className: "cl-u1-w-small" }, "|W| = " + formatNumber(api, magnitude(current.plaquette), 6)));
-      refs.svg.appendChild(makeSvg(doc, "text", { x: "360", y: "423", "text-anchor": "middle", className: "cl-u1-legend" }, "局域变换会重新分配顶点相位与相邻 link angle，但闭合回路相位不变"));
-    }
-
-    function metric(label, value, good) {
-      var card = makeElement(doc, "div", { className: "cl-u1-metric" });
-      card.appendChild(makeElement(doc, "span", {}, label));
-      card.appendChild(makeElement(doc, "strong", { className: good === false ? "cl-u1-fail" : "cl-u1-pass" }, value));
-      return card;
-    }
-
-    function renderChecks() {
-      var current = snapshot(state);
-      var before = state.lastCheck.before;
-      var after = state.lastCheck.after;
-      var plaquetteDelta = distance(before.plaquette, after.plaquette);
-      var matterDeltas = after.matter.map(function (value, index) {
-        return distance(before.matter[index], value);
-      });
-      var allPass = plaquetteDelta <= TOLERANCE && matterDeltas.every(function (value) { return value <= TOLERANCE; });
-      replaceChildren(refs.metrics);
-      refs.metrics.appendChild(metric("当前 arg W", angleText(api, phase(current.plaquette)), true));
-      refs.metrics.appendChild(metric("当前 |W|", formatNumber(api, magnitude(current.plaquette), 6), Math.abs(magnitude(current.plaquette) - 1) <= TOLERANCE));
-      refs.metrics.appendChild(metric("本次 |ΔW|", formatNumber(api, plaquetteDelta, 3), plaquetteDelta <= TOLERANCE));
-
-      replaceChildren(refs.checkTable);
-      var caption = makeElement(doc, "caption", {}, "规范不变量数值核对（复数差的模；阈值 1e−9）");
-      refs.checkTable.appendChild(caption);
-      var head = makeElement(doc, "thead");
-      var headRow = makeElement(doc, "tr");
-      ["对象", "施加前相位 → 施加后相位", "|Δ|", "结果"].forEach(function (label) {
-        headRow.appendChild(makeElement(doc, "th", { scope: "col" }, label));
-      });
-      head.appendChild(headRow);
-      refs.checkTable.appendChild(head);
-      var body = makeElement(doc, "tbody");
-      var wRow = makeElement(doc, "tr");
-      [
-        "W = U12U23U34U41",
-        angleText(api, phase(before.plaquette)) + " → " + angleText(api, phase(after.plaquette)),
-        formatNumber(api, plaquetteDelta, 3),
-        plaquetteDelta <= TOLERANCE ? "✓ 不变" : "需检查"
-      ].forEach(function (value, index) {
-        wRow.appendChild(makeElement(doc, index === 3 ? "td" : "td", { className: index === 3 ? (plaquetteDelta <= TOLERANCE ? "cl-u1-pass" : "cl-u1-fail") : "" }, value));
-      });
-      body.appendChild(wRow);
-      LINKS.forEach(function (link, index) {
-        var delta = matterDeltas[index];
-        var row = makeElement(doc, "tr");
-        [
-          "ψ" + (link.i + 1) + "* U" + link.id + " ψ" + (link.j + 1),
-          angleText(api, phase(before.matter[index])) + " → " + angleText(api, phase(after.matter[index])),
-          formatNumber(api, delta, 3),
-          delta <= TOLERANCE ? "✓ 不变" : "需检查"
-        ].forEach(function (value, cellIndex) {
-          row.appendChild(makeElement(doc, "td", { className: cellIndex === 3 ? (delta <= TOLERANCE ? "cl-u1-pass" : "cl-u1-fail") : "" }, value));
-        });
-        body.appendChild(row);
-      });
-      refs.checkTable.appendChild(body);
-      refs.status.className = "cl-u1-status " + (allPass ? "cl-u1-pass" : "cl-u1-fail");
-      refs.status.textContent = state.lastAction + " 数值验证：" + (allPass ? "通过，W 与 ψᵢ*Uᵢⱼψⱼ 均不变。" : "未通过，请检查角度约定。");
-    }
-
-    function render() {
-      renderControls();
-      renderSvg();
-      renderChecks();
-    }
-
-    render();
-  }
-
-  window.CourseLearning.register("u1-plaquette", function (root, api) {
-    mount(root, api);
-  });
-}());
+function selfTest(){let checks=0;const ok=x=>{checks++;if(!x)throw Error('Gauge invariant '+checks);};for(const p of PRESETS){const s=compute(p.parameters);ok(plots(s).length===6);ok(tables(s).length===12);ok(s.standardModel.weylComponents===15);for(const v of Object.values(s.standardModel.totals))ok(v[0]===0&&v[1]===1);for(const row of s.time){ok(Math.abs(row.norm-1)<1e-12);for(let j=0;j<4;j++){ok(Math.abs(row.probability[j]-row.transformedProbability[j])<1e-12);ok(Math.abs(row.densityDerivative[j]-row.continuity[j])<1e-12);ok(Math.abs(row.current[j]-row.transformedCurrent[j])<1e-12);}}for(const plot of plots(s))for(const q of plot.series)for(const point of q.points)if(point)ok(point.every(Number.isFinite));for(let i=0;i<4;i++)ok(feedback(i,QUESTIONS[i][2]).correct);}return{status:'PASS',checks};}
+const API={LIMITS,DEFAULT,config,PRESETS,QUESTIONS,compute,snapshot:compute,plots,tables,svg,feedback,fmt,mount,selfTest,ring,dynamics,nonabelian,standardModel};if(typeof module!=="undefined"&&module.exports)module.exports=API;if(hostWindow&&hostWindow.CourseLearning)hostWindow.CourseLearning.register("u1-plaquette",mount);})(typeof window!=="undefined"?window:null);

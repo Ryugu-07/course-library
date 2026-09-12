@@ -370,6 +370,8 @@ def sync_learning_assets(md_names):
         shutil.copytree(SHARED / "projects" / "greens-certificates", destination / "projects" / "greens-certificates")
     if "physics-correlated-transport" in names:
         shutil.copytree(SHARED / "projects" / "transport-certificates", destination / "projects" / "transport-certificates")
+    if "u1-plaquette" in names:
+        shutil.copytree(SHARED / "projects" / "gauge-certificates", destination / "projects" / "gauge-certificates")
 
 
 def previous_build_time(out: Path, fallback: str) -> str:
