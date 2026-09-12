@@ -364,6 +364,8 @@ def sync_learning_assets(md_names):
         shutil.copytree(SHARED / "projects" / "rg-certificates", destination / "projects" / "rg-certificates")
     if "second-quantization" in names:
         shutil.copytree(SHARED / "projects" / "fock-certificates", destination / "projects" / "fock-certificates")
+    if "bcs-gap" in names:
+        shutil.copytree(SHARED / "projects" / "bcs-certificates", destination / "projects" / "bcs-certificates")
 
 
 def previous_build_time(out: Path, fallback: str) -> str:

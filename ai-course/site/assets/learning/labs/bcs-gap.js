@@ -1,823 +1,146 @@
-(function (root, factory) {
-  "use strict";
+(function(hostWindow){"use strict";
 
-  var exported = factory();
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("bcs-gap", exported.mount);
-  }
-  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module) {
-    try {
-      var report = exported.selfTest();
-      console.log("bcs-gap self-test: PASS (" + report.checks + " checks, " + report.presets + " presets)");
-    } catch (error) {
-      console.error("bcs-gap self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
-  }
-})(typeof window !== "undefined" ? window : typeof globalThis !== "undefined" ? globalThis : this, function () {
-  "use strict";
+const DEFAULT={couplingPercent:30,cutoffPercent:100,temperaturePercent:50,gammaPercent:4,xiPercent:50,phaseDegrees:90,fluxPercent:0,asymmetryPercent:0};
+const LIMITS={couplingPercent:[15,80],cutoffPercent:[50,200],temperaturePercent:[0,130],gammaPercent:[0,30],xiPercent:[-300,300],phaseDegrees:[0,360],fluxPercent:[-200,200],asymmetryPercent:[0,100]};
+function config(input={}){if(!input||typeof input!=='object'||Array.isArray(input))throw Error('object');for(const k of Object.keys(input))if(!Object.hasOwn(DEFAULT,k))throw Error('key');const c={...DEFAULT,...input};for(const[k,[lo,hi]]of Object.entries(LIMITS))if(!Number.isInteger(c[k])||c[k]<lo||c[k]>hi)throw Error('integer/domain');return c;}
+// Adaptive Simpson with eight initial panels. Error is an estimator, not an interval proof.
+function quad(f,a,b,tol=2e-10){let evaluations=0,error=0,leaves=0;const F=x=>{evaluations++;const y=f(x);if(!Number.isFinite(y))throw Error('nonfinite integrand');return y;};
+function rec(l,r,fl,fm,fr,S,eps,depth){const m=(l+r)/2,lm=(l+m)/2,rm=(m+r)/2,f1=F(lm),f2=F(rm),A=(m-l)*(fl+4*f1+fm)/6,B=(r-m)*(fm+4*f2+fr)/6,d=A+B-S;if(Math.abs(d)<=15*eps){error+=Math.abs(d)/15;leaves++;return A+B+d/15;}if(!depth)throw Error('quadrature convergence');return rec(l,m,fl,f1,fm,A,eps/2,depth-1)+rec(m,r,fm,f2,fr,B,eps/2,depth-1);}
+let value=0;for(let i=0;i<8;i++){const l=a+(b-a)*i/8,r=a+(b-a)*(i+1)/8,m=(l+r)/2,fl=F(l),fm=F(m),fr=F(r);value+=rec(l,r,fl,fm,fr,(r-l)*(fl+4*fm+fr)/6,tol/8,24);}return{value,errorEstimate:error,evaluations,leaves};}
+function integral(delta,T,tol=2e-10){if(delta<0||T<0||!Number.isFinite(delta+T))throw Error('integral domain');if(T===0)return{value:delta?Math.asinh(1/delta):null,errorEstimate:0,evaluations:0,leaves:0,originSingularity:delta===0};
+const s=2*T,L=Math.asinh(1/s);return quad(u=>{const x=s*Math.sinh(u),E=Math.hypot(x,delta);return(E?Math.tanh(E/s)/E:1/s)*s*Math.cosh(u);},0,L,tol);}
+const tcCache=new Map();
+function scales(lambda){if(!(lambda>0)||!Number.isFinite(lambda))throw Error('coupling');if(tcCache.has(lambda))return{...tcCache.get(lambda)};
+const delta0=1/Math.sinh(1/lambda);let low=delta0/4,high=1;for(let i=0;i<48;i++){const m=(low+high)/2;if(integral(0,m).value>1/lambda)low=m;else high=m;}
+const tc=(low+high)/2,q=integral(0,tc),out={lambda,delta0,tc,ratio:2*delta0/tc,tcLow:low,tcHigh:high,tcResidual:lambda*q.value-1,tcQuadrature:q};tcCache.set(lambda,out);return{...out};}
+function gap(lambda,ratio){const s=scales(lambda),T=ratio*s.tc;if(ratio<0||!Number.isFinite(ratio))throw Error('temperature');if(ratio===0)return{ratio,T,delta:s.delta0,relative:1,status:'zero-temperature',low:s.delta0,high:s.delta0,residual:0,quadrature:integral(s.delta0,0),normalStationary:true,normalCurvature:null};
+const normal=integral(0,T),curvature=2*(1/lambda-normal.value);if(ratio>=1)return{ratio,T,delta:0,relative:0,status:ratio===1?'critical':'normal',low:0,high:0,residual:lambda*normal.value-1,quadrature:normal,normalStationary:true,normalCurvature:curvature};
+let low=0,high=s.delta0;for(let i=0;i<43;i++){const m=(low+high)/2;if(integral(m,T).value>1/lambda)low=m;else high=m;}
+const delta=(low+high)/2,q=integral(delta,T);return{ratio,T,delta,relative:delta/s.delta0,status:'paired',low,high,residual:lambda*q.value-1,quadrature:q,normalStationary:true,normalCurvature:curvature};}
+// Omega difference / (N0 Delta0^2), finite pairing shell |xi|<=E_D; N0 per spin.
+function potential(lambda,T,relative){const d0=scales(lambda).delta0,d=relative*d0;if(relative<0||T<0)throw Error('potential domain');if(d===0)return{relative,value:0,derivative:0,thermal:0,errorEstimate:0};
+const zero=relative**2*(1/lambda-1/(Math.hypot(1,d)+1)-Math.asinh(1/d));let thermal=0,error=0;if(T){const L=Math.asinh(1/(2*T)),q=quad(u=>{const x=2*T*Math.sinh(u),E=Math.hypot(x,d);return-4*T*(Math.log1p(Math.exp(-E/T))-Math.log1p(Math.exp(-x/T)))*2*T*Math.cosh(u)/(d0*d0);},0,L);thermal=q.value;error=q.errorEstimate;}
+const I=integral(d,T);return{relative,value:zero+thermal,derivative:2*relative*(1/lambda-I.value),thermal,errorEstimate:error};}
+function coherence(xi,delta,T){const E=Math.hypot(xi,delta),thermal=E?(T?Math.tanh(E/(2*T)):1):0,u2=E?(1+xi/E)/2:null,v2=E?(1-xi/E)/2:null,anomalous=E?delta/(2*E)*thermal:0,occupation=E?(1-xi/E*thermal)/2:.5;
+return{xi,delta,E,u2,v2,thermal,anomalous,occupation,degenerate:E===0,bdg:[[xi,-delta],[-delta,-xi]],projectorPositive:E?[[(1+xi/E)/2,-delta/(2*E)],[-delta/(2*E),(1-xi/E)/2]]:null};}
+// Positive-energy branch followed by particle-hole symmetry. Null explicitly represents ideal edge divergence.
+function dos(energy,delta,gamma){if(!Number.isFinite(energy+delta+gamma)||delta<0||gamma<0)throw Error('DOS domain');const e=Math.abs(energy);if(delta===0)return{value:1,singular:false};if(gamma===0){if(e<delta)return{value:0,singular:false};if(e===delta)return{value:null,singular:true};return{value:e/Math.sqrt((e-delta)*(e+delta)),singular:false};}
+const a=e*e-gamma*gamma-delta*delta,b=2*e*gamma,r=Math.hypot(a,b),v=Math.sqrt(Math.max(0,(r-a)/2)),u=v?e*gamma/v:Math.sqrt(Math.max(0,(r+a)/2));return{value:(e*u+gamma*v)/r,singular:false};}
+function kernel(x,T){const a=Math.exp(-Math.abs(x)/T);return a/(T*(1+a)**2);}
+// Ideal spectral DOS convolved with -f'. Gamma is intentionally not applied here.
+// E=sqrt(xi^2+Delta^2) removes the square-root edge exactly.
+function conductance(voltage,delta,T){if(!Number.isFinite(voltage+delta+T)||delta<0||T<0)throw Error('conductance domain');if(!T){const d=dos(voltage,delta,0);return{...d,errorEstimate:0,tailBound:0,upper:null,evaluations:0};}if(!delta)return{value:1,singular:false,errorEstimate:0,tailBound:0,upper:null,evaluations:0};
+const v=Math.abs(voltage),upper=v+40*T+Math.max(delta,1),peak=Math.sqrt(Math.max(0,v*v-delta*delta)),cuts=[0,upper];for(const m of [-20,-8,-2,0,2,8,20]){const x=peak+m*T;if(x>0&&x<upper)cuts.push(x);}cuts.sort((a,b)=>a-b);let value=0,error=0,evaluations=0;
+for(let i=1;i<cuts.length;i++)if(cuts[i]>cuts[i-1]){const q=quad(x=>{const E=Math.hypot(x,delta);return kernel(E-v,T)+kernel(E+v,T);},cuts[i-1],cuts[i],1e-10/cuts.length);value+=q.value;error+=q.errorEstimate;evaluations+=q.evaluations;}
+return{value,singular:false,errorEstimate:error,tailBound:2*Math.exp(-(upper-v)/T),upper,evaluations};}
+function squid(flux,phase,asymmetry){const p=Math.PI*flux,a=asymmetry,phase1=phase+p,phase2=phase-p,I1=(1+a)*Math.sin(phase1),I2=(1-a)*Math.sin(phase2),A=2*Math.cos(p),B=2*a*Math.sin(p),critical=Math.hypot(A,B);return{flux,phase,asymmetry,phase1,phase2,I1,I2,current:I1+I2,A,B,critical,maximizingPhase:critical?Math.atan2(A,B):null};}
+const core={DEFAULT,LIMITS,config,quad,integral,scales,gap,potential,coherence,dos,kernel,conductance,squid};
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "bcs-gap-lab-styles";
-  var SERIAL = 0;
-  var EPS = 1e-12;
-  var ROOT_TOLERANCE = 2e-10;
-  var QUAD_STEPS = 720;
-  var LOG_XI_MAX = 36;
-  var DOS_PLOT_MAX = 6;
-  var LIMITS = {
-    lambda: [0.12, 0.55],
-    cutoff: [0.25, 2.5],
-    temperatureRatio: [0, 1.2],
-    gammaRatio: [0, 0.25]
-  };
 
-  var PRESETS = [
-    {
-      id: "zero",
-      label: "T = 0",
-      note: "零温极限：tanh(E/2T) 取 1，能隙最大。",
-      lambda: 0.30,
-      cutoff: 1,
-      temperatureRatio: 0,
-      gammaRatio: 0.04
-    },
-    {
-      id: "near-critical",
-      label: "接近 Tc",
-      note: "T/Tc=0.95：正能隙仍在，但已经接近临界点。",
-      lambda: 0.30,
-      cutoff: 1,
-      temperatureRatio: 0.95,
-      gammaRatio: 0.04
-    },
-    {
-      id: "normal",
-      label: "T >= Tc",
-      note: "临界以上只保留 Delta=0 的正常态解，不把零点误判为正能隙根。",
-      lambda: 0.30,
-      cutoff: 1,
-      temperatureRatio: 1.08,
-      gammaRatio: 0.04
-    },
-    {
-      id: "coupling",
-      label: "耦合扫描",
-      note: "改变 lambda：仍是同一弱耦合常态 DOS 模型，不是强耦合材料结论。",
-      lambda: 0.20,
-      cutoff: 1,
-      temperatureRatio: 0.5,
-      gammaRatio: 0.04
-    },
-    {
-      id: "cutoff",
-      label: "截断扫描",
-      note: "改变 Debye 截断 omega_D：能量尺度变，弱耦合比值近似不变。",
-      lambda: 0.30,
-      cutoff: 0.55,
-      temperatureRatio: 0.5,
-      gammaRatio: 0.08
-    }
-  ];
+const PRESETS=[
+['default','低温到临界的起点',{}],['zero','零温理想谱',{temperaturePercent:0,gammaPercent:0,xiPercent:0}],['weak','弱耦合指数尺度',{couplingPercent:15,temperaturePercent:1,gammaPercent:1}],['critical','临界点：零曲率',{temperaturePercent:100,xiPercent:0}],['normal','临界点以上',{temperaturePercent:130,xiPercent:-200}],['near','Tc 下方的正根',{temperaturePercent:99}],['cutoff','加倍能量截断',{cutoffPercent:200}],['finite','有限截断的形式扫描',{couplingPercent:80,cutoffPercent:50}],['broad','Dynes 与热卷积不同',{gammaPercent:30,temperaturePercent:10}],['half','对称结的半磁通相消',{fluxPercent:50}],['asymmetric','不对称结留下谷底',{fluxPercent:50,asymmetryPercent:50}],['single','单结极限与相位',{asymmetryPercent:100,fluxPercent:-200,phaseDegrees:270}]
+].map(([id,label,parameters])=>({id,label,parameters:core.config(parameters)}));
+const cache=new Map();
+function thermalModel(lambda,ratio){const key=lambda+':'+ratio;if(cache.has(key))return JSON.parse(JSON.stringify(cache.get(key)));const scale=core.scales(lambda),selected=core.gap(lambda,ratio),gapCurve=Array.from({length:66},(_,i)=>core.gap(lambda,i/50)),potential=Array.from({length:101},(_,i)=>core.potential(lambda,selected.T,i/50)),equilibrium=core.potential(lambda,selected.T,selected.relative),out={scale,selected,gapCurve,potential,equilibrium};if(cache.size>100)cache.clear();cache.set(key,out);return JSON.parse(JSON.stringify(out));}
+function compute(input={}){const c=core.config(input),lambda=c.couplingPercent/100,D=c.cutoffPercent/100,m=thermalModel(lambda,c.temperaturePercent/100),d=m.selected.relative,T=m.selected.T/m.scale.delta0,gamma=c.gammaPercent/100;
+const coherence=Array.from({length:121},(_,i)=>core.coherence(-3+i/20,d,T)),selectedCoherence=core.coherence(c.xiPercent/100,d,T);
+const energies=[...new Set(Array.from({length:161},(_,i)=>-4+i/20).concat([-d,d,0]))].sort((a,b)=>a-b);
+const density=energies.map(energy=>({energy,ideal:core.dos(energy,d,0),dynes:core.dos(energy,d,gamma)}));
+const voltages=[...new Set(Array.from({length:81},(_,i)=>-4+i/10).concat([-d,d,0]))].sort((a,b)=>a-b);
+const tunneling=voltages.map(voltage=>({voltage,...core.conductance(voltage,d,T)}));
+const phase=c.phaseDegrees*Math.PI/180,flux=c.fluxPercent/100,asymmetry=c.asymmetryPercent/100;
+const interference=Array.from({length:161},(_,i)=>core.squid(-2+i/40,phase,asymmetry)),phaseScan=Array.from({length:145},(_,i)=>core.squid(flux,i*Math.PI/72,asymmetry)),selectedSquid=core.squid(flux,phase,asymmetry);
+return{schemaVersion:1,parameters:c,units:{energy:'E0',cutoff:D,delta0:D*m.scale.delta0,kBTc:D*m.scale.tc,delta:D*m.selected.delta,kBT:D*m.selected.T,densityOfStates:'per spin per volume N0',spectralEnergy:'Delta0',phase:'gauge-invariant mean junction phase'},...m,coherence,selectedCoherence,density,tunneling,interference,phaseScan,selectedSquid,
+boundaries:{finiteShellThermodynamics:true,spectralModel:'wide-band constant-gap approximation, separate from finite shell thermodynamics',spectralWindowWithinShell:4*m.scale.delta0<1,thermalConvolutionIncludesGamma:false,inductance:0,squidCurrentUnit:'mean single-junction critical current I0',squidIsIndependentPhaseModel:true,quadratureErrorIsEstimate:true,materialPrediction:false}};}
+const QUESTIONS=[
+['把能隙方程除以 Δ 后，还保留了所有平衡候选态吗？',['没有；Δ=0 始终是原自由能的驻点，稳定性另判','保留了；没有正根就没有正常态'],0,'除法会丢掉零解。低于Tc时正常态不稳定，正根降低巨正则势；Tc以上正常态成为最小值。'],
+['只看到隧穿谱的峰变钝，能唯一测出准粒子寿命吗？',['能，峰宽总是等于同一种寿命倒数','不能；热卷积、环境和谱展宽需要分别建模'],1,'本页把Dynes谱和理想谱的热卷积分开显示。相似形状不等于唯一的微观来源。'],
+['对称、可忽略自感的双结SQUID，在半个磁通量子处怎样？',['两结的临界电流直接相加为2I0','相位约束使两条电流相消，临界电流为0'],1,'要先相加带相位的电流，再对共同相位取最大值。不对称结一般保留非零谷底。'],
+['本页把耦合λ调大后，2Δ0/(kBTc)偏离3.53，说明什么？',['有限截断模型偏离弱耦合极限；不能据此预测强耦合材料','所有超导材料都必须出现相同偏离'],0,'3.53是特定模型的弱耦合极限。频率依赖相互作用、多能带、各向异性和涨落并未包含。']
+];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=4||![0,1].includes(j))throw Error('choice');const correct=j===QUESTIONS[i][2];return{correct,text:(correct?'正确。':'需要修正。')+QUESTIONS[i][3]};}
+const FIELD_LABELS={couplingPercent:'λ ×100',cutoffPercent:'ED/E0 ×100',temperaturePercent:'T/Tc ×100',gammaPercent:'Γ/Δ0 ×100（仅Dynes）',xiPercent:'当前ξ/Δ0 ×100',phaseDegrees:'共同相位（度）',fluxPercent:'Φ/Φ0 ×100',asymmetryPercent:'双结不对称度a ×100',energy:'能量单位',cutoff:'能量截断ED/E0',delta0:'Δ0/E0',kBTc:'kBTc/E0',delta:'当前能隙Δ（单位见表注）',kBT:'kBT/E0',densityOfStates:'正常态DOS约定',spectralEnergy:'谱图的能量单位',phase:'相位约定',ratio:'T/Tc',relative:'Δ/Δ0',status:'所选振幅的状态',normalStationary:'正常态仍是候选驻点',normalCurvature:'正常态曲率/N0（T=0不填）',xi:'ξ/Δ0',E:'E/Δ0',u2:'正能谱权重u²',v2:'负能谱权重v²',thermal:'tanh(E/2kBT)',anomalous:'实规范下的配对平均',occupation:'单自旋电子占据',degenerate:'是否处于简并原点',bdg:'实规范BdG矩阵',projectorPositive:'正能量谱投影',finiteShellThermodynamics:'热力学使用有限配对壳层',spectralModel:'谱采用另一项低能近似',spectralWindowWithinShell:'所绘谱窗是否位于壳层内',thermalConvolutionIncludesGamma:'热卷积是否加入Γ',inductance:'双结环路自感',squidCurrentUnit:'双结电流单位',squidIsIndependentPhaseModel:'双结是否是独立相位模型',quadratureErrorIsEstimate:'求积误差是否只是估计',materialPrediction:'是否直接预测材料','zero-temperature':'零温稳定态',paired:'稳定配对态',critical:'临界正常态',normal:'稳定正常态','per spin per volume N0':'每自旋、每体积的N0','gauge-invariant mean junction phase':'两结规范不变相位的均值','wide-band constant-gap approximation, separate from finite shell thermodynamics':'宽带常数能隙近似；与有限壳层热力学区分','mean single-junction critical current I0':'两结临界电流均值I0'};
+function fmt(x){if(x===null||x===undefined)return'不适用／未定义（见列注）';if(Array.isArray(x))return'['+x.map(fmt).join(', ')+']';if(typeof x==='boolean')return x?'是':'否';if(typeof x==='object')return JSON.stringify(x);if(typeof x==='number')return Number.isInteger(x)?String(x):Math.abs(x)<1e-4||Math.abs(x)>=1e5?x.toExponential(5):Number(x.toPrecision(7)).toString();return FIELD_LABELS[x]??String(x);}
+const COLORS=['#c55b32','#3875ba','#368661','#9860a8','#856722','#646e7c'];
+function frame(key,title,xLabel,yLabel,series,domain,range){const pts=series.flatMap(s=>s.points.filter(Boolean)),ys=pts.map(p=>p[1]);let ymin=range?.[0]??Math.min(...ys),ymax=range?.[1]??Math.max(...ys);if(ymin===ymax)ymax=ymin+1;if(!range){const pad=.08*(ymax-ymin);ymin-=pad;ymax+=pad;}return{key,title,xLabel,yLabel,xMin:domain[0],xMax:domain[1],yMin:ymin,yMax:ymax,series};}
+function plots(s){const d=s.selected.relative,point=(x,r)=>r.singular?null:[x,Math.min(6,r.value)];return[
+frame('gap','配对振幅：先找正根，再判断稳定性','T/Tc','Δ(T)/Δ0',[
+{name:'稳定振幅',color:COLORS[1],points:s.gapCurve.map(r=>[r.ratio,r.relative])},
+{name:'正常态候选 Δ=0',color:COLORS[2],points:[[0,0],[1.3,0]]},
+{name:'当前温度',color:COLORS[0],markersOnly:true,points:[[s.selected.ratio,d]]}
+],[0,1.3],[0,1]),
+frame('potential','固定温度：正常态与配对态的势密度','试探振幅 Δ/Δ0','F/(N0 Δ0²)',[
+{name:'有限配对壳层的势密度',color:COLORS[1],points:s.potential.map(r=>[r.relative,r.value])},
+{name:'稳定点',color:COLORS[0],markersOnly:true,points:[[d,s.equilibrium.value]]},
+{name:'正常态候选',color:COLORS[2],markersOnly:true,hollow:true,points:[[0,0]]}
+],[0,2]),
+frame('coherence','谱权重与实际电子占据不相同','ξ/Δ0','权重、占据与配对平均',[
+{name:'u²：正能量电子权重',color:COLORS[1],points:s.coherence.map(r=>r.u2===null?null:[r.xi,r.u2])},
+{name:'v²：负能量电子权重',color:COLORS[0],points:s.coherence.map(r=>r.v2===null?null:[r.xi,r.v2])},
+{name:'有限温度电子占据 nξ',color:COLORS[2],points:s.coherence.map(r=>[r.xi,r.occupation])},
+{name:'实规范下的配对平均',color:COLORS[3],points:s.coherence.map(r=>[r.xi,r.anomalous])}
+],[-3,3],[0,1]),
+frame('dos','低能宽带近似：理想谱与Dynes谱','E/Δ0；纵轴图窗上限为6','每自旋 Ns(E)/N0',[
+{name:'理想谱：边缘断开表示发散',color:COLORS[1],points:s.density.map(r=>point(r.energy,r.ideal))},
+{name:'Dynes谱：独立的Γ参数',color:COLORS[0],points:s.density.map(r=>point(r.energy,r.dynes))},
+{name:'理想奇点/超图窗：空心点',color:COLORS[2],markersOnly:true,hollow:true,points:s.density.filter(r=>r.ideal.singular||r.ideal.value>6).map(r=>[r.energy,6])}
+],[-4,4],[0,6]),
+frame('tunneling','测量再经过热卷积：这里未加入Γ','eV/Δ0；纵轴图窗上限为6','G(V)/GN（理想谱的热卷积）',[
+{name:'当前温度的微分电导',color:COLORS[1],points:s.tunneling.map(r=>point(r.voltage,r))},
+{name:'正常金属参照：1',color:COLORS[0],points:[[-4,1],[4,1]]},
+{name:'奇点/超图窗：空心点',color:COLORS[2],markersOnly:true,hollow:true,points:s.tunneling.filter(r=>r.singular||r.value>6).map(r=>[r.voltage,6])}
+],[-4,4],[0,6]),
+frame('interference','独立相位模型：先干涉，再取临界电流','穿环磁通 Φ/Φ0（忽略自感）','I/I0；I0 为两结临界电流均值',[
+{name:'临界电流 +Ic/I0',color:COLORS[1],points:s.interference.map(r=>[r.flux,r.critical])},
+{name:'反向边界 −Ic/I0',color:COLORS[0],points:s.interference.map(r=>[r.flux,-r.critical])},
+{name:'所选共同相位的电流',color:COLORS[2],points:s.interference.map(r=>[r.flux,r.current])},
+{name:'当前磁通与共同相位',color:COLORS[3],markersOnly:true,points:[[s.selectedSquid.flux,s.selectedSquid.current]]}
+],[-2,2],[-2,2])
+];}
+function tables(s){return[
+{key:'parameters',title:'输入参数（百分数滑块须除以100）',headers:['输入','值'],rows:Object.entries(s.parameters)},
+{key:'scales',title:'能量尺度：ED是能量，不是角频率',headers:['量','值'],rows:[...Object.entries(s.units),['2Δ0/kBTc',s.scale.ratio],['Tc/ED二分下界',s.scale.tcLow],['Tc/ED二分上界',s.scale.tcHigh],['Tc处 λI−1',s.scale.tcResidual]]},
+{key:'selected',title:'当前温度：驻点、稳定性与谱近似范围',headers:['量','值'],rows:[...['ratio','delta','relative','status','normalStationary','normalCurvature'].map(k=>[k,s.selected[k]]),['稳定点势差/(N0Δ0²)',s.equilibrium.value],['所显示|E|≤4Δ0是否位于ED内',s.boundaries.spectralWindowWithinShell],['无量纲零温理想凝聚能',-1/(Math.hypot(1,s.scale.delta0)+1)]]},
+{key:'temperature',title:'66个温度点：根区间与独立稳定性判据',headers:['T/Tc','kBT/ED','Δ/ED','Δ/Δ0','状态','根下界','根上界','λI−1','正常态曲率/N0','积分','积分误差估计'],rows:s.gapCurve.map(r=>[r.ratio,r.T,r.delta,r.relative,r.status,r.low,r.high,r.residual,r.normalCurvature,r.quadrature.value,r.quadrature.errorEstimate])},
+{key:'potential',title:'101个试探振幅：保留Δ=0的自由能比较',headers:['Δ/Δ0','势差/(N0Δ0²)','对Δ/Δ0求导','热贡献','积分误差估计'],rows:s.potential.map(r=>[r.relative,r.value,r.derivative,r.thermal,r.errorEstimate])},
+{key:'coherence',title:'121个动量能量点：权重、占据与配对平均',headers:['ξ/Δ0','E/Δ0','u²','v²','tanh(E/2kBT)','电子占据','配对平均','是否简并'],rows:s.coherence.map(r=>[r.xi,r.E,r.u2,r.v2,r.thermal,r.occupation,r.anomalous,r.degenerate])},
+{key:'bdg',title:'当前ξ：BdG矩阵与正能量投影；简并原点不指定投影',headers:['量','值'],rows:Object.entries(s.selectedCoherence)},
+{key:'density',title:'完整谱值：null对应显式奇点，不当作0',headers:['E/Δ0','理想DOS','理想发散','Dynes DOS','Dynes发散','理想超过图窗','Dynes超过图窗'],rows:s.density.map(r=>[r.energy,r.ideal.singular?'∞（理想边缘）':r.ideal.value,r.ideal.singular,r.dynes.singular?'∞（Γ=0边缘）':r.dynes.value,r.dynes.singular,r.ideal.singular||r.ideal.value>6,r.dynes.singular||r.dynes.value>6])},
+{key:'tunneling',title:'热卷积：换元移去奇点；误差估计与尾界分开',headers:['eV/Δ0','G/GN','是否发散','积分误差估计','遗漏尾部上界','ξ积分上限/Δ0','求值次数'],rows:s.tunneling.map(r=>[r.voltage,r.singular?'∞（T=0边缘）':r.value,r.singular,r.errorEstimate,r.tailBound,r.upper,r.evaluations])},
+{key:'flux',title:'161个磁通点：完整两结电流与最大值',headers:['Φ/Φ0','共同相位/rad','结1相位','结2相位','I1/I0','I2/I0','I/I0','Ic/I0','达到正Ic的共同相位'],rows:s.interference.map(r=>[r.flux,r.phase,r.phase1,r.phase2,r.I1,r.I2,r.current,r.critical,r.maximizingPhase])},
+{key:'phase',title:'当前磁通的145个共同相位：不能先分别取最大',headers:['共同相位/rad','I1/I0','I2/I0','I/I0','Ic/I0'],rows:s.phaseScan.map(r=>[r.phase,r.I1,r.I2,r.current,r.critical])},
+{key:'boundaries',title:'各子模型的边界与适用范围',headers:['范围','说明'],rows:Object.entries(s.boundaries)}
+];}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=10000?v.toExponential(2):Number(v.toFixed(3)).toString();
+function svg(p){const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 580" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+const discrete=false;const xticks=discrete?[...new Set(Array.from({length:5},(_,i)=>Math.round(p.xMin+(p.xMax-p.xMin)*i/4)))]:Array.from({length:5},(_,i)=>p.xMin+(p.xMax-p.xMin)*i/4);for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+axisFmt(y)+'</text>';}for(const x of xticks){out+='<text x="'+X(x)+'" y="410" text-anchor="middle">'+axisFmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen&&!s.markersOnly?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const marks=s.markersOnly?s.points.filter(Boolean):s.boundaryMarkers?[...new Set([s.points.find(Boolean),s.points.filter(Boolean).at(-1)])].filter(Boolean):s.points.filter(Boolean).length===1?s.points.filter(Boolean):[];marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="'+(s.markerRadius??5)+'" stroke="'+s.color+'" fill="'+(s.hollow?'none':s.open?'var(--bg,#fff)':s.color)+'" stroke-width="'+(s.markerStrokeWidth??2.5)+'"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});if(!p.series.some(s=>s.points.some(Boolean)))out+='<text x="450" y="245" text-anchor="middle">当前模型在此参数下无适用数据</text>';return out+'</svg>';}
 
-  var STYLE_TEXT = [
-    ".bcs-lab{--bcs-blue:var(--cl-blue,#2b67a5);--bcs-gold:var(--cl-gold,#9a6b12);--bcs-green:var(--cl-green,#2f7651);--bcs-red:var(--cl-red,#b5483c);max-width:100%;min-width:0;color:var(--fg,#20252b);line-height:1.55;overflow-wrap:anywhere;}",
-    ".bcs-lab *,.bcs-lab *::before,.bcs-lab *::after{box-sizing:border-box}.bcs-lab [hidden]{display:none!important}.bcs-lab h3,.bcs-lab h4{margin:0;color:var(--fg,#20252b);letter-spacing:0}.bcs-lab h3{font-size:1.12rem}.bcs-lab h4{font-size:1rem}.bcs-lab p{margin:8px 0}.bcs-lab .bcs-note,.bcs-lab .bcs-feedback,.bcs-lab .bcs-detail{color:var(--fg-soft,var(--muted,#5d6873));font-size:13px;line-height:1.65}",
-    ".bcs-lab button,.bcs-lab input{font:inherit}.bcs-lab button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border,#c8cdd3);border-radius:6px;background:var(--bg,#fff);color:var(--fg,#20252b);line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.bcs-lab button:hover{border-color:var(--accent,#1769aa)}.bcs-lab button:focus-visible,.bcs-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.bcs-lab button[aria-pressed=true],.bcs-lab button.bcs-primary{border-color:var(--accent,#1769aa);background:var(--accent,#1769aa);color:var(--bg,#fff);font-weight:750}.bcs-lab button:disabled{cursor:not-allowed;opacity:.55}",
-    ".bcs-lab fieldset{min-width:0;margin:10px 0;padding:10px;border:1px solid var(--border,#c8cdd3)}.bcs-lab legend{max-width:100%;padding:0 4px;color:var(--fg,#20252b);font-size:13px;font-weight:750;line-height:1.5}.bcs-lab .bcs-question{margin:9px 0 5px;font-size:13px;font-weight:700}.bcs-lab .bcs-choice-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.bcs-lab .bcs-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}.bcs-lab .bcs-actions>*{flex:1 1 160px}.bcs-lab .bcs-feedback{min-height:2em;margin:8px 0 0;font-weight:700}.bcs-lab .bcs-pass{color:var(--bcs-green)}.bcs-lab .bcs-warn{color:var(--bcs-red)}",
-    ".bcs-lab .bcs-experiment{margin-top:18px;padding-top:16px;border-top:1px solid var(--border,#c8cdd3)}.bcs-lab .bcs-presets{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin:10px 0}.bcs-lab .bcs-presets button{font-size:12px}.bcs-lab .bcs-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;margin:12px 0;padding:12px;border:1px solid var(--border,#c8cdd3);background:var(--block-bg,var(--bg,#fff))}.bcs-lab .bcs-control{display:grid;gap:4px;min-width:0}.bcs-lab .bcs-control label{font-size:12.5px;font-weight:700;color:var(--fg-soft,var(--muted,#5d6873))}.bcs-lab .bcs-control output{color:var(--accent,#1769aa);font-variant-numeric:tabular-nums}.bcs-lab input[type=range]{display:block;width:100%;height:44px;min-height:44px;margin:0;accent-color:var(--accent,#1769aa)}.bcs-lab .bcs-scale{display:flex;justify-content:space-between;gap:8px;color:var(--fg-soft,var(--muted,#5d6873));font-size:11px}",
-    ".bcs-lab .bcs-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}.bcs-lab .bcs-metric{min-width:0;padding:8px;border-top:2px solid var(--border,#c8cdd3);background:var(--block-bg,var(--bg,#fff))}.bcs-lab .bcs-metric:nth-child(4n+1){border-color:var(--bcs-blue)}.bcs-lab .bcs-metric:nth-child(4n+2){border-color:var(--bcs-gold)}.bcs-lab .bcs-metric:nth-child(4n+3){border-color:var(--bcs-green)}.bcs-lab .bcs-metric:nth-child(4n){border-color:var(--bcs-red)}.bcs-lab .bcs-metric span{display:block;color:var(--fg-soft,var(--muted,#5d6873));font-size:11px;line-height:1.4}.bcs-lab .bcs-metric strong{display:block;margin-top:3px;font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.bcs-lab .bcs-status{margin:8px 0;padding:9px 11px;border-left:3px solid var(--bcs-green);background:var(--block-bg,var(--bg,#fff));font-size:13px}",
-    ".bcs-lab .bcs-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;min-width:0}.bcs-lab .bcs-chart{min-width:0}.bcs-lab .bcs-chart h4{margin:12px 0 7px;font-size:14px}.bcs-lab .bcs-frame{min-width:0;padding:7px;border:1px solid var(--border,#c8cdd3);border-radius:6px;background:var(--bg,#fff);overflow:hidden}.bcs-lab svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg,#20252b)}.bcs-lab svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.bcs-lab .bcs-grid{stroke:currentColor;stroke-opacity:.16;stroke-width:1}.bcs-lab .bcs-axis{stroke:currentColor;stroke-opacity:.65;stroke-width:1.15}.bcs-lab .bcs-gap-line{fill:none;stroke:var(--bcs-blue);stroke-width:2.7}.bcs-lab .bcs-current{stroke:var(--bcs-red);stroke-width:1.5;stroke-dasharray:4 4}.bcs-lab .bcs-gap-dot{fill:var(--bcs-red);stroke:var(--bg,#fff);stroke-width:2}.bcs-lab .bcs-ideal{fill:none;stroke:var(--bcs-gold);stroke-width:1.8;stroke-dasharray:6 4}.bcs-lab .bcs-broadened{fill:none;stroke:var(--bcs-green);stroke-width:2.4}.bcs-lab .bcs-normal{stroke:var(--fg-soft,var(--muted,#5d6873));stroke-width:1.2;stroke-dasharray:3 4}.bcs-lab .bcs-axis-label{font-size:10px;fill:var(--fg-soft,var(--muted,#5d6873))}.bcs-lab .bcs-chart-label{font-size:10.5px}.bcs-lab .bcs-chart-title{font-size:12px;font-weight:750}",
-    ".bcs-lab .bcs-legend{display:flex;flex-wrap:wrap;gap:7px 13px;margin:7px 2px 0;color:var(--fg-soft,var(--muted,#5d6873));font-size:12px}.bcs-lab .bcs-legend-item{display:inline-flex;align-items:center;gap:5px}.bcs-lab .bcs-swatch{display:inline-block;width:18px;height:3px}.bcs-lab .bcs-swatch-blue{background:var(--bcs-blue)}.bcs-lab .bcs-swatch-gold{background:var(--bcs-gold);border-top:1px dashed var(--bcs-gold)}.bcs-lab .bcs-swatch-green{background:var(--bcs-green)}.bcs-lab .bcs-table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:12px}.bcs-lab table{width:100%;min-width:620px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.bcs-lab caption{padding:0 0 7px;text-align:left;color:var(--fg-soft,var(--muted,#5d6873));font-size:12px}.bcs-lab th,.bcs-lab td{padding:7px 8px;border-bottom:1px solid var(--border,#c8cdd3);text-align:left;vertical-align:top}.bcs-lab th{color:var(--fg-soft,var(--muted,#5d6873));font-size:11.5px}.bcs-lab .bcs-footnote{margin:10px 0 0;padding:9px 11px;border-left:3px solid var(--bcs-gold);background:var(--block-bg,var(--bg,#fff));color:var(--fg-soft,var(--muted,#5d6873));font-size:12.5px;line-height:1.65}",
-    "@media(max-width:900px){.bcs-lab .bcs-presets{grid-template-columns:repeat(3,minmax(0,1fr))}.bcs-lab .bcs-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}",
-    "@media(max-width:650px){.bcs-lab .bcs-choice-row,.bcs-lab .bcs-controls,.bcs-lab .bcs-charts{grid-template-columns:minmax(0,1fr)}.bcs-lab .bcs-presets{grid-template-columns:repeat(2,minmax(0,1fr))}}",
-    "@media(max-width:420px){.bcs-lab .bcs-presets,.bcs-lab .bcs-metrics{grid-template-columns:minmax(0,1fr)}.bcs-lab fieldset{padding:8px}.bcs-lab .bcs-frame{padding:4px}.bcs-lab .bcs-controls{padding:9px}.bcs-lab table{font-size:11.5px}.bcs-lab th,.bcs-lab td{padding-left:5px;padding-right:5px}}",
-    "@media(prefers-reduced-motion:reduce){.bcs-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}"
-  ].join("\n");
+var mounted=new WeakMap();
+function mount(root){const doc=root.ownerDocument,previous=mounted.get(root);if(previous)previous();root.replaceChildren();root.classList.add('bcs192');let c=config(PRESETS[0].parameters),choices={},revealed=false,url=null,current=null,view=0,valid=true;
+ const el=(tag,attrs={},text)=>{const e=doc.createElement(tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
+ if(!doc.querySelector('[data-bcs192-style]')){const style=el('style',{'data-bcs192-style':''});style.textContent='.bcs192{margin-inline:0!important;width:100%;min-width:0;color:var(--fg,#222);line-height:1.65}.bcs192 *{box-sizing:border-box}.bcs192 button,.bcs192 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.bcs192 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.bcs192 button:focus-visible,.bcs192 select:focus-visible,.bcs192 [tabindex]:focus-visible{outline:3px solid #2474bc}.bcs192 .bc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.bcs192 label{display:grid;gap:4px;min-width:0}.bcs192 input{width:100%;min-height:44px;font:inherit;color:inherit;background:var(--bg,#fff)}.bcs192 .bc-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.bcs192 .bc-pred>strong{display:block;margin-bottom:6px}.bcs192 .bc-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.bcs192 .bc-feedback{margin:7px 0}.bcs192 .bc-scroll{max-width:100%;overflow:auto}.bcs192 svg{display:block;min-width:680px;width:100%;height:auto}.bcs192 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.bcs192 td,.bcs192 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.bcs192 [hidden]{display:none!important}.bcs192 details{margin:12px 0}.bcs192 summary{min-height:44px;cursor:pointer}.bcs192 .bc-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.bcs192 .bc-correct{color:var(--cl-green,#277540)}.bcs192 .bc-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.bcs192 .bc-grid{grid-template-columns:1fr}}';doc.head.append(style);}
+ root.append(el('h3',{},'从配对振幅到能谱，再到可测量的电流'),el('p',{},'先比较有限配对壳层的势密度，再区分谱函数与热卷积。最后用独立的双结相位模型检查干涉。三个子模型的参数和近似分别标明。'));
+ const presets=el('div',{class:'bc-row','aria-label':'教学预设'});for(const p of PRESETS){const b=el('button',{type:'button','data-preset':p.id},p.label);b.onclick=()=>{c=config(p.parameters);valid=true;sync();reset();};presets.append(b);}root.append(presets);
+ const fields={},outs={},grid=el('div',{class:'bc-grid'});
 
-  function finite(value) {
-    return typeof value === "number" && Number.isFinite(value);
-  }
 
-  function clamp(value, minimum, maximum) {
-    return Math.max(minimum, Math.min(maximum, value));
-  }
 
-  function number(value, fallback) {
-    var parsed = Number(value);
-    return finite(parsed) ? parsed : fallback;
-  }
 
-  function stableTanh(value) {
-    if (value > 20) return 1 - 2 * Math.exp(-2 * value);
-    if (value < -20) return -1 + 2 * Math.exp(2 * value);
-    return Math.tanh(value);
-  }
+ for(const[key,title]of [['couplingPercent','配对耦合 λ ×100'],['cutoffPercent','能量截断 ED/E0 ×100'],['temperaturePercent','约化温度 T/Tc ×100'],['gammaPercent','仅Dynes谱：Γ/Δ0 ×100'],['xiPercent','当前BdG态：ξ/Δ0 ×100'],['phaseDegrees','独立双结模型：共同规范不变相位（度）'],['fluxPercent','独立双结模型：磁通 Φ/Φ0 ×100'],['asymmetryPercent','独立双结模型：不对称度 a ×100']]){const[min,max]=LIMITS[key],label=el('label',{},title),out=el('output'),input=el('input',{type:'range',min,max,step:1,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.oninput=input.onchange=change;}root.append(grid);
+ function change(){try{c=config(Object.fromEntries(Object.entries(fields).map(([k,e])=>[k,e.value===''?NaN:Number(e.value)])));valid=true;sync();reset();}catch(e){valid=false;reset();status.textContent='请使用所示范围内的整数；百分数输入会在计算时除以100。';}}
+ const note=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(note,prediction);prediction.append(el('h4',{},'先预测：正常态、峰宽、干涉与适用范围'),el('p',{},'四题的条件固定写在题干里；参数用来检查例子，不自动改变问题。'));
+ const feedbacks=[],buttons=[];QUESTIONS.forEach((q,i)=>{const row=el('div',{class:'bc-pred'});row.append(el('strong',{},q[0]));buttons[i]=[];q[1].forEach((text,j)=>{const b=el('button',{type:'button','data-prediction':i,'data-choice':String(j===0),'aria-pressed':'false'},text);b.onclick=()=>{choices[i]=j;buttons[i].forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));if(revealed)showFeedback();};row.append(b);buttons[i].push(b);});feedbacks[i]=el('p',{class:'bc-feedback','data-feedback':i});row.append(feedbacks[i]);prediction.append(row);});
+ const check=el('button',{type:'button','data-check':''},'核对预测并显示完整结果'),status=el('p',{class:'bc-status','aria-live':'polite'});root.append(check,status);
+ const stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),summary=el('p'),plotButtons=el('div',{class:'bc-row'}),plotWrap=el('div',{class:'bc-scroll',tabindex:0,role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'DOS与电导纵轴只显示到6；空心点标出发散或超出图窗，完整值在表中。理想边缘处断线不表示零态密度。BdG简并原点不指定唯一谱权重。双结电流以给定I0归一化，不由本页能隙推算。'),tableHost=el('div'),download=el('a',{'data-download':'',download:'bc-record.json'},'下载当前完整记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);
+ function sync(){for(const[k,e]of Object.entries(fields))e.value=c[k];}
+ function reset(){revealed=false;choices={};stage.hidden=true;delete root.__bcsSnapshot;for(let i=0;i<4;i++){feedbacks[i].textContent='';for(const b of buttons[i])b.setAttribute('aria-pressed','false');}for(const[k,o]of Object.entries(outs))o.textContent=fmt(c[k]);note.textContent='ED是能量截断；N0是每自旋正常态DOS。能隙和自由能使用有限壳层。DOS与热卷积使用另外注明的低能宽带近似；热卷积未加入Γ。双结模型忽略自感，a=1退化为一条有效结。';status.textContent='完成四项预测后显示当前结果。';}
+ function showFeedback(){let n=0;for(let i=0;i<4;i++){if(!Number.isInteger(choices[i]))continue;const f=feedback(i,choices[i]);n+=+f.correct;feedbacks[i].textContent=f.text;feedbacks[i].className='bc-feedback '+(f.correct?'bc-correct':'bc-wrong');}status.textContent='预测核对：'+n+'/4 正确。图、表和下载均对应当前参数。';}
+ function draw(){const ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+ function render(){current=compute(c);root.__bcsSnapshot=current;stage.hidden=false;summary.textContent='当前 Δ/Δ0='+fmt(current.selected.relative)+'，2Δ0/(kBTc)='+fmt(current.scale.ratio)+'；稳定点巨正则势密度差/(N0Δ0²)='+fmt(current.equilibrium.value)+'。正常态始终是候选驻点。独立双结模型的 Ic/I0='+fmt(current.selectedSquid.critical)+'。'+(current.boundaries.spectralWindowWithinShell?'所绘谱窗位于配对壳层能量内；宽带近似仍需低能条件。':'当前谱窗延伸到ED以外；谱图只能作宽带模型形式对照，不是此有限壳层的精确材料谱。');plotButtons.replaceChildren();plots(current).forEach((p,i)=>{const b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();for(const t of tables(current)){const d=el('details',{'data-table':t.key});d.append(el('summary',{},t.title));d.addEventListener('toggle',()=>{if(!d.open||d.children.length>1)return;const wrap=el('div',{class:'bc-scroll',tabindex:0,role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),thead=el('thead'),tr=el('tr'),tbody=el('tbody');for(const h of t.headers)tr.append(el('th',{scope:'col'},h));thead.append(tr);for(const row of t.rows){const r=el('tr');for(const v of row)r.append(el('td',{},fmt(v)));tbody.append(r);}table.append(thead,tbody);wrap.append(table);d.append(wrap);});tableHost.append(d);}if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current)],{type:'application/json'}));download.href=url;showFeedback();}
+ check.onclick=()=>{if(!valid){status.textContent='请先修正无效参数。';return;}if(![0,1,2,3].every(i=>Number.isInteger(choices[i]))){status.textContent='请先为四个问题各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
+}
 
-  function normalizeConfig(input) {
-    var raw = input || {};
-    return {
-      id: raw.id || "custom",
-      label: raw.label || "自定义",
-      note: raw.note || "",
-      lambda: clamp(number(raw.lambda, 0.30), LIMITS.lambda[0], LIMITS.lambda[1]),
-      cutoff: clamp(number(raw.cutoff, 1), LIMITS.cutoff[0], LIMITS.cutoff[1]),
-      temperatureRatio: clamp(number(raw.temperatureRatio, 0.5), LIMITS.temperatureRatio[0], LIMITS.temperatureRatio[1]),
-      gammaRatio: clamp(number(raw.gammaRatio, 0.04), LIMITS.gammaRatio[0], LIMITS.gammaRatio[1])
-    };
-  }
-
-  function validateParameters(lambda, cutoff) {
-    if (!finite(lambda) || lambda <= 0) throw new RangeError("lambda must be positive and finite");
-    if (!finite(cutoff) || cutoff <= 0) throw new RangeError("cutoff must be positive and finite");
-  }
-
-  /* xi = omega_D exp(-u) turns the logarithmic normal-state endpoint into a smooth finite-u integral. */
-  function gapIntegral(delta, temperature, cutoff) {
-    delta = number(delta, NaN);
-    temperature = number(temperature, NaN);
-    cutoff = number(cutoff, NaN);
-    if (!finite(delta) || delta < 0 || !finite(temperature) || temperature < 0 || !finite(cutoff) || cutoff <= 0) {
-      throw new RangeError("gap integral parameters must be finite and non-negative");
-    }
-    if (delta === 0 && temperature === 0) return Infinity;
-    var step = LOG_XI_MAX / QUAD_STEPS;
-    var sum = 0;
-    var index;
-    for (index = 0; index <= QUAD_STEPS; index += 1) {
-      var u = index * step;
-      var xi = cutoff * Math.exp(-u);
-      var energy = Math.hypot(xi, delta);
-      var value = 0;
-      if (energy > 0) {
-        var thermal = temperature === 0 ? 1 : stableTanh(energy / (2 * temperature));
-        value = xi / energy * thermal;
-      }
-      var weight = index === 0 || index === QUAD_STEPS ? 1 : index % 2 ? 4 : 2;
-      sum += weight * value;
-    }
-    return sum * step / 3;
-  }
-
-  function gapResidual(delta, temperature, lambda, cutoff) {
-    validateParameters(lambda, cutoff);
-    return lambda * gapIntegral(delta, temperature, cutoff) - 1;
-  }
-
-  function zeroTemperatureGap(lambda, cutoff) {
-    validateParameters(lambda, cutoff);
-    var inverse = 1 / lambda;
-    if (inverse > 700) return 2 * cutoff * Math.exp(-inverse);
-    return cutoff / Math.sinh(inverse);
-  }
-
-  function criticalTemperature(lambda, cutoff) {
-    validateParameters(lambda, cutoff);
-    var low = cutoff * 1e-12;
-    var lowResidual = gapResidual(0, low, lambda, cutoff);
-    var lowSteps = 0;
-    while (lowResidual <= 0 && lowSteps < 80) {
-      low *= 0.1;
-      lowResidual = gapResidual(0, low, lambda, cutoff);
-      lowSteps += 1;
-    }
-    var high = Math.max(cutoff, low * 2);
-    var highResidual = gapResidual(0, high, lambda, cutoff);
-    var highSteps = 0;
-    while (highResidual > 0 && highSteps < 80) {
-      high *= 2;
-      highResidual = gapResidual(0, high, lambda, cutoff);
-      highSteps += 1;
-    }
-    if (!(lowResidual > 0) || !(highResidual < 0)) throw new Error("could not bracket Tc");
-    for (var step = 0; step < 90; step += 1) {
-      var middle = (low + high) / 2;
-      var residual = gapResidual(0, middle, lambda, cutoff);
-      if (residual > 0) low = middle;
-      else high = middle;
-    }
-    return (low + high) / 2;
-  }
-
-  function solveDeltaAtTemperature(temperature, lambda, cutoff, tc, delta0) {
-    validateParameters(lambda, cutoff);
-    temperature = number(temperature, NaN);
-    if (!finite(temperature) || temperature < 0) throw new RangeError("temperature must be finite and non-negative");
-    tc = tc === undefined ? criticalTemperature(lambda, cutoff) : tc;
-    delta0 = delta0 === undefined ? zeroTemperatureGap(lambda, cutoff) : delta0;
-    if (temperature === 0) {
-      return { delta: delta0, residual: gapResidual(delta0, 0, lambda, cutoff), status: "zero" };
-    }
-    if (temperature >= tc) {
-      return {
-        delta: 0,
-        residual: gapResidual(0, temperature, lambda, cutoff),
-        status: temperature === tc ? "critical" : "normal"
-      };
-    }
-    var zeroResidual = gapResidual(0, temperature, lambda, cutoff);
-    /* At and above Tc, Delta=0 is a boundary value, not a positive-gap root. */
-    if (!(zeroResidual > 0)) return { delta: 0, residual: zeroResidual, status: "normal" };
-    var low = 0;
-    var high = Math.max(delta0, cutoff * 1e-14);
-    var highResidual = gapResidual(high, temperature, lambda, cutoff);
-    var expand = 0;
-    while (highResidual > 0 && expand < 80) {
-      high *= 2;
-      highResidual = gapResidual(high, temperature, lambda, cutoff);
-      expand += 1;
-    }
-    if (!(highResidual < 0)) throw new Error("could not bracket positive gap");
-    for (var step = 0; step < 92; step += 1) {
-      var middle = (low + high) / 2;
-      var residual = gapResidual(middle, temperature, lambda, cutoff);
-      if (residual > 0) low = middle;
-      else high = middle;
-    }
-    var delta = (low + high) / 2;
-    return { delta: delta, residual: gapResidual(delta, temperature, lambda, cutoff), status: "paired" };
-  }
-
-  function evaluate(input) {
-    var state = normalizeConfig(input);
-    var delta0 = zeroTemperatureGap(state.lambda, state.cutoff);
-    var tc = criticalTemperature(state.lambda, state.cutoff);
-    var temperature = state.temperatureRatio * tc;
-    var solution = solveDeltaAtTemperature(temperature, state.lambda, state.cutoff, tc, delta0);
-    var gamma = state.gammaRatio * delta0;
-    return {
-      id: state.id,
-      label: state.label,
-      note: state.note,
-      lambda: state.lambda,
-      cutoff: state.cutoff,
-      temperatureRatio: state.temperatureRatio,
-      temperature: temperature,
-      tc: tc,
-      delta0: delta0,
-      delta: solution.delta,
-      gapRatio: delta0 > 0 ? solution.delta / delta0 : 0,
-      ratio: tc > 0 ? 2 * delta0 / tc : null,
-      residual: solution.residual,
-      integral: solution.residual / state.lambda + 1 / state.lambda,
-      status: solution.status,
-      gammaRatio: state.gammaRatio,
-      gamma: gamma
-    };
-  }
-
-  function gapCurve(result, count) {
-    count = Math.max(12, Math.floor(number(count, 48)));
-    var points = [];
-    for (var index = 0; index <= count; index += 1) {
-      var temperatureRatio = 1.2 * index / count;
-      var solution = solveDeltaAtTemperature(
-        temperatureRatio * result.tc,
-        result.lambda,
-        result.cutoff,
-        result.tc,
-        result.delta0
-      );
-      points.push({
-        temperatureRatio: temperatureRatio,
-        delta: solution.delta,
-        gapRatio: result.delta0 > 0 ? solution.delta / result.delta0 : 0,
-        residual: solution.residual,
-        status: solution.status
-      });
-    }
-    return points;
-  }
-
-  function complexSqrt(real, imaginary) {
-    var radius = Math.hypot(real, imaginary);
-    var u = Math.sqrt(Math.max(0, (radius + real) / 2));
-    var v = (imaginary < 0 ? -1 : 1) * Math.sqrt(Math.max(0, (radius - real) / 2));
-    return { real: u, imaginary: v };
-  }
-
-  function quasiparticleDos(energy, delta, gamma) {
-    energy = Math.abs(number(energy, NaN));
-    delta = Math.abs(number(delta, NaN));
-    gamma = Math.max(0, number(gamma, NaN));
-    if (!finite(energy) || !finite(delta) || !finite(gamma)) throw new RangeError("DOS parameters must be finite");
-    if (delta <= EPS) return 1;
-    if (gamma <= EPS) {
-      if (energy < delta) return 0;
-      if (Math.abs(energy - delta) <= EPS * Math.max(1, delta)) return Infinity;
-      return energy / Math.sqrt(Math.max(EPS, energy * energy - delta * delta));
-    }
-    var root = complexSqrt(energy * energy - gamma * gamma - delta * delta, 2 * energy * gamma);
-    var denominator = root.real * root.real + root.imaginary * root.imaginary;
-    if (denominator <= EPS) return 1;
-    return (energy * root.real + gamma * root.imaginary) / denominator;
-  }
-
-  function dosCurve(result, count) {
-    count = Math.max(40, Math.floor(number(count, 160)));
-    var points = [];
-    for (var index = 0; index <= count; index += 1) {
-      var energyRatio = 3.2 * index / count;
-      var energy = energyRatio * result.delta0;
-      points.push({
-        energyRatio: energyRatio,
-        ideal: quasiparticleDos(energy, result.delta, 0),
-        broadened: quasiparticleDos(energy, result.delta, result.gamma)
-      });
-    }
-    return points;
-  }
-
-  function assert(condition, message) {
-    if (!condition) throw new Error(message);
-  }
-
-  function near(first, second, tolerance) {
-    return Math.abs(first - second) <= tolerance * Math.max(1, Math.abs(first), Math.abs(second));
-  }
-
-  function selfTest() {
-    var checks = 0;
-    function check(condition, message) {
-      checks += 1;
-      assert(condition, message);
-    }
-
-    var baseline = evaluate({ lambda: 0.30, cutoff: 1, temperatureRatio: 0.5, gammaRatio: 0.04 });
-    check(baseline.tc > 0 && baseline.delta0 > 0, "positive critical and zero-temperature scales");
-    check(baseline.delta > 0 && baseline.delta < baseline.delta0, "finite-temperature gap lies between zero and Delta0");
-    check(Math.abs(baseline.residual) < 2e-7, "finite-temperature gap residual");
-    check(near(baseline.delta0, 1 / Math.sinh(1 / 0.30), 1e-12), "finite-cutoff zero-temperature formula");
-    check(baseline.ratio > 3.45 && baseline.ratio < 3.56, "weak-coupling ratio near 3.53");
-
-    var critical = evaluate({ lambda: 0.30, cutoff: 1, temperatureRatio: 1, gammaRatio: 0 });
-    var normal = evaluate({ lambda: 0.30, cutoff: 1, temperatureRatio: 1.1, gammaRatio: 0 });
-    var zero = evaluate({ lambda: 0.30, cutoff: 1, temperatureRatio: 0, gammaRatio: 0 });
-    check(critical.delta === 0 && Math.abs(critical.residual) < 2e-7, "critical point has only the boundary zero gap");
-    check(normal.delta === 0 && normal.residual < 0, "above Tc has no positive-gap root");
-    check(zero.gapRatio === 1 && zero.status === "zero", "T=0 branch");
-
-    var curve = gapCurve(baseline, 24);
-    for (var index = 1; index < curve.length; index += 1) {
-      check(curve[index].gapRatio <= curve[index - 1].gapRatio + 2e-8, "gap curve is non-increasing");
-    }
-    check(curve[curve.length - 1].gapRatio === 0, "gap is zero above Tc");
-
-    var scaled = evaluate({ lambda: 0.30, cutoff: 0.5, temperatureRatio: 0.5, gammaRatio: 0.04 });
-    check(near(scaled.delta0 / baseline.delta0, 0.5, 2e-8), "cutoff scales Delta0");
-    check(near(scaled.tc / baseline.tc, 0.5, 2e-8), "cutoff scales Tc");
-    check(near(scaled.ratio, baseline.ratio, 2e-7), "cutoff scaling leaves ratio unchanged");
-    var weak = evaluate({ lambda: 0.20, cutoff: 1, temperatureRatio: 0.5, gammaRatio: 0.04 });
-    var stronger = evaluate({ lambda: 0.38, cutoff: 1, temperatureRatio: 0.5, gammaRatio: 0.04 });
-    check(weak.delta0 < baseline.delta0 && stronger.delta0 > baseline.delta0, "coupling changes gap scale");
-
-    check(quasiparticleDos(0, baseline.delta, 0) === 0, "ideal DOS is gapped below Delta");
-    check(quasiparticleDos(2 * baseline.delta, baseline.delta, 0) > 1, "ideal DOS coherence peak tail");
-    check(quasiparticleDos(baseline.delta, baseline.delta, 0) === Infinity, "ideal DOS singular edge is explicit");
-    var broadenedZero = quasiparticleDos(0, baseline.delta, baseline.gamma);
-    check(broadenedZero > 0 && broadenedZero < 1, "Dynes broadening fills subgap DOS");
-    check(quasiparticleDos(0, 0, baseline.gamma) === 1, "normal-state DOS limit");
-    var dos = dosCurve(baseline, 80);
-    check(dos.length === 81 && dos.every(function (point) { return finite(point.broadened); }), "DOS curve is finite with broadening");
-
-    PRESETS.forEach(function (preset) {
-      var result = evaluate(preset);
-      check(result.tc > 0 && result.delta0 > 0, preset.id + " scales");
-      check(result.delta >= 0 && result.gapRatio >= 0 && result.gapRatio <= 1 + 1e-10, preset.id + " gap range");
-    });
-    return { checks: checks, presets: PRESETS.length };
-  }
-
-  function appendChildren(node, children) {
-    if (children === undefined || children === null) return node;
-    (Array.isArray(children) ? children : [children]).forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child.nodeType ? child : node.ownerDocument.createTextNode(String(child)));
-    });
-    return node;
-  }
-
-  function element(doc, tag, attrs, children) {
-    var node = doc.createElement(tag);
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.className = value;
-      else if (key === "text") node.textContent = value;
-      else if (key === "htmlFor") node.htmlFor = value;
-      else if (key.slice(0, 2) === "on" && typeof value === "function") node.addEventListener(key.slice(2).toLowerCase(), value);
-      else node.setAttribute(key, value === true ? "" : String(value));
-    });
-    return appendChildren(node, children);
-  }
-
-  function svgNode(doc, tag, attrs, text) {
-    var node = doc.createElementNS(SVG_NS, tag);
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      node.setAttribute(key, value === true ? "" : String(value));
-    });
-    if (text !== undefined) node.textContent = text;
-    return node;
-  }
-
-  function clear(node) {
-    while (node.firstChild) node.removeChild(node.firstChild);
-  }
-
-  function installStyles(doc) {
-    if (doc.getElementById(STYLE_ID)) return;
-    var style = doc.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = STYLE_TEXT;
-    doc.head.appendChild(style);
-  }
-
-  function format(value, digits) {
-    if (value === null || value === undefined) return "—";
-    if (value === Infinity) return "∞";
-    if (value === -Infinity) return "−∞";
-    if (!finite(value)) return "—";
-    if (Math.abs(value) < 5e-10) return "0";
-    var places = digits === undefined ? 4 : digits;
-    if (Math.abs(value) >= 10000 || Math.abs(value) < 0.001) return value.toExponential(Math.min(places, 4));
-    var text = value.toFixed(places);
-    return text.replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function metric(doc, label, value) {
-    return element(doc, "div", { className: "bcs-metric" }, [
-      element(doc, "span", { text: label }),
-      element(doc, "strong", { text: value })
-    ]);
-  }
-
-  function pathFrom(points, mapX, mapY, valueKey) {
-    var path = [];
-    points.forEach(function (point, index) {
-      var y = mapY(point[valueKey]);
-      if (!finite(y)) return;
-      path.push((path.length ? "L" : "M") + mapX(point) .toFixed(2) + "," + y.toFixed(2));
-    });
-    return path.join(" ");
-  }
-
-  function drawGapChart(doc, svg, result, points) {
-    clear(svg);
-    svg.setAttribute("viewBox", "0 0 680 320");
-    svg.setAttribute("role", "img");
-    svg.setAttribute("aria-label", "BCS 能隙随约化温度变化的曲线");
-    svg.appendChild(svgNode(doc, "title", {}, "自洽 BCS 能隙曲线"));
-    svg.appendChild(svgNode(doc, "desc", {}, "蓝线是 Delta(T)/Delta0，红色虚线标出当前温度；Tc 以上曲线为零。"));
-    var plot = { left: 54, top: 24, width: 592, height: 238 };
-    var xMax = 1.2;
-    var yMax = 1.08;
-    function mapX(point) { return plot.left + point.temperatureRatio / xMax * plot.width; }
-    function mapY(value) { return plot.top + plot.height - value / yMax * plot.height; }
-    [0, 0.5, 1].forEach(function (value) {
-      var y = mapY(value);
-      svg.appendChild(svgNode(doc, "line", { x1: plot.left, y1: y, x2: plot.left + plot.width, y2: y, class: "bcs-grid" }));
-      svg.appendChild(svgNode(doc, "text", { x: plot.left - 7, y: y + 4, "text-anchor": "end", class: "bcs-axis-label" }, format(value, 1)));
-    });
-    [0, 0.5, 1, 1.2].forEach(function (value) {
-      var x = plot.left + value / xMax * plot.width;
-      svg.appendChild(svgNode(doc, "line", { x1: x, y1: plot.top, x2: x, y2: plot.top + plot.height, class: "bcs-grid" }));
-      svg.appendChild(svgNode(doc, "text", { x: x, y: plot.top + plot.height + 18, "text-anchor": "middle", class: "bcs-axis-label" }, format(value, 1)));
-    });
-    svg.appendChild(svgNode(doc, "line", { x1: plot.left, y1: plot.top + plot.height, x2: plot.left + plot.width, y2: plot.top + plot.height, class: "bcs-axis" }));
-    svg.appendChild(svgNode(doc, "line", { x1: plot.left, y1: plot.top, x2: plot.left, y2: plot.top + plot.height, class: "bcs-axis" }));
-    svg.appendChild(svgNode(doc, "path", { d: pathFrom(points, mapX, mapY, "gapRatio"), class: "bcs-gap-line" }));
-    var currentX = plot.left + result.temperatureRatio / xMax * plot.width;
-    var currentY = mapY(result.gapRatio);
-    svg.appendChild(svgNode(doc, "line", { x1: currentX, y1: plot.top, x2: currentX, y2: plot.top + plot.height, class: "bcs-current" }));
-    svg.appendChild(svgNode(doc, "circle", { cx: currentX, cy: currentY, r: 4.5, class: "bcs-gap-dot" }));
-    svg.appendChild(svgNode(doc, "text", { x: plot.left + plot.width / 2, y: 306, "text-anchor": "middle", class: "bcs-axis-label" }, "T/Tc"));
-    svg.appendChild(svgNode(doc, "text", { x: 15, y: plot.top + plot.height / 2, transform: "rotate(-90 15 " + (plot.top + plot.height / 2) + ")", "text-anchor": "middle", class: "bcs-axis-label" }, "Delta(T)/Delta0"));
-    svg.appendChild(svgNode(doc, "text", { x: plot.left + 7, y: plot.top + 15, class: "bcs-chart-title" }, "自洽能隙"));
-    svg.appendChild(svgNode(doc, "text", { x: plot.left + plot.width - 5, y: plot.top + plot.height - 7, "text-anchor": "end", class: "bcs-chart-label" }, "Tc 后：Delta=0"));
-  }
-
-  function drawDosChart(doc, svg, result, points) {
-    clear(svg);
-    svg.setAttribute("viewBox", "0 0 680 320");
-    svg.setAttribute("role", "img");
-    svg.setAttribute("aria-label", "带 Dynes 展宽的 BCS 准粒子态密度");
-    svg.appendChild(svgNode(doc, "title", {}, "BCS 准粒子态密度与 Dynes 展宽"));
-    svg.appendChild(svgNode(doc, "desc", {}, "金色虚线为理想 DOS，绿色实线加入当前 Dynes 数值展宽，纵轴在六倍常态 DOS 处截断以便阅读。"));
-    var plot = { left: 54, top: 24, width: 592, height: 238 };
-    var xMax = 3.2;
-    var yMax = DOS_PLOT_MAX;
-    function mapX(point) { return plot.left + point.energyRatio / xMax * plot.width; }
-    function mapY(value) { return plot.top + plot.height - Math.min(yMax, Math.max(0, value)) / yMax * plot.height; }
-    [0, 1, 3, 6].forEach(function (value) {
-      var y = mapY(value);
-      svg.appendChild(svgNode(doc, "line", { x1: plot.left, y1: y, x2: plot.left + plot.width, y2: y, class: "bcs-grid" }));
-      svg.appendChild(svgNode(doc, "text", { x: plot.left - 7, y: y + 4, "text-anchor": "end", class: "bcs-axis-label" }, String(value)));
-    });
-    [0, 1, 2, 3.2].forEach(function (value) {
-      var x = plot.left + value / xMax * plot.width;
-      svg.appendChild(svgNode(doc, "line", { x1: x, y1: plot.top, x2: x, y2: plot.top + plot.height, class: "bcs-grid" }));
-      svg.appendChild(svgNode(doc, "text", { x: x, y: plot.top + plot.height + 18, "text-anchor": "middle", class: "bcs-axis-label" }, format(value, 1)));
-    });
-    svg.appendChild(svgNode(doc, "line", { x1: plot.left, y1: plot.top + plot.height, x2: plot.left + plot.width, y2: plot.top + plot.height, class: "bcs-axis" }));
-    svg.appendChild(svgNode(doc, "line", { x1: plot.left, y1: plot.top, x2: plot.left, y2: plot.top + plot.height, class: "bcs-axis" }));
-    svg.appendChild(svgNode(doc, "path", { d: pathFrom(points, mapX, mapY, "ideal"), class: "bcs-ideal" }));
-    svg.appendChild(svgNode(doc, "path", { d: pathFrom(points, mapX, mapY, "broadened"), class: "bcs-broadened" }));
-    var normalY = mapY(1);
-    svg.appendChild(svgNode(doc, "line", { x1: plot.left, y1: normalY, x2: plot.left + plot.width, y2: normalY, class: "bcs-normal" }));
-    if (result.delta0 > 0 && result.delta > 0) {
-      var edgeX = plot.left + result.delta / result.delta0 / xMax * plot.width;
-      svg.appendChild(svgNode(doc, "line", { x1: edgeX, y1: plot.top, x2: edgeX, y2: plot.top + plot.height, class: "bcs-current" }));
-    }
-    svg.appendChild(svgNode(doc, "text", { x: plot.left + plot.width / 2, y: 306, "text-anchor": "middle", class: "bcs-axis-label" }, "E/Delta0"));
-    svg.appendChild(svgNode(doc, "text", { x: 15, y: plot.top + plot.height / 2, transform: "rotate(-90 15 " + (plot.top + plot.height / 2) + ")", "text-anchor": "middle", class: "bcs-axis-label" }, "N(E)/N(0)"));
-    svg.appendChild(svgNode(doc, "text", { x: plot.left + 7, y: plot.top + 15, class: "bcs-chart-title" }, "准粒子 DOS"));
-    svg.appendChild(svgNode(doc, "text", { x: plot.left + plot.width - 5, y: plot.top + 15, "text-anchor": "end", class: "bcs-chart-label" }, "图窗上限 6"));
-  }
-
-  function sampleRows(result) {
-    return [0, 0.5, 0.95, 1, 1.1].map(function (temperatureRatio) {
-      var solution = solveDeltaAtTemperature(
-        temperatureRatio * result.tc,
-        result.lambda,
-        result.cutoff,
-        result.tc,
-        result.delta0
-      );
-      return {
-        temperatureRatio: temperatureRatio,
-        gapRatio: result.delta0 > 0 ? solution.delta / result.delta0 : 0,
-        residual: solution.residual,
-        status: solution.status
-      };
-    });
-  }
-
-  function renderTable(doc, table, result) {
-    clear(table);
-    table.setAttribute("aria-label", "BCS 能隙自洽残差表");
-    var caption = element(doc, "caption", { text: "同一组 lambda 与 omega_D 的固定温度抽查；残差为 lambda I - 1。" });
-    table.appendChild(caption);
-    var head = element(doc, "tr");
-    ["T/Tc", "Delta(T)/Delta0", "积分残差", "状态"].forEach(function (label) {
-      head.appendChild(element(doc, "th", { scope: "col", text: label }));
-    });
-    var thead = element(doc, "thead");
-    thead.appendChild(head);
-    table.appendChild(thead);
-    var body = element(doc, "tbody");
-    sampleRows(result).forEach(function (row) {
-      body.appendChild(element(doc, "tr", {}, [
-        element(doc, "td", { text: format(row.temperatureRatio, 2) }),
-        element(doc, "td", { text: format(row.gapRatio, 5) }),
-        element(doc, "td", { text: format(row.residual, 3) }),
-        element(doc, "td", { text: row.status === "paired" ? "正能隙" : row.status === "zero" ? "T=0" : row.status === "critical" ? "临界边界" : "正常态：无正根" })
-      ]));
-    });
-    table.appendChild(body);
-  }
-
-  function copyPreset(preset) {
-    return normalizeConfig(preset);
-  }
-
-  function mount(root, api) {
-    var doc = root.ownerDocument;
-    installStyles(doc);
-    var uid = "bcs-gap-" + (++SERIAL);
-    var state = copyPreset(PRESETS[1]);
-    var answers = [];
-    var revealed = false;
-    var QUESTIONS = [
-      {
-        prompt: "在 T/Tc=0.95 时，正能隙 Delta(T) 应怎样？",
-        options: [
-          { value: "small-positive", label: "接近 0 但仍为正" },
-          { value: "delta0", label: "仍等于 Delta0" },
-          { value: "diverge", label: "发散" }
-        ],
-        answer: "small-positive"
-      },
-      {
-        prompt: "在 T >= Tc 时，能隙方程的物理解读是什么？",
-        options: [
-          { value: "zero", label: "只保留 Delta=0" },
-          { value: "positive", label: "仍有稳定正根" },
-          { value: "infinite", label: "能隙变成无穷" }
-        ],
-        answer: "zero"
-      },
-      {
-        prompt: "比值 2Delta0/(kB Tc) 接近 3.53 的前提是？",
-        options: [
-          { value: "limit", label: "弱耦合、平衡、各向同性 s 波" },
-          { value: "all", label: "所有超导材料" },
-          { value: "dos", label: "只要 DOS 有展宽" }
-        ],
-        answer: "limit"
-      }
-    ];
-
-    var shell = element(doc, "div", { className: "bcs-lab" });
-    shell.appendChild(element(doc, "p", { className: "bcs-note", text: "先回答三个判断，再打开自洽求解器。模型取 kB=1、平衡、各向同性 s 波、常态 DOS N(0) 近似常数，并在 |xi|<=omega_D 内使用有限 Debye 截断。" }));
-    var prediction = element(doc, "div", { className: "bcs-prediction" });
-    prediction.appendChild(element(doc, "h3", { text: "预测门：三问都回答后才显示结果" }));
-    var questionButtons = [];
-    QUESTIONS.forEach(function (question, questionIndex) {
-      var fieldset = element(doc, "fieldset");
-      fieldset.appendChild(element(doc, "legend", { text: (questionIndex + 1) + ". " + question.prompt }));
-      var row = element(doc, "div", { className: "bcs-choice-row" });
-      questionButtons[questionIndex] = [];
-      question.options.forEach(function (option) {
-        var button = element(doc, "button", { type: "button", text: option.label });
-        button.addEventListener("click", function () {
-          answers[questionIndex] = option.value;
-          renderPrediction();
-        });
-        questionButtons[questionIndex].push({ value: option.value, node: button });
-        row.appendChild(button);
-      });
-      fieldset.appendChild(row);
-      prediction.appendChild(fieldset);
-    });
-    var predictionActions = element(doc, "div", { className: "bcs-actions" });
-    var revealButton = element(doc, "button", { type: "button", className: "bcs-primary", text: "核对预测并揭晓" });
-    var resetPredictionButton = element(doc, "button", { type: "button", text: "重置预测" });
-    var feedback = element(doc, "p", { className: "bcs-feedback", text: "三问都作答后，结果才会出现。" });
-    predictionActions.appendChild(revealButton);
-    predictionActions.appendChild(resetPredictionButton);
-    prediction.appendChild(predictionActions);
-    prediction.appendChild(feedback);
-    shell.appendChild(prediction);
-
-    var experiment = element(doc, "section", { className: "bcs-experiment", "aria-labelledby": uid + "-title", hidden: true });
-    experiment.appendChild(element(doc, "h3", { id: uid + "-title", text: "实验台：能隙自洽解与准粒子 DOS" }));
-    experiment.appendChild(element(doc, "p", { className: "bcs-note", text: "先选预设，再调 lambda、Debye 截断、T/Tc 与 Dynes/数值展宽 Gamma/Delta0。参数变化仍只是在本页的 BCS 模型内扫描。" }));
-    var presetRow = element(doc, "div", { className: "bcs-presets" });
-    var presetButtons = [];
-    PRESETS.forEach(function (preset) {
-      var button = element(doc, "button", { type: "button", text: preset.label, title: preset.note });
-      button.addEventListener("click", function () {
-        state = copyPreset(preset);
-        render();
-      });
-      presetButtons.push({ id: preset.id, node: button });
-      presetRow.appendChild(button);
-    });
-    experiment.appendChild(presetRow);
-
-    var controls = element(doc, "div", { className: "bcs-controls" });
-    var inputs = {};
-    function addControl(key, label, min, max, step, digits, suffix) {
-      var wrapper = element(doc, "div", { className: "bcs-control" });
-      var output = element(doc, "output", { text: "" });
-      var input = element(doc, "input", { type: "range", min: min, max: max, step: step, "aria-label": label });
-      var caption = element(doc, "label", { text: label + "：" });
-      caption.appendChild(output);
-      wrapper.appendChild(caption);
-      wrapper.appendChild(input);
-      wrapper.appendChild(element(doc, "div", { className: "bcs-scale" }, [
-        element(doc, "span", { text: String(min) }),
-        element(doc, "span", { text: String(max) })
-      ]));
-      input.addEventListener("input", function () {
-        state[key] = Number(input.value);
-        state.id = "custom";
-        render();
-      });
-      inputs[key] = { input: input, output: output, digits: digits, suffix: suffix };
-      controls.appendChild(wrapper);
-    }
-    addControl("lambda", "耦合 lambda=N(0)V", LIMITS.lambda[0], LIMITS.lambda[1], 0.01, 2, "");
-    addControl("cutoff", "Debye 截断 omega_D", LIMITS.cutoff[0], LIMITS.cutoff[1], 0.05, 2, "");
-    addControl("temperatureRatio", "约化温度 T/Tc", LIMITS.temperatureRatio[0], LIMITS.temperatureRatio[1], 0.01, 2, "");
-    addControl("gammaRatio", "Dynes 展宽 Gamma/Delta0", LIMITS.gammaRatio[0], LIMITS.gammaRatio[1], 0.005, 3, "");
-    experiment.appendChild(controls);
-
-    var metrics = element(doc, "div", { className: "bcs-metrics" });
-    var status = element(doc, "p", { className: "bcs-status" });
-    var charts = element(doc, "div", { className: "bcs-charts" });
-    var gapChart = element(doc, "div", { className: "bcs-chart" });
-    var dosChart = element(doc, "div", { className: "bcs-chart" });
-    gapChart.appendChild(element(doc, "h4", { text: "能隙曲线" }));
-    var gapFrame = element(doc, "div", { className: "bcs-frame" });
-    var gapSvg = element(doc, "svg");
-    gapFrame.appendChild(gapSvg);
-    gapChart.appendChild(gapFrame);
-    gapChart.appendChild(element(doc, "div", { className: "bcs-legend" }, [
-      element(doc, "span", { className: "bcs-legend-item" }, [element(doc, "i", { className: "bcs-swatch bcs-swatch-blue" }), "自洽 Delta(T)/Delta0"]),
-      element(doc, "span", { className: "bcs-legend-item" }, [element(doc, "i", { className: "bcs-swatch bcs-swatch-gold" }), "当前温度"])
-    ]));
-    dosChart.appendChild(element(doc, "h4", { text: "准粒子态密度" }));
-    var dosFrame = element(doc, "div", { className: "bcs-frame" });
-    var dosSvg = element(doc, "svg");
-    dosFrame.appendChild(dosSvg);
-    dosChart.appendChild(dosFrame);
-    dosChart.appendChild(element(doc, "div", { className: "bcs-legend" }, [
-      element(doc, "span", { className: "bcs-legend-item" }, [element(doc, "i", { className: "bcs-swatch bcs-swatch-gold" }), "理想 DOS"]),
-      element(doc, "span", { className: "bcs-legend-item" }, [element(doc, "i", { className: "bcs-swatch bcs-swatch-green" }), "Dynes 展宽"])
-    ]));
-    charts.appendChild(gapChart);
-    charts.appendChild(dosChart);
-    experiment.appendChild(metrics);
-    experiment.appendChild(status);
-    experiment.appendChild(charts);
-    var tableWrap = element(doc, "div", { className: "bcs-table-wrap" });
-    var table = element(doc, "table");
-    tableWrap.appendChild(table);
-    experiment.appendChild(tableWrap);
-    experiment.appendChild(element(doc, "p", { className: "bcs-footnote", text: "理想 DOS 在 E=Delta 处有平方根奇点；寿命、温度卷积和仪器分辨率会把它钝化。这里的 Gamma 是 Dynes/数值展宽参数，不是对材料寿命的测量。能隙是模型自洽序参量的结果，不单独证明零电阻或 Meissner 效应。" }));
-    shell.appendChild(experiment);
-    root.replaceChildren(shell);
-
-    function renderPrediction() {
-      questionButtons.forEach(function (buttons, questionIndex) {
-        buttons.forEach(function (choice) {
-          choice.node.setAttribute("aria-pressed", answers[questionIndex] === choice.value ? "true" : "false");
-        });
-      });
-    }
-
-    function render() {
-      Object.keys(inputs).forEach(function (key) {
-        var control = inputs[key];
-        control.input.value = String(state[key]);
-        control.output.textContent = format(state[key], control.digits) + control.suffix;
-      });
-      presetButtons.forEach(function (button) {
-        button.node.setAttribute("aria-pressed", state.id === button.id ? "true" : "false");
-      });
-      var result = evaluate(state);
-      var curve = gapCurve(result, 48);
-      var density = dosCurve(result, 160);
-      metrics.replaceChildren(
-        metric(doc, "T/Tc", format(result.temperatureRatio, 2)),
-        metric(doc, "Delta(T)/Delta0", format(result.gapRatio, 5)),
-        metric(doc, "Delta0", format(result.delta0, 5)),
-        metric(doc, "kB Tc / omega_D", format(result.tc / result.cutoff, 5)),
-        metric(doc, "2Delta0 / (kB Tc)", format(result.ratio, 4)),
-        metric(doc, "积分残差 lambda I - 1", format(result.residual, 3)),
-        metric(doc, "I", format(result.integral, 5)),
-        metric(doc, "Gamma/Delta0", format(result.gammaRatio, 3))
-      );
-      var statusText = result.status === "paired"
-        ? "当前温度低于 Tc：二分找到正能隙根，积分残差应接近 0。"
-        : result.status === "zero"
-          ? "T=0：使用有限 Debye 截断的零温自洽解。"
-          : result.status === "critical"
-            ? "T=Tc：只保留 Delta=0 的临界边界；不把它当作一个正能隙根。"
-            : "T>Tc：Delta=0 是正常态边界值，正能隙方程没有物理解。";
-      status.textContent = statusText;
-      drawGapChart(doc, gapSvg, result, curve);
-      drawDosChart(doc, dosSvg, result, density);
-      renderTable(doc, table, result);
-    }
-
-    revealButton.addEventListener("click", function () {
-      if (answers.length !== QUESTIONS.length || answers.some(function (answer) { return !answer; })) {
-        feedback.textContent = "请先完成全部三问。";
-        feedback.className = "bcs-feedback bcs-warn";
-        return;
-      }
-      var correct = QUESTIONS.reduce(function (count, question, index) {
-        return count + (answers[index] === question.answer ? 1 : 0);
-      }, 0);
-      revealed = true;
-      experiment.hidden = false;
-      feedback.textContent = "已揭晓：" + correct + "/" + QUESTIONS.length + " 项预测命中；现在可以调参并核对残差。";
-      feedback.className = "bcs-feedback " + (correct === QUESTIONS.length ? "bcs-pass" : "bcs-warn");
-      render();
-      if (api && typeof api.announce === "function") api.announce(root, feedback.textContent);
-    });
-    resetPredictionButton.addEventListener("click", function () {
-      answers = [];
-      revealed = false;
-      experiment.hidden = true;
-      feedback.textContent = "三问都作答后，结果才会出现。";
-      feedback.className = "bcs-feedback";
-      renderPrediction();
-    });
-    renderPrediction();
-    render();
-    return { uid: uid, revealed: function () { return revealed; } };
-  }
-
-  return {
-    LIMITS: LIMITS,
-    PRESETS: PRESETS,
-    normalizeConfig: normalizeConfig,
-    gapIntegral: gapIntegral,
-    gapResidual: gapResidual,
-    zeroTemperatureGap: zeroTemperatureGap,
-    criticalTemperature: criticalTemperature,
-    solveDeltaAtTemperature: solveDeltaAtTemperature,
-    evaluate: evaluate,
-    gapCurve: gapCurve,
-    quasiparticleDos: quasiparticleDos,
-    dosCurve: dosCurve,
-    mount: mount,
-    selfTest: selfTest
-  };
-});
+function selfTest(){let checks=0;const ok=x=>{checks++;if(!x)throw Error('BCS invariant '+checks);};for(const p of PRESETS){const s=compute(p.parameters);ok(plots(s).length===6);ok(tables(s).length===12);ok(s.selected.normalStationary);ok(s.equilibrium.value<=2e-9);for(const r of s.gapCurve){ok(r.relative>=0&&r.relative<=1+1e-10);ok(r.low<=r.delta&&r.delta<=r.high);if(r.ratio<=1)ok(Math.abs(r.residual)<1e-8);}for(let i=1;i<s.gapCurve.length;i++)ok(s.gapCurve[i].relative<=s.gapCurve[i-1].relative+1e-9);for(const r of s.coherence){ok(r.occupation>=0&&r.occupation<=1);if(!r.degenerate)ok(Math.abs(r.u2+r.v2-1)<1e-12);}for(const r of s.interference){ok(Math.abs(r.current)<=r.critical+1e-12);ok(Math.abs(r.I1+r.I2-r.current)<1e-12);}for(let i=0;i<4;i++)ok(feedback(i,QUESTIONS[i][2]).correct);}return{status:'PASS',checks};}
+const API={...core,PRESETS,QUESTIONS,compute,snapshot:compute,plots,tables,svg,feedback,fmt,mount,selfTest};if(typeof module!=="undefined"&&module.exports)module.exports=API;if(hostWindow&&hostWindow.CourseLearning)hostWindow.CourseLearning.register("bcs-gap",mount);})(typeof window!=="undefined"?window:null);
