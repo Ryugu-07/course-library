@@ -1,314 +1,129 @@
-(function (host) {
-  "use strict";
+(function(hostWindow){"use strict";
 
-  var STYLE_ID = "vc-shattering-styles";
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var CONFIGS = [
-    { id: "threshold-one", label: "阈值 · 单点", model: "threshold", points: [0], target: "1" },
-    { id: "threshold-two", label: "阈值 · 两点", model: "threshold", points: [-1, 1], target: "10" },
-    { id: "interval-two", label: "区间 · 两点", model: "interval", points: [-1, 1], target: "10" },
-    { id: "interval-three", label: "区间 · 三点", model: "interval", points: [-1, 0, 1], target: "101" },
-    { id: "halfspace-three", label: "半空间 · 三角形", model: "halfspace", points: [[-1, -0.8], [1, -0.8], [0, 1]], target: "101" },
-    { id: "halfspace-four", label: "半空间 · 正方形", model: "halfspace", points: [[-1, -1], [1, -1], [1, 1], [-1, 1]], target: "1010" }
-  ];
+const DEFAULT={model:'halfspace',geometry:'square',pointCount:4,targetMask:5,deleteIndex:3,pairCount:4,epsilonPercent:50,boundSampleCount:100};
+const MODELS=['constant','threshold','interval','two-intervals','halfspace'],GEOMETRIES=['square','convex','parabola','interior','collinear'];
+function config(input={}){if(!input||typeof input!=='object'||Array.isArray(input))throw Error('object');for(const k of Object.keys(input))if(!Object.hasOwn(DEFAULT,k))throw Error('key');const c={...DEFAULT,...input};if(!MODELS.includes(c.model)||!GEOMETRIES.includes(c.geometry))throw Error('enum');for(const k of ['pointCount','targetMask','deleteIndex','pairCount','epsilonPercent','boundSampleCount'])if(typeof c[k]!=='number'||!Number.isInteger(c[k]))throw Error('integer');if(c.pointCount<1||c.pointCount>8||c.targetMask<0||c.targetMask>=2**c.pointCount||c.deleteIndex<0||c.deleteIndex>=c.pointCount||c.pairCount<1||c.pairCount>6||c.epsilonPercent<5||c.epsilonPercent>90||c.boundSampleCount<1||c.boundSampleCount>1000)throw Error('domain');return c;}
+const bit=(mask,i)=>(mask>>i)&1,labels=(mask,n)=>Array.from({length:n},(_,i)=>bit(mask,i));
+const sum=a=>a.reduce((s,v)=>s+v,0);
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b){const r=a%b;a=b;b=r;}return a;};
+const unique=a=>[...new Set(a)].sort((a,b)=>a-b);
+const cross=(a,b)=>a[0]*b[1]-a[1]*b[0],dot=(a,b)=>a[0]*b[0]+a[1]*b[1];
+function points(c){const sets={square:[[-2,-2],[2,-2],[2,2],[-2,2],[0,0],[0,-2],[2,0],[-2,0]],convex:[[3,0],[2,2],[0,3],[-2,2],[-3,0],[-2,-2],[0,-3],[2,-2]],parabola:Array.from({length:8},(_,i)=>[i-3,(i-3)**2]),interior:[[-4,-3],[4,-3],[0,5],[0,0],[-1,0],[1,0],[0,1],[0,-1]],collinear:Array.from({length:8},(_,i)=>[i-3,2*(i-3)+1])};return c.model==='halfspace'?sets[c.geometry].slice(0,c.pointCount).map(p=>p.slice()):Array.from({length:c.pointCount},(_,i)=>[i,0]);}
+function choose(n,k){if(k<0||k>n)return 0;let v=1;for(let j=1;j<=Math.min(k,n-k);j++)v=v*(n-j+1)/j;return Math.round(v);}
+const globalDimension=model=>({constant:0,threshold:1,interval:2,'two-intervals':4,halfspace:3})[model];
+const sauer=(n,d)=>sum(Array.from({length:Math.min(n,d)+1},(_,i)=>choose(n,i)));
+function growth(n,model){if(n===0)return 1;if(model==='constant')return 1;if(model==='threshold')return n+1;if(model==='interval')return 1+choose(n+1,2);if(model==='two-intervals')return 1+choose(n+1,2)+choose(n+1,4);return 2*(1+(n-1)+choose(n-1,2));}
+function subsets(n,k){const out=[];function walk(start,a){if(a.length===k){out.push(a);return;}for(let i=start;i<n;i++)walk(i+1,[...a,i]);}walk(0,[]);return out;}
+function oneDimensional(n,model){const records=[];for(let mask=0;mask<2**n;mask++){const ys=labels(mask,n),runs=[];for(let i=0;i<n;i++)if(ys[i]&&(i===0||!ys[i-1])){let j=i;while(j+1<n&&ys[j+1])j++;runs.push([i,j]);}let feasible=model==='constant'?mask===0:model==='threshold'?ys.every((y,i)=>i===0||y>=ys[i-1]):runs.length<=(model==='interval'?1:2);let witness=null,obstruction=null;if(feasible){if(model==='constant')witness={kind:'constant',value:0};else if(model==='threshold'){const first=ys.indexOf(1);witness={kind:'threshold',thresholdTwice:first<0?2*n-1:2*first-1};}else witness={kind:'intervals',endpointsTwice:runs.map(([i,j])=>[2*i-1,2*j+1])};}else{if(model==='constant')obstruction={kind:'constant',indices:[ys.indexOf(1)]};else if(model==='threshold'){let pair=null;for(let i=0;i<n&&!pair;i++)for(let j=i+1;j<n;j++)if(ys[i]&&!ys[j]){pair=[i,j];break;}obstruction={kind:'order',indices:pair};}else{const k=model==='interval'?1:2;const indices=[];for(let j=0;j<=k;j++){indices.push(runs[j][0]);if(j<k)indices.push(runs[j][1]+1);}obstruction={kind:'alternating',indices};}}records.push({mask,labels:ys,feasible,witness,obstruction});}return {records,directions:[],candidates:[],circuits:[]};}
+function primitive(v){const g=v.reduce((a,b)=>gcd(a,b),0);if(!g)return null;const w=v.map(x=>x/g),first=w.find(x=>x!==0);return first<0?w.map(x=>-x):w;}
+function det3(a,b,c){return a[0]*(b[1]-c[1])-a[1]*(b[0]-c[0])+b[0]*c[1]-b[1]*c[0];}
+function affineCircuits(ps){const out=[],seen=new Set();function add(ids,weights){const full=Array(ps.length).fill(0);ids.forEach((j,i)=>full[j]=weights[i]);const alpha=primitive(full);if(!alpha||seen.has(alpha.join(',')))return;seen.add(alpha.join(','));const pos=alpha.map((v,i)=>v>0?i:-1).filter(i=>i>=0),neg=alpha.map((v,i)=>v<0?i:-1).filter(i=>i>=0);if(!pos.length||!neg.length)throw Error('affine signs');const total=sum(pos.map(i=>alpha[i])),x=sum(pos.map(i=>alpha[i]*ps[i][0])),y=sum(pos.map(i=>alpha[i]*ps[i][1]));out.push({alpha,positive:pos,negative:neg,weightSum:total,intersectionNumerator:[x,y],intersectionDenominator:total});}
+for(const ids of subsets(ps.length,3)){const[a,b,c]=ids.map(i=>ps[i]);if(det3(a,b,c)!==0)continue;const axis=a[0]!==b[0]?0:1;add(ids,[b[axis]-c[axis],c[axis]-a[axis],a[axis]-b[axis]]);}
+for(const ids of subsets(ps.length,4)){const p=ids.map(i=>ps[i]);add(ids,p.map((_,i)=>(i%2?-1:1)*det3(...p.filter((_,j)=>j!==i))));}
+return out;}
+function halfspace(ps){const rays=new Map();for(const[i,j]of subsets(ps.length,2)){const dx=ps[j][0]-ps[i][0],dy=ps[j][1]-ps[i][1],g=gcd(dx,dy);if(!g)throw Error('duplicate points');for(const sign of[-1,1]){const v=[-sign*dy/g,sign*dx/g];rays.set(v.join(','),v);}}
+const half=v=>v[1]>0||(v[1]===0&&v[0]>=0)?0:1;const directions=[...rays.values()].sort((a,b)=>half(a)-half(b)||-cross(a,b));const sectors=directions.length?directions.map((v,i)=>{const w=directions[(i+1)%directions.length],z=[v[0]+w[0],v[1]+w[1]];return z[0]||z[1]?z:[-v[1],v[0]];}):[[1,0]];
+const witness=new Map(),candidates=[];function add(wx,wy,b){const scores=ps.map(p=>wx*p[0]+wy*p[1]+b);if(scores.some(x=>x===0))throw Error('zero margin');const mask=sum(scores.map((v,i)=>v>0?2**i:0)),signedMargins=scores.map(v=>Math.abs(v)),w={kind:'halfspace',wx,wy,b,scores,signedMargins};candidates.push({mask,...w});if(!witness.has(mask))witness.set(mask,w);}
+add(0,0,-1);add(0,0,1);for(const v of sectors){const q=unique(ps.map(p=>dot(v,p)));for(let i=0;i+1<q.length;i++)add(2*v[0],2*v[1],-(q[i]+q[i+1]));}
+const circuits=affineCircuits(ps),records=Array.from({length:2**ps.length},(_,mask)=>{const ys=labels(mask,ps.length),w=witness.get(mask)||null;let obstruction=null;if(!w){const index=circuits.findIndex(r=>r.positive.every(i=>ys[i]===1)&&r.negative.every(i=>ys[i]===0)||r.positive.every(i=>ys[i]===0)&&r.negative.every(i=>ys[i]===1));if(index<0)throw Error('Missing Radon certificate '+mask);const a=circuits[index],orientation=ys[a.positive[0]]?1:-1;obstruction={kind:'radon',circuitIndex:index,orientation,...a};}return {mask,labels:ys,feasible:!!w,witness:w,obstruction};});
+return {records,directions,sectors,candidates,circuits};}
+function project(mask,indices){return sum(indices.map((j,i)=>bit(mask,j)*2**i));}
+function profile(patterns,n){const rows=[];let dimension=patterns.length?0:-1;for(let subset=0;subset<2**n;subset++){const indices=Array.from({length:n},(_,i)=>i).filter(i=>bit(subset,i)),restriction=unique(patterns.map(mask=>project(mask,indices))),shattered=restriction.length===2**indices.length;if(shattered)dimension=Math.max(dimension,indices.length);rows.push({subset,indices,patterns:restriction,count:restriction.length,shattered});}return {dimension,rows};}
+function deletion(patterns,n,index){const indices=Array.from({length:n},(_,i)=>i).filter(i=>i!==index),zero=unique(patterns.filter(h=>!bit(h,index)).map(h=>project(h,indices))),one=unique(patterns.filter(h=>bit(h,index)).map(h=>project(h,indices))),union=unique([...zero,...one]),intersection=zero.filter(h=>one.includes(h));return {index,indices,zero,one,union,intersection,total:patterns.length,unionCount:union.length,intersectionCount:intersection.length,unionDimension:profile(union,n-1).dimension,intersectionDimension:profile(intersection,n-1).dimension};}
+const core={DEFAULT,MODELS,GEOMETRIES,config,bit,labels,sum,gcd,unique,cross,dot,points,choose,globalDimension,sauer,growth,subsets,oneDimensional,primitive,det3,affineCircuits,halfspace,project,profile,deletion};
 
-  var STYLE_TEXT = [
-    ".vcs-lab{max-width:100%;min-width:0;color:var(--fg);line-height:1.55}",
-    ".vcs-lab *{box-sizing:border-box}.vcs-lab [hidden]{display:none!important}",
-    ".vcs-lab .vcs-note,.vcs-lab .vcs-feedback{color:var(--fg-soft);font-size:13px}",
-    ".vcs-lab .vcs-presets,.vcs-lab .vcs-actions,.vcs-lab .vcs-choice{display:flex;flex-wrap:wrap;gap:8px}",
-    ".vcs-lab button{min-height:44px;font:inherit}.vcs-lab .vcs-presets button{flex:1 1 145px}",
-    ".vcs-lab button[aria-pressed=true]{border-color:var(--accent);background:var(--accent);color:var(--bg)}",
-    ".vcs-lab button:focus-visible{outline:3px solid var(--cl-focus);outline-offset:2px}",
-    ".vcs-lab .vcs-targets{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:7px;margin:14px 0}.vcs-lab .vcs-targets button{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:800}",
-    ".vcs-lab .vcs-predict{margin:14px 0;padding:12px 14px;border-left:3px solid var(--cl-gold);background:var(--bg)}",
-    ".vcs-lab .vcs-predict strong{display:block;margin-bottom:8px;font-size:13px}.vcs-lab .vcs-choice button{flex:1 1 150px}",
-    ".vcs-lab .vcs-feedback{min-height:2em;margin:8px 0 0;font-weight:700}.vcs-lab .vcs-pass{color:var(--cl-green)}.vcs-lab .vcs-warn{color:var(--cl-red)}",
-    ".vcs-lab .vcs-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:14px 0}.vcs-lab .vcs-metric{min-width:0;padding:9px 4px;border-top:2px solid var(--border)}.vcs-lab .vcs-metric span{display:block;color:var(--fg-soft);font-size:11.5px}.vcs-lab .vcs-metric strong{display:block;margin-top:3px;font-size:14px;overflow-wrap:anywhere}",
-    ".vcs-lab svg{display:block;width:100%;height:auto;border:1px solid var(--border);border-radius:7px;background:var(--bg)}.vcs-lab svg text{fill:var(--fg);font-family:inherit;letter-spacing:0}",
-    ".vcs-lab .vcs-axis{stroke:var(--border);stroke-width:1.4}.vcs-lab .vcs-boundary{stroke:var(--accent);stroke-width:3;stroke-dasharray:7 4}.vcs-lab .vcs-region{fill:var(--accent);fill-opacity:.12}.vcs-lab .vcs-conflict{stroke:var(--cl-red);stroke-width:3;stroke-dasharray:5 4}",
-    ".vcs-lab .vcs-point{stroke:var(--fg);stroke-width:2}.vcs-lab .vcs-one{fill:var(--accent)}.vcs-lab .vcs-zero{fill:var(--bg)}",
-    ".vcs-lab .vcs-patterns{display:grid;grid-template-columns:repeat(auto-fit,minmax(62px,1fr));gap:6px;margin-top:12px}.vcs-lab .vcs-pattern{padding:7px 5px;border-bottom:2px solid var(--border);font-family:ui-monospace,SFMono-Regular,Consolas,monospace;text-align:center}.vcs-lab .vcs-pattern.vcs-realized{border-color:var(--cl-green)}.vcs-lab .vcs-pattern.vcs-missing{border-color:var(--cl-red);color:var(--fg-soft)}",
-    "@media(max-width:620px){.vcs-lab .vcs-targets{grid-template-columns:repeat(4,minmax(0,1fr))}}",
-    "@media(prefers-reduced-motion:reduce){.vcs-lab *{animation:none!important;transition:none!important}}"
-  ].join("\n");
 
-  function allLabels(size) {
-    var labels = [];
-    for (var value = 0; value < Math.pow(2, size); value += 1) labels.push(value.toString(2).padStart(size, "0"));
-    return labels;
-  }
+const PRESETS=[
+{id:'square-xor',name:'正方形：XOR 的交点证据',parameters:{}},
+{id:'square-separable',name:'正方形：可以画出的直线',parameters:{targetMask:3}},
+{id:'triangle',name:'三个非共线点全部打散',parameters:{pointCount:3,targetMask:5,deleteIndex:2}},
+{id:'inside',name:'三角形内部的第四点',parameters:{geometry:'interior',targetMask:7}},
+{id:'collinear',name:'共线三点：全局 VC 不变',parameters:{geometry:'collinear',pointCount:3,targetMask:5,deleteIndex:1}},
+{id:'convex-eight',name:'凸八边形的全部 256 种标签',parameters:{geometry:'convex',pointCount:8,targetMask:85,deleteIndex:7,pairCount:6}},
+{id:'grid-eight',name:'有共线点的八点配置',parameters:{pointCount:8,targetMask:85,deleteIndex:4,pairCount:6}},
+{id:'parabola',name:'抛物线上八点',parameters:{geometry:'parabola',pointCount:8,targetMask:15,deleteIndex:0}},
+{id:'threshold',name:'单向阈值：不能先1后0',parameters:{model:'threshold',pointCount:4,targetMask:1}},
+{id:'interval',name:'单区间：三点交替',parameters:{model:'interval',pointCount:3,targetMask:5,deleteIndex:2}},
+{id:'two-intervals',name:'两段区间与 Sauer 等号',parameters:{model:'two-intervals',pointCount:6,targetMask:21,deleteIndex:5,pairCount:6}},
+{id:'zero-dimension',name:'只有常零规则：d=0',parameters:{model:'constant',pointCount:1,targetMask:1,deleteIndex:0,pairCount:1,epsilonPercent:90,boundSampleCount:1000}}
+];
+function swaps(patterns,c){const n=c.pointCount,m=c.pairCount,pairs=Array.from({length:m},(_,i)=>({pair:i,first:i%n,second:(3*i+1)%n,firstLabel:core.bit(c.targetMask,i%n),secondLabel:core.bit(c.targetMask,(3*i+1)%n)})),indices=[...pairs.map(p=>p.first),...pairs.map(p=>p.second)],groups=new Map();for(const h of patterns){const restriction=core.project(h,indices);if(!groups.has(restriction))groups.set(restriction,{restriction,representative:h,members:[]});groups.get(restriction).members.push(h);}
+const behaviors=[...groups.values()].sort((a,b)=>a.restriction-b.restriction).map(g=>{const firstLosses=pairs.map(p=>+(core.bit(g.representative,p.first)!==p.firstLabel)),secondLosses=pairs.map(p=>+(core.bit(g.representative,p.second)!==p.secondLabel));return {...g,firstLosses,secondLosses,differences:firstLosses.map((v,i)=>v-secondLosses[i])};}),rows=Array.from({length:2**m},(_,mask)=>{const signs=core.labels(mask,m).map(x=>2*x-1),sums=behaviors.map(h=>core.sum(h.differences.map((a,i)=>a*signs[i]))),maximum=Math.max(...sums.map(Math.abs));return {mask,signs,sums,maximum,meanGap:maximum/m,failure:200*maximum>c.epsilonPercent*m};}),failed=rows.filter(r=>r.failure).length,distribution=Array.from({length:m+1},(_,k)=>({maximum:k,meanGap:k/m,count:rows.filter(r=>r.maximum===k).length,denominator:2**m,probability:rows.filter(r=>r.maximum===k).length/2**m})),raw=2*behaviors.length*Math.exp(-m*(c.epsilonPercent/100)**2/8);
+return {pairs,combinedIndices:indices,behaviors,rows,distribution,failures:failed,denominator:2**m,failureProbability:failed/2**m,conditionalBoundRaw:raw,conditionalBound:Math.min(1,raw),scope:'Conditional on one fixed combined labeled sample, enumerate independent pair swaps. Not a draw of the training sample from an unknown population. The number of distinct combined prediction patterns bounds the union; losses and repeated inputs are retained.'};}
+function boundAt(model,M,epsPercent){const d=core.globalDimension(model),epsilon=epsPercent/100,pi=core.growth(2*M,model),sauer=core.sauer(2*M,d),ghostApplicable=M*epsPercent**2>=20000,realizableGhostApplicable=M*epsPercent>=800,uniformRaw=4*pi*Math.exp(-M*epsilon**2/8),realizableRaw=2*pi*Math.exp(-M*epsilon/4);return {samples:M,epsilon,dimension:d,growthAtDouble:pi,sauerAtDouble:sauer,ghostApplicable,realizableGhostApplicable,uniformRaw:ghostApplicable?uniformRaw:null,uniformBound:ghostApplicable?Math.min(1,uniformRaw):1,realizableRaw:realizableGhostApplicable?realizableRaw:null,realizableBound:realizableGhostApplicable?Math.min(1,realizableRaw):1};}
+function compute(input={}){const c=core.config(input),ps=core.points(c),geometry=c.model==='halfspace'?core.halfspace(ps):core.oneDimensional(c.pointCount,c.model),patterns=geometry.records.filter(r=>r.feasible).map(r=>r.mask),subsets=core.profile(patterns,c.pointCount),deletions=Array.from({length:c.pointCount},(_,i)=>core.deletion(patterns,c.pointCount,i)),dimension=core.globalDimension(c.model),growthRows=Array.from({length:17},(_,n)=>({points:n,allLabels:2**n,growth:core.growth(n,c.model),sauer:core.sauer(n,dimension),dimension,binomialTerms:Array.from({length:dimension+1},(_,j)=>core.choose(n,j))})),boundScan=Array.from({length:1000},(_,i)=>boundAt(c.model,i+1,c.epsilonPercent));
+return {schemaVersion:1,parameters:c,points:ps,geometry,patterns,localDimension:subsets.dimension,globalDimension:dimension,subsets:subsets.rows,deletions,selectedDeletion:deletions[c.deleteIndex],selectedTarget:geometry.records[c.targetMask],growthRows,swap:swaps(patterns,c),bound:boundScan[c.boundSampleCount-1],boundScan,scope:'Exact finite restriction families on integer points; each affine label has an integer strict-separator or Radon obstruction certificate. Local shattering, global growth, Sauer deletion and conditional pair-swapping are distinct objects. Statistical bounds state their ghost-sample conditions and are sufficient bounds, not observed errors or minimax claims.'};}
+const MODEL_NAMES={constant:'只有常零规则',threshold:'单向阈值',interval:'单区间','two-intervals':'至多两段区间',halfspace:'平面仿射半空间'};
+const GEOMETRY_NAMES={square:'正方形与补充点',convex:'凸八边形',parabola:'抛物线',interior:'三角形与内部点',collinear:'共线点'};
+const QUESTIONS=[
+ ['正方形 XOR 不可由直线实现，单凭这一例能证明平面半空间 VC≤3 吗？',['能，一个四点失败例就足够','不能，需要覆盖每一个四点配置'],1,'一个失败配置只否定它自己被打散。全称上界由任意四点的仿射依赖与 Radon 划分给出。'],
+ ['按最后一位分成 F₀、F₁ 后，为什么 |F|=|F₀∪F₁|+|F₀∩F₁|？',['共同的前缀原来有两种末位，必须额外算一次','共同前缀只应算一次，所以没有交集项'],0,'并集记录出现过的前缀；交集恰好记录原先具有0和1两种延伸的前缀。它们贡献两条不同的完整标签。'],
+ ['非空假设类的 VC 维为0，是否意味着连一个限制模式都没有？',['是，没有任何函数可供学习','不是，每个固定点集仍有唯一限制模式'],1,'不能打散单点意味着每个点的标签都已由该类固定。非空类在任意有限点集上有一个模式，Sauer界为1。'],
+ ['固定一组双样本后，全部随机交换的尾概率很小，能直接当作总体泛化保证吗？',['不能，还需要独立同分布抽样与ghost步骤','能，交换已经替代了所有未知分布'],0,'交换概率条件于这组样本。总体界还要先引入独立副本、满足集中条件，再对样本平均；固定配置不能替代这些量词。']
+];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=4||![0,1].includes(j))throw Error('choice');const correct=j===QUESTIONS[i][2];return {correct,text:(correct?'正确。':'需要修正。')+QUESTIONS[i][3]};}
+function fmt(x){if(x===null||x===undefined)return '不适用';if(Array.isArray(x))return '['+x.map(fmt).join(', ')+']';if(typeof x==='boolean')return x?'是':'否';if(typeof x==='object')return JSON.stringify(x);if(typeof x==='number')return Number.isInteger(x)?String(x):Math.abs(x)<1e-4||Math.abs(x)>=1e5?x.toExponential(5):Number(x.toPrecision(7)).toString();return String(x);}
+const COLORS=['#c55b32','#3875ba','#368661','#9860a8','#856722','#646e7c'];
+function frame(key,title,xLabel,yLabel,series,domain,range){const pts=series.flatMap(s=>s.points.filter(Boolean)),xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);let xmin=domain?.[0]??Math.min(...xs),xmax=domain?.[1]??Math.max(...xs),ymin=range?.[0]??Math.min(...ys),ymax=range?.[1]??Math.max(...ys);if(xmin===xmax)xmax=xmin+1;if(ymin===ymax)ymax=ymin+1;if(!range){const pad=.08*(ymax-ymin);ymin-=pad;ymax+=pad;}return {key,title,xLabel,yLabel,xMin:xmin,xMax:xmax,yMin:ymin,yMax:ymax,series};}
+function hull(ps){if(ps.length<2)return ps;const sorted=ps.slice().sort((a,b)=>a[0]-b[0]||a[1]-b[1]),cross3=(a,b,c)=>(b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0]);function half(a){const h=[];for(const p of a){while(h.length>1&&cross3(h.at(-2),h.at(-1),p)<=0)h.pop();h.push(p);}return h;}const a=half(sorted),b=half(sorted.slice().reverse());return [...a.slice(0,-1),...b.slice(0,-1),a[0]];}
+function boundary(w,box){const[x0,x1,y0,y1]=box,out=[];const add=(x,y)=>{if(x>=x0-1e-10&&x<=x1+1e-10&&y>=y0-1e-10&&y<=y1+1e-10&&!out.some(p=>Math.abs(p[0]-x)+Math.abs(p[1]-y)<1e-10))out.push([x,y]);};if(w.wy)for(const x of[x0,x1])add(x,-(w.wx*x+w.b)/w.wy);if(w.wx)for(const y of[y0,y1])add(-(w.wy*y+w.b)/w.wx,y);return out.slice(0,2);}
+function geometryPlot(s){const ps=s.points,t=s.selectedTarget,w=t.witness,o=t.obstruction,x0=Math.min(...ps.map(p=>p[0]))-1,x1=Math.max(...ps.map(p=>p[0]))+1,y0=Math.min(...ps.map(p=>p[1]))-1,y1=Math.max(...ps.map(p=>p[1]))+1,series=[{name:'目标标签1（实心）',color:COLORS[1],markersOnly:true,points:ps.filter((_,i)=>t.labels[i]===1)},{name:'目标标签0（空心）',color:COLORS[0],markersOnly:true,hollow:true,points:ps.filter((_,i)=>t.labels[i]===0)}];
+if(w?.kind==='halfspace'&&(w.wx||w.wy))series.push({name:'整数系数分离线',color:COLORS[2],points:boundary(w,[x0,x1,y0,y1])});
+if(w?.kind==='threshold')series.push({name:'阈值边界',color:COLORS[2],points:[[w.thresholdTwice/2,y0],[w.thresholdTwice/2,y1]]});
+if(w?.kind==='intervals')w.endpointsTwice.forEach((ab,j)=>ab.forEach((v,k)=>series.push({name:'区间'+(j+1)+(k?'右端':'左端'),color:COLORS[2+j],points:[[v/2,y0],[v/2,y1]]})));
+if(o?.kind==='radon'){series.push({name:'Radon 正系数一组的凸包',color:COLORS[2],hollow:true,points:hull(o.positive.map(i=>ps[i]))},{name:'Radon 负系数一组的凸包',color:COLORS[4],hollow:true,points:hull(o.negative.map(i=>ps[i]))},{name:'两个凸包的共同点',color:COLORS[3],markersOnly:true,hollow:true,markerRadius:8,points:[o.intersectionNumerator.map(v=>v/o.intersectionDenominator)]});}
+if(o&&o.kind!=='radon')series.push({name:'违反次序/区间限制的位置',color:COLORS[3],points:o.indices.map(i=>ps[i])});
+const p=frame('geometry',t.feasible?'当前标签：一份可以逐点核对的见证':'当前标签：一份不可能实现的证据','第一坐标（点编号见标注）','第二坐标；一维点置于 y=0',series,[x0,x1],[y0,y1]);p.annotations=ps.map((p,i)=>({point:p,text:'x'+i}));return p;}
+function plots(s){const local=Array.from({length:s.parameters.pointCount+1},(_,k)=>({size:k,max:Math.max(...s.subsets.filter(r=>r.indices.length===k).map(r=>r.count))}));return[
+geometryPlot(s),
+frame('growth','全局增长函数与 Sauer 上界','互异点数 n','log₂ 模式数',[{name:'全部二分类标签 2ⁿ',color:COLORS[0],points:s.growthRows.map(r=>[r.points,r.points])},{name:'该类的全局增长 Π(n)（圆点）',color:COLORS[1],markersOnly:true,points:s.growthRows.map(r=>[r.points,Math.log2(r.growth)])},{name:'Sauer 二项和（与圆点重合表示相等）',color:COLORS[2],points:s.growthRows.map(r=>[r.points,Math.log2(r.sauer)])}],[0,16],[0,16]),
+frame('local','当前点集的子集，并不涵盖所有几何配置','子集点数 k','最多限制模式数',[{name:'本配置所有 k 子集的最大值',color:COLORS[1],points:local.map(r=>[r.size,r.max])},{name:'全域上的 Π(k)',color:COLORS[0],points:local.map(r=>[r.size,core.growth(r.size,s.parameters.model)])},{name:'打散所需 2ᵏ',color:COLORS[2],points:local.map(r=>[r.size,2**r.size])}],[0,Math.max(1,s.parameters.pointCount)],[0,2**s.parameters.pointCount]),
+frame('deletion','删除一位：前缀并集，加上双延伸交集','删除的点编号','模式数',[{name:'|F₀∪F₁|',color:COLORS[1],markersOnly:true,points:s.deletions.map(r=>[r.index,r.unionCount])},{name:'|F₀∩F₁|',color:COLORS[0],markersOnly:true,hollow:true,points:s.deletions.map(r=>[r.index,r.intersectionCount])},{name:'两者之和 = |F|',color:COLORS[2],points:s.deletions.map(r=>[r.index,r.total])}],[0,Math.max(1,s.parameters.pointCount-1)],[0,Math.max(1,s.patterns.length)]),
+frame('swaps','固定双样本：全部独立交换的最大差','最大差的整数分子 k（均值差为 k/m）','精确条件概率',[{name:'2ᵐ 个交换方案等权',color:COLORS[1],markersOnly:true,points:s.swap.distribution.map(r=>[r.maximum,r.probability])}],[0,s.parameters.pairCount],[0,1]),
+frame('bounds','不同事件的充分界：条件须分别满足','统计训练样本量 M（不是图中点数）','log₁₀ 上界，0代表上界1',[{name:'统一风险偏差 > ε',color:COLORS[1],points:s.boundScan.map(r=>[r.samples,Math.log10(r.uniformBound)])},{name:'另假定可实现：风险 > ε',color:COLORS[0],points:s.boundScan.map(r=>[r.samples,Math.log10(r.realizableBound)])}],[1,1000],[Math.min(-1,...s.boundScan.flatMap(r=>[Math.log10(r.uniformBound),Math.log10(r.realizableBound)])),0])
+];}
+function tables(s){return [
+{key:'parameters',title:'参数与两个不同样本规模',headers:['参数','值'],rows:Object.entries(s.parameters)},
+{key:'points',title:'当前全部点与目标标签',headers:['编号','第一坐标','第二坐标','目标标签'],rows:s.points.map((p,i)=>[i,...p,s.selectedTarget.labels[i]])},
+{key:'labels',title:'全部目标：可实现见证或不可能证据',headers:['mask','按点编号的标签','可实现','见证','不可能证据'],rows:s.geometry.records.map(r=>[r.mask,r.labels,r.feasible,r.witness,r.obstruction])},
+{key:'subsets',title:'全部子集的限制族与打散判断',headers:['子集mask','原点编号','限制模式mask','模式数','打散'],rows:s.subsets.map(r=>[r.subset,r.indices,r.patterns,r.count,r.shattered])},
+{key:'deletions',title:'每个删除坐标的完整 F₀、F₁、并集与交集',headers:['删除编号','剩余点序','F₀','F₁','并集','交集','原模式数','并集VC','交集VC'],rows:s.deletions.map(r=>[r.index,r.indices,r.zero,r.one,r.union,r.intersection,r.total,r.unionDimension,r.intersectionDimension])},
+{key:'growth',title:'0–16 点的全局增长、Sauer 和每个二项项',headers:['n','2ⁿ','Π(n)','Sauer和','全局VC','二项项 j=0..d'],rows:s.growthRows.map(r=>[r.points,r.allLabels,r.growth,r.sauer,r.dimension,r.binomialTerms])},
+{key:'pairs',title:'固定的双样本配对（可重复输入）',headers:['配对编号','第一输入编号','第二输入编号','第一标签','第二标签'],rows:s.swap.pairs.map(r=>[r.pair,r.first,r.second,r.firstLabel,r.secondLabel])},
+{key:'behaviors',title:'合并样本去重后的预测与损失差',headers:['合并限制mask','代表规则mask','全部等价规则','第一组损失','第二组损失','逐对损失差'],rows:s.swap.behaviors.map(r=>[r.restriction,r.representative,r.members,r.firstLosses,r.secondLosses,r.differences])},
+{key:'swaps',title:'全部交换符号：最大经验差事件',headers:['交换mask','符号','各行为差的整数和','最大绝对值','最大均值差','是否 > ε/2'],rows:s.swap.rows.map(r=>[r.mask,r.signs,r.sums,r.maximum,r.meanGap,r.failure])},
+{key:'bounds',title:'1–1000 全部界：小样本条件分列',headers:['M','ε','d','Π(2M)','Sauer(2M)','Mε²≥2','统一偏差原界','统一偏差截1','Mε≥8','可实现原界','可实现截1'],rows:s.boundScan.map(r=>[r.samples,r.epsilon,r.dimension,r.growthAtDouble,r.sauerAtDouble,r.ghostApplicable,r.uniformRaw,r.uniformBound,r.realizableGhostApplicable,r.realizableRaw,r.realizableBound])},
+{key:'certificates',title:'全部整数 Radon 依赖与共同点',headers:['编号','依赖系数α','正系数组','负系数组','正权重和','交点坐标分子','分母'],rows:s.geometry.circuits.map((r,i)=>[i,r.alpha,r.positive,r.negative,r.weightSum,r.intersectionNumerator,r.intersectionDenominator])}
+];}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=10000?v.toExponential(2):Number(v.toFixed(3)).toString();
+function svg(p){const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 580" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+const discrete=p.key!=='geometry';const xticks=discrete?[...new Set(Array.from({length:5},(_,i)=>Math.round(p.xMin+(p.xMax-p.xMin)*i/4)))]:Array.from({length:5},(_,i)=>p.xMin+(p.xMax-p.xMin)*i/4);for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+axisFmt(y)+'</text>';}for(const x of xticks){out+='<text x="'+X(x)+'" y="410" text-anchor="middle">'+axisFmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen&&!s.markersOnly?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const marks=s.markersOnly?s.points.filter(Boolean):s.boundaryMarkers?[...new Set([s.points.find(Boolean),s.points.filter(Boolean).at(-1)])].filter(Boolean):s.points.filter(Boolean).length===1?s.points.filter(Boolean):[];marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="'+(s.markerRadius??5)+'" stroke="'+s.color+'" fill="'+(s.hollow?'none':s.open?'var(--bg,#fff)':s.color)+'" stroke-width="'+(s.markerStrokeWidth??2.5)+'"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});if(!p.series.some(s=>s.points.some(Boolean)))out+='<text x="450" y="245" text-anchor="middle">当前模型在此参数下无适用数据</text>';for(const a of p.annotations||[])out+='<text data-point-label="'+esc(a.text)+'" x="'+(X(a.point[0])+8)+'" y="'+(Y(a.point[1])-10)+'">'+esc(a.text)+'</text>';return out+'</svg>';}
 
-  function thresholdPatterns(size) {
-    var patterns = [];
-    for (var split = 0; split <= size; split += 1) patterns.push("0".repeat(split) + "1".repeat(size - split));
-    return patterns.sort();
-  }
+var mounted=new WeakMap();
+function mount(root){const doc=root.ownerDocument,previous=mounted.get(root);if(previous)previous();root.replaceChildren();root.classList.add('vc188');let c=config(PRESETS[0].parameters),choices={},revealed=false,url=null,current=null,view=0,valid=true;
+ const el=(tag,attrs={},text)=>{const e=doc.createElement(tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
+ if(!doc.querySelector('[data-vc188-style]')){const style=el('style',{'data-vc188-style':''});style.textContent='.vc188{margin-inline:0!important;width:100%;min-width:0;color:var(--fg,#222);line-height:1.65}.vc188 *{box-sizing:border-box}.vc188 button,.vc188 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.vc188 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.vc188 button:focus-visible,.vc188 select:focus-visible,.vc188 [tabindex]:focus-visible{outline:3px solid #2474bc}.vc188 .vc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.vc188 label{display:grid;gap:4px;min-width:0}.vc188 input{width:100%;min-height:44px;font:inherit;color:inherit;background:var(--bg,#fff)}.vc188 .vc-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.vc188 .vc-pred>strong{display:block;margin-bottom:6px}.vc188 .vc-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.vc188 .vc-feedback{margin:7px 0}.vc188 .vc-scroll{max-width:100%;overflow:auto}.vc188 svg{display:block;min-width:680px;width:100%;height:auto}.vc188 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.vc188 td,.vc188 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.vc188 [hidden]{display:none!important}.vc188 details{margin:12px 0}.vc188 summary{min-height:44px;cursor:pointer}.vc188 .vc-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.vc188 .vc-correct{color:var(--cl-green,#277540)}.vc188 .vc-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.vc188 .vc-grid{grid-template-columns:1fr}}';doc.head.append(style);}
+ root.append(el('h3',{},'从一组标签，到可以逐项核对的 VC 证明'),el('p',{},'逐一检查至多八个点的所有标签。可以实现的标签给出见证；无法实现的标签给出次序矛盾或凸包相交证据。再检查 Sauer 递推和独立交换。'));
+ const presets=el('div',{class:'vc-row','aria-label':'教学预设'});for(const p of PRESETS){const b=el('button',{type:'button','data-preset':p.id},p.name);b.onclick=()=>{c=config(p.parameters);valid=true;sync();reset();};presets.append(b);}root.append(presets);
+ const fields={},outs={},grid=el('div',{class:'vc-grid'});
 
-  function intervalPatterns(size) {
-    var patterns = new Set(["0".repeat(size)]);
-    for (var first = 0; first < size; first += 1) {
-      for (var last = first; last < size; last += 1) {
-        var bits = [];
-        for (var index = 0; index < size; index += 1) bits.push(index >= first && index <= last ? "1" : "0");
-        patterns.add(bits.join(""));
-      }
-    }
-    return Array.from(patterns).sort();
-  }
+ for(const[key,title,options]of [['model','假设类',MODEL_NAMES],['geometry','平面点配置（只影响半空间）',GEOMETRY_NAMES]]){const label=el('label',{},title),out=el('output'),input=el('select',{'data-field':key,'aria-label':title});for(const[value,name]of Object.entries(options))input.append(el('option',{value},name));label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.onchange=()=>change(key);}
+ for(const[key,title,min,max,type]of [['pointCount','实验点数 n（减少时保留前 n 个标签）',1,8,'range'],['targetMask','目标标签编号（最低位对应 x0）',0,255,'number'],['deleteIndex','Sauer 删除的点编号',0,7,'number'],['pairCount','固定双样本的配对数 m',1,6,'range'],['epsilonPercent','偏差 ε（百分数）',5,90,'range'],['boundSampleCount','统计界的训练样本量 M',1,1000,'number']]){const label=el('label',{},title),out=el('output'),input=el('input',{type,min,max,step:1,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.oninput=input.onchange=()=>change(key);}root.append(grid);
+ function change(key){try{const values=Object.fromEntries(Object.entries(fields).map(([k,e])=>[k,k==='model'||k==='geometry'?e.value:e.value===''?NaN:Number(e.value)]));if(key==='pointCount'&&Number.isInteger(values.pointCount)&&values.pointCount>=1&&values.pointCount<=8){values.targetMask=c.targetMask&(2**values.pointCount-1);values.deleteIndex=Math.min(c.deleteIndex,values.pointCount-1);}c=config(values);valid=true;sync();reset();}catch(e){valid=false;reset();status.textContent='参数须为标示范围内的整数；目标编号与删除位置须适合当前点数。请修正后再核对。';}}
 
-  function patternsFor(config) {
-    var size = config.points.length;
-    if (config.model === "threshold") return thresholdPatterns(size);
-    if (config.model === "interval") return intervalPatterns(size);
-    if (config.id === "halfspace-three") return allLabels(size);
-    if (config.id === "halfspace-four") return allLabels(size).filter(function (label) { return label !== "1010" && label !== "0101"; });
-    throw new Error("unknown fixed halfspace configuration");
-  }
+ const note=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(note,prediction);prediction.append(el('h4',{},'先预测：量词、递推、零维与条件概率'),el('p',{},'四题的条件固定写在题干里；参数用来检查例子，不自动改变问题。'));
+ const feedbacks=[],buttons=[];QUESTIONS.forEach((q,i)=>{const row=el('div',{class:'vc-pred'});row.append(el('strong',{},q[0]));buttons[i]=[];q[1].forEach((text,j)=>{const b=el('button',{type:'button','data-prediction':i,'data-choice':String(j===0),'aria-pressed':'false'},text);b.onclick=()=>{choices[i]=j;buttons[i].forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));if(revealed)showFeedback();};row.append(b);buttons[i].push(b);});feedbacks[i]=el('p',{class:'vc-feedback','data-feedback':i});row.append(feedbacks[i]);prediction.append(row);});
+ const check=el('button',{type:'button','data-check':''},'核对预测并显示完整结果'),status=el('p',{class:'vc-status','aria-live':'polite'});root.append(check,status);
+ const stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),summary=el('p'),plotButtons=el('div',{class:'vc-row'}),plotWrap=el('div',{class:'vc-scroll',tabindex:0,role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'几何图两轴按各自范围缩放，直线和凸包关系仍保持，视觉角度不代表真实夹角。其余点数/样本量均取整数，连线仅帮助读图。交换分布条件于固定双样本；总体界另有抽样与可实现前提。'),tableHost=el('div'),download=el('a',{'data-download':'',download:'vc-record.json'},'下载当前完整记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);
+ function sync(){fields.targetMask.max=2**c.pointCount-1;fields.deleteIndex.max=c.pointCount-1;for(const[k,e]of Object.entries(fields))e.value=c[k];fields.geometry.disabled=c.model!=='halfspace';}
+ function reset(){revealed=false;choices={};stage.hidden=true;delete root.__vcSnapshot;for(let i=0;i<4;i++){feedbacks[i].textContent='';for(const b of buttons[i])b.setAttribute('aria-pressed','false');}for(const[k,o]of Object.entries(outs))o.textContent=k==='model'?MODEL_NAMES[c[k]]:k==='geometry'?GEOMETRY_NAMES[c[k]]:fmt(c[k]);note.textContent='n 是几何实验点数，m 是固定配对数，M 才是统计界的训练样本量。降低 n 时仅保留前 n 位标签，删除位置移到合法范围内。非半空间类使用按序排列的一维点。目标标签只用于有限配置实验，不指定未知总体分布。';status.textContent='完成四项预测后显示当前结果。';}
+ function showFeedback(){let n=0;for(let i=0;i<4;i++){if(!Number.isInteger(choices[i]))continue;const f=feedback(i,choices[i]);n+=+f.correct;feedbacks[i].textContent=f.text;feedbacks[i].className='vc-feedback '+(f.correct?'vc-correct':'vc-wrong');}status.textContent='预测核对：'+n+'/4 正确。图、表和下载均对应当前参数。';}
+ function draw(){const ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+ function render(){current=compute(c);root.__vcSnapshot=current;stage.hidden=false;summary.textContent='本配置实现 '+current.patterns.length+'/'+2**c.pointCount+' 种标签；本配置子集的最大打散数 '+current.localDimension+'，该假设类的全局 VC 维 '+current.globalDimension+'。当前标签'+(current.selectedTarget.feasible?'可以实现':'不能实现')+'。删除 x'+c.deleteIndex+'：'+current.selectedDeletion.unionCount+' + '+current.selectedDeletion.intersectionCount+' = '+current.selectedDeletion.total+'。固定配对交换的精确尾概率 '+fmt(current.swap.failureProbability)+'；在 M='+c.boundSampleCount+' 时，统一偏差充分上界 '+fmt(current.bound.uniformBound)+'。';plotButtons.replaceChildren();plots(current).forEach((p,i)=>{const b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();for(const t of tables(current)){const d=el('details',{'data-table':t.key});d.append(el('summary',{},t.title));d.addEventListener('toggle',()=>{if(!d.open||d.children.length>1)return;const wrap=el('div',{class:'vc-scroll',tabindex:0,role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),thead=el('thead'),tr=el('tr'),tbody=el('tbody');for(const h of t.headers)tr.append(el('th',{scope:'col'},h));thead.append(tr);for(const row of t.rows){const r=el('tr');for(const v of row)r.append(el('td',{},fmt(v)));tbody.append(r);}table.append(thead,tbody);wrap.append(table);d.append(wrap);});tableHost.append(d);}if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current)],{type:'application/json'}));download.href=url;showFeedback();}
+ check.onclick=()=>{if(!valid){status.textContent='请先修正无效参数。';return;}if(![0,1,2,3].every(i=>Number.isInteger(choices[i]))){status.textContent='请先为四个问题各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
+}
 
-  function getConfig(id) {
-    return CONFIGS.filter(function (config) { return config.id === id; })[0];
-  }
-
-  function isRealizable(config, target) { return patternsFor(config).indexOf(target) !== -1; }
-
-  function thresholdWitness(points, target) {
-    if (thresholdPatterns(points.length).indexOf(target) === -1) return null;
-    var firstOne = target.indexOf("1");
-    var threshold;
-    if (firstOne === -1) threshold = points[points.length - 1] + 0.5;
-    else if (firstOne === 0) threshold = points[0] - 0.5;
-    else threshold = (points[firstOne - 1] + points[firstOne]) / 2;
-    return { kind: "threshold", threshold: threshold };
-  }
-
-  function intervalWitness(points, target) {
-    if (intervalPatterns(points.length).indexOf(target) === -1) return null;
-    var first = target.indexOf("1"), last = target.lastIndexOf("1");
-    if (first === -1) return { kind: "interval", empty: true };
-    var left = first === 0 ? points[0] - 0.5 : (points[first - 1] + points[first]) / 2;
-    var right = last === points.length - 1 ? points[last] + 0.5 : (points[last] + points[last + 1]) / 2;
-    return { kind: "interval", left: left, right: right, empty: false };
-  }
-
-  function classifyHalfspace(points, witness) {
-    return points.map(function (point) {
-      return witness.wx * point[0] + witness.wy * point[1] >= witness.threshold ? "1" : "0";
-    }).join("");
-  }
-
-  function findHalfspace(points, target) {
-    for (var step = 0; step < 1440; step += 1) {
-      var angle = 2 * Math.PI * step / 1440;
-      var wx = Math.cos(angle), wy = Math.sin(angle);
-      var projections = points.map(function (point) { return wx * point[0] + wy * point[1]; }).sort(function (a, b) { return a - b; });
-      var unique = projections.filter(function (value, index) { return index === 0 || Math.abs(value - projections[index - 1]) > 1e-9; });
-      var cuts = [unique[0] - 1];
-      for (var index = 0; index < unique.length - 1; index += 1) cuts.push((unique[index] + unique[index + 1]) / 2);
-      cuts.push(unique[unique.length - 1] + 1);
-      for (var cutIndex = 0; cutIndex < cuts.length; cutIndex += 1) {
-        var witness = { kind: "halfspace", wx: wx, wy: wy, threshold: cuts[cutIndex] };
-        if (classifyHalfspace(points, witness) === target) return witness;
-      }
-    }
-    return null;
-  }
-
-  function witnessFor(config, target) {
-    if (config.model === "threshold") return thresholdWitness(config.points, target);
-    if (config.model === "interval") return intervalWitness(config.points, target);
-    return findHalfspace(config.points, target);
-  }
-
-  function selfTest() {
-    var checks = 0;
-    function check(condition, message) { checks += 1; if (!condition) throw new Error(message); }
-    check(thresholdPatterns(1).join(",") === "0,1", "threshold one patterns");
-    check(thresholdPatterns(2).join(",") === "00,01,11", "threshold two patterns");
-    check(intervalPatterns(2).join(",") === "00,01,10,11", "interval two patterns");
-    check(intervalPatterns(3).length === 7 && intervalPatterns(3).indexOf("101") === -1, "interval three misses alternating");
-    var expectedCounts = [2, 3, 4, 7, 8, 14];
-    CONFIGS.forEach(function (config, index) {
-      var patterns = patternsFor(config);
-      check(patterns.length === expectedCounts[index], config.id + " behavior count");
-      check(new Set(patterns).size === patterns.length, config.id + " unique patterns");
-      patterns.forEach(function (target) {
-        var witness = witnessFor(config, target);
-        check(witness !== null, config.id + " witness for " + target);
-        if (config.model === "halfspace") check(classifyHalfspace(config.points, witness) === target, config.id + " witness classifies " + target);
-      });
-    });
-    var square = getConfig("halfspace-four");
-    check(!isRealizable(square, "1010") && !isRealizable(square, "0101"), "square XOR pair missing");
-    check(findHalfspace(square.points, "1010") === null, "XOR has no separator");
-    var triangle = getConfig("halfspace-three");
-    check(patternsFor(triangle).length === Math.pow(2, triangle.points.length), "triangle shattered");
-    return { checks: checks, configs: CONFIGS.length };
-  }
-
-  function element(doc, tag, className, value) {
-    var node = doc.createElement(tag);
-    if (className) node.className = className;
-    if (value !== undefined) node.textContent = value;
-    return node;
-  }
-
-  function svgNode(doc, tag, attrs, value) {
-    var node = doc.createElementNS(SVG_NS, tag);
-    Object.keys(attrs || {}).forEach(function (key) { node.setAttribute(key, String(attrs[key])); });
-    if (value !== undefined) node.textContent = value;
-    return node;
-  }
-
-  function installStyles(doc) {
-    if (doc.getElementById(STYLE_ID)) return;
-    var style = element(doc, "style"); style.id = STYLE_ID; style.textContent = STYLE_TEXT; doc.head.appendChild(style);
-  }
-
-  function modelLabel(model) {
-    return model === "threshold" ? "1D 后缀阈值" : model === "interval" ? "1D 单区间" : "R² 仿射半空间";
-  }
-
-  function metric(doc, label, value) {
-    var item = element(doc, "div", "vcs-metric");
-    item.appendChild(element(doc, "span", "", label));
-    item.appendChild(element(doc, "strong", "", value));
-    return item;
-  }
-
-  function oneDimensionalSvg(doc, config, target, witness, revealed) {
-    var svg = svgNode(doc, "svg", { viewBox: "0 0 600 270", role: "img", "aria-label": "数轴上的标签与分类器见证" });
-    svg.appendChild(svgNode(doc, "title", {}, "一维固定点集标签账本"));
-    var points = config.points, min = Math.min.apply(null, points) - 1, max = Math.max.apply(null, points) + 1;
-    if (points.length === 1) { min = -1; max = 1; }
-    var mapX = function (value) { return 55 + (value - min) / (max - min) * 490; };
-    var y = 145;
-    if (revealed && witness) {
-      if (witness.kind === "threshold") {
-        var boundaryX = mapX(witness.threshold);
-        svg.appendChild(svgNode(doc, "rect", { x: boundaryX, y: 45, width: Math.max(0, 545 - boundaryX), height: 150, class: "vcs-region" }));
-        svg.appendChild(svgNode(doc, "line", { x1: boundaryX, y1: 40, x2: boundaryX, y2: 205, class: "vcs-boundary" }));
-      } else if (!witness.empty) {
-        var left = mapX(witness.left), right = mapX(witness.right);
-        svg.appendChild(svgNode(doc, "rect", { x: left, y: 45, width: right - left, height: 150, class: "vcs-region" }));
-        svg.appendChild(svgNode(doc, "line", { x1: left, y1: 40, x2: left, y2: 205, class: "vcs-boundary" }));
-        svg.appendChild(svgNode(doc, "line", { x1: right, y1: 40, x2: right, y2: 205, class: "vcs-boundary" }));
-      } else {
-        svg.appendChild(svgNode(doc, "text", { x: 300, y: 65, "text-anchor": "middle", "font-size": 12 }, "空区间实现全 0"));
-      }
-    }
-    svg.appendChild(svgNode(doc, "line", { x1: 55, y1: y, x2: 545, y2: y, class: "vcs-axis" }));
-    points.forEach(function (point, index) {
-      var x = mapX(point), bit = target.charAt(index);
-      svg.appendChild(svgNode(doc, "circle", { cx: x, cy: y, r: 17, class: "vcs-point " + (bit === "1" ? "vcs-one" : "vcs-zero") }));
-      svg.appendChild(svgNode(doc, "text", { x: x, y: y + 5, "text-anchor": "middle", "font-size": 13, "font-weight": 800 }, bit));
-      svg.appendChild(svgNode(doc, "text", { x: x, y: y + 38, "text-anchor": "middle", "font-size": 11 }, "x" + (index + 1) + "=" + point));
-    });
-    svg.appendChild(svgNode(doc, "text", { x: 55, y: 24, "font-size": 12, "font-weight": 700 }, revealed ? (witness ? "蓝色区域预测为 1" : "该目标没有类别内见证") : "预测阶段：只显示点与目标标签"));
-    return svg;
-  }
-
-  function twoDimensionalSvg(doc, config, target, witness, revealed) {
-    var svg = svgNode(doc, "svg", { viewBox: "0 0 600 360", role: "img", "aria-label": "平面点集标签与线性可分见证" });
-    svg.appendChild(svgNode(doc, "title", {}, "二维仿射半空间标签账本"));
-    var mapX = function (value) { return 300 + value * 125; }, mapY = function (value) { return 185 - value * 125; };
-    svg.appendChild(svgNode(doc, "line", { x1: 70, y1: mapY(0), x2: 530, y2: mapY(0), class: "vcs-axis" }));
-    svg.appendChild(svgNode(doc, "line", { x1: mapX(0), y1: 30, x2: mapX(0), y2: 330, class: "vcs-axis" }));
-    if (revealed && witness) {
-      var baseX = witness.threshold * witness.wx, baseY = witness.threshold * witness.wy;
-      var dx = -witness.wy * 3, dy = witness.wx * 3;
-      svg.appendChild(svgNode(doc, "line", { x1: mapX(baseX - dx), y1: mapY(baseY - dy), x2: mapX(baseX + dx), y2: mapY(baseY + dy), class: "vcs-boundary" }));
-    }
-    if (revealed && !witness && config.id === "halfspace-four") {
-      [[0, 2], [1, 3]].forEach(function (pair) {
-        svg.appendChild(svgNode(doc, "line", { x1: mapX(config.points[pair[0]][0]), y1: mapY(config.points[pair[0]][1]), x2: mapX(config.points[pair[1]][0]), y2: mapY(config.points[pair[1]][1]), class: "vcs-conflict" }));
-      });
-    }
-    config.points.forEach(function (point, index) {
-      var bit = target.charAt(index), x = mapX(point[0]), y = mapY(point[1]);
-      svg.appendChild(svgNode(doc, "circle", { cx: x, cy: y, r: 17, class: "vcs-point " + (bit === "1" ? "vcs-one" : "vcs-zero") }));
-      svg.appendChild(svgNode(doc, "text", { x: x, y: y + 5, "text-anchor": "middle", "font-size": 13, "font-weight": 800 }, bit));
-      svg.appendChild(svgNode(doc, "text", { x: x + 22, y: y - 19, "font-size": 10 }, "x" + (index + 1)));
-    });
-    svg.appendChild(svgNode(doc, "text", { x: 70, y: 22, "font-size": 12, "font-weight": 700 }, revealed ? (witness ? "蓝虚线是一条严格分离见证" : "红虚线凸包相交：没有仿射分离线") : "预测阶段：只显示点与目标标签"));
-    return svg;
-  }
-
-  function configurationSvg(doc, config, target, witness, revealed) {
-    return config.model === "halfspace" ? twoDimensionalSvg(doc, config, target, witness, revealed) : oneDimensionalSvg(doc, config, target, witness, revealed);
-  }
-
-  function mount(root, api) {
-    var doc = root.ownerDocument;
-    installStyles(doc);
-    var config = getConfig("interval-three"), target = config.target, prediction = null, revealed = false;
-    var shell = element(doc, "div", "vcs-lab");
-    shell.appendChild(element(doc, "p", "vcs-note", "标签串按点的显示顺序读取。先选配置与目标，再判断这个固定目标能否由当前类别实现。"));
-    var presets = element(doc, "div", "vcs-presets"), presetButtons = [];
-    CONFIGS.forEach(function (item) {
-      var button = element(doc, "button", "", item.label); button.type = "button";
-      button.addEventListener("click", function () { config = item; target = item.target; prediction = null; revealed = false; rebuildTargets(); render(); });
-      presetButtons.push({ id: item.id, node: button }); presets.appendChild(button);
-    });
-    shell.appendChild(presets);
-    var targets = element(doc, "div", "vcs-targets"); shell.appendChild(targets);
-    var predict = element(doc, "div", "vcs-predict"); predict.appendChild(element(doc, "strong", "", "先预测：目标标签能否实现？"));
-    var choices = element(doc, "div", "vcs-choice"), choiceButtons = [];
-    [["yes", "可实现"], ["no", "不可实现"]].forEach(function (item) {
-      var button = element(doc, "button", "", item[1]); button.type = "button";
-      button.addEventListener("click", function () { prediction = item[0]; renderPrediction(); });
-      choiceButtons.push({ value: item[0], node: button }); choices.appendChild(button);
-    });
-    predict.appendChild(choices);
-    var actions = element(doc, "div", "vcs-actions");
-    var checkButton = element(doc, "button", "cl-primary", "揭示账本"), resetButton = element(doc, "button", "", "重置本配置");
-    checkButton.type = resetButton.type = "button"; actions.appendChild(checkButton); actions.appendChild(resetButton); predict.appendChild(actions);
-    var feedback = element(doc, "p", "vcs-feedback", "先选可实现或不可实现。"), results = element(doc, "div"); results.hidden = true;
-    predict.appendChild(feedback); shell.appendChild(predict); shell.appendChild(results); root.replaceChildren(shell);
-
-    function rebuildTargets() {
-      targets.replaceChildren();
-      allLabels(config.points.length).forEach(function (label) {
-        var button = element(doc, "button", "", label); button.type = "button"; button.setAttribute("aria-label", "目标标签 " + label);
-        button.addEventListener("click", function () { target = label; prediction = null; revealed = false; render(); });
-        button.setAttribute("aria-pressed", target === label ? "true" : "false"); targets.appendChild(button);
-      });
-    }
-    function renderPrediction() { choiceButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", prediction === item.value ? "true" : "false"); }); }
-    checkButton.addEventListener("click", function () {
-      if (!prediction) { feedback.textContent = "请先作出可实现性预测。"; feedback.className = "vcs-feedback vcs-warn"; return; }
-      revealed = true; render();
-    });
-    resetButton.addEventListener("click", function () { target = config.target; prediction = null; revealed = false; rebuildTargets(); render(); });
-    function render() {
-      presetButtons.forEach(function (item) { item.node.setAttribute("aria-pressed", config.id === item.id ? "true" : "false"); });
-      Array.prototype.forEach.call(targets.children, function (button) { button.setAttribute("aria-pressed", button.textContent === target ? "true" : "false"); });
-      renderPrediction();
-      if (!revealed) { results.hidden = true; feedback.textContent = prediction ? "预测已记录，点击“揭示账本”。" : "先选可实现或不可实现。"; feedback.className = "vcs-feedback"; return; }
-      var patterns = patternsFor(config), realizable = patterns.indexOf(target) !== -1, witness = witnessFor(config, target), correct = prediction === (realizable ? "yes" : "no");
-      feedback.textContent = (correct ? "预测命中。" : "请按类别允许的标签形状复盘。") + " 目标 " + target + (realizable ? " 可实现。" : " 不可实现。");
-      feedback.className = "vcs-feedback " + (correct ? "vcs-pass" : "vcs-warn"); if (api && api.announce) api.announce(root, feedback.textContent);
-      results.hidden = false; results.replaceChildren(); var metrics = element(doc, "div", "vcs-metrics");
-      metrics.appendChild(metric(doc, "假设类", modelLabel(config.model)));
-      metrics.appendChild(metric(doc, "固定点数 m", String(config.points.length)));
-      metrics.appendChild(metric(doc, "当前目标", target));
-      metrics.appendChild(metric(doc, "目标状态", realizable ? "可实现" : "缺失"));
-      metrics.appendChild(metric(doc, "固定配置行为数", patterns.length + " / " + Math.pow(2, config.points.length)));
-      metrics.appendChild(metric(doc, "量词读法", patterns.length === Math.pow(2, config.points.length) ? "该配置给出 VC 下界" : "只说明该配置未打散"));
-      results.appendChild(metrics); results.appendChild(configurationSvg(doc, config, target, witness, true));
-      var patternGrid = element(doc, "div", "vcs-patterns");
-      allLabels(config.points.length).forEach(function (label) { patternGrid.appendChild(element(doc, "span", "vcs-pattern " + (patterns.indexOf(label) !== -1 ? "vcs-realized" : "vcs-missing"), label)); });
-      results.appendChild(patternGrid);
-      results.appendChild(element(doc, "p", "vcs-note", patterns.length === Math.pow(2, config.points.length) ? "这个具体配置被打散，所以提供 VC 维至少为 m 的存在性证据。" : "红色下划线是这个配置缺失的标签。要推出 VC 维小于 m，还必须证明每一个 m 点配置都至少缺一种标签；单个失败配置不够。"));
-    }
-    rebuildTargets(); render();
-  }
-
-  var exported = { CONFIGS: CONFIGS, allLabels: allLabels, thresholdPatterns: thresholdPatterns, intervalPatterns: intervalPatterns, patternsFor: patternsFor, isRealizable: isRealizable, witnessFor: witnessFor, findHalfspace: findHalfspace, classifyHalfspace: classifyHalfspace, selfTest: selfTest };
-  if (typeof module !== "undefined" && module.exports) module.exports = exported;
-  if (host && host.CourseLearning && typeof host.CourseLearning.register === "function") host.CourseLearning.register("vc-shattering", mount);
-  if (typeof module !== "undefined" && module.exports && typeof require !== "undefined" && require.main === module) {
-    try { var report = selfTest(); console.log("vc-shattering self-test: PASS (" + report.checks + " checks, " + report.configs + " configs)"); }
-    catch (error) { console.error("vc-shattering self-test: FAIL\n" + error.stack); process.exitCode = 1; }
-  }
-})(typeof window !== "undefined" ? window : null);
+function selfTest(){let checks=0;const ok=x=>{checks++;if(!x)throw Error('VC invariant '+checks);};for(const p of PRESETS){const s=compute(p.parameters);ok(plots(s).length===6);ok(tables(s).length===11);ok(s.patterns.length<=core.growth(s.parameters.pointCount,s.parameters.model));ok(s.localDimension<=s.globalDimension);for(const r of s.geometry.records){ok(r.feasible===!!r.witness);ok(r.feasible===!r.obstruction);}for(const d of s.deletions){ok(d.total===d.unionCount+d.intersectionCount);ok(d.unionDimension<=s.localDimension);ok(d.intersectionDimension<=s.localDimension-1);}ok(s.swap.distribution.reduce((n,r)=>n+r.count,0)===s.swap.denominator);ok(s.swap.failureProbability<=s.swap.conditionalBound+1e-14);for(const r of s.growthRows){ok(r.growth<=r.sauer);ok(r.sauer<=r.allLabels);}for(let i=0;i<4;i++)ok(feedback(i,QUESTIONS[i][2]).correct);}return {status:'PASS',checks};}
+const API={...core,PRESETS,QUESTIONS,swaps,boundAt,compute,snapshot:compute,plots,tables,svg,feedback,fmt,mount,selfTest};if(typeof module!=="undefined"&&module.exports)module.exports=API;if(hostWindow&&hostWindow.CourseLearning)hostWindow.CourseLearning.register("vc-shattering",mount);})(typeof window!=="undefined"?window:null);
