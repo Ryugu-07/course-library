@@ -56,147 +56,285 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-13 07:14</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：先预测相位，后打开概率账本</a></li>
-<li><a href="#pp-neutrino-learning-title">1. 预测门：L/E、混合角和相干性各负责什么？</a><ul>
-<li><a href="#2">2. 最小模型：两个基底的同一态</a></li>
-<li><a href="#3">3. 相对相位的推导</a></li>
-<li><a href="#4-javascript">4. 无 JavaScript 时的静态读法</a></li>
-<li><a href="#5">5. 相干性不是一句“看不清”</a></li>
-<li><a href="#6">6. 误区与迁移任务</a></li>
-</ul>
-</li>
-<li><a href="#1">1. 两种标签：味与质量</a></li>
-<li><a href="#2_1">2. 从干涉得到转换概率</a></li>
-<li><a href="#3_1">3. 相干长度与实验平均</a></li>
-<li><a href="#4-hamiltonian">4. 物质效应：传播环境也进入 Hamiltonian</a></li>
-<li><a href="#5-pmns">5. 三味 PMNS 与仍待回答的问题</a></li>
-<li><a href="#6_1">6. 例题与小结</a></li>
+<li><a href="#neutrino198-title">先抓住一件事：传播本征态与探测标签没有对齐</a></li>
+<li><a href="#1-ckmpmns">1. 味标签从哪里来：先分清CKM与PMNS</a></li>
+<li><a href="#2">2. 味态、质量态和那个不能漏掉的复共轭</a></li>
+<li><a href="#3">3. 两味推导：混合角管振幅，相对相位管峰谷</a></li>
+<li><a href="#4-pmns">4. 三味PMNS：把三个旋转真正乘出来</a></li>
+<li><a href="#5-hamiltonian">5. 恒定物质：改变Hamiltonian，而不是额外“随机变味”</a></li>
+<li><a href="#6-msw">6. 两味MSW：最大混合不保证当前基线完全转换</a></li>
+<li><a href="#7-cp">7. CP比较：先问环境是否也被共轭</a></li>
+<li><a href="#8-majorana">8. 绝对质量与Majorana相位：两个“不敏感”要算清</a></li>
+<li><a href="#9">9. 能谱平均：每条通道保持相干，合起来仍可成为混合</a></li>
+<li><a href="#10">10. 六张图怎样读：防止采样制造假物理</a></li>
+<li><a href="#11">11. 从概率到事件：实验真正计数的是什么</a></li>
+<li><a href="#12">12. 向前沿延伸：每一个问题需要什么新增证据</a></li>
 </ul>
 </div>
 </details>
 <h1 id="iv">粒子 IV · 味、混合与中微子振荡<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Griffiths <em>Introduction to Elementary Particles</em> / Giunti &amp; Kim ｜ <strong>前置</strong>：pp-01（费米子与规范荷）、pp-02（质量来源）、qm-01/04（态矢与相位）
-中微子在产生和探测时被标成 <span class="arithmatex">\(\nu_e,\nu_\mu,\nu_\tau\)</span>，传播时却可能在另一个味道被找到。这里的“振荡”不是粒子在三种颜色之间机械摇摆，而是<strong>味基与质量基不对齐，传播相位因此积累相对差</strong>。先算相位，再谈解释，能把观测和模型推断放在同一张账上。</p>
+<p><strong>前置</strong>：<a href="qm-01-framework.html">量子态与测量</a>、<a href="pp-02-electroweak.html">电弱质量与中性流</a>、<a href="pp-03-qcd-hadrons.html">QCD与强子</a>。本页把线性代数中的换基、量子相位和实际事件率接在一起：能算出概率，也要知道概率究竟对应什么测量。</p>
+<p><strong>完成后你应能</strong>：从两个基底推导振荡；用完整三味矩阵计算真空和恒定物质传播；区分内禀CP效应、环境差异与能谱平均；说明为什么振荡不足以单独确定绝对质量或Majorana性质。</p>
 </blockquote>
 <div data-learning-page></div>
 
-<section aria-labelledby="pp-neutrino-learning-title" class="learning-layer">
-<h2 id="_1">学习层：先预测相位，后打开概率账本<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h2 id="pp-neutrino-learning-title">1. 预测门：L/E、混合角和相干性各负责什么？<a class="headerlink" href="#pp-neutrino-learning-title" title="Permanent link"></a></h2>
-<p>在真空两味 toy 中，先不要背“中微子会变味”。给定能量 <span class="arithmatex">\(E\)</span>、基线 <span class="arithmatex">\(L\)</span>、质量平方差 <span class="arithmatex">\(\Delta m^2\)</span>、混合角 <span class="arithmatex">\(\theta\)</span> 和相干长度 <span class="arithmatex">\(L_{\rm coh}\)</span>，先回答：</p>
-<ol>
-<li>固定 <span class="arithmatex">\(E,\Delta m^2\)</span> 增大 <span class="arithmatex">\(L\)</span>，概率会单调增加还是相位继续振荡？</li>
-<li><span class="arithmatex">\(\theta=0\)</span> 时，传播很远是否仍会出现异味？</li>
-<li>若波包不再重叠，峰谷会消失为 0，还是趋向一个由混合角决定的平均值？</li>
-</ol>
-<p>实验里的红点是当前参数；金色虚线是理想相干传播，蓝色实线加入了一个显式可见度 <span class="arithmatex">\(V(L)\)</span>，绿色虚线是完全失相干的平均值。这个分层很重要：曲线是模型输出，不是把“看到一条波”当成观测本身。</p>
-<h3 id="2">2. 最小模型：两个基底的同一态<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<p>味态是弱作用顶点产生/探测的标签，质量态是自由传播的本征态。两味旋转约定为</p>
+<section aria-labelledby="neutrino198-title" class="learning-layer neutrino198-course">
+<h2 id="neutrino198-title">先抓住一件事：传播本征态与探测标签没有对齐<a class="headerlink" href="#neutrino198-title" title="Permanent link"></a></h2>
+<p>想象一个量子态在能量本征基里有几个分量。传播时每个分量只转动自己的复相位；探测器却用另一套基底提问。不同分量重新相加时，增强或抵消的位置随距离变化。中微子的“变味”就是这种干涉，不是沿途把某个内部小球依次换成另一种小球。</p>
+<p>先读第1至4节并手算两味例子，再用第5至8节看三味与物质。第9至12节把能谱、数值读图和实际推断分开。实验中的所有数值均为明确设置的教学参数，不是某次全球拟合的最佳值。</p>
+<h2 id="1-ckmpmns">1. 味标签从哪里来：先分清CKM与PMNS<a class="headerlink" href="#1-ckmpmns" title="Permanent link"></a></h2>
+<p>带电流弱作用把带电轻子与中微子联系起来。若产生或探测顶点伴随电子、缪子或陶轻子，我们分别称为电子味、缪子味或陶味，记作 <span class="arithmatex">\(\nu_e,\nu_\mu,\nu_\tau\)</span>。味是这个相互作用的标签；自由传播按质量本征态 <span class="arithmatex">\(\nu_1,\nu_2,\nu_3\)</span> 展开。两套标签都在描述同一量子态。</p>
+<p>为什么会有两套不一致的基底？Dirac质量矩阵通过左右幺正变换被对角化，而同一个弱双重态的两个成员一般需要不同的左手变换。这里约定弱基场 <span class="arithmatex">\(f_L^{\rm weak}=V_{fL}f_L^{\rm mass}\)</span>；Majorana质量用相应的幺正合同变换对角化，左手场的基底关系仍可如此定义。两次变换的相对矩阵留在带电流顶点中。夸克部分为 <span class="arithmatex">\(V_{\rm CKM}=V_{uL}^\dagger V_{dL}\)</span>；轻子部分为 <span class="arithmatex">\(U_{\rm PMNS}=V_{\ell L}^\dagger V_{\nu L}\)</span>。例如夸克的带电流含 <span class="arithmatex">\(\bar u_L\gamma^\mu V_{\rm CKM}d_L W_\mu^+\)</span>，轻子部分含 <span class="arithmatex">\(\bar\ell_L\gamma^\mu U_{\rm PMNS}\nu_L W_\mu^-\)</span>，整体常数和厄米共轭在此略去。若文献把场变换定义成反方向，<span class="arithmatex">\(V_{fL}\)</span>的共轭位置也会改变，实际顶点的内容相同。</p>
+<p>这并不意味着可以照搬本页公式，画出“自由下夸克飞行数百公里后变成奇夸克”的实验。夸克被禁闭在强子中；夸克味物理通过衰变、散射和中性介子混合等过程检验，还依赖强子矩阵元。中性介子的粒子／反粒子混合涉及衰变宽度和有效非厄米演化，也不等于本页的封闭三活性中微子模型。CKM的定义与相位计数可对照 <a href="https://pdg.lbl.gov/2025/reviews/rpp2025-rev-ckm-matrix.pdf">PDG CKM综述第12.1节</a>。</p>
+<p><strong>自己检查：</strong>若两套左手变换完全相同，相对矩阵是什么？若中性流在该味空间正比单位阵，换基会不会凭空产生树级非对角项？</p>
+<details class="answer">
+<summary>详解1：相对变换与中性流的消去</summary>
+<p>若 <span class="arithmatex">\(V_{uL}=V_{dL}=V_L\)</span>，则 <span class="arithmatex">\(V_{\rm CKM}=V_L^\dagger V_L=I\)</span>。这里要求两套变换彼此对齐，而不是要求每一个都等于单位阵。</p>
+<p>若原中性流矩阵为 <span class="arithmatex">\(gI\)</span>，换到质量基后仍是 <span class="arithmatex">\(V_L^\dagger(gI)V_L=gI\)</span>。这个消去需要耦合在该空间中普适且变换幺正。它不宣称所有圈图味改变过程都为零，也不排除扩展模型中的新结构。学会指出恒等式用到的前提，比背一句“中性流不变味”更可靠。</p>
+</details>
+<h2 id="2">2. 味态、质量态和那个不能漏掉的复共轭<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>本页用 <span class="arithmatex">\(U_{\alpha i}\)</span> 表示PMNS矩阵，行标 <span class="arithmatex">\(\alpha=e,\mu,\tau\)</span>，列标 <span class="arithmatex">\(i=1,2,3\)</span>。味态的ket定义为</p>
 <div class="arithmatex">\[
-\begin{pmatrix}|\nu_\alpha\rangle\\|\nu_\beta\rangle\end{pmatrix}
-=\begin{pmatrix}\cos\theta&amp;\sin\theta\\-\sin\theta&amp;\cos\theta\end{pmatrix}
-\begin{pmatrix}|\nu_1\rangle\\|\nu_2\rangle\end{pmatrix}.
+|\nu_\alpha\rangle=\sum_i U_{\alpha i}^*|\nu_i\rangle,\qquad
+\langle\nu_\beta|=\sum_j U_{\beta j}\langle\nu_j|.
 \]</div>
-<p>矩阵是正交/幺正的，所以在只有这两味的封闭模型中总概率守恒；它也告诉我们 <span class="arithmatex">\(\theta=0\)</span> 时两个基底重合，没有转换振幅。</p>
-<h3 id="3">3. 相对相位的推导<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>由味 <span class="arithmatex">\(\alpha\)</span> 产生的态可写成</p>
+<p>复共轭来自态与带电流系数的约定；若只练实两味旋转，它会被“实数的共轭还是自己”掩盖。到了CP相位问题就必须写清。传播振幅是先展开初态、给质量分量加相位、再投影到末态：</p>
 <div class="arithmatex">\[
-|\nu_\alpha(0)\rangle=\cos\theta|\nu_1\rangle+\sin\theta|\nu_2\rangle.
+S_{\beta\alpha}(L)=\langle\nu_\beta|\nu_\alpha(L)\rangle
+=\sum_i U_{\beta i}\exp\!\left[-i\frac{m_i^2L}{2E}\right]U_{\alpha i}^*,
+\qquad P_{\alpha\beta}=|S_{\beta\alpha}|^2.
 \]</div>
-<p>质量态传播一段 <span class="arithmatex">\(L\simeq t\)</span> 后各自带上 <span class="arithmatex">\(e^{-iE_it}\)</span>。对相对论中微子</p>
+<p>此式先用自然单位 <span class="arithmatex">\(\hbar=c=1\)</span>。实验的振幅矩阵 <span class="arithmatex">\(S\)</span> 按“行末味、列初味”保存；概率表为了方便按初味读取，采用“行初味、列末味”。两者的索引方向不同，不要直接把同一位置的数当成对应元素。公式约定可与 <a href="https://pdg.lbl.gov/2025/reviews/rpp2025-rev-neutrino-mixing.pdf">PDG中微子综述式14.35至14.40</a> 核对。</p>
+<p><strong>自己检查：</strong>为什么 <span class="arithmatex">\(L=0\)</span> 时不能还剩一个任意的异味概率？</p>
+<details class="answer">
+<summary>详解2：产生即探测时的概率</summary>
+<p>在 <span class="arithmatex">\(L=0\)</span> 时每个传播相位为1，于是 <span class="arithmatex">\(S(0)=UU^\dagger=I\)</span>。因此 <span class="arithmatex">\(P_{\alpha\beta}(0)=\delta_{\alpha\beta}\)</span>，而不是 <span class="arithmatex">\(|U_{\alpha\beta}|^2\)</span>。混合矩阵只负责两次换基，中间没有相对相位积累时，两次换基正好抵消。</p>
+<p>对任意基线，若演化封闭且厄米，<span class="arithmatex">\(S^\dagger S=I\)</span>，故对固定初味有 <span class="arithmatex">\(\sum_\beta P_{\alpha\beta}=1\)</span>。三维幺正矩阵同时满足 <span class="arithmatex">\(SS^\dagger=I\)</span>，因此概率表的列和也为1。这是本模型的双随机结构，不应强行套到有吸收或未观测额外态的截取概率表。</p>
+</details>
+<h2 id="3">3. 两味推导：混合角管振幅，相对相位管峰谷<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>先取实旋转 <span class="arithmatex">\(U=\begin{pmatrix}c&amp;s\\-s&amp;c\end{pmatrix}\)</span>，其中 <span class="arithmatex">\(c=\cos\theta\)</span>、<span class="arithmatex">\(s=\sin\theta\)</span>。初味 <span class="arithmatex">\(\alpha\)</span> 到末味 <span class="arithmatex">\(\beta\)</span> 的振幅为 <span class="arithmatex">\(cs(e^{-i\phi_2}-e^{-i\phi_1})\)</span>，<span class="arithmatex">\(\phi_i=m_i^2L/(2E)\)</span>。提出共同相位后，剩下两个单位圆上的点之差：</p>
 <div class="arithmatex">\[
-E_i=\sqrt{p^2+m_i^2}\simeq p+\frac{m_i^2}{2E},
+e^{-i\phi_2}-e^{-i\phi_1}
+=-2i\,e^{-i(\phi_1+\phi_2)/2}\sin\frac{\phi_2-\phi_1}{2}.
 \]</div>
-<p>共同的 <span class="arithmatex">\(p\)</span> 相位不影响概率，真正留下的是</p>
+<p>取模平方就得到</p>
 <div class="arithmatex">\[
-\Delta\phi\simeq\frac{\Delta m^2L}{2E\hbar c}.
+P_{\alpha\beta}
+=\sin^2(2\theta)\sin^2\!\left(\frac{\Delta m^2L}{4E}\right),
+\qquad P_{\alpha\alpha}=1-P_{\alpha\beta}.
 \]</div>
-<p>概率中的正弦接收的是这段相对相位的一半。定义 <span class="arithmatex">\(\phi=\Delta\phi/2\)</span>，再把单位换成 <span class="arithmatex">\(\Delta m^2\)</span> / eV<span class="arithmatex">\(^2\)</span>、<span class="arithmatex">\(L\)</span> / km、<span class="arithmatex">\(E\)</span> / GeV，常用近似才是</p>
+<p>所以两个条件缺一不可：有相位差，也要让初态包含不止一个不同相位的传播分量。<span class="arithmatex">\(\theta=0\)</span> 时振幅为零；<span class="arithmatex">\(\Delta m^2=0\)</span> 时相对相位为零。对两味模型，<span class="arithmatex">\(\theta=90^\circ\)</span> 同样没有混合转换，只是交换了标签。</p>
+<p>在本页单位中，<span class="arithmatex">\(L\)</span> 用km，<span class="arithmatex">\(E\)</span> 用GeV，<span class="arithmatex">\(\Delta m^2\)</span> 用eV²。由 <span class="arithmatex">\(\hbar c=0.1973269804\ {\rm GeV\,fm}\)</span> 及 <span class="arithmatex">\(1\ {\rm km}=10^{18}\ {\rm fm}\)</span>、<span class="arithmatex">\(1\ {\rm eV^2}=10^{-18}\ {\rm GeV^2}\)</span>，振幅相位的系数为 <span class="arithmatex">\(\kappa=1/(2\times0.1973269804)\simeq2.53386536\)</span>；概率正弦中的系数是 <span class="arithmatex">\(\kappa/2\simeq1.26693268\)</span>。不要把振幅的相对相位和概率中的半相位混用。</p>
+<p>例如 <span class="arithmatex">\(\theta=33^\circ\)</span>、<span class="arithmatex">\(\Delta m^2=2.5\times10^{-3}\ {\rm eV^2}\)</span>、<span class="arithmatex">\(E=1\ {\rm GeV}\)</span>，首次转换极大满足 <span class="arithmatex">\((\kappa/2)\Delta m^2L/E=\pi/2\)</span>，即 <span class="arithmatex">\(L\simeq495.94\ {\rm km}\)</span>，峰值约为 <span class="arithmatex">\(\sin^266^\circ\simeq0.8346\)</span>。若把系数提前舍入成1.27会得到略有差别的基线；本页计算保留上述统一常数。</p>
+<h2 id="4-pmns">4. 三味PMNS：把三个旋转真正乘出来<a class="headerlink" href="#4-pmns" title="Permanent link"></a></h2>
+<p>记 <span class="arithmatex">\(c_{ij}=\cos\theta_{ij}\)</span>、<span class="arithmatex">\(s_{ij}=\sin\theta_{ij}\)</span>。本页取 <span class="arithmatex">\(U=R_{23}U_{13}(\delta)R_{12}\)</span>，其中13平面的非对角元为 <span class="arithmatex">\(s_{13}e^{-i\delta}\)</span> 和 <span class="arithmatex">\(-s_{13}e^{i\delta}\)</span>。乘积为</p>
 <div class="arithmatex">\[
-\phi=1.27\frac{\Delta m^2(\mathrm{eV^2})L(\mathrm{km})}{E(\mathrm{GeV})}.
+U=\begin{pmatrix}
+c_{12}c_{13}&amp;s_{12}c_{13}&amp;s_{13}e^{-i\delta}\\
+-s_{12}c_{23}-c_{12}s_{23}s_{13}e^{i\delta}
+&amp;c_{12}c_{23}-s_{12}s_{23}s_{13}e^{i\delta}&amp;s_{23}c_{13}\\
+s_{12}s_{23}-c_{12}c_{23}s_{13}e^{i\delta}
+&amp;-c_{12}s_{23}-s_{12}c_{23}s_{13}e^{i\delta}&amp;c_{23}c_{13}
+\end{pmatrix}.
 \]</div>
-<p>振幅来自旋转矩阵，干涉来自相对相位，于是</p>
+<p>三个角不是分别独立决定三个转换概率的旋钮。每个概率都来自同一矩阵多项相加，会同时依赖多个角、质量平方差和相位。实验保存三个旋转、完整 <span class="arithmatex">\(U\)</span>、<span class="arithmatex">\(U^\dagger U\)</span> 和全部九个概率，可检查任意行列，而不仅是屏幕上的三条曲线。</p>
+<p>默认设置为 <span class="arithmatex">\((\theta_{12},\theta_{13},\theta_{23},\delta)=(33^\circ,9^\circ,45^\circ,-90^\circ)\)</span>，相对质量平方为 <span class="arithmatex">\((0,7.5\times10^{-5},2.5\times10^{-3})\ {\rm eV^2}\)</span>。这些是便于比较的示例。改变大质量平方差符号的预设用于研究模型响应，不是对当前实测排序作结论。</p>
+<p><strong>自己检查：</strong>矩阵中有复数是否就证明存在物理CP破坏？怎样构造不依赖行列重定相位的检查量？</p>
+<details class="answer">
+<summary>详解3：复数外观与可观测不变量</summary>
+<p>对 <span class="arithmatex">\(U_{\alpha i}\to e^{ia_\alpha}U_{\alpha i}e^{ib_i}\)</span>，单个元素的相位会改变，但四元积 <span class="arithmatex">\(U_{e1}U_{\mu2}U_{e2}^*U_{\mu1}^*\)</span> 中的行、列相位都抵消。其虚部为</p>
 <div class="arithmatex">\[
-P(\nu_\alpha\to\nu_\beta)=\sin^22\theta\,\sin^2\phi,
-\qquad P(\nu_\alpha\to\nu_\alpha)=1-P(\nu_\alpha\to\nu_\beta).
+J=c_{12}s_{12}c_{23}s_{23}c_{13}^2s_{13}\sin\delta.
 \]</div>
-<p>这同时给出三个可检验的结构：<span class="arithmatex">\(\theta\)</span> 决定上限，<span class="arithmatex">\(\Delta m^2L/E\)</span> 决定相位，<span class="arithmatex">\(\Delta m^2=0\)</span> 或 <span class="arithmatex">\(\theta=0\)</span> 都会抹掉转换。</p>
-<h3 id="4-javascript">4. 无 JavaScript 时的静态读法<a class="headerlink" href="#4-javascript" title="Permanent link"></a></h3>
-<p>默认输入为 <span class="arithmatex">\(\theta=33^\circ\)</span>、<span class="arithmatex">\(\Delta m^2=2.5\times10^{-3}\)</span> eV<span class="arithmatex">\(^2\)</span>、<span class="arithmatex">\(E=1\)</span> GeV、<span class="arithmatex">\(L=500\)</span> km、<span class="arithmatex">\(L_{\rm coh}=1000\)</span> km。于是</p>
+<p>默认 <span class="arithmatex">\(J\simeq-0.0348532\)</span>。若 <span class="arithmatex">\(\theta_{13}=0\)</span>，即使写着 <span class="arithmatex">\(\delta=-90^\circ\)</span>，<span class="arithmatex">\(J\)</span> 也为零，13旋转中的相位已没有作用。三味真空振荡中的CP差异还需要不同质量相位实际积累：<span class="arithmatex">\(J\)</span> 非零并不保证每一个选定的 <span class="arithmatex">\(L/E\)</span> 上差异都非零，某些相位节点处仍可抵消。</p>
+</details>
+<h2 id="5-hamiltonian">5. 恒定物质：改变Hamiltonian，而不是额外“随机变味”<a class="headerlink" href="#5-hamiltonian" title="Permanent link"></a></h2>
+<p>普通、无极化物质中的电子给电子中微子一个相干前向散射势 <span class="arithmatex">\(V_e=\sqrt2G_Fn_e\)</span>。对三个活性味都相同的中性流项只贡献共同相位，在本模型中去掉。令 <span class="arithmatex">\(A=2EV_e\)</span>，则味基中的有效质量平方矩阵为</p>
 <div class="arithmatex">\[
-\phi=1.27\times2.5\times10^{-3}\times500\approx1.5875,
-\quad \sin^22\theta\approx0.834,
+K=U\,{\rm diag}(0,\Delta m_{21}^2,\Delta m_{31}^2)U^\dagger
++{\rm diag}(A,0,0),\qquad
+S=\exp[-i\kappa K L/E].
 \]</div>
-<p>首次极大位置</p>
+<p>这里 <span class="arithmatex">\(K\)</span> 以eV²计，<span class="arithmatex">\(\kappa\)</span> 使用上一节说明的单位约定。电子数密度取 <span class="arithmatex">\(n_e=Y_e\rho/m_u\)</span>，<span class="arithmatex">\(m_u\)</span> 是原子质量单位；实验固定电子比例 <span class="arithmatex">\(Y_e=0.5\)</span>，用舍入后的教学系数 <span class="arithmatex">\(A/{\rm eV^2}=7.632\times10^{-5}[\rho/({\rm g\,cm^{-3}})][E/{\rm GeV}]\)</span>。物质中改变 <span class="arithmatex">\(E\)</span> 会同时改变真空相位尺度和相对物质效应，不能只沿用真空的 <span class="arithmatex">\(L/E\)</span> 比例。</p>
+<p><strong>反中微子需要同时做两件事：</strong><span class="arithmatex">\(U\to U^*\)</span>，<span class="arithmatex">\(A\to-A\)</span>。只把 <span class="arithmatex">\(\delta\)</span> 反号却保留同号物质势，会算出错误的反粒子传播。实验因此同时给出当前、真空、<span class="arithmatex">\(\nu\)</span>物质、反<span class="arithmatex">\(\nu\)</span>物质、<span class="arithmatex">\(\nu\)</span>真空、反<span class="arithmatex">\(\nu\)</span>真空六套矩阵和概率。</p>
+<p><strong>自己检查：</strong>若两项质量平方差都为零，但 <span class="arithmatex">\(\rho&gt;0\)</span>，电子味是否仍会转换成缪子味？</p>
+<details class="answer">
+<summary>详解4：物质相位本身不是异味振幅</summary>
+<p>此时 <span class="arithmatex">\(K={\rm diag}(A,0,0)\)</span>，故 <span class="arithmatex">\(S={\rm diag}(e^{-i\kappa AL/E},1,1)\)</span>。电子分量确实积累了不同相位，但每一个初始味都仍是 <span class="arithmatex">\(K\)</span> 的本征态，所以概率表为单位阵。物质势不是独立于混合结构的随机转味率。</p>
+<p>若三混合角都为零，质量项也已在味基中对角，即使两个质量平方差非零，结论仍一样。这两个预设从不同方向检查同一个机制：对角相位不把单一基矢变成另一个基矢。</p>
+</details>
+<h2 id="6-msw">6. 两味MSW：最大混合不保证当前基线完全转换<a class="headerlink" href="#6-msw" title="Permanent link"></a></h2>
+<p>为了手算，单独令 <span class="arithmatex">\(\theta_{13}=\theta_{23}=0\)</span>，只保留 <span class="arithmatex">\(e,\mu\)</span> 两味块，<span class="arithmatex">\(\theta=\theta_{12}\)</span>、<span class="arithmatex">\(\Delta=\Delta m_{21}^2\)</span>。从该块减掉迹的一半后得到</p>
 <div class="arithmatex">\[
-L_{\rm max}=\frac{\pi E}{2\times1.27\Delta m^2}\approx494.7\ \mathrm{km}.
+K_2-\tfrac12{\rm tr}(K_2)I
+=\frac12\begin{pmatrix}
+A-\Delta\cos2\theta&amp;\Delta\sin2\theta\\
+\Delta\sin2\theta&amp;\Delta\cos2\theta-A
+\end{pmatrix}.
 \]</div>
-<p>若只看完全相干公式，<span class="arithmatex">\(P_{\rm coh}\approx0.834\)</span>。为了把相干性显式写进教学模型，取</p>
+<p>令 <span class="arithmatex">\(d=\Delta\cos2\theta-A\)</span>、<span class="arithmatex">\(b=\Delta\sin2\theta\)</span>，有效本征值差为 <span class="arithmatex">\(\Delta_m=\sqrt{d^2+b^2}\)</span>。当 <span class="arithmatex">\(\Delta_m&gt;0\)</span>，</p>
 <div class="arithmatex">\[
-V(L)=e^{-(L/L_{\rm coh,eff})^2},
-\qquad P_{\rm vis}=\frac12\sin^22\theta[1-V\cos(2\phi)].
+\sin^22\theta_m=\frac{b^2}{d^2+b^2},\qquad
+P_{e\mu}=\sin^22\theta_m
+\sin^2\!\left(\frac{\kappa\Delta_mL}{2E}\right).
 \]</div>
-<p>实验把滑块给出的 <span class="arithmatex">\(L_{\rm coh,ref}\)</span> 解释为在 <span class="arithmatex">\(E_{\rm ref}=1\ \mathrm{GeV}\)</span>、<span class="arithmatex">\(|\Delta m^2_{\rm ref}|=2.5\times10^{-3}\ \mathrm{eV^2}\)</span> 下的参考相干长度，并用波包标度</p>
+<p>非平凡共振要求 <span class="arithmatex">\(d=0\)</span> 且 <span class="arithmatex">\(b\ne0\)</span>；此时混合振幅为1，但第二个正弦仍取决于传播长度。在共振密度里走了零距离，转换概率仍为零。若 <span class="arithmatex">\(b=0\)</span> 且 <span class="arithmatex">\(d=0\)</span>，矩阵完全简并，角度公式成为 <span class="arithmatex">\(0/0\)</span>，实验返回null而不是武断填1；传播只有共同相位，转换为0。</p>
+<p>实验第六图是上述<strong>两味伴随模型</strong>：它另外把两个角置零，不会悄悄改变其余三味图的控件。密度每个采样点都表示一条恒定密度路径；不能把它理解成一次中微子依次经过全部密度。太阳的变化密度、绝热跟随与非绝热跃迁，需要沿路径求解，不能由这张恒定密度图独自推出。</p>
+<h2 id="7-cp">7. CP比较：先问环境是否也被共轭<a class="headerlink" href="#7-cp" title="Permanent link"></a></h2>
+<p>真空中，反中微子的混合矩阵取共轭；在本页封闭模型里可推得 <span class="arithmatex">\(\bar S=S^{\mathsf T}\)</span>，从而 <span class="arithmatex">\(\bar P_{\alpha\beta}=P_{\beta\alpha}\)</span>。三味CP相位可以让相反方向的概率不同。实验第三图固定其余输入，只扫描 <span class="arithmatex">\(\delta\)</span>，同时呈现真空和物质的 <span class="arithmatex">\(\mu\to e\)</span> 概率。</p>
+<p>在普通物质中，<span class="arithmatex">\(\nu\)</span>与反<span class="arithmatex">\(\nu\)</span>受到相反的电子势，环境本身没有随比较一起变成反物质。于是即使 <span class="arithmatex">\(\delta=0\)</span>，两者也可能不同。这里的“物质诱导差异”是模型中的真实传播效应；它会影响CP推断，需要建模分离，不能简单删除。为看清较小的概率差，CP图的纵轴从0开始、上限随当前四组数据最大值调整；跨预设比较时应读坐标数值，不能只比较曲线在屏幕上的高度。</p>
+<p><strong>自己检查：</strong>怎样用预设做一个可复核的对照，而不是看到两条线分开就宣布发现CP破坏？</p>
+<details class="answer">
+<summary>详解5：四组比较及其不能证明的事</summary>
+<p>先选 <span class="arithmatex">\(\delta=0\)</span> 并取 <span class="arithmatex">\(\rho=0\)</span>：矩阵可取实，<span class="arithmatex">\(\nu\)</span>和反<span class="arithmatex">\(\nu\)</span>真空概率相同。保持 <span class="arithmatex">\(\delta=0\)</span> 但恢复密度，若曲线分开，差异由环境项造成。再保持真空并改变 <span class="arithmatex">\(\delta\)</span>，寻找内禀相位造成的响应。最后在物质中同时保留两者，观察组合结果。</p>
+<p>这种受控计算验证的是所写Hamiltonian的逻辑。真实实验不能直接按按钮关闭沿途地球密度，也不能任意设定自然界的 <span class="arithmatex">\(\delta\)</span>；它要联合不同能区、粒子模式和系统误差来反演参数。某个模拟点的概率差不是实验显著性，更不是某个参数已被测定的证据。</p>
+</details>
+<h2 id="8-majorana">8. 绝对质量与Majorana相位：两个“不敏感”要算清<a class="headerlink" href="#8-majorana" title="Permanent link"></a></h2>
+<p>振荡只依赖质量平方差。所有 <span class="arithmatex">\(m_i^2\)</span> 同时加 <span class="arithmatex">\(c\)</span>，<span class="arithmatex">\(K\)</span> 就变为 <span class="arithmatex">\(K+cI\)</span>，演化多出 <span class="arithmatex">\(e^{-i\kappa cL/E}\)</span>，概率不变。因此把相对对角线写成 <span class="arithmatex">\((0,\Delta m_{21}^2,\Delta m_{31}^2)\)</span> 只是减去共同零点；负的 <span class="arithmatex">\(\Delta m_{31}^2\)</span> 不意味着有负的物理质量平方。只需加上足够大的共同正常数，便能让三个绝对平方均非负。</p>
+<p>若 <span class="arithmatex">\(U\)</span> 右乘列相位矩阵 <span class="arithmatex">\(D={\rm diag}(e^{i\eta_1},e^{i\eta_2},e^{i\eta_3})\)</span>，则 <span class="arithmatex">\(UD\,{\rm diag}(m_i^2)D^\dagger U^\dagger=U\,{\rm diag}(m_i^2)U^\dagger\)</span>。因而普通振荡不敏感于这些Majorana列相位。实验实际加上 <span class="arithmatex">\((0,0.37,0.83)\)</span> 弧度的列相位，并把 <span class="arithmatex">\(K\)</span> 共同平移 <span class="arithmatex">\(0.007\ {\rm eV^2}\)</span>，分别重算概率作为两个独立对照。</p>
+<p><strong>自己检查：</strong>既然列相位在振荡中抵消，是否意味着任何中微子观测都不可能依赖它们？</p>
+<details class="answer">
+<summary>详解6：相消取决于振幅的具体结构</summary>
+<p>普通振荡中同一个质量指标的系数配对为 <span class="arithmatex">\(U_{\beta i}U_{\alpha i}^*\)</span>，所以列相位抵消。轻Majorana中微子交换机制的无中微子双β衰变则涉及 <span class="arithmatex">\(m_{\beta\beta}=|\sum_i U_{ei}^2m_i|\)</span>；这里没有那个共轭，列相位可以进入相消。该表达式依赖所假设的衰变机制，事件率还需要核矩阵元等信息。</p>
+<p>反过来，直接质量测量、宇宙学和振荡也不是同一观测。它们对质量组合、背景模型和误差来源的依赖不同。振荡拟合给出的质量平方差不能单独替代这些观测，更不能仅凭本页的概率曲线断言Dirac或Majorana性质。质量模型与双β过程的入门讨论见 <a href="https://davidtong.org/pdfs/teaching/standard-model/standardmodel7.pdf">Tong《标准模型》第7.1节</a>。</p>
+</details>
+<h2 id="9">9. 能谱平均：每条通道保持相干，合起来仍可成为混合<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>对已知能量 <span class="arithmatex">\(E\)</span>、固定初味 <span class="arithmatex">\(\alpha\)</span>，传播后的密度矩阵为 <span class="arithmatex">\(\rho_\alpha(E)=S(E)|\alpha\rangle\langle\alpha|S(E)^\dagger\)</span>。如果只知道能量属于若干通道，概率为 <span class="arithmatex">\(w_j\ge0\)</span>、<span class="arithmatex">\(\sum_jw_j=1\)</span>，忽略该能量标签后的味态是</p>
 <div class="arithmatex">\[
-L_{\rm coh,eff}=L_{\rm coh,ref}
-\left(\frac{E}{E_{\rm ref}}\right)^2
-\frac{|\Delta m^2_{\rm ref}|}{|\Delta m^2|}.
+\bar\rho_\alpha=\sum_jw_j\rho_\alpha(E_j),\qquad
+\bar P_{\alpha\beta}=(\bar\rho_\alpha)_{\beta\beta}
+=\sum_jw_jP_{\alpha\beta}(E_j).
 \]</div>
-<p>因此 <span class="arithmatex">\(\Delta m^2\to0\)</span> 时 <span class="arithmatex">\(L_{\rm coh,eff}\to\infty\)</span>、<span class="arithmatex">\(V\to1\)</span>，不会凭空留下失相干转换。默认点恰好有 <span class="arithmatex">\(L_{\rm coh,eff}=1000\ \mathrm{km}\)</span>，故 <span class="arithmatex">\(V=e^{-0.25}\approx0.779\)</span>，所以 <span class="arithmatex">\(P_{\rm vis}\approx0.742\)</span>；完全失相干时 <span class="arithmatex">\(P_{\rm avg}=\frac12\sin^22\theta\approx0.417\)</span>。这些数由实验的同一公式生成；改变能量、质量差或参考相干长度后，不应继续引用默认的 <span class="arithmatex">\(0.742\)</span>。</p>
+<p>实验精确定义九条离散能量线：<span class="arithmatex">\(z_j=(j-4)/2\)</span>，<span class="arithmatex">\(j=0,\ldots,8\)</span>；<span class="arithmatex">\(w_j\)</span> 与 <span class="arithmatex">\(e^{-z_j^2/2}\)</span> 成正比并归一化；<span class="arithmatex">\(E_j=E_0e^{\sigma z_j}\)</span>。滑块的整数读数为 <span class="arithmatex">\(100\sigma\)</span>，不是能量标准差的百分数。<span class="arithmatex">\(E_0\)</span> 是对数中心，算术平均能量 <span class="arithmatex">\(\sum_jw_jE_j\)</span> 另列；默认 <span class="arithmatex">\(E_0=2.5\ {\rm GeV}\)</span>、<span class="arithmatex">\(\sigma=0.1\)</span> 时平均约为 <span class="arithmatex">\(2.51073\ {\rm GeV}\)</span>。</p>
+<p>这九条线本身就是有限教学模型，不声称它们是高精度高斯积分，也不把权重当作某台探测器的真实响应。每条线的 <span class="arithmatex">\(S\)</span>、九个概率和三份初态密度矩阵都保存；再逐项加权，能检查纯度为什么改变。</p>
+<p><strong>自己检查：</strong>为什么应该平均概率或密度矩阵，而不是先平均各能量的振幅再取模平方？</p>
+<details class="answer">
+<summary>详解7：是否保留能量通道间的相干关系</summary>
+<p>这里的输入是经典随机通道，不提供不同能量之间确定的相对相位。因此 <span class="arithmatex">\(\left|\sum_j w_jS_j\right|^2\)</span> 会无依据地加入通道间交叉项，且权重与振幅系数的意义也混淆。正确对象是 <span class="arithmatex">\(\sum_jw_j\rho_j\)</span>。</p>
+<p>对任意向量 <span class="arithmatex">\(v\)</span>，<span class="arithmatex">\(v^\dagger\bar\rho v=\sum_jw_j|\langle v|\psi_j\rangle|^2\ge0\)</span>，故平均态半正定；迹仍为1。它的纯度满足 <span class="arithmatex">\(1/3\le{\rm tr}\bar\rho^2\le1\)</span>。宽度为0时所有能量相同，恢复纯态；宽度非零时若各通道恰好得到相同味态，纯度也可以仍为1，不能把“有宽度”与“必然降纯度”画等号。</p>
+<p>波包分离则涉及不同质量分量的群速度差、产生和探测的局域性。它可能压低干涉项，但不是这个有限统计混合模型证明的微观机制。两味理想快速相位平均得到 <span class="arithmatex">\(\tfrac12\sin^22\theta\)</span>；九条固定能量线不保证总能精确达到这个连续平均极限。</p>
+</details>
+<h2 id="10">10. 六张图怎样读：防止采样制造假物理<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>先为实验四题各选一个预测，再显示结果。每次改变参数会重新收起结果，避免把旧图误认作新输入。第一个概率图统一从初始 <span class="arithmatex">\(\mu\)</span> 味出发；完整表和JSON仍保存全部初味。所有矩阵的复元素写成 <span class="arithmatex">\([\operatorname{Re},\operatorname{Im}]\)</span>，手机上可横向滚动。</p>
+<p>最容易出错的是低能长基线：振荡可能比画图点间距快得多，稀疏连线会制造不存在的慢包络。基线图用 <span class="arithmatex">\(H=K-\operatorname{tr}(K)I/3\)</span>，取谱跨度上界 <span class="arithmatex">\(B=2\|H\|_1\)</span>。因为 <span class="arithmatex">\(H\)</span> 厄米且 <span class="arithmatex">\(\|H\|_2\le\|H\|_1\)</span>，任意本征值差不超过 <span class="arithmatex">\(B\)</span>，最短振荡周期不短于 <span class="arithmatex">\(2\pi E/(\kappa B)\)</span>。实验把图域限制在这个周期下界的8倍以内，用201点，使点间距不超过该下界的 <span class="arithmatex">\(1/25\)</span>。这是采样尺度控制，不是零误差插值定理。</p>
+<p>当前输入的 <span class="arithmatex">\(L\)</span> 始终用于实际矩阵和概率。若它超过缩短后的图域，界面会说明“当前基线超出图范围”，而不是移动红点或改掉输入。能量、密度和两味密度扫描只画离散点，明确不连接未知的快速峰谷。CP相位图扫描的是矩阵参数；它与沿距离的高频扫描不是同一回事。</p>
+<p>演化矩阵用去迹后的缩放平方法计算：把指数矩阵缩小到1范数不超过0.5，用24阶Taylor多项式，再反复平方并恢复共同相位。记录中的单步尾界是 <span class="arithmatex">\(e^x x^{25}/25!\)</span>；它只约束该小矩阵Taylor截断，<strong>不包含</strong>浮点舍入或后续平方的误差。另给原始幺正性残差，不把概率裁到 <span class="arithmatex">\([0,1]\)</span> 或重新归一化来掩盖数值问题。</p>
 <div class="learning-lab" data-learning-lab="physics-flavor-neutrino">
-<p><strong>无 JavaScript 时的静态 fallback：</strong>两味真空默认值为 <span class="arithmatex">\(\theta=33^\circ\)</span>、<span class="arithmatex">\(\Delta m^2=2.5\times10^{-3}\)</span> eV<span class="arithmatex">\(^2\)</span>、<span class="arithmatex">\(E=1\)</span> GeV、<span class="arithmatex">\(L=500\)</span> km、<span class="arithmatex">\(L_{\rm coh}=1000\)</span> km。账本读数约为 <span class="arithmatex">\(\phi=1.588\)</span>、<span class="arithmatex">\(\sin^22\theta=0.834\)</span>、<span class="arithmatex">\(V=0.779\)</span>、理想相干 <span class="arithmatex">\(P=0.834\)</span>、含可见度 <span class="arithmatex">\(P=0.742\)</span>、完全平均 <span class="arithmatex">\(P=0.417\)</span>。把 <span class="arithmatex">\(L\)</span> 拉长会继续积累相位，而把 <span class="arithmatex">\(L_{\rm coh}\)</span> 调短会把蓝线拉向绿色平均线。</p>
-<p>模型的三个不变量是：<span class="arithmatex">\(0\le P\le1\)</span>；两味封闭系统中 <span class="arithmatex">\(P_{\alpha\alpha}+P_{\alpha\beta}=1\)</span>；<span class="arithmatex">\(\theta=0\)</span> 时 <span class="arithmatex">\(P_{\alpha\beta}=0\)</span>。这些是模型内部核对，不是对真实三味、物质背景和探测器系统atics 的完整拟合。</p>
+<p><strong>无脚本对照：</strong>六份固定记录保留完整PMNS、六套传播矩阵、九个能量通道及其密度矩阵、201个基线点、121个能量点、181个CP相位的四组对照和131个密度点。下表的概率统一指初始μ味到电子味；平均态纯度也对应初始μ味。</p>
+<figure class="plot">
+<p><img alt="六图：三味基线概率、离散能量响应、真空和物质CP比较、恒定密度、九能量线平均与两味MSW解析极限。" src="assets/img/pp-04-neutrino-certificates.svg" /></p>
+<figcaption>基线图按频率上界控制采样范围；能量和密度图只画离散点。有限能谱平均不等于波包分离，全部示例参数不代表实验拟合。</figcaption>
+</figure>
+<div aria-label="中微子固定记录，可横向滚动" class="neutrino198-static" role="region" tabindex="0">
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th style="text-align: right;">L/km</th>
+<th style="text-align: right;">E0/GeV</th>
+<th style="text-align: right;">单能Pμe</th>
+<th style="text-align: right;">平均Pμe</th>
+<th style="text-align: right;">平均纯度</th>
+<th style="text-align: right;">幺正残差</th>
+<th>当前L在基线图内</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>default</td>
+<td style="text-align: right;">1300</td>
+<td style="text-align: right;">2.5</td>
+<td style="text-align: right;">0.086845549</td>
+<td style="text-align: right;">0.085395424</td>
+<td style="text-align: right;">0.95679578</td>
+<td style="text-align: right;">1.7763568e-15</td>
+<td>是</td>
+</tr>
+<tr>
+<td>cp-zero</td>
+<td style="text-align: right;">1300</td>
+<td style="text-align: right;">2.5</td>
+<td style="text-align: right;">0.06985653</td>
+<td style="text-align: right;">0.068305396</td>
+<td style="text-align: right;">0.95645362</td>
+<td style="text-align: right;">1.7763568e-15</td>
+<td>是</td>
+</tr>
+<tr>
+<td>degenerate</td>
+<td style="text-align: right;">1300</td>
+<td style="text-align: right;">2.5</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2.220446e-16</td>
+<td>是</td>
+</tr>
+<tr>
+<td>two-flavor</td>
+<td style="text-align: right;">800</td>
+<td style="text-align: right;">0.1</td>
+<td style="text-align: right;">0.40870438</td>
+<td style="text-align: right;">0.41206737</td>
+<td style="text-align: right;">0.9912166</td>
+<td style="text-align: right;">1.1213253e-14</td>
+<td>否</td>
+</tr>
+<tr>
+<td>monochromatic</td>
+<td style="text-align: right;">1300</td>
+<td style="text-align: right;">2.5</td>
+<td style="text-align: right;">0.086845549</td>
+<td style="text-align: right;">0.086845549</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.7763568e-15</td>
+<td>是</td>
+</tr>
+<tr>
+<td>fast</td>
+<td style="text-align: right;">13000</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">0.0066425119</td>
+<td style="text-align: right;">0.10981328</td>
+<td style="text-align: right;">0.45764293</td>
+<td style="text-align: right;">1.4390711e-12</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
 </div>
-<h3 id="5">5. 相干性不是一句“看不清”<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<p>质量态是波包而非无限长的单色平面波。若不同质量态的群速度差在传播中让波包分离，或源/探测器的 <span class="arithmatex">\(L,E\)</span> 分布把相位平均掉，交叉项会被压低。上面的 <span class="arithmatex">\(V=e^{-(L/L_{\rm coh,eff})^2}\)</span> 是一个透明的高斯 toy；它保留 <span class="arithmatex">\(L_{\rm coh}\propto E^2/|\Delta m^2|\)</span> 的边界行为，却仍把波包宽度、源尺寸和探测过程压进一个参考参数，不是所有束流和太阳源都共享的精确函数。</p>
-<p>在 <span class="arithmatex">\(V\to0\)</span> 时，<span class="arithmatex">\(\cos(2\phi)\)</span> 项消失，留下 <span class="arithmatex">\(\tfrac12\sin^22\theta\)</span>。注意这不是“没有质量差”的结果：<span class="arithmatex">\(\Delta m^2\)</span> 仍可以是非零的，只是我们不再保留相位信息。相反，短基线或高分辨率并不自动意味着相干，仍要比较实际波包宽度、能量分辨和源尺寸。</p>
-<h3 id="6">6. 误区与迁移任务<a class="headerlink" href="#6" title="Permanent link"></a></h3>
-<ul>
-<li><strong>观测不等于解释：</strong>实验首先测到不同味道的事件率、能谱和基线依赖；“非零 <span class="arithmatex">\(\Delta m^2\)</span> 与混合矩阵”是能同时描述这些数据的模型推断。振荡测到的是质量平方差，不能单独给出绝对质量。</li>
-<li><strong>真空公式有边界：</strong>在物质中，中微子与电子的前向散射改变有效 Hamiltonian，产生 MSW 共振；此时要把势项加入 <span class="arithmatex">\(2\times2\)</span> 或三味演化，不能直接套真空的 <span class="arithmatex">\(1.27\)</span> 式。</li>
-<li><strong>两味公式不是三味世界的完整答案：</strong>真实 PMNS 矩阵含三个混合角、一个 Dirac CP 相位和可能的 Majorana 相位；不同实验能谱常需要三味、非恒定密度和系统误差模型。</li>
-<li><strong>“相干”不是“概率确定”：</strong>即使完全相干，单次探测仍按概率抽样；相干描述的是不同传播路径振幅之间是否保留可干涉的相对相位。</li>
-</ul>
-<p><strong>迁移题：</strong>给定同一 <span class="arithmatex">\(L/E\)</span>，同时把 <span class="arithmatex">\(L\)</span> 和 <span class="arithmatex">\(E\)</span> 放大十倍，真空相位是否改变？再给一个宽能谱源，说明为什么把 <span class="arithmatex">\(P(L,E)\)</span> 对能量分布积分后会出现比单一能量更强的去相干。最后指出，若实验只看到总率下降而没有能谱/基线信息，还缺少哪些证据来区分振荡和源强/探测效率误差？</p>
+<p><a download="neutrino-frozen-records.json" href="assets/learning/projects/neutrino-certificates/run-snapshot.json">下载六份完整记录</a>。负质量平方差是相对零点；简并两味角保存为null。快速振荡预设的当前基线仍为13000 km，只有基线图的显示范围缩短。九条能量线的中心是对数中心，平均能量另列。</p>
+</div>
+<h2 id="11">11. 从概率到事件：实验真正计数的是什么<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p>一张 <span class="arithmatex">\(P(L,E)\)</span> 曲线还不是探测器的能谱。对重建能量区间 <span class="arithmatex">\(b\)</span>，一个简化的预测式是</p>
+<div class="arithmatex">\[
+N_b=T\sum_\alpha\int dE\,
+\Phi_\alpha(E)\,P_{\alpha\beta}(L,E)\,
+\sigma_\beta(E)\,\epsilon_\beta(E)\,R_b(E)+B_b.
+\]</div>
+<p>这里 <span class="arithmatex">\(\Phi_\alpha\)</span> 是入射通量，<span class="arithmatex">\(\sigma_\beta\)</span> 是相互作用截面，<span class="arithmatex">\(\epsilon_\beta\)</span> 是效率，<span class="arithmatex">\(R_b\)</span> 表示真实能量落入重建区间的响应概率，<span class="arithmatex">\(T\)</span> 汇总曝光与靶数约定，<span class="arithmatex">\(B_b\)</span> 是背景。若能量和识别效率相关，应使用相应的联合响应而不是机械相乘。实际还可能对源位置和路径密度平均。</p>
+<p>只看到总计数下降，既可能来自转换，也可能来自通量、截面、效率或背景估计偏差。多个基线、能区与通道的联合信息提供不同约束；近端与远端探测器有助于约束共同因素，但不保证所有系统误差完全相消。本页九能量线只示范概率平均，不包含这些真实探测环节。</p>
+<p><strong>自己检查：</strong>真空中同时把 <span class="arithmatex">\(L\)</span> 和 <span class="arithmatex">\(E\)</span> 乘10，单能振荡概率不变。是否可以据此断言两次真实实验的计数相同？</p>
+<details class="answer">
+<summary>详解8：相同L/E并不等于相同实验</summary>
+<p>在质量差和混合矩阵固定的真空模型中，相位仅依赖 <span class="arithmatex">\(L/E\)</span>，故概率相同。但通量的几何稀释、截面、探测效率、源能谱和曝光都可能改变；计数式中的其他因子没有随这个比例自动保持不变。</p>
+<p>即使只比较传播，物质中的 <span class="arithmatex">\(A\propto E\)</span> 也改变有效混合与真空项的相对强度，不能仅凭相同 <span class="arithmatex">\(L/E\)</span> 保证相同概率。若还比较波包分离，相干长度常有与 <span class="arithmatex">\(E^2/|\Delta m^2|\)</span> 有关的标度，仍不是简单的 <span class="arithmatex">\(L/E\)</span> 不变量。必须逐一检查模型中的量，而不是把一个真空公式扩成普遍相似律。</p>
+</details>
+<h2 id="12">12. 向前沿延伸：每一个问题需要什么新增证据<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<p>完成本页后，可以沿三条路线继续。第一条是<strong>传播模型</strong>：把恒定密度变为分层或连续剖面，以路径有序演化检查绝热条件、共振通过与参数简并。第二条是<strong>统计推断</strong>：用事件生成、能量响应和联合似然，研究多个参数及系统误差如何相关；不能把一条漂亮的拟合曲线当成唯一解释。第三条是<strong>质量与新相互作用</strong>：比较Dirac质量、Majorana质量、有效算符、额外态或非标准物质相互作用分别改变哪一步。</p>
+<p>这些延伸的证据需求不同。排序和CP信息需要能量与通道依赖；绝对质量需要振荡之外的观测；轻子数破坏的过程需要相应反应的信号和背景分析。本文没有据教学默认参数发布当前显著性、质量上限或实验排名，阅读新结果时应查看原始分析采用的数据集、假设和不确定度。</p>
+<p>一个适合提交的小项目是：固定一套示例参数，先证明零基线、零混合、质量简并三条边界；再做真空／物质及 <span class="arithmatex">\(\nu\)</span>／反<span class="arithmatex">\(\nu\)</span>四组对照；最后构造一个简单响应矩阵，把概率变成预测计数，并说明哪组观测能区分两套候选参数。提交推导、参数表、完整矩阵和误差说明，而不只交截图。</p>
+<p>下一页进入 <a href="pp-05-colliders-detectors.html">对撞机与探测器</a>：继续练习如何把理论振幅、真实事例、重建量和统计证据区分清楚。</p>
 </section>
-<h2 id="1">1. 两种标签：味与质量<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>弱相互作用把中微子和带电轻子配对，所以核反应或束流产生的是“电子味”“缪子味”或“陶味”。自由传播的 Dirac/Majorana 中微子则按质量 Hamiltonian 的本征态传播。只要这两个本征基不相同，一个味态就不是单一的传播本征态。</p>
-<p>这件事类似量子力学中“测量基”和“能量基”不重合：态在能量基中各分量只积累相位，回到测量基时相对相位变成概率的时间/距离依赖。这个类比的价值是把机制接回线性代数；它的边界也很清楚，中微子还带有相对论运动、源/探测器波包和物质前向散射。</p>
-<h2 id="2_1">2. 从干涉得到转换概率<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p>用 <span class="arithmatex">\(U_{\alpha i}\)</span> 记味到质量的混合矩阵，真空 <span class="arithmatex">\(N\)</span> 味概率的振幅结构是</p>
-<div class="arithmatex">\[
-\mathcal A_{\alpha\to\beta}(L)=\sum_i U_{\beta i}e^{-i m_i^2L/(2E)}U^*_{\alpha i}.
-\]</div>
-<p>平方后，<span class="arithmatex">\(i=j\)</span> 项给非干涉基线，<span class="arithmatex">\(i\ne j\)</span> 项携带质量平方差的相对相位。两味实旋转把这条求和压成学习层的</p>
-<div class="arithmatex">\[
-\sin^22\theta\sin^2\left(\frac{\Delta m^2L}{4E}\right)
-\]</div>
-<p>（自然单位）；单位换算才产生 <span class="arithmatex">\(1.27\)</span>。因此看到正弦并不是经验拟合的装饰，而是“同一个初态含两个传播本征态”的直接数学后果。</p>
-<h2 id="3_1">3. 相干长度与实验平均<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p>若源产生的能量有分布 <span class="arithmatex">\(f(E)\)</span>，实际事件率是 <span class="arithmatex">\(\int dE\,f(E)P(L,E)\)</span>；若探测器只能把不同基线分辨到一个宽度，也会对 <span class="arithmatex">\(L\)</span> 做平均。快速振荡在卷积后相互抵消，保留下来的通常是包络或平均概率。波包语言则从群速度</p>
-<div class="arithmatex">\[
-v_i\simeq1-\frac{m_i^2}{2E^2}
-\]</div>
-<p>解释分离；其具体 <span class="arithmatex">\(L_{\rm coh}\)</span> 依赖波包宽度与质量差。教学实验用高斯 <span class="arithmatex">\(V\)</span> 是为了把“交叉项被压低”这一个机制单独拿出来，不声称它替代每个实验的束流模拟。</p>
-<h2 id="4-hamiltonian">4. 物质效应：传播环境也进入 Hamiltonian<a class="headerlink" href="#4-hamiltonian" title="Permanent link"></a></h2>
-<p>电子中微子在普通物质中通过带电流前向散射多一个有效势 <span class="arithmatex">\(V_e=\sqrt2G_Fn_e\)</span>，而 <span class="arithmatex">\(\mu,\tau\)</span> 味没有同样的电子背景项。两味有效 Hamiltonian 可写成真空质量项加上与密度有关的对角项；当密度变化使有效对角差接近零时，混合增强，这就是 MSW 机制的核心。</p>
-<p>“物质效应增强了转换”不是任意环境下的口号：要看密度剖面、能量、质量排序和绝热性。太阳、地球和长基线束流的密度与能区不同，必须把路径积分和系统误差写进推断。学习层的真空 toy 只负责让相位与相干性可检查。</p>
-<h2 id="5-pmns">5. 三味 PMNS 与仍待回答的问题<a class="headerlink" href="#5-pmns" title="Permanent link"></a></h2>
-<p>三味矩阵通常用三个混合角和一个 Dirac CP 相位参数化。概率中出现不同 <span class="arithmatex">\(\Delta m^2\)</span> 的干涉组合，反中微子在真空中把 CP 相位共轭，在物质中还会有由环境造成的“假 CP”差异。Majorana 相位不出现在普通振荡概率中，却可能出现在无中微子双 beta 衰变等过程。</p>
-<p>振荡实验已经建立“至少有非零质量平方差和味混合”这一层推断；但绝对质量尺度、是否为 Majorana 粒子、质量排序、CP 相位的精确值以及是否有额外惰性味，属于需要不同观测和更完整模型的后续问题。讲义应把“已由该数据支持的结论”和“依赖额外假设的解释”分栏，而不是用一个“中微子质量已测出”的句子盖过层次。</p>
-<h2 id="6_1">6. 例题与小结<a class="headerlink" href="#6_1" title="Permanent link"></a></h2>
-<p><strong>例 1（首次极大）</strong> 对 <span class="arithmatex">\(\theta=33^\circ\)</span>、<span class="arithmatex">\(\Delta m^2=2.5\times10^{-3}\)</span> eV<span class="arithmatex">\(^2\)</span>、<span class="arithmatex">\(E=1\)</span> GeV，令 <span class="arithmatex">\(\phi=\pi/2\)</span> 得 <span class="arithmatex">\(L\approx494.7\)</span> km。若 <span class="arithmatex">\(\theta\)</span> 不变，把能量加倍，首次极大基线也加倍；这说明实验设计常围绕 <span class="arithmatex">\(L/E\)</span>，而不是只围绕距离。</p>
-<p><strong>例 2（无混合反例）</strong> <span class="arithmatex">\(\theta=0\)</span> 时即使 <span class="arithmatex">\(\Delta m^2\ne0\)</span>，味态也是质量态，<span class="arithmatex">\(\sin^22\theta=0\)</span>，所以异味概率处处为 0。非零质量差不是足够条件，基底不对齐同样必要。</p>
-<p><strong>例 3（平均）</strong> 完全失相干而仍保持两味幺正时，<span class="arithmatex">\(P_{\alpha\beta}=\tfrac12\sin^22\theta\)</span>。对于 <span class="arithmatex">\(33^\circ\)</span> 是约 <span class="arithmatex">\(0.417\)</span>，不是 0；“没有干涉条纹”不等于“没有转换”。</p>
-<p>下一页转向方法论：加速器不会直接拍出一个理论粒子，它记录带噪声的四动量和计数；我们要用重建与统计把事件变成可检验的质量峰。</p>
+<noscript><style>.neutrino198-course span.arithmatex{overflow-wrap:anywhere}.neutrino198-static{overflow:auto;max-width:100%}.neutrino198-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}.neutrino198-static th,.neutrino198-static td{white-space:nowrap}</style></noscript>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="pp-03-qcd-hadrons.html"><span class="pager-label">上一页</span>粒子 III · QCD、强子与禁闭</a>

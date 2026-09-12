@@ -1,468 +1,124 @@
-(function (root, factory) {
-  "use strict";
+(function(hostWindow){"use strict";
 
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("physics-flavor-neutrino", exported.mount);
-  }
-  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module) {
-    try {
-      var report = exported.selfTest();
-      console.log("physics-flavor-neutrino self-test: PASS (" + report.checks + " checks)");
-    } catch (error) {
-      console.error("physics-flavor-neutrino self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
-  }
-})(typeof window !== "undefined" ? window : typeof globalThis !== "undefined" ? globalThis : this, function (host) {
-  "use strict";
+const LIMITS={theta12Degrees:[0,90],theta13Degrees:[0,90],theta23Degrees:[0,90],deltaDegrees:[-180,180],dm21Micro:[0,200],dm31TenMicro:[-500,500],energyCenti:[1,1000],baselineKm:[0,13000],densityCenti:[0,1300],antineutrino:[0,1],logEnergyWidthPercent:[0,30]};
+const DEFAULT={theta12Degrees:33,theta13Degrees:9,theta23Degrees:45,deltaDegrees:-90,dm21Micro:75,dm31TenMicro:250,energyCenti:250,baselineKm:1300,densityCenti:280,antineutrino:0,logEnergyWidthPercent:10};
+function config(input={}){if(input===null||typeof input!=='object'||Array.isArray(input))throw Error('parameters');for(const k of Object.keys(input))if(!Object.prototype.hasOwnProperty.call(LIMITS,k))throw Error('unknown '+k);const c={...DEFAULT,...input};for(const[k,[lo,hi]]of Object.entries(LIMITS))if(!Number.isInteger(c[k])||c[k]<lo||c[k]>hi)throw Error('domain '+k);return c;}
+const PRESETS=[['default','三味、恒定物质与有限能谱',{}],['vacuum','真空：隔离内禀CP差异',{densityCenti:0}],['antineutrino','反中微子：共轭U并反转物质势',{antineutrino:1}],['cp-zero','δ=0：物质仍可产生ν/反ν差异',{deltaDegrees:0}],['inverted','改变大质量平方差的符号',{dm31TenMicro:-250}],['zero-baseline','L=0：产生即探测',{baselineKm:0}],['no-mixing','三个混合角均为0',{theta12Degrees:0,theta13Degrees:0,theta23Degrees:0}],['degenerate','全部质量平方差为0',{dm21Micro:0,dm31TenMicro:0}],['two-flavor','两味极限：θ13=θ23=0',{theta13Degrees:0,theta23Degrees:0,energyCenti:10,baselineKm:800,densityCenti:300}],['monochromatic','单一能量：没有经典能谱混合',{logEnergyWidthPercent:0}],['broad','九个离散能量通道：加宽间隔',{logEnergyWidthPercent:30}],['fast','长基线低能：检查高频与数值稳定性',{energyCenti:1,baselineKm:13000,dm21Micro:200,dm31TenMicro:-500,densityCenti:1300}]].map(([id,label,p])=>({id,label,parameters:config(p)}));
+const HBARC=.1973269804,KAPPA=1/(2*HBARC),MATTER_COEFFICIENT=7.632e-5;
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1]],mul=(a,b)=>[a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]],conj=a=>[a[0],-a[1]],scale=(a,s)=>[a[0]*s,a[1]*s],sum=arr=>arr.reduce(add,[0,0]),abs2=a=>a[0]*a[0]+a[1]*a[1],phase=t=>[Math.cos(t),Math.sin(t)];
+const mat=(n,f)=>Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>f(i,j))),eye=n=>mat(n,(i,j)=>[i===j?1:0,0]),adj=A=>A[0].map((_,j)=>A.map(r=>conj(r[j]))),mm=(A,B)=>A.map(r=>B[0].map((_,j)=>sum(r.map((z,k)=>mul(z,B[k][j]))))),ms=(A,s)=>A.map(r=>r.map(z=>scale(z,s))),plus=(A,B)=>A.map((r,i)=>r.map((z,j)=>add(z,B[i][j]))),norm1=A=>Math.max(...A[0].map((_,j)=>A.reduce((s,r)=>s+Math.hypot(...r[j]),0))),trace=A=>sum(A.map((r,i)=>r[i])),maxabs=A=>Math.max(...A.flat().map(z=>Math.hypot(...z)));
+function trig(degrees){const t=degrees*Math.PI/180;return{c:degrees===90||degrees===-90?0:degrees===180||degrees===-180?-1:Math.cos(t),s:degrees===0||degrees===180||degrees===-180?0:degrees===90?1:degrees===-90?-1:Math.sin(t)};}
+function pmns(c){const a=trig(c.theta12Degrees),b=trig(c.theta13Degrees),d=trig(c.theta23Degrees),cp=trig(c.deltaDegrees),e=[cp.c,cp.s],ec=conj(e),R12=[[[a.c,0],[a.s,0],[0,0]],[[-a.s,0],[a.c,0],[0,0]],[[0,0],[0,0],[1,0]]],R13=[[[b.c,0],[0,0],scale(ec,b.s)],[[0,0],[1,0],[0,0]],[scale(e,-b.s),[0,0],[b.c,0]]],R23=[[[1,0],[0,0],[0,0]],[[0,0],[d.c,0],[d.s,0]],[[0,0],[-d.s,0],[d.c,0]]],U=mm(mm(R23,R13),R12),J=a.c*a.s*d.c*d.s*b.c*b.c*b.s*cp.s;
+ return{R12,R13,R23,U,J,quartet:mul(mul(U[0][0],U[1][1]),mul(conj(U[0][1]),conj(U[1][0]))),unitarity:mm(adj(U),U)};
+}
+function expHermitian(K,factor){const n=K.length,tracePerDimension=trace(K)[0]/n,H=K.map((r,i)=>r.map((z,j)=>add(z,[i===j?-tracePerDimension:0,0]))),A=H.map(r=>r.map(z=>mul(z,[0,-factor]))),norm=norm1(A),squarings=norm>.5?Math.ceil(Math.log2(norm/.5)):0,B=ms(A,2**(-squarings));let term=eye(n),S=eye(n);
+ for(let k=1;k<=24;k++){term=ms(mm(term,B),1/k);S=plus(S,term);}
+ for(let k=0;k<squarings;k++)S=mm(S,S);
+ const commonPhase=phase(-factor*tracePerDimension),full=S.map(r=>r.map(z=>mul(z,commonPhase))),unitarity=mm(adj(full),full),residual=maxabs(plus(unitarity,ms(eye(n),-1))),stepNorm=norm/2**squarings;
+ let tailBound=Math.exp(stepNorm)*stepNorm**25;for(let k=2;k<=25;k++)tailBound/=k;
+ return{matrix:full,tracePerDimension,traceless:H,factor,squarings,terms:24,scaledNorm:stepNorm,stepTaylorTailBound:tailBound,unitarityResidual:residual};
+}
+function propagation(c,E=c.energyCenti/100,L=c.baselineKm,density=c.densityCenti/100,anti=Boolean(c.antineutrino),mix=pmns(c)){const U=anti?mix.U.map(r=>r.map(conj)):mix.U,massSquaredDifferences=[0,c.dm21Micro*1e-6,c.dm31TenMicro*1e-5],massMatrix=mm(U.map(r=>r.map((z,j)=>scale(z,massSquaredDifferences[j]))),adj(U)),matterA=(anti?-1:1)*MATTER_COEFFICIENT*density*E,K=massMatrix.map((r,i)=>r.map((z,j)=>add(z,[i===0&&j===0?matterA:0,0]))),evolution=expHermitian(K,KAPPA*L/E),amplitude=evolution.matrix,probability=Array.from({length:3},(_,a)=>Array.from({length:3},(_,b)=>abs2(amplitude[b][a]))),densities=Array.from({length:3},(_,a)=>amplitude.map(row=>row[a]).map(z=>amplitude.map(row=>mul(z,conj(row[a])))));
+ return{energy:E,baseline:L,density,antineutrino:anti,U,massSquaredDifferences,massMatrix,matterA,K,evolution,probability,rowSums:probability.map(r=>r.reduce((s,x)=>s+x,0)),columnSums:probability[0].map((_,j)=>probability.reduce((s,r)=>s+r[j],0)),densities};
+}
+function ensemble(c,mix=pmns(c)){const sigma=c.logEnergyWidthPercent/100,zs=Array.from({length:9},(_,i)=>(i-4)/2),raw=zs.map(z=>Math.exp(-z*z/2)),total=raw.reduce((a,b)=>a+b,0),samples=zs.map((z,i)=>{const weight=raw[i]/total,energy=c.energyCenti/100*Math.exp(sigma*z),p=propagation(c,energy,c.baselineKm,c.densityCenti/100,Boolean(c.antineutrino),mix);return{z,weight,energy,evolution:p.evolution,probability:p.probability,densities:p.densities};}),densities=Array.from({length:3},(_,a)=>samples.reduce((M,s)=>plus(M,ms(s.densities[a],s.weight)),mat(3,()=>[0,0]))),probability=densities.map(M=>M.map((r,i)=>r[i][0])),purities=densities.map(M=>trace(mm(M,M))[0]),traces=densities.map(M=>trace(M));
+ return{kind:'nine-positive-energy-lines; classical incoherent mixture',logWidth:sigma,samples,weightSum:samples.reduce((v,s)=>v+s.weight,0),meanEnergy:samples.reduce((v,s)=>v+s.weight*s.energy,0),densities,probability,purities,traces};
+}
+function twoFlavor(c,density){const theta=c.theta12Degrees,angle=trig(2*theta),dm=c.dm21Micro*1e-6,E=c.energyCenti/100,L=c.baselineKm,A=(c.antineutrino?-1:1)*MATTER_COEFFICIENT*density*E,diff=dm*angle.c-A,off=dm*angle.s,gap=Math.hypot(diff,off),mixingAmplitude=gap?off*off/(gap*gap):null,halfPhase=KAPPA*gap*L/(2*E),conversion=gap?mixingAmplitude*Math.sin(halfPhase)**2:0;
+ return{density,theta,dm,E,L,A,diagonalDifference:diff,twiceOffDiagonal:off,effectiveGap:gap,mixingAmplitude,halfPhase,conversion,survival:1-conversion};
+}
+function compact(p){return{energy:p.energy,baseline:p.baseline,density:p.density,antineutrino:p.antineutrino,probability:p.probability,unitarityResidual:p.evolution.unitarityResidual};}
+function compute(input={}){const c=config(input),mix=pmns(c),current=propagation(c,undefined,undefined,undefined,undefined,mix),vacuum=propagation(c,undefined,undefined,0,undefined,mix),neutrino=propagation(c,undefined,undefined,undefined,false,mix),antineutrino=propagation(c,undefined,undefined,undefined,true,mix),vacuumNeutrino=propagation(c,undefined,undefined,0,false,mix),vacuumAntineutrino=propagation(c,undefined,undefined,0,true,mix),averaged=ensemble(c,mix),spanBound=2*norm1(current.evolution.traceless),periodLowerBound=spanBound>0?2*Math.PI*(c.energyCenti/100)/(KAPPA*spanBound):null,baselineMax=periodLowerBound===null?Math.max(3000,c.baselineKm):Math.min(Math.max(3000,c.baselineKm),8*periodLowerBound),baselineScan=Array.from({length:201},(_,i)=>compact(propagation(c,undefined,baselineMax*i/200,undefined,undefined,mix))),energyScan=Array.from({length:121},(_,i)=>{const log10Energy=-2+3*i/120,E=10**log10Energy;return{log10Energy,...compact(propagation(c,E,undefined,undefined,undefined,mix))};}),cpScan=Array.from({length:181},(_,i)=>{const delta=-180+2*i,cc={...c,deltaDegrees:delta},m=pmns(cc);return{delta,J:m.J,nu:compact(propagation(cc,undefined,undefined,undefined,false,m)),anti:compact(propagation(cc,undefined,undefined,undefined,true,m)),vacNu:compact(propagation(cc,undefined,undefined,0,false,m)),vacAnti:compact(propagation(cc,undefined,undefined,0,true,m))};}),densityScan=Array.from({length:131},(_,i)=>{const density=i/10;return{density,...compact(propagation(c,undefined,undefined,density,undefined,mix))};}),twoFlavorScan=Array.from({length:131},(_,i)=>twoFlavor(c,i/10)),twoFlavorCurrent=twoFlavor(c,c.densityCenti/100);
+ const majoranaPhases=[0,.37,.83],majoranaU=mix.U.map(r=>r.map((z,j)=>mul(z,phase(majoranaPhases[j])))),majorana=propagation(c,undefined,undefined,undefined,undefined,{...mix,U:majoranaU}),commonShift=.007,shiftedK=current.K.map((r,i)=>r.map((z,j)=>add(z,[i===j?commonShift:0,0]))),shifted=expHermitian(shiftedK,current.evolution.factor),shiftedProbability=Array.from({length:3},(_,a)=>Array.from({length:3},(_,b)=>abs2(shifted.matrix[b][a]))),resonance=twoFlavorCurrent.twiceOffDiagonal!==0?c.dm21Micro*1e-6*trig(2*c.theta12Degrees).c/((c.antineutrino?-1:1)*MATTER_COEFFICIENT*(c.energyCenti/100)):null;
+ return{schema:'neutrino198-v1',parameters:c,units:{energy:'GeV',baseline:'km',density:'g/cm^3; electron fraction Ye=0.5',massSquared:'eV^2; relative to m1^2',kappa:KAPPA,hbarc:HBARC,matterCoefficient:MATTER_COEFFICIENT,probabilityIndex:'row initial flavor; column final flavor; flavors e,mu,tau',amplitudeIndex:'row final flavor; column initial flavor',model:'three active flavors; constant matter; no absorption'},mix,current,vacuum,neutrino,antineutrino,vacuumNeutrino,vacuumAntineutrino,averaged,baselinePlot:{max:baselineMax,spanBound,periodLowerBound,currentVisible:c.baselineKm<=baselineMax,samples:201},baselineScan,energyScan,cpScan,densityScan,twoFlavorScan,twoFlavorCurrent,twoFlavorResonanceDensity:resonance!==null&&resonance>=0?resonance:null,invariances:{majoranaPhases,majoranaU,majoranaProbability:majorana.probability,commonMassSquaredShift:commonShift,shiftedProbability},boundaries:{illustrativeParametersNotGlobalFit:true,relativeMassSquaredCanBeNegative:true,majoranaPhasesCancelInOscillation:true,matterAsymmetryNotIntrinsicCP:true,constantDensityNotSolarProfile:true,noAbsorptionOrSterileLeakage:true,energyMixtureNotWavepacketSeparation:true,nineEnergyLinesNotPrecisionQuadrature:true,energyPlotDiscreteNotInterpolated:true,baselineZoomAvoidsAliasing:true,probabilitiesNotClampedOrRenormalized:true,degenerateTwoFlavorAngleNotDefined:true,absoluteMassNotMeasuredByOscillation:true}};
+}
+const QUESTIONS=[
+ ['真空中，把所有mi²同时加上同一个常数，振荡概率怎样改变？',['不变：振幅多出共同相位','整体振荡频率一定增大'],0,'振荡比较不同质量本征态的相位差。共同质量平方只给完整振幅乘一个模为1的因子；因此振荡本身不确定绝对质量。'],
+ ['固定δ=0后，在普通物质中看到ν和反ν概率不同，能否单独归因于内禀CP破坏？',['能，任何ν/反ν差异都是内禀CP信号','不能：物质势对反ν反号，环境也造成差异'],1,'本实验同时给真空和物质结果。普通物质含电子而非等量正电子，比较的传播环境不是CP对称的；需联合建模分离效应。'],
+ ['把九个正权重能量通道混合后纯度降低，说明了什么？',['忽略能量标签后，味态可成为统计混合','证明每个通道中的中微子已经停止幺正演化'],0,'每个能量通道仍保留完整幺正振幅。先计算密度矩阵再按正权重相加，得到忽略能量标签后的混合；这不是波包分离机制的证明。'],
+ ['两味模型里有效质量差为0、非对角项也为0，应怎样解释物质混合角？',['必定最大混合，因此转换概率为1','该简并点的角未被确定；转换概率仍为0'],1,'有效矩阵正比单位阵时任意基都可作本征基。不能把0/0填成最大混合；共同相位不会引起味转换。']
+];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=4||![0,1].includes(j))throw Error('choice');return{correct:j===QUESTIONS[i][2],text:(j===QUESTIONS[i][2]?'正确。':'需要修正。')+QUESTIONS[i][3]};}
+const LABELS={theta12Degrees:'θ12（度）',theta13Degrees:'θ13（度）',theta23Degrees:'θ23（度）',deltaDegrees:'CP相位 δ（度）',dm21Micro:'Δm21²/eV² ×1000000',dm31TenMicro:'Δm31²/eV² ×100000（可为负）',energyCenti:'中心能量 E0/GeV ×100',baselineKm:'当前基线 L/km',densityCenti:'恒定密度 ρ/(g/cm³) ×100，Ye=0.5',antineutrino:'粒子类型：0为ν，1为反ν',logEnergyWidthPercent:'ln(E/E0)间距参数 σ ×100（不是能量标准差百分比）',current:'当前粒子与物质',vacuum:'当前粒子真空',neutrino:'ν在物质中',antineutrinoModel:'反ν在物质中',vacuumNeutrino:'ν在真空中',vacuumAntineutrino:'反ν在真空中',illustrativeParametersNotGlobalFit:'所有参数为示例，不是全球拟合',relativeMassSquaredCanBeNegative:'负的相对质量平方差不等于负质量平方',majoranaPhasesCancelInOscillation:'Majorana列相位在普通振荡中抵消',matterAsymmetryNotIntrinsicCP:'物质诱导差异不直接证明内禀CP',constantDensityNotSolarProfile:'恒定密度不代替太阳或地球密度剖面',noAbsorptionOrSterileLeakage:'仅三活性味、无吸收、无额外态泄漏',energyMixtureNotWavepacketSeparation:'能谱统计混合不等于波包分离',nineEnergyLinesNotPrecisionQuadrature:'九条能量线是有限模型，不是精密积分',energyPlotDiscreteNotInterpolated:'能量扫描只画离散点，不插成振荡曲线',baselineZoomAvoidsAliasing:'基线图按频率上界缩短显示区间',probabilitiesNotClampedOrRenormalized:'概率未裁剪也未重新归一化',degenerateTwoFlavorAngleNotDefined:'两味完全简并点不指定混合角',absoluteMassNotMeasuredByOscillation:'振荡不测共同绝对质量'};
+function fmt(x){if(x===null||x===undefined)return'不适用';if(typeof x==='boolean')return x?'是':'否';if(Array.isArray(x))return'['+x.map(fmt).join(', ')+']';if(typeof x==='object')return JSON.stringify(x);if(typeof x==='number')return Number.isInteger(x)&&Math.abs(x)<1e6?String(x):Math.abs(x)<1e-4||Math.abs(x)>=1e5?x.toExponential(5):Number(x.toPrecision(7)).toString();return LABELS[x]??String(x);}
+const COLORS=['#3875ba','#c55b32','#368661','#9860a8','#856722','#646e7c'];
+function frame(key,title,xLabel,yLabel,series,domain,range=[-.04,1.04]){return{key,title,xLabel,yLabel,xMin:domain[0],xMax:domain[1],yMin:range[0],yMax:range[1],series};}
+function plots(s){const c=s.parameters,series=(name,color,points,extra={})=>({name,color:COLORS[color],points,...extra}),flavors=['e','μ','τ'],cpMax=Math.max(.01,...s.cpScan.flatMap(p=>['nu','anti','vacNu','vacAnti'].map(k=>p[k].probability[1][0])));return[
+ frame('baseline','从初始μ味出发：三个去向的概率','L/km；显示区间可能缩短，当前基线不随之改变','P(μ→β)；三条之和为1',[
+ ...flavors.map((f,b)=>series('μ→'+f,b,s.baselineScan.map(p=>[p.baseline,p.probability[1][b]]))),
+ ...flavors.map((f,b)=>series('当前 μ→'+f,b,s.baselinePlot.currentVisible?[[c.baselineKm,s.current.probability[1][b]]]:[],{markersOnly:true,markerRadius:5}))
+ ],[0,s.baselinePlot.max]),
+ frame('energy','能量扫描：离散点不假装连续高频振荡','log10(E/GeV)；−2至1对应0.01至10 GeV','P(μ→β)；点之间的振荡未在此解析',flavors.map((f,b)=>series('μ→'+f,b,s.energyScan.map(p=>[p.log10Energy,p.probability[1][b]]),{markersOnly:true,markerRadius:2})),[-2,1]),
+ frame('cp','同一δ同时比较真空与物质','CP相位 δ（度）；其余输入保持当前值','P(μ→e)；纵轴上限随当前最大概率调整',[
+ series('ν，物质',0,s.cpScan.map(p=>[p.delta,p.nu.probability[1][0]])),
+ series('反ν，物质',1,s.cpScan.map(p=>[p.delta,p.anti.probability[1][0]])),
+ series('ν，真空',2,s.cpScan.map(p=>[p.delta,p.vacNu.probability[1][0]])),
+ series('反ν，真空',3,s.cpScan.map(p=>[p.delta,p.vacAnti.probability[1][0]]))
+ ],[-180,180],[0,Math.min(1.04,1.1*cpMax)]),
+ frame('density','恒定密度的三味响应：只画采样点','ρ/(g/cm³)；每一点是独立的恒定密度实验','P(μ→β)；不是沿途逐层穿过这些密度',flavors.map((f,b)=>series('μ→'+f,b,s.densityScan.map(p=>[p.density,p.probability[1][b]]),{markersOnly:true,markerRadius:2})),[0,13]),
+ frame('ensemble','九条能量线：先演化，再对概率作加权平均','能量通道编号0..8；实际E与权重见表','P(μ→β)；水平线为九条线的加权结果',[
+ ...flavors.map((f,b)=>series('单条能量线 μ→'+f,b,s.averaged.samples.map((p,i)=>[i,p.probability[1][b]]),{markersOnly:true,markerRadius:4})),
+ ...flavors.map((f,b)=>series('加权平均 μ→'+f,b,[[0,s.averaged.probability[1][b]],[8,s.averaged.probability[1][b]]]))
+ ],[0,8]),
+ frame('two','解析两味伴随模型：混合增强不等于完全转换','ρ/(g/cm³)；此图另设θ13=θ23=0','sin²(2θm) 与 P(e→μ)；其余输入沿用',[
+ series('物质混合振幅 sin²(2θm)',0,s.twoFlavorScan.map(p=>p.mixingAmplitude===null?null:[p.density,p.mixingAmplitude]),{markersOnly:true,markerRadius:2}),
+ series('有限L的转换概率',1,s.twoFlavorScan.map(p=>[p.density,p.conversion]),{markersOnly:true,markerRadius:2}),
+ series('当前两味转换概率',2,[[c.densityCenti/100,s.twoFlavorCurrent.conversion]],{markersOnly:true,markerRadius:6})
+ ],[0,13])
+ ];}
+const MODEL_KEYS=['current','vacuum','neutrino','antineutrino','vacuumNeutrino','vacuumAntineutrino'],modelName=k=>k==='antineutrino'?'反ν在物质中':fmt(k),flavorNames=['e','μ','τ'];
+function tables(s){const scanrow=p=>[p.energy,p.baseline,p.density,p.antineutrino,p.probability[0],p.probability[1],p.probability[2],p.unitarityResidual];return[
+ {key:'parameters',title:'11个输入与实际单位：角度需换弧度参与计算',headers:['输入','原始整数值'],rows:Object.entries(s.parameters)},
+ {key:'matrices',title:'完整复矩阵：每个元素保存[实部,虚部]',headers:['对象','模型或编号','矩阵或完整行'],rows:[
+ ...['R12','R13','R23','U','unitarity'].map(k=>['PMNS '+k,'三味',s.mix[k]]),
+ ['Jarlskog不变量','J',s.mix.J],['复四元积','Ue1 Uμ2 Ue2* Uμ1*',s.mix.quartet],
+ ...MODEL_KEYS.flatMap(k=>[['实际U',modelName(k),s[k].U],['真空质量平方矩阵',modelName(k),s[k].massMatrix],['物质项A/eV²',modelName(k),s[k].matterA],['K/eV²',modelName(k),s[k].K],['K−tr(K)I/3',modelName(k),s[k].evolution.traceless],['演化振幅S（行末味，列初味）',modelName(k),s[k].evolution.matrix]])
+ ]},
+ {key:'current',title:'六种传播设置的全部九个概率与数值误差',headers:['设置','E/GeV','L/km','ρ','P初e→[e,μ,τ]','P初μ→[e,μ,τ]','P初τ→[e,μ,τ]','行和','列和','幺正残差','缩放次数','缩放后范数','单步Taylor尾界'],rows:MODEL_KEYS.map(k=>{const p=s[k],v=p.evolution;return[modelName(k),p.energy,p.baseline,p.density,...p.probability,p.rowSums,p.columnSums,v.unitarityResidual,v.squarings,v.scaledNorm,v.stepTaylorTailBound];})},
+ {key:'densities',title:'各初味的纯态与统计混合密度矩阵',headers:['设置','初味','完整密度矩阵[Re,Im]','迹（平均态）','纯度（平均态）'],rows:[...MODEL_KEYS.flatMap(k=>s[k].densities.map((r,a)=>[modelName(k),flavorNames[a],r,null,null])),...s.averaged.densities.map((r,a)=>['九能量线平均',flavorNames[a],r,s.averaged.traces[a],s.averaged.purities[a]])]},
+ {key:'ensemble',title:'九个正权重通道：完整振幅、概率与密度矩阵',headers:['编号','z','权重','E/GeV','演化矩阵S','P（行初味）','初e的ρ','初μ的ρ','初τ的ρ'],rows:s.averaged.samples.map((p,i)=>[i,p.z,p.weight,p.energy,p.evolution.matrix,p.probability,...p.densities])},
+ {key:'baseline',title:'201个基线点：全部初味与末味',headers:['E/GeV','L/km','ρ','反ν','初e→[e,μ,τ]','初μ→[e,μ,τ]','初τ→[e,μ,τ]','幺正残差'],rows:s.baselineScan.map(scanrow)},
+ {key:'energy',title:'121个能量点：不插值为连续振荡',headers:['log10E','E/GeV','L/km','ρ','反ν','初e→[e,μ,τ]','初μ→[e,μ,τ]','初τ→[e,μ,τ]','幺正残差'],rows:s.energyScan.map(p=>[p.log10Energy,...scanrow(p)])},
+ {key:'cp',title:'181个CP相位 × 四种传播设置',headers:['δ/度','J','设置','E/GeV','L/km','ρ','反ν','初e→[e,μ,τ]','初μ→[e,μ,τ]','初τ→[e,μ,τ]','幺正残差'],rows:s.cpScan.flatMap(p=>[['nu','ν，物质'],['anti','反ν，物质'],['vacNu','ν，真空'],['vacAnti','反ν，真空']].map(([k,n])=>[p.delta,p.J,n,...scanrow(p[k])]))},
+ {key:'density',title:'131个恒定密度点：三味矩阵演化',headers:['E/GeV','L/km','ρ','反ν','初e→[e,μ,τ]','初μ→[e,μ,τ]','初τ→[e,μ,τ]','幺正残差'],rows:s.densityScan.map(scanrow)},
+ {key:'two',title:'两味解析极限：扫描与当前点；简并角用null',headers:['点','ρ','A/eV²','对角差','二倍非对角项','有效Δm²','sin²2θm','半相位','P(e→μ)','P(e→e)'],rows:[...s.twoFlavorScan.map(p=>['扫描',p.density,p.A,p.diagonalDifference,p.twiceOffDiagonal,p.effectiveGap,p.mixingAmplitude,p.halfPhase,p.conversion,p.survival]),['当前',s.twoFlavorCurrent.density,s.twoFlavorCurrent.A,s.twoFlavorCurrent.diagonalDifference,s.twoFlavorCurrent.twiceOffDiagonal,s.twoFlavorCurrent.effectiveGap,s.twoFlavorCurrent.mixingAmplitude,s.twoFlavorCurrent.halfPhase,s.twoFlavorCurrent.conversion,s.twoFlavorCurrent.survival]]},
+ {key:'invariants',title:'共同质量、Majorana列相位、能谱与显示范围',headers:['量','值'],rows:[
+ ['Majorana列相位/rad',s.invariances.majoranaPhases],['加入列相位的U',s.invariances.majoranaU],['加入列相位后的P',s.invariances.majoranaProbability],['共同质量平方平移/eV²',s.invariances.commonMassSquaredShift],['共同平移后的P',s.invariances.shiftedProbability],
+ ['能谱权重和',s.averaged.weightSum],['能谱平均能量/GeV',s.averaged.meanEnergy],['ln(E/E0)参数σ',s.averaged.logWidth],['平均态全部概率',s.averaged.probability],['平均态三种纯度',s.averaged.purities],
+ ['基线图上限/km',s.baselinePlot.max],['谱跨度的范数上界/eV²',s.baselinePlot.spanBound],['最短周期的下界/km',s.baselinePlot.periodLowerBound],['当前基线是否在图内',s.baselinePlot.currentVisible],['两味非平凡共振密度（可超出图域）',s.twoFlavorResonanceDensity]
+ ]},
+ {key:'boundaries',title:'13条解释边界与单位约定',headers:['边界或单位','值'],rows:[...Object.entries(s.boundaries),...Object.entries(s.units)]}
+ ];}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=10000?v.toExponential(2):Number(v.toFixed(3)).toString();
+function svg(p){const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 580" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+const discrete=p.key==='ensemble';const xticks=discrete?[...new Set(Array.from({length:5},(_,i)=>Math.round(p.xMin+(p.xMax-p.xMin)*i/4)))]:Array.from({length:5},(_,i)=>p.xMin+(p.xMax-p.xMin)*i/4);for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+axisFmt(y)+'</text>';}for(const x of xticks){out+='<text x="'+X(x)+'" y="410" text-anchor="middle">'+axisFmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen&&!s.markersOnly?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const marks=s.markersOnly?s.points.filter(Boolean):s.boundaryMarkers?[...new Set([s.points.find(Boolean),s.points.filter(Boolean).at(-1)])].filter(Boolean):s.points.filter(Boolean).length===1?s.points.filter(Boolean):[];marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="'+(s.markerRadius??5)+'" stroke="'+s.color+'" fill="'+(s.hollow?'none':s.open?'var(--bg,#fff)':s.color)+'" stroke-width="'+(s.markerStrokeWidth??2.5)+'"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});if(!p.series.some(s=>s.points.some(Boolean)))out+='<text x="450" y="245" text-anchor="middle">当前模型在此参数下无适用数据</text>';return out+'</svg>';}
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "physics-flavor-neutrino-lab-styles";
-  var INSTANCE = 0;
-  var EPS = 1e-9;
-  var DM2_REF = 2.5e-3;
-  var E_REF = 1;
+var mounted=new WeakMap();
+function mount(root){const doc=root.ownerDocument,previous=mounted.get(root);if(previous)previous();root.replaceChildren();root.classList.add('neutrino198');let c=config(PRESETS[0].parameters),choices={},revealed=false,url=null,current=null,view=0,valid=true;
+ const el=(tag,attrs={},text)=>{const e=doc.createElement(tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
+ if(!doc.querySelector('[data-neutrino198-style]')){const style=el('style',{'data-neutrino198-style':''});style.textContent='.neutrino198{margin-inline:0!important;width:100%;min-width:0;color:var(--fg,#222);line-height:1.65}.neutrino198 *{box-sizing:border-box}.neutrino198 button,.neutrino198 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.neutrino198 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.neutrino198 button:focus-visible,.neutrino198 select:focus-visible,.neutrino198 [tabindex]:focus-visible{outline:3px solid #2474bc}.neutrino198 .nu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.neutrino198 label{display:grid;gap:4px;min-width:0}.neutrino198 input{width:100%;min-height:44px;font:inherit;color:inherit;background:var(--bg,#fff)}.neutrino198 .nu-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.neutrino198 .nu-pred>strong{display:block;margin-bottom:6px}.neutrino198 .nu-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.neutrino198 .nu-feedback{margin:7px 0}.neutrino198 .nu-scroll{max-width:100%;overflow:auto}.neutrino198 svg{display:block;min-width:680px;width:100%;height:auto}.neutrino198 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.neutrino198 td,.neutrino198 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.neutrino198 [hidden]{display:none!important}.neutrino198 details{margin:12px 0}.neutrino198 summary{min-height:44px;cursor:pointer}.neutrino198 .nu-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.neutrino198 .nu-correct{color:var(--cl-green,#277540)}.neutrino198 .nu-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.neutrino198 .nu-grid{grid-template-columns:1fr}}';doc.head.append(style);}
+ root.append(el('h3',{},'从味态振幅到三味传播：逐项核对概率'),el('p',{},'把相位、物质和能谱分开改变。所有参数是教学设置；恒定密度模型与九条能量线都不代替真实实验拟合。'));
+ const presets=el('div',{class:'nu-row','aria-label':'教学预设'});for(const p of PRESETS){const b=el('button',{type:'button','data-preset':p.id},p.label);b.onclick=()=>{c=config(p.parameters);valid=true;sync();reset();};presets.append(b);}root.append(presets);
+ const fields={},outs={},grid=el('div',{class:'nu-grid'});
 
-  var PRESETS = [
-    { id: "atmospheric", label: "大气尺度：首次极大", theta: 33, dm2: 0.0025, energy: 1, baseline: 500, coherence: 1000, note: "两味 toy 在 1 GeV、500 km 附近接近首次转换极大。" },
-    { id: "long-baseline", label: "长基线：相干性变差", theta: 33, dm2: 0.0025, energy: 1, baseline: 3000, coherence: 1000, note: "相位继续积累，但波包可见度下降，结果向平均值靠近。" },
-    { id: "solar-scale", label: "太阳 Δm²", theta: 33, dm2: 0.000075, energy: 0.01, baseline: 330, coherence: 1000, note: "把能量降到 MeV 量级，保持 L/E 的相位尺度。" },
-    { id: "no-mixing", label: "无混合边界", theta: 0, dm2: 0.0025, energy: 1, baseline: 500, coherence: 1000, note: "θ=0 时质量基与味基重合，不出现异味。" }
-  ];
 
-  function finite(value) { return typeof value === "number" && isFinite(value); }
-  function near(a, b, tolerance) { return Math.abs(a - b) <= (tolerance || EPS) * Math.max(1, Math.abs(a), Math.abs(b)); }
-  function clamp(value, lo, hi) { return Math.max(lo, Math.min(hi, value)); }
-  function format(value, digits) {
-    if (!finite(value)) return "—";
-    var text = value.toFixed(digits === undefined ? 3 : digits);
-    return text.replace(/0+$/, "").replace(/\.$/, "");
-  }
-  function formatLength(value) { return value === Infinity ? "∞" : format(value, 0); }
 
-  function normalize(input) {
-    input = input || {};
-    var theta = Number(input.theta);
-    var dm2 = Number(input.dm2 === undefined ? input.deltaM2 : input.dm2);
-    var energy = Number(input.energy === undefined ? input.E : input.energy);
-    var baseline = Number(input.baseline === undefined ? input.L : input.baseline);
-    var coherenceReference = Number(input.coherenceReference === undefined ? (input.coherence === undefined ? input.coherenceLength : input.coherence) : input.coherenceReference);
-    if (!finite(theta) || !finite(dm2) || !finite(energy) || !finite(baseline) || !finite(coherenceReference)) throw new TypeError("θ、Δm²、E、L、Lcoh,ref 必须是有限数");
-    if (theta < 0 || theta > 45) throw new RangeError("两味实验要求 0≤θ≤45°");
-    if (!(energy > 0) || baseline < 0 || !(coherenceReference > 0)) throw new RangeError("E、Lcoh,ref 必须为正，基线 L 不能为负；Δm² 可取 0");
-    return { theta: theta, dm2: dm2, energy: energy, baseline: baseline, coherence: coherenceReference, coherenceReference: coherenceReference };
-  }
 
-  function effectiveCoherenceLength(referenceLength, energy, dm2) {
-    referenceLength = Number(referenceLength);
-    energy = Number(energy);
-    dm2 = Number(dm2);
-    if (!finite(referenceLength) || !finite(energy) || !finite(dm2) || !(referenceLength > 0) || !(energy > 0)) return NaN;
-    var magnitude = Math.abs(dm2);
-    if (magnitude === 0) return Infinity;
-    return referenceLength * Math.pow(energy / E_REF, 2) * (DM2_REF / magnitude);
-  }
+ for(const[key,title]of Object.entries(LABELS).filter(([key])=>Object.hasOwn(LIMITS,key))){const[min,max]=LIMITS[key],label=el('label',{},title),out=el('output'),input=el('input',{type:'range',min,max,step:1,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.oninput=input.onchange=change;}root.append(grid);
+ function change(){try{c=config(Object.fromEntries(Object.entries(fields).map(([k,e])=>[k,e.value===''?NaN:Number(e.value)])));valid=true;sync();reset();}catch(e){valid=false;reset();status.textContent='请使用各控件范围内的整数，再按标签倍率换成实际物理量。';}}
+ const note=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(note,prediction);prediction.append(el('h4',{},'先预测：共同相位、物质差异、统计混合与简并'),el('p',{},'四题的条件固定写在题干里；参数用来检查例子，不自动改变问题。'));
+ const feedbacks=[],buttons=[];QUESTIONS.forEach((q,i)=>{const row=el('div',{class:'nu-pred'});row.append(el('strong',{},q[0]));buttons[i]=[];q[1].forEach((text,j)=>{const b=el('button',{type:'button','data-prediction':i,'data-choice':String(j===0),'aria-pressed':'false'},text);b.onclick=()=>{choices[i]=j;buttons[i].forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));if(revealed)showFeedback();};row.append(b);buttons[i].push(b);});feedbacks[i]=el('p',{class:'nu-feedback','data-feedback':i});row.append(feedbacks[i]);prediction.append(row);});
+ const check=el('button',{type:'button','data-check':''},'核对预测并显示完整结果'),status=el('p',{class:'nu-status','aria-live':'polite'});root.append(check,status);
+ const stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),summary=el('p'),plotButtons=el('div',{class:'nu-row'}),plotWrap=el('div',{class:'nu-scroll',tabindex:0,role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'基线图按谱跨度上界缩短显示范围，以免稀疏采样产生假慢振荡。能量、密度、两味密度图只画离散点，点间仍可能快速变化。两味图另外令θ13=θ23=0；其余三味结果保持控件值。单步Taylor尾界不包括浮点舍入，幺正残差另列。'),tableHost=el('div'),download=el('a',{'data-download':'',download:'nu-record.json'},'下载当前完整记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);
+ function sync(){for(const[k,e]of Object.entries(fields))e.value=c[k];}
+ function reset(){if(url){hostWindow.URL.revokeObjectURL(url);url=null;download.removeAttribute('href');}revealed=false;choices={};stage.hidden=true;delete root.__neutrinoSnapshot;for(let i=0;i<4;i++){feedbacks[i].textContent='';for(const b of buttons[i])b.setAttribute('aria-pressed','false');}for(const[k,o]of Object.entries(outs))o.textContent=fmt(c[k]);note.textContent='角度以度输入；质量平方差以标签倍率恢复。能谱E0是对数中心，σ是ln(E/E0)的间距参数，平均能量另列。反ν同时改变U的复共轭与物质势符号。';status.textContent='完成四项预测后显示当前结果。';}
+ function showFeedback(){let n=0;for(let i=0;i<4;i++){if(!Number.isInteger(choices[i]))continue;const f=feedback(i,choices[i]);n+=+f.correct;feedbacks[i].textContent=f.text;feedbacks[i].className='nu-feedback '+(f.correct?'nu-correct':'nu-wrong');}status.textContent='预测核对：'+n+'/4 正确。图、表和下载均对应当前参数。';}
+ function draw(){const ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+ function render(){current=compute(c);root.__neutrinoSnapshot=current;stage.hidden=false;summary.textContent='当前L='+fmt(c.baselineKm)+' km，E='+fmt(c.energyCenti/100)+' GeV：P(μ→e)='+fmt(current.current.probability[1][0])+'，平均P(μ→e)='+fmt(current.averaged.probability[1][0])+'；平均μ初态纯度='+fmt(current.averaged.purities[1])+'。幺正残差='+fmt(current.current.evolution.unitarityResidual)+'。'+(current.baselinePlot.currentVisible?'当前基线在基线图内。':'当前基线超出基线图缩放范围；读数、矩阵与下载仍按完整当前L计算。');plotButtons.replaceChildren();plots(current).forEach((p,i)=>{const b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();for(const t of tables(current)){const d=el('details',{'data-table':t.key});d.append(el('summary',{},t.title));d.addEventListener('toggle',()=>{if(!d.open||d.children.length>1)return;const wrap=el('div',{class:'nu-scroll',tabindex:0,role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),thead=el('thead'),tr=el('tr'),tbody=el('tbody');for(const h of t.headers)tr.append(el('th',{scope:'col'},h));thead.append(tr);for(const row of t.rows){const r=el('tr');for(const v of row)r.append(el('td',{},fmt(v)));tbody.append(r);}table.append(thead,tbody);wrap.append(table);d.append(wrap);});tableHost.append(d);}if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current)],{type:'application/json'}));download.href=url;showFeedback();}
+ check.onclick=()=>{if(!valid){status.textContent='请先修正无效参数。';return;}if(![0,1,2,3].every(i=>Number.isInteger(choices[i]))){status.textContent='请先为四个问题各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
+}
 
-  function phase(input) {
-    var params = normalize(input);
-    return 1.27 * params.dm2 * params.baseline / params.energy;
-  }
-
-  function analyze(input) {
-    var params;
-    try {
-      params = normalize(input);
-    } catch (error) {
-      return { ok: false, status: "invalid-input", message: error.message };
-    }
-    var phi = 1.27 * params.dm2 * params.baseline / params.energy;
-    var amplitude = Math.pow(Math.sin(2 * params.theta * Math.PI / 180), 2);
-    var coherenceEffective = effectiveCoherenceLength(params.coherenceReference, params.energy, params.dm2);
-    var visibility = coherenceEffective === Infinity ? 1 : Math.exp(-Math.pow(params.baseline / coherenceEffective, 2));
-    var coherentProbability = amplitude * Math.pow(Math.sin(phi), 2);
-    var averagedProbability = amplitude / 2;
-    var probability = averagedProbability * (1 - visibility * Math.cos(2 * phi));
-    var splitting = Math.abs(params.dm2);
-    return {
-      ok: true,
-      status: visibility > 0.95 ? "coherent" : visibility < 0.05 ? "averaged" : "partially-coherent",
-      theta: params.theta,
-      dm2: params.dm2,
-      energy: params.energy,
-      baseline: params.baseline,
-      coherence: coherenceEffective,
-      coherenceReference: params.coherenceReference,
-      coherenceEffective: coherenceEffective,
-      phi: phi,
-      amplitude: amplitude,
-      visibility: visibility,
-      coherentProbability: coherentProbability,
-      probability: probability,
-      averagedProbability: averagedProbability,
-      survivalProbability: 1 - probability,
-      firstMaximumBaseline: splitting > 0 ? Math.PI * params.energy / (2 * 1.27 * splitting) : Infinity
-    };
-  }
-
-  function maximumBaseline(params) {
-    var splitting = Math.abs(params.dm2);
-    var oscillationSpan = splitting > 0 ? params.energy / splitting * 1.27 * 3.2 : 0;
-    return Math.max(2500, params.baseline, oscillationSpan);
-  }
-
-  function curve(input, count) {
-    var params = normalize(input);
-    count = count || 150;
-    var maxBaseline = maximumBaseline(params);
-    var points = [];
-    for (var i = 0; i <= count; i += 1) {
-      var baseline = maxBaseline * i / count;
-      var result = analyze({ theta: params.theta, dm2: params.dm2, energy: params.energy, baseline: baseline, coherence: params.coherence });
-      points.push({ baseline: baseline, coherent: result.coherentProbability, probability: result.probability, average: result.averagedProbability });
-    }
-    return points;
-  }
-
-  function assert(condition, message) {
-    if (!condition) throw new Error("physics-flavor-neutrino self-test failed: " + message);
-  }
-
-  function selfTest() {
-    var checks = 0;
-    function check(condition, message) { checks += 1; assert(condition, message); }
-    var base = analyze({ theta: 33, dm2: 0.0025, energy: 1, baseline: 500, coherence: 1000 });
-    check(base.ok, "reference input valid");
-    check(base.amplitude > 0.8 && base.amplitude < 0.9, "mixing amplitude");
-    check(base.probability >= 0 && base.probability <= 1, "probability bounds");
-    check(base.visibility < 1 && base.visibility > 0, "partial visibility");
-    check(near(base.coherenceEffective, 1000, 1e-12) && near(base.coherenceReference, 1000, 1e-12), "reference coherence length is unchanged at dm2_ref and E_ref");
-    check(near(effectiveCoherenceLength(1000, 2, 0.005), 2000, 1e-12), "energy and splitting coherence scaling");
-    check(effectiveCoherenceLength(1000, 1, 0) === Infinity, "zero splitting coherence limit");
-    var zeroSplitting = analyze({ theta: 33, dm2: 0, energy: 1, baseline: 500, coherence: 1000 });
-    check(zeroSplitting.ok && zeroSplitting.visibility === 1 && zeroSplitting.probability === 0, "zero splitting has full visibility and no conversion");
-    check(analyze({ theta: 0, dm2: 0.0025, energy: 1, baseline: 500, coherence: 1000 }).probability === 0, "zero mixing boundary");
-    var max = analyze({ theta: 45, dm2: 0.0025, energy: 1, baseline: 500, coherence: 1e9 });
-    check(max.coherentProbability > 0.99, "first maximum is near one for maximal mixing");
-    var far = analyze({ theta: 33, dm2: 0.0025, energy: 1, baseline: 5000, coherence: 100 });
-    check(near(far.probability, far.averagedProbability, 1e-8), "lost coherence approaches average");
-    check(near(base.survivalProbability + base.probability, 1, 1e-12), "two-flavor probability conservation");
-    check(near(base.firstMaximumBaseline, 494.7390005653, 1e-10), "first maximum scale");
-    var curveA = curve({ theta: 33, dm2: 0.0025, energy: 1, baseline: 500, coherence: 1000 }, 30);
-    var curveB = curve({ theta: 33, dm2: 0.0025, energy: 1, baseline: 500, coherence: 1000 }, 30);
-    check(JSON.stringify(curveA) === JSON.stringify(curveB), "curve deterministic");
-    var longCurve = curve({ theta: 33, dm2: 0.0025, energy: 1, baseline: 3000, coherence: 1000 }, 30);
-    check(longCurve[longCurve.length - 1].baseline >= 3000 && longCurve.every(function (point) { return point.baseline >= 0 && point.baseline <= 3000; }), "3000 km preset fits the plotted domain");
-    var zeroCurve = curve({ theta: 33, dm2: 0, energy: 1, baseline: 3000, coherence: 1000 }, 10);
-    check(zeroCurve.every(function (point) { return point.probability === 0 && point.coherent === 0 && finite(point.average); }), "zero splitting curve remains finite and conversion-free");
-    var rejected = false;
-    try { normalize({ theta: 50, dm2: 0.0025, energy: 1, baseline: 500, coherence: 1000 }); } catch (error) { rejected = true; }
-    check(rejected, "out-of-range angle rejected");
-    return { checks: checks, presets: PRESETS.length };
-  }
-
-  function setAttributes(node, attrs) {
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", String(value));
-      else if (key === "htmlFor") node.setAttribute("for", String(value));
-      else if (key === "text") node.textContent = String(value);
-      else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, String(value));
-    });
-    return node;
-  }
-
-  function appendChildren(node, children, doc) {
-    if (children === undefined || children === null) return node;
-    (Array.isArray(children) ? children : [children]).forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(child && child.nodeType ? child : doc.createTextNode(String(child)));
-    });
-    return node;
-  }
-
-  function make(api, doc, tag, attrs, children) {
-    if (api && typeof api.el === "function") return api.el(tag, attrs || {}, children);
-    return appendChildren(setAttributes(doc.createElement(tag), attrs || {}), children, doc);
-  }
-
-  function svg(doc, tag, attrs, text) {
-    var node = setAttributes(doc.createElementNS(SVG_NS, tag), attrs || {});
-    if (text !== undefined) node.textContent = String(text);
-    return node;
-  }
-
-  function replaceChildren(node, children, doc) {
-    if (typeof node.replaceChildren === "function") {
-      node.replaceChildren.apply(node, Array.isArray(children) ? children : [children]);
-      return;
-    }
-    while (node.firstChild) node.removeChild(node.firstChild);
-    appendChildren(node, children, doc);
-  }
-
-  function announce(api, root, message) {
-    if (api && typeof api.announce === "function") api.announce(root, message);
-  }
-
-  function installStyles(doc) {
-    if (!doc || !doc.head || doc.getElementById(STYLE_ID)) return;
-    var style = doc.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = [
-      ".pnu-lab{color:var(--fg,#20252b);line-height:1.55;overflow-wrap:anywhere}.pnu-lab *{box-sizing:border-box}.pnu-lab [hidden]{display:none!important}.pnu-lab h3{margin:0;color:var(--fg,#20252b);font-size:1.15rem}.pnu-note,.pnu-feedback{color:var(--fg-soft,var(--muted,#5d6873));font-size:.9rem}.pnu-lab fieldset{min-width:0;margin:12px 0;padding:9px 10px;border:1px solid var(--border,#c8cdd3)}.pnu-lab legend{max-width:100%;font-weight:750}.pnu-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.pnu-choice{display:flex;gap:7px;align-items:flex-start;min-width:0;padding:8px;border:1px solid var(--border,#c8cdd3);border-radius:6px}.pnu-choice input{margin-top:3px;accent-color:var(--accent,#1769aa)}",
-      ".pnu-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.pnu-lab button,.pnu-lab select,.pnu-lab input{font:inherit}.pnu-lab button{min-height:44px;padding:8px 11px;border:1px solid var(--border,#c8cdd3);border-radius:6px;background:var(--bg,#fff);color:inherit;cursor:pointer}.pnu-lab button:hover{border-color:var(--accent,#1769aa)}.pnu-lab button:focus-visible,.pnu-lab select:focus-visible,.pnu-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.pnu-primary{background:var(--accent,#1769aa)!important;color:var(--bg,#fff)!important;font-weight:750}.pnu-pass{color:var(--cl-green,#2f7547)}.pnu-warn{color:var(--cl-red,#b43d32)}",
-      ".pnu-layout{display:grid;grid-template-columns:minmax(200px,.72fr) minmax(0,1.28fr);gap:14px;align-items:start}.pnu-controls{display:grid;gap:10px;padding:11px;border:1px solid var(--border,#c8cdd3);border-radius:7px}.pnu-field{display:grid;gap:5px}.pnu-field label{font-size:.82rem;font-weight:700;color:var(--fg-soft,var(--muted,#5d6873))}.pnu-field select,.pnu-field input{width:100%;min-height:42px;padding:7px 8px;border:1px solid var(--border,#c8cdd3);border-radius:5px;background:var(--bg,#fff);color:inherit}.pnu-field input[type=range]{padding:0;accent-color:var(--accent,#1769aa)}.pnu-output{font-variant-numeric:tabular-nums;color:var(--accent,#1769aa)}",
-      ".pnu-frame{min-width:0;border:1px solid var(--border,#c8cdd3);border-radius:7px;background:var(--bg,#fff);overflow:hidden}.pnu-svg{display:block;width:100%;height:auto}.pnu-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.pnu-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:10px}.pnu-metric{min-width:0;padding:8px;border-top:2px solid var(--border,#c8cdd3);background:var(--bg,#fff)}.pnu-metric:nth-child(4n+1){border-color:var(--cl-blue,#2c6aa0)}.pnu-metric:nth-child(4n+2){border-color:var(--cl-gold,#95670d)}.pnu-metric:nth-child(4n+3){border-color:var(--cl-green,#347247)}.pnu-metric:nth-child(4n){border-color:var(--cl-red,#b43d32)}.pnu-metric span{display:block;color:var(--fg-soft,var(--muted,#5d6873));font-size:.73rem}.pnu-metric strong{display:block;margin-top:3px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}.pnu-table-wrap{max-width:100%;overflow-x:auto;margin-top:10px}.pnu-table{width:100%;min-width:650px;border-collapse:collapse;font-size:.8rem}.pnu-table th,.pnu-table td{padding:7px;border-bottom:1px solid var(--border,#c8cdd3);text-align:left;vertical-align:top}.pnu-table th{color:var(--fg-soft,var(--muted,#5d6873));font-size:.74rem}.pnu-interpretation{margin-top:10px;padding:9px 11px;border-left:3px solid var(--cl-blue,#2c6aa0);background:var(--block-bg,var(--bg,#fff));font-size:.86rem}",
-      "@media(max-width:760px){.pnu-layout{grid-template-columns:minmax(0,1fr)}}@media(max-width:600px){.pnu-choices{grid-template-columns:minmax(0,1fr)}.pnu-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(prefers-reduced-motion:reduce){.pnu-lab *{transition:none!important;animation:none!important}}"
-    ].join("\n");
-    doc.head.appendChild(style);
-  }
-
-  function metric(api, doc, label) {
-    var value = make(api, doc, "strong", {}, ["—"]);
-    return make(api, doc, "div", { className: "pnu-metric" }, [make(api, doc, "span", {}, [label]), value]);
-  }
-
-  function drawChart(doc, node, params, current) {
-    replaceChildren(node, [], doc);
-    node.setAttribute("viewBox", "0 0 760 350");
-    node.setAttribute("role", "img");
-    node.setAttribute("aria-label", "两味中微子转换概率随基线的振荡与相干性衰减");
-    var left = 58;
-    var right = 730;
-    var top = 30;
-    var bottom = 292;
-    var maxBaseline = maximumBaseline(params);
-    var x = function (value) { return left + value / maxBaseline * (right - left); };
-    var y = function (value) { return bottom - clamp(value, 0, 1) * (bottom - top); };
-    node.appendChild(svg(doc, "title", { id: "pnu-title" }, "中微子味转换概率曲线"));
-    node.appendChild(svg(doc, "desc", { id: "pnu-desc" }, "实线表示含有限相干可见度的转换概率，虚线表示理想相干结果，灰线表示失相干平均值。"));
-    node.setAttribute("aria-labelledby", "pnu-title pnu-desc");
-    [0, 0.25, 0.5, 0.75, 1].forEach(function (value) {
-      node.appendChild(svg(doc, "line", { x1: left, y1: y(value), x2: right, y2: y(value), stroke: "var(--border,#c8cdd3)", "stroke-width": "1" }));
-      node.appendChild(svg(doc, "text", { x: left - 8, y: y(value) + 4, "text-anchor": "end", "font-size": "11" }, format(value, 2)));
-    });
-    [0, maxBaseline / 4, maxBaseline / 2, maxBaseline * 3 / 4, maxBaseline].forEach(function (value) {
-      node.appendChild(svg(doc, "line", { x1: x(value), y1: top, x2: x(value), y2: bottom, stroke: "var(--border,#c8cdd3)", "stroke-width": "1", "stroke-opacity": "0.65" }));
-      node.appendChild(svg(doc, "text", { x: x(value), y: bottom + 18, "text-anchor": "middle", "font-size": "11" }, format(value, 0)));
-    });
-    node.appendChild(svg(doc, "line", { x1: left, y1: bottom, x2: right, y2: bottom, stroke: "currentColor", "stroke-width": "1.2" }));
-    node.appendChild(svg(doc, "line", { x1: left, y1: top, x2: left, y2: bottom, stroke: "currentColor", "stroke-width": "1.2" }));
-    var points = curve(params, 160);
-    var pathCoherent = "";
-    var pathObserved = "";
-    points.forEach(function (point) {
-      var px = x(point.baseline).toFixed(2);
-      pathCoherent += (pathCoherent ? " L " : "M ") + px + " " + y(point.coherent).toFixed(2);
-      pathObserved += (pathObserved ? " L " : "M ") + px + " " + y(point.probability).toFixed(2);
-    });
-    node.appendChild(svg(doc, "path", { d: pathCoherent, fill: "none", stroke: "var(--cl-gold,#95670d)", "stroke-width": "2", "stroke-dasharray": "6 4" }));
-    node.appendChild(svg(doc, "path", { d: pathObserved, fill: "none", stroke: "var(--cl-blue,#2c6aa0)", "stroke-width": "3", "stroke-linecap": "round" }));
-    node.appendChild(svg(doc, "line", { x1: left, y1: y(current.averagedProbability), x2: right, y2: y(current.averagedProbability), stroke: "var(--cl-green,#347247)", "stroke-width": "1.5", "stroke-dasharray": "3 4" }));
-    if (current.ok) node.appendChild(svg(doc, "circle", { cx: x(current.baseline), cy: y(current.probability), r: "6", fill: "var(--cl-red,#b43d32)", stroke: "var(--bg,#fff)", "stroke-width": "2" }));
-    node.appendChild(svg(doc, "text", { x: left + 6, y: top + 15, "font-size": "11", fill: "var(--cl-blue,#2c6aa0)" }, "蓝：含相干性"));
-    node.appendChild(svg(doc, "text", { x: left + 98, y: top + 15, "font-size": "11", fill: "var(--cl-gold,#95670d)" }, "金：理想相干"));
-    node.appendChild(svg(doc, "text", { x: left + 190, y: top + 15, "font-size": "11", fill: "var(--cl-green,#347247)" }, "绿：失相干平均"));
-    node.appendChild(svg(doc, "text", { x: (left + right) / 2, y: 337, "text-anchor": "middle", "font-size": "12" }, "基线 L / km"));
-    node.appendChild(svg(doc, "text", { x: 17, y: (top + bottom) / 2, "text-anchor": "middle", "font-size": "12", transform: "rotate(-90 17 " + ((top + bottom) / 2) + ")" }, "P(νa→νb)"));
-  }
-
-  function mount(root, api) {
-    if (!root || !root.ownerDocument) return;
-    var doc = root.ownerDocument;
-    installStyles(doc);
-    INSTANCE += 1;
-    var prefix = "pnu-" + INSTANCE;
-    var state = { presetId: "atmospheric", theta: 33, dm2: 0.0025, energy: 1, baseline: 500, coherence: 1000, revealed: false, predictions: {} };
-    var refs = {};
-    root.classList.add("pnu-lab");
-    var heading = make(api, doc, "h3", { id: prefix + "-heading" }, ["中微子振荡账本：先猜相位，再看相干性"]);
-    var intro = make(api, doc, "p", { className: "pnu-note" }, ["实验用两味、真空、相对论中微子 toy；它把“味改变”的观测、质量差与混合的模型推断、以及波包失相干的边界分开。"]);
-    var form = make(api, doc, "fieldset", {});
-    form.appendChild(make(api, doc, "legend", {}, ["预测门：结果、曲线和账本会在揭晓后出现"]));
-    var questions = [
-      { key: "baseline", text: "固定 E、Δm² 时，增加 L 会怎样？", expected: "oscillate", options: [["oscillate", "相位增加并振荡"], ["increase", "单调增加"], ["same", "完全不变"]] },
-      { key: "mixing", text: "θ=0 时异味转换概率？", expected: "zero", options: [["zero", "为 0"], ["half", "平均为 1/2"], ["one", "达到 1"]] },
-      { key: "coherence", text: "完全失相干后的两味平均？", expected: "average", options: [["average", "1/2·sin²2θ"], ["zero", "总是 0"], ["peak", "总是等于相干极大"]] }
-    ];
-    questions.forEach(function (question) {
-      var block = make(api, doc, "div", {});
-      block.appendChild(make(api, doc, "p", { className: "pnu-note" }, [question.text]));
-      var choices = make(api, doc, "div", { className: "pnu-choices" });
-      question.options.forEach(function (option) {
-        var radio = make(api, doc, "input", { type: "radio", name: prefix + "-" + question.key, value: option[0] });
-        radio.addEventListener("change", function () { state.predictions[question.key] = option[0]; });
-        choices.appendChild(make(api, doc, "label", { className: "pnu-choice" }, [radio, make(api, doc, "span", {}, [option[1]])]));
-      });
-      block.appendChild(choices);
-      form.appendChild(block);
-    });
-    var actions = make(api, doc, "div", { className: "pnu-actions" });
-    var reveal = make(api, doc, "button", { type: "button", className: "pnu-primary" }, ["核对预测并揭晓"]);
-    var reset = make(api, doc, "button", { type: "button" }, ["重置预测"]);
-    actions.appendChild(reveal);
-    actions.appendChild(reset);
-    refs.feedback = make(api, doc, "p", { className: "pnu-feedback", "aria-live": "polite", "aria-atomic": "true" }, []);
-    var shell = make(api, doc, "div", { hidden: true });
-    var controls = make(api, doc, "div", { className: "pnu-controls" });
-    var preset = make(api, doc, "select", { "aria-label": "中微子教学预设" });
-    PRESETS.forEach(function (item) { preset.appendChild(make(api, doc, "option", { value: item.id }, [item.label])); });
-    var thetaInput = make(api, doc, "input", { type: "range", min: "0", max: "45", step: "0.5", value: "33", "aria-label": "混合角 θ" });
-    var thetaOutput = make(api, doc, "output", { className: "pnu-output" }, ["33°"]);
-    var dmInput = make(api, doc, "input", { type: "number", min: "-0.01", max: "0.01", step: "0.00001", value: "0.0025", "aria-label": "质量平方差 Δm² / eV²" });
-    var energyInput = make(api, doc, "input", { type: "number", min: "0.001", max: "20", step: "0.001", value: "1", "aria-label": "中微子能量 E / GeV" });
-    var baselineInput = make(api, doc, "input", { type: "range", min: "0", max: "4000", step: "1", value: "500", "aria-label": "基线 L / km" });
-    var baselineOutput = make(api, doc, "output", { className: "pnu-output" }, ["500 km"]);
-    var coherenceInput = make(api, doc, "input", { type: "range", min: "100", max: "10000", step: "10", value: "1000", "aria-label": "参考相干长度 Lcoh,ref / km" });
-    var coherenceOutput = make(api, doc, "output", { className: "pnu-output" }, ["1000 km"]);
-    function labelled(label, input, output, id) {
-      input.id = id;
-      return make(api, doc, "div", { className: "pnu-field" }, [make(api, doc, "label", { htmlFor: id }, [label, output]), input]);
-    }
-    preset.id = prefix + "-preset";
-    controls.appendChild(make(api, doc, "div", { className: "pnu-field" }, [make(api, doc, "label", { htmlFor: preset.id }, ["教学预设"]), preset]));
-    controls.appendChild(labelled("混合角 θ：", thetaInput, thetaOutput, prefix + "-theta"));
-    controls.appendChild(labelled("Δm² / eV²：", dmInput, null, prefix + "-dm2"));
-    controls.appendChild(labelled("能量 E / GeV：", energyInput, null, prefix + "-energy"));
-    controls.appendChild(labelled("基线 L：", baselineInput, baselineOutput, prefix + "-baseline"));
-    controls.appendChild(labelled("参考相干长度 Lcoh,ref：", coherenceInput, coherenceOutput, prefix + "-coherence"));
-    controls.appendChild(make(api, doc, "p", { className: "pnu-note" }, ["UI 的 Lcoh 是参考长度：Lcoh,eff = Lcoh,ref × (E / 1 GeV)² × (2.5×10⁻³ eV² / |Δm²|)；Δm²→0 时取 ∞。真实源和探测器还需单独建模。"]));
-    var stage = make(api, doc, "div", {});
-    var frame = make(api, doc, "div", { className: "pnu-frame" });
-    var chart = doc.createElementNS(SVG_NS, "svg");
-    chart.setAttribute("class", "pnu-svg");
-    frame.appendChild(chart);
-    stage.appendChild(frame);
-    var metrics = make(api, doc, "div", { className: "pnu-metrics" });
-    var tableWrap = make(api, doc, "div", { className: "pnu-table-wrap" });
-    var interpretation = make(api, doc, "p", { className: "pnu-interpretation", "aria-live": "polite" }, []);
-    stage.appendChild(metrics);
-    stage.appendChild(tableWrap);
-    stage.appendChild(interpretation);
-    shell.appendChild(make(api, doc, "div", { className: "pnu-layout" }, [controls, stage]));
-    root.appendChild(heading);
-    root.appendChild(intro);
-    root.appendChild(form);
-    root.appendChild(actions);
-    root.appendChild(refs.feedback);
-    root.appendChild(shell);
-
-    function applyPreset(id) {
-      var selected = PRESETS.filter(function (item) { return item.id === id; })[0];
-      if (!selected) return;
-      state.presetId = selected.id;
-      state.theta = selected.theta;
-      state.dm2 = selected.dm2;
-      state.energy = selected.energy;
-      state.baseline = selected.baseline;
-      state.coherence = selected.coherence;
-    }
-
-    function renderLedger(result) {
-      replaceChildren(tableWrap, [], doc);
-      var table = make(api, doc, "table", { className: "pnu-table" });
-      table.appendChild(make(api, doc, "caption", {}, ["计算账本：相位、可见度与概率"]));
-      table.appendChild(make(api, doc, "thead", {}, [make(api, doc, "tr", {}, [make(api, doc, "th", { scope: "col" }, ["量"]), make(api, doc, "th", { scope: "col" }, ["数值"]), make(api, doc, "th", { scope: "col" }, ["解释"])])]));
-      var rows = [
-        ["φ", result.ok ? format(result.phi, 4) : "—", "1.27 Δm² L/E；无量纲相位"],
-        ["sin²2θ", result.ok ? format(result.amplitude, 4) : "—", "混合振幅上限"],
-        ["V(L)", result.ok ? format(result.visibility, 4) : "—", "有限相干的可见度"],
-        ["Lcoh,eff", result.ok ? formatLength(result.coherenceEffective) + " km" : "—", "由 Lcoh,ref、E 和 |Δm²| 缩放；Δm²→0 时为 ∞"],
-        ["P 相干", result.ok ? format(result.coherentProbability, 4) : "—", "理想波包重叠时的值"],
-        ["P 当前", result.ok ? format(result.probability, 4) : "—", "含 V 的教学观测模型"],
-        ["P 平均", result.ok ? format(result.averagedProbability, 4) : "—", "V→0 后的 1/2·sin²2θ"]
-      ];
-      var body = make(api, doc, "tbody");
-      rows.forEach(function (row) { body.appendChild(make(api, doc, "tr", {}, row.map(function (value) { return make(api, doc, "td", {}, [value]); }))); });
-      table.appendChild(body);
-      tableWrap.appendChild(table);
-    }
-
-    function render() {
-      preset.value = state.presetId;
-      thetaInput.value = String(state.theta);
-      thetaOutput.textContent = format(state.theta, 1) + "°";
-      dmInput.value = String(state.dm2);
-      energyInput.value = String(state.energy);
-      baselineInput.value = String(state.baseline);
-      baselineOutput.textContent = format(state.baseline, 0) + " km";
-      coherenceInput.value = String(state.coherence);
-      coherenceOutput.textContent = format(state.coherence, 0) + " km";
-      shell.hidden = !state.revealed;
-      if (!state.revealed) return;
-      var result = analyze({ theta: state.theta, dm2: state.dm2, energy: state.energy, baseline: state.baseline, coherence: state.coherence });
-      if (!result.ok) {
-        replaceChildren(chart, [], doc);
-        replaceChildren(metrics, [], doc);
-        replaceChildren(tableWrap, [], doc);
-        replaceChildren(interpretation, ["模型停止：" + result.message], doc);
-        interpretation.className = "pnu-interpretation pnu-warn";
-        return;
-      }
-      drawChart(doc, chart, { theta: state.theta, dm2: state.dm2, energy: state.energy, baseline: state.baseline, coherence: state.coherence }, result);
-      replaceChildren(metrics, [metric(api, doc, "φ"), metric(api, doc, "V(L)"), metric(api, doc, "P 当前"), metric(api, doc, "P 平均")], doc);
-      var values = [result.ok ? format(result.phi, 3) : "—", result.ok ? format(result.visibility, 3) : "—", result.ok ? format(result.probability, 3) : "—", result.ok ? format(result.averagedProbability, 3) : "—"];
-      metrics.querySelectorAll("strong").forEach(function (node, index) { node.textContent = values[index]; });
-      renderLedger(result);
-      interpretation.textContent = result.ok ? "模型读法：" + (result.status === "coherent" ? "波包仍高度重叠，曲线接近理想振荡。" : result.status === "averaged" ? "相位信息被洗掉，结果接近 1/2·sin²2θ。" : "振荡仍存在，但有限可见度把峰谷拉向平均线。") + " 观测到味改变支持质量差与混合的模型推断；本 toy 不测绝对质量，也不含物质效应。" : "模型停止：" + result.message;
-      interpretation.className = "pnu-interpretation " + (result.ok ? "pnu-pass" : "pnu-warn");
-    }
-
-    preset.addEventListener("change", function () { applyPreset(preset.value); render(); });
-    thetaInput.addEventListener("input", function () { state.theta = Number(thetaInput.value); state.presetId = "custom"; render(); });
-    dmInput.addEventListener("input", function () { state.dm2 = Number(dmInput.value); state.presetId = "custom"; render(); });
-    energyInput.addEventListener("input", function () { state.energy = Number(energyInput.value); state.presetId = "custom"; render(); });
-    baselineInput.addEventListener("input", function () { state.baseline = Number(baselineInput.value); state.presetId = "custom"; render(); });
-    coherenceInput.addEventListener("input", function () { state.coherence = Number(coherenceInput.value); state.presetId = "custom"; render(); });
-    reveal.addEventListener("click", function () {
-      var missing = questions.filter(function (question) { return !state.predictions[question.key]; });
-      if (missing.length) {
-        var missingMessage = "请先完成全部预测，再揭晓。";
-        refs.feedback.textContent = missingMessage;
-        refs.feedback.className = "pnu-feedback pnu-warn";
-        announce(api, root, missingMessage);
-        return;
-      }
-      var correct = questions.filter(function (question) { return state.predictions[question.key] === question.expected; }).length;
-      state.revealed = true;
-      var message = "已揭晓：" + correct + "/" + questions.length + " 命中。现在可调节 L/E 与相干长度。";
-      refs.feedback.textContent = message;
-      refs.feedback.className = "pnu-feedback " + (correct === questions.length ? "pnu-pass" : "pnu-warn");
-      render();
-      announce(api, root, message);
-    });
-    reset.addEventListener("click", function () {
-      state.presetId = "atmospheric";
-      state.theta = 33;
-      state.dm2 = 0.0025;
-      state.energy = 1;
-      state.baseline = 500;
-      state.coherence = 1000;
-      state.revealed = false;
-      state.predictions = {};
-      form.querySelectorAll("input[type=radio]").forEach(function (radio) { radio.checked = false; });
-      refs.feedback.textContent = "";
-      render();
-      announce(api, root, "中微子振荡预测已重置。");
-    });
-    render();
-  }
-
-  return {
-    PRESETS: PRESETS,
-    DM2_REF: DM2_REF,
-    E_REF: E_REF,
-    normalize: normalize,
-    phase: phase,
-    effectiveCoherenceLength: effectiveCoherenceLength,
-    maximumBaseline: maximumBaseline,
-    analyze: analyze,
-    curve: curve,
-    mount: mount,
-    selfTest: selfTest
-  };
-});
+function selfTest(){let checks=0;const ok=x=>{checks++;if(!x)throw Error('neutrino invariant '+checks);};for(const p of PRESETS){const s=compute(p.parameters);ok(plots(s).length===6);ok(tables(s).length===12);for(const k of MODEL_KEYS){for(const row of s[k].probability)ok(Math.abs(row.reduce((a,b)=>a+b,0)-1)<3e-10);ok(s[k].evolution.unitarityResidual<3e-10);}for(const a of s.averaged.purities)ok(a>=1/3-3e-10&&a<=1+3e-10);for(const plot of plots(s))for(const q of plot.series)for(const point of q.points)if(point)ok(point.every(Number.isFinite));for(let i=0;i<4;i++)ok(feedback(i,QUESTIONS[i][2]).correct);}return{status:'PASS',checks};}
+const API={LIMITS,DEFAULT,config,PRESETS,QUESTIONS,compute,snapshot:compute,plots,tables,svg,feedback,fmt,mount,selfTest,pmns,expHermitian,propagation,ensemble,twoFlavor};if(typeof module!=="undefined"&&module.exports)module.exports=API;if(hostWindow&&hostWindow.CourseLearning)hostWindow.CourseLearning.register("physics-flavor-neutrino",mount);})(typeof window!=="undefined"?window:null);
