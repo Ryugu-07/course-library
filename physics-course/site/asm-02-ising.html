@@ -56,209 +56,309 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-12 21:22</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：从一块会翻面的磁铁到自发对称破缺</a><ul>
-<li><a href="#ising-learning-title">具体情境：降温时，平均磁化会选哪一边？</a></li>
-<li><a href="#_2">先预测：先别拖滑块，写下三个判断</a></li>
-<li><a href="#curieweiss">最小模型：明确标注的无量纲 Curie–Weiss 平均场</a></li>
-<li><a href="#_3">动手实验：同时看地形、交点和平均磁化示意</a></li>
-<li><a href="#_4">误区 / 边界：这套实验没有声称什么</a></li>
-<li><a href="#_5">回到定理：曲率判据如何给出临界点？</a></li>
-<li><a href="#_6">迁移题：把“看图找根”变成可迁移的判断</a></li>
+<li><a href="#1">1. 一条磁化几乎不变的轨迹，可能还没有回答问题</a><ul>
+<li><a href="#ising185-title">先问“平均了什么”，再比较两个数</a></li>
 </ul>
 </li>
-<li><a href="#1">1. 一维精确解：转移矩阵法</a></li>
-<li><a href="#2-weiss">2. 平均场解（Weiss 自洽场）</a></li>
-<li><a href="#3-onsager">3. 二维 Onsager（对照表级掌握）</a></li>
-<li><a href="#4-ising">4. Ising 的第二人生：机器学习</a></li>
-<li><a href="#5">5. 练习与要点</a></li>
+<li><a href="#2">2. 从图和能量开始：两点环为什么有两条键？</a></li>
+<li><a href="#3">3. 不靠抽样，也能先得到一个完整答案</a></li>
+<li><a href="#4">4. 零均值、双峰与自发磁化分别是什么意思？</a></li>
+<li><a href="#5">5. 一维转移矩阵：把指数级求和变成矩阵相乘</a></li>
+<li><a href="#6">6. 二维小条带也能用转移矩阵，但还不是无穷二维解</a></li>
+<li><a href="#7">7. 真正运行一次抽样：能量变化必须与整个图对得上</a></li>
+<li><a href="#8">8. 可复现不等于独立：怎样阅读抽样诊断？</a></li>
+<li><a href="#9">9. 平均场为何给出一个不同的相变温度？</a></li>
+<li><a href="#10">10. 二维精确结果告诉我们：对称性相同，指数也可能不同</a></li>
+<li><a href="#11">11. 先预测，再运行：做三个能够复核的小实验</a></li>
+<li><a href="#12">12. 八个练习与可逐步检查的解答</a></li>
 </ul>
 </div>
 </details>
-<h1 id="ii-ising">统计进阶 II · Ising 模型<a class="headerlink" href="#ii-ising" title="Permanent link"></a></h1>
+<h1 id="ii-ising">统计进阶 II · Ising 模型：精确求和、抽样与相变<a class="headerlink" href="#ii-ising" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Goldenfeld §3 / Baxter 入门 ｜ <strong>前置</strong>：asm-01、sm-02、ma-03（转移矩阵 = Perron 的舞台）
-统计物理的果蝇：<span class="arithmatex">\(H = -J\sum_{\langle ij\rangle}s_is_j - h_{\mathrm{phys}}\sum_i s_i\)</span>（<span class="arithmatex">\(s_i = \pm1\)</span>）。本页三场战役：<strong>一维精确解</strong>（转移矩阵法——无相变的证明）、<strong>平均场解</strong>（自洽方程）、<strong>二维 Onsager 结果</strong>（精确解与平均场的对照表）。Ising 同时是 ML 的老朋友——Hopfield 网络与玻尔兹曼机就是它。</p>
+<p><strong>前置</strong>：配分函数与热力学响应、相变与 Landau 理论、矩阵特征值；概率转移矩阵可作为选学补充。<br />
+<strong>本课目标</strong>：从一个有限自旋图亲手得到精确答案，再判断抽样与平均场各自能回答什么。能区分有限平均、长时间轨迹和热力学极限。</p>
 </blockquote>
 <div data-learning-page></div>
 
-<section aria-labelledby="ising-learning-title" class="learning-layer">
-<h2 id="_1">学习层：从一块会翻面的磁铁到自发对称破缺<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="ising-learning-title">具体情境：降温时，平均磁化会选哪一边？<a class="headerlink" href="#ising-learning-title" title="Permanent link"></a></h3>
-<p>想象把一块理想铁磁材料缓慢降温，测量许多自旋的平均磁化 <span class="arithmatex">\(m=\langle s_i\rangle\)</span>。在无外场时，向上与向下没有物理偏好；但低温下，材料却可以停留在一个宏观的正磁化或负磁化状态。问题是：<strong>“没有偏好”为什么不必等于“永远只能测到零”？</strong></p>
-<p>这里的“选一边”是热力学极限中的纯相/平衡分支语言。有限样品在足够长时间内可能在两个分支之间翻转，于是时间平均又接近零；这不等于低温自由能没有两个简并极小值。</p>
-<h3 id="_2">先预测：先别拖滑块，写下三个判断<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
-<p>先预测下面实验台会显示什么：</p>
-<ol>
-<li><span class="arithmatex">\(t=0.8,\ h=0\)</span> 时，<span class="arithmatex">\(m=0\)</span> 是极小值、极大值，还是根本不是驻点？还会不会有两个对称的非零根？</li>
-<li><span class="arithmatex">\(t=1.2,\ h=0\)</span> 时，是否仍有三根？如果只剩一根，它在哪里？</li>
-<li>保持 <span class="arithmatex">\(t=0.8\)</span>，把 <span class="arithmatex">\(h\)</span> 调成正数：正、负两个分支谁成为全局平衡？另一个分支会不会立即从数学上消失？</li>
-</ol>
-<p>预测的对象是<strong>驻点与自由能</strong>，不是一次 Monte Carlo 抽样的微观快照。</p>
-<h3 id="curieweiss">最小模型：明确标注的无量纲 Curie–Weiss 平均场<a class="headerlink" href="#curieweiss" title="Permanent link"></a></h3>
-<p>本实验不是精确二维方格 Ising，而是 Curie–Weiss/Weiss 平均场的无量纲教学模型。令
-<span class="arithmatex">\(t=T/T_c&gt;0\)</span>，其中 <span class="arithmatex">\(T_c\)</span> 是<strong>这个平均场模型自己的临界温度</strong>；令 <span class="arithmatex">\(h=h_{\mathrm{phys}}/(Jz)\)</span> 为除以平均场能标后的无量纲外场，<span class="arithmatex">\(m\in[-1,1]\)</span> 为序参量。定义</p>
+<section aria-labelledby="ising185-title" class="learning-layer is185-course">
+<h2 id="1">1. 一条磁化几乎不变的轨迹，可能还没有回答问题<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<h3 id="ising185-title">先问“平均了什么”，再比较两个数<a class="headerlink" href="#ising185-title" title="Permanent link"></a></h3>
+<p>你让九个自旋在低温下不断翻转。画面大部分时间都是向上，轨迹平均磁化接近 <span class="arithmatex">\(1\)</span>。同伴把所有 <span class="arithmatex">\(2^9=512\)</span> 个状态的概率逐一相加，却得到零。谁算错了？</p>
+<p>在零外场的有限体系里，把所有自旋同时反号不会改变能量，因此正、负磁化状态严格成对。<strong>完整平衡分布的平均磁化为零</strong>。一条短轨迹可能长期停在正磁化区域；它描述了实际跑过的状态，却未必充分探索了平衡分布。此时两份计算的差异就是要研究的现象。</p>
+<p>本课把三种答案放在同一张桌上：有限体系的精确求和、逐步可核对的随机更新、平均场与无限方格的条件性参考。学习顺序是先定义模型，再求精确答案，再研究近似为什么有效或失效。后面出现的“精确”，始终附带模型与极限条件。</p>
+<h2 id="2">2. 从图和能量开始：两点环为什么有两条键？<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>每个格点上放一个经典变量 <span class="arithmatex">\(s_i=\pm1\)</span>，总磁化记作 <span class="arithmatex">\(M=\sum_i s_i\)</span>，每自旋磁化为 <span class="arithmatex">\(m=M/N\)</span>。取 <span class="arithmatex">\(k_B=1\)</span>，温度 <span class="arithmatex">\(T&gt;0\)</span>，铁磁耦合 <span class="arithmatex">\(J\ge0\)</span>，外场 <span class="arithmatex">\(h\)</span> 的单位与能量相同。有限近邻图的定义是</p>
 <div class="arithmatex">\[
-\phi(m;t,h)=\frac{m^2}{2}-t\log\!\left[2\cosh\!\left(\frac{m+h}{t}\right)\right].
+H(s)=-J\sum_{e=(i,j)}s_i s_j-hM,\qquad
+Z_N(T,h)=\sum_{s\in\{-1,+1\}^N}e^{-H(s)/T}.
 \]</div>
-<p>它是无量纲自由能密度（与 <span class="arithmatex">\(m\)</span> 无关的常数不影响驻点和比较平衡）。第一项记录平均相互作用的能量账本，<span class="arithmatex">\(\log[2\cosh(\cdot)]\)</span> 来自单自旋配分函数/熵；只有两项的竞争才是自由能，不要把任意一项单独当成完整能量。求导得到</p>
+<p>这里的自旋是经典二态变量，没有量子叠加或非对易算符。改变 <span class="arithmatex">\(J/T\)</span> 是改变能量偏好与热涨落的竞争；并不是让每个自旋的数值连续缩小。</p>
+<p><strong>周期边界也属于模型定义。</strong> 环链按每个 <span class="arithmatex">\(i\to i+1\)</span> 记一条键。对两个格点，<span class="arithmatex">\(0\to1\)</span> 与 <span class="arithmatex">\(1\to0\)</span> 是两条周期键，所以能量为 <span class="arithmatex">\(-2Js_0s_1-h(s_0+s_1)\)</span>。二维方格从每个格点向右、向下各记一条键，共 <span class="arithmatex">\(2N\)</span> 条；<span class="arithmatex">\(2\times2\)</span> 周期方格有八条键。同一对端点可以对应不同的周期键，不能默默去重。</p>
+<p>这是有限小尺寸约定，不是说宏观材料里同一条物理键要重复算两次。它使小图与后面的周期转移矩阵定义完全一致。构型图用两条曲线区分平行键，完整键表可逐项检查；若换成四条边的正方形，那是另一个有限模型。</p>
+<p>全连接 Curie–Weiss 模型另定义为 <span class="arithmatex">\(H_{\rm CW}=-JM^2/(2N)-hM\)</span>。展开平方后，每对不同格点的键权为 <span class="arithmatex">\(1/N\)</span>，还包含与构型无关的常数 <span class="arithmatex">\(-J/2\)</span>。这个常数不影响翻转概率，却影响 <span class="arithmatex">\(Z\)</span>、能量与自由能的绝对值，本课保留它。</p>
+<h2 id="3">3. 不靠抽样，也能先得到一个完整答案<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>本实验最多有十六个自旋，因此最多枚举 <span class="arithmatex">\(65536\)</span> 个状态。与其在屏幕上列出六万行，可以按相同的总键和 <span class="arithmatex">\(B=\sum_e s_i s_j\)</span> 与磁化 <span class="arithmatex">\(M\)</span> 合并。态密度 <span class="arithmatex">\(g(B,M)\)</span> 就是具有这两个整数值的状态数：</p>
 <div class="arithmatex">\[
-\frac{\partial\phi}{\partial m}=m-\tanh\!\left(\frac{m+h}{t}\right),
-\qquad
-\frac{\partial^2\phi}{\partial m^2}=1-\frac{1}{t}\,\operatorname{sech}^2\!\left(\frac{m+h}{t}\right).
+Z_N=\sum_{B,M}g(B,M)e^{(JB+hM)/T},
+\qquad \sum_{B,M}g(B,M)=2^N.
 \]</div>
-<p>所以驻点恰好满足自洽方程</p>
+<p>这一步是<strong>无损合并</strong>，没有把微观涨落平均掉。表中保留全部整数多重度和一个代表构型；每个代表的二进制位依次指定各格点自旋。CW 情况使用整数分子 <span class="arithmatex">\(M^2\)</span> 与分母 <span class="arithmatex">\(2N\)</span> 表示相互作用，避免把它误认成近邻键和。</p>
+<p>为了避免低温指数太大，实际求和先减去最大的指数 <span class="arithmatex">\(a_{\max}\)</span>：计算 <span class="arithmatex">\(\widetilde Z=\sum g\,e^{a-a_{\max}}\)</span>，再恢复 <span class="arithmatex">\(\log Z=a_{\max}+\log\widetilde Z\)</span>。概率只需用平移后的权重除以 <span class="arithmatex">\(\widetilde Z\)</span>。这是代数等价变换；浮点四舍五入仍存在，但没有蒙特卡洛抽样误差。</p>
+<p>从 <span class="arithmatex">\(Z\)</span> 的外场导数可得 <span class="arithmatex">\(\langle M\rangle=T\partial_h\log Z\)</span>。再求一次导数，得到每自旋的磁化响应 <span class="arithmatex">\(\chi_N=\partial_h\langle m\rangle=\operatorname{Var}(M)/(NT)\)</span>。类似地，每自旋热容为 <span class="arithmatex">\(C_N=\operatorname{Var}(H)/(NT^2)\)</span>。两者都非负，因为它们是方差乘正系数。</p>
+<p>低温时 <span class="arithmatex">\(\langle H^2\rangle\)</span> 与 <span class="arithmatex">\(\langle H\rangle^2\)</span> 可能极接近。实验直接累加 <span class="arithmatex">\(\sum p(H-\langle H\rangle)^2\)</span>，降低两大数相减带来的误差。Binder 量定义为 <span class="arithmatex">\(U_4=1-\langle M^4\rangle/(3\langle M^2\rangle^2)\)</span>。它可用于后续有限尺寸分析，但一个小尺寸上的数值不能独自证明临界指数。</p>
+<h2 id="4">4. 零均值、双峰与自发磁化分别是什么意思？<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>在有限 <span class="arithmatex">\(N\)</span>、<span class="arithmatex">\(h=0\)</span> 时，<span class="arithmatex">\(H(s)=H(-s)\)</span>，而 <span class="arithmatex">\(M(-s)=-M(s)\)</span>。将配分函数中的状态两两配对，所有奇次磁化矩恰好抵消。因此 <span class="arithmatex">\(\langle M\rangle=0\)</span>，同时 <span class="arithmatex">\(\langle|M|\rangle\)</span> 与 <span class="arithmatex">\(\langle M^2\rangle\)</span> 可以很大。<strong>分布有两个远离零的峰，与均值位于零完全相容。</strong></p>
+<p>自发磁化通常按选相极限定义为 <span class="arithmatex">\(m_+(T)=\lim_{h\to0^+}\lim_{N\to\infty}\langle m\rangle_{N,h}\)</span>。先让系统变大，再撤去极小的正外场，可以保留正相。如果先在每个有限 <span class="arithmatex">\(N\)</span> 上令 <span class="arithmatex">\(h=0\)</span>，随后取 <span class="arithmatex">\(N\to\infty\)</span>，翻转对称的平均仍为零。极限次序给出了不同问题。</p>
+<p>时间平均还涉及第三种极限：观察多久。在理想随机更新满足适当条件时，无限长时间平均可收敛到有限体系平衡平均；实际只有几十或几百个保留样本时，这个极限尚未发生。低温相间跃迁很慢，误差不能只用“样本数看起来很多”判断。</p>
+<p>先在“低温困在正相”预设观察轨迹，再切换初态与种子。预期看到的不是每次都完美重合，而是精确分布不变、有限轨迹可能不同。将 <span class="arithmatex">\(\langle|m|\rangle\)</span> 当作有限尺寸诊断有帮助，但不要在标签上将它改写为无限体系的自发磁化。</p>
+<h2 id="5">5. 一维转移矩阵：把指数级求和变成矩阵相乘<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(K=J/T\)</span>、<span class="arithmatex">\(b=h/T\)</span>。将每个格点的外场能量一半分给左键，一半分给右键，定义</p>
 <div class="arithmatex">\[
-m=\tanh\!\left(\frac{m+h}{t}\right),
+\mathsf T_{ss'}=e^{Kss'+b(s+s')/2},\qquad
+\mathsf T=
+\begin{pmatrix}
+e^{K-b}&amp;e^{-K}\\ e^{-K}&amp;e^{K+b}
+\end{pmatrix},\qquad
+Z_N=\operatorname{Tr}\mathsf T^N .
 \]</div>
-<p>而 <span class="arithmatex">\(\phi''&gt;0\)</span> 是局部稳定极小值，<span class="arithmatex">\(\phi''&lt;0\)</span> 是不稳定极大值；局部极小值中自由能最低者才是全局平衡，另一个局部极小值称为亚稳态。</p>
-<h3 id="_3">动手实验：同时看地形、交点和平均磁化示意<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
-<p>先用默认的 <span class="arithmatex">\(t=0.8,h=0\)</span> 核对预测，再依次试 <span class="arithmatex">\(t&gt;1\)</span>、小的正负 <span class="arithmatex">\(h\)</span>，最后把温度压低并观察根是否靠近 <span class="arithmatex">\(\pm1\)</span>。实验用确定性的扫描、单调分段二分与去重找出 <span class="arithmatex">\([-1,1]\)</span> 内全部驻点；它不抽随机数。右下的图明确是“<strong>由平均磁化构造的示意格点</strong>”：它把各分支的 <span class="arithmatex">\(m\)</span> 转成固定数量的 <span class="arithmatex">\(+\)</span>/<span class="arithmatex">\(-\)</span> 格点，只帮助读出序参量，不是 Monte Carlo 微观构型，也不表示 Curie–Weiss 模型有真实空间邻居。</p>
+<p>行列按 <span class="arithmatex">\(s=-1,+1\)</span> 排列。乘积中的每个中间自旋指标被求和，最后的迹让终点与起点相接；因此这不是只在形式上像配分函数，而是逐项相同的状态和。两点环的迹中出现两次同一对自旋的相互作用，正好对应前面的双键约定。</p>
+<p>两个特征值为 <span class="arithmatex">\(\lambda_\pm=e^K[\cosh b\pm\sqrt{\sinh^2b+e^{-4K}}]\)</span>，从而 <span class="arithmatex">\(Z_N=\lambda_+^N+\lambda_-^N\)</span>。有限温度下矩阵各元素严格为正，最大特征值单独占优；热力学极限的每自旋自由能为 <span class="arithmatex">\(f_\infty=-T\log\lambda_+\)</span>。</p>
+<p>对外场求导得到 <span class="arithmatex">\(m_\infty=\sinh b/\sqrt{\sinh^2b+e^{-4K}}\)</span>。任意固定 <span class="arithmatex">\(T&gt;0\)</span> 下，<span class="arithmatex">\(h\to0\)</span> 给出零。零场无限链的相关函数为 <span class="arithmatex">\(q^r\)</span>，其中 <span class="arithmatex">\(q=\tanh K\)</span>，相关长度 <span class="arithmatex">\(\xi=-1/\log q\)</span> 有限；<span class="arithmatex">\(J=0\)</span> 时不同格点独立，可取 <span class="arithmatex">\(\xi=0\)</span>。</p>
+<p>有限环中，自旋之间有顺、逆两个方向的相关传播路径，因此
+<span class="arithmatex">\(\langle s_0s_r\rangle_N=(q^r+q^{N-r})/(1+q^N)\)</span>。
+在 <span class="arithmatex">\(r=N\)</span> 时回到同一个格点，相关为 <span class="arithmatex">\(1\)</span>，不能拿无限链的 <span class="arithmatex">\(q^N\)</span> 去替代它。实验逐点同时展示有限环的矩阵结果与零场公式。</p>
+<p>这也解释了为什么一维平均场给出的有限温度相变有问题：真实链允许畴壁，有限温度下它们破坏长程有序。只有 <span class="arithmatex">\(T\to0\)</span> 时相关长度才发散。本段讨论最近邻、有限耦合、无额外长程作用的一维模型。</p>
+<h2 id="6">6. 二维小条带也能用转移矩阵，但还不是无穷二维解<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>把一整行宽为 <span class="arithmatex">\(W\)</span> 的自旋看作一个“行状态” <span class="arithmatex">\(a\)</span>，共有 <span class="arithmatex">\(2^W\)</span> 种。记行磁化 <span class="arithmatex">\(M_a=\sum_i a_i\)</span>、行内周期键和 <span class="arithmatex">\(B_a=\sum_i a_i a_{i+1}\)</span>。行间转移矩阵定义为</p>
+<div class="arithmatex">\[
+\mathsf T_{ab}=
+\exp\!\left\{\frac1T\left[J\sum_i a_ib_i+
+\frac J2(B_a+B_b)+\frac h2(M_a+M_b)\right]\right\},
+\qquad Z_{W,L}=\operatorname{Tr}\mathsf T^L .
+\]</div>
+<p>每次转移完整计入行间键，行内能量与外场各分一半。闭合乘积后，每行被相邻两个转移因子访问，正好补成一份完整行内能量。宽或高为二时，周期键的重数也完整保留。</p>
+<p>实验将 <span class="arithmatex">\(W=2,3,4\)</span> 的矩阵及从零次到 <span class="arithmatex">\(L\)</span> 次的所有矩阵幂列出，再与独立的全状态求和核对。矩阵维数分别为 <span class="arithmatex">\(4,8,16\)</span>，规模足够小，可以直接检查某个元素对应的两行自旋。</p>
+<p>固定宽度而让长度无限大，仍是一个有限宽条带；不能仅凭最大特征值计算就声称已经解决无限二维系统。二维热力学极限还要求横向宽度增长。矩阵维数随宽度指数增长，也自然引出张量网络、压缩转移算符等后续方法。</p>
+<h2 id="7">7. 真正运行一次抽样：能量变化必须与整个图对得上<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>从一个构型出发，随机选格点 <span class="arithmatex">\(i\)</span>，尝试令 <span class="arithmatex">\(s_i\to-s_i\)</span>。其他自旋不动。近邻图的能量变化为
+<span class="arithmatex">\(\Delta H=2s_i(J\sum_{j\sim i}w_{ij}s_j+h)\)</span>，
+邻居列表保留每一条键的重数。CW 的自项常数不变，计算可化为
+<span class="arithmatex">\(\Delta H=2s_i[J(M-s_i)/N+h]\)</span>。</p>
+<p>本页采用固定惰性系数 <span class="arithmatex">\(1/2\)</span> 的 Metropolis 更新：接受概率是
+<span class="arithmatex">\(a(s\to s')=\frac12\min(1,e^{-\Delta H/T})\)</span>。
+降低能量的尝试也只有一半概率执行。这样做保留了目标分布，又给理想随机核一个明确的自环。尤其在 <span class="arithmatex">\(J=h=0\)</span> 时，若每次都翻转，自旋配置的奇偶性会每步交替；偶数 <span class="arithmatex">\(N\)</span> 下每 <span class="arithmatex">\(N\)</span> 步取样可能永远只落在一个奇偶子集。惰性更新避免了这个周期性问题。</p>
+<p>每次尝试记录选点原始整数、接受原始整数、选中的格点、翻转前后构型、能量变化与接受决定。一个 sweep 定义为 <span class="arithmatex">\(N\)</span> 次<strong>有放回的随机选点尝试</strong>；它并不保证每个格点恰好访问一次。每个 sweep 结束后重算完整能量，防止浮点增量长期累积漂移。</p>
+<p>理想均匀选点的转移概率是 <span class="arithmatex">\(P(s,s')=a(s\to s')/N\)</span>。将 <span class="arithmatex">\(\pi(s)=e^{-H(s)/T}/Z\)</span> 代入，就有</p>
+<div class="arithmatex">\[
+\pi(s)P(s,s')=\frac{1}{2NZ}
+\min\{e^{-H(s)/T},e^{-H(s')/T}\}
+=\pi(s')P(s',s).
+\]</div>
+<p>这是详细平衡，不要求两个方向的接受概率相等；相等的是“处在起点的概率×转移概率”。实验保留若干完整边的正反概率流，并使用对数显示非常小的数。公式给出所有允许单点翻转的证明，表格提供可手查的具体见证。</p>
+<h2 id="8">8. 可复现不等于独立：怎样阅读抽样诊断？<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>实验采用明确的 32 位伪随机整数生成规则，固定种子和初态即可复现轨迹。每次尝试消耗两个原始整数，分别用于选点和接受判断；随机初态另有逐格点原始记录。实际有限位数的伪随机流是实现层面的近似，前一节关于平衡分布的推理针对理想随机核。</p>
+<p>先丢弃指定数量的初始 sweeps，再每 sweep 保留一个样本。丢弃期可以降低初态影响，<strong>不是已经平衡的证明</strong>。同样，运行均值逐渐平坦也可能只是轨迹一直困在同一磁化区域。应同时比较不同初态、不同种子、精确磁化直方图与有限热力学答案。</p>
+<p>本页给出的短滞后相关使用整段保留轨迹的均值，按每个滞后的可配对数计算协方差，再除以整段的中心二阶矩。它是描述性诊断；有限样本归一化使某些估计不必严格落在 <span class="arithmatex">\([-1,1]\)</span>。常值轨迹的方差为零，相关系数直接标为“不适用”，不会伪造一个有效样本数。</p>
+<p>抽样得到的 <span class="arithmatex">\(\operatorname{Var}(M)/(NT)\)</span> 与 <span class="arithmatex">\(\operatorname{Var}(H)/(NT^2)\)</span> 在页面中称为估计值。它们不能自动附带独立样本的 <span class="arithmatex">\(1/\sqrt n\)</span> 误差条。本实验的精确小体系基准，正好可以帮助你看见自相关、相间跃迁与有限观察时间分别造成什么影响。</p>
+<h2 id="9">9. 平均场为何给出一个不同的相变温度？<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>把周围自旋的影响以平均磁化替代，会得到自洽方程 <span class="arithmatex">\(m=\tanh[(K_{\rm MF}m+h)/T]\)</span>。近邻链的 <span class="arithmatex">\(K_{\rm MF}=2J\)</span>，方格的 <span class="arithmatex">\(K_{\rm MF}=4J\)</span>；CW 的热力学平均场能标是 <span class="arithmatex">\(J\)</span>。CW 这里使用 <span class="arithmatex">\(N\to\infty\)</span> 的自由能密度，不是有限 <span class="arithmatex">\(N\)</span> 独立乘积试探分布的精确变分函数；有限模型仍由二项式求和给出。这里 <span class="arithmatex">\(K_{\rm MF}\)</span> 有能量单位，不要与第 5 节无量纲的 <span class="arithmatex">\(K=J/T\)</span> 混用。</p>
+<p>能够直接解释能量与熵竞争的变分自由能为</p>
+<div class="arithmatex">\[
+f_{\rm MF}(m)=-\frac{K_{\rm MF}}2m^2-hm+
+T\left[\frac{1+m}{2}\log\frac{1+m}{2}
++\frac{1-m}{2}\log\frac{1-m}{2}\right],\qquad -1\le m\le1.
+\]</div>
+<p>端点用 <span class="arithmatex">\(0\log0=0\)</span> 连续定义。求导得 <span class="arithmatex">\(f'_{\rm MF}=T\operatorname{atanh}m-K_{\rm MF}m-h\)</span>，驻点与自洽方程一致；二阶导数为 <span class="arithmatex">\(T/(1-m^2)-K_{\rm MF}\)</span>。稳定局部根上的外场响应是
+<span class="arithmatex">\(\chi_{\rm MF}=(1-m^2)/[T-K_{\rm MF}(1-m^2)]\)</span>。
+不要把其他辅助势的曲率倒数直接当成这个热力学响应。</p>
+<p>数值上在有效场坐标 <span class="arithmatex">\(y=(K_{\rm MF}m+h)/T\)</span> 中求解 <span class="arithmatex">\(Ty-K_{\rm MF}\tanh y-h=0\)</span>。即使很低温时 <span class="arithmatex">\(m\)</span> 已浮点舍入成 <span class="arithmatex">\(1\)</span>，<span class="arithmatex">\(y\)</span> 仍为有限数，能保留驻点与曲率信息。求根区间按导数零点分成单调段；表中列出所有根，局部极大与临界平坦根不会被当成普通稳定响应。</p>
+<p>在零场展开熵得 <span class="arithmatex">\(f_{\rm MF}=-T\log2+(T-K_{\rm MF})m^2/2+Tm^4/12+\cdots\)</span>。由此得到平均场 <span class="arithmatex">\(T_c^{\rm MF}=K_{\rm MF}\)</span> 与 <span class="arithmatex">\(m_*\propto(T_c-T)^{1/2}\)</span>。这是近似的推论。对有限 CW，精确二项式求和仍有零场对称平均；对近邻一维链，平均场的有限温度相变本身就是错误预测。</p>
+<h2 id="10">10. 二维精确结果告诉我们：对称性相同，指数也可能不同<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>无限、各向同性、最近邻铁磁方格在零场有
+<span class="arithmatex">\(T_c=2J/\log(1+\sqrt2)\)</span>。
+它约为 <span class="arithmatex">\(2.269185J\)</span>，低于平均场的 <span class="arithmatex">\(4J\)</span>。临界曲线会非常陡：磁化连续趋零，但左侧斜率发散；陡直的画面本身不是一阶跳变的证据。选定正相的自发磁化为
+<span class="arithmatex">\(m_+(T)=[1-\sinh^{-4}(2J/T)]^{1/8}\)</span>（<span class="arithmatex">\(0&lt;T&lt;T_c\)</span>），临界及以上为零。这是有严格适用条件的二维结果，不是小方格抽样拟合出来的公式。</p>
+<p>临界温度与自由能的精确求解通常联系到 Onsager；自发磁化公式的首个公开推导由 Yang 完成。这里给出结果与条件，不把几行数值曲线包装成完整二维精确解的证明。进一步推导涉及转移矩阵结构、相关函数与行列式极限。</p>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>有限 <span class="arithmatex">\(N\)</span>、零场</th>
+<th>无限一维近邻链</th>
+<th>无限二维方格、零场选相</th>
+<th>平均场</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\langle m\rangle\)</span></td>
+<td>严格为零</td>
+<td>任意 <span class="arithmatex">\(T&gt;0\)</span> 为零</td>
+<td><span class="arithmatex">\(T&lt;T_c\)</span> 可有 <span class="arithmatex">\(m_+&gt;0\)</span></td>
+<td>稳定分支可非零</td>
+</tr>
+<tr>
+<td>有限正温度奇点</td>
+<td>没有</td>
+<td>没有</td>
+<td>在 <span class="arithmatex">\(T_c\)</span> 出现</td>
+<td>在自身 <span class="arithmatex">\(T_c^{\rm MF}\)</span> 出现</td>
+</tr>
+<tr>
+<td>临界磁化幂</td>
+<td>不能直接定义为奇点指数</td>
+<td>此处无有限温度临界点</td>
+<td><span class="arithmatex">\(1/8\)</span></td>
+<td><span class="arithmatex">\(1/2\)</span></td>
+</tr>
+<tr>
+<td>页面中的角色</td>
+<td>精确基准</td>
+<td>转移矩阵交叉核对</td>
+<td>有条件的解析参考</td>
+<td>待检验的近似</td>
+</tr>
+</tbody>
+</table>
+<p>同样的自旋翻转对称性，允许我们写出类似的 Landau 展开，却不能单靠对称性决定真实涨落修正后的指数。上一课的 Ginzburg 判据正是在检查这一点。本页不把有限热容峰位置当作精确相变点，也不把非零外场下的方格曲线称为 Yang 零场解。</p>
+<h2 id="11">11. 先预测，再运行：做三个能够复核的小实验<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p><strong>实验 A：从两点环检查全部因子。</strong> 选择“两点环”，打开键表、态密度与转移矩阵。手算四个状态的能量和权重，再核对 <span class="arithmatex">\(\operatorname{Tr}\mathsf T^2\)</span>。如果差一个 <span class="arithmatex">\(2\)</span>，先查周期键定义；如果外场差一倍，检查分摊到两侧的半权重。</p>
+<p><strong>实验 B：故意观察一条不充分的轨迹。</strong> 选择“低温困在正相”，记录精确 <span class="arithmatex">\(\langle m\rangle\)</span>、精确 <span class="arithmatex">\(\langle|m|\rangle\)</span>、轨迹均值与直方图。换初态、种子与保留长度。先写预测：更长是否一定已经跨相？结果没有跨相时，解释为什么“接受率低”与“平均值看似稳定”都不能证明已平衡。</p>
+<p><strong>实验 C：比较尺寸、近似与极限。</strong> 在零场方格预设观察 <span class="arithmatex">\(2\times2\)</span>、<span class="arithmatex">\(3\times3\)</span>、<span class="arithmatex">\(4\times4\)</span> 的精确响应。比较有限 <span class="arithmatex">\(\langle|m|\rangle\)</span>、平均场分支、无限方格 <span class="arithmatex">\(m_+\)</span>。指出图中哪条曲线已经用了热力学极限，哪条仍是有限状态和。切到链预设，验证平均场为何不能正确预测一维相变。</p>
 <div class="learning-lab" data-learning-lab="ising-mean-field">
-<p><strong>无 JavaScript 时也可读：</strong>实验求解的是上面的 <span class="arithmatex">\(\phi\)</span> 与 <span class="arithmatex">\(m=\tanh((m+h)/t)\)</span>。默认核对状态为 <span class="arithmatex">\(t=0.8,h=0\)</span>：</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: right;">驻点 <span class="arithmatex">\(m\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(\phi(m)\)</span></th>
-<th style="text-align: right;"><span class="arithmatex">\(\phi''(m)\)</span></th>
-<th>分类</th>
-<th>全局平衡</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: right;"><span class="arithmatex">\(-0.710412\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(-0.583200\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.380856\)</span></td>
-<td>稳定极小值</td>
-<td>是，与正根简并</td>
-</tr>
-<tr>
-<td style="text-align: right;"><span class="arithmatex">\(0\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(-0.554518\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(-0.25\)</span></td>
-<td>不稳定极大值</td>
-<td>否</td>
-</tr>
-<tr>
-<td style="text-align: right;"><span class="arithmatex">\(+0.710412\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(-0.583200\)</span></td>
-<td style="text-align: right;"><span class="arithmatex">\(0.380856\)</span></td>
-<td>稳定极小值</td>
-<td>是，与负根简并</td>
-</tr>
-</tbody>
-</table>
-<p>因此 <span class="arithmatex">\(m=0\)</span> 虽然总是自洽方程的一根，却不是低于临界温度时的平衡态；正、负两个平衡分支都必须保留。</p>
-</div>
-<h3 id="_4">误区 / 边界：这套实验没有声称什么<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
-<ul>
-<li><strong>不是精确二维解</strong>：这里的 <span class="arithmatex">\(t=1\)</span> 是 Curie–Weiss 平均场的无量纲临界点。二维方格最近邻 Ising 的精确结果是 <span class="arithmatex">\(k_BT_c/J=2/\ln(1+\sqrt2)\approx2.269\)</span>，而方格的简单平均场给出 <span class="arithmatex">\(k_BT_c^{\mathrm{MF}}/J=z=4\)</span>；若用平均场 <span class="arithmatex">\(T_c^{\mathrm{MF}}\)</span> 归一化，二维精确临界温度当然不等于无量纲的 1。</li>
-<li><strong>不是把平均场当成涨落的替代品</strong>：Curie–Weiss 假设每个自旋感受同一个平均磁化，漏掉空间涨落、畴壁和真实格子的维数效应；因此临界指数也会错，平均场的磁化指数是 <span class="arithmatex">\(1/2\)</span>，二维精确值是 <span class="arithmatex">\(1/8\)</span>。</li>
-<li><strong>不是一维最近邻 Ising 的结论</strong>：一维最近邻链在任意有限温度都没有自发磁化相变；把同一平均场公式硬套到一维会制造假的正临界温度。</li>
-<li><strong>亚稳态不是第二个全局平衡</strong>：外场 <span class="arithmatex">\(h\neq0\)</span> 破坏 <span class="arithmatex">\(m\mapsto-m\)</span> 对称，偏好方向的极小值通常是全局平衡，反向极小值若仍存在只是亚稳态；迭代动力学可能因势垒而滞后，但这不改变平衡判据是比较 <span class="arithmatex">\(\phi\)</span>。</li>
-<li><strong>示意格点不是采样</strong>：图中格点数量由平均磁化确定，颜色和排列是可复现的画法；没有随机数，也没有声称显示某个时刻的微观构型。</li>
-</ul>
-<h3 id="_5">回到定理：曲率判据如何给出临界点？<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
-<p>在 <span class="arithmatex">\(h=0\)</span> 时，<span class="arithmatex">\(\phi\)</span> 是偶函数，<span class="arithmatex">\(m=0\)</span> 永远是驻点，而且</p>
-<div class="arithmatex">\[
-\phi''(0;t,0)=1-\frac1t.
-\]</div>
-<p>当 <span class="arithmatex">\(t&gt;1\)</span> 时，自洽曲线的最大斜率小于直线 <span class="arithmatex">\(m\)</span> 的斜率，<span class="arithmatex">\(m=0\)</span> 是唯一稳定根；当 <span class="arithmatex">\(t&lt;1\)</span> 时，<span class="arithmatex">\(m=0\)</span> 变成不稳定极大值，并出现对称的 <span class="arithmatex">\(\pm m_*\)</span> 两个稳定根。<span class="arithmatex">\(t=1\)</span> 处二次曲率消失，但不是“没有驻点”：展开为</p>
-<div class="arithmatex">\[
-\phi(m;t,0)=\mathrm{const}+\frac12\!\left(1-\frac1t\right)m^2+\frac{m^4}{12t^3}+O(m^6),
-\]</div>
-<p>正的四次项把临界点的局部地形托住；由自洽方程展开还可得 <span class="arithmatex">\(m_*\sim\sqrt{3(1-t)}\)</span>，这就是平均场的连续二级相变与磁化指数 <span class="arithmatex">\(1/2\)</span>。外场把两个对称井倾斜；在低温小场区域可能仍有三个驻点（全局极小值、亚稳极小值、中央极大值），到 spinodal（旋节）线时极小值与极大值合并并消失。</p>
-<h3 id="_6">迁移题：把“看图找根”变成可迁移的判断<a class="headerlink" href="#_6" title="Permanent link"></a></h3>
-<ol>
-<li>取 <span class="arithmatex">\(t=0.95,h=0\)</span>，先用四次展开估计 <span class="arithmatex">\(m_*\)</span>，再用 <span class="arithmatex">\(m=\tanh(m/t)\)</span> 数值核对；说明误差在离临界点多远时开始变大。</li>
-<li>取 <span class="arithmatex">\(t=0.8,h=0.05\)</span>，求出所有驻点，按 <span class="arithmatex">\(\phi''\)</span> 分类，再比较各自 <span class="arithmatex">\(\phi\)</span>；解释为什么外场符号决定全局分支，而不必让另一根立刻消失。</li>
-<li>把同一个问题分别放回一维链、二维方格和 Curie–Weiss 全连接模型，列出每个模型的相变结论、临界温度标度和“忽略了什么”。最后回答：如果实验数据出现强烈空间涨落，哪一条平均场推理最先需要被替换？</li>
-</ol>
-</section>
-<h2 id="1">1. 一维精确解：转移矩阵法<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p><strong>【推导（完整）】</strong> 周期链的配分函数按键分解：</p>
-<div class="arithmatex">\[
-Z = \sum_{\{s\}}\prod_i e^{\beta Js_is_{i+1} + \frac{\beta h_{\mathrm{phys}}}{2}(s_i + s_{i+1})} = \mathrm{Tr}\,T^N.
-\]</div>
-<p>其中 <span class="arithmatex">\(2\times2\)</span> <strong>转移矩阵</strong> <span class="arithmatex">\(T_{ss'} = e^{\beta Jss' + \frac{\beta h_{\mathrm{phys}}}{2}(s + s')}\)</span>。求迹 = 特征值之和：<span class="arithmatex">\(Z = \lambda_+^N + \lambda_-^N \approx \lambda_+^N\)</span>（热力学极限由<strong>最大特征值统治</strong>——ma-03 Perron–Frobenius 的物理正身：<span class="arithmatex">\(T\)</span> 元素恒正 ⇒ <span class="arithmatex">\(\lambda_+\)</span> 非简并）。<span class="arithmatex">\(h_{\mathrm{phys}} = 0\)</span> 时 <span class="arithmatex">\(\lambda_\pm = 2\cosh\beta J,\ 2\sinh\beta J\)</span>：</p>
-<div class="arithmatex">\[
-f = -k_BT\ln(2\cosh\beta J)
-\]</div>
-<p>这里的 <span class="arithmatex">\(f\)</span> 是每个自旋的自由能。它对有限 <span class="arithmatex">\(T&gt;0\)</span> 处处解析，因此在 <span class="arithmatex">\(h_{\mathrm{phys}}=0\)</span> 的热力学极限中没有自发磁化相变；有非零外场时磁化可以非零，但仍随参数解析变化。</p>
-<p><strong>为什么一维不了（Peierls 论证直觉）</strong>：周期链中翻转一段内部自旋会产生两个畴壁；每个断键相对对齐键的代价是 <span class="arithmatex">\(2J\)</span>，所以总能量代价是 <span class="arithmatex">\(4J\)</span>，且与段长无关。可放置畴的位置数至少随链长增长，位置熵含有 <span class="arithmatex">\(k_B\ln N\)</span> 项——<span class="arithmatex">\(T&gt;0\)</span> 时熵会打碎长程有序。二维中畴壁能量随周长增长，才有机会与熵竞争；Peierls 论证据此严格证明二维低温有序【引用】。</p>
-<h2 id="2-weiss">2. 平均场解（Weiss 自洽场）<a class="headerlink" href="#2-weiss" title="Permanent link"></a></h2>
+<p><strong>无脚本对照：</strong>下列图表来自六组固定完整记录。精确有限求和、有限轨迹、平均场与无限体系参考保留不同标签。</p>
 <figure class="plot">
-<p><img alt="自发磁化随温度消失" src="assets/img/asm-02-ising-mag.svg" /></p>
-<figcaption><span class="fig-id">图 2.1</span>平均场自发磁化随温度：低于平均场临界温度 \(T_c^{\mathrm{MF}}\) 出现非零磁化（\(\pm\) 两支），在临界点连续消失——这是二级相变的平均场标志，不是二维精确曲线。</figcaption>
+<p><img alt="周期图、精确磁化分布、一维相关、低温轨迹以及有限磁化与选相参考的五面板对照。" src="assets/img/asm-02-ising-ledgers.svg" /></p>
+<figcaption>图A只显示真实最后样本；图B是离散概率。有限环相关在绕一周后回到1；低温轨迹的均值不必等于有限平衡均值。图E区分有限〈|m|〉、平均场稳定分支和无限方格零场正相。</figcaption>
 </figure>
-<p>每个自旋感受邻居的平均场 <span class="arithmatex">\(h_{\mathrm{eff}} = Jzm\)</span>（<span class="arithmatex">\(z\)</span> = 配位数）。若保留有能量单位的外场 <span class="arithmatex">\(h_{\mathrm{phys}}\)</span>，单自旋自洽式为</p>
-<div class="arithmatex">\[
-m = \tanh\!\left[\beta\left(Jzm+h_{\mathrm{phys}}\right)\right],
-\qquad \beta=\frac{1}{k_BT}.
-\]</div>
-<p>无外场时直线 <span class="arithmatex">\(m\)</span> 与曲线 <span class="arithmatex">\(\tanh(\beta Jzm)\)</span> 的交点给出 <span class="arithmatex">\(T_c^{\mathrm{MF}}=Jz/k_B\)</span>；若令 <span class="arithmatex">\(t=T/T_c^{\mathrm{MF}}\)</span>、<span class="arithmatex">\(h=h_{\mathrm{phys}}/(Jz)\)</span>，就正好得到学习层使用的 <span class="arithmatex">\(m=\tanh((m+h)/t)\)</span>。<span class="arithmatex">\(T&lt;T_c^{\mathrm{MF}}\)</span> 出现非零解对，是对称破缺的图解版；在临界点附近展开双曲正切会回收 Landau 理论，磁化临界指数为 <span class="arithmatex">\(\beta_{\mathrm{mag}}=1/2\)</span>。</p>
-<p><strong>失误清单</strong>：平均场把一维错误地预言为 <span class="arithmatex">\(T_c^{\mathrm{MF}}=2J/k_B&gt;0\)</span>，而一维精确解说没有有限温相变；二维方格的简单平均场给 <span class="arithmatex">\(T_c^{\mathrm{MF}}=4J/k_B\)</span>，精确值却是 <span class="arithmatex">\(k_BT_c/J=2.269\)</span>。这正是忽略空间涨落的代价。</p>
-<h2 id="3-onsager">3. 二维 Onsager（对照表级掌握）<a class="headerlink" href="#3-onsager" title="Permanent link"></a></h2>
-<p><strong>定理（Onsager 1944）【引用】</strong> 二维方格、<span class="arithmatex">\(h_{\mathrm{phys}}=0\)</span> 时精确可解：</p>
-<div class="arithmatex">\[
-k_BT_c = \frac{2J}{\ln(1+\sqrt2)} \approx 2.269J;
-\]</div>
-<p>比热对数发散（<span class="arithmatex">\(\alpha=0_{\log}\)</span>）；Yang 1952 给出 <span class="arithmatex">\(\beta_{\mathrm{mag}}=1/8\)</span>。</p>
+<div aria-label="Ising固定记录，可横向滚动" class="is185-static" role="region" tabindex="0">
 <table>
 <thead>
 <tr>
-<th>指数</th>
-<th style="text-align: right;">平均场</th>
-<th style="text-align: right;">二维精确</th>
-<th style="text-align: right;">三维（数值/共形自举【引用】）</th>
+<th>预设</th>
+<th style="text-align: right;">N</th>
+<th style="text-align: right;">精确〈m〉</th>
+<th style="text-align: right;">精确〈绝对m〉</th>
+<th style="text-align: right;">轨迹均值</th>
+<th style="text-align: right;">精确每自旋C</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><span class="arithmatex">\(\beta_{\mathrm{mag}}\)</span></td>
-<td style="text-align: right;">1/2</td>
-<td style="text-align: right;"><strong>1/8</strong></td>
-<td style="text-align: right;">0.326</td>
+<td>square3</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.864078905</td>
+<td style="text-align: right;">0.951388889</td>
+<td style="text-align: right;">0.635668648</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(\gamma\)</span></td>
+<td>two-sites</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.98201379</td>
+<td style="text-align: right;">-0.359375</td>
+<td style="text-align: right;">0.14130165</td>
+</tr>
+<tr>
+<td>chain16</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.579217039</td>
+<td style="text-align: right;">0.17578125</td>
+<td style="text-align: right;">0.466266666</td>
+</tr>
+<tr>
+<td>square2</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.933709173</td>
+<td style="text-align: right;">0.08203125</td>
+<td style="text-align: right;">0.361095988</td>
+</tr>
+<tr>
+<td>trapped</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.999996744</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">7/4</td>
-<td style="text-align: right;">1.237</td>
+<td style="text-align: right;">0.000289587116</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(\alpha\)</span></td>
-<td style="text-align: right;">0（跳变）</td>
-<td style="text-align: right;">0（对数）</td>
-<td style="text-align: right;">0.110</td>
+<td>free-spins</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.2734375</td>
+<td style="text-align: right;">0.0029296875</td>
+<td style="text-align: right;">0</td>
 </tr>
 </tbody>
 </table>
-<p><strong>读法</strong>：指数只依赖<strong>维数与对称性</strong>（普适性——液气临界点与三维 Ising 同指数：实验证实的惊人事实），不依赖格子细节/相互作用强度——“为什么”是 asm-03 重整化群的中心问题。Onsager 解的技术（转移矩阵的无穷维对角化/费米子化【引用】）属专门课，结果与含义是常识级必备。</p>
-<h2 id="4-ising">4. Ising 的第二人生：机器学习<a class="headerlink" href="#4-ising" title="Permanent link"></a></h2>
-<p><strong>同一个能量函数的四张面孔</strong>：Hopfield 联想记忆（<span class="arithmatex">\(J_{ij}\)</span> 存模式、动力学下坡到记忆——能量景观语言）；<strong>玻尔兹曼机</strong>（Ising 的学习版：调 <span class="arithmatex">\(J_{ij}\)</span> 使 Boltzmann 分布拟合数据——受限版 RBM 是深度学习史前史的主角）；MCMC 采样的试验场（Metropolis 算法的原生舞台——comp-01 主角）；自旋玻璃（随机 <span class="arithmatex">\(J_{ij}\)</span>）→ 神经网络损失面的统计物理【引用 Parisi 线】。<strong>“能量模型”这个 ML 词汇的能量，就是本页的 <span class="arithmatex">\(H\)</span></strong>——两个学科在同一公式上各自发展了五十年。</p>
-<h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>例 1（转移矩阵练手）</strong> 加场的一维链：写出 <span class="arithmatex">\(T\)</span>、算 <span class="arithmatex">\(\lambda_+\)</span>、磁化</p>
-<div class="arithmatex">\[
-m = \frac{\partial\ln\lambda_+}{\partial(\beta h_{\mathrm{phys}})} = \frac{\sinh(\beta h_{\mathrm{phys}})}{\sqrt{\sinh^2(\beta h_{\mathrm{phys}}) + e^{-4\beta J}}}.
-\]</div>
-<p><span class="arithmatex">\(T\to0\)</span> 时在固定非零外场下趋向阶跃，<span class="arithmatex">\(T&gt;0\)</span> 时光滑（无相变的显式面目）；顺手对账 ma-03：“最大特征值的一切”。</p>
-<p><strong>例 2（Peierls 估算二维 <span class="arithmatex">\(T_c\)</span>）</strong> 长度为 <span class="arithmatex">\(L\)</span> 的一条畴壁有 <span class="arithmatex">\(L\)</span> 个断键，每个断键代价 <span class="arithmatex">\(2J\)</span>，所以能量粗算为 <span class="arithmatex">\(2JL\)</span>；若采用周期条带并有两条壁，则再乘 2。构型熵 <span class="arithmatex">\(\sim k_B L\ln3\)</span>（自回避行走的粗算）⇒ 畴壁自由能变号于 <span class="arithmatex">\(k_BT\sim2J/\ln3\approx1.8J\)</span>，与 Onsager <span class="arithmatex">\(2.269J\)</span> 同量级：三行估算摸到精确解的门口。</p>
-<p><strong>例 3（RBM 对账）</strong> 写出 RBM 能量</p>
-<div class="arithmatex">\[
-E = -\sum_i a_iv_i - \sum_j b_jh_j - \sum_{ij}v_iW_{ij}h_j;
-\]</div>
-<p>可见—隐藏二部 Ising + 局域场——对比学习规则 = 用数据均值与模型均值之差调 <span class="arithmatex">\(J\)</span>（最大似然的梯度，信息论线 MLE=KL 的又一实例）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：普适性之谜的解答——重整化群：把“粗粒化”变成动力系统，临界指数 = 不动点的特征值。</em></p>
+</div>
+<p><a download="ising-frozen-records.json" href="assets/learning/projects/ising-certificates/run-snapshot.json">下载六组完整记录</a>。包含全部态密度、矩阵幂、原始随机整数、逐次翻转、保留样本、扫描与平均场根。固定种子保证复现，不保证平衡或独立样本。</p>
+</div>
+<noscript>
+<style>.is185-course span.arithmatex{overflow-wrap:anywhere}.is185-static{overflow:auto;max-width:100%}.is185-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}.is185-static th,.is185-static td{white-space:nowrap}</style>
+</noscript>
+<p>前沿入口可以沿三个具体问题继续：怎样用更多尺寸与受控误差做有限尺寸标度？怎样用簇更新缓解临界慢化？怎样压缩宽条带的转移算符而量化截断误差？这些是接续本课的研究方向，本页没有声称已经实现簇算法、临界指数拟合或张量网络求解器。</p>
+<h2 id="12">12. 八个练习与可逐步检查的解答<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>1. 两点周期链的配分函数及零场相关是什么？</summary>
+<p>四个状态中，<span class="arithmatex">\(++\)</span> 与 <span class="arithmatex">\(--\)</span> 的能量分别为 <span class="arithmatex">\(-2J-2h\)</span>、<span class="arithmatex">\(-2J+2h\)</span>；<span class="arithmatex">\(+-\)</span>、<span class="arithmatex">\(-+\)</span> 均为 <span class="arithmatex">\(2J\)</span>。因此 <span class="arithmatex">\(Z_2=2e^{2J/T}\cosh(2h/T)+2e^{-2J/T}\)</span>。零场下，乘积 <span class="arithmatex">\(s_0s_1\)</span> 在前两态为 <span class="arithmatex">\(1\)</span>、后两态为 <span class="arithmatex">\(-1\)</span>，所以相关为 <span class="arithmatex">\((e^{2J/T}-e^{-2J/T})/(e^{2J/T}+e^{-2J/T})=\tanh(2J/T)\)</span>。</p>
+<p>再将 <span class="arithmatex">\(q=\tanh(J/T)\)</span> 代入有限环公式，<span class="arithmatex">\(2q/(1+q^2)=\tanh(2J/T)\)</span>，两条路径相符。若只保留一条键，结果会变成 <span class="arithmatex">\(\tanh(J/T)\)</span>，那是不同的模型。</p>
+</details>
+<details class="answer">
+<summary>2. 2×2周期方格全向上时，翻转一格的能量代价是多少？</summary>
+<p>零场全向上有八条贡献为 <span class="arithmatex">\(-J\)</span> 的键，故 <span class="arithmatex">\(H=-8J\)</span>。任一格点连接两个不同邻居，每个邻居有两条平行周期键，共四条关联键。翻转后每条的能量从 <span class="arithmatex">\(-J\)</span> 变为 <span class="arithmatex">\(+J\)</span>，总增量为 <span class="arithmatex">\(8J\)</span>，最终能量为零。</p>
+<p>正外场下还需加上磁化从 <span class="arithmatex">\(4\)</span> 变为 <span class="arithmatex">\(2\)</span> 的代价 <span class="arithmatex">\(2h\)</span>，所以 <span class="arithmatex">\(\Delta H=8J+2h\)</span>。可在“每一次更新”表找到相应全向上起点，并独立重算前后能量。</p>
+</details>
+<details class="answer">
+<summary>3. CW模型为什么可以不用枚举每个微观状态？</summary>
+<p>若有 <span class="arithmatex">\(k\)</span> 个向上自旋，则 <span class="arithmatex">\(M=2k-N\)</span>，构型数为 <span class="arithmatex">\(\binom Nk\)</span>。由于能量只依赖 <span class="arithmatex">\(M\)</span>，精确配分函数就是
+<span class="arithmatex">\(Z_N^{\rm CW}=\sum_{k=0}^N\binom Nk\exp\{[J(2k-N)^2/(2N)+h(2k-N)]/T\}\)</span>。
+总多重度由二项式定理等于 <span class="arithmatex">\(2^N\)</span>，可与实验 DOS 逐行比。</p>
+<p>展开 <span class="arithmatex">\(M^2=N+2\sum_{i&lt;j}s_is_j\)</span> 得到 <span class="arithmatex">\(H=-J/2-(J/N)\sum_{i&lt;j}s_is_j-hM\)</span>。如果删除常数 <span class="arithmatex">\(-J/2\)</span>，<span class="arithmatex">\(Z\)</span> 会乘上 <span class="arithmatex">\(e^{-J/(2T)}\)</span>，能量增加 <span class="arithmatex">\(J/2\)</span>，但归一化状态概率不变。不能一边删除常数、一边要求绝对自由能仍相同。</p>
+</details>
+<details class="answer">
+<summary>4. 零场独立自旋的χ、热容与Binder量是多少？</summary>
+<p>令 <span class="arithmatex">\(J=h=0\)</span>。所有 <span class="arithmatex">\(2^N\)</span> 个状态等概率，<span class="arithmatex">\(Z=2^N\)</span>，各 <span class="arithmatex">\(s_i\)</span> 独立且均值零。于是 <span class="arithmatex">\(\langle M^2\rangle=N\)</span>，<span class="arithmatex">\(\langle M^4\rangle=N+6\binom N2=3N^2-2N\)</span>；非零项只有同一格点出现四次，或两个格点各出现两次。</p>
+<p>因此每自旋 <span class="arithmatex">\(\chi_N=1/T\)</span>，热容 <span class="arithmatex">\(C_N=0\)</span>，Binder 量 <span class="arithmatex">\(U_4=2/(3N)\)</span>。有限独立自旋并非严格 Gaussian，故 Binder 不必恰好为零；只有 <span class="arithmatex">\(N\to\infty\)</span> 时才趋零。“独立自旋”预设可以检验这三个量。</p>
+</details>
+<details class="answer">
+<summary>5. 惰性Metropolis为什么不改变平衡分布？</summary>
+<p>设一次翻转升能 <span class="arithmatex">\(\Delta H&gt;0\)</span>。正向转移为 <span class="arithmatex">\(e^{-\Delta H/T}/(2N)\)</span>，反向为 <span class="arithmatex">\(1/(2N)\)</span>，其比为 <span class="arithmatex">\(e^{-\Delta H/T}=\pi(s')/\pi(s)\)</span>。乘上起点概率后正反流相等；降能情况交换两端即可。</p>
+<p>所有不同状态间的详细平衡成立，再用行概率和为一即可保证平稳性。自环至少 <span class="arithmatex">\(1/2\)</span> 消除理想核的周期性；有限温度下所有单自旋翻转具有正的理想概率，构型之间连通。有限长度的伪随机轨迹仍需单独检查采样质量，这不是数学平稳性的自动替代品。</p>
+</details>
+<details class="answer">
+<summary>6. 怎样从转移矩阵直接得到有限环相关公式？</summary>
+<p>在迹中插入对角自旋算符 <span class="arithmatex">\(\mathsf S=\operatorname{diag}(-1,1)\)</span>，得到
+<span class="arithmatex">\(\langle s_0s_r\rangle=\operatorname{Tr}(\mathsf S\mathsf T^r\mathsf S\mathsf T^{N-r})/Z_N\)</span>。
+零场时，对称、反对称本征向量的特征值分别为 <span class="arithmatex">\(\lambda_+=2\cosh K\)</span>、<span class="arithmatex">\(\lambda_-=2\sinh K\)</span>，而 <span class="arithmatex">\(\mathsf S\)</span> 交换这两个本征方向。</p>
+<p>分子因此为 <span class="arithmatex">\(\lambda_-^r\lambda_+^{N-r}+\lambda_+^r\lambda_-^{N-r}\)</span>。除以 <span class="arithmatex">\(\lambda_+^N+\lambda_-^N\)</span>，再令 <span class="arithmatex">\(q=\lambda_-/\lambda_+=\tanh K\)</span>，就得到第 5 节公式。检查 <span class="arithmatex">\(r=0,N\)</span> 都为 <span class="arithmatex">\(1\)</span>，固定 <span class="arithmatex">\(r\)</span> 后令 <span class="arithmatex">\(N\to\infty\)</span> 得到 <span class="arithmatex">\(q^r\)</span>。</p>
+</details>
+<details class="answer">
+<summary>7. 从平均场自洽方程求正确的响应，并说明临界处为何特殊。</summary>
+<p>对 <span class="arithmatex">\(m=\tanh[(K_{\rm MF}m+h)/T]\)</span> 沿某个平滑驻点分支求外场导数：
+<span class="arithmatex">\(\chi=(1-m^2)(K_{\rm MF}\chi+1)/T\)</span>。
+移项得到 <span class="arithmatex">\(\chi=(1-m^2)/[T-K_{\rm MF}(1-m^2)]\)</span>，正好是熵变分自由能二阶导数的倒数。</p>
+<p>零场高温根 <span class="arithmatex">\(m=0\)</span> 给出 <span class="arithmatex">\(\chi=1/(T-K_{\rm MF})\)</span>。在 <span class="arithmatex">\(T=K_{\rm MF}\)</span> 分母为零，普通有限线性响应不适用；四阶项 <span class="arithmatex">\(Tm^4/12&gt;0\)</span> 表明该根是平坦极小，不是因为曲率零就不稳定。实验将临界与不稳定分支的普通局部响应留为“不适用”。</p>
+</details>
+<details class="answer">
+<summary>8. 为什么有限配分函数不会在正温度有真正相变奇点？</summary>
+<p>有限 <span class="arithmatex">\(N\)</span> 下，<span class="arithmatex">\(Z_N\)</span> 是有限多个光滑正指数函数的和；对于实数 <span class="arithmatex">\(T&gt;0\)</span> 与有限 <span class="arithmatex">\(h,J\)</span>，它严格正且解析，因此 <span class="arithmatex">\(-T\log Z_N\)</span> 及其有限阶响应没有热力学相变奇点。很尖的峰仍可以是光滑函数。</p>
+<p>当 <span class="arithmatex">\(N\to\infty\)</span> 时，函数序列的极限可以失去解析性。要论证二维临界指数，需处理无限尺寸极限与接近 <span class="arithmatex">\(T_c\)</span> 的次序，实际数值工作还要控制尺寸区间、边界条件与抽样误差。本页的全状态小体系有助于验证算法和理解有限性，但不具备单独完成这项指数测定的尺寸范围。</p>
+</details>
+<p>相关阅读：<a href="https://www.damtp.cam.ac.uk/user/tong/sft/sfthtml/S1.html">Tong：从自旋到场</a>提供微观定义与平均场的学习路线；<a href="https://arxiv.org/html/1103.3347">Baxter 对 Onsager–Kaufman 计算的整理</a>列出二维临界条件、自发磁化公式及历史推导背景；<a href="https://journals.aps.org/pr/abstract/10.1103/PhysRev.85.808">Yang 的原始论文</a>是自发磁化推导的文献入口。本课有限图、独立枚举、抽样记录与练习推导可在上述约定下自行复核。</p>
+</details>
+</section>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="asm-01-phase-transitions.html"><span class="pager-label">上一页</span>统计进阶 I · 相变与 Landau 理论</a>

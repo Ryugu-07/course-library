@@ -358,6 +358,8 @@ def sync_learning_assets(md_names):
         shutil.copytree(SHARED / "projects" / "renormalization-certificates", destination / "projects" / "renormalization-certificates")
     if "landau-free-energy" in names:
         shutil.copytree(SHARED / "projects" / "landau-certificates", destination / "projects" / "landau-certificates")
+    if "ising-mean-field" in names:
+        shutil.copytree(SHARED / "projects" / "ising-certificates", destination / "projects" / "ising-certificates")
 
 
 def previous_build_time(out: Path, fallback: str) -> str:

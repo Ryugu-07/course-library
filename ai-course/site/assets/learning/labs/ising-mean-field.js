@@ -1,735 +1,194 @@
-(function () {
-  "use strict";
+(function(hostWindow){"use strict";
 
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var SERIAL = 0;
-  var SCAN_STEPS = 800;
-  var ROOT_TOLERANCE = 1e-8;
-  var DEDUPE_TOLERANCE = 1e-6;
-  var CURVATURE_TOLERANCE = 1e-6;
-  var PHI_TOLERANCE = 2e-7;
+const DEFAULT={graph:'square3',temperature:2.3,coupling:1,field:0,seed:123456789,sweeps:128,burn:32,initial:'up'};
+const GRAPHS={chain2:{kind:'chain',size:2},chain8:{kind:'chain',size:8},chain16:{kind:'chain',size:16},square2:{kind:'square',width:2,height:2},square3:{kind:'square',width:3,height:3},square4:{kind:'square',width:4,height:4},cw16:{kind:'curie-weiss',size:16}};
+function config(input={}){if(!input||typeof input!=='object'||Array.isArray(input))throw Error('object');for(const k of Object.keys(input))if(!Object.hasOwn(DEFAULT,k))throw Error('key');const c={...DEFAULT,...input};if(!Object.hasOwn(GRAPHS,c.graph)||!['up','alternating','random'].includes(c.initial))throw Error('enum');for(const k of['temperature','coupling','field','seed','sweeps','burn'])if(typeof c[k]!=='number'||!Number.isFinite(c[k]))throw Error('finite number');if(c.temperature<.3||c.temperature>5||c.coupling<0||c.coupling>2||Math.abs(c.field)>.5||!Number.isInteger(c.seed)||c.seed<1||c.seed>4294967295||!Number.isInteger(c.sweeps)||c.sweeps<16||c.sweeps>512||!Number.isInteger(c.burn)||c.burn<0||c.burn>128)throw Error('domain');return c;}
+const spins=(mask,n)=>Array.from({length:n},(_,i)=>(mask>>>i&1)?1:-1);
+function graphData(key){if(!Object.hasOwn(GRAPHS,key))throw Error('graph');const d=GRAPHS[key],n=d.size??d.width*d.height,edges=[];
+ if(d.kind==='chain')for(let i=0;i<n;i++)edges.push({id:edges.length,a:i,b:(i+1)%n,weight:1,axis:'chain',wrap:i===n-1});
+ if(d.kind==='square')for(let y=0;y<d.height;y++)for(let x=0;x<d.width;x++){const i=y*d.width+x;edges.push({id:edges.length,a:i,b:y*d.width+(x+1)%d.width,weight:1,axis:'horizontal',wrap:x===d.width-1});edges.push({id:edges.length,a:i,b:((y+1)%d.height)*d.width+x,weight:1,axis:'vertical',wrap:y===d.height-1});}
+ if(d.kind==='curie-weiss')for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)edges.push({id:edges.length,a:i,b:j,weight:1/n,axis:'complete',wrap:false});
+ const neighbors=Array.from({length:n},()=>[]);for(const e of edges){neighbors[e.a].push({site:e.b,weight:e.weight,edge:e.id});neighbors[e.b].push({site:e.a,weight:e.weight,edge:e.id});}
+ return {key,...d,size:n,edges,neighbors,selfConstant:d.kind==='curie-weiss'?-.5:0,meanFieldFactor:d.kind==='chain'?2:d.kind==='square'?4:1,scope:'Periodic positive-direction bonds retained with multiplicity. A length-two direction has two parallel bonds. Curie-Weiss includes self constant -J/2, H=-J M²/(2N)-h M.'};}
+const dosCache=new Map();
+function densityOfStates(key){if(dosCache.has(key))return dosCache.get(key);const graph=graphData(key),n=graph.size,denominator=graph.kind==='curie-weiss'?2*n:1,bins=new Map();
+ for(let mask=0;mask<2**n;mask++){const s=spins(mask,n),M=s.reduce((a,b)=>a+b,0),B=graph.kind==='curie-weiss'?M*M:graph.edges.reduce((z,e)=>z+s[e.a]*s[e.b],0),k=B+','+M;if(!bins.has(k))bins.set(k,{bondNumerator:B,magnetization:M,multiplicity:0,representativeMask:mask});bins.get(k).multiplicity++;}
+ const rows=Array.from(bins.values()).sort((a,b)=>a.magnetization-b.magnetization||a.bondNumerator-b.bondNumerator),result={graph,denominator,states:2**n,rows};dosCache.set(key,result);return result;
+}
+function exact(input={}){const c=config(input),dos=densityOfStates(c.graph),n=dos.graph.size,beta=1/c.temperature,maxExponent=Math.max(...dos.rows.map(r=>beta*(c.coupling*r.bondNumerator/dos.denominator+c.field*r.magnetization)));
+ const rows=dos.rows.map(r=>{const energy=-c.coupling*r.bondNumerator/dos.denominator-c.field*r.magnetization,exponent=-beta*energy,weight=r.multiplicity*Math.exp(exponent-maxExponent);return {...r,energy,exponent,shiftedWeight:weight};}),Zscaled=rows.reduce((z,r)=>z+r.shiftedWeight,0);let Ms=[0,0,0,0,0],Es=[0,0,0],absM=0;
+ for(const r of rows){r.probability=r.shiftedWeight/Zscaled;for(let k=0;k<=4;k++)Ms[k]+=r.probability*r.magnetization**k;for(let k=0;k<=2;k++)Es[k]+=r.probability*r.energy**k;absM+=r.probability*Math.abs(r.magnetization);}
+ const rawMagnetizationMoments=Ms.slice();if(c.field===0){Ms[1]=0;Ms[3]=0;}const magnetizationBins=Array.from({length:n+1},(_,k)=>({M:-n+2*k,probability:0}));for(const r of rows)magnetizationBins[(r.magnetization+n)/2].probability+=r.probability;
+ const logZ=maxExponent+Math.log(Zscaled),varM=rows.reduce((z,r)=>z+r.probability*(r.magnetization-Ms[1])**2,0),varE=rows.reduce((z,r)=>z+r.probability*(r.energy-Es[1])**2,0);
+ return {parameters:c,graph:dos.graph,denominator:dos.denominator,states:dos.states,rows,maxExponent,Zscaled,logZ,freeEnergyPerSpin:-c.temperature*logZ/n,rawMagnetizationMoments,magnetizationMoments:Ms,energyMoments:Es,mean:Ms[1]/n,absoluteMean:absM/n,energyPerSpin:Es[1]/n,varianceM:varM,varianceEnergy:varE,susceptibility:beta*varM/n,heatCapacity:beta*beta*varE/n,binder:1-Ms[4]/(3*Ms[2]**2),magnetizationBins,scope:'Exact sum over all 2^N states using an integer density of states; numerical Boltzmann arithmetic. h=0 odd moments set by exact spin-flip symmetry, raw sums retained.'};
+}
+function multiply(a,b){const n=a.length;return Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>a[i].reduce((z,x,k)=>z+x*b[k][j],0)));}
+const identity=n=>Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>+(i===j)));
+const trace=a=>a.reduce((z,r,i)=>z+r[i],0);
+function transfer(input={}){const c=config(input),g=graphData(c.graph),beta=1/c.temperature;if(g.kind==='curie-weiss')return {applicable:false,reason:'Curie-Weiss has no nearest-neighbor row transfer matrix in this construction.'};
+ const width=g.kind==='chain'?1:g.width,length=g.kind==='chain'?g.size:g.height,n=2**width,states=Array.from({length:n},(_,mask)=>{const s=spins(mask,width);return {mask,spins:s,M:s.reduce((a,b)=>a+b,0),B:width===1?0:s.reduce((z,x,i)=>z+x*s[(i+1)%width],0)};});
+ const matrix=states.map(a=>states.map(b=>Math.exp(beta*(c.coupling*((a.B+b.B)/2+a.spins.reduce((z,x,i)=>z+x*b.spins[i],0))+c.field*(a.M+b.M)/2)))),powers=[identity(n)];for(let i=1;i<=length;i++)powers.push(multiply(powers.at(-1),matrix));const partition=trace(powers[length]);let chain=null;
+ if(g.kind==='chain'){const K=beta*c.coupling,H=beta*c.field,root=Math.sqrt(Math.sinh(H)**2+Math.exp(-4*K)),plus=Math.exp(K)*(Math.cosh(H)+root),minus=Math.exp(-2*K)*Math.expm1(4*K)/plus,infiniteM=Math.sinh(H)/root,S=states.map((a,i)=>states.map((b,j)=>i===j?a.spins[0]:0));
+ const correlations=Array.from({length:length+1},(_,r)=>({distance:r,finite:trace(multiply(multiply(multiply(S,powers[r]),S),powers[length-r]))/partition,zeroFieldFormula:c.field===0?(Math.tanh(K)**r+Math.tanh(K)**(length-r))/(1+Math.tanh(K)**length):null}));
+ chain={K,H,lambdaPlus:plus,lambdaMinus:minus,eigenPartition:plus**length+minus**length,infiniteLogZPerSpin:Math.log(plus),infiniteMagnetization:infiniteM,zeroFieldCorrelationLength:c.field===0?(K===0?0:-1/Math.log(Math.tanh(K))):null,correlations};}
+ return {applicable:true,width,length,states,matrix,powers,partition,logZ:Math.log(partition),chain,scope:'Rows include horizontal energy and field split equally between adjacent transfer factors. Trace closes the finite periodic direction. Width-two horizontal and length-two vertical bonds retain their multiplicities.'};
+}
+function energyOf(mask,c,g=graphData(c.graph)){const ss=spins(mask,g.size),M=ss.reduce((a,b)=>a+b,0);return {M,energy:-c.coupling*g.edges.reduce((z,e)=>z+e.weight*ss[e.a]*ss[e.b],0)-c.field*M+c.coupling*g.selfConstant};}
+const core={DEFAULT,GRAPHS,config,spins,graphData,densityOfStates,exact,multiply,identity,trace,transfer,energyOf};
 
-  function setAttrs(node, attrs) {
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", String(value));
-      else node.setAttribute(key, value === true ? "" : String(value));
-    });
-    return node;
+
+function rng(seed){let state=seed>>>0;return {next(){state^=state<<13;state^=state>>>17;state^=state<<5;return state>>>0;},state(){return state>>>0;}};}
+function sample(input={}){
+ const c=core.config(input),g=core.graphData(c.graph),n=g.size,random=rng(c.seed),initialDraws=[];
+ let mask=0;if(c.initial==='up')mask=2**n-1;else if(c.initial==='alternating'){for(let i=0;i<n;i++)if(i%2===0)mask|=1<<i;}else for(let i=0;i<n;i++){const raw=random.next();initialDraws.push({site:i,raw});if(raw>=2147483648)mask|=1<<i;}
+ const initialMask=mask,initialEnergy=core.energyOf(mask,c,g),attempts=[],samples=[],histogram=Array.from({length:n+1},(_,k)=>({M:-n+2*k,count:0,frequency:0}));
+ let {M,energy}=initialEnergy,accepted=0,retainedAccepted=0,sumM=0,sumAbsM=0,sumE=0;
+ for(let sweep=1;sweep<=c.burn+c.sweeps;sweep++){
+  let sweepAccepted=0;
+  for(let step=0;step<n;step++){
+   const rawSite=random.next(),rawAccept=random.next(),site=Math.floor(rawSite/4294967296*n),u=rawAccept/4294967296,spin=(mask>>>site&1)?1:-1,neighborSum=g.neighbors[site].reduce((z,e)=>z+e.weight*((mask>>>e.site&1)?1:-1),0),delta=2*spin*(c.coupling*neighborSum+c.field),metropolisProbability=delta<=0?1:Math.exp(-delta/c.temperature),probability=.5*metropolisProbability,take=u<probability,beforeMask=mask,beforeM=M,beforeEnergy=energy;
+   if(take){mask^=1<<site;M-=2*spin;energy+=delta;accepted++;sweepAccepted++;if(sweep>c.burn)retainedAccepted++;}
+   attempts.push({index:attempts.length,sweep,step,retained:sweep>c.burn,rawSite,rawAccept,site,u,spin,neighborSum,delta,metropolisProbability,probability,accepted:take,beforeMask,afterMask:mask,beforeM,afterM:M,beforeEnergy,afterEnergy:energy});
   }
+  // Recompute energy at a sweep boundary to stop floating additions drifting.
+  const direct=core.energyOf(mask,c,g);energy=direct.energy;M=direct.M;
+  if(sweep>c.burn){sumM+=M;sumAbsM+=Math.abs(M);sumE+=energy;histogram[(M+n)/2].count++;samples.push({index:samples.length,sweep,mask,M,energy,mean:M/n,absoluteMean:Math.abs(M)/n,runningMean:sumM/(samples.length+1)/n,runningAbsoluteMean:sumAbsM/(samples.length+1)/n,runningEnergy:sumE/(samples.length+1)/n,accepted:sweepAccepted});}
+ }
+ for(const r of histogram)r.frequency=r.count/c.sweeps;
+ const meanM=sumM/c.sweeps,meanE=sumE/c.sweeps,varM=samples.reduce((z,r)=>z+(r.M-meanM)**2,0)/c.sweeps,varE=samples.reduce((z,r)=>z+(r.energy-meanE)**2,0)/c.sweeps,autocorrelation=[];
+ for(let lag=0;lag<=Math.min(16,c.sweeps-1);lag++){let covariance=0;for(let i=0;i<c.sweeps-lag;i++)covariance+=(samples[i].M-meanM)*(samples[i+lag].M-meanM);covariance/=c.sweeps-lag;autocorrelation.push({lag,pairs:c.sweeps-lag,covariance,correlation:varM>0?covariance/varM:null});}
+ return {parameters:c,laziness:.5,initialMask,initialDraws,initialEnergy,finalMask:mask,finalRng:random.state(),attempts,samples,histogram,accepted,retainedAccepted,acceptanceRate:accepted/attempts.length,retainedAcceptanceRate:retainedAccepted/(c.sweeps*n),mean:meanM/n,absoluteMean:sumAbsM/c.sweeps/n,energyPerSpin:meanE/n,varianceM:varM,varianceEnergy:varE,susceptibilityEstimate:varM/(n*c.temperature),heatCapacityEstimate:varE/(n*c.temperature*c.temperature),autocorrelation,scope:'Deterministic xorshift32 stream, two raw draws per attempt; site=floor(raw*N/2^32), accept when raw/2^32 < 0.5 min(1,exp(-ΔE/T)). Finite random resolution is an implementation approximation. Fixed laziness 1/2 prevents the all-accepted parity cycle at J=h=0; the ideal random kernel is irreducible and aperiodic at T>0. One sweep is N random-site attempts with replacement. Samples are post-sweep after burn; burn is not evidence of equilibrium. Centered population moments and short-lag descriptive correlations are not independent-sample error estimates; constant trajectories have undefined correlation. Energy is recomputed at every sweep boundary.'};
+}
+const sech2=y=>{const e=Math.exp(-2*Math.abs(y));return 4*e/(1+e)**2;};
+function meanField(input={}){
+ const c=core.config(input),g=core.graphData(c.graph),K=g.meanFieldFactor*c.coupling,T=c.temperature,h=c.field,bound=(K+Math.abs(h))/T+1;
+ const f=y=>T*y-K*Math.tanh(y)-h,turn=K>T?Math.acosh(Math.sqrt(K/T)):null,cuts=[-bound,...(turn!==null?[-turn,turn]:[]),bound],ys=[],brackets=[];
+ function add(y){if(!ys.some(z=>Math.abs(y-z)<2e-9))ys.push(y);}
+ for(const y of cuts)if(Math.abs(f(y))<2e-12)add(y);
+ for(let i=1;i<cuts.length;i++){let lo=cuts[i-1],hi=cuts[i],flo=f(lo),fhi=f(hi);if(flo*fhi>=0)continue;const start=[lo,hi];for(let k=0;k<90;k++){const mid=(lo+hi)/2,fm=f(mid);if(fm===0){lo=hi=mid;break;}if(flo*fm<=0)hi=mid;else{lo=mid;flo=fm;}}const y=(lo+hi)/2;add(y);brackets.push({interval:i-1,start,finish:[lo,hi],root:y});}
+ if(Math.abs(f(0))<2e-12)add(0);
+ ys.sort((a,b)=>a-b);const rows=ys.map((y,id)=>{const m=Math.tanh(y),s2=sech2(y),curvatureDenominator=T-K*s2,entropy=[(1+m)/2,(1-m)/2].reduce((z,p)=>z+(p>0?p*Math.log(p):0),0),freeEnergy=-K*m*m/2-h*m+T*entropy,critical=Math.abs(curvatureDenominator)<2e-10,classification=critical?(Math.abs(y)<2e-9&&Math.abs(T-K)<2e-10?'flat minimum':'stationary inflection'):curvatureDenominator>0?'minimum':'maximum';return {id,y,m,sechSquared:s2,residual:f(y),freeEnergy,entropy,curvature:curvatureDenominator/s2,classification,localSusceptibility:classification==='minimum'?s2/curvatureDenominator:null,global:false};});
+ const minima=rows.filter(r=>r.classification==='minimum'||r.classification==='flat minimum'),minimum=Math.min(...minima.map(r=>r.freeEnergy));for(const r of minima)r.global=Math.abs(r.freeEnergy-minimum)<=1e-10;const selected=rows.filter(r=>r.global).at(-1)??null;
+ const landscape=Array.from({length:201},(_,i)=>{const m=-1+i/100,entropy=[(1+m)/2,(1-m)/2].reduce((z,p)=>z+(p>0?p*Math.log(p):0),0);return {m,freeEnergy:-K*m*m/2-h*m+T*entropy};});
+ return {K,temperature:T,field:h,bound,turningPoints:turn===null?[]:[-turn,turn],cuts:cuts.map(y=>({y,residual:f(y)})),brackets,rows,selectedRoot:selected?.id??null,landscape,scope:'Entropy variational free energy per spin. Roots solved in finite effective-field coordinate y, m=tanh(y), so low-temperature saturation can round m to ±1 without losing a root. Curvature F″=T cosh²(y)-K. χ=sech²(y)/(T-K sech²(y)) applies to a stable local branch. A null value marks critical/unstable response. Near-degenerate minima within 1e-10 are candidates; largest m chosen for a displayed branch, not finite-volume equilibrium magnetization.'};
+}
+function squareInfinite(input={}){
+ const c=core.config(input),g=core.graphData(c.graph),Tc=2*c.coupling/Math.log(1+Math.sqrt(2)),applicable=g.kind==='square'&&c.field===0,ordered=applicable&&c.coupling>0&&c.temperature<Tc;
+ return {applicable,Tc,spontaneousMagnetization:applicable?(ordered?(1-Math.sinh(2*c.coupling/c.temperature)**-4)**.125:0):null,scope:'Onsager critical temperature and Yang spontaneous magnetization: infinite ferromagnetic square lattice, nearest-neighbor coupling, h→0+ after N→∞. Not the mean magnetization of a finite zero-field graph, nor an exact formula at h≠0.'};
+}
+const sampling={rng,sample,sech2,meanField,squareInfinite};
 
-  function makeElement(doc, tag, className, text) {
-    var node = doc.createElement(tag);
-    if (className) node.className = className;
-    if (text !== undefined) node.textContent = text;
-    return node;
-  }
 
-  function makeSvgElement(doc, tag, attrs, text) {
-    var node = doc.createElementNS(SVG_NS, tag);
-    if (attrs) setAttrs(node, attrs);
-    if (text !== undefined) node.textContent = text;
-    return node;
-  }
+const PRESETS=[
+ {id:'square3',name:'3×3：精确与抽样',parameters:{}},
+ {id:'two-sites',name:'两点环的平行键',parameters:{graph:'chain2',temperature:1}},
+ {id:'chain16',name:'16点链与相关长度',parameters:{graph:'chain16',temperature:1,initial:'random'}},
+ {id:'square2',name:'2×2：八条周期键',parameters:{graph:'square2',temperature:2}},
+ {id:'square4',name:'4×4：65536个状态',parameters:{graph:'square4',temperature:2.269185314213022,initial:'random'}},
+ {id:'curie-weiss',name:'全连接与二项式计数',parameters:{graph:'cw16',temperature:1}},
+ {id:'trapped',name:'低温困在正相',parameters:{graph:'square4',temperature:.6,sweeps:256,burn:64}},
+ {id:'field',name:'外场破坏翻转对称',parameters:{graph:'square3',field:.25,initial:'random'}},
+ {id:'free-spins',name:'独立自旋与惰性更新',parameters:{graph:'chain8',coupling:0,temperature:2,initial:'alternating',burn:0,sweeps:256}},
+ {id:'saturation',name:'低温平均场饱和',parameters:{graph:'square2',temperature:.3,coupling:2,field:.5}},
+ {id:'mean-field-critical',name:'平均场临界点',parameters:{graph:'square3',temperature:4}},
+ {id:'another-seed',name:'换种子与初态',parameters:{graph:'square3',seed:4294967295,initial:'alternating',sweeps:512,burn:128}}
+];
+const summary=x=>({logZ:x.logZ,freeEnergyPerSpin:x.freeEnergyPerSpin,mean:x.mean,absoluteMean:x.absoluteMean,energyPerSpin:x.energyPerSpin,susceptibility:x.susceptibility,heatCapacity:x.heatCapacity,binder:x.binder,varianceM:x.varianceM,varianceEnergy:x.varianceEnergy});
+function detailedBalance(c,exact,mc){
+ const g=exact.graph,n=g.size,masks=[...new Set([0,1,2**(n-1)-1,2**n-1,mc.finalMask])],rows=[];
+ for(const mask of masks)for(let site=0;site<n;site++){
+  const nextMask=mask^(1<<site),before=core.energyOf(mask,c,g),after=core.energyOf(nextMask,c,g),delta=after.energy-before.energy,logForward=-Math.log(2*n)-Math.max(0,delta/c.temperature),logReverse=-Math.log(2*n)-Math.max(0,-delta/c.temperature),logPi=-before.energy/c.temperature-exact.logZ,logPiNext=-after.energy/c.temperature-exact.logZ;
+  rows.push({id:rows.length,mask,nextMask,site,energy:before.energy,nextEnergy:after.energy,delta,logPi,logPiNext,logForward,logReverse,logForwardFlux:logPi+logForward,logReverseFlux:logPiNext+logReverse,forwardFlux:Math.exp(logPi+logForward),reverseFlux:Math.exp(logPiNext+logReverse)});
+ }
+ return {rows,scope:'Selected explicit edge witnesses for the ideal uniform-site lazy Metropolis kernel; log π(s)P(s,s′) equals its reverse. This does not turn a deterministic PRNG trajectory into independent exact equilibrium draws. The proof for all states is algebraic in the lesson.'};
+}
+function compute(input={}){
+ const c=core.config(input),ex=core.exact(c),tr=core.transfer(c),mc=sampling.sample(c),mf=sampling.meanField(c),square=sampling.squareInfinite(c);
+ const landmarks=[{T:mf.K,depth:6},...(square.applicable?[{T:square.Tc,depth:6}]:[])],nearCritical=landmarks.flatMap(({T,depth})=>[T,...Array.from({length:depth},(_,i)=>[T*(1-10**(-i-1)),T*(1+10**(-i-1))]).flat()]).filter(T=>T>=.3&&T<=5);
+ const temperatures=[...new Set([...Array.from({length:41},(_,i)=>.3+4.7*i/40),c.temperature,...nearCritical])].sort((a,b)=>a-b);
+ const temperatureScan=temperatures.map(T=>{const cc={...c,temperature:T},e=core.exact(cc),m=sampling.meanField(cc),sq=sampling.squareInfinite(cc),selected=m.rows.find(r=>r.id===m.selectedRoot);return {temperature:T,...summary(e),meanFieldMagnetization:selected?.m??null,meanFieldSusceptibility:selected?.localSusceptibility??null,meanFieldRoots:m.rows,squareSpontaneousMagnetization:sq.spontaneousMagnetization};});
+ const fieldScan=[...new Set([...Array.from({length:21},(_,i)=>-.5+i/20),c.field])].sort((a,b)=>a-b).map(h=>({field:h,...summary(core.exact({...c,field:h}))}));
+ const family=c.graph.startsWith('chain')?['chain2','chain8','chain16']:c.graph.startsWith('square')?['square2','square3','square4']:['cw16'];
+ const sizeScan=family.map(graph=>{const x=core.exact({...c,graph});return {graph,size:x.graph.size,states:x.states,...summary(x)};});
+ return {schemaVersion:1,parameters:c,exact:ex,transfer:tr,sample:mc,meanField:mf,squareInfinite:square,temperatureScan,fieldScan,sizeScan,detailedBalance:detailedBalance(c,ex,mc),scope:'Finite microscopic Ising models, exact density-of-states sums, finite transfer matrices, deterministic lazy Metropolis traces and explicitly distinguished mean-field/infinite-square references. T>0, J≥0, kB=1; no critical-exponent fitting or automatic equilibration claim.'};
+}
+const QUESTIONS=[
+ ['有限零场方格的平衡〈m〉=0，但一条低温轨迹几乎一直 m≈1，首先能说明什么？',['已经证明平衡磁化等于1','轨迹可能尚未跨越两个对称磁化区域'],1,'有限零场分布有严格翻转对称。单轨迹长时间停在正相，可以反映慢混合；不能把该轨迹均值替代完整平衡平均。'],
+ ['本实验的2×2周期方格有几条带重数的键？',['8条','4条'],0,'每个格点向右、向下各记一条周期键，共2N=8条。长度2的周期方向产生平行键；去重会改变哈密顿量，也会破坏与转移矩阵的对账。'],
+ ['零场一维近邻铁磁链在任意 T>0 的热力学极限中会有自发磁化吗？',['会，平均场 Tc=2J 就是精确答案','不会，有限温度相关长度有限'],1,'一维精确转移矩阵给出 ξ=−1/log(tanh(J/T))。任意有限正温度下相关长度有限，h→0 时磁化归零；平均场在这里给出错误的有限温度相变。'],
+ ['有限尺寸的热容峰与二维精确 Tc 接近，能只用本页小格子证明 β=1/8 吗？',['不能，需要说明极限并控制尺寸与统计误差','能，峰值附近的曲线看起来相似就够了'],0,'有限体系配分函数在 T>0 光滑，峰不是奇点。本页给出精确小体系与零场无限方格参考，未进行足够尺寸范围的标度或指数估计。']
+];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=QUESTIONS.length||![0,1].includes(j))throw Error('choice');const correct=j===QUESTIONS[i][2];return {correct,text:(correct?'正确。':'需要修正。')+QUESTIONS[i][3]};}
+function fmt(x){if(x===null||x===undefined)return '不适用';if(Array.isArray(x))return '['+x.map(fmt).join(', ')+']';if(typeof x==='boolean')return x?'是':'否';if(typeof x==='number')return Number.isInteger(x)?String(x):Math.abs(x)<1e-4||Math.abs(x)>=1e5?x.toExponential(5):Number(x.toPrecision(7)).toString();return String(x);}
+const COLORS=['#c55b32','#3875ba','#368661','#9860a8'];
+function frame(key,title,xLabel,yLabel,series,domain,range){
+ const pts=series.flatMap(s=>s.points.filter(Boolean)),xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);let xmin=domain?.[0]??(xs.length?Math.min(...xs):0),xmax=domain?.[1]??(xs.length?Math.max(...xs):1),ymin=range?.[0]??(ys.length?Math.min(...ys):0),ymax=range?.[1]??(ys.length?Math.max(...ys):1);
+ if(xmin===xmax)xmax=xmin+1;if(ymin===ymax)ymax=ymin+1;if(!range){const pad=.08*(ymax-ymin);ymin=['histogram','heat'].includes(key)?0:ymin-pad;ymax+=pad;}
+ return {key,title,xLabel,yLabel,xMin:xmin,xMax:xmax,yMin:ymin,yMax:ymax,series};
+}
+function plots(s){
+ const g=s.exact.graph,n=g.size,spinValues=spins(s.sample.finalMask,n),positions=Array.from({length:n},(_,i)=>g.kind==='square'?[i%g.width,Math.floor(i/g.width)]:[Math.cos(2*Math.PI*i/n-Math.PI/2),Math.sin(2*Math.PI*i/n-Math.PI/2)]);
+ const graph={key:'configuration',title:'最后一次真实采样构型',kind:'graph',graph:g,mask:s.sample.finalMask,spins:spinValues,positions,series:[],xMin:0,xMax:1,yMin:0,yMax:1,xLabel:'带重数的周期键；全连接键权1/N',yLabel:'最后样本，不代表完整分布'};
+ const correlation=s.transfer.chain?.correlations??[],K=s.parameters.coupling/s.parameters.temperature,q=Math.tanh(K);
+ return [
+ graph,
+ frame('histogram','磁化分布：精确与有限轨迹','总磁化 M','概率／样本频率',[{name:'精确有限体系',color:COLORS[1],markersOnly:true,points:s.exact.magnetizationBins.map(r=>[r.M,r.probability])},{name:'保留轨迹频率',color:COLORS[0],markersOnly:true,hollow:true,points:s.sample.histogram.map(r=>[r.M,r.frequency])}],[-n,n],[0,1.05]),
+ frame('heat','有限体系热容随温度平滑变化','T（kB=1）','每自旋 C',[{name:'精确全状态求和',color:COLORS[1],points:s.temperatureScan.map(r=>[r.temperature,r.heatCapacity])}], [.3,5]),
+ frame('trajectory','保留轨迹与运行均值','保留样本编号（每 sweep 一个）','m=M/N',[{name:'单次样本 m',color:COLORS[0],points:s.sample.samples.map(r=>[r.index+1,r.mean])},{name:'轨迹运行均值',color:COLORS[2],points:s.sample.samples.map(r=>[r.index+1,r.runningMean])},{name:'精确有限〈m〉',color:COLORS[1],points:[[1,s.exact.mean],[s.parameters.sweeps,s.exact.mean]]}],[1,s.parameters.sweeps],[-1.08,1.08]),
+ frame('correlation','一维相关：有限环与无限链','距离 r（晶格单位）','〈s₀sᵣ〉',[{name:correlation.length?'有限周期链':'仅适用于一维链预设',color:COLORS[1],markersOnly:true,points:correlation.map(r=>[r.distance,r.finite])},{name:'无限链零场 q^r',color:COLORS[2],markersOnly:true,hollow:true,points:s.parameters.field===0?correlation.map(r=>[r.distance,q**r.distance]):[]}],[0,n],[-.05,1.05]),
+ frame('magnetization','有限平均与选相参考分别标明','T（kB=1）','每自旋磁化',[{name:s.parameters.field===0?'有限〈|m|〉（不是自发磁化）':'有限〈m〉',color:COLORS[1],points:s.temperatureScan.map(r=>[r.temperature,s.parameters.field===0?r.absoluteMean:r.mean])},{name:'平均场所选稳定分支',color:COLORS[0],markersOnly:true,points:s.temperatureScan.map(r=>r.meanFieldMagnetization===null?null:[r.temperature,r.meanFieldMagnetization])},{name:'无限方格零场 m₊（参考点）',color:COLORS[2],markersOnly:true,markerRadius:2.5,hollow:true,points:s.temperatureScan.map(r=>r.squareSpontaneousMagnetization===null?null:[r.temperature,r.squareSpontaneousMagnetization])}],[.3,5],[-1.08,1.08])
+ ];
+}
+function tables(s){const c=s.parameters,e=s.exact,tr=s.transfer,mc=s.sample,mf=s.meanField;return [
+ {key:'parameters',title:'参数、模型规则与精确求和规模',headers:['项目','值','解释'],rows:[...Object.entries(c).map(([k,v])=>[k,v,'当前实验参数']),['N',e.graph.size,'自旋数'],['键数',e.graph.edges.length,'保留周期重数'],['自项常数',c.coupling*e.graph.selfConstant,'CW包含−J/2'],['精确状态数',e.states,'全部2^N'],['DOS行数',e.rows.length,'相同(B,M)合并'],['B分母',e.denominator,'能量−J B/分母−hM'],['惰性概率',mc.laziness,'每次最多以1/2概率接受翻转'],['原始M矩',e.rawMagnetizationMoments,'零场浮点累加奇矩保留'],['对称化M矩',e.magnetizationMoments,'零场奇矩严格为零'],['E矩',e.energyMoments,'0至2阶'],['无限方格Tc',s.squareInfinite.Tc,'仅零场无限方格参考'],['方格参考适用',s.squareInfinite.applicable,'有限均值另算']]},
+ {key:'bonds',title:'图的每一条键（平行键分别列出）',headers:['键编号','端点a','端点b','权重','方向','跨周期边界'],rows:e.graph.edges.map(r=>[r.id,r.a,r.b,r.weight,r.axis,r.wrap])},
+ {key:'dos',title:'完整态密度、能量和Boltzmann权重',headers:['B分子','M','多重度g','代表mask','能量E','−E/T','平移权重','概率'],rows:e.rows.map(r=>[r.bondNumerator,r.magnetization,r.multiplicity,r.representativeMask,r.energy,r.exponent,r.shiftedWeight,r.probability])},
+ {key:'transfer',title:'转移矩阵及所有矩阵幂元素',headers:['矩阵幂','行mask','列mask','元素','最终trace','log(trace)'],rows:tr.applicable?tr.powers.flatMap((A,k)=>A.flatMap((row,i)=>row.map((value,j)=>[k,i,j,value,k===tr.length?tr.partition:null,k===tr.length?tr.logZ:null]))):[['不适用',null,null,'CW改用精确二项式DOS',null,null]]},
+ {key:'thermodynamics',title:'所选模型、外场与尺寸扫描的有限热力学',headers:['类型','设置','〈m〉','〈|m|〉','E/N','每自旋χ','每自旋C','Binder','logZ','f/N'],rows:[['所选',c.graph,e.mean,e.absoluteMean,e.energyPerSpin,e.susceptibility,e.heatCapacity,e.binder,e.logZ,e.freeEnergyPerSpin],...s.fieldScan.map(r=>['外场',r.field,r.mean,r.absoluteMean,r.energyPerSpin,r.susceptibility,r.heatCapacity,r.binder,r.logZ,r.freeEnergyPerSpin]),...s.sizeScan.map(r=>['尺寸',r.graph,r.mean,r.absoluteMean,r.energyPerSpin,r.susceptibility,r.heatCapacity,r.binder,r.logZ,r.freeEnergyPerSpin])]},
+ {key:'temperature',title:'全部温度点、有限响应与选相参考',headers:['T','有限〈m〉','有限〈|m|〉','E/N','有限χ','有限C','Binder','logZ','MF所选m','MF局部χ','无限方格m₊'],rows:s.temperatureScan.map(r=>[r.temperature,r.mean,r.absoluteMean,r.energyPerSpin,r.susceptibility,r.heatCapacity,r.binder,r.logZ,r.meanFieldMagnetization,r.meanFieldSusceptibility,r.squareSpontaneousMagnetization])},
+ {key:'attempts',title:'每一次更新：随机数、构型和能量完整对账',headers:['编号','sweep','步','保留期','site原始数','接受原始数','site','u','翻转前s','邻居和','ΔE','普通接受率','惰性接受率','接受','前mask','后mask','前M','后M','前E','后E'],rows:mc.attempts.map(r=>[r.index,r.sweep,r.step,r.retained,r.rawSite,r.rawAccept,r.site,r.u,r.spin,r.neighborSum,r.delta,r.metropolisProbability,r.probability,r.accepted,r.beforeMask,r.afterMask,r.beforeM,r.afterM,r.beforeEnergy,r.afterEnergy])},
+ {key:'samples',title:'保留样本与短滞后描述统计',headers:['类型','编号／lag','sweep／配对数','mask','M','E','m','运行〈m〉','运行〈|m|〉','运行E/N','协方差','相关'],rows:[...mc.samples.map(r=>['样本',r.index,r.sweep,r.mask,r.M,r.energy,r.mean,r.runningMean,r.runningAbsoluteMean,r.runningEnergy,null,null]),...mc.autocorrelation.map(r=>['相关',r.lag,r.pairs,null,null,null,null,null,null,null,r.covariance,r.correlation])]},
+ {key:'mean-field',title:'平均场全部根及温度扫描根（稳定性与χ）',headers:['T','根编号','y','m=tanh(y)','驻点残差','F/N','曲率','分类','全局候选','局部χ'],rows:s.temperatureScan.flatMap(r=>r.meanFieldRoots.map(q=>[r.temperature,q.id,q.y,q.m,q.residual,q.freeEnergy,q.curvature,q.classification,q.global,q.localSusceptibility]))},
+ {key:'balance',title:'理想随机核的详细平衡边检验',headers:['编号','前mask','后mask','site','E','E′','ΔE','logπ','logπ′','logP正','logP反','log流正','log流反','流正','流反'],rows:s.detailedBalance.rows.map(r=>[r.id,r.mask,r.nextMask,r.site,r.energy,r.nextEnergy,r.delta,r.logPi,r.logPiNext,r.logForward,r.logReverse,r.logForwardFlux,r.logReverseFlux,r.forwardFlux,r.reverseFlux])}
+];}
+function graphSvg(p){
+ const esc=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const xs=p.positions.map(x=>x[0]),ys=p.positions.map(x=>x[1]),xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys),X=x=>120+(x-xmin)/(xmax-xmin||1)*600,Y=y=>110+(y-ymin)/(ymax-ymin||1)*270;
+ const points=p.positions.map(([x,y])=>[X(x),Y(y)]),pairs=new Map();for(const e of p.graph.edges){const key=[e.a,e.b].sort((a,b)=>a-b).join(',');if(!pairs.has(key))pairs.set(key,[]);pairs.get(key).push(e.id);}
+ let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 540" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="30" y="65">N='+p.graph.size+'，键数='+p.graph.edges.length+'，最终mask='+p.mask+'</text>';
+ for(const e of p.graph.edges){const a=points[e.a],b=points[e.b],key=[e.a,e.b].sort((a,b)=>a-b).join(','),ids=pairs.get(key),index=ids.indexOf(e.id),dx=b[0]-a[0],dy=b[1]-a[1],norm=Math.hypot(dx,dy)||1;
+ // Fixed endpoint ordering makes two parallel bonds bend to opposite sides.
+ const sign=e.a<e.b?1:-1,offset=ids.length>1?(index-(ids.length-1)/2)*42*sign:0,cx=(a[0]+b[0])/2-dy/norm*offset,cy=(a[1]+b[1])/2+dx/norm*offset;
+ out+='<path data-edge="'+e.id+'" d="M'+a+' Q'+cx+','+cy+' '+b+'" fill="none" stroke="'+(e.wrap?'#9860a8':'#758190')+'" stroke-width="'+(p.graph.kind==='curie-weiss'?1:2.5)+'" opacity="'+(p.graph.kind==='curie-weiss'?.28:.8)+'"'+(e.wrap?' stroke-dasharray="6 4"':'')+'/>';}
+ points.forEach((q,i)=>{out+='<circle data-site="'+i+'" cx="'+q[0]+'" cy="'+q[1]+'" r="22" fill="'+(p.spins[i]>0?'#c55b32':'#3875ba')+'"/><text x="'+q[0]+'" y="'+(q[1]+5)+'" text-anchor="middle" style="fill:white">'+i+' '+(p.spins[i]>0?'+':'−')+'</text>';});
+ return out+'<text x="30" y="465">圆内为格点编号与正负号；紫色虚线为跨周期边界的键。</text><text x="30" y="497">平行键分别画出；CW完整图每条键权为1/N，另含常数−J/2。</text><text x="30" y="527">此图只显示最后一个样本；平衡分布见精确磁化概率图。</text></svg>';
+}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=10000?v.toExponential(2):Number(v.toFixed(3)).toString();
+function svg(p){if(p.kind==='graph')return graphSvg(p);const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 540" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+const discrete=['correlation','histogram'].includes(p.key);const xticks=discrete?[...new Set(Array.from({length:5},(_,i)=>Math.round(p.xMin+(p.xMax-p.xMin)*i/4)))]:Array.from({length:5},(_,i)=>p.xMin+(p.xMax-p.xMin)*i/4);for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+axisFmt(y)+'</text>';}for(const x of xticks){out+='<text x="'+X(x)+'" y="410" text-anchor="middle">'+axisFmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen&&!s.markersOnly?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const marks=s.markersOnly?s.points.filter(Boolean):s.boundaryMarkers?[...new Set([s.points.find(Boolean),s.points.filter(Boolean).at(-1)])].filter(Boolean):s.points.filter(Boolean).length===1?s.points.filter(Boolean):[];marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="'+(s.markerRadius??5)+'" stroke="'+s.color+'" fill="'+(s.hollow?'none':s.open?'var(--bg,#fff)':s.color)+'" stroke-width="'+(s.markerStrokeWidth??2.5)+'"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});if(!p.series.some(s=>s.points.some(Boolean)))out+='<text x="450" y="245" text-anchor="middle">当前模型在此参数下无适用数据</text>';return out+'</svg>';}
 
-  function append(parent, child) {
-    parent.appendChild(child);
-    return child;
-  }
+var mounted=new WeakMap();
+function mount(root){const doc=root.ownerDocument,previous=mounted.get(root);if(previous)previous();root.replaceChildren();root.classList.add('is185');let c=config(PRESETS[0].parameters),choices={},revealed=false,url=null,current=null,view=0;
+ const el=(tag,attrs={},text)=>{const e=doc.createElement(tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
+ if(!doc.querySelector('[data-is185-style]')){const style=el('style',{'data-is185-style':''});style.textContent='.is185{margin-inline:0!important;width:100%;min-width:0;color:var(--fg,#222);line-height:1.65}.is185 *{box-sizing:border-box}.is185 button,.is185 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.is185 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.is185 button:focus-visible,.is185 select:focus-visible,.is185 [tabindex]:focus-visible{outline:3px solid #2474bc}.is185 .is-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.is185 label{display:grid;gap:4px;min-width:0}.is185 input{width:100%;min-height:44px;font:inherit;color:inherit;background:var(--bg,#fff)}.is185 .is-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.is185 .is-pred>strong{display:block;margin-bottom:6px}.is185 .is-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.is185 .is-feedback{margin:7px 0}.is185 .is-scroll{max-width:100%;overflow:auto}.is185 svg{display:block;min-width:680px;width:100%;height:auto}.is185 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.is185 td,.is185 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.is185 [hidden]{display:none!important}.is185 details{margin:12px 0}.is185 summary{min-height:44px;cursor:pointer}.is185 .is-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.is185 .is-correct{color:var(--cl-green,#277540)}.is185 .is-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.is185 .is-grid{grid-template-columns:1fr}}';doc.head.append(style);}
+ root.append(el('h3',{},'从真实自旋，到精确答案与抽样误差'),el('p',{},'同一个有限模型同时给出全状态精确求和与可复现抽样。先预测两者为什么可能不同，再检查每次更新；平均场和无限格子的公式另作有条件的参考。'));
+ const presets=el('div',{class:'is-row','aria-label':'教学预设'});for(const p of PRESETS){const b=el('button',{type:'button','data-preset':p.id},p.name);b.onclick=()=>{c=config(p.parameters);sync();reset();};presets.append(b);}root.append(presets);
+ const fields={},outs={},grid=el('div',{class:'is-grid'});
+ for(const[key,title,values]of[['graph','有限图与大小',Object.keys(GRAPHS)],['initial','初始构型',['up','alternating','random']]]){const label=el('label',{},title),input=el('select',{'data-field':key,'aria-label':title});for(const v of values){const labels={chain2:'两点周期链（双键）',chain8:'8点周期链',chain16:'16点周期链',square2:'2×2周期方格',square3:'3×3周期方格',square4:'4×4周期方格',cw16:'16点全连接（Curie–Weiss）',up:'全部向上',alternating:'按格点编号交替正负',random:'随机初态'};input.append(el('option',{value:v},labels[v]));}label.append(input);grid.append(label);fields[key]=input;input.onchange=()=>{c=config({...c,[key]:input.value});sync();reset();};}
+ for(const[key,title,min,max,step]of[['temperature','温度 T（kB=1）',.3,5,.001],['coupling','铁磁耦合 J',0,2,.01],['field','外场 h',-.5,.5,.01],['seed','随机种子（1至4294967295的整数）',1,4294967295,1],['sweeps','保留 sweeps（每次N个随机选点）',16,512,1],['burn','丢弃的初始 sweeps',0,128,1]]){const label=el('label',{},title),out=el('output'),input=el('input',{type:key==='seed'?'number':'range',min,max,step,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.onchange=input.oninput=()=>{if(input.value==='')return;try{c=config({...c,[key]:+input.value});sync();reset();}catch(e){reset();status.textContent='该参数超出有效范围，请按输入框标明的范围修正。';}};}root.append(grid);
+ const note=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(note,prediction);prediction.append(el('h4',{},'先预测：有限对称、周期键、相关长度与极限'),el('p',{},'四题的条件固定写在题干里；参数用来检查例子，不自动改变问题。'));
+ const feedbacks=[],buttons=[];QUESTIONS.forEach((q,i)=>{const row=el('div',{class:'is-pred'});row.append(el('strong',{},q[0]));buttons[i]=[];q[1].forEach((text,j)=>{const b=el('button',{type:'button','data-prediction':i,'data-choice':String(j===0),'aria-pressed':'false'},text);b.onclick=()=>{choices[i]=j;buttons[i].forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));if(revealed)showFeedback();};row.append(b);buttons[i].push(b);});feedbacks[i]=el('p',{class:'is-feedback','data-feedback':i});row.append(feedbacks[i]);prediction.append(row);});
+ const check=el('button',{type:'button','data-check':''},'核对预测并显示完整结果'),status=el('p',{class:'is-status','aria-live':'polite'});root.append(check,status);
+ const stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),summary=el('p'),plotButtons=el('div',{class:'is-row'}),plotWrap=el('div',{class:'is-scroll',tabindex:0,role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'构型图是真实最后样本；磁化分布是离散概率，不是连续密度。轨迹每 sweep 保留一次，邻近样本可能相关。一维相关图只对链适用。无限方格曲线只在零场方格设置显示；不等同于有限体系〈|m|〉。'),tableHost=el('div'),download=el('a',{'data-download':'',download:'ising-record.json'},'下载当前完整记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);
+ function sync(){for(const[k,e]of Object.entries(fields))e.value=c[k];}
+ function reset(){revealed=false;choices={};stage.hidden=true;delete root.__isingSnapshot;for(let i=0;i<4;i++){feedbacks[i].textContent='';for(const b of buttons[i])b.setAttribute('aria-pressed','false');}for(const[k,o]of Object.entries(outs))o.textContent=k==='seed'?String(c[k]):fmt(c[k]);note.textContent='取 kB=1，m=M/N。周期方向长度为2时保留平行双键。采用1/2惰性 Metropolis；种子保证复现，burn不保证平衡。所有保留样本与随机原始整数均可下载。';status.textContent='完成四项预测后显示当前结果。';}
+ function showFeedback(){let n=0;for(let i=0;i<4;i++){if(!Number.isInteger(choices[i]))continue;const f=feedback(i,choices[i]);n+=+f.correct;feedbacks[i].textContent=f.text;feedbacks[i].className='is-feedback '+(f.correct?'is-correct':'is-wrong');}status.textContent='预测核对：'+n+'/4 正确。图、表和下载均对应当前参数。';}
+ function draw(){const ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+ function render(){current=compute(c);root.__isingSnapshot=current;stage.hidden=false;summary.textContent='精确有限〈m〉 = '+fmt(current.exact.mean)+'，〈|m|〉 = '+fmt(current.exact.absoluteMean)+'；本条轨迹均值 = '+fmt(current.sample.mean)+'，接受率 = '+fmt(current.sample.retainedAcceptanceRate)+'。精确状态数 '+current.exact.states+'，保留样本 '+current.sample.samples.length+'。短轨迹统计不是独立样本误差条。';plotButtons.replaceChildren();plots(current).forEach((p,i)=>{const b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();for(const t of tables(current)){const d=el('details',{'data-table':t.key});d.append(el('summary',{},t.title));d.addEventListener('toggle',()=>{if(!d.open||d.children.length>1)return;const wrap=el('div',{class:'is-scroll',tabindex:0,role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),thead=el('thead'),tr=el('tr'),tbody=el('tbody');for(const h of t.headers)tr.append(el('th',{scope:'col'},h));thead.append(tr);for(const row of t.rows){const r=el('tr');for(const v of row)r.append(el('td',{},fmt(v)));tbody.append(r);}table.append(thead,tbody);wrap.append(table);d.append(wrap);});tableHost.append(d);}if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current)],{type:'application/json'}));download.href=url;showFeedback();}
+ check.onclick=()=>{if(![0,1,2,3].every(i=>Number.isInteger(choices[i]))){status.textContent='请先为四个问题各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
+}
 
-  function clear(node) {
-    while (node.firstChild) node.removeChild(node.firstChild);
-  }
-
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-  }
-
-  function number(value, fallback) {
-    var parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  }
-
-  function format(api, value, digits) {
-    if (api && typeof api.format === "function") return api.format(value, digits);
-    if (!Number.isFinite(value)) return "-";
-    var text = value.toFixed(digits === undefined ? 3 : digits);
-    if (text.indexOf(".") === -1) return text;
-    var end = text.length;
-    while (end > 0 && text.charAt(end - 1) === "0") end -= 1;
-    if (end > 0 && text.charAt(end - 1) === ".") end -= 1;
-    return text.slice(0, end);
-  }
-
-  function signed(api, value, digits) {
-    if (Math.abs(value) < 0.5 * Math.pow(10, -(digits || 3))) return "0";
-    return value > 0 ? "+" + format(api, value, digits) : format(api, value, digits);
-  }
-
-  function logTwoCosh(value) {
-    var absolute = Math.abs(value);
-    return absolute + Math.log1p(Math.exp(-2 * absolute));
-  }
-
-  function stableTanh(value) {
-    if (value > 20) return 1 - 2 * Math.exp(-2 * value);
-    if (value < -20) return -1 + 2 * Math.exp(2 * value);
-    return Math.tanh(value);
-  }
-
-  function sechSquared(value) {
-    var absolute = Math.abs(value);
-    if (absolute > 20) return 0;
-    var cosh = Math.cosh(value);
-    return 1 / (cosh * cosh);
-  }
-
-  function phi(m, t, h) {
-    return m * m / 2 - t * logTwoCosh((m + h) / t);
-  }
-
-  function residual(m, t, h) {
-    return stableTanh((m + h) / t) - m;
-  }
-
-  function curvature(m, t, h) {
-    return 1 - sechSquared((m + h) / t) / t;
-  }
-
-  function acosh(value) {
-    return Math.log(value + Math.sqrt(value * value - 1));
-  }
-
-  function uniqueSorted(values) {
-    return values
-      .sort(function (a, b) { return a - b; })
-      .filter(function (value, index, list) {
-        return index === 0 || Math.abs(value - list[index - 1]) > DEDUPE_TOLERANCE;
-      });
-  }
-
-  /*
-   * For t < 1, residual'(m) changes sign at most twice. Splitting at those
-   * deterministic turning points makes every interval monotone, so bisection
-   * cannot skip a root. The dense sign-change scan is a second deterministic
-   * safety net; every candidate is deduplicated against the same root list.
-   */
-  function criticalPoints(t, h) {
-    var points = [-1, 1];
-    if (t < 1) {
-      var u = acosh(1 / Math.sqrt(t));
-      var left = t * (-u) - h;
-      var right = t * u - h;
-      if (left > -1 && left < 1) points.push(left);
-      if (right > -1 && right < 1) points.push(right);
-    }
-    return uniqueSorted(points);
-  }
-
-  function bisect(left, right, leftValue, rightValue, t, h) {
-    var a = left;
-    var b = right;
-    var fa = leftValue;
-    var fb = rightValue;
-    for (var step = 0; step < 90; step += 1) {
-      var middle = (a + b) / 2;
-      var fm = residual(middle, t, h);
-      if (Math.abs(fm) < ROOT_TOLERANCE) return middle;
-      if (fa * fm <= 0) {
-        b = middle;
-        fb = fm;
-      } else {
-        a = middle;
-        fa = fm;
-      }
-    }
-    return Math.abs(fa) < Math.abs(fb) ? a : b;
-  }
-
-  function addRoot(roots, candidate, t, h) {
-    if (!Number.isFinite(candidate)) return;
-    var value = clamp(candidate, -1, 1);
-    if (Math.abs(residual(value, t, h)) > 2e-6) return;
-    if (!roots.some(function (root) {
-      return Math.abs(root - value) <= DEDUPE_TOLERANCE;
-    })) {
-      roots.push(value);
-    }
-  }
-
-  function findRoots(t, h) {
-    var cuts = criticalPoints(t, h);
-    var roots = [];
-    var index;
-
-    for (index = 1; index < cuts.length - 1; index += 1) {
-      if (Math.abs(residual(cuts[index], t, h)) < ROOT_TOLERANCE) {
-        addRoot(roots, cuts[index], t, h);
-      }
-    }
-
-    for (index = 0; index < cuts.length - 1; index += 1) {
-      var left = cuts[index];
-      var right = cuts[index + 1];
-      var leftValue = residual(left, t, h);
-      var rightValue = residual(right, t, h);
-      if (leftValue * rightValue < 0) {
-        addRoot(roots, bisect(left, right, leftValue, rightValue, t, h), t, h);
-      }
-    }
-
-    var previousM = -1;
-    var previousValue = residual(previousM, t, h);
-    for (index = 1; index <= SCAN_STEPS; index += 1) {
-      var currentM = -1 + 2 * index / SCAN_STEPS;
-      var currentValue = residual(currentM, t, h);
-      if (previousValue * currentValue < 0) {
-        addRoot(
-          roots,
-          bisect(previousM, currentM, previousValue, currentValue, t, h),
-          t,
-          h
-        );
-      }
-      previousM = currentM;
-      previousValue = currentValue;
-    }
-
-    return roots.sort(function (a, b) { return a - b; });
-  }
-
-  function classifyRoots(t, h) {
-    var values = findRoots(t, h);
-    var minimumPhi = Infinity;
-    values.forEach(function (value) {
-      var candidate = phi(value, t, h);
-      var second = curvature(value, t, h);
-      if (second >= -CURVATURE_TOLERANCE && candidate < minimumPhi) {
-        minimumPhi = candidate;
-      }
-    });
-
-    var roots = values.map(function (value) {
-      var second = curvature(value, t, h);
-      var kind = second > CURVATURE_TOLERANCE
-        ? "minimum"
-        : second < -CURVATURE_TOLERANCE ? "maximum" : "marginal";
-      var freeEnergy = phi(value, t, h);
-      var global = kind !== "maximum" && Math.abs(freeEnergy - minimumPhi) <= PHI_TOLERANCE;
-      return {
-        m: value,
-        phi: freeEnergy,
-        curvature: second,
-        kind: kind,
-        global: global
-      };
-    });
-
-    return {
-      t: t,
-      h: h,
-      roots: roots,
-      minima: roots.filter(function (root) {
-        return root.kind === "minimum" || (root.kind === "marginal" && root.global);
-      }),
-      globals: roots.filter(function (root) { return root.global; })
-    };
-  }
-
-  function kindLabel(root) {
-    if (root.kind === "minimum" && root.global) return "稳定极小值 · 全局平衡";
-    if (root.kind === "minimum") return "亚稳极小值";
-    if (root.kind === "maximum") return "不稳定极大值";
-    if (root.global) return "临界平坦极小值 · 全局平衡";
-    return "临界/旋节边界";
-  }
-
-  function rootClass(root) {
-    if (root.global) return "cl-ising-root-global";
-    if (root.kind === "minimum") return "cl-ising-root-meta";
-    if (root.kind === "maximum") return "cl-ising-root-unstable";
-    return "cl-ising-root-marginal";
-  }
-
-  function injectStyles(doc) {
-    if (doc.querySelector("style[data-cl-ising-style]")) return;
-    var style = doc.createElement("style");
-    style.setAttribute("data-cl-ising-style", "");
-    style.textContent = [
-      ".cl-ising-shell{display:grid;gap:16px;min-width:0}",
-      ".cl-ising-controls{display:grid;gap:12px;padding:14px;border:1px solid var(--border);border-radius:7px;background:var(--bg)}",
-      ".cl-ising-control-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}",
-      ".cl-ising-control{display:grid;gap:5px;min-width:0}",
-      ".cl-ising-control > span{color:var(--fg-soft);font-size:13px;font-weight:650}",
-      ".cl-ising-control output{color:var(--accent);font-variant-numeric:tabular-nums}",
-      ".cl-ising-control input[type=range]{width:100%;min-height:44px}",
-      ".cl-ising-presets{display:flex;flex-wrap:wrap;gap:8px}",
-      ".cl-ising-presets button{min-height:44px;flex:1 1 160px}",
-      ".cl-ising-visuals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;min-width:0}",
-      ".cl-ising-chart-card{min-width:0;padding:10px;border:1px solid var(--border);border-radius:6px;background:var(--bg)}",
-      ".cl-ising-chart-card h3{margin:0 0 7px;font-size:14px}",
-      ".cl-ising-chart-card p{margin:7px 0 0;color:var(--fg-soft);font-size:12px;line-height:1.55}",
-      ".cl-ising-chart-card.cl-ising-lattice-card{grid-column:1/-1}",
-      ".cl-ising-svg{display:block;width:100%;max-width:100%;height:auto;overflow:visible;color:var(--fg)}",
-      ".cl-ising-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}",
-      ".cl-ising-grid-line{stroke:var(--border);stroke-width:1;opacity:.5}",
-      ".cl-ising-axis{stroke:var(--fg-soft);stroke-width:1.2}",
-      ".cl-ising-zero-line{stroke:var(--fg-soft);stroke-width:1;stroke-dasharray:4 4;opacity:.7}",
-      ".cl-ising-free-line{fill:none;stroke:var(--accent);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}",
-      ".cl-ising-self-line{fill:none;stroke:var(--accent);stroke-width:2.8;stroke-linejoin:round;stroke-linecap:round}",
-      ".cl-ising-diagonal{fill:none;stroke:var(--fg-soft);stroke-width:1.7;stroke-dasharray:6 5}",
-      ".cl-ising-root-global{fill:var(--cl-green,#39734d);stroke:var(--bg);stroke-width:2}",
-      ".cl-ising-root-meta{fill:var(--cl-gold,#9b6a12);stroke:var(--bg);stroke-width:2}",
-      ".cl-ising-root-unstable{fill:var(--cl-red,#b64335);stroke:var(--bg);stroke-width:2}",
-      ".cl-ising-root-marginal{fill:var(--fg-soft);stroke:var(--bg);stroke-width:2}",
-      ".cl-ising-panel{fill:var(--block-bg,var(--bg));stroke:var(--border);stroke-width:1}",
-      ".cl-ising-spin-plus{fill:var(--cl-green,#39734d);stroke:var(--bg);stroke-width:1}",
-      ".cl-ising-spin-minus{fill:var(--cl-red,#b64335);stroke:var(--bg);stroke-width:1}",
-      ".cl-ising-spin-text{fill:var(--bg)!important;font-size:11px;font-weight:800;text-anchor:middle;dominant-baseline:central}",
-      ".cl-ising-muted{fill:var(--fg-soft)!important;font-size:11px}",
-      ".cl-ising-small{fill:var(--fg-soft)!important;font-size:11px}",
-      ".cl-ising-legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:8px;color:var(--fg-soft);font-size:12px}",
-      ".cl-ising-legend span{display:inline-flex;align-items:center;gap:5px}",
-      ".cl-ising-dot{display:inline-block;width:10px;height:10px;border-radius:50%}",
-      ".cl-ising-dot-global{background:var(--cl-green,#39734d)}",
-      ".cl-ising-dot-meta{background:var(--cl-gold,#9b6a12)}",
-      ".cl-ising-dot-unstable{background:var(--cl-red,#b64335)}",
-      ".cl-ising-dot-marginal{background:var(--fg-soft)}",
-      ".cl-ising-status{margin:0;padding:10px 12px;border-left:3px solid var(--accent);background:var(--block-bg);line-height:1.6}",
-      ".cl-ising-table-wrap{max-width:100%;overflow-x:auto}",
-      ".cl-ising-table{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:auto}",
-      ".cl-ising-table th,.cl-ising-table td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;font-variant-numeric:tabular-nums}",
-      ".cl-ising-table th{color:var(--fg-soft);font-weight:700}",
-      ".cl-ising-table td:first-child,.cl-ising-table td:nth-child(2),.cl-ising-table td:nth-child(3){white-space:nowrap}",
-      ".cl-ising-note{margin:0;color:var(--fg-soft);font-size:12.5px;line-height:1.65}",
-      "@media (max-width:700px){.cl-ising-control-grid{grid-template-columns:minmax(0,1fr)}.cl-ising-visuals{grid-template-columns:minmax(0,1fr)}.cl-ising-chart-card.cl-ising-lattice-card{grid-column:auto}.cl-ising-chart-card{padding:7px}.cl-ising-table{font-size:12px}.cl-ising-table th,.cl-ising-table td{padding:6px 5px}}"
-    ].join("");
-    (doc.head || doc.documentElement).appendChild(style);
-  }
-
-  function makeRangeControl(doc, prefix, label, min, max, step, value, suffix) {
-    var wrapper = makeElement(doc, "label", "cl-ising-control");
-    var caption = makeElement(doc, "span", "", label + "：");
-    var output = makeElement(doc, "output", "", "");
-    var input = makeElement(doc, "input");
-    input.id = prefix;
-    input.type = "range";
-    input.min = String(min);
-    input.max = String(max);
-    input.step = String(step);
-    input.value = String(value);
-    input.setAttribute("aria-label", label);
-    output.setAttribute("for", prefix);
-    caption.appendChild(output);
-    if (suffix) caption.appendChild(doc.createTextNode(suffix));
-    wrapper.appendChild(caption);
-    wrapper.appendChild(input);
-    return { wrapper: wrapper, input: input, output: output };
-  }
-
-  function makeMetric(doc, label, value, className) {
-    var node = makeElement(doc, "div", "cl-metric" + (className ? " " + className : ""));
-    node.appendChild(makeElement(doc, "span", "", label));
-    var valueNode = makeElement(doc, "strong", "", value);
-    node.appendChild(valueNode);
-    return { node: node, value: valueNode };
-  }
-
-  function makeChart(doc, prefix, title, viewBox) {
-    var titleId = prefix + "-title";
-    var descId = prefix + "-desc";
-    var svg = makeSvgElement(doc, "svg", {
-      className: "cl-ising-svg",
-      viewBox: viewBox,
-      role: "img",
-      "aria-labelledby": titleId + " " + descId
-    });
-    var titleNode = makeSvgElement(doc, "title", { id: titleId }, title);
-    var descNode = makeSvgElement(doc, "desc", { id: descId }, "");
-    append(svg, titleNode);
-    append(svg, descNode);
-    return { svg: svg, title: titleNode, desc: descNode };
-  }
-
-  function makeChartCard(doc, title, caption, chart, className) {
-    var card = makeElement(doc, "section", "cl-ising-chart-card" + (className ? " " + className : ""));
-    card.setAttribute("aria-labelledby", chart.title.id);
-    card.appendChild(makeElement(doc, "h3", "", title));
-    card.appendChild(chart.svg);
-    card.appendChild(makeElement(doc, "p", "", caption));
-    return card;
-  }
-
-  function svgText(doc, parent, x, y, text, className, attrs) {
-    var attributes = Object.assign({ x: x, y: y }, attrs || {});
-    if (className) attributes.className = className;
-    append(parent, makeSvgElement(doc, "text", attributes, text));
-  }
-
-  function pathForSamples(samples, sx, sy, fn) {
-    return samples.map(function (value, index) {
-      return (index === 0 ? "M " : "L ") + sx(value).toFixed(2) + " " + sy(fn(value)).toFixed(2);
-    }).join(" ");
-  }
-
-  function drawFreeEnergy(doc, chart, result, api) {
-    var svg = chart.svg;
-    clear(svg);
-    append(svg, makeSvgElement(doc, "title", { id: chart.title.id }, "平均场无量纲自由能地形"));
-    var description = "曲线显示 phi(m;t,h)，圆点是全部驻点；绿色为全局平衡，金色为亚稳极小值，红色为不稳定极大值。当前 t=" + format(api, result.t, 2) + "，h=" + signed(api, result.h, 2) + "。";
-    append(svg, makeSvgElement(doc, "desc", { id: chart.desc.id }, description));
-
-    var left = 48;
-    var right = 428;
-    var top = 28;
-    var bottom = 254;
-    var samples = [];
-    var minimum = Infinity;
-    var maximum = -Infinity;
-    for (var index = 0; index <= 200; index += 1) {
-      var sample = -1 + 2 * index / 200;
-      var value = phi(sample, result.t, result.h);
-      samples.push(sample);
-      minimum = Math.min(minimum, value);
-      maximum = Math.max(maximum, value);
-    }
-    var span = Math.max(maximum - minimum, 0.04);
-    var yMin = Math.min(0, minimum) - span * 0.12;
-    var yMax = Math.max(0, maximum) + span * 0.12;
-    var sx = function (value) { return left + (value + 1) / 2 * (right - left); };
-    var sy = function (value) { return bottom - (value - yMin) / (yMax - yMin) * (bottom - top); };
-
-    [-1, 0, 1].forEach(function (tick) {
-      var x = sx(tick);
-      append(svg, makeSvgElement(doc, "line", {
-        x1: x, y1: top, x2: x, y2: bottom, className: "cl-ising-grid-line"
-      }));
-      svgText(doc, svg, x, bottom + 18, String(tick), "cl-ising-small", { "text-anchor": "middle" });
-    });
-    [yMin, (yMin + yMax) / 2, yMax].forEach(function (tick) {
-      var y = sy(tick);
-      append(svg, makeSvgElement(doc, "line", {
-        x1: left, y1: y, x2: right, y2: y, className: "cl-ising-grid-line"
-      }));
-      svgText(doc, svg, left - 7, y + 4, format(api, tick, 2), "cl-ising-small", { "text-anchor": "end" });
-    });
-    if (yMin < 0 && yMax > 0) {
-      append(svg, makeSvgElement(doc, "line", {
-        x1: left, y1: sy(0), x2: right, y2: sy(0), className: "cl-ising-zero-line"
-      }));
-    }
-    append(svg, makeSvgElement(doc, "line", {
-      x1: left, y1: bottom, x2: right, y2: bottom, className: "cl-ising-axis"
-    }));
-    append(svg, makeSvgElement(doc, "line", {
-      x1: sx(0), y1: top, x2: sx(0), y2: bottom, className: "cl-ising-axis"
-    }));
-    append(svg, makeSvgElement(doc, "path", {
-      d: pathForSamples(samples, sx, sy, function (value) { return phi(value, result.t, result.h); }),
-      className: "cl-ising-free-line"
-    }));
-    result.roots.forEach(function (root) {
-      append(svg, makeSvgElement(doc, "circle", {
-        cx: sx(root.m),
-        cy: sy(root.phi),
-        r: root.global ? 6.5 : 5.5,
-        className: rootClass(root)
-      }));
-    });
-    svgText(doc, svg, (left + right) / 2, 292, "平均磁化 m", "cl-ising-small", { "text-anchor": "middle" });
-    svgText(doc, svg, 15, top + 2, "φ(m;t,h)", "cl-ising-small");
-  }
-
-  function drawSelfConsistency(doc, chart, result, api) {
-    var svg = chart.svg;
-    clear(svg);
-    append(svg, makeSvgElement(doc, "title", { id: chart.title.id }, "自洽方程交点"));
-    var description = "虚线是 y=m，蓝线是 y=tanh((m+h)/t)；两者全部交点就是驻点。当前共有 " + result.roots.length + " 个交点。";
-    append(svg, makeSvgElement(doc, "desc", { id: chart.desc.id }, description));
-
-    var left = 48;
-    var right = 428;
-    var top = 28;
-    var bottom = 254;
-    var sx = function (value) { return left + (value + 1) / 2 * (right - left); };
-    var sy = function (value) { return bottom - (value + 1.1) / 2.2 * (bottom - top); };
-    [-1, 0, 1].forEach(function (tick) {
-      var x = sx(tick);
-      var y = sy(tick);
-      append(svg, makeSvgElement(doc, "line", {
-        x1: x, y1: top, x2: x, y2: bottom, className: "cl-ising-grid-line"
-      }));
-      append(svg, makeSvgElement(doc, "line", {
-        x1: left, y1: y, x2: right, y2: y, className: "cl-ising-grid-line"
-      }));
-      svgText(doc, svg, x, bottom + 18, String(tick), "cl-ising-small", { "text-anchor": "middle" });
-      svgText(doc, svg, left - 7, y + 4, String(tick), "cl-ising-small", { "text-anchor": "end" });
-    });
-    append(svg, makeSvgElement(doc, "line", {
-      x1: left, y1: sy(0), x2: right, y2: sy(0), className: "cl-ising-axis"
-    }));
-    append(svg, makeSvgElement(doc, "line", {
-      x1: sx(0), y1: top, x2: sx(0), y2: bottom, className: "cl-ising-axis"
-    }));
-    append(svg, makeSvgElement(doc, "path", {
-      d: "M " + sx(-1).toFixed(2) + " " + sy(-1).toFixed(2) + " L " + sx(1).toFixed(2) + " " + sy(1).toFixed(2),
-      className: "cl-ising-diagonal"
-    }));
-    var samples = [];
-    for (var index = 0; index <= 200; index += 1) {
-      samples.push(-1 + 2 * index / 200);
-    }
-    append(svg, makeSvgElement(doc, "path", {
-      d: pathForSamples(samples, sx, sy, function (value) {
-        return stableTanh((value + result.h) / result.t);
-      }),
-      className: "cl-ising-self-line"
-    }));
-    result.roots.forEach(function (root) {
-      append(svg, makeSvgElement(doc, "circle", {
-        cx: sx(root.m),
-        cy: sy(root.m),
-        r: root.global ? 6.5 : 5.5,
-        className: rootClass(root)
-      }));
-    });
-    svgText(doc, svg, right - 5, sy(1) - 10, "y=m", "cl-ising-small", { "text-anchor": "end" });
-    svgText(doc, svg, right - 5, sy(stableTanh((1 + result.h) / result.t)) + 17, "tanh", "cl-ising-small", { "text-anchor": "end" });
-    svgText(doc, svg, (left + right) / 2, 292, "m（输入）", "cl-ising-small", { "text-anchor": "middle" });
-    svgText(doc, svg, 15, top + 2, "y（输出）", "cl-ising-small");
-  }
-
-  function drawBranch(doc, svg, root, panelX, panelY, panelWidth, api) {
-    var panelHeight = 192;
-    append(svg, makeSvgElement(doc, "rect", {
-      x: panelX, y: panelY, width: panelWidth, height: panelHeight, rx: 5, className: "cl-ising-panel"
-    }));
-    svgText(doc, svg, panelX + 12, panelY + 21, "分支 m=" + signed(api, root.m, 3), "cl-ising-small");
-    svgText(
-      doc,
-      svg,
-      panelX + panelWidth - 12,
-      panelY + 21,
-      root.global ? (root.kind === "marginal" ? "临界全局平衡" : "全局平衡") : "亚稳极小值",
-      "cl-ising-small",
-      { "text-anchor": "end" }
-    );
-
-    var columns = 10;
-    var rows = 4;
-    var total = columns * rows;
-    var plusCount = Math.round((1 + root.m) / 2 * total);
-    var startX = panelX + 17;
-    var startY = panelY + 52;
-    var cellWidth = Math.min(31, (panelWidth - 30) / columns);
-    var cellHeight = 25;
-    for (var index = 0; index < total; index += 1) {
-      var row = Math.floor(index / columns);
-      var column = index % columns;
-      var plus = index < plusCount;
-      var cx = startX + column * cellWidth + cellWidth / 2;
-      var cy = startY + row * cellHeight;
-      append(svg, makeSvgElement(doc, "circle", {
-        cx: cx, cy: cy, r: 9, className: plus ? "cl-ising-spin-plus" : "cl-ising-spin-minus"
-      }));
-      svgText(doc, svg, cx, cy + 1, plus ? "+" : "−", "cl-ising-spin-text");
-    }
-    svgText(
-      doc,
-      svg,
-      panelX + 12,
-      panelY + panelHeight - 13,
-      "由 m 构造：N₊≈" + plusCount + "，N₋≈" + (total - plusCount),
-      "cl-ising-small"
-    );
-  }
-
-  function drawEmptyBranch(doc, svg, panelX, panelY, panelWidth) {
-    var panelHeight = 192;
-    append(svg, makeSvgElement(doc, "rect", {
-      x: panelX, y: panelY, width: panelWidth, height: panelHeight, rx: 5, className: "cl-ising-panel"
-    }));
-    svgText(doc, svg, panelX + panelWidth / 2, panelY + 84, "没有第二个局部极小值", "cl-ising-muted", { "text-anchor": "middle" });
-    svgText(doc, svg, panelX + panelWidth / 2, panelY + 106, "外场或高温留下唯一分支", "cl-ising-muted", { "text-anchor": "middle" });
-  }
-
-  function drawLattice(doc, chart, result, api) {
-    var svg = chart.svg;
-    clear(svg);
-    append(svg, makeSvgElement(doc, "title", { id: chart.title.id }, "由平均磁化构造的示意格点"));
-    var description = "示意格点不是 Monte Carlo 构型：每个分支用固定数量的加号和减号表示平均磁化。当前显示 " + result.minima.length + " 个平衡分支。";
-    append(svg, makeSvgElement(doc, "desc", { id: chart.desc.id }, description));
-    var panelWidth = 438;
-    var branches = result.minima.slice(0, 2);
-    if (branches[0]) drawBranch(doc, svg, branches[0], 12, 16, panelWidth, api);
-    else drawEmptyBranch(doc, svg, 12, 16, panelWidth);
-    if (branches[1]) drawBranch(doc, svg, branches[1], 470, 16, panelWidth, api);
-    else drawEmptyBranch(doc, svg, 470, 16, panelWidth);
-    svgText(doc, svg, 12, 227, "＋/− 仅表示由平均磁化确定的示意自旋；排列固定，不是随机抽样。", "cl-ising-small");
-  }
-
-  function globalSummary(result, api) {
-    if (!result.globals.length) return "没有可判定的全局极小值";
-    return result.globals.map(function (root) {
-      return "m=" + signed(api, root.m, 4) + (root.kind === "marginal" ? "（临界平坦）" : "");
-    }).join(" 与 ") + (result.globals.length > 1 ? "（简并）" : "");
-  }
-
-  function renderTable(doc, body, result, api) {
-    clear(body);
-    result.roots.forEach(function (root) {
-      var row = makeElement(doc, "tr");
-      [
-        signed(api, root.m, 6),
-        format(api, root.phi, 6),
-        format(api, root.curvature, 6),
-        kindLabel(root),
-        root.global ? "是" : "否"
-      ].forEach(function (value) {
-        row.appendChild(makeElement(doc, "td", "", value));
-      });
-      body.appendChild(row);
-    });
-  }
-
-  function mount(root, api) {
-    var doc = root.ownerDocument || document;
-    injectStyles(doc);
-    SERIAL += 1;
-    var prefix = "cl-ising-" + SERIAL;
-    var state = { t: 0.8, h: 0 };
-
-    var shell = makeElement(doc, "div", "cl-ising-shell");
-    var controls = makeElement(doc, "section", "cl-ising-controls");
-    controls.setAttribute("aria-labelledby", prefix + "-controls-title");
-    controls.appendChild(makeElement(doc, "h3", "", "控制无量纲温度与外场"));
-    controls.lastChild.id = prefix + "-controls-title";
-
-    var controlGrid = makeElement(doc, "div", "cl-ising-control-grid");
-    var tControl = makeRangeControl(doc, prefix + "-t", "温度 t=T/Tc", 0.1, 2.5, 0.01, state.t, "");
-    var hControl = makeRangeControl(doc, prefix + "-h", "外场 h", -0.4, 0.4, 0.01, state.h, "");
-    controlGrid.appendChild(tControl.wrapper);
-    controlGrid.appendChild(hControl.wrapper);
-    controls.appendChild(controlGrid);
-
-    var presets = makeElement(doc, "div", "cl-ising-presets");
-    [
-      { t: 0.8, h: 0, label: "核对：t=0.80，h=0" },
-      { t: 1.2, h: 0, label: "高温：t=1.20，h=0" },
-      { t: 0.8, h: 0.05, label: "正场：t=0.80，h=+0.05" },
-      { t: 0.8, h: -0.05, label: "负场：t=0.80，h=−0.05" }
-    ].forEach(function (preset) {
-      var button = makeElement(doc, "button", "", preset.label);
-      button.type = "button";
-      button.addEventListener("click", function () {
-        state.t = preset.t;
-        state.h = preset.h;
-        tControl.input.value = String(state.t);
-        hControl.input.value = String(state.h);
-        update(true);
-      });
-      preset.button = button;
-      presets.appendChild(button);
-    });
-    controls.appendChild(presets);
-    shell.appendChild(controls);
-
-    var status = makeElement(doc, "p", "cl-ising-status", "");
-    status.setAttribute("aria-live", "polite");
-    status.setAttribute("aria-atomic", "true");
-    shell.appendChild(status);
-
-    var visuals = makeElement(doc, "div", "cl-ising-visuals");
-    var freeChart = makeChart(doc, prefix + "-free", "平均场无量纲自由能地形", "0 0 440 300");
-    var selfChart = makeChart(doc, prefix + "-self", "自洽方程的全部交点", "0 0 440 300");
-    var latticeChart = makeChart(doc, prefix + "-lattice", "由平均磁化构造的示意格点", "0 0 920 240");
-    visuals.appendChild(makeChartCard(
-      doc,
-      "自由能地形 φ(m;t,h)",
-      "圆点标出全部驻点；最低的局部极小值才是全局平衡。",
-      freeChart
-    ));
-    visuals.appendChild(makeChartCard(
-      doc,
-      "自洽交点 y=m 与 y=tanh((m+h)/t)",
-      "交点与左图驻点一一对应；虚线直线不是另一种模型。",
-      selfChart
-    ));
-    visuals.appendChild(makeChartCard(
-      doc,
-      "由平均磁化构造的示意格点",
-      "固定格点数按 m 分配 +/−，用来显示分支，不是 Monte Carlo 微观构型。",
-      latticeChart,
-      "cl-ising-lattice-card"
-    ));
-    shell.appendChild(visuals);
-
-    var legend = makeElement(doc, "div", "cl-ising-legend");
-    [
-      ["cl-ising-dot cl-ising-dot-global", "全局平衡（含临界平坦根）"],
-      ["cl-ising-dot cl-ising-dot-meta", "亚稳极小值"],
-      ["cl-ising-dot cl-ising-dot-unstable", "不稳定极大值"],
-      ["cl-ising-dot cl-ising-dot-marginal", "旋节边界（非全局）"]
-    ].forEach(function (item) {
-      var entry = makeElement(doc, "span");
-      entry.appendChild(makeElement(doc, "i", item[0]));
-      entry.appendChild(doc.createTextNode(item[1]));
-      legend.appendChild(entry);
-    });
-    shell.appendChild(legend);
-
-    var tableSection = makeElement(doc, "section", "");
-    tableSection.setAttribute("aria-labelledby", prefix + "-table-title");
-    var tableTitle = makeElement(doc, "h3", "", "驻点清单（确定性数值核对）");
-    tableTitle.id = prefix + "-table-title";
-    tableSection.appendChild(tableTitle);
-    var tableWrap = makeElement(doc, "div", "cl-ising-table-wrap");
-    var table = makeElement(doc, "table", "cl-ising-table");
-    var head = makeElement(doc, "thead");
-    var headRow = makeElement(doc, "tr");
-    ["m", "φ(m)", "φ''(m)", "分类", "全局平衡"].forEach(function (label) {
-      headRow.appendChild(makeElement(doc, "th", "", label));
-    });
-    head.appendChild(headRow);
-    table.appendChild(head);
-    var body = makeElement(doc, "tbody");
-    table.appendChild(body);
-    tableWrap.appendChild(table);
-    tableSection.appendChild(tableWrap);
-    tableSection.appendChild(makeElement(
-      doc,
-      "p",
-      "cl-ising-note",
-      "数值求根只在 m∈[−1,1] 内工作；低温时根可能非常靠近边界。若 t<1 且 h=0，两个对称的全局平衡会同时标记，不会任意删去一个。"
-    ));
-    shell.appendChild(tableSection);
-    root.replaceChildren(shell);
-
-    function update(announce) {
-      state.t = clamp(number(tControl.input.value, 0.8), 0.1, 2.5);
-      state.h = clamp(number(hControl.input.value, 0), -0.4, 0.4);
-      var result = classifyRoots(state.t, state.h);
-      tControl.output.textContent = format(api, state.t, 2);
-      hControl.output.textContent = signed(api, state.h, 2);
-      var summary = "t=" + format(api, state.t, 2) + "，h=" + signed(api, state.h, 2) +
-        "；找到 " + result.roots.length + " 个驻点。全局平衡：" + globalSummary(result, api) + "。";
-      status.textContent = summary;
-      renderTable(doc, body, result, api);
-      drawFreeEnergy(doc, freeChart, result, api);
-      drawSelfConsistency(doc, selfChart, result, api);
-      drawLattice(doc, latticeChart, result, api);
-      if (announce && api && typeof api.announce === "function") api.announce(root, summary);
-    }
-
-    tControl.input.addEventListener("input", function () { update(true); });
-    hControl.input.addEventListener("input", function () { update(true); });
-    update(false);
-  }
-
-  if (window.CourseLearning && typeof window.CourseLearning.register === "function") {
-    window.CourseLearning.register("ising-mean-field", function (root, api) {
-      mount(root, api);
-    });
-  }
-}());
+function selfTest(){let checks=0;const ok=x=>{checks++;if(!x)throw Error('Ising invariant '+checks);},near=(a,b)=>ok(Math.abs(a-b)<2e-9*(1+Math.abs(b)));for(const p of PRESETS){const s=compute(p.parameters);ok(plots(s).length===6);ok(tables(s).length===10);near(s.exact.rows.reduce((z,r)=>z+r.multiplicity,0),s.exact.states);near(s.exact.rows.reduce((z,r)=>z+r.probability,0),1);ok(s.exact.varianceEnergy>=0);if(s.parameters.field===0)near(s.exact.mean,0);if(s.transfer.applicable)near(s.transfer.logZ,s.exact.logZ);ok(s.sample.samples.length===s.parameters.sweeps);for(const r of s.detailedBalance.rows)near(r.logForwardFlux,r.logReverseFlux);for(const r of s.meanField.rows)near(r.residual,0);for(let i=0;i<4;i++)ok(feedback(i,QUESTIONS[i][2]).correct);}return {status:'PASS',checks};}
+const API={...core,...sampling,PRESETS,QUESTIONS,compute,snapshot:compute,detailedBalance,plots,tables,svg,graphSvg,feedback,fmt,mount,selfTest};if(typeof module!=="undefined"&&module.exports)module.exports=API;if(hostWindow&&hostWindow.CourseLearning)hostWindow.CourseLearning.register("ising-mean-field",mount);})(typeof window!=="undefined"?window:null);
