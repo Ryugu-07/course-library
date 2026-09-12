@@ -117,7 +117,28 @@ if __name__=='__main__':
  d=json.loads(subprocess.check_output(prefix+['node','-e',code,str(js.resolve()),str(fixture.resolve())],text=True));f=json.loads(fixture.read_text())
  assert f['provenance']['sourceSha256']==hashlib.sha256(js.read_bytes()).hexdigest()
  assert len(f['records'])==6 and len({r['key']for r in f['records']})==6
- assert d['frozen']==[r['data']for r in f['records']]
+ # Frozen source identity remains byte-exact; libm results need numeric replay.
+ def replay(a,b,path='$'):
+  if isinstance(a,dict):
+   assert isinstance(b,dict) and a.keys()==b.keys(),('replay keys',path)
+   for key in a:replay(a[key],b[key],path+'.'+key)
+  elif isinstance(a,list):
+   assert isinstance(b,list) and len(a)==len(b),('replay length',path)
+   for i,(x,y) in enumerate(zip(a,b)):replay(x,y,path+'['+str(i)+']')
+  elif type(a)in(int,float) and type(b)in(int,float):
+   if type(a)is int and type(b)is int:assert a==b,('replay integer',path,a,b)
+   else:assert math.isfinite(a) and math.isfinite(b) and math.isclose(a,b,rel_tol=2e-12,abs_tol=2e-14),('replay number',path,a,b)
+  else:assert type(a)is type(b) and a==b,('replay exact',path,a,b)
+ replay(d['frozen'],[r['data']for r in f['records']])
+ # The replay accepts last-bit rounding, but rejects structural and numeric drift.
+ replay({'x':[1.0,None,True,2]}, {'x':[math.nextafter(1.0,2.0),None,True,2]})
+ replayGuardCases=[({'x':1.0},{'x':1.00001}),({'x':1},{'x':2}),({'x':None},{'x':0}),({'x':True},{'x':1}),({'x':[1]},{'x':[]}),({'x':1},{'y':1})]
+ replayGuards=0
+ for a,b in replayGuardCases:
+  try:replay(a,b)
+  except AssertionError:replayGuards+=1
+ assert replayGuards==len(replayGuardCases)
+
  assert d['invalid']==d['rejected']and d['invalid']>=70
  total=check_records(d['records']+[r['data']for r in f['records']]);plotCoordinates=0;ledgerRows=0;markers=0
  def close(a,b):assert abs(a-b)<=2e-5*max(1,abs(a),abs(b)),(a,b)
@@ -205,4 +226,4 @@ if __name__=='__main__':
   with tempfile.TemporaryDirectory()as tmp:
    target=Path(tmp);subprocess.run(prefix+['python3',str(root/'tools/build_feynman_figure.py'),str(js),str(fixture),str(target/'figure.svg'),str(target/'fallback.md')],check=True,stdout=subprocess.PIPE)
    same((target/'figure.svg').read_bytes(),(root/'physics-course/images/qft-02-feynman-ledgers.svg').read_bytes());same((target/'figure.svg').read_bytes(),(root/'physics-course/site/assets/img/qft-02-feynman-ledgers.svg').read_bytes());assert(target/'fallback.md').read_text()in(root/'physics-course/lectures/qft-02-feynman.md').read_text()
- print(json.dumps({'status':'PASS','records':len(d['records']),'frozen':6,'checks':total,'plotCoordinates':plotCoordinates,'markers':markers,'ledgerRows':ledgerRows,'invalid':d['invalid'],'feedback':8,'mutations':caught,'self':d['self']['checks']}))
+ print(json.dumps({'status':'PASS','records':len(d['records']),'frozen':6,'checks':total,'plotCoordinates':plotCoordinates,'markers':markers,'ledgerRows':ledgerRows,'invalid':d['invalid'],'feedback':8,'mutations':caught,'self':d['self']['checks'],'replayGuards':replayGuards}))
