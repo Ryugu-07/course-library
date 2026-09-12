@@ -52,171 +52,302 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-12 08:22</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：一条支撑线何时把不等式压成等号？</a><ul>
-<li><a href="#1-y">1. 具体情境：斜率 \(y\) 在向函数“报价”</a></li>
-<li><a href="#2">2. 先预测：定义域也是答案的一部分</a></li>
-<li><a href="#3">3. 三个模型：光滑、折角与未取到的上确界</a></li>
-<li><a href="#4">4. 从一个间隙到原始–对偶间隙</a></li>
-</ul>
-</li>
-<li><a href="#1">1. 共轭函数</a></li>
-<li><a href="#2-fenchel">2. Fenchel 对偶</a></li>
-<li><a href="#3_1">3. 次梯度演算（研究生版补全）</a></li>
-<li><a href="#4_1">4. 练习与要点</a></li>
+<li><a href="#fenchel171-title">学习层：一条线托住函数，为什么能证明一个解够好？</a></li>
+<li><a href="#1">1. 先说清函数的定义域</a></li>
+<li><a href="#2">2. 共轭与支撑线的精确关系</a></li>
+<li><a href="#3-fenchelyoung">3. Fenchel–Young：间隙何时恰为零</a></li>
+<li><a href="#4">4. 四组共轭，逐个从上确界计算</a></li>
+<li><a href="#5">5. 范数、幂函数与熵：约束不能省略</a></li>
+<li><a href="#6">6. 双共轭为何重建真闭凸函数</a></li>
+<li><a href="#7">7. 开区间与双阱：闭化和凸化分别改变什么</a></li>
+<li><a href="#8">8. 从一个函数到一个优化问题</a></li>
+<li><a href="#9">9. 强对偶和取得性要分别写</a></li>
+<li><a href="#10">10. 一维稀疏拟合：把对偶证书完整算出来</a></li>
+<li><a href="#11">11. 次梯度运算为什么也需要约束品性</a></li>
+<li><a href="#12">12. 迁移题与完整答案</a></li>
 </ul>
 </div>
 </details>
-<h1 id="i-fenchel">凸优化 I · 共轭函数与 Fenchel 对偶<a class="headerlink" href="#i-fenchel" title="Permanent link"></a></h1>
+<h1 id="i-fenchel">凸优化 I · 从支撑线到 Fenchel 对偶证书<a class="headerlink" href="#i-fenchel" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Boyd &amp; Vandenberghe §3.3、§5 / Rockafellar 入门 ｜ <strong>前置</strong>：本科优化 I–III、泛函 II
-研究生凸优化的第一件新武器是<strong>共轭函数</strong>（Legendre–Fenchel 变换）：它把"函数"编码成"支撑超平面族"，是对偶理论的原子操作——本科的 Lagrange 对偶、后两页的近端算法与 ADMM，全部由它统一生成。</p>
+<p><strong>先修</strong>：内积、导数、凸集与次梯度。<strong>本页目标</strong>：亲手计算共轭的有效域，分清上确界与最大值；把两个 Fenchel–Young 间隙拼成可核对的原始–对偶证书，知道强对偶定理还需要哪些条件。</p>
 </blockquote>
 <div data-learning-page></div>
-
-<section aria-labelledby="fenchel-duality-learning-title" class="learning-layer">
-<h2 id="_1">学习层：一条支撑线何时把不等式压成等号？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="1-y">1. 具体情境：斜率 <span class="arithmatex">\(y\)</span> 在向函数“报价”<a class="headerlink" href="#1-y" title="Permanent link"></a></h3>
-<p>Fenchel 共轭</p>
-<div class="arithmatex">\[
-f^*(y)=\sup_x\{\langle y,x\rangle-f(x)\}
-\]</div>
-<p>问的是：固定斜率 <span class="arithmatex">\(y\)</span> 后，仿射函数 <span class="arithmatex">\(\langle y,x\rangle-f^*(y)\)</span> 能在多高的位置仍不穿过 <span class="arithmatex">\(f\)</span> 的图像。于是</p>
-<div class="arithmatex">\[
-f(x)+f^*(y)-\langle x,y\rangle\geq0
-\]</div>
-<p>不是一个抽象口号，而是一张可核对的“支撑间隙”账单；间隙为零恰好表示 <span class="arithmatex">\(y\in\partial f(x)\)</span>。</p>
-<h3 id="2">2. 先预测：定义域也是答案的一部分<a class="headerlink" href="#2" title="Permanent link"></a></h3>
-<ol>
-<li>对 <span class="arithmatex">\(f(x)=x^2/2\)</span>，给定 <span class="arithmatex">\(x\)</span> 后哪一个 <span class="arithmatex">\(y\)</span> 会让 Fenchel–Young 间隙为零？</li>
-<li>对 <span class="arithmatex">\(f(x)=|x|\)</span>，当 <span class="arithmatex">\(|y|&gt;1\)</span> 时，共轭应是一个很大的有限数，还是 <span class="arithmatex">\(+\infty\)</span>？</li>
-<li>“负熵的共轭是 log-sum-exp”是否无需说明 <span class="arithmatex">\(p_i\geq0\)</span> 与 <span class="arithmatex">\(\sum_i p_i=1\)</span>？</li>
-</ol>
-<h3 id="3">3. 三个模型：光滑、折角与未取到的上确界<a class="headerlink" href="#3" title="Permanent link"></a></h3>
+<div class="fenchel171-course">
+<style>.fenchel171-course .learning-layer{max-width:none}.fenchel171-course .learning-lab{max-width:none;min-width:0}.fenchel171-course .fenchel171-static{overflow:auto;max-width:100%}.fenchel171-course .fenchel171-static td,.fenchel171-course .fenchel171-static th{white-space:nowrap}.fenchel171-course .fenchel171-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}</style>
+<noscript>
+<style>.fenchel171-course span.arithmatex{overflow-wrap:anywhere;word-break:break-word;white-space:normal}</style>
+</noscript>
+<section aria-labelledby="fenchel171-title" class="learning-layer">
+<h2 id="fenchel171-title">学习层：一条线托住函数，为什么能证明一个解够好？<a class="headerlink" href="#fenchel171-title" title="Permanent link"></a></h2>
+<p>固定斜率 <span class="arithmatex">\(y\)</span> 后，先把直线向上推，直到继续上推就会穿过函数图像。允许的最高截距是 <span class="arithmatex">\(-f^*(y)\)</span>。但“不能再推”不保证在某个有限点碰到了图像：<span class="arithmatex">\(e^x\)</span> 的水平下界0就是反例。</p>
+<p>先比较二次函数、绝对值和指数函数，再看开区间与闭区间是否给出相同共轭。最后进入一个真正的优化问题：同时选择候选原始解与候选对偶解，比较两个目标值。对偶不可行时，程序必须拒绝把那个有限二次表达式当成下界。</p>
 <div class="learning-lab" data-learning-lab="fenchel-duality">
-<p><strong>无 JavaScript 时的静态读法：</strong></p>
-<table>
-<thead>
-<tr>
-<th><span class="arithmatex">\(f\)</span></th>
-<th><span class="arithmatex">\(f^*\)</span></th>
-<th>取等条件</th>
-<th>边界</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><span class="arithmatex">\(x^2/2\)</span></td>
-<td><span class="arithmatex">\(y^2/2\)</span></td>
-<td><span class="arithmatex">\(y=x\)</span></td>
-<td>处处有限且光滑</td>
-</tr>
-<tr>
-<td>(</td>
-<td>x</td>
-<td>)</td>
-<td><span class="arithmatex">\(\iota_{[-1,1]}(y)\)</span></td>
-</tr>
-<tr>
-<td><span class="arithmatex">\(e^x\)</span></td>
-<td><span class="arithmatex">\(y\ln y-y\)</span>（<span class="arithmatex">\(y&gt;0\)</span>），<span class="arithmatex">\(0\)</span>（<span class="arithmatex">\(y=0\)</span>）</td>
-<td><span class="arithmatex">\(y=e^x&gt;0\)</span></td>
-<td><span class="arithmatex">\(y=0\)</span> 的上确界在 <span class="arithmatex">\(x\to-\infty\)</span> 时逼近但不取到；<span class="arithmatex">\(y&lt;0\)</span> 时为 <span class="arithmatex">\(+\infty\)</span></td>
-</tr>
-</tbody>
-</table>
-<p>实验揭示后可切换函数并移动 <span class="arithmatex">\(x,y\)</span>，SVG 同时画函数、候选支撑线和接触点；账本分开显示共轭值、Fenchel–Young 间隙、次梯度证书与定义域状态。离散画布只负责可视化，精确共轭由上表的解析式计算。</p>
-</div>
-<h3 id="4">4. 从一个间隙到原始–对偶间隙<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<p>Fenchel–Rockafellar 对偶把两个这样的上确界拼起来。弱对偶不需要约束品性；零原始–对偶间隙与对偶解取得则需要闭凸性和相对内部相交等条件。有限实验出现“数值间隙接近零”不能替代强对偶定理，也不能证明最优解一定取得。</p>
-<p>熵例尤其要写全定义域：</p>
-<div class="arithmatex">\[
-\left(\sum_i x_i\ln x_i+\iota_{\mathbb R_+^n}(x)\right)^*
-=\sum_i e^{y_i-1},
-\]</div>
-<p>而</p>
-<div class="arithmatex">\[
-\left(\sum_i p_i\ln p_i+\iota_{\Delta}(p)\right)^*
-=\log\sum_i e^{y_i},\qquad
-\Delta=\{p\geq0:\sum_i p_i=1\}.
-\]</div>
-<p>少写一个单纯形约束，就会把两个不同的共轭混成一条。</p>
-</section>
-<h2 id="1">1. 共轭函数<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p><strong>无脚本固定对照：</strong>所有曲线与下表读取同一份固定记录。图中的局部放大只选择已有节点；不重新采样、不压平数值。</p>
 <figure class="plot">
-<p><img alt="Fenchel 共轭的支撑线几何" src="assets/img/cvx-01-conjugate.svg" /></p>
-<figcaption><span class="fig-id">图 1.1</span>Fenchel 共轭 \(f^*(s)=\sup_x(sx-f(x))\)：斜率 \(s\) 处最"贴"的支撑线的负截距——对偶的几何本相。</figcaption>
+<p><img alt="支撑间隙、未取得的指数上确界、开区间端点、双阱凸包络与对偶可行区间。" src="assets/img/cvx-01-fenchel-ledgers.svg" /></p>
+<figcaption>图 cvx-01.1：A的竖段是当前间隙，B的水平线0不在任何有限点接触指数函数，C空心点表示不含端点，D区分函数与松弛，E仅画可行对偶值。</figcaption>
 </figure>
-<p><strong>定义</strong> <span class="arithmatex">\(f: \mathbb{R}^n \to (-\infty, +\infty]\)</span>（允许 <span class="arithmatex">\(+\infty\)</span>——约束以"示性函数"进目标的现代记法）：</p>
-<div class="arithmatex">\[
-f^*(y) = \sup_x\ \big[\langle y, x\rangle - f(x)\big]
-\]</div>
-<p><strong>几何读法</strong>：<span class="arithmatex">\(f^*(y)\)</span> = 斜率为 <span class="arithmatex">\(y\)</span> 的直线族里"恰好托住 <span class="arithmatex">\(f\)</span> 图像"所需的截距修正——<strong><span class="arithmatex">\(f^*\)</span> 记录了 <span class="arithmatex">\(f\)</span> 的全部支撑超平面</strong>（本科优化 I 支撑超平面定理的函数化）。<span class="arithmatex">\(f^*\)</span> 恒凸（逐点 sup 保凸——即使 <span class="arithmatex">\(f\)</span> 不凸）。</p>
-<p><strong>必会共轭对照表</strong>（各一两行推导，动笔过一遍）：</p>
+<div aria-label="固定支撑读数，可横向滚动" class="fenchel171-static" role="region" tabindex="0">
 <table>
 <thead>
 <tr>
-<th><span class="arithmatex">\(f(x)\)</span></th>
-<th><span class="arithmatex">\(f^*(y)\)</span></th>
+<th>对照</th>
+<th style="text-align: right;">x</th>
+<th style="text-align: right;">y</th>
+<th style="text-align: right;">f(x)</th>
+<th style="text-align: right;">f*(y)</th>
+<th style="text-align: right;">间隙</th>
+<th>上确界取得</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><span class="arithmatex">\(\frac12\|x\|_2^2\)</span></td>
-<td><span class="arithmatex">\(\frac12\|y\|_2^2\)</span>（自共轭，唯一）</td>
+<td>quadratic-gap</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.5</td>
+<td>是</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(\frac1p\lvert x\rvert^p\)</span></td>
-<td><span class="arithmatex">\(\frac1q\lvert y\rvert^q\)</span>（<span class="arithmatex">\(\frac1p + \frac1q = 1\)</span>——Hölder 共轭指数的出处！）</td>
+<td>exponential-zero</td>
+<td style="text-align: right;">-3</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.0497870684</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.0497870684</td>
+<td>否</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(e^x\)</span></td>
-<td><span class="arithmatex">\(y\ln y-y\)</span>（<span class="arithmatex">\(y&gt;0\)</span>），<span class="arithmatex">\(0\)</span>（<span class="arithmatex">\(y=0\)</span>），<span class="arithmatex">\(+\infty\)</span>（<span class="arithmatex">\(y&lt;0\)</span>）</td>
+<td>open</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">+∞</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">+∞</td>
+<td>否</td>
 </tr>
 <tr>
-<td><span class="arithmatex">\(\sum x_i\ln x_i+\iota_{\mathbb R_+^n}(x)\)</span></td>
-<td><span class="arithmatex">\(\sum_i e^{y_i-1}\)</span></td>
-</tr>
-<tr>
-<td><span class="arithmatex">\(\sum p_i\ln p_i+\iota_\Delta(p)\)</span>，<span class="arithmatex">\(\Delta=\{p\geq0:\sum p_i=1\}\)</span></td>
-<td><span class="arithmatex">\(\ln\sum e^{y_i}\)</span>（单纯形负熵与 log-sum-exp 互为共轭）</td>
-</tr>
-<tr>
-<td>示性函数 <span class="arithmatex">\(\iota_C\)</span></td>
-<td>支撑函数 <span class="arithmatex">\(\sigma_C(y) = \sup_{x\in C}\langle y,x\rangle\)</span></td>
-</tr>
-<tr>
-<td>范数 <span class="arithmatex">\(\lVert x\rVert\)</span></td>
-<td>对偶范数单位球的示性函数</td>
+<td>doublewell</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td>是</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Fenchel–Young 不等式</strong>（定义的直接重排）：<span class="arithmatex">\(f(x) + f^*(y) \geq \langle x, y\rangle\)</span>，取等 <span class="arithmatex">\(\iff y \in \partial f(x)\)</span>——<strong>"共轭对 = 次梯度关系"</strong>：<span class="arithmatex">\((x, y)\)</span> 配对当且仅当 <span class="arithmatex">\(y\)</span> 是 <span class="arithmatex">\(x\)</span> 处的支撑斜率。</p>
-<p><strong>定理（双共轭）</strong> <span class="arithmatex">\(f\)</span> 真（proper）、闭且凸（下半连续 + 凸）<span class="arithmatex">\(\Rightarrow f^{**} = f\)</span>。
-<strong>【骨架】</strong> <span class="arithmatex">\(f^{**} \leq f\)</span> 由定义两次展开；反向：闭凸函数是其全部支撑超平面的上确界（分离超平面定理应用于上镜图 epigraph——凸分析的中心构造），而 <span class="arithmatex">\(f^{**}\)</span> 恰好就是这个上确界。<span class="arithmatex">\(\blacksquare\)</span>
-<strong>读法</strong>：<strong>真闭凸函数与其支撑面族信息等价</strong>——"点描述"与"斜率描述"可以无损互换。对具有仿射下界、且双共轭不退化的一般扩展实值函数，<span class="arithmatex">\(f^{**}\)</span> 是不超过 <span class="arithmatex">\(f\)</span> 的最大下半连续凸函数（常称闭凸包络）；只说“凸包络”会漏掉闭性，忽略 properness 则会把恒为 <span class="arithmatex">\(+\infty\)</span> 等退化对象也错误纳入同一句话。</p>
-<h2 id="2-fenchel">2. Fenchel 对偶<a class="headerlink" href="#2-fenchel" title="Permanent link"></a></h2>
-<p><strong>定理（Fenchel–Rockafellar）</strong> 原问题 <span class="arithmatex">\(\min_x f(x) + g(Ax)\)</span> 的对偶为</p>
+</div>
+<div aria-label="固定对偶证书，可横向滚动" class="fenchel171-static" role="region" tabindex="0">
+<table>
+<thead>
+<tr>
+<th>对照</th>
+<th style="text-align: right;">x</th>
+<th style="text-align: right;">y</th>
+<th style="text-align: right;">原始值</th>
+<th>对偶可行</th>
+<th style="text-align: right;">正式对偶值</th>
+<th style="text-align: right;">间隙</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>dual-gap</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td>是</td>
+<td style="text-align: right;">1.5</td>
+<td style="text-align: right;">0.5</td>
+</tr>
+<tr>
+<td>dual-invalid</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1.5</td>
+<td>否</td>
+<td style="text-align: right;">−∞</td>
+<td style="text-align: right;">+∞</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><a href="assets/learning/projects/fenchel-certificates/run-snapshot.json">下载六组完整固定记录</a>。两个优化例均取a=1、b=2、λ=1；y=2的有限二次表达式不满足共轭有效域，不能充当对偶下界。</p>
+</div>
+<p>曲线保留实际数值并调整坐标范围，不把超出图窗的指数曲线压成平线。JSON用带符号的 <code>+Infinity</code>、<code>-Infinity</code> 字符串表示扩展实数；它们不是缺失值。四次双阱的共轭使用单调方程的浮点二分，记录每一步区间和残差；图形和有限残差不会被当作一般定理的证明。</p>
+</section>
+<h2 id="1">1. 先说清函数的定义域<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>允许 <span class="arithmatex">\(f:\mathbb R^n\to(-\infty,+\infty]\)</span>，就能把约束写进函数。有效域是 <span class="arithmatex">\(\operatorname{dom}f=\{x:f(x)&lt;+\infty\}\)</span>；“真函数”表示它从不取 <span class="arithmatex">\(-\infty\)</span>，且有效域非空。这里的凸分析示性函数是域内0、域外 <span class="arithmatex">\(+\infty\)</span>，与概率论的0–1示性函数不同：</p>
 <div class="arithmatex">\[
-\max_y\ -f^*(A^\top y) - g^*(-y)
+\iota_C(x)=\begin{cases}0,&amp;x\in C,\\+\infty,&amp;x\notin C.\end{cases}
 \]</div>
-<p>弱对偶恒成立；<span class="arithmatex">\(f, g\)</span> 闭凸 + 约束品性（如 <span class="arithmatex">\(A\,\mathrm{dom}f\)</span> 与 <span class="arithmatex">\(\mathrm{dom}g\)</span> 相对内部相交——Slater 的共轭版）下强对偶。
-<strong>【骨架】</strong> 引入拆分变量 <span class="arithmatex">\(z = Ax\)</span> 与拉格朗日乘子 <span class="arithmatex">\(y\)</span>，对 <span class="arithmatex">\(x, z\)</span> 分别取 inf——两个 inf 各自产出一个共轭函数（<span class="arithmatex">\(\inf_x [f(x) - \langle A^\top y, x\rangle] = -f^*(A^\top y)\)</span> 正是定义）。<span class="arithmatex">\(\blacksquare\)</span></p>
-<p><strong>统一性检阅</strong>：LP 对偶（<span class="arithmatex">\(f, g\)</span> 取线性 + 示性）、Lagrange 对偶（一般约束的示性化）、SVM 对偶（hinge 与范数各自共轭——本科 ai 课 02 的推导本质是查上面那张表）、<strong>熵与 log-sum-exp 的对偶 = 最大熵与指数族的对偶</strong>（信息论 III 的拉格朗日推导的抽象真身）——<strong>一张变换表统一四门课的对偶</strong>，这就是共轭语言的购买力。</p>
-<h2 id="3_1">3. 次梯度演算（研究生版补全）<a class="headerlink" href="#3_1" title="Permanent link"></a></h2>
-<p>本科优化 I 定义了次梯度；共轭语言配齐运算律：<span class="arithmatex">\(\partial(f + g) = \partial f + \partial g\)</span>（Moreau–Rockafellar，需约束品性【引用】）；<span class="arithmatex">\(\partial(g\circ A) = A^\top\partial g(Ax)\)</span>；<strong>最优性条件的对偶形式</strong>：<span class="arithmatex">\(0 \in \partial f(x^*) \iff x^* \in \partial f^*(0)\)</span>——原始解与对偶解通过次微分互为反函数（Fenchel–Young 取等的两读）。</p>
-<h2 id="4_1">4. 练习与要点<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（共轭亲算）</strong> 推 <span class="arithmatex">\(f = \max(0, 1-x)\)</span>（hinge）：分段讨论 sup 得 <span class="arithmatex">\(f^*(y) = y\)</span> 于 <span class="arithmatex">\(y \in [-1, 0]\)</span>、否则 <span class="arithmatex">\(+\infty\)</span>——SVM 对偶变量的盒约束 <span class="arithmatex">\(0 \leq \alpha \leq C\)</span> 的出处（对照本科 ai 课 02 的结果——那里的"神奇盒约束"原来是 hinge 的共轭定义域）。</p>
-<p><strong>例 2（不等式一行造）</strong> Fenchel–Young 用于 <span class="arithmatex">\(\frac1p|x|^p\)</span> 对：得 Young 不等式 <span class="arithmatex">\(xy \leq \frac{x^p}{p} + \frac{y^q}{q}\)</span>——实变 III Hölder 证明的那块砖，出厂车间在此。</p>
-<p><strong>例 3（松弛的语义）</strong> 对一个明确给定定义域的非凸函数，<span class="arithmatex">\(f^{**}\)</span> 给出它的闭凸包络，因此提供系统的凸下松弛；定义域改变，包络也会改变。分类里的 hinge 损失是常用的凸上界替代，但它<strong>不是未经说明定义域的 0-1 损失的双共轭</strong>。二者都体现凸化思想，却不能画等号。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：一阶方法的收敛性证明——梯度下降、Nesterov 加速与近端梯度：本科"收敛速率表"逐行兑付。</em></p>
+<p>“闭凸函数”指上镜图 <span class="arithmatex">\(\operatorname{epi}f=\{(x,t):t\ge f(x)\}\)</span> 闭且凸，也就是下半连续且凸。开区间 <span class="arithmatex">\((0,1)\)</span> 的示性函数凸但不闭：端点处函数值跳到了无穷，而域内值始终为0。</p>
+<p>计算间隙时先查两边有效域。若共轭为 <span class="arithmatex">\(+\infty\)</span>，对应的有限斜率没有有限截距下界；不能把它替换成一个画图方便的大数。也不要对 <span class="arithmatex">\(+\infty-\infty\)</span> 做普通代数。</p>
+<h2 id="2">2. 共轭与支撑线的精确关系<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>定义</p>
+<div class="arithmatex">\[
+f^*(y)=\sup_x\{\langle y,x\rangle-f(x)\}.
+\]</div>
+<p>若 <span class="arithmatex">\(f^*(y)\)</span> 有限，把定义重排得到 <span class="arithmatex">\(\langle y,x\rangle-f^*(y)\le f(x)\)</span>。反过来，若 <span class="arithmatex">\(\langle y,x\rangle+c\le f(x)\)</span> 对所有 <span class="arithmatex">\(x\)</span> 成立，则 <span class="arithmatex">\(c\le-f^*(y)\)</span>。所以共轭给的是固定斜率下<strong>最高的仿射下界</strong>，不保证它存在有限接触点。</p>
+<p><span class="arithmatex">\(f^*\)</span> 是一族关于 <span class="arithmatex">\(y\)</span> 的连续仿射函数的上确界，因此凸且下半连续；例如其上镜图是闭半空间 <span class="arithmatex">\(t\ge\langle y,x\rangle-f(x)\)</span> 的交。不要求原函数凸。若原函数没有任何仿射下界，共轭可能处处为无穷，例如 <span class="arithmatex">\(f(x)=-x^2\)</span>。后面的无损重建定理会明确排除这种退化。</p>
+<h2 id="3-fenchelyoung">3. Fenchel–Young：间隙何时恰为零<a class="headerlink" href="#3-fenchelyoung" title="Permanent link"></a></h2>
+<p>对真凸函数，在 <span class="arithmatex">\(x\in\operatorname{dom}f\)</span> 处定义次梯度：<span class="arithmatex">\(y\in\partial f(x)\)</span> 意味着对所有 <span class="arithmatex">\(z\)</span> 有 <span class="arithmatex">\(f(z)\ge f(x)+\langle y,z-x\rangle\)</span>。移项再取上确界，得到</p>
+<div class="arithmatex">\[
+f(x)+f^*(y)\ge\langle x,y\rangle,\qquad
+f(x)+f^*(y)=\langle x,y\rangle
+\iff y\in\partial f(x).
+\]</div>
+<p>等式还说明当前 <span class="arithmatex">\(x\)</span> 真正取得了定义共轭的上确界。若 <span class="arithmatex">\(f\)</span> 真闭凸，双共轭定理又给出对称关系 <span class="arithmatex">\(y\in\partial f(x)\iff x\in\partial f^*(y)\)</span>。</p>
+<p>“间隙接近零”与这个精确等式不能混用。绝对值在任意 <span class="arithmatex">\(x&gt;0\)</span> 的次梯度都是单点 <span class="arithmatex">\(\{1\}\)</span>，即使 <span class="arithmatex">\(x\)</span> 非常小，也不是折角处的区间 <span class="arithmatex">\([-1,1]\)</span>。实验将定义域、解析分支条件、数值间隙与残差分列；浮点接近只能支持对应容差下的数值判断。</p>
+<h2 id="4">4. 四组共轭，逐个从上确界计算<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>二次函数通过配方直接得到</p>
+<div class="arithmatex">\[
+yx-\frac{x^2}{2}=\frac{y^2}{2}-\frac{(x-y)^2}{2},\qquad
+\left(\frac{x^2}{2}\right)^*(y)=\frac{y^2}{2}.
+\]</div>
+<p>对 <span class="arithmatex">\(|x|\)</span>，若 <span class="arithmatex">\(|y|\le1\)</span>，有 <span class="arithmatex">\(yx-|x|\le0\)</span>，而 <span class="arithmatex">\(x=0\)</span> 取到0；若 <span class="arithmatex">\(|y|&gt;1\)</span>，沿 <span class="arithmatex">\(x\)</span> 与 <span class="arithmatex">\(y\)</span> 同号的方向让 <span class="arithmatex">\(|x|\to\infty\)</span>，目标趋于无穷。因此 <span class="arithmatex">\(|x|^*=\iota_{[-1,1]}\)</span>。边界 <span class="arithmatex">\(y=1\)</span> 的最大化点是整条 <span class="arithmatex">\(x\ge0\)</span> 射线；共轭有限并不意味着最大化点唯一。</p>
+<p>指数函数在 <span class="arithmatex">\(y&gt;0\)</span> 时的导数方程是 <span class="arithmatex">\(e^x=y\)</span>，严格凹的目标在 <span class="arithmatex">\(x=\log y\)</span> 最大；<span class="arithmatex">\(y=0\)</span> 时 <span class="arithmatex">\(-e^x\)</span> 只能趋近0；<span class="arithmatex">\(y&lt;0\)</span> 时令 <span class="arithmatex">\(x\to-\infty\)</span>，线性项趋于正无穷：</p>
+<div class="arithmatex">\[
+(e^x)^*(y)=\begin{cases}y\log y-y,&amp;y&gt;0,\\0,&amp;y=0,\\+\infty,&amp;y&lt;0.\end{cases}
+\]</div>
+<p>对 hinge <span class="arithmatex">\(h(x)=\max(0,1-x)\)</span>，在 <span class="arithmatex">\(x\le1\)</span> 上目标是 <span class="arithmatex">\((y+1)x-1\)</span>，在 <span class="arithmatex">\(x\ge1\)</span> 上是 <span class="arithmatex">\(yx\)</span>。两条无界射线要求 <span class="arithmatex">\(y+1\ge0\)</span> 且 <span class="arithmatex">\(y\le0\)</span>，于是</p>
+<div class="arithmatex">\[
+h^*(y)=\begin{cases}y,&amp;-1\le y\le0,\\+\infty,&amp;\text{其他}.
+\end{cases}
+\]</div>
+<p>区间内部的最优点为1；<span class="arithmatex">\(y=-1\)</span> 或0分别产生一条最优射线。将损失乘以 <span class="arithmatex">\(C&gt;0\)</span> 时，用 <span class="arithmatex">\((Ch)^*(y)=C h^*(y/C)\)</span> 就能读出盒约束 <span class="arithmatex">\(-C\le y\le0\)</span>。</p>
+<h2 id="5">5. 范数、幂函数与熵：约束不能省略<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>对任意范数，双范数不等式给 <span class="arithmatex">\(\langle x,y\rangle\le\|x\|\|y\|_*\)</span>。若 <span class="arithmatex">\(\|y\|_*\le1\)</span>，取 <span class="arithmatex">\(x=0\)</span> 达到上确界0；若大于1，沿一个内积超过范数的方向放大 <span class="arithmatex">\(x\)</span>，上确界无穷。因此范数的共轭是双范数单位球的示性函数。</p>
+<p>若 <span class="arithmatex">\(1&lt;p&lt;\infty\)</span>，<span class="arithmatex">\(1/p+1/q=1\)</span>，最大化 <span class="arithmatex">\(yx-|x|^p/p\)</span>，同号最优点满足 <span class="arithmatex">\(|x|^{p-1}=|y|\)</span>，代回得到</p>
+<div class="arithmatex">\[
+\left(\frac{|x|^p}{p}\right)^*(y)=\frac{|y|^q}{q},\qquad
+xy\le\frac{|x|^p}{p}+\frac{|y|^q}{q}.
+\]</div>
+<p>绝对值保证非整数幂在负数输入时也有定义；<span class="arithmatex">\(p=1\)</span> 对应范数的示性函数共轭，不直接代入有限 <span class="arithmatex">\(q\)</span> 的公式。</p>
+<p>取 <span class="arithmatex">\(0\log0=0\)</span>。非负正交象限上的负熵逐坐标最大化，导数方程为 <span class="arithmatex">\(x_i=e^{y_i-1}\)</span>，故</p>
+<div class="arithmatex">\[
+\left(\sum_i x_i\log x_i+\iota_{\mathbb R_+^n}(x)\right)^*(y)
+=\sum_i e^{y_i-1}.
+\]</div>
+<p>加入总和为1的单纯形约束后，问题变了。令 <span class="arithmatex">\(Z=\sum_i e^{y_i}\)</span>、<span class="arithmatex">\(q_i=e^{y_i}/Z\)</span>，则对任意概率向量 <span class="arithmatex">\(p\)</span>，</p>
+<div class="arithmatex">\[
+\sum_i p_i\log p_i+\log Z-\sum_i p_i y_i
+=\sum_i p_i\log\frac{p_i}{q_i}=D_{\rm KL}(p\Vert q)\ge0.
+\]</div>
+<p>取 <span class="arithmatex">\(p=q\)</span> 达到0，因此单纯形负熵的共轭才是 log-sum-exp。<span class="arithmatex">\(q_i&gt;0\)</span>，所以即使某个 <span class="arithmatex">\(p_i=0\)</span>，约定 <span class="arithmatex">\(0\log(0/q_i)=0\)</span> 也无歧义。一个约束的增删改变了共轭，不能把两条公式当同义改写。</p>
+<h2 id="6">6. 双共轭为何重建真闭凸函数<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>Fenchel–Young 已给 <span class="arithmatex">\(f^{**}\le f\)</span>。反向需要一个有限维几何事实：真闭凸函数的上镜图外任一点，都能与上镜图用非竖直超平面严格分离。写成斜率形式就得到仿射下界 <span class="arithmatex">\(\ell\le f\)</span>，且 <span class="arithmatex">\(\ell(x_0)&gt;t_0\)</span>。</p>
+<p>这里“非竖直”值得解释。先用闭凸集的严格分离定理；由于上镜图沿高度向上封闭，分离法向量的高度分量可取非正。如果它为负，归一化就给仿射下界；如果它为零，分离的是 <span class="arithmatex">\(x_0\)</span> 与有效域。取一个已知仿射下界 <span class="arithmatex">\(\ell_0\)</span>，把严格分离有效域的线性不等式乘以足够大的正数后加到 <span class="arithmatex">\(\ell_0\)</span>，仍是下界，却可让它在 <span class="arithmatex">\(x_0\)</span> 处高于任意给定 <span class="arithmatex">\(t_0\)</span>。真闭凸函数存在至少一个仿射下界：在其有效域相对内部用支撑超平面并将斜率延拓到全空间即可。</p>
+<p>现在对每个 <span class="arithmatex">\(t_0&lt;f(x_0)\)</span>，取上述 <span class="arithmatex">\(\ell(x)=\langle y,x\rangle+c\)</span>。第2节说明 <span class="arithmatex">\(c\le-f^*(y)\)</span>，所以 <span class="arithmatex">\(f^{**}(x_0)\ge\ell(x_0)&gt;t_0\)</span>。让 <span class="arithmatex">\(t_0\uparrow f(x_0)\)</span>；若 <span class="arithmatex">\(f(x_0)=+\infty\)</span>，则让 <span class="arithmatex">\(t_0\)</span> 任意大，得到</p>
+<div class="arithmatex">\[
+f\text{ 真、闭、凸}\quad\Longrightarrow\quad f^{**}=f.
+\]</div>
+<p>这不是说每个点都有有限次梯度，而是说所有仿射下界的上确界足够重建函数。有限维分离与共轭定理的图形证明可对照 <a href="https://ocw.mit.edu/courses/6-253-convex-analysis-and-optimization-spring-2012/6c63c6219c60378bc27d5b4a9167f1bc_MIT6_253S12_lec_comp.pdf">MIT 6.253 讲义的共轭部分</a>。</p>
+<h2 id="7">7. 开区间与双阱：闭化和凸化分别改变什么<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>开区间与闭区间的支撑函数相同：</p>
+<div class="arithmatex">\[
+\iota_{(0,1)}^*(y)=\iota_{[0,1]}^*(y)=\max(0,y),\qquad
+\iota_{(0,1)}^{**}=\iota_{[0,1]}.
+\]</div>
+<p>非零斜率在开区间里不取得上确界，但闭区间可以在端点取得。双共轭重建的是闭化后的对象；用有限网格寻找最大点会把这个区别藏起来。</p>
+<p>再取非凸函数 <span class="arithmatex">\(f(x)=(x^2-1)^2\)</span>。它的闭凸包络是</p>
+<div class="arithmatex">\[
+f^{**}(x)=\begin{cases}0,&amp;|x|\le1,\\(x^2-1)^2,&amp;|x|\ge1.
+\end{cases}
+\]</div>
+<p>证明分两步：所给函数在两外侧二阶导数 <span class="arithmatex">\(12x^2-4&gt;0\)</span>，在接缝处斜率均为0，因此整体闭凸且不超过 <span class="arithmatex">\(f\)</span>。任何凸下界在 <span class="arithmatex">\(x=\pm1\)</span> 处至多为0，所以在中间也至多为0；外侧又不能超过 <span class="arithmatex">\(f\)</span>，故这个下界已经最大。</p>
+<p>计算双阱共轭时，<span class="arithmatex">\(y&gt;0\)</span> 可先比较 <span class="arithmatex">\(x\)</span> 与 <span class="arithmatex">\(-x\)</span> 排除负侧最大点；在 <span class="arithmatex">\(0\le x&lt;1\)</span> 目标严格增加；<span class="arithmatex">\(x\ge1\)</span> 上唯一极值满足 <span class="arithmatex">\(4x(x^2-1)=y\)</span>，且为全局最大。负斜率用对称性，零斜率有两个最大点 <span class="arithmatex">\(\pm1\)</span>。实验只对这条已证明单调的根方程二分，不把一个任意局部驻点当成全局共轭。</p>
+<h2 id="8">8. 从一个函数到一个优化问题<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>令 <span class="arithmatex">\(f,g\)</span> 真闭凸，<span class="arithmatex">\(A\)</span> 为线性映射，原始值为 <span class="arithmatex">\(p^*=\inf_x\{f(x)+g(Ax)\}\)</span>。引入 <span class="arithmatex">\(z=Ax\)</span>，本页选拉格朗日函数 <span class="arithmatex">\(L=f(x)+g(z)+\langle y,z-Ax\rangle\)</span>。分别对 <span class="arithmatex">\(x,z\)</span> 取下确界，得到</p>
+<div class="arithmatex">\[
+D(y)=-f^*(A^\top y)-g^*(-y),\qquad d^*=\sup_yD(y).
+\]</div>
+<p>符号来自约束写法；换成 <span class="arithmatex">\(Ax-z\)</span> 会把乘子改号，不改变问题。对任何原始点和具有有限对偶目标的 <span class="arithmatex">\(y\)</span>，两个 Fenchel–Young 不等式相加，交叉内积抵消：</p>
+<div class="arithmatex">\[
+f(x)+g(Ax)-D(y)
+=\bigl[f(x)+f^*(A^\top y)-\langle Ax,y\rangle\bigr]
++\bigl[g(Ax)+g^*(-y)+\langle Ax,y\rangle\bigr]\ge0.
+\]</div>
+<p>因此 <span class="arithmatex">\(d^*\le p^*\)</span>。这种弱对偶不依赖强对偶的约束品性。如果候选对偶点可行且原始–对偶间隙为 <span class="arithmatex">\(\varepsilon\)</span>，就有 <span class="arithmatex">\(P(x)-p^*\le\varepsilon\)</span>；它是候选原始点的次优程度证书，而不只是两条曲线画得很近。</p>
+<h2 id="9">9. 强对偶和取得性要分别写<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>有限维 Fenchel–Rockafellar 的一个常用充分条件是：<span class="arithmatex">\(f,g\)</span> 真闭凸，<span class="arithmatex">\(p^*\)</span> 为有限实数，并且</p>
+<div class="arithmatex">\[
+A(\operatorname{ri}\operatorname{dom}f)\cap
+\operatorname{ri}\operatorname{dom}g\ne\varnothing.
+\]</div>
+<p>结论是 <span class="arithmatex">\(p^*=d^*\)</span>，且对偶最大值取得。它不自动保证原始最小值取得。相对内部是在有效域的仿射包中取内部，用来处理低维约束；不能把它简单换成环境空间的普通内部。</p>
+<p>证明路线是看扰动值函数 <span class="arithmatex">\(v(u)=\inf_x\{f(x)+g(Ax+u)\}\)</span>。约束品性使 <span class="arithmatex">\(0\)</span> 位于其有效域的相对内部；有限 <span class="arithmatex">\(v(0)\)</span> 排除在该处的无界退化。有限维凸函数在相对内部有支撑斜率，故存在 <span class="arithmatex">\(p\)</span> 使 <span class="arithmatex">\(v(u)\ge v(0)+\langle p,u\rangle\)</span>。令 <span class="arithmatex">\(u=z-Ax\)</span>，再对 <span class="arithmatex">\(x,z\)</span> 取下确界，得到</p>
+<div class="arithmatex">\[
+-f^*(-A^\top p)-g^*(p)\ge v(0)=p^*.
+\]</div>
+<p>与弱对偶相合，<span class="arithmatex">\(y=-p\)</span> 就取得对偶最优值。这条证明展示了约束品性的作用：保证扰动问题在原点有支持它的乘子。取 <span class="arithmatex">\(f(x)=e^x,g\equiv0,A=0\)</span> 时条件成立，原始下确界0却没有有限最小点，说明“值相等”与“原始点存在”不能合并。</p>
+<h2 id="10">10. 一维稀疏拟合：把对偶证书完整算出来<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>实验另给出 <span class="arithmatex">\(P(x)=\lambda|x|+(ax-b)^2/2\)</span>，<span class="arithmatex">\(\lambda\ge0\)</span>。设 <span class="arithmatex">\(f(x)=\lambda|x|,g(z)=(z-b)^2/2\)</span>；配方得 <span class="arithmatex">\(g^*(u)=bu+u^2/2\)</span>。因此</p>
+<div class="arithmatex">\[
+\max_y\left(by-\frac{y^2}{2}\right)
+\quad\text{满足}\quad |ay|\le\lambda.
+\]</div>
+<p>当 <span class="arithmatex">\(a\ne0\)</span>，把二次函数的顶点 <span class="arithmatex">\(b\)</span> 投影到区间 <span class="arithmatex">\([-\lambda/|a|,\lambda/|a|]\)</span>，得到 <span class="arithmatex">\(y^*\)</span>，再由 <span class="arithmatex">\(y=b-ax\)</span> 得 <span class="arithmatex">\(x^*=(b-y^*)/a\)</span>。当 <span class="arithmatex">\(a=0\)</span>，对偶最优为 <span class="arithmatex">\(y^*=b\)</span>；<span class="arithmatex">\(\lambda&gt;0\)</span> 时原始最优 <span class="arithmatex">\(x^*=0\)</span>，<span class="arithmatex">\(\lambda=0\)</span> 时所有 <span class="arithmatex">\(x\)</span> 都最优。这里 <span class="arithmatex">\(g\)</span> 在全空间连续，所有这些退化分支仍满足强对偶条件。</p>
+<p>对可行候选 <span class="arithmatex">\(y\)</span>，间隙恰好分为两项：</p>
+<div class="arithmatex">\[
+P(x)-D(y)=\frac12(ax-b+y)^2+
+\lambda|x|-axy.
+\]</div>
+<p>第一项检查残差关系，第二项检查 <span class="arithmatex">\(ay\in\lambda\partial|x|\)</span>。二者均非负；它们同时为0就给出最优性。程序按等价区间条件 <span class="arithmatex">\(|y|\le\lambda/|a|\)</span> 判断非零 <span class="arithmatex">\(a\)</span> 的可行性，保留浮点间隙，不用偷偷截断负的末位舍入来伪装精确证明。<span class="arithmatex">\(a=0\)</span> 单独处理。</p>
+<p>例如 <span class="arithmatex">\(a=1,b=2,\lambda=1\)</span> 时 <span class="arithmatex">\(x^*=y^*=1\)</span>，两边目标均为1.5。若取候选 <span class="arithmatex">\(x=0,y=1\)</span>，原始值2，对偶值1.5，间隙0.5全部来自残差平方项；若取 <span class="arithmatex">\(y=2\)</span>，虽然 <span class="arithmatex">\(by-y^2/2=2\)</span>，它违反盒约束，不能用作合法对偶证书。</p>
+<h2 id="11">11. 次梯度运算为什么也需要约束品性<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p>在适用点，次梯度不等式相加总能得到 <span class="arithmatex">\(\partial f(x)+\partial g(x)\subseteq\partial(f+g)(x)\)</span>。反向包含可通过第9节的对偶取得性，把一个支撑 <span class="arithmatex">\(f+g\)</span> 的斜率拆成分别支撑 <span class="arithmatex">\(f,g\)</span> 的斜率。一个充分条件是两有效域相对内部相交。类似地，若 <span class="arithmatex">\(\operatorname{range}A\cap\operatorname{ri}\operatorname{dom}g\ne\varnothing\)</span>，则</p>
+<div class="arithmatex">\[
+\partial(g\circ A)(x)=A^\top\partial g(Ax).
+\]</div>
+<p>反例取 <span class="arithmatex">\(g(t)=-\sqrt t\)</span> 于 <span class="arithmatex">\(t\ge0\)</span>，域外为 <span class="arithmatex">\(+\infty\)</span>，以及零映射 <span class="arithmatex">\(Ax=0\)</span>。<span class="arithmatex">\(g\)</span> 真闭凸，但在0没有有限次梯度：要求 <span class="arithmatex">\(-\sqrt t\ge yt\)</span> 对所有 <span class="arithmatex">\(t&gt;0\)</span>，即 <span class="arithmatex">\(y\le-1/\sqrt t\)</span>，不可能成立。另一方面 <span class="arithmatex">\(g\circ A\equiv0\)</span>，其次梯度为 <span class="arithmatex">\(\{0\}\)</span>，而右侧为空集。丢掉条件就会把一条正确链式法则变成错误公式。</p>
+<p>最优性 <span class="arithmatex">\(0\in\partial f(x^*)\)</span> 直接等价于 <span class="arithmatex">\(x^*\)</span> 全局最小；对真闭凸函数，再由共轭关系等价于 <span class="arithmatex">\(x^*\in\partial f^*(0)\)</span>。这些都是精确的集合关系；数值实现还需要容差、有限性和原始/对偶可行性检查。</p>
+<h2 id="12">12. 迁移题与完整答案<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>1．绝对值在一个很小的正数处，次梯度还是区间吗？</summary>
+<p>不是。取 <span class="arithmatex">\(x=10^{-12}&gt;0\)</span>，仍有 <span class="arithmatex">\(\partial|x|=\{1\}\)</span>。若 <span class="arithmatex">\(y=0\)</span>，Fenchel–Young 间隙为 <span class="arithmatex">\(10^{-12}\)</span>，很小但严格为正。把“数值上接近折角”写成“数学上就在折角”会改变集合条件。</p>
+</details>
+<details class="answer">
+<summary>2．指数函数共轭在 y=0 有限，为什么找不到接触点？</summary>
+<p>共轭是 <span class="arithmatex">\(\sup_x(-e^x)=0\)</span>，每个有限 <span class="arithmatex">\(x\)</span> 都给负值，只能令 <span class="arithmatex">\(x\to-\infty\)</span> 逼近。最高水平下界是0，却处处低于函数。有限上确界、上确界取得、最大点唯一是三件不同的事。</p>
+</details>
+<details class="answer">
+<summary>3．为什么二次函数是唯一的真闭凸自共轭函数？</summary>
+<p>若 <span class="arithmatex">\(f=f^*\)</span>，Fenchel–Young 对 <span class="arithmatex">\(x=y\)</span> 给 <span class="arithmatex">\(f(x)\ge\|x\|^2/2\)</span>。共轭反转点态大小关系，因此 <span class="arithmatex">\(f^*\le(\|\cdot\|^2/2)^*=\|\cdot\|^2/2\)</span>。结合 <span class="arithmatex">\(f=f^*\)</span> 得处处相等。这里是同一个欧氏内积下的精确自共轭，不能随意改变配对或加上常数。</p>
+</details>
+<details class="answer">
+<summary>4．同一组熵变量，不同约束给出什么数？</summary>
+<p>取 <span class="arithmatex">\(y=(\log2,0,0)\)</span>。非负正交象限负熵的共轭为 <span class="arithmatex">\(4/e\)</span>，最优 <span class="arithmatex">\(x=(2/e,1/e,1/e)\)</span>。单纯形负熵的共轭为 <span class="arithmatex">\(\log4\)</span>，最优 <span class="arithmatex">\(p=(1/2,1/4,1/4)\)</span>。若单纯形候选取 <span class="arithmatex">\((1,0,0)\)</span>，间隙为 <span class="arithmatex">\(\log4-\log2=\log2\)</span>，也正是它到上述 softmax 分布的 KL 散度。</p>
+</details>
+<details class="answer">
+<summary>5．双阱的双共轭为什么不能替代原函数的全部信息？</summary>
+<p>原函数在0取1，双共轭在0取0；凸包络保留两端最低点的下界，却抹去了中间势垒。把它作为下松弛可以提供下界，但松弛问题的最优点0并不是原问题最优点。原函数最小点只有 <span class="arithmatex">\(\pm1\)</span>，松弛的最小点是整个 <span class="arithmatex">\([-1,1]\)</span>。</p>
+</details>
+<details class="answer">
+<summary>6．稀疏拟合怎样区分原始误差与对偶不可行？</summary>
+<p>对 <span class="arithmatex">\(a=1,b=2,\lambda=1\)</span>，候选 <span class="arithmatex">\(x=0,y=1\)</span> 可行且间隙0.5，所以原始次优程度不超过0.5，这里恰等于0.5。改成 <span class="arithmatex">\(y=2\)</span> 后必须先报告 <span class="arithmatex">\(|ay|&gt;\lambda\)</span>；不能因为两个有限表达式都等于2，就宣布“零间隙最优”。正式对偶值在域外是 <span class="arithmatex">\(-\infty\)</span>。</p>
+</details>
+<details class="answer">
+<summary>7．强对偶成立，能否写 min 而不写 inf？</summary>
+<p>不能。<span class="arithmatex">\(\inf_x e^x=0\)</span>，没有任何有限 <span class="arithmatex">\(x\)</span> 达到0；其共轭在0等于0给出取得的对偶最优值。若需要原始取得性，可另检查例如非空紧的次水平集等充分条件，并说明闭性。强对偶的值结论不能代替这一检查。</p>
+</details>
+<details class="answer">
+<summary>8．次梯度和的等号如何在边界失败？</summary>
+<p>令 <span class="arithmatex">\(f(x)=-\sqrt x\)</span> 于 <span class="arithmatex">\(x\ge0\)</span>，<span class="arithmatex">\(g=\iota_{(-\infty,0]}\)</span>。两者相加为 <span class="arithmatex">\(\iota_{\{0\}}\)</span>，故 <span class="arithmatex">\(\partial(f+g)(0)=\mathbb R\)</span>。但 <span class="arithmatex">\(\partial f(0)=\varnothing\)</span>，所以 <span class="arithmatex">\(\partial f(0)+\partial g(0)=\varnothing\)</span>。有效域相对内部 <span class="arithmatex">\((0,\infty)\)</span> 与 <span class="arithmatex">\((-\infty,0)\)</span> 不相交，正好指出被遗漏的条件。</p>
+</details>
+<p>继续到一阶与近端方法时，可以把算法每次迭代的原始点、可行对偶点和间隙一起记录。由此，“看起来收敛”可以变成带误差上界的停止条件；一般非凸问题则需要重新检查哪些下界与取得性仍然保留。</p>
+</div>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="mdp-03-stochastic-approx.html"><span class="pager-label">上一页</span>MDP III · 随机逼近与 Q 学习</a>
