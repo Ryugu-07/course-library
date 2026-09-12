@@ -52,179 +52,241 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-13 01:38</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#stability-online-learning-title">学习层：先把两个量词放到不同账本</a><ul>
-<li><a href="#1">1. 直觉案例：换掉一条数据，模型会不会换脸？</a></li>
-<li><a href="#2-a-erm">2. 形式推导桥 A：正则化 ERM 的稳定性证书</a></li>
-<li><a href="#3-bhedge-comparator-regret">3. 形式推导桥 B：Hedge 与 comparator regret</a></li>
-<li><a href="#4">4. 模型边界面板：两条保证不能互换</a></li>
-<li><a href="#5">5. 确定性实验：同一屏，两种量词</a></li>
+<li><a href="#1">1. 先换一条数据：一次变化与统一上界相差什么？</a><ul>
+<li><a href="#st190-title">先把一个小模型完全算清，再证明一般结论。</a></li>
 </ul>
 </li>
-<li><a href="#1_1">1. 一致稳定性与泛化</a></li>
-<li><a href="#2-hedge">2. 在线专家与 Hedge</a></li>
-<li><a href="#3-ogd-online-to-batch">3. 与 OGD 和 online-to-batch 的接口</a></li>
-<li><a href="#4_1">4. 三个检查题</a></li>
+<li><a href="#2">2. 强凸性怎样给出统一稳定性？</a></li>
+<li><a href="#3">3. 全部训练集怎样压缩成一张二项表？</a></li>
+<li><a href="#4">4. 稳定性到期望泛化：把训练点与独立点交换</a></li>
+<li><a href="#5">5. 从期望到高概率：定义中的“替换”不能换成“删除”</a></li>
+<li><a href="#6">6. 正则越强越稳定，为何风险仍可能上升？</a></li>
+<li><a href="#7">7. 换一个问题：没有分布时，在线预测能保证什么？</a></li>
+<li><a href="#8-hedgehoeffding">8. Hedge的势函数：每轮只花一个Hoeffding代价</a></li>
+<li><a href="#9-ogd">9. OGD：投影为何不会破坏势函数？</a></li>
+<li><a href="#10-online-to-batch">10. Online-to-batch：补上独立抽样，才跨到总体风险</a></li>
+<li><a href="#11">11. 先预测，再做五组对照</a></li>
+<li><a href="#12">12. 八道检查题与完整解答</a></li>
 </ul>
 </div>
 </details>
-<h1 id="iv-regret">统计学习 IV · 稳定性、正则化与在线 regret<a class="headerlink" href="#iv-regret" title="Permanent link"></a></h1>
+<h1 id="iv">统计学习 IV · 稳定性、正则化与在线学习<a class="headerlink" href="#iv" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：SSBD <em>Understanding Machine Learning</em> §13–14、§21 ｜ <strong>前置</strong>：slt-01–03、凸优化、McDiarmid
-本页收束两条不同的路线：正则化 ERM 用“换一个训练点，算法输出改变多少”连接到统计泛化；Hedge 则允许损失序列由对手逐轮给出，用事后最佳固定专家定义 comparator regret。前者的 iid/期望量词不能偷渡到后者，后者的一次 realized regret 也不能被叫作 worst-case bound。</p>
+<p><strong>前置</strong>：风险与独立抽样、凸函数与强凸性、条件期望。<strong>目标</strong>：证明替换一个样本如何控制期望泛化差，逐轮核对 Hedge 与 OGD 的 regret，再明确补上从在线预测到批量学习所需的抽样条件。</p>
 </blockquote>
 <div data-learning-page></div>
 
-<section aria-labelledby="stability-online-learning-title" class="learning-layer">
-<h2 id="stability-online-learning-title">学习层：先把两个量词放到不同账本<a class="headerlink" href="#stability-online-learning-title" title="Permanent link"></a></h2>
-<h3 id="1">1. 直觉案例：换掉一条数据，模型会不会换脸？<a class="headerlink" href="#1" title="Permanent link"></a></h3>
-<p>给定样本 <span class="arithmatex">\(S=(z_1,\ldots,z_m)\)</span>，正则化 ERM 取</p>
-<div class="arithmatex">\[
-A(S)=\arg\min_w\left\{\frac1m\sum_{i=1}^m\ell(w,z_i)+\frac{\lambda}{2}\|w\|^2\right\}.
-\]</div>
-<p>把一个点换成 <span class="arithmatex">\(z_i'\)</span> 得 <span class="arithmatex">\(S^{(i)}\)</span>。先预测：</p>
-<ol>
-<li>增大 <span class="arithmatex">\(m\)</span> 或 <span class="arithmatex">\(\lambda\)</span>，邻居输出的损失差通常变大还是变小？</li>
-<li><span class="arithmatex">\(\beta=2L^2/(\lambda m)\)</span> 是一个“这条测试样本已经泛化良好”的 realized 数字，还是算法稳定性的统一证书？</li>
-<li>在 Hedge 中，对手是否需要先承诺一个 iid 分布？</li>
-<li>运行完一条 12 轮序列后的 regret，是这条序列的 ledger，还是所有未来序列的最坏上界？</li>
-</ol>
-<p>直觉上，强凸正则把目标函数变成一个有“弹簧”的碗；删掉一个样本只会轻微移动碗底。Hedge 的直觉不同：它不是从样本分布估计风险，而是在每轮把权重向过去损失较小的专家移动。</p>
-<h3 id="2-a-erm">2. 形式推导桥 A：正则化 ERM 的稳定性证书<a class="headerlink" href="#2-a-erm" title="Permanent link"></a></h3>
-<p>假设 <span class="arithmatex">\(\ell(\cdot,z)\)</span> 凸且对 <span class="arithmatex">\(w\)</span> 是 <span class="arithmatex">\(L\)</span>-Lipschitz，<span class="arithmatex">\(\lambda&gt;0\)</span>。目标函数的正则项让它 <span class="arithmatex">\(\lambda\)</span>-强凸。两个邻居最优点 <span class="arithmatex">\(w=A(S)\)</span> 与 <span class="arithmatex">\(w'=A(S^{(i)})\)</span> 的强凸不等式，加上只有一项样本被替换，可得</p>
-<div class="arithmatex">\[
-\|w-w'\|\lesssim\frac{2L}{\lambda m},
-\qquad
-\sup_z|\ell(w,z)-\ell(w',z)|
-\leq \boxed{\beta=\frac{2L^2}{\lambda m}}.
-\]</div>
-<p>这一步的对象是<strong>算法对单点替换的最大敏感度</strong>。在 <span class="arithmatex">\(S\)</span> 是来自同一分布 <span class="arithmatex">\(\mathcal D\)</span> 的 iid 样本、损失满足上述条件时，交换训练点与独立测试点的双重期望技巧给出</p>
-<div class="arithmatex">\[
-\left|E_S\left[L_{\mathcal D}(A(S))-L_S(A(S))\right]\right|\leq\beta.
-\]</div>
-<p>这是期望泛化声明；高概率版本还需要有界差分/McDiarmid 等额外步骤。一个固定参考分布上计算出的
-<span class="arithmatex">\(L_{\mathcal D}(A(S))-L_S(A(S))\)</span> 仍是一次 realized gap，不是自动获得的概率定理。</p>
-<h3 id="3-bhedge-comparator-regret">3. 形式推导桥 B：Hedge 与 comparator regret<a class="headerlink" href="#3-bhedge-comparator-regret" title="Permanent link"></a></h3>
-<p>有 <span class="arithmatex">\(K\)</span> 个专家，每轮先选分布 <span class="arithmatex">\(p_t\)</span>，观察损失
-<span class="arithmatex">\(\ell_{t,k}\in[0,1]\)</span>，再更新</p>
-<div class="arithmatex">\[
-w_{t+1,k}=w_{t,k}e^{-\eta\ell_{t,k}},
-\qquad
-p_{t,k}=\frac{w_{t,k}}{\sum_jw_{t,j}}.
-\]</div>
-<p>学习者损失是 <span class="arithmatex">\(\widehat\ell_t=\sum_kp_{t,k}\ell_{t,k}\)</span>，事后最佳固定专家的 comparator 损失是
-<span class="arithmatex">\(\min_k\sum_t\ell_{t,k}\)</span>。因此账本中的 realized regret 是</p>
-<div class="arithmatex">\[
-\operatorname{Reg}_T^{\rm ledger}
-=\sum_t\widehat\ell_t-\min_k\sum_t\ell_{t,k}.
-\]</div>
-<p>对 <span class="arithmatex">\([0,1]\)</span> 损失使用 Hoeffding 引理和权重势函数，得到对<strong>每一条合法损失序列</strong>成立的证书</p>
-<div class="arithmatex">\[
-\operatorname{Reg}_T
-\leq\frac{\log K}{\eta}+\frac{\eta T}{8}.
-\]</div>
-<p>右边是 theorem bound；实验台的红色曲线是某一条已选序列的 realized regret。它们同量纲但不是同一对象。序列可以是自适应或对抗的，因而这里没有 iid 泛化假设；“分布无关”来自协议和损失范围，不是来自稳定性定理。</p>
-<h3 id="4">4. 模型边界面板：两条保证不能互换<a class="headerlink" href="#4" title="Permanent link"></a></h3>
-<blockquote>
-<p><strong>模型边界</strong></p>
-<ul>
-<li>稳定性：需要凸/Lipschitz、<span class="arithmatex">\(\lambda&gt;0\)</span> 和正则化 ERM 的结构；把它转成泛化时需要 iid 样本和期望（或另加集中不等式）。</li>
-<li>在线 regret：需要逐轮协议、损失范围和 comparator 定义；不需要数据分布，但只保证相对事后最佳固定专家。</li>
-<li><span class="arithmatex">\(\beta\)</span> 不是一次测试集 gap 的数值替身。</li>
-<li>一条 Hedge 序列的 realized regret 不是 worst-case bound；只有右侧显式写出的不等式才是上界证书。</li>
-<li>在线学习者若换成“每轮事后挑最小损失专家”，会产生信息泄漏；Hedge 的概率必须在看到本轮损失前确定。</li>
-</ul>
-</blockquote>
-<h3 id="5">5. 确定性实验：同一屏，两种量词<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<p>预测门提交后，左侧调节 <span class="arithmatex">\(m,\lambda,L\)</span> 和一个声明好的两点参考分布，右侧选择固定的对抗序列与 <span class="arithmatex">\(\eta\)</span>。左侧显示 beta certificate、一个邻居替换的实际最大损失差、以及固定参考分布上的 realized gap；右侧显示每轮概率、学习者损失、最佳固定专家和 regret。每次重置都会回到同一配置。</p>
+<section aria-labelledby="st190-title" class="learning-layer stability190-course">
+<h2 id="1">1. 先换一条数据：一次变化与统一上界相差什么？<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<h3 id="st190-title">先把一个小模型完全算清，再证明一般结论。<a class="headerlink" href="#st190-title" title="Permanent link"></a></h3>
+<p>模型输出一个权重 <span class="arithmatex">\(w\in[-1,1]\)</span>，标签 <span class="arithmatex">\(y\in\{-1,1\}\)</span>，损失为 <span class="arithmatex">\(\ell(w,y)=(1-yw)/2\)</span>。它在 <span class="arithmatex">\([0,1]\)</span> 内，对 <span class="arithmatex">\(w\)</span> 是凸函数，Lipschitz 常数为 <span class="arithmatex">\(L=1/2\)</span>。这里的损失是线性混合损失，不是把 <span class="arithmatex">\(w\)</span> 直接取符号后的分类错误率。</p>
+<p>对 <span class="arithmatex">\(m\)</span> 个标签，记均值为 <span class="arithmatex">\(\bar y\)</span>。在平均训练损失上加正则项 <span class="arithmatex">\(\lambda w^2/2\)</span>，得到 <span class="arithmatex">\(F_S(w)=(1-\bar y w)/2+\lambda w^2/2\)</span>。其无约束最优点是 <span class="arithmatex">\(\bar y/(2\lambda)\)</span>，超出区间时投影回最近端点：</p>
+<p><strong><span class="arithmatex">\(A(S)=\operatorname{clip}\bigl(\bar y/(2\lambda),-1,1\bigr)\)</span>。</strong></p>
+<p>例如 <span class="arithmatex">\(m=2\)</span>、<span class="arithmatex">\(\lambda=0.01\)</span>。正标签数 <span class="arithmatex">\(k=0,1,2\)</span> 时，三个输出依次为 <span class="arithmatex">\(-1,0,1\)</span>。单条标签翻转使计数相差一；相邻输出的距离为 <span class="arithmatex">\(1\)</span>，两个测试标签上的损失变化都是 <span class="arithmatex">\(1/2\)</span>。枚举这两个相邻关系，就覆盖了这个模型的全部训练集替换。</p>
+<p>若换成 <span class="arithmatex">\(m=3\)</span>、同样很小的正则，<span class="arithmatex">\(k=1\)</span> 和 <span class="arithmatex">\(k=2\)</span> 的输出直接从 <span class="arithmatex">\(-1\)</span> 跳到 <span class="arithmatex">\(+1\)</span>，损失变化达到 <span class="arithmatex">\(1\)</span>。所以不能从一个温和的邻居例子，推断所有邻居都温和。实验保留零概率训练计数，因为统一稳定性是对声明域上所有数据集的要求，不只检查当前分布常出现的数据。</p>
+<p>这个例子也说明，精确最大敏感度未必随样本数逐点下降：不同奇偶计数网格会跨过不同的最优点。一般证书随样本数下降，不会强迫被它上界的精确值也单调。</p>
 <div class="learning-lab" data-learning-lab="online-regret">
-<p><strong>无 JavaScript 时的静态读法：</strong> 默认取 <span class="arithmatex">\(m=48,\lambda=0.5,L=1\)</span>，则
-<span class="arithmatex">\(\beta=2/(0.5\cdot48)=1/12\approx0.08333\)</span>。这只是满足假设时的稳定性证书。</p>
+<p><strong>无脚本对照：</strong>六份完整记录保存所有训练计数及邻居、逐轮在线损失与势函数、全部独立标签路径。稳定性部分的有理数精确保存；指数权重与对数使用数值近似。</p>
+<figure class="plot">
+<p><img alt="全部计数最优点、统一稳定性、正则偏差、在线regret、自适应协议与独立抽样桥六面板图。" src="assets/img/slt-04-stability-certificates.svg" /></p>
+<figcaption>A 的橙圈是选定计数；B 的蓝点是全体邻居的最大敏感度；C 同时显示两种不同误差；D 比较同一固定基准；E 强调先预测后看标签；F 蓝点与绿色线重合，橙色泄漏损失不能用于泛化证明。</figcaption>
+</figure>
+<div aria-label="稳定性固定记录，可横向滚动" class="stability190-static" role="region" tabindex="0">
 <table>
 <thead>
 <tr>
-<th>账本</th>
-<th>计算</th>
-<th>正确读法</th>
+<th>预设</th>
+<th style="text-align: right;">m</th>
+<th style="text-align: right;">精确统一β</th>
+<th style="text-align: right;">E gap</th>
+<th style="text-align: right;">E超额风险</th>
+<th style="text-align: right;">Hedge regret</th>
+<th style="text-align: right;">Hedge理论界</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>ERM 稳定性证书</td>
-<td><span class="arithmatex">\(\beta=2L^2/(\lambda m)\)</span></td>
-<td>iid/期望泛化路线的算法证书</td>
+<td>default</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.125</td>
+<td style="text-align: right;">0.0525</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">0.400249511</td>
+<td style="text-align: right;">1.8102676</td>
 </tr>
 <tr>
-<td>邻居检查</td>
-<td><span class="arithmatex">\(\max_{y\in\{-1,1\}}\lvert\ell(w,y)-\ell(w',y)\rvert\)</span></td>
-<td>一次有限 probe 的实测敏感度</td>
+<td>even-weak</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">0.21</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">0.400249511</td>
+<td style="text-align: right;">1.8102676</td>
 </tr>
 <tr>
-<td>固定参考 gap</td>
-<td><span class="arithmatex">\(L_{\rm ref}(A(S))-L_S(A(S))\)</span></td>
-<td>realized gap，不是自动的高概率结论</td>
+<td>odd-weak</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.1764</td>
+<td style="text-align: right;">0.0864</td>
+<td style="text-align: right;">0.400249511</td>
+<td style="text-align: right;">1.8102676</td>
 </tr>
 <tr>
-<td>Hedge 更新</td>
-<td><span class="arithmatex">\(p_{t,k}=w_{t,k}/\sum_jw_{t,j}\)</span>，<span class="arithmatex">\(w_{t+1,k}=w_{t,k}e^{-\eta\ell_{t,k}}\)</span></td>
-<td>先预测后观测的在线协议</td>
+<td>strong</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.03125</td>
+<td style="text-align: right;">0.013125</td>
+<td style="text-align: right;">0.18</td>
+<td style="text-align: right;">0.400249511</td>
+<td style="text-align: right;">1.8102676</td>
 </tr>
 <tr>
-<td>comparator regret</td>
-<td><span class="arithmatex">\(\sum_t\widehat\ell_t-\min_k\sum_t\ell_{t,k}\)</span></td>
-<td>这条序列的 realized regret</td>
+<td>adaptive</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.125</td>
+<td style="text-align: right;">0.0525</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">0.670677955</td>
+<td style="text-align: right;">1.9477676</td>
 </tr>
 <tr>
-<td>theorem bound</td>
-<td><span class="arithmatex">\(\log(K)/\eta+\eta T/8\)</span>，损失在 <span class="arithmatex">\([0,1]\)</span></td>
-<td>对合法序列的显式最坏情形证书</td>
+<td>fast</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">0.125</td>
+<td style="text-align: right;">0.0525</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">0.499954602</td>
+<td style="text-align: right;">2.84657359</td>
 </tr>
 </tbody>
 </table>
-<p>例如默认 Hedge 设 <span class="arithmatex">\(K=3,T=12,\eta=0.55\)</span>，显示的上界为
-<span class="arithmatex">\(\log(3)/0.55+0.55\cdot12/8\approx2.82\)</span>。不要因为某条序列的红色 regret 小，就删掉右侧的损失范围、comparator 或 theorem bound 标签。</p>
 </div>
+<p><a download="stability-frozen-records.json" href="assets/learning/projects/stability-certificates/run-snapshot.json">下载六份完整记录</a>。每个总体概率的分子、分母和每轮预测时间顺序均保留。选择一行训练计数不会改变总体分布；固定在线序列也不能替代独立抽样实验。</p>
+</div>
+<noscript>
+<style>.stability190-course span.arithmatex{overflow-wrap:anywhere}.stability190-static{overflow:auto;max-width:100%}.stability190-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}.stability190-static th,.stability190-static td{white-space:nowrap}</style>
+</noscript>
+<h2 id="2">2. 强凸性怎样给出统一稳定性？<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>先看一般形式。设决策域 <span class="arithmatex">\(\mathcal W\)</span> 凸，损失 <span class="arithmatex">\(\ell(\cdot,z)\)</span> 凸且为 <span class="arithmatex">\(L\)</span>-Lipschitz，<span class="arithmatex">\(\lambda&gt;0\)</span>，最小值存在。算法最小化</p>
+<div class="arithmatex">\[
+F_S(w)=\frac1m\sum_{j=1}^m\ell(w,z_j)+\frac{\lambda}{2}\|w\|^2.
+\]</div>
+<p>设 <span class="arithmatex">\(S^{(i)}\)</span> 把第 <span class="arithmatex">\(i\)</span> 个样本换成 <span class="arithmatex">\(z_i'\)</span>，并记 <span class="arithmatex">\(w=A(S)\)</span>、<span class="arithmatex">\(w'=A(S^{(i)})\)</span>、<span class="arithmatex">\(d=\|w-w'\|\)</span>。两个目标都 <span class="arithmatex">\(\lambda\)</span>-强凸，因此最优性给出 <span class="arithmatex">\(F_S(w')-F_S(w)\ge\lambda d^2/2\)</span> 与 <span class="arithmatex">\(F_{S^{(i)}}(w)-F_{S^{(i)}}(w')\ge\lambda d^2/2\)</span>。</p>
+<p>把两式相加，正则项以及未被替换的样本项全部抵消，得到</p>
+<p><strong><span class="arithmatex">\(\lambda d^2\le m^{-1}\{\ell(w',z_i)-\ell(w,z_i)+\ell(w,z_i')-\ell(w',z_i')\}\le 2Ld/m\)</span>。</strong></p>
+<p>若 <span class="arithmatex">\(d=0\)</span> 已经成立；若 <span class="arithmatex">\(d&gt;0\)</span>，除以 <span class="arithmatex">\(\lambda d\)</span>，得到 <span class="arithmatex">\(d\le2L/(\lambda m)\)</span>。再对任意测试点使用 Lipschitz 性：</p>
+<p><strong><span class="arithmatex">\(\sup_z|\ell(A(S),z)-\ell(A(S^{(i)}),z)|\le\beta_m:=2L^2/(\lambda m)\)</span>。</strong></p>
+<p>这是真正的统一声明：对任意训练集、任意替换位置、任意替换值和任意测试点都成立。在约束域边界，最优点的普通梯度未必为零；强凸最优性不等式仍可使用。实验同时保存梯度和端点位置，便于核对这一点。</p>
+<p>本例 <span class="arithmatex">\(L=1/2\)</span>，所以一般证书是 <span class="arithmatex">\(1/(2\lambda m)\)</span>。损失范围另外给出上界 <span class="arithmatex">\(1\)</span>，可以取两者较小值。实验还有一条更紧的“精确 <span class="arithmatex">\(\beta\)</span>”：枚举全部相邻计数与两个测试标签，求真正的最大敏感度。两条都是统一上界，但只有后者针对这个小模型求到了精确最大值。</p>
+<h2 id="3">3. 全部训练集怎样压缩成一张二项表？<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>现在声明总体分布：<span class="arithmatex">\(P(Y=+1)=p\)</span>，<span class="arithmatex">\(P(Y=-1)=1-p\)</span>。独立抽取 <span class="arithmatex">\(m\)</span> 个标签，正标签计数 <span class="arithmatex">\(K\)</span> 的概率为 <span class="arithmatex">\(\binom mk p^k(1-p)^{m-k}\)</span>。算法与损失都只依赖计数，因此可按计数合并；二项重数不能遗漏。</p>
+<p>本页 <span class="arithmatex">\(p\)</span> 是百分数，概率分子保存为 <span class="arithmatex">\(\binom mk P^k(100-P)^{m-k}\)</span>，共同分母为 <span class="arithmatex">\(100^m\)</span>。每个最优权重、训练风险、总体风险和 gap 都用约分后的有理数保存，页面小数仅用于显示。</p>
+<p>总体均值是 <span class="arithmatex">\(\mu=2p-1\)</span>。对任意固定 <span class="arithmatex">\(w\)</span>，总体风险为 <span class="arithmatex">\(L_{\mathcal D}(w)=(1-\mu w)/2\)</span>；训练风险为 <span class="arithmatex">\(L_S(w)=(1-\bar y w)/2\)</span>。因此当前模型的 gap 是 <span class="arithmatex">\(w(\bar y-\mu)/2\)</span>，它可以是正数，也可以是负数。</p>
+<p>控件中的“当前正标签数”只选择一行供观察；改变它不会改变二项分布。总体期望则把全部行按概率加权。<strong>一行的 gap、gap 的期望、绝对 gap 的期望，是三个不同的数。</strong></p>
+<h2 id="4">4. 稳定性到期望泛化：把训练点与独立点交换<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>定义 <span class="arithmatex">\(G(S)=L_{\mathcal D}(A(S))-L_S(A(S))\)</span>。设 <span class="arithmatex">\(S\sim\mathcal D^m\)</span>，<span class="arithmatex">\(z_i'\sim\mathcal D\)</span> 独立于训练集。把 <span class="arithmatex">\((z_i,z_i')\)</span> 交换，不改变其联合分布，所以</p>
+<p><strong><span class="arithmatex">\(\mathbb E_{S,z_i'}\ell(A(S),z_i')=\mathbb E_{S,z_i'}\ell(A(S^{(i)}),z_i)\)</span>。</strong></p>
+<p>于是把总体风险对每个 <span class="arithmatex">\(i\)</span> 都写一遍，再与训练平均相减：</p>
+<div class="arithmatex">\[
+\mathbb E_S G(S)
+=\frac1m\sum_{i=1}^m
+\mathbb E_{S,z_i'}
+\left[\ell(A(S^{(i)}),z_i)-\ell(A(S),z_i)\right].
+\]</div>
+<p>括号里的两个算法输出来自相邻训练集，而测试点保持为 <span class="arithmatex">\(z_i\)</span>。统一稳定性给出每一项的绝对值至多 <span class="arithmatex">\(\beta_m\)</span>，因此 <strong><span class="arithmatex">\(|\mathbb E G(S)|\le\beta_m\)</span></strong>。</p>
+<p>注意绝对值在期望外面。证明没有得到 <span class="arithmatex">\(\mathbb E|G(S)|\le\beta_m\)</span>，更没有得到每个训练集上 <span class="arithmatex">\(|G(S)|\le\beta_m\)</span>。实验把这些量分列，避免正负抵消被误当成逐样本保证。</p>
+<p>算法可以根据训练集选择输出，但必须在使用该结论前说明其统一稳定性。这里用确定性、可测算法表述；随机算法还须说明内部随机性的耦合与稳定性定义。时间依赖或分布漂移的数据不能直接使用这次独立交换。</p>
+<h2 id="5">5. 从期望到高概率：定义中的“替换”不能换成“删除”<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>若损失在 <span class="arithmatex">\([0,1]\)</span> 内，替换一条数据使总体风险最多变化 <span class="arithmatex">\(\beta_m\)</span>。训练风险的变化可拆成“同一组训练点上模型改变”与“一个被替换的损失项改变”，上界为 <span class="arithmatex">\(\beta_m+1/m\)</span>。所以 <span class="arithmatex">\(G(S)\)</span> 的有界差分常数可取 <span class="arithmatex">\(2\beta_m+1/m\)</span>。</p>
+<p>应用 McDiarmid 并接上 <span class="arithmatex">\(\mathbb E G\le\beta_m\)</span>，以至少 <span class="arithmatex">\(1-\delta\)</span> 的概率，</p>
+<p><strong><span class="arithmatex">\(G(S)\le\beta_m+(2m\beta_m+1)\sqrt{\ln(1/\delta)/(2m)}\)</span>。</strong></p>
+<p>这是一侧 gap 的保证；若要同时控制两侧，可分别分配失败概率。右边很大时，结合风险范围作截断是合法的，但截断后的数不是模型预测错误率。本例分别将一般证书与精确统一 <span class="arithmatex">\(\beta\)</span> 代入，并枚举各自的真实失败概率。</p>
+<p><a href="https://www.jmlr.org/papers/volume2/bousquet02a/bousquet02a.pdf">Bousquet与Elisseeff的原始论文，定义6与定理12</a> 使用删除一个样本的稳定性约定。先转成替换约定会引入系数，所以不能看到同名定理就照抄其中的常数。本页上式直接从替换定义推导。</p>
+<p>这条初等集中界也不是稳定性理论的终点。<a href="https://arxiv.org/abs/1902.10710">Feldman与Vondrák的工作</a> 和 <a href="https://arxiv.org/abs/1910.07833">Bousquet、Klochkov与Zhivotovskiy的后续结果</a> 改善了高概率保证。继续读这些论文时，重点看它们怎样处理弱相关项、改善简单有界差分带来的代价；本页实验仍只把已经完整推导的界作为证书。</p>
+<h2 id="6">6. 正则越强越稳定，为何风险仍可能上升？<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>稳定性控制算法对样本的敏感度，并不要求算法拟合得好。一个永远输出 <span class="arithmatex">\(w=0\)</span> 的算法完全稳定，本例却始终损失 <span class="arithmatex">\(1/2\)</span>；当 <span class="arithmatex">\(p\)</span> 很偏时，它明显不如正确的固定端点。</p>
+<p>对任意在抽样前固定的比较点 <span class="arithmatex">\(u\)</span>，正则化最优性给出 <span class="arithmatex">\(L_S(A(S))+\lambda\|A(S)\|^2/2\le L_S(u)+\lambda\|u\|^2/2\)</span>。取期望并加入稳定性项：</p>
+<p><strong><span class="arithmatex">\(\mathbb E L_{\mathcal D}(A(S))-L_{\mathcal D}(u)\le\beta_m+\frac{\lambda}{2}\bigl(\|u\|^2-\mathbb E\|A(S)\|^2\bigr)\le\beta_m+\lambda\|u\|^2/2\)</span>。</strong></p>
+<p>第一项随正则增强而下降，最后一项却会增大。本例总体最优风险为 <span class="arithmatex">\((1-|\mu|)/2\)</span>，比较点可取最优端点。用一般证书得到超额风险上界 <span class="arithmatex">\(1/(2\lambda m)+\lambda/2\)</span>；取 <span class="arithmatex">\(\lambda=1/\sqrt m\)</span> 时为 <span class="arithmatex">\(1/\sqrt m\)</span>。这个选择是关于样本量的预先规则，不是事后看完风险表挑出的免费最优参数。</p>
+<p>当 <span class="arithmatex">\(\lambda\ge1/2\)</span> 时，所有计数的无约束最优点都在区间内，可进一步精确计算：<span class="arithmatex">\(\mathbb E G=p(1-p)/(\lambda m)\)</span>，而期望超额风险为 <span class="arithmatex">\(|\mu|/2-\mu^2/(4\lambda)\)</span>。默认 <span class="arithmatex">\(p=0.7,\lambda=0.5,m=8\)</span> 给出 <span class="arithmatex">\(\mathbb E G=0.0525\)</span>、期望超额风险 <span class="arithmatex">\(0.12\)</span>；把 <span class="arithmatex">\(\lambda\)</span> 改为 <span class="arithmatex">\(2\)</span>，前者降到 <span class="arithmatex">\(0.013125\)</span>，后者升到 <span class="arithmatex">\(0.18\)</span>。</p>
+<h2 id="7">7. 换一个问题：没有分布时，在线预测能保证什么？<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>现在暂时放下训练集总体。每轮开始，学习者根据过去的信息选分布 <span class="arithmatex">\(p_t\)</span>；随后看到完整损失向量 <span class="arithmatex">\(\ell_t\in[0,1]^K\)</span>，付出混合损失 <span class="arithmatex">\(\widehat\ell_t=\langle p_t,\ell_t\rangle\)</span>，再更新。</p>
+<p>本页使用两个固定专家 <span class="arithmatex">\(w=-1,+1\)</span>。正负标签产生互补的零一专家损失；平局预设给两位专家各 <span class="arithmatex">\(1/2\)</span>。混合权重 <span class="arithmatex">\(w_t=p_{t,+}-p_{t,-}\)</span> 恰使线性损失等于混合损失。</p>
+<p>比较基准是整条序列结束后最好的<strong>固定</strong>专家：</p>
+<p><strong><span class="arithmatex">\(\operatorname{Reg}_T=\sum_{t=1}^T\langle p_t,\ell_t\rangle-\min_k\sum_{t=1}^T\ell_{t,k}\)</span>。</strong></p>
+<p>它与每轮都选当轮最好专家的动态先知不同。动态先知查看了本轮答案，其总损失通常更低；本页没有对它作同样的 regret 承诺。</p>
+<p>损失序列可以自适应地依赖已经公布的预测分布。“惩罚高权重专家”预设就是这样构造的。路径上的代数证明仍成立，不需要独立同分布。这里直接支付确定性的混合损失；若实际随机抽取一个专家行动，单次抽样损失还会有随机波动，不能直接把混合损失账本当作它的逐路径值。</p>
+<h2 id="8-hedgehoeffding">8. Hedge的势函数：每轮只花一个Hoeffding代价<a class="headerlink" href="#8-hedgehoeffding" title="Permanent link"></a></h2>
+<p>令初始权重 <span class="arithmatex">\(q_{1,k}=1/K\)</span>，固定 <span class="arithmatex">\(\eta&gt;0\)</span>。用 <span class="arithmatex">\(p_{t,k}=q_{t,k}/W_t\)</span>、<span class="arithmatex">\(W_t=\sum_kq_{t,k}\)</span>，并更新 <span class="arithmatex">\(q_{t+1,k}=q_{t,k}e^{-\eta\ell_{t,k}}\)</span>。于是 <span class="arithmatex">\(W_{t+1}/W_t=\sum_kp_{t,k}e^{-\eta\ell_{t,k}}\)</span>。</p>
+<p>把专家索引看作按 <span class="arithmatex">\(p_t\)</span> 抽取的临时随机变量，Hoeffding 引理给出 <span class="arithmatex">\(\log(W_{t+1}/W_t)\le-\eta\widehat\ell_t+\eta^2/8\)</span>。这是对已给定损失向量的确定性不等式，不要求在线数据来自随机总体。</p>
+<p>定义 mix loss <span class="arithmatex">\(m_t=-\eta^{-1}\log(W_{t+1}/W_t)\)</span>。Jensen 与 Hoeffding 共同给出 <span class="arithmatex">\(0\le\widehat\ell_t-m_t\le\eta/8\)</span>。实验逐轮保存这段差与允许的上界。</p>
+<p>另一方面，最佳固定专家的最终权重给出 <span class="arithmatex">\(W_{T+1}\ge K^{-1}\exp(-\eta\min_k\sum_t\ell_{t,k})\)</span>。对数势函数求和，结合 <span class="arithmatex">\(W_1=1\)</span>：</p>
+<p><strong><span class="arithmatex">\(\operatorname{Reg}_T\le\ln K/\eta+\eta T/8\)</span>。</strong></p>
+<p>已知 horizon <span class="arithmatex">\(T\)</span> 时，最小化右侧得到 <span class="arithmatex">\(\eta=\sqrt{8\ln K/T}\)</span>，上界 <span class="arithmatex">\(\sqrt{T\ln K/2}\)</span>。实验控件中的固定 <span class="arithmatex">\(\eta\)</span> 不必等于这个值，表中同时保留理论最优值。未知 horizon 或逐轮改变步长时，需要相应的新证明，不能原样套用固定步长推导。</p>
+<p>数值实现使用对数权重避免下溢；独立检查则直接乘指数权重，从另一条计算路线核对每轮概率、势函数和 regret。</p>
+<h2 id="9-ogd">9. OGD：投影为何不会破坏势函数？<a class="headerlink" href="#9-ogd" title="Permanent link"></a></h2>
+<p>在凸决策域 <span class="arithmatex">\(\mathcal W\)</span> 上，在线梯度下降先用 <span class="arithmatex">\(w_t\)</span> 预测，观察凸损失 <span class="arithmatex">\(f_t\)</span> 后取次梯度 <span class="arithmatex">\(g_t\)</span>，再更新 <span class="arithmatex">\(w_{t+1}=\Pi_{\mathcal W}(w_t-\eta g_t)\)</span>。固定比较点 <span class="arithmatex">\(u\in\mathcal W\)</span>，投影的距离不增性质给出</p>
+<p><strong><span class="arithmatex">\(\|w_{t+1}-u\|^2\le\|w_t-u\|^2-2\eta\langle g_t,w_t-u\rangle+\eta^2\|g_t\|^2\)</span>。</strong></p>
+<p>凸性又给出 <span class="arithmatex">\(f_t(w_t)-f_t(u)\le\langle g_t,w_t-u\rangle\)</span>。移项后逐轮求和，距离平方望远镜抵消。若域直径至多 <span class="arithmatex">\(D\)</span>、次梯度范数至多 <span class="arithmatex">\(G\)</span>，就有 <span class="arithmatex">\(\operatorname{Reg}_T\le D^2/(2\eta)+\eta G^2T/2\)</span>。</p>
+<p>本例 <span class="arithmatex">\(\mathcal W=[-1,1]\)</span>、<span class="arithmatex">\(g_t=-y_t/2\)</span>，故 <span class="arithmatex">\(D=2,G=1/2\)</span>，得到 <span class="arithmatex">\(2/\eta+\eta T/8\)</span>。在线线性损失的最佳固定域内点可以取端点，因此与两专家的固定 comparator 一致。表中对最终 comparator 核对每轮距离平方、损失差和势函数上界。</p>
+<p>OGD和Hedge可能给出不同的事前权重、损失与上界。它们共享在线协议，不能因为用了同一个步长控件，就把两种算法的证明常数混用。</p>
+<p>Regret还可以为负。大步长预设取 <span class="arithmatex">\(\eta=2\)</span>，先五个正标签再五个负标签；OGD从零开始，累计损失为 <span class="arithmatex">\(2\)</span>，而两位固定专家各损失 <span class="arithmatex">\(5\)</span>，所以 regret 为 <span class="arithmatex">\(-3\)</span>。这表示会随时间改变的预测器在这条路径上胜过了所有固定比较点，并没有得到负的损失，也没有违背上界。</p>
+<h2 id="10-online-to-batch">10. Online-to-batch：补上独立抽样，才跨到总体风险<a class="headerlink" href="#10-online-to-batch" title="Permanent link"></a></h2>
+<p>现在额外假设 <span class="arithmatex">\(Z_1,\ldots,Z_T\)</span> 独立同分布，且 <span class="arithmatex">\(w_t\)</span> 只依赖前 <span class="arithmatex">\(t-1\)</span> 个样本。条件于过去的信息，<span class="arithmatex">\(w_t\)</span> 已固定，而本轮样本仍来自原分布，因此 <span class="arithmatex">\(\mathbb E[\ell(w_t,Z_t)\mid Z_1,\ldots,Z_{t-1}]=L_{\mathcal D}(w_t)\)</span>。</p>
+<p>令 <span class="arithmatex">\(\bar w=T^{-1}\sum_tw_t\)</span>。若损失对权重凸，Jensen 给出 <span class="arithmatex">\(L_{\mathcal D}(\bar w)\le T^{-1}\sum_tL_{\mathcal D}(w_t)\)</span>。取期望并应用前一行的条件期望等式：</p>
+<p><strong><span class="arithmatex">\(\mathbb E L_{\mathcal D}(\bar w)\le\mathbb E[T^{-1}\sum_t\ell(w_t,Z_t)]\)</span>。</strong></p>
+<p>对抽样前固定的总体比较点 <span class="arithmatex">\(u\)</span>，有 <span class="arithmatex">\(\mathbb E[T^{-1}\sum_t\ell(u,Z_t)]=L_{\mathcal D}(u)\)</span>。再加入在线 regret 上界 <span class="arithmatex">\(B_T\)</span>，得到 <span class="arithmatex">\(\mathbb E L_{\mathcal D}(\bar w)-L_{\mathcal D}(u)\le B_T/T\)</span>。不要求输出平均时，也可研究随机选一轮的输出，但其随机性与结论要另行说明。<a href="https://www.cs.huji.ac.il/~shais/papers/OLsurvey.pdf">在线学习综述，第5章定理5.1和推论5.2</a> 给出了这座桥梁。</p>
+<p>本例损失恰为线性，所以 Jensen 这一步取等号。实验枚举全部 <span class="arithmatex">\(2^T\)</span> 条独立标签路径，逐条保存概率分子、平均事前权重、在线平均损失和真实风险；不能只按最终正标签数合并，因为算法看到了不同的历史顺序。</p>
+<p>图中蓝点“平均预测器的期望真实风险”与绿色“期望在线平均损失”重合。橙线则故意使用看完本轮标签后的权重回算本轮损失：它看上去更低，却不满足事前独立性。这种回算不能替代证明中的在线损失。</p>
+<h2 id="11">11. 先预测，再做五组对照<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p>先比较单点、偶数弱正则与奇数弱正则。查看所有最优权重和邻居表，解释精确统一 <span class="arithmatex">\(\beta\)</span> 为什么不总等于一般证书；不要只查看当前选中的一行。</p>
+<p>第二组保持 <span class="arithmatex">\(p,m\)</span> 不变，增强正则。分别追踪期望 gap 与期望超额风险。用第6节的精确式解释默认与强正则的数值，不把“更稳定”翻译成“风险一定更低”。</p>
+<p>第三组把总体调到 <span class="arithmatex">\(p=0\)</span> 或 <span class="arithmatex">\(p=1\)</span>。只有一条计数有正概率，但统一邻居表仍保留全部行。解释为什么本例期望 gap 可为零，统一 <span class="arithmatex">\(\beta\)</span> 却不为零。</p>
+<p>第四组选择自适应对手、交替或平局序列。按“事前概率→本轮损失→事后权重”的顺序读表；核对 mix gap、Hedge bound 与 OGD 势函数。平局中实际 regret 为零，理论上界通常仍为正。</p>
+<p>最后查看独立抽样桥，比较合法的期望在线损失与泄漏回算。改变固定序列预设不会改变这张独立路径总体表；改变 <span class="arithmatex">\(p,\eta,T\)</span> 才会改变它。不同实验共享控件的含义已在标签中说明，不能把对抗序列当作独立样本复用。</p>
+<h2 id="12">12. 八道检查题与完整解答<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>1. 为什么 m=2、λ=0.01 时精确β是1/2，而一般截断证书是1？</summary>
+<p>三个计数的最优权重为 <span class="arithmatex">\(-1,0,1\)</span>。合法替换只连接相邻计数，权重差均为 <span class="arithmatex">\(1\)</span>；损失斜率绝对值为 <span class="arithmatex">\(1/2\)</span>，所以最大损失变化是 <span class="arithmatex">\(1/2\)</span>。一般强凸证书 <span class="arithmatex">\(1/(2\lambda m)=25\)</span>，结合损失范围截到 <span class="arithmatex">\(1\)</span>，仍没有利用离散计数不能跨两格的事实。</p>
+</details>
+<details class="answer">
+<summary>2. 强凸证明中，两个 λ/2 为什么最后变成 λ？</summary>
+<p>分别比较 <span class="arithmatex">\(F_S\)</span> 在 <span class="arithmatex">\(w,w'\)</span> 的值与 <span class="arithmatex">\(F_{S^{(i)}}\)</span> 在 <span class="arithmatex">\(w',w\)</span> 的值，每条下界都是 <span class="arithmatex">\(\lambda\|w-w'\|^2/2\)</span>。相加得到 <span class="arithmatex">\(\lambda\|w-w'\|^2\)</span>。只有一项数据不同，因此右侧仅剩两次损失变化，总上界为 <span class="arithmatex">\(2L\|w-w'\|/m\)</span>，除法后得到 <span class="arithmatex">\(2L/(\lambda m)\)</span>。</p>
+</details>
+<details class="answer">
+<summary>3. |E gap|≤β 能推出 E|gap|≤β 吗？</summary>
+<p>不能。若一个随机量等概率取 <span class="arithmatex">\(+1,-1\)</span>，其期望为零，绝对值期望却为 <span class="arithmatex">\(1\)</span>。稳定性交换证明先得到期望之差，再把绝对值放到外面；它没有逐样本限制所有 gap 的大小。高概率控制需要第5节额外的有界差分步骤。</p>
+</details>
+<details class="answer">
+<summary>4. 默认 p=0.7、m=8 下，λ从0.5变2，两个期望分别怎样变化？</summary>
+<p>这里 <span class="arithmatex">\(\mu=0.4\)</span>，且两个正则强度都不发生区间外截断。期望 gap 为 <span class="arithmatex">\(p(1-p)/(\lambda m)\)</span>，从 <span class="arithmatex">\(0.21/4=0.0525\)</span> 降到 <span class="arithmatex">\(0.21/16=0.013125\)</span>。期望超额风险为 <span class="arithmatex">\(0.2-0.16/(4\lambda)\)</span>，从 <span class="arithmatex">\(0.12\)</span> 升到 <span class="arithmatex">\(0.18\)</span>。减小敏感度与减小逼近总体最优点的偏差，是不同要求。</p>
+</details>
+<details class="answer">
+<summary>5. 两位专家第一轮损失为(0,1)，Hedge的合法混合损失是多少？</summary>
+<p>初始分布为 <span class="arithmatex">\((1/2,1/2)\)</span>，所以合法损失为 <span class="arithmatex">\(1/2\)</span>，与 <span class="arithmatex">\(\eta\)</span> 无关。看完损失后，权重比变为 <span class="arithmatex">\(1:e^{-\eta}\)</span>，归一化后第二位专家的概率为 <span class="arithmatex">\(1/(1+e^\eta)\)</span>。若拿更新后的分布回算第一轮，就会把这个更小的数当作损失，但这已使用第一轮答案。</p>
+</details>
+<details class="answer">
+<summary>6. 固定η的Hedge界怎样优化？</summary>
+<p>对 <span class="arithmatex">\(b(\eta)=\ln K/\eta+\eta T/8\)</span> 求导，得 <span class="arithmatex">\(b'(\eta)=-\ln K/\eta^2+T/8\)</span>。令其为零，得到 <span class="arithmatex">\(\eta_*=\sqrt{8\ln K/T}\)</span>。两项在最优点相等，总和为 <span class="arithmatex">\(\sqrt{T\ln K/2}\)</span>。这个选择用到了预先给定的 horizon；事后改变已经运行过的步长，不能把原来的轨迹变成这条最优轨迹。</p>
+</details>
+<details class="answer">
+<summary>7. OGD从w=0、η=2开始，观察y=+1后会走到哪里？</summary>
+<p>本轮损失在更新前计算，为 <span class="arithmatex">\((1-0)/2=1/2\)</span>。梯度为 <span class="arithmatex">\(-1/2\)</span>，未投影下一点是 <span class="arithmatex">\(0-2(-1/2)=1\)</span>，已经在区间内，所以下一点为 <span class="arithmatex">\(1\)</span>。若下一轮还是正标签，未投影点变为 <span class="arithmatex">\(2\)</span>，投影后仍是 <span class="arithmatex">\(1\)</span>；投影发生在下一点，不改变此前已经支付的损失。</p>
+</details>
+<details class="answer">
+<summary>8. 在线regret的事后最优专家，为什么不能直接当作固定总体比较点？</summary>
+<p>事后最优专家依赖整条随机样本路径，不能直接把它的经验平均期望写成一个固定专家的总体风险。证明应先固定总体比较点 <span class="arithmatex">\(u\)</span>；每条路径上，事后最小累计损失不大于 <span class="arithmatex">\(u\)</span> 的累计损失，所以 regret 上界也控制相对 <span class="arithmatex">\(u\)</span> 的累计差。随后才对独立样本取期望，并用事前预测的条件独立性完成 online-to-batch。</p>
+</details>
+<p>统计学习这四页至此连成三条可分辨的路线：VC与Rademacher分析全类的选择能力，稳定性分析训练算法对样本的敏感度，在线学习分析逐轮决策与固定比较点的差。阅读更深入结果时，先保留各自的随机对象和量词，再研究它们之间的联系。</p>
 </section>
-<h2 id="1_1">1. 一致稳定性与泛化<a class="headerlink" href="#1_1" title="Permanent link"></a></h2>
-<p>算法 <span class="arithmatex">\(A\)</span> 称为 <span class="arithmatex">\(\beta\)</span>-uniformly stable，如果任意相邻样本集和任意测试点 <span class="arithmatex">\(z\)</span> 满足</p>
-<div class="arithmatex">\[
-\sup_z|\ell(A(S),z)-\ell(A(S^{(i)}),z)|\leq\beta.
-\]</div>
-<p>它控制的是算法映射 <span class="arithmatex">\(S\mapsto A(S)\)</span> 的敏感度，而不是假设类的 VC 维或 Rademacher 复杂度。正则化 ERM 的强凸性给出稳定性，是“算法本身温和”这一事实的定量化。</p>
-<p>稳定性泛化证明把</p>
-<div class="arithmatex">\[
-E_S L_{\mathcal D}(A(S))
-\quad\text{和}\quad
-E_S L_S(A(S))
-\]</div>
-<p>写成训练点与独立点交换后的两个期望；只有在 iid 抽样与交换合法时，差值才可由 <span class="arithmatex">\(\beta\)</span> 控制。若数据有时间依赖、分布漂移或算法查看了验证集，必须重新审计这一步。</p>
-<h2 id="2-hedge">2. 在线专家与 Hedge<a class="headerlink" href="#2-hedge" title="Permanent link"></a></h2>
-<p>在线协议是</p>
-<div class="arithmatex">\[
-\text{选 }p_t\ \longrightarrow\ \text{看 }\ell_t\ \longrightarrow\ \text{付 }\langle p_t,\ell_t\rangle\ \longrightarrow\ \text{更新}.
-\]</div>
-<p>Hedge 的势函数证明把专家 <span class="arithmatex">\(k\)</span> 的权重写成
-<span class="arithmatex">\(w_{T+1,k}=K^{-1}\exp(-\eta\sum_t\ell_{t,k})\)</span>，一方面上界权重总和，另一方面下界最佳专家权重，得到前述 regret inequality。若 <span class="arithmatex">\(\eta\asymp\sqrt{\log K/T}\)</span>，上界是 <span class="arithmatex">\(O(\sqrt{T\log K})\)</span>，平均 regret 才趋于 0。</p>
-<p>注意 comparator 是“事后最好的固定专家”，不是每轮最好的专家；后者通常需要额外信息，不能直接作为可实现基准。专家数量、损失范围、<span class="arithmatex">\(\eta\)</span> 和比较对象都应写入实验账本。</p>
-<h2 id="3-ogd-online-to-batch">3. 与 OGD 和 online-to-batch 的接口<a class="headerlink" href="#3-ogd-online-to-batch" title="Permanent link"></a></h2>
-<p>在凸决策域直径 <span class="arithmatex">\(D\)</span>、次梯度范数 <span class="arithmatex">\(\leq G\)</span> 的 OGD 中，势函数同样给出</p>
-<div class="arithmatex">\[
-\operatorname{Reg}_T
-\leq\frac{D^2}{2\eta}+\frac{\eta G^2T}{2}.
-\]</div>
-<p>这是在线协议内部的分布无关结论。若再把在线样本假设为 iid，并对在线迭代平均应用 Jensen，才可导出 online-to-batch 的期望统计结论；那是额外的桥梁，不是 Hedge 账本已经完成的事情。</p>
-<h2 id="4_1">4. 三个检查题<a class="headerlink" href="#4_1" title="Permanent link"></a></h2>
-<p><strong>例 1（正则太弱）</strong> 若 <span class="arithmatex">\(\lambda=1/m\)</span>，公式给 <span class="arithmatex">\(\beta=2L^2/(\lambda m)=2L^2\)</span> 量级的常数而不会随 <span class="arithmatex">\(m\)</span> 消失；稳定性路线也有失效区。</p>
-<p><strong>例 2（对抗序列）</strong> 让一个专家前半程最好、另一个后半程最好，Hedge 会因惯性付出切换代价；这不表示算法违反 regret 定理，因为 comparator 仍是一个固定专家。</p>
-<p><strong>例 3（量词翻译）</strong> 想把稳定性变成测试风险结论时，补上 iid、损失有界/集中条件与概率量词；想把 Hedge 变成统计泛化时，另写 online-to-batch 的抽样桥。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>统计学习的两条边界在这里并列：稳定性解释“这个算法为何不太依赖某一个样本”，在线 regret 解释“没有分布时仍能追平一个固定基准”。它们都强大，但各自的量词必须留在原位。</em></p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="slt-03-rademacher.html"><span class="pager-label">上一页</span>统计学习 III · Rademacher 复杂度</a>
