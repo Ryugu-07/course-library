@@ -1,137 +1,244 @@
-# 量子信息 I · Qubit、纠缠与 Bell 不等式
+# 量子信息 I · 从一个 qubit 到可检验的 Bell 关联
 
-> **对标**：Nielsen & Chuang §1–2 ｜ **前置**：qm-01/03、aqm-03（密度矩阵）、高代/信息论线
-> 量子信息提供一套把量子态、演化、测量与关联当作可操作资源的语言：叠加与纠缠是**资源**。本页立好 qubit 语言、纠缠的度量、以及 **Bell 不等式**：在局域性、测量独立性等明确实验假设下，某类局域隐变量模型与量子预测/实验不相容（相关基础工作获诺奖 2022）。数学主线是线性代数与概率。
+> **前置**：复向量、内积、张量积与密度矩阵；遇到约化态可回看 [密度矩阵与纠缠](aqm-03-path-density.html)。这一课要回答：怎样从一个矩阵算出实际测量概率？为什么纠缠、CHSH 违反和某次样本越界是三件不同的事？
 
 <div data-learning-page></div>
+<div class="chsh175-course" markdown="1">
+<style>.chsh175-course .learning-layer,.chsh175-course .learning-lab{max-width:none;min-width:0}.chsh175-static{overflow:auto;max-width:100%}.chsh175-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}.chsh175-static td,.chsh175-static th{white-space:nowrap}</style>
+<noscript><style>.chsh175-course span.arithmatex{overflow-wrap:anywhere;word-break:break-word;white-space:normal}</style></noscript>
 
-<section class="learning-layer" markdown="1" aria-labelledby="qi-qubits-learning-title">
-
-## 学习层：四组相关计数，究竟越过了哪条界？
-
-<h3 id="qi-qubits-learning-title">1. 具体情境：Alice 与 Bob 各自测一只 singlet</h3>
-
-Alice 与 Bob 远离，各收到一只自旋 $\frac12$ 粒子，二者制备在 singlet
-
-$$
-\lvert\Psi^-\rangle=\frac{\lvert01\rangle-\lvert10\rangle}{\sqrt2}.
-$$
-
-每一轮中，Alice 从 $a,a'$ 里选一个测量轴，Bob 从 $b,b'$ 里选一个；输出编码为 $A,B\in\{+1,-1\}$。四种设置不是同一对粒子同时测四次，而是把许多同样制备的 pair 分成四个子样本，分别估计 $E(a,b)$、$E(a,b')$、$E(a',b)$、$E(a',b')$。CHSH 的带符号约定固定为
-
-$$
-S=E(a,b)+E(a,b')+E(a',b)-E(a',b'),\qquad \text{Bell value}=|S|.
-$$
-
-先预测再打开下方实验台：局域隐藏变量能否超过 $|S|=2$？singlet 的最优角度会给出正还是负的 $S$？把 shots 调到很小，偶然的 $|\hat S|>2$ 应不应该直接叫作 Bell 证据？最后，Bob 改选 $b$ 还是 $b'$，Alice 单独看到的 $+$ 比例会不会改变？
-
-<h3>2. 四本账必须分开</h3>
-
-| 账本 | 假设 / 计算对象 | 可说的界或结论 |
-|---|---|---|
-| **局域隐藏变量** | 共享变量 $\lambda$，$A(a,\lambda),B(b,\lambda)\in\{\pm1\}$；并假设测量设置与 $\lambda$ 独立。随机模型可把额外随机性并入 $\lambda$。 | 每个 $\lambda$ 的 CHSH 组合是 $\pm2$，平均后 $\lvert S\rvert\le2$。这是对一类局域隐变量模型的排除，不是对所有“实在论”哲学立场的一句话裁决。 |
-| **量子 singlet 预测** | 自旋测量轴夹角为 $\Delta$ 时，$E_{\rm QM}(a,b)=-\cos\Delta$；联合概率为 $P(++)=P(--)=\frac{1+E}{4}$、$P(+-)=P(-+)=\frac{1-E}{4}$。 | 任意角度满足 Tsirelson 界 $\lvert S\rvert\le2\sqrt2$；角度 $a=0^\circ,a'=90^\circ,b=45^\circ,b'=-45^\circ$ 时，本页符号约定给 $S=-2\sqrt2$，所以 $\lvert S\rvert=2\sqrt2$。 |
-| **有限样本估计** | 每个设置有四个计数 $N_{++},N_{+-},N_{-+},N_{--}$，$n=\sum N$；$\hat E=(N_{++}+N_{--}-N_{+-}-N_{-+})/n$，再代入 $\hat S$。 | $\hat S$ 是估计量，不是理论值；当 $n_i\ge2$ 时本台用二项变量的 plug-in 标准误差 $\mathrm{SE}(\hat S)\approx\sqrt{\sum_i(1-\hat E_i^2)/(n_i-1)}$ 与近似 95% 区间。$n=0$ 或 $1$ 时不报告标准误差/区间，避免制造虚假的确定感。 |
-| **no-signaling** | singlet 的边缘分布 $P(A=+\mid a,b)=P(A=+\mid a,b')=\frac12$，Bob 同理。 | Bell 关联可以超出局域界，但不能用远端的设置改变本地单边统计；有限样本中边缘率有差异，只是统计涨落。 |
-
-这里的“局域”还带着测量独立性等假设；Bell 实验排除的是满足这些条件的局域隐变量解释。它不等于“任何含实在性语言的解释都被逻辑上消灭”，也不等于量子纠缠可以传递可控超光速消息。
-
-<h3>3. 先算符号，再看数据</h3>
-
-用 $a=0^\circ,a'=90^\circ,b=45^\circ,b'=-45^\circ$ 代入 $E=-\cos(\Delta)$：前三项均为 $-1/\sqrt2$，最后一项为 $+1/\sqrt2$，因此
-
-$$
-S=-\frac1{\sqrt2}-\frac1{\sqrt2}-\frac1{\sqrt2}-\frac1{\sqrt2}=-2\sqrt2,
-\qquad |S|=2\sqrt2.
-$$
-
-换一种常见的 CHSH 排列会把同一个最大违反写成 $+2\sqrt2$；所以必须先写清楚哪一项带负号，再比较 Bell value $|S|$。本实验台采用自旋轴的角度：角度按 $360^\circ$ 周期进入正弦/余弦，转 $180^\circ$ 是把测量轴反向、同时翻转输出约定，并不与原轴等同；这不要和偏振片常见的 $\cos(2\Delta)$ 公式混用。
-
-<h3>4. 动手：固定 seed 的 CHSH 计数实验</h3>
-
-实验台有四个预设：**经典可达**（显式局域隐藏变量 toy）、**量子最优**（singlet 的 $|S|=2\sqrt2$ 角度）、**非最优角**（仍是 singlet，但不最大化 $|S|$）、**有限样本/统计涨落**（小 shots）。模型选择、角度与 shots 都可改；随机数 seed 固定为 `20260813`，所以相同输入会得到相同计数。每个设置单独抽取 shots 对，不能把四行计数当作同一批 pair 的四种反事实答案。
-
-实验会同时显示：
-
-- 四行的 $++,+-,-+,--$ 联合计数与每行 $\hat E$；
-- 带符号的 $\hat S$、$|\hat S|$、标准误差和近似置信区间，以及 $|S|=2$ 与 $2\sqrt2$ 的位置；
-- Alice/Bob 的边缘 $+$ 率及其差异，用来单独检查 no-signaling 的统计读法。
+<section class="learning-layer" aria-label="预测与实验" markdown="1">
 
 <div class="learning-lab" data-learning-lab="chsh-experiment" markdown="1">
 
-**无 JavaScript 时的静态读法：**本台使用 $S=E(a,b)+E(a,b')+E(a',b)-E(a',b')$，且 $E=(N_{++}+N_{--}-N_{+-}-N_{-+})/n$。默认角度的理论账为：
+**无脚本对照：**五幅图读取下表同一份六组记录。样本的代数范围是[-4,4]，并不被截到理论量子界。区间保证需要正文列出的固定、独立抽样条件。
 
-| 模型 / 角度 | $E(a,b)$ | $E(a,b')$ | $E(a',b)$ | $E(a',b')$ | $S$ | $|S|$ |
-|---|---:|---:|---:|---:|---:|---:|
-| 局域隐藏变量 toy；$0,90,45,-45^\circ$ | $-1/2$ | $-1/2$ | $-1/2$ | $+1/2$ | $-2$ | $2$ |
-| singlet；$0,90,45,-45^\circ$ | $-1/\sqrt2$ | $-1/\sqrt2$ | $-1/\sqrt2$ | $+1/\sqrt2$ | $-2\sqrt2$ | $2\sqrt2$ |
+<figure class="plot" markdown="1">
+![CHSH理论与样本、单次极端读数、有限样本区间以及Werner纠缠和CHSH阈值。](assets/img/qi-01-chsh-ledgers.svg)
+<figcaption>图 qi-01.1：A与B区分期望与估计；C显示抽样不确定性；D与E区分纠缠和特定Bell检验。</figcaption>
+</figure>
 
-四组计数要按行分别求相关：若某行 $n=0$，该行的 $\hat E$ 与总的 $\hat S$ 都应写“未定义”，而不是填 0。有限样本的 $|\hat S|>2$ 不能单独成为实验认证：对局域 toy 或理论上不违规的角度，它可能只是统计越界；对 singlet 的违规角度，它是对已越过局域界的理想理论期望的样本估计。本台没有实现真实 Bell 实验所需的探测效率、时空分离、随机设置、预注册统计检验与漏洞审计，因此它**不是 loophole-free Bell 证据**。
+<div class="chsh175-static" role="region" tabindex="0" aria-label="CHSH固定观察，可横向滚动" markdown="1">
+
+| 预设 | 每设置n | 参照v | 本模型理论S | 样本Ŝ | Hoeffding区间与[-4,4]相交 |
+|---|---:|---:|---:|---:|---|
+| singlet最优角 | 512 | 1 | -2.82842712 | -2.8515625 | [-3.0916432, -2.6114818] |
+| 局域模型 | 512 | 1 | -2 | -2.04296875 | [-2.28304945, -1.80288805] |
+| 每设置一对 | 1 | 1 | -2.82842712 | -4 | [-4, 1.43240606] |
+| 没有观测 | 0 | 1 | -2.82842712 | 未定义 | 未定义 |
+| 纠缠但无自旋CHSH违反 | 512 | 0.5 | -1.41421356 | -1.4765625 | [-1.7166432, -1.2364818] |
+| Werner可分边界 | 512 | 0.333333333 | -0.942809042 | -1.0234375 | [-1.2635182, -0.783356802] |
 
 </div>
 
-<h3>5. 边界与迁移题</h3>
+[下载六组完整固定记录](assets/learning/projects/chsh-certificates/run-snapshot.json)。包含每一对的伪随机状态、结果、完整计数、区间和矩阵；经典模型的v只属于独立Werner参照。
 
-先用纸笔回答：若四行都取 $n=1$，$\hat E$ 能有哪些值？为什么这会让 $\hat S$ 很不稳定，而且不能给出可靠的标准误差？再把角度全部加 $360^\circ$，确认理论值和固定-seed 的计数不变；只把一个轴加 $180^\circ$，预测对应的输出与 $E$ 如何翻转。最后说明：为什么 $P(A\mid a,b)=P(A\mid a,b')$ 并不意味着 $E(a,b)=E(a,b')$？这正是“无信号”与“无关联”之间的边界。
+
+</div>
 
 </section>
 
-## 1. Qubit 与量子门
+## 1. 一个 qubit 的两个振幅，不是两个可同时读出的数
 
-<figure class="plot" markdown="1">
-![Bloch 球上的量子比特](assets/img/qi-01-bloch.svg)
-<figcaption><span class="fig-id">图 1.1</span>Bloch 球：一个量子比特的纯态是球面上一点，\(|0\rangle\)/\(|1\rangle\) 在两极，量子门是球面上的旋转。</figcaption>
-</figure>
+写 $|\psi\rangle=\alpha|0\rangle+\beta|1\rangle$，要求 $|\alpha|^2+|\beta|^2=1$。在 $Z$ 基测一次，只得到 0 或 1，概率分别为两个模平方。为了估计概率，需要许多次同样的制备；一只未知 qubit 不会把其连续参数全部交给你。
 
-**Qubit**：二维 Hilbert 空间 $|\psi\rangle = \alpha|0\rangle + \beta|1\rangle$（qm-03 自旋 ½ 的抽象化——物理载体随意：自旋/偏振/超导电路）。**Bloch 球**：纯态 ⟺ 球面点（$\theta, \phi$ 两实参——归一化+全局相位吃掉两个自由度）；混合态住球内（aqm-03 密度矩阵，球心 = 最大混合）。
+整体乘 $e^{i\gamma}$ 不改变任何测量概率。选去整体相位后，纯态可写为 $\cos(\theta/2)|0\rangle+e^{i\phi}\sin(\theta/2)|1\rangle$。相对相位仍然重要：$|+\rangle=(|0\rangle+|1\rangle)/\sqrt2$ 与 $|-\rangle=(|0\rangle-|1\rangle)/\sqrt2$ 在 $Z$ 基都各半，在 $X$ 基却能完美区分。
 
-**量子门 = 酉矩阵**（qm-01 演化公理的电路化）：单比特 Pauli $X, Y, Z$、**Hadamard** $H = \frac{1}{\sqrt2}\begin{pmatrix}1&1\\1&-1\end{pmatrix}$（造叠加的主力）、相位门；双比特 **CNOT**（控制翻转——造纠缠的主力）。通用性【引用】：{单比特门 + CNOT} 可逼近任意酉——量子计算的"与或非"。
+这也解释了“叠加”和“随机选一个基态”的差别。纯态 $|+\rangle\langle+|$ 有非零非对角元；各半随机选 $|0\rangle$、$|1\rangle$ 得到 $I/2$。两者在某一种测量下相同，不代表它们是同一个态。
 
-**两条基本定律（经典直觉的葬礼）**：
+## 2. Bloch 球把正定性、概率和旋转连起来
 
-- **不可克隆定理【推导】**：不存在酉 $U$ 使 $U|\psi\rangle|0\rangle = |\psi\rangle|\psi\rangle$ 对一切 $|\psi\rangle$。*证*：对两态克隆取内积——$\langle\psi|\phi\rangle = \langle\psi|\phi\rangle^2$ ⇒ 内积只能 0 或 1：非正交态不可克隆。$\blacksquare$（量子密码的守护神、纠错必须绕开的墙——qi-03）；
-- **测量通常不可逆**：对未知态做标准投影测量后，不能靠一个确定性物理操作恢复测量前的任意状态；弱测量的条件性“撤销”不等于普遍逆过程。信息增益与扰动的权衡需要连同测量模型一起表述【引用】。
-
-## 2. 纠缠：非经典关联
-
-**Bell 态**：$|\Phi^\pm\rangle = \frac{|00\rangle \pm |11\rangle}{\sqrt2},\ |\Psi^\pm\rangle = \frac{|01\rangle \pm |10\rangle}{\sqrt2}$——双比特最大纠缠基（aqm-03 例 2：约化到单边 = 最大混合——**整体纯而局部乱**：信息全在关联里）。对双体纯态，纠缠 ⟺ 不可写成直积 ⟺ 任一边约化熵 $>0$，这时约化 von Neumann 熵就是纠缠熵；对混合态，单边熵同时含经典混合，不能直接当作一般纠缠量。
-
-**两个"不能"划清边界**：纠缠**不能超光速通信**（未获知远端测量结果时，对方任意局域 trace-preserving 操作都不改变本地约化态——no-signaling）；**不能替代信道**——但配合经典信道可做经典做不到的事：**量子隐形传态**【骨架】（Bell 测量 + 2 经典比特 + 单边修正 = 转移未知态——态被转移原件必毁：不可克隆的自洽），以及在预共享纠缠辅助下用 1 个 qubit 传 2 个经典 bit 的超密编码。
-
-## 3. Bell 不等式（本页顶点：可检验的关联界）
-
-**EPR 的赌注**：量子关联或许来自"隐藏变量"（粒子出发前已带好答案）。**Bell（1964）**：在定域性、测量设置与隐藏变量独立等假设下，这类模型的关联有**可检验的上限**。
-
-**定理（CHSH 不等式）【推导】** 定域隐变量：测量结果 $A(a, \lambda), B(b, \lambda) \in \{\pm1\}$ 由共享变量 $\lambda$ 预定。对任意 $\lambda$：
+Pauli 矩阵为 $X=\begin{pmatrix}0&1\\1&0\end{pmatrix}$、$Y=\begin{pmatrix}0&-i\\i&0\end{pmatrix}$、$Z=\operatorname{diag}(1,-1)$。任意单 qubit 密度矩阵都能展开为
 
 $$
-A(a)[B(b) + B(b')] + A(a')[B(b) - B(b')] = \pm2
+\rho=\frac{I+\mathbf r\cdot\boldsymbol\sigma}{2},\qquad
+\lambda_\pm(\rho)=\frac{1\pm|\mathbf r|}{2},\qquad
+\operatorname{tr}(\rho^2)=\frac{1+|\mathbf r|^2}{2}.
 $$
 
-（两括号必一个为 $\pm2$ 一个为 0。）对 $\lambda$ 平均：
+为什么？Pauli 代数给 $(\mathbf r\cdot\boldsymbol\sigma)^2=|\mathbf r|^2I$，而这一矩阵的迹为零。因此它的两个本征值是 $\pm|\mathbf r|$。于是 $\rho\succeq0$ 等价于 $|\mathbf r|\le1$，纯态对应球面，最大混合态对应球心。
+
+沿单位向量 $\mathbf n$ 测自旋，结果编码为 $s=\pm1$，投影算符 $P_s=(I+s\mathbf n\cdot\boldsymbol\sigma)/2$。利用 $\operatorname{tr}(\sigma_i\sigma_j)=2\delta_{ij}$，得到 $p_s=\operatorname{tr}(\rho P_s)=(1+s\mathbf r\cdot\mathbf n)/2$。概率来自点积，不必记一张角度表。
+
+单比特酉门通过 $\rho\mapsto U\rho U^\dagger$ 作用。$U=\exp(-i\omega\mathbf n\cdot\boldsymbol\sigma/2)$ 把 Bloch 向量绕 $\mathbf n$ 旋转 $\omega$。Hadamard 门 $H=(X+Z)/\sqrt2$ 满足 $HZH=X$：它把 $Z$ 基的确定性搬到 $X$ 基。
+
+<details class="answer" markdown="1"><summary>展开解答：同样的 Z 计数，怎样认出相对相位？</summary>
+
+$|+\rangle$ 的 Bloch 向量是 $(1,0,0)$，$|-\rangle$ 是 $(-1,0,0)$，$I/2$ 是零向量。取 $\mathbf n=(0,0,1)$，三者都得到各半概率；取 $\mathbf n=(1,0,0)$，得到的 $+$ 概率依次是 1、0、$1/2$。这说明换基测量能读取相对相位造成的干涉，而不能读取整体相位。
+
+</details>
+
+## 3. 两个 qubit：先写清张量顺序，再谈纠缠
+
+本课双体基顺序固定为 $|00\rangle,|01\rangle,|10\rangle,|11\rangle$。第一位属于 Alice，第二位属于 Bob。CNOT 以第一位为控制时，把 $|a,b\rangle$ 变为 $|a,a\mathbin\oplus b\rangle$。因此从 $|00\rangle$ 出发，先在第一位做 $H$ 再做 CNOT，就得到 $|\Phi^+\rangle=(|00\rangle+|11\rangle)/\sqrt2$。
+
+四个 Bell 态 $|\Phi^\pm\rangle=(|00\rangle\pm|11\rangle)/\sqrt2$、$|\Psi^\pm\rangle=(|01\rangle\pm|10\rangle)/\sqrt2$ 是正交基。后面的自旋关联实验使用 singlet $|\Psi^-\rangle$，传态协议使用 $|\Phi^+\rangle$。不要把两者的关联符号混用。
+
+“单比特门加 CNOT 通用”说的是可组合的电路生成能力。允许所有连续单比特门时，[有限维酉可分解成有限电路](https://arxiv.org/abs/quant-ph/9503016)；若只允许特定有限门集，就要另证其生成的集合足够稠密，并讨论逼近精度和门数。通用不等于任意任务都能高效完成。
+
+## 4. 纯态纠缠可以从一次 SVD 看出来
+
+把双体纯态的系数排成矩阵 $M$：$|\psi\rangle=\sum_{ij}M_{ij}|i\rangle|j\rangle$。SVD 给出 Schmidt 分解
 
 $$
-S = E(a,b) + E(a,b') + E(a',b) - E(a',b'),\qquad |S| \leq 2
+|\psi\rangle=\sum_j\sqrt{p_j}|u_j\rangle|v_j\rangle,\quad
+p_j\ge0,\quad\sum_jp_j=1,\qquad
+\rho_A=\sum_jp_j|u_j\rangle\langle u_j|.
 $$
 
-**量子力学的违反【推导】**：单态 $|\Psi^-\rangle$ 的关联 $E(\mathbf a, \mathbf b) = -\mathbf a\cdot\mathbf b$（Pauli 代数两行）；取夹角 45° 阶梯的四个方向：
+若采用 $M=U\Sigma V^\dagger$ 的 SVD 约定，第二侧的 $|v_j\rangle$ 要取 $V$ 第 $j$ 列的逐项共轭。只有一个非零 $p_j$ 才是乘积态；出现两个或更多，任何局部换基都消不掉这一结构。双体纯态的纠缠熵是 $-\sum_jp_j\log_2p_j$，它等于任一边约化态的熵。
+
+对混合态则应使用可分性的定义：$\rho_{AB}=\sum_jw_j\rho_A^{(j)}\otimes\rho_B^{(j)}$，$w_j\ge0$ 且和为 1。可分态允许经典关联。局部态很混，不足以认定纠缠。
+
+<details class="answer" markdown="1"><summary>展开解答：局部熵都是 1，整体为什么可能完全不同？</summary>
+
+$|\Phi^+\rangle$ 的约化态是 $I/2$，整体却是纯态。另一方面，$\rho_{\rm cl}=(|00\rangle\langle00|+|11\rangle\langle11|)/2$ 也有相同约化态，但它已经写成乘积态的概率混合，是可分的。两者单边熵都是 1；只有第一个能用“纯态约化熵”直接度量纠缠。其非对角关联项也不同。
+
+</details>
+
+## 5. 不可克隆约束的是未知态的通用复制器
+
+先假设用一个酉门把 $|\psi\rangle|0\rangle$ 变成 $|\psi\rangle|\psi\rangle$。对两个输入态取内积，会要求 $s=s^2$，其中 $s=\langle\psi|\phi\rangle$。若两个态既不正交也不属于同一射线，这不可能。
+
+加入环境也不能制造确定性完美通用克隆器。纯输入的两个副本若都是完美纯态，扩展输出必与环境分开；内积保持要求 $s=s^2\langle e_\psi|e_\phi\rangle$。取模后 $|s|\le|s|^2$，与 $0<|s|<1$ 矛盾。正交的一组已知态可以复制；这没有违反定理。
+
+测量不可逆也要指定对象。例如丢弃 $Z$ 测量结果后，$|+\rangle$ 和 $|-\rangle$ 都变成 $I/2$。一个确定性恢复通道不可能把同一个输入同时恢复成两个不同态。条件性弱测量撤销并不是这种通用恢复器。
+
+## 6. 隐形传态：四个分支把协议算到底
+
+现在三位的顺序固定为输入 $Q$、Alice 的辅助位 $A$、Bob 的位 $B$。初态是 $|\psi\rangle_Q\otimes|\Phi^+\rangle_{AB}$。Alice 做 $\operatorname{CNOT}_{Q\to A}$，再在 $Q$ 上做 $H$。直接展开八维向量后，可以收集为
 
 $$
-|S_{QM}| = 2\sqrt2 \approx 2.83 > 2
+\frac12\sum_{q,a\in\{0,1\}}|q,a\rangle_{QA}\otimes X^aZ^q|\psi\rangle_B.
 $$
 
-$\blacksquare$（Tsirelson 界：$2\sqrt2$ 是量子上限【引用】。）
+Alice 测量得到 $q,a$，每个分支的概率都是 $1/4$。Bob 收到这两个经典比特后施加 $Z^qX^a$，恰好消去条件变换。注意矩阵从右向左作用；位顺序不同，校正表的书写顺序也会不同。
 
-**实验判决（有条件）**：Aspect（1982）→ 2015 年多组 loophole-free Bell test → 诺奖 2022。loophole-free 实验关闭了主要已识别的探测、局域性等实验漏洞，并在其装置与统计检验的假设下观察到 $|S|>2$，从而排除满足相应局域性、测量独立性等条件的局域隐变量类；这不是无前提的形而上裁决，也不单独裁决所有哲学版本的“实在论”。量子力学保住 no-signaling（不违因果），而设备无关密码学把可检验的 Bell 关联用于安全性认证【引用】。
+在 Bob 尚未收到经典信息时，对四个结果平均得到 $\frac14\sum_{q,a}X^aZ^q\rho Z^qX^a=I/2$。因此他不能从本地测量知道输入。收到结果后才恢复未知态；Alice 的原输入已被测量，预共享纠缠也已消耗，没有多出一份副本。
 
-## 4. 练习与要点
+协议对未知外部参考系仍有效：把输入写成 $|0\rangle|r_0\rangle+|1\rangle|r_1\rangle$，以上展开逐项成立。每个分支校正后保留与参考系的原有相关；这才是传送一个量子系统所需的通道性质。可对照 [Watrous 的完整协议](https://quantum.cloud.ibm.com/learning/en/courses/basics-of-quantum-information/entanglement-in-action/quantum-teleportation)，其位顺序需与本课分别核对。
 
-**例 1（Bloch 球体操）** $H|0\rangle = \frac{|0\rangle + |1\rangle}{\sqrt2}$：北极转到赤道（$X$ 轴）；再测 $Z$——各半概率（qm-03 Stern–Gerlach 串联的电路版）。$HZH = X$（矩阵一行）——"H 把 Z 基旋成 X 基"：电路恒等式的读法入门。
+<details class="answer" markdown="1"><summary>展开解答：四种结果分别是什么？</summary>
 
-**例 2（隐形传态走一遍）** 按协议写全四种 Bell 测量结果对应的修正门（$I, X, Z, XZ$）——五分钟把"科幻词"变成三行线性代数；注意原 qubit 测后即毁 + 需 2 经典比特（不超光速的显式体现）。
+按本课 $(q,a)$ 顺序，00、01、10、11 对应 Bob 的未校正态依次为 $|\psi\rangle,X|\psi\rangle,Z|\psi\rangle,XZ|\psi\rangle$。校正依次为 $I,X,Z,ZX$。最后一个用 $ZX\,XZ=I$；不是忽略顺序凑出一个门名。每个未归一化分支带系数 $1/2$，范数平方为 $1/4$，与输入振幅无关。
 
-**例 3（CHSH 数值验证）** 用 $E = -\cos\theta$ 直接代四个角度算 $|S| = 2\sqrt2$；再试任意角度组合确认 $|S|\leq 2\sqrt2$——Tsirelson 界的数值体感。$\blacksquare$
+</details>
 
----
+## 7. 无信号：平均所有远端结果以后，本地态不变
 
-*下一页：把资源变算力——Deutsch、Grover 与 Shor：量子算法为什么快、快在哪、以及不快在哪。*
+Bob 对自己的一边做任意迹保持量子操作，Kraus 算符满足 $\sum_jK_j^\dagger K_j=I$。检验 Alice 端任意可观测量 $M$：
+
+$$
+\sum_j\operatorname{tr}\!\left[(M\otimes I)(I\otimes K_j)\rho(I\otimes K_j^\dagger)\right]
+=\operatorname{tr}\!\left[(M\otimes\sum_jK_j^\dagger K_j)\rho\right]
+=\operatorname{tr}[(M\otimes I)\rho].
+$$
+
+第一步用全迹的循环性，第二步用迹保持。因此 Alice 的所有测量分布都不变，即约化态不变。若 Bob 只保留某个测量结果对应的子样本，条件态可以改变；Alice 要识别那个子样本，仍需要收到经典信息。
+
+无信号只约束边缘分布，不要求联合分布可分解。后面会看到，同样的两个 $1/2$ 边缘，可以伴随随角度变化的强关联。
+
+## 8. CHSH 的局域界为什么是 2？
+
+Alice 选 $a$ 或 $a'$，Bob 选 $b$ 或 $b'$，各输出 $\pm1$。局域模型把结果写成 $A(a,\lambda)$、$B(b,\lambda)$；共享变量的分布与测量设置独立。局部随机性也可并入 $\lambda$。
+
+对每个固定 $\lambda$，$B+B'$ 与 $B-B'$ 中恰有一个是零，另一个为 $\pm2$。于是
+
+$$
+A(B+B')+A'(B-B')=\pm2,\qquad
+S=E(a,b)+E(a,b')+E(a',b)-E(a',b'),\quad |S|\le2.
+$$
+
+最后一步是对同一个 $\lambda$ 分布取平均。实验并没有对同一粒子对同时测四套不兼容设置；模型的局域赋值和设置独立性让四种平均能用这条不等式连接。若样本被设置相关地筛选，或者不同设置面对不同制备分布，就不能悄悄沿用这一证明。
+
+实验里的经典对照更具体：均匀抽取 $\lambda\in[0,2\pi)$，$A=\operatorname{sgn}\cos(\lambda-a)$、$B=-\operatorname{sgn}\cos(\lambda-b)$。若两轴的最小夹角为 $d\in[0,\pi]$，符号不同的弧段占比给出 $E_{\rm local}=-1+2d/\pi$。它是局域模型的一个实例，不代表所有局域模型都只能画这条曲线。
+
+## 9. 量子界是算符界，单次样本不是算符期望
+
+先取二值投影测量 $A^2=A'^2=B^2=B'^2=I$，并让两方算符作用于不同系统。CHSH 算符 $\mathcal B=A\otimes(B+B')+A'\otimes(B-B')$ 满足
+
+$$
+\mathcal B^2=4I-[A,A']\otimes[B,B'],\qquad
+\|\mathcal B\|^2\le4+\|[A,A']\|\,\|[B,B']\|\le8.
+$$
+
+展开平方后，交叉项中的反对易组合抵消，留下两个交换子；$\|[A,A']\|\le2$ 来自每个可观测量范数为 1。因此任意态的 $|\operatorname{tr}(\rho\mathcal B)|\le2\sqrt2$。二值一般测量可通过局部投影扩张得到相同界；这里没有把实验限制成只有二维才成立的经验规律。
+
+singlet 满足 $\langle\sigma_i\otimes\sigma_j\rangle=-\delta_{ij}$，所以 $E(\mathbf a,\mathbf b)=-\mathbf a\cdot\mathbf b$。在 $xz$ 平面用自旋轴角度表示，$E=-\cos(a-b)$。最优设置 $(a,a',b,b')=(0,90,45,-45)^\circ$ 给前三项 $-1/\sqrt2$、第四项 $+1/\sqrt2$，本课符号下 $S=-2\sqrt2$。
+
+测量结果 $s,t=\pm1$ 的联合概率由投影乘积得到 $p(s,t)=(1+stE)/4$，两端边缘都是 $1/2$。这里角度是自旋轴角度；不要与偏振基向量常用的双角公式混淆。
+
+<details class="answer" markdown="1"><summary>展开解答：为什么一轮数据可以出现绝对值 4？</summary>
+
+若四种设置各只抽一对，四个相关估计都只能取 $\pm1$。恰好前三个乘积为 -1、最后一个为 +1，就得到 $\hat S=-4$。这是四组独立结果的组合，未必来自同一个隐藏变量赋值；它也不是量子算符的精确期望。理论界约束分布期望，统计论负责样本怎样接近期望。把图上的 -4 截到 $-2\sqrt2$ 会隐藏这一差别。
+
+</details>
+
+## 10. 有纠缠，但不违反这类 CHSH：一个可算到底的例子
+
+给 singlet 混入白噪声，得到 Werner 族 $\rho_v=v|\Psi^-\rangle\langle\Psi^-|+(1-v)I_4/4$，$0\le v\le1$。其自旋关联变为 $-v\mathbf a\cdot\mathbf b$，所以单副本二值自旋投影测量的最大 CHSH 值为 $2\sqrt2v$。
+
+可分态做一边部分转置后仍为半正定矩阵：转置保持每个局部密度矩阵的半正定性，概率混合也保持。对本族直接换矩阵指标，可算得
+
+$$
+\operatorname{spec}(\rho_v^{T_B})=
+\left\{\frac{1-3v}{4},\frac{1+v}{4},\frac{1+v}{4},\frac{1+v}{4}\right\}.
+$$
+
+因此 $v>1/3$ 一定纠缠。反过来，$v=1/3$ 恰是沿 $\pm x,\pm y,\pm z$ 六个方向的相反单比特乘积态的等权混合；更小的 $v$ 再混入 $I_4/4$ 即可。于是这一族在 $v\le1/3$ 可分，$v>1/3$ 纠缠；但要违反上述 CHSH，需要 $v>1/\sqrt2$。部分转置判据及本例可对照 [Peres 原论文](https://arxiv.org/abs/quant-ph/9604005)。一般高维不能把 PPT 自动当作可分。
+
+<details class="answer" markdown="1"><summary>展开解答：把 v=1/3 的可分构造写出来</summary>
+
+对 $P=X,Y,Z$ 和 $s=\pm1$，取 $\rho_{P,s}=(I+sP)/2$。六个 $\rho_{P,s}\otimes\rho_{P,-s}$ 的平均为 $\frac14[I\otimes I-\frac13(X\otimes X+Y\otimes Y+Z\otimes Z)]$，就是 $\rho_{1/3}$。低于阈值时 $\rho_v=3v\rho_{1/3}+(1-3v)I_4/4$。系数非负且和为 1，给出了实际分解，而不只是一句判据名称。
+
+</details>
+
+<details class="answer" markdown="1"><summary>展开解答：v=1/2 说明了什么，又没有说明什么？</summary>
+
+最小部分转置本征值为 $-1/8$，所以纠缠；最大自旋 CHSH 是 $\sqrt2<2$，所以这类测量不违反 CHSH。不能据此推断所有 Bell 不等式、局部过滤或多副本协议都没有可能揭示其他性质。“这套检验未检出”要连同设置族和操作范围一起说。
+
+</details>
+
+## 11. 有限样本：给出会变宽的区间，而不是零误差幻觉
+
+每个设置的四个计数为 $N_{++},N_{+-},N_{-+},N_{--}$，总数 $n$。先逐行计算 $\hat E=(N_{++}+N_{--}-N_{+-}-N_{-+})/n$，再带符号相加。$n=0$ 时估计未定义，不能补零。
+
+常用的 plug-in 标准误差是 $\sqrt{\sum_i(1-\hat E_i^2)/(n_i-1)}$，要求各 $n_i\ge2$。它是描述性读数；若每行结果全同，就会给出零，不能据此认定真实误差为零。
+
+本实验另列一个保守的有限样本区间。假定四组抽样独立、每组来自固定分布，样本量在看数据前确定。把每个乘积 $AB\in[-1,1]$ 按本行系数 $\pm1/n_i$ 加权，Hoeffding 界给
+
+$$
+\Pr\{|\hat S-S|\ge\epsilon\}
+\le2\exp\!\left[-\frac{\epsilon^2}{2\sum_{i=1}^4 1/n_i}\right],\qquad
+\epsilon_{95}=\sqrt{2\log40\sum_{i=1}^4\frac1{n_i}}.
+$$
+
+常数从哪里来？单个加权变量的值域长度是 $2/n_i$，全部值域平方之和是 $4\sum_i1/n_i$。指数矩方法使用 $\mathbb E e^{u(X-\mathbb EX)}\le e^{u^2(b-a)^2/8}$：对数指数矩的二阶导数是指数倾斜分布下的方差；任何支持在 $[a,b]$ 的分布，其方差都不超过到区间中点的均方距离，后者至多 $(b-a)^2/4$。从零点的函数值和一阶导数均为零出发，积分两次就得到这个上界。再对独立变量相乘并优化 $u$，分别控制两尾。每行同为 $n$ 时，半径是 $\sqrt{8\log40/n}$。
+
+原始区间 $[\hat S-\epsilon_{95},\hat S+\epsilon_{95}]$ 与代数范围 $[-4,4]$ 的交集仍保持这一覆盖保证。交集不会改动 $\hat S$，也不会把它压回理论局域界或量子界。界较保守是为了在少样本和全同结果下仍有明确含义。
+
+这里的概率保证属于理想随机抽样模型。固定 seed 的伪随机重放是计算演示；选择喜欢的 seed、看到越界就停止、反复挑角度或挑子样本，都不自动保留这个固定设计的保证。前缀图中的每个区间也不是一条同时有效的置信带。
+
+<details class="answer" markdown="1"><summary>展开解答：n=1、Ŝ=-4，区间如何保持诚实？</summary>
+
+四行各一个结果时，plug-in 标准误差未定义。Hoeffding 半径 $\sqrt{8\log40}\approx5.4324$，原始区间约为 $[-9.4324,1.4324]$；与代数范围相交后为 $[-4,1.4324]$。它很宽，但并没有假装一个极端样本已经精确定位了期望，也没有改掉图中的 -4。
+
+</details>
+
+## 12. 从课内实验走到真实检验
+
+操作时先比较经典对照与 Werner 模型，再保持角度不变调整样本量。固定 seed 让每次计算可重放；观察图里的理论值、样本值和区间分别怎样变化。再把 $v$ 调到 $1/2$，同时核对密度矩阵、部分转置谱和 CHSH 阈值。经典模型旁的 Werner 扫描始终是独立参照，不是对经典抽样赋予一个量子密度矩阵。
+
+无信号也要单独看：比较 Alice 同一轴在 Bob 两种设置下的边缘率，而不是比较两条相关函数。理想模型的边缘都为 $1/2$；本次有限计数可以不同。只有给定抽样模型和误差控制以后，样本差异才有统计意义。
+
+真实 Bell 检验还要处理设置选择、探测与筛选、时空分离、装置记忆、统计检验和停止规则。本课既没有模拟这些装置，也没有把重放的数据叫作实验认证。设备无关密码与量子网络会进一步利用关联建立可验证保证，但不能从一个漂亮的 $|\hat S|>2$ 读数跳过这些条件。
+
+<details class="answer" markdown="1"><summary>展开解答：无信号为什么不等于没有关联？</summary>
+
+singlet 沿同一轴测量，联合结果只有 $+-$ 与 $-+$，各半；两方都各半随机，却完全反相关。轴正交时四种联合结果各 $1/4$，相关为零，但边缘仍各半。Bob 换轴改变的是联合结构；Alice 不知道 Bob 的结果与设置分组时，本地看到的仍是同一边缘分布。
+
+</details>
+
+下一课：[量子算法](qi-02-algorithms.html)将讨论这些状态与门怎样组成计算过程，以及查询次数、门数和输出信息量为什么需要分开核算。
+
+</div>

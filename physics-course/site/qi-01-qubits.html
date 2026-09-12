@@ -56,143 +56,236 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-12 12:48</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#_1">学习层：四组相关计数，究竟越过了哪条界？</a><ul>
-<li><a href="#qi-qubits-learning-title">1. 具体情境：Alice 与 Bob 各自测一只 singlet</a></li>
-<li><a href="#2">2. 四本账必须分开</a></li>
-<li><a href="#3">3. 先算符号，再看数据</a></li>
-<li><a href="#4-seed-chsh">4. 动手：固定 seed 的 CHSH 计数实验</a></li>
-<li><a href="#5">5. 边界与迁移题</a></li>
-</ul>
-</li>
-<li><a href="#1-qubit">1. Qubit 与量子门</a></li>
-<li><a href="#2_1">2. 纠缠：非经典关联</a></li>
-<li><a href="#3-bell">3. Bell 不等式（本页顶点：可检验的关联界）</a></li>
-<li><a href="#4">4. 练习与要点</a></li>
+<li><a href="#1-qubit">1. 一个 qubit 的两个振幅，不是两个可同时读出的数</a></li>
+<li><a href="#2-bloch">2. Bloch 球把正定性、概率和旋转连起来</a></li>
+<li><a href="#3-qubit">3. 两个 qubit：先写清张量顺序，再谈纠缠</a></li>
+<li><a href="#4-svd">4. 纯态纠缠可以从一次 SVD 看出来</a></li>
+<li><a href="#5">5. 不可克隆约束的是未知态的通用复制器</a></li>
+<li><a href="#6">6. 隐形传态：四个分支把协议算到底</a></li>
+<li><a href="#7">7. 无信号：平均所有远端结果以后，本地态不变</a></li>
+<li><a href="#8-chsh-2">8. CHSH 的局域界为什么是 2？</a></li>
+<li><a href="#9">9. 量子界是算符界，单次样本不是算符期望</a></li>
+<li><a href="#10-chsh">10. 有纠缠，但不违反这类 CHSH：一个可算到底的例子</a></li>
+<li><a href="#11">11. 有限样本：给出会变宽的区间，而不是零误差幻觉</a></li>
+<li><a href="#12">12. 从课内实验走到真实检验</a></li>
 </ul>
 </div>
 </details>
-<h1 id="i-qubit-bell">量子信息 I · Qubit、纠缠与 Bell 不等式<a class="headerlink" href="#i-qubit-bell" title="Permanent link"></a></h1>
+<h1 id="i-qubit-bell">量子信息 I · 从一个 qubit 到可检验的 Bell 关联<a class="headerlink" href="#i-qubit-bell" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>对标</strong>：Nielsen &amp; Chuang §1–2 ｜ <strong>前置</strong>：qm-01/03、aqm-03（密度矩阵）、高代/信息论线
-量子信息提供一套把量子态、演化、测量与关联当作可操作资源的语言：叠加与纠缠是<strong>资源</strong>。本页立好 qubit 语言、纠缠的度量、以及 <strong>Bell 不等式</strong>：在局域性、测量独立性等明确实验假设下，某类局域隐变量模型与量子预测/实验不相容（相关基础工作获诺奖 2022）。数学主线是线性代数与概率。</p>
+<p><strong>前置</strong>：复向量、内积、张量积与密度矩阵；遇到约化态可回看 <a href="aqm-03-path-density.html">密度矩阵与纠缠</a>。这一课要回答：怎样从一个矩阵算出实际测量概率？为什么纠缠、CHSH 违反和某次样本越界是三件不同的事？</p>
 </blockquote>
 <div data-learning-page></div>
-
-<section aria-labelledby="qi-qubits-learning-title" class="learning-layer">
-<h2 id="_1">学习层：四组相关计数，究竟越过了哪条界？<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<h3 id="qi-qubits-learning-title">1. 具体情境：Alice 与 Bob 各自测一只 singlet<a class="headerlink" href="#qi-qubits-learning-title" title="Permanent link"></a></h3>
-<p>Alice 与 Bob 远离，各收到一只自旋 <span class="arithmatex">\(\frac12\)</span> 粒子，二者制备在 singlet</p>
-<div class="arithmatex">\[
-\lvert\Psi^-\rangle=\frac{\lvert01\rangle-\lvert10\rangle}{\sqrt2}.
-\]</div>
-<p>每一轮中，Alice 从 <span class="arithmatex">\(a,a'\)</span> 里选一个测量轴，Bob 从 <span class="arithmatex">\(b,b'\)</span> 里选一个；输出编码为 <span class="arithmatex">\(A,B\in\{+1,-1\}\)</span>。四种设置不是同一对粒子同时测四次，而是把许多同样制备的 pair 分成四个子样本，分别估计 <span class="arithmatex">\(E(a,b)\)</span>、<span class="arithmatex">\(E(a,b')\)</span>、<span class="arithmatex">\(E(a',b)\)</span>、<span class="arithmatex">\(E(a',b')\)</span>。CHSH 的带符号约定固定为</p>
-<div class="arithmatex">\[
-S=E(a,b)+E(a,b')+E(a',b)-E(a',b'),\qquad \text{Bell value}=|S|.
-\]</div>
-<p>先预测再打开下方实验台：局域隐藏变量能否超过 <span class="arithmatex">\(|S|=2\)</span>？singlet 的最优角度会给出正还是负的 <span class="arithmatex">\(S\)</span>？把 shots 调到很小，偶然的 <span class="arithmatex">\(|\hat S|&gt;2\)</span> 应不应该直接叫作 Bell 证据？最后，Bob 改选 <span class="arithmatex">\(b\)</span> 还是 <span class="arithmatex">\(b'\)</span>，Alice 单独看到的 <span class="arithmatex">\(+\)</span> 比例会不会改变？</p>
-<h3 id="2">2. 四本账必须分开<a class="headerlink" href="#2" title="Permanent link"></a></h3>
+<div class="chsh175-course">
+<style>.chsh175-course .learning-layer,.chsh175-course .learning-lab{max-width:none;min-width:0}.chsh175-static{overflow:auto;max-width:100%}.chsh175-static table{display:table;overflow:visible;max-width:none;width:max-content;min-width:100%}.chsh175-static td,.chsh175-static th{white-space:nowrap}</style>
+<noscript>
+<style>.chsh175-course span.arithmatex{overflow-wrap:anywhere;word-break:break-word;white-space:normal}</style>
+</noscript>
+<section aria-label="预测与实验" class="learning-layer">
+<div class="learning-lab" data-learning-lab="chsh-experiment">
+<p><strong>无脚本对照：</strong>五幅图读取下表同一份六组记录。样本的代数范围是[-4,4]，并不被截到理论量子界。区间保证需要正文列出的固定、独立抽样条件。</p>
+<figure class="plot">
+<p><img alt="CHSH理论与样本、单次极端读数、有限样本区间以及Werner纠缠和CHSH阈值。" src="assets/img/qi-01-chsh-ledgers.svg" /></p>
+<figcaption>图 qi-01.1：A与B区分期望与估计；C显示抽样不确定性；D与E区分纠缠和特定Bell检验。</figcaption>
+</figure>
+<div aria-label="CHSH固定观察，可横向滚动" class="chsh175-static" role="region" tabindex="0">
 <table>
 <thead>
 <tr>
-<th>账本</th>
-<th>假设 / 计算对象</th>
-<th>可说的界或结论</th>
+<th>预设</th>
+<th style="text-align: right;">每设置n</th>
+<th style="text-align: right;">参照v</th>
+<th style="text-align: right;">本模型理论S</th>
+<th style="text-align: right;">样本Ŝ</th>
+<th>Hoeffding区间与[-4,4]相交</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>局域隐藏变量</strong></td>
-<td>共享变量 <span class="arithmatex">\(\lambda\)</span>，<span class="arithmatex">\(A(a,\lambda),B(b,\lambda)\in\{\pm1\}\)</span>；并假设测量设置与 <span class="arithmatex">\(\lambda\)</span> 独立。随机模型可把额外随机性并入 <span class="arithmatex">\(\lambda\)</span>。</td>
-<td>每个 <span class="arithmatex">\(\lambda\)</span> 的 CHSH 组合是 <span class="arithmatex">\(\pm2\)</span>，平均后 <span class="arithmatex">\(\lvert S\rvert\le2\)</span>。这是对一类局域隐变量模型的排除，不是对所有“实在论”哲学立场的一句话裁决。</td>
+<td>singlet最优角</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-2.82842712</td>
+<td style="text-align: right;">-2.8515625</td>
+<td>[-3.0916432, -2.6114818]</td>
 </tr>
 <tr>
-<td><strong>量子 singlet 预测</strong></td>
-<td>自旋测量轴夹角为 <span class="arithmatex">\(\Delta\)</span> 时，<span class="arithmatex">\(E_{\rm QM}(a,b)=-\cos\Delta\)</span>；联合概率为 <span class="arithmatex">\(P(++)=P(--)=\frac{1+E}{4}\)</span>、<span class="arithmatex">\(P(+-)=P(-+)=\frac{1-E}{4}\)</span>。</td>
-<td>任意角度满足 Tsirelson 界 <span class="arithmatex">\(\lvert S\rvert\le2\sqrt2\)</span>；角度 <span class="arithmatex">\(a=0^\circ,a'=90^\circ,b=45^\circ,b'=-45^\circ\)</span> 时，本页符号约定给 <span class="arithmatex">\(S=-2\sqrt2\)</span>，所以 <span class="arithmatex">\(\lvert S\rvert=2\sqrt2\)</span>。</td>
+<td>局域模型</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-2</td>
+<td style="text-align: right;">-2.04296875</td>
+<td>[-2.28304945, -1.80288805]</td>
 </tr>
 <tr>
-<td><strong>有限样本估计</strong></td>
-<td>每个设置有四个计数 <span class="arithmatex">\(N_{++},N_{+-},N_{-+},N_{--}\)</span>，<span class="arithmatex">\(n=\sum N\)</span>；<span class="arithmatex">\(\hat E=(N_{++}+N_{--}-N_{+-}-N_{-+})/n\)</span>，再代入 <span class="arithmatex">\(\hat S\)</span>。</td>
-<td><span class="arithmatex">\(\hat S\)</span> 是估计量，不是理论值；当 <span class="arithmatex">\(n_i\ge2\)</span> 时本台用二项变量的 plug-in 标准误差 <span class="arithmatex">\(\mathrm{SE}(\hat S)\approx\sqrt{\sum_i(1-\hat E_i^2)/(n_i-1)}\)</span> 与近似 95% 区间。<span class="arithmatex">\(n=0\)</span> 或 <span class="arithmatex">\(1\)</span> 时不报告标准误差/区间，避免制造虚假的确定感。</td>
+<td>每设置一对</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-2.82842712</td>
+<td style="text-align: right;">-4</td>
+<td>[-4, 1.43240606]</td>
 </tr>
 <tr>
-<td><strong>no-signaling</strong></td>
-<td>singlet 的边缘分布 <span class="arithmatex">\(P(A=+\mid a,b)=P(A=+\mid a,b')=\frac12\)</span>，Bob 同理。</td>
-<td>Bell 关联可以超出局域界，但不能用远端的设置改变本地单边统计；有限样本中边缘率有差异，只是统计涨落。</td>
+<td>没有观测</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-2.82842712</td>
+<td style="text-align: right;">未定义</td>
+<td>未定义</td>
+</tr>
+<tr>
+<td>纠缠但无自旋CHSH违反</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">-1.41421356</td>
+<td style="text-align: right;">-1.4765625</td>
+<td>[-1.7166432, -1.2364818]</td>
+</tr>
+<tr>
+<td>Werner可分边界</td>
+<td style="text-align: right;">512</td>
+<td style="text-align: right;">0.333333333</td>
+<td style="text-align: right;">-0.942809042</td>
+<td style="text-align: right;">-1.0234375</td>
+<td>[-1.2635182, -0.783356802]</td>
 </tr>
 </tbody>
 </table>
-<p>这里的“局域”还带着测量独立性等假设；Bell 实验排除的是满足这些条件的局域隐变量解释。它不等于“任何含实在性语言的解释都被逻辑上消灭”，也不等于量子纠缠可以传递可控超光速消息。</p>
-<h3 id="3">3. 先算符号，再看数据<a class="headerlink" href="#3" title="Permanent link"></a></h3>
-<p>用 <span class="arithmatex">\(a=0^\circ,a'=90^\circ,b=45^\circ,b'=-45^\circ\)</span> 代入 <span class="arithmatex">\(E=-\cos(\Delta)\)</span>：前三项均为 <span class="arithmatex">\(-1/\sqrt2\)</span>，最后一项为 <span class="arithmatex">\(+1/\sqrt2\)</span>，因此</p>
-<div class="arithmatex">\[
-S=-\frac1{\sqrt2}-\frac1{\sqrt2}-\frac1{\sqrt2}-\frac1{\sqrt2}=-2\sqrt2,
-\qquad |S|=2\sqrt2.
-\]</div>
-<p>换一种常见的 CHSH 排列会把同一个最大违反写成 <span class="arithmatex">\(+2\sqrt2\)</span>；所以必须先写清楚哪一项带负号，再比较 Bell value <span class="arithmatex">\(|S|\)</span>。本实验台采用自旋轴的角度：角度按 <span class="arithmatex">\(360^\circ\)</span> 周期进入正弦/余弦，转 <span class="arithmatex">\(180^\circ\)</span> 是把测量轴反向、同时翻转输出约定，并不与原轴等同；这不要和偏振片常见的 <span class="arithmatex">\(\cos(2\Delta)\)</span> 公式混用。</p>
-<h3 id="4-seed-chsh">4. 动手：固定 seed 的 CHSH 计数实验<a class="headerlink" href="#4-seed-chsh" title="Permanent link"></a></h3>
-<p>实验台有四个预设：<strong>经典可达</strong>（显式局域隐藏变量 toy）、<strong>量子最优</strong>（singlet 的 <span class="arithmatex">\(|S|=2\sqrt2\)</span> 角度）、<strong>非最优角</strong>（仍是 singlet，但不最大化 <span class="arithmatex">\(|S|\)</span>）、<strong>有限样本/统计涨落</strong>（小 shots）。模型选择、角度与 shots 都可改；随机数 seed 固定为 <code>20260813</code>，所以相同输入会得到相同计数。每个设置单独抽取 shots 对，不能把四行计数当作同一批 pair 的四种反事实答案。</p>
-<p>实验会同时显示：</p>
-<ul>
-<li>四行的 <span class="arithmatex">\(++,+-,-+,--\)</span> 联合计数与每行 <span class="arithmatex">\(\hat E\)</span>；</li>
-<li>带符号的 <span class="arithmatex">\(\hat S\)</span>、<span class="arithmatex">\(|\hat S|\)</span>、标准误差和近似置信区间，以及 <span class="arithmatex">\(|S|=2\)</span> 与 <span class="arithmatex">\(2\sqrt2\)</span> 的位置；</li>
-<li>Alice/Bob 的边缘 <span class="arithmatex">\(+\)</span> 率及其差异，用来单独检查 no-signaling 的统计读法。</li>
-</ul>
-<div class="learning-lab" data-learning-lab="chsh-experiment">
-<p><strong>无 JavaScript 时的静态读法：</strong>本台使用 <span class="arithmatex">\(S=E(a,b)+E(a,b')+E(a',b)-E(a',b')\)</span>，且 <span class="arithmatex">\(E=(N_{++}+N_{--}-N_{+-}-N_{-+})/n\)</span>。默认角度的理论账为：</p>
-<p>| 模型 / 角度 | <span class="arithmatex">\(E(a,b)\)</span> | <span class="arithmatex">\(E(a,b')\)</span> | <span class="arithmatex">\(E(a',b)\)</span> | <span class="arithmatex">\(E(a',b')\)</span> | <span class="arithmatex">\(S\)</span> | <span class="arithmatex">\(|S|\)</span> |
-|---|---:|---:|---:|---:|---:|---:|
-| 局域隐藏变量 toy；<span class="arithmatex">\(0,90,45,-45^\circ\)</span> | <span class="arithmatex">\(-1/2\)</span> | <span class="arithmatex">\(-1/2\)</span> | <span class="arithmatex">\(-1/2\)</span> | <span class="arithmatex">\(+1/2\)</span> | <span class="arithmatex">\(-2\)</span> | <span class="arithmatex">\(2\)</span> |
-| singlet；<span class="arithmatex">\(0,90,45,-45^\circ\)</span> | <span class="arithmatex">\(-1/\sqrt2\)</span> | <span class="arithmatex">\(-1/\sqrt2\)</span> | <span class="arithmatex">\(-1/\sqrt2\)</span> | <span class="arithmatex">\(+1/\sqrt2\)</span> | <span class="arithmatex">\(-2\sqrt2\)</span> | <span class="arithmatex">\(2\sqrt2\)</span> |</p>
-<p>四组计数要按行分别求相关：若某行 <span class="arithmatex">\(n=0\)</span>，该行的 <span class="arithmatex">\(\hat E\)</span> 与总的 <span class="arithmatex">\(\hat S\)</span> 都应写“未定义”，而不是填 0。有限样本的 <span class="arithmatex">\(|\hat S|&gt;2\)</span> 不能单独成为实验认证：对局域 toy 或理论上不违规的角度，它可能只是统计越界；对 singlet 的违规角度，它是对已越过局域界的理想理论期望的样本估计。本台没有实现真实 Bell 实验所需的探测效率、时空分离、随机设置、预注册统计检验与漏洞审计，因此它<strong>不是 loophole-free Bell 证据</strong>。</p>
 </div>
-<h3 id="5">5. 边界与迁移题<a class="headerlink" href="#5" title="Permanent link"></a></h3>
-<p>先用纸笔回答：若四行都取 <span class="arithmatex">\(n=1\)</span>，<span class="arithmatex">\(\hat E\)</span> 能有哪些值？为什么这会让 <span class="arithmatex">\(\hat S\)</span> 很不稳定，而且不能给出可靠的标准误差？再把角度全部加 <span class="arithmatex">\(360^\circ\)</span>，确认理论值和固定-seed 的计数不变；只把一个轴加 <span class="arithmatex">\(180^\circ\)</span>，预测对应的输出与 <span class="arithmatex">\(E\)</span> 如何翻转。最后说明：为什么 <span class="arithmatex">\(P(A\mid a,b)=P(A\mid a,b')\)</span> 并不意味着 <span class="arithmatex">\(E(a,b)=E(a,b')\)</span>？这正是“无信号”与“无关联”之间的边界。</p>
+<p><a href="assets/learning/projects/chsh-certificates/run-snapshot.json">下载六组完整固定记录</a>。包含每一对的伪随机状态、结果、完整计数、区间和矩阵；经典模型的v只属于独立Werner参照。</p>
+</div>
 </section>
-<h2 id="1-qubit">1. Qubit 与量子门<a class="headerlink" href="#1-qubit" title="Permanent link"></a></h2>
-<figure class="plot">
-<p><img alt="Bloch 球上的量子比特" src="assets/img/qi-01-bloch.svg" /></p>
-<figcaption><span class="fig-id">图 1.1</span>Bloch 球：一个量子比特的纯态是球面上一点，\(|0\rangle\)/\(|1\rangle\) 在两极，量子门是球面上的旋转。</figcaption>
-</figure>
-<p><strong>Qubit</strong>：二维 Hilbert 空间 <span class="arithmatex">\(|\psi\rangle = \alpha|0\rangle + \beta|1\rangle\)</span>（qm-03 自旋 ½ 的抽象化——物理载体随意：自旋/偏振/超导电路）。<strong>Bloch 球</strong>：纯态 ⟺ 球面点（<span class="arithmatex">\(\theta, \phi\)</span> 两实参——归一化+全局相位吃掉两个自由度）；混合态住球内（aqm-03 密度矩阵，球心 = 最大混合）。</p>
-<p><strong>量子门 = 酉矩阵</strong>（qm-01 演化公理的电路化）：单比特 Pauli <span class="arithmatex">\(X, Y, Z\)</span>、<strong>Hadamard</strong> <span class="arithmatex">\(H = \frac{1}{\sqrt2}\begin{pmatrix}1&amp;1\\1&amp;-1\end{pmatrix}\)</span>（造叠加的主力）、相位门；双比特 <strong>CNOT</strong>（控制翻转——造纠缠的主力）。通用性【引用】：{单比特门 + CNOT} 可逼近任意酉——量子计算的"与或非"。</p>
-<p><strong>两条基本定律（经典直觉的葬礼）</strong>：</p>
-<ul>
-<li><strong>不可克隆定理【推导】</strong>：不存在酉 <span class="arithmatex">\(U\)</span> 使 <span class="arithmatex">\(U|\psi\rangle|0\rangle = |\psi\rangle|\psi\rangle\)</span> 对一切 <span class="arithmatex">\(|\psi\rangle\)</span>。<em>证</em>：对两态克隆取内积——<span class="arithmatex">\(\langle\psi|\phi\rangle = \langle\psi|\phi\rangle^2\)</span> ⇒ 内积只能 0 或 1：非正交态不可克隆。<span class="arithmatex">\(\blacksquare\)</span>（量子密码的守护神、纠错必须绕开的墙——qi-03）；</li>
-<li><strong>测量通常不可逆</strong>：对未知态做标准投影测量后，不能靠一个确定性物理操作恢复测量前的任意状态；弱测量的条件性“撤销”不等于普遍逆过程。信息增益与扰动的权衡需要连同测量模型一起表述【引用】。</li>
-</ul>
-<h2 id="2_1">2. 纠缠：非经典关联<a class="headerlink" href="#2_1" title="Permanent link"></a></h2>
-<p><strong>Bell 态</strong>：<span class="arithmatex">\(|\Phi^\pm\rangle = \frac{|00\rangle \pm |11\rangle}{\sqrt2},\ |\Psi^\pm\rangle = \frac{|01\rangle \pm |10\rangle}{\sqrt2}\)</span>——双比特最大纠缠基（aqm-03 例 2：约化到单边 = 最大混合——<strong>整体纯而局部乱</strong>：信息全在关联里）。对双体纯态，纠缠 ⟺ 不可写成直积 ⟺ 任一边约化熵 <span class="arithmatex">\(&gt;0\)</span>，这时约化 von Neumann 熵就是纠缠熵；对混合态，单边熵同时含经典混合，不能直接当作一般纠缠量。</p>
-<p><strong>两个"不能"划清边界</strong>：纠缠<strong>不能超光速通信</strong>（未获知远端测量结果时，对方任意局域 trace-preserving 操作都不改变本地约化态——no-signaling）；<strong>不能替代信道</strong>——但配合经典信道可做经典做不到的事：<strong>量子隐形传态</strong>【骨架】（Bell 测量 + 2 经典比特 + 单边修正 = 转移未知态——态被转移原件必毁：不可克隆的自洽），以及在预共享纠缠辅助下用 1 个 qubit 传 2 个经典 bit 的超密编码。</p>
-<h2 id="3-bell">3. Bell 不等式（本页顶点：可检验的关联界）<a class="headerlink" href="#3-bell" title="Permanent link"></a></h2>
-<p><strong>EPR 的赌注</strong>：量子关联或许来自"隐藏变量"（粒子出发前已带好答案）。<strong>Bell（1964）</strong>：在定域性、测量设置与隐藏变量独立等假设下，这类模型的关联有<strong>可检验的上限</strong>。</p>
-<p><strong>定理（CHSH 不等式）【推导】</strong> 定域隐变量：测量结果 <span class="arithmatex">\(A(a, \lambda), B(b, \lambda) \in \{\pm1\}\)</span> 由共享变量 <span class="arithmatex">\(\lambda\)</span> 预定。对任意 <span class="arithmatex">\(\lambda\)</span>：</p>
+<h2 id="1-qubit">1. 一个 qubit 的两个振幅，不是两个可同时读出的数<a class="headerlink" href="#1-qubit" title="Permanent link"></a></h2>
+<p>写 <span class="arithmatex">\(|\psi\rangle=\alpha|0\rangle+\beta|1\rangle\)</span>，要求 <span class="arithmatex">\(|\alpha|^2+|\beta|^2=1\)</span>。在 <span class="arithmatex">\(Z\)</span> 基测一次，只得到 0 或 1，概率分别为两个模平方。为了估计概率，需要许多次同样的制备；一只未知 qubit 不会把其连续参数全部交给你。</p>
+<p>整体乘 <span class="arithmatex">\(e^{i\gamma}\)</span> 不改变任何测量概率。选去整体相位后，纯态可写为 <span class="arithmatex">\(\cos(\theta/2)|0\rangle+e^{i\phi}\sin(\theta/2)|1\rangle\)</span>。相对相位仍然重要：<span class="arithmatex">\(|+\rangle=(|0\rangle+|1\rangle)/\sqrt2\)</span> 与 <span class="arithmatex">\(|-\rangle=(|0\rangle-|1\rangle)/\sqrt2\)</span> 在 <span class="arithmatex">\(Z\)</span> 基都各半，在 <span class="arithmatex">\(X\)</span> 基却能完美区分。</p>
+<p>这也解释了“叠加”和“随机选一个基态”的差别。纯态 <span class="arithmatex">\(|+\rangle\langle+|\)</span> 有非零非对角元；各半随机选 <span class="arithmatex">\(|0\rangle\)</span>、<span class="arithmatex">\(|1\rangle\)</span> 得到 <span class="arithmatex">\(I/2\)</span>。两者在某一种测量下相同，不代表它们是同一个态。</p>
+<h2 id="2-bloch">2. Bloch 球把正定性、概率和旋转连起来<a class="headerlink" href="#2-bloch" title="Permanent link"></a></h2>
+<p>Pauli 矩阵为 <span class="arithmatex">\(X=\begin{pmatrix}0&amp;1\\1&amp;0\end{pmatrix}\)</span>、<span class="arithmatex">\(Y=\begin{pmatrix}0&amp;-i\\i&amp;0\end{pmatrix}\)</span>、<span class="arithmatex">\(Z=\operatorname{diag}(1,-1)\)</span>。任意单 qubit 密度矩阵都能展开为</p>
 <div class="arithmatex">\[
-A(a)[B(b) + B(b')] + A(a')[B(b) - B(b')] = \pm2
+\rho=\frac{I+\mathbf r\cdot\boldsymbol\sigma}{2},\qquad
+\lambda_\pm(\rho)=\frac{1\pm|\mathbf r|}{2},\qquad
+\operatorname{tr}(\rho^2)=\frac{1+|\mathbf r|^2}{2}.
 \]</div>
-<p>（两括号必一个为 <span class="arithmatex">\(\pm2\)</span> 一个为 0。）对 <span class="arithmatex">\(\lambda\)</span> 平均：</p>
+<p>为什么？Pauli 代数给 <span class="arithmatex">\((\mathbf r\cdot\boldsymbol\sigma)^2=|\mathbf r|^2I\)</span>，而这一矩阵的迹为零。因此它的两个本征值是 <span class="arithmatex">\(\pm|\mathbf r|\)</span>。于是 <span class="arithmatex">\(\rho\succeq0\)</span> 等价于 <span class="arithmatex">\(|\mathbf r|\le1\)</span>，纯态对应球面，最大混合态对应球心。</p>
+<p>沿单位向量 <span class="arithmatex">\(\mathbf n\)</span> 测自旋，结果编码为 <span class="arithmatex">\(s=\pm1\)</span>，投影算符 <span class="arithmatex">\(P_s=(I+s\mathbf n\cdot\boldsymbol\sigma)/2\)</span>。利用 <span class="arithmatex">\(\operatorname{tr}(\sigma_i\sigma_j)=2\delta_{ij}\)</span>，得到 <span class="arithmatex">\(p_s=\operatorname{tr}(\rho P_s)=(1+s\mathbf r\cdot\mathbf n)/2\)</span>。概率来自点积，不必记一张角度表。</p>
+<p>单比特酉门通过 <span class="arithmatex">\(\rho\mapsto U\rho U^\dagger\)</span> 作用。<span class="arithmatex">\(U=\exp(-i\omega\mathbf n\cdot\boldsymbol\sigma/2)\)</span> 把 Bloch 向量绕 <span class="arithmatex">\(\mathbf n\)</span> 旋转 <span class="arithmatex">\(\omega\)</span>。Hadamard 门 <span class="arithmatex">\(H=(X+Z)/\sqrt2\)</span> 满足 <span class="arithmatex">\(HZH=X\)</span>：它把 <span class="arithmatex">\(Z\)</span> 基的确定性搬到 <span class="arithmatex">\(X\)</span> 基。</p>
+<details class="answer">
+<summary>展开解答：同样的 Z 计数，怎样认出相对相位？</summary>
+<p><span class="arithmatex">\(|+\rangle\)</span> 的 Bloch 向量是 <span class="arithmatex">\((1,0,0)\)</span>，<span class="arithmatex">\(|-\rangle\)</span> 是 <span class="arithmatex">\((-1,0,0)\)</span>，<span class="arithmatex">\(I/2\)</span> 是零向量。取 <span class="arithmatex">\(\mathbf n=(0,0,1)\)</span>，三者都得到各半概率；取 <span class="arithmatex">\(\mathbf n=(1,0,0)\)</span>，得到的 <span class="arithmatex">\(+\)</span> 概率依次是 1、0、<span class="arithmatex">\(1/2\)</span>。这说明换基测量能读取相对相位造成的干涉，而不能读取整体相位。</p>
+</details>
+<h2 id="3-qubit">3. 两个 qubit：先写清张量顺序，再谈纠缠<a class="headerlink" href="#3-qubit" title="Permanent link"></a></h2>
+<p>本课双体基顺序固定为 <span class="arithmatex">\(|00\rangle,|01\rangle,|10\rangle,|11\rangle\)</span>。第一位属于 Alice，第二位属于 Bob。CNOT 以第一位为控制时，把 <span class="arithmatex">\(|a,b\rangle\)</span> 变为 <span class="arithmatex">\(|a,a\mathbin\oplus b\rangle\)</span>。因此从 <span class="arithmatex">\(|00\rangle\)</span> 出发，先在第一位做 <span class="arithmatex">\(H\)</span> 再做 CNOT，就得到 <span class="arithmatex">\(|\Phi^+\rangle=(|00\rangle+|11\rangle)/\sqrt2\)</span>。</p>
+<p>四个 Bell 态 <span class="arithmatex">\(|\Phi^\pm\rangle=(|00\rangle\pm|11\rangle)/\sqrt2\)</span>、<span class="arithmatex">\(|\Psi^\pm\rangle=(|01\rangle\pm|10\rangle)/\sqrt2\)</span> 是正交基。后面的自旋关联实验使用 singlet <span class="arithmatex">\(|\Psi^-\rangle\)</span>，传态协议使用 <span class="arithmatex">\(|\Phi^+\rangle\)</span>。不要把两者的关联符号混用。</p>
+<p>“单比特门加 CNOT 通用”说的是可组合的电路生成能力。允许所有连续单比特门时，<a href="https://arxiv.org/abs/quant-ph/9503016">有限维酉可分解成有限电路</a>；若只允许特定有限门集，就要另证其生成的集合足够稠密，并讨论逼近精度和门数。通用不等于任意任务都能高效完成。</p>
+<h2 id="4-svd">4. 纯态纠缠可以从一次 SVD 看出来<a class="headerlink" href="#4-svd" title="Permanent link"></a></h2>
+<p>把双体纯态的系数排成矩阵 <span class="arithmatex">\(M\)</span>：<span class="arithmatex">\(|\psi\rangle=\sum_{ij}M_{ij}|i\rangle|j\rangle\)</span>。SVD 给出 Schmidt 分解</p>
 <div class="arithmatex">\[
-S = E(a,b) + E(a,b') + E(a',b) - E(a',b'),\qquad |S| \leq 2
+|\psi\rangle=\sum_j\sqrt{p_j}|u_j\rangle|v_j\rangle,\quad
+p_j\ge0,\quad\sum_jp_j=1,\qquad
+\rho_A=\sum_jp_j|u_j\rangle\langle u_j|.
 \]</div>
-<p><strong>量子力学的违反【推导】</strong>：单态 <span class="arithmatex">\(|\Psi^-\rangle\)</span> 的关联 <span class="arithmatex">\(E(\mathbf a, \mathbf b) = -\mathbf a\cdot\mathbf b\)</span>（Pauli 代数两行）；取夹角 45° 阶梯的四个方向：</p>
+<p>若采用 <span class="arithmatex">\(M=U\Sigma V^\dagger\)</span> 的 SVD 约定，第二侧的 <span class="arithmatex">\(|v_j\rangle\)</span> 要取 <span class="arithmatex">\(V\)</span> 第 <span class="arithmatex">\(j\)</span> 列的逐项共轭。只有一个非零 <span class="arithmatex">\(p_j\)</span> 才是乘积态；出现两个或更多，任何局部换基都消不掉这一结构。双体纯态的纠缠熵是 <span class="arithmatex">\(-\sum_jp_j\log_2p_j\)</span>，它等于任一边约化态的熵。</p>
+<p>对混合态则应使用可分性的定义：<span class="arithmatex">\(\rho_{AB}=\sum_jw_j\rho_A^{(j)}\otimes\rho_B^{(j)}\)</span>，<span class="arithmatex">\(w_j\ge0\)</span> 且和为 1。可分态允许经典关联。局部态很混，不足以认定纠缠。</p>
+<details class="answer">
+<summary>展开解答：局部熵都是 1，整体为什么可能完全不同？</summary>
+<p><span class="arithmatex">\(|\Phi^+\rangle\)</span> 的约化态是 <span class="arithmatex">\(I/2\)</span>，整体却是纯态。另一方面，<span class="arithmatex">\(\rho_{\rm cl}=(|00\rangle\langle00|+|11\rangle\langle11|)/2\)</span> 也有相同约化态，但它已经写成乘积态的概率混合，是可分的。两者单边熵都是 1；只有第一个能用“纯态约化熵”直接度量纠缠。其非对角关联项也不同。</p>
+</details>
+<h2 id="5">5. 不可克隆约束的是未知态的通用复制器<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>先假设用一个酉门把 <span class="arithmatex">\(|\psi\rangle|0\rangle\)</span> 变成 <span class="arithmatex">\(|\psi\rangle|\psi\rangle\)</span>。对两个输入态取内积，会要求 <span class="arithmatex">\(s=s^2\)</span>，其中 <span class="arithmatex">\(s=\langle\psi|\phi\rangle\)</span>。若两个态既不正交也不属于同一射线，这不可能。</p>
+<p>加入环境也不能制造确定性完美通用克隆器。纯输入的两个副本若都是完美纯态，扩展输出必与环境分开；内积保持要求 <span class="arithmatex">\(s=s^2\langle e_\psi|e_\phi\rangle\)</span>。取模后 <span class="arithmatex">\(|s|\le|s|^2\)</span>，与 <span class="arithmatex">\(0&lt;|s|&lt;1\)</span> 矛盾。正交的一组已知态可以复制；这没有违反定理。</p>
+<p>测量不可逆也要指定对象。例如丢弃 <span class="arithmatex">\(Z\)</span> 测量结果后，<span class="arithmatex">\(|+\rangle\)</span> 和 <span class="arithmatex">\(|-\rangle\)</span> 都变成 <span class="arithmatex">\(I/2\)</span>。一个确定性恢复通道不可能把同一个输入同时恢复成两个不同态。条件性弱测量撤销并不是这种通用恢复器。</p>
+<h2 id="6">6. 隐形传态：四个分支把协议算到底<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>现在三位的顺序固定为输入 <span class="arithmatex">\(Q\)</span>、Alice 的辅助位 <span class="arithmatex">\(A\)</span>、Bob 的位 <span class="arithmatex">\(B\)</span>。初态是 <span class="arithmatex">\(|\psi\rangle_Q\otimes|\Phi^+\rangle_{AB}\)</span>。Alice 做 <span class="arithmatex">\(\operatorname{CNOT}_{Q\to A}\)</span>，再在 <span class="arithmatex">\(Q\)</span> 上做 <span class="arithmatex">\(H\)</span>。直接展开八维向量后，可以收集为</p>
 <div class="arithmatex">\[
-|S_{QM}| = 2\sqrt2 \approx 2.83 &gt; 2
+\frac12\sum_{q,a\in\{0,1\}}|q,a\rangle_{QA}\otimes X^aZ^q|\psi\rangle_B.
 \]</div>
-<p><span class="arithmatex">\(\blacksquare\)</span>（Tsirelson 界：<span class="arithmatex">\(2\sqrt2\)</span> 是量子上限【引用】。）</p>
-<p><strong>实验判决（有条件）</strong>：Aspect（1982）→ 2015 年多组 loophole-free Bell test → 诺奖 2022。loophole-free 实验关闭了主要已识别的探测、局域性等实验漏洞，并在其装置与统计检验的假设下观察到 <span class="arithmatex">\(|S|&gt;2\)</span>，从而排除满足相应局域性、测量独立性等条件的局域隐变量类；这不是无前提的形而上裁决，也不单独裁决所有哲学版本的“实在论”。量子力学保住 no-signaling（不违因果），而设备无关密码学把可检验的 Bell 关联用于安全性认证【引用】。</p>
-<h2 id="4">4. 练习与要点<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p><strong>例 1（Bloch 球体操）</strong> <span class="arithmatex">\(H|0\rangle = \frac{|0\rangle + |1\rangle}{\sqrt2}\)</span>：北极转到赤道（<span class="arithmatex">\(X\)</span> 轴）；再测 <span class="arithmatex">\(Z\)</span>——各半概率（qm-03 Stern–Gerlach 串联的电路版）。<span class="arithmatex">\(HZH = X\)</span>（矩阵一行）——"H 把 Z 基旋成 X 基"：电路恒等式的读法入门。</p>
-<p><strong>例 2（隐形传态走一遍）</strong> 按协议写全四种 Bell 测量结果对应的修正门（<span class="arithmatex">\(I, X, Z, XZ\)</span>）——五分钟把"科幻词"变成三行线性代数；注意原 qubit 测后即毁 + 需 2 经典比特（不超光速的显式体现）。</p>
-<p><strong>例 3（CHSH 数值验证）</strong> 用 <span class="arithmatex">\(E = -\cos\theta\)</span> 直接代四个角度算 <span class="arithmatex">\(|S| = 2\sqrt2\)</span>；再试任意角度组合确认 <span class="arithmatex">\(|S|\leq 2\sqrt2\)</span>——Tsirelson 界的数值体感。<span class="arithmatex">\(\blacksquare\)</span></p>
-<hr />
-<p><em>下一页：把资源变算力——Deutsch、Grover 与 Shor：量子算法为什么快、快在哪、以及不快在哪。</em></p>
+<p>Alice 测量得到 <span class="arithmatex">\(q,a\)</span>，每个分支的概率都是 <span class="arithmatex">\(1/4\)</span>。Bob 收到这两个经典比特后施加 <span class="arithmatex">\(Z^qX^a\)</span>，恰好消去条件变换。注意矩阵从右向左作用；位顺序不同，校正表的书写顺序也会不同。</p>
+<p>在 Bob 尚未收到经典信息时，对四个结果平均得到 <span class="arithmatex">\(\frac14\sum_{q,a}X^aZ^q\rho Z^qX^a=I/2\)</span>。因此他不能从本地测量知道输入。收到结果后才恢复未知态；Alice 的原输入已被测量，预共享纠缠也已消耗，没有多出一份副本。</p>
+<p>协议对未知外部参考系仍有效：把输入写成 <span class="arithmatex">\(|0\rangle|r_0\rangle+|1\rangle|r_1\rangle\)</span>，以上展开逐项成立。每个分支校正后保留与参考系的原有相关；这才是传送一个量子系统所需的通道性质。可对照 <a href="https://quantum.cloud.ibm.com/learning/en/courses/basics-of-quantum-information/entanglement-in-action/quantum-teleportation">Watrous 的完整协议</a>，其位顺序需与本课分别核对。</p>
+<details class="answer">
+<summary>展开解答：四种结果分别是什么？</summary>
+<p>按本课 <span class="arithmatex">\((q,a)\)</span> 顺序，00、01、10、11 对应 Bob 的未校正态依次为 <span class="arithmatex">\(|\psi\rangle,X|\psi\rangle,Z|\psi\rangle,XZ|\psi\rangle\)</span>。校正依次为 <span class="arithmatex">\(I,X,Z,ZX\)</span>。最后一个用 <span class="arithmatex">\(ZX\,XZ=I\)</span>；不是忽略顺序凑出一个门名。每个未归一化分支带系数 <span class="arithmatex">\(1/2\)</span>，范数平方为 <span class="arithmatex">\(1/4\)</span>，与输入振幅无关。</p>
+</details>
+<h2 id="7">7. 无信号：平均所有远端结果以后，本地态不变<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>Bob 对自己的一边做任意迹保持量子操作，Kraus 算符满足 <span class="arithmatex">\(\sum_jK_j^\dagger K_j=I\)</span>。检验 Alice 端任意可观测量 <span class="arithmatex">\(M\)</span>：</p>
+<div class="arithmatex">\[
+\sum_j\operatorname{tr}\!\left[(M\otimes I)(I\otimes K_j)\rho(I\otimes K_j^\dagger)\right]
+=\operatorname{tr}\!\left[(M\otimes\sum_jK_j^\dagger K_j)\rho\right]
+=\operatorname{tr}[(M\otimes I)\rho].
+\]</div>
+<p>第一步用全迹的循环性，第二步用迹保持。因此 Alice 的所有测量分布都不变，即约化态不变。若 Bob 只保留某个测量结果对应的子样本，条件态可以改变；Alice 要识别那个子样本，仍需要收到经典信息。</p>
+<p>无信号只约束边缘分布，不要求联合分布可分解。后面会看到，同样的两个 <span class="arithmatex">\(1/2\)</span> 边缘，可以伴随随角度变化的强关联。</p>
+<h2 id="8-chsh-2">8. CHSH 的局域界为什么是 2？<a class="headerlink" href="#8-chsh-2" title="Permanent link"></a></h2>
+<p>Alice 选 <span class="arithmatex">\(a\)</span> 或 <span class="arithmatex">\(a'\)</span>，Bob 选 <span class="arithmatex">\(b\)</span> 或 <span class="arithmatex">\(b'\)</span>，各输出 <span class="arithmatex">\(\pm1\)</span>。局域模型把结果写成 <span class="arithmatex">\(A(a,\lambda)\)</span>、<span class="arithmatex">\(B(b,\lambda)\)</span>；共享变量的分布与测量设置独立。局部随机性也可并入 <span class="arithmatex">\(\lambda\)</span>。</p>
+<p>对每个固定 <span class="arithmatex">\(\lambda\)</span>，<span class="arithmatex">\(B+B'\)</span> 与 <span class="arithmatex">\(B-B'\)</span> 中恰有一个是零，另一个为 <span class="arithmatex">\(\pm2\)</span>。于是</p>
+<div class="arithmatex">\[
+A(B+B')+A'(B-B')=\pm2,\qquad
+S=E(a,b)+E(a,b')+E(a',b)-E(a',b'),\quad |S|\le2.
+\]</div>
+<p>最后一步是对同一个 <span class="arithmatex">\(\lambda\)</span> 分布取平均。实验并没有对同一粒子对同时测四套不兼容设置；模型的局域赋值和设置独立性让四种平均能用这条不等式连接。若样本被设置相关地筛选，或者不同设置面对不同制备分布，就不能悄悄沿用这一证明。</p>
+<p>实验里的经典对照更具体：均匀抽取 <span class="arithmatex">\(\lambda\in[0,2\pi)\)</span>，<span class="arithmatex">\(A=\operatorname{sgn}\cos(\lambda-a)\)</span>、<span class="arithmatex">\(B=-\operatorname{sgn}\cos(\lambda-b)\)</span>。若两轴的最小夹角为 <span class="arithmatex">\(d\in[0,\pi]\)</span>，符号不同的弧段占比给出 <span class="arithmatex">\(E_{\rm local}=-1+2d/\pi\)</span>。它是局域模型的一个实例，不代表所有局域模型都只能画这条曲线。</p>
+<h2 id="9">9. 量子界是算符界，单次样本不是算符期望<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>先取二值投影测量 <span class="arithmatex">\(A^2=A'^2=B^2=B'^2=I\)</span>，并让两方算符作用于不同系统。CHSH 算符 <span class="arithmatex">\(\mathcal B=A\otimes(B+B')+A'\otimes(B-B')\)</span> 满足</p>
+<div class="arithmatex">\[
+\mathcal B^2=4I-[A,A']\otimes[B,B'],\qquad
+\|\mathcal B\|^2\le4+\|[A,A']\|\,\|[B,B']\|\le8.
+\]</div>
+<p>展开平方后，交叉项中的反对易组合抵消，留下两个交换子；<span class="arithmatex">\(\|[A,A']\|\le2\)</span> 来自每个可观测量范数为 1。因此任意态的 <span class="arithmatex">\(|\operatorname{tr}(\rho\mathcal B)|\le2\sqrt2\)</span>。二值一般测量可通过局部投影扩张得到相同界；这里没有把实验限制成只有二维才成立的经验规律。</p>
+<p>singlet 满足 <span class="arithmatex">\(\langle\sigma_i\otimes\sigma_j\rangle=-\delta_{ij}\)</span>，所以 <span class="arithmatex">\(E(\mathbf a,\mathbf b)=-\mathbf a\cdot\mathbf b\)</span>。在 <span class="arithmatex">\(xz\)</span> 平面用自旋轴角度表示，<span class="arithmatex">\(E=-\cos(a-b)\)</span>。最优设置 <span class="arithmatex">\((a,a',b,b')=(0,90,45,-45)^\circ\)</span> 给前三项 <span class="arithmatex">\(-1/\sqrt2\)</span>、第四项 <span class="arithmatex">\(+1/\sqrt2\)</span>，本课符号下 <span class="arithmatex">\(S=-2\sqrt2\)</span>。</p>
+<p>测量结果 <span class="arithmatex">\(s,t=\pm1\)</span> 的联合概率由投影乘积得到 <span class="arithmatex">\(p(s,t)=(1+stE)/4\)</span>，两端边缘都是 <span class="arithmatex">\(1/2\)</span>。这里角度是自旋轴角度；不要与偏振基向量常用的双角公式混淆。</p>
+<details class="answer">
+<summary>展开解答：为什么一轮数据可以出现绝对值 4？</summary>
+<p>若四种设置各只抽一对，四个相关估计都只能取 <span class="arithmatex">\(\pm1\)</span>。恰好前三个乘积为 -1、最后一个为 +1，就得到 <span class="arithmatex">\(\hat S=-4\)</span>。这是四组独立结果的组合，未必来自同一个隐藏变量赋值；它也不是量子算符的精确期望。理论界约束分布期望，统计论负责样本怎样接近期望。把图上的 -4 截到 <span class="arithmatex">\(-2\sqrt2\)</span> 会隐藏这一差别。</p>
+</details>
+<h2 id="10-chsh">10. 有纠缠，但不违反这类 CHSH：一个可算到底的例子<a class="headerlink" href="#10-chsh" title="Permanent link"></a></h2>
+<p>给 singlet 混入白噪声，得到 Werner 族 <span class="arithmatex">\(\rho_v=v|\Psi^-\rangle\langle\Psi^-|+(1-v)I_4/4\)</span>，<span class="arithmatex">\(0\le v\le1\)</span>。其自旋关联变为 <span class="arithmatex">\(-v\mathbf a\cdot\mathbf b\)</span>，所以单副本二值自旋投影测量的最大 CHSH 值为 <span class="arithmatex">\(2\sqrt2v\)</span>。</p>
+<p>可分态做一边部分转置后仍为半正定矩阵：转置保持每个局部密度矩阵的半正定性，概率混合也保持。对本族直接换矩阵指标，可算得</p>
+<div class="arithmatex">\[
+\operatorname{spec}(\rho_v^{T_B})=
+\left\{\frac{1-3v}{4},\frac{1+v}{4},\frac{1+v}{4},\frac{1+v}{4}\right\}.
+\]</div>
+<p>因此 <span class="arithmatex">\(v&gt;1/3\)</span> 一定纠缠。反过来，<span class="arithmatex">\(v=1/3\)</span> 恰是沿 <span class="arithmatex">\(\pm x,\pm y,\pm z\)</span> 六个方向的相反单比特乘积态的等权混合；更小的 <span class="arithmatex">\(v\)</span> 再混入 <span class="arithmatex">\(I_4/4\)</span> 即可。于是这一族在 <span class="arithmatex">\(v\le1/3\)</span> 可分，<span class="arithmatex">\(v&gt;1/3\)</span> 纠缠；但要违反上述 CHSH，需要 <span class="arithmatex">\(v&gt;1/\sqrt2\)</span>。部分转置判据及本例可对照 <a href="https://arxiv.org/abs/quant-ph/9604005">Peres 原论文</a>。一般高维不能把 PPT 自动当作可分。</p>
+<details class="answer">
+<summary>展开解答：把 v=1/3 的可分构造写出来</summary>
+<p>对 <span class="arithmatex">\(P=X,Y,Z\)</span> 和 <span class="arithmatex">\(s=\pm1\)</span>，取 <span class="arithmatex">\(\rho_{P,s}=(I+sP)/2\)</span>。六个 <span class="arithmatex">\(\rho_{P,s}\otimes\rho_{P,-s}\)</span> 的平均为 <span class="arithmatex">\(\frac14[I\otimes I-\frac13(X\otimes X+Y\otimes Y+Z\otimes Z)]\)</span>，就是 <span class="arithmatex">\(\rho_{1/3}\)</span>。低于阈值时 <span class="arithmatex">\(\rho_v=3v\rho_{1/3}+(1-3v)I_4/4\)</span>。系数非负且和为 1，给出了实际分解，而不只是一句判据名称。</p>
+</details>
+<details class="answer">
+<summary>展开解答：v=1/2 说明了什么，又没有说明什么？</summary>
+<p>最小部分转置本征值为 <span class="arithmatex">\(-1/8\)</span>，所以纠缠；最大自旋 CHSH 是 <span class="arithmatex">\(\sqrt2&lt;2\)</span>，所以这类测量不违反 CHSH。不能据此推断所有 Bell 不等式、局部过滤或多副本协议都没有可能揭示其他性质。“这套检验未检出”要连同设置族和操作范围一起说。</p>
+</details>
+<h2 id="11">11. 有限样本：给出会变宽的区间，而不是零误差幻觉<a class="headerlink" href="#11" title="Permanent link"></a></h2>
+<p>每个设置的四个计数为 <span class="arithmatex">\(N_{++},N_{+-},N_{-+},N_{--}\)</span>，总数 <span class="arithmatex">\(n\)</span>。先逐行计算 <span class="arithmatex">\(\hat E=(N_{++}+N_{--}-N_{+-}-N_{-+})/n\)</span>，再带符号相加。<span class="arithmatex">\(n=0\)</span> 时估计未定义，不能补零。</p>
+<p>常用的 plug-in 标准误差是 <span class="arithmatex">\(\sqrt{\sum_i(1-\hat E_i^2)/(n_i-1)}\)</span>，要求各 <span class="arithmatex">\(n_i\ge2\)</span>。它是描述性读数；若每行结果全同，就会给出零，不能据此认定真实误差为零。</p>
+<p>本实验另列一个保守的有限样本区间。假定四组抽样独立、每组来自固定分布，样本量在看数据前确定。把每个乘积 <span class="arithmatex">\(AB\in[-1,1]\)</span> 按本行系数 <span class="arithmatex">\(\pm1/n_i\)</span> 加权，Hoeffding 界给</p>
+<div class="arithmatex">\[
+\Pr\{|\hat S-S|\ge\epsilon\}
+\le2\exp\!\left[-\frac{\epsilon^2}{2\sum_{i=1}^4 1/n_i}\right],\qquad
+\epsilon_{95}=\sqrt{2\log40\sum_{i=1}^4\frac1{n_i}}.
+\]</div>
+<p>常数从哪里来？单个加权变量的值域长度是 <span class="arithmatex">\(2/n_i\)</span>，全部值域平方之和是 <span class="arithmatex">\(4\sum_i1/n_i\)</span>。指数矩方法使用 <span class="arithmatex">\(\mathbb E e^{u(X-\mathbb EX)}\le e^{u^2(b-a)^2/8}\)</span>：对数指数矩的二阶导数是指数倾斜分布下的方差；任何支持在 <span class="arithmatex">\([a,b]\)</span> 的分布，其方差都不超过到区间中点的均方距离，后者至多 <span class="arithmatex">\((b-a)^2/4\)</span>。从零点的函数值和一阶导数均为零出发，积分两次就得到这个上界。再对独立变量相乘并优化 <span class="arithmatex">\(u\)</span>，分别控制两尾。每行同为 <span class="arithmatex">\(n\)</span> 时，半径是 <span class="arithmatex">\(\sqrt{8\log40/n}\)</span>。</p>
+<p>原始区间 <span class="arithmatex">\([\hat S-\epsilon_{95},\hat S+\epsilon_{95}]\)</span> 与代数范围 <span class="arithmatex">\([-4,4]\)</span> 的交集仍保持这一覆盖保证。交集不会改动 <span class="arithmatex">\(\hat S\)</span>，也不会把它压回理论局域界或量子界。界较保守是为了在少样本和全同结果下仍有明确含义。</p>
+<p>这里的概率保证属于理想随机抽样模型。固定 seed 的伪随机重放是计算演示；选择喜欢的 seed、看到越界就停止、反复挑角度或挑子样本，都不自动保留这个固定设计的保证。前缀图中的每个区间也不是一条同时有效的置信带。</p>
+<details class="answer">
+<summary>展开解答：n=1、Ŝ=-4，区间如何保持诚实？</summary>
+<p>四行各一个结果时，plug-in 标准误差未定义。Hoeffding 半径 <span class="arithmatex">\(\sqrt{8\log40}\approx5.4324\)</span>，原始区间约为 <span class="arithmatex">\([-9.4324,1.4324]\)</span>；与代数范围相交后为 <span class="arithmatex">\([-4,1.4324]\)</span>。它很宽，但并没有假装一个极端样本已经精确定位了期望，也没有改掉图中的 -4。</p>
+</details>
+<h2 id="12">12. 从课内实验走到真实检验<a class="headerlink" href="#12" title="Permanent link"></a></h2>
+<p>操作时先比较经典对照与 Werner 模型，再保持角度不变调整样本量。固定 seed 让每次计算可重放；观察图里的理论值、样本值和区间分别怎样变化。再把 <span class="arithmatex">\(v\)</span> 调到 <span class="arithmatex">\(1/2\)</span>，同时核对密度矩阵、部分转置谱和 CHSH 阈值。经典模型旁的 Werner 扫描始终是独立参照，不是对经典抽样赋予一个量子密度矩阵。</p>
+<p>无信号也要单独看：比较 Alice 同一轴在 Bob 两种设置下的边缘率，而不是比较两条相关函数。理想模型的边缘都为 <span class="arithmatex">\(1/2\)</span>；本次有限计数可以不同。只有给定抽样模型和误差控制以后，样本差异才有统计意义。</p>
+<p>真实 Bell 检验还要处理设置选择、探测与筛选、时空分离、装置记忆、统计检验和停止规则。本课既没有模拟这些装置，也没有把重放的数据叫作实验认证。设备无关密码与量子网络会进一步利用关联建立可验证保证，但不能从一个漂亮的 <span class="arithmatex">\(|\hat S|&gt;2\)</span> 读数跳过这些条件。</p>
+<details class="answer">
+<summary>展开解答：无信号为什么不等于没有关联？</summary>
+<p>singlet 沿同一轴测量，联合结果只有 <span class="arithmatex">\(+-\)</span> 与 <span class="arithmatex">\(-+\)</span>，各半；两方都各半随机，却完全反相关。轴正交时四种联合结果各 <span class="arithmatex">\(1/4\)</span>，相关为零，但边缘仍各半。Bob 换轴改变的是联合结构；Alice 不知道 Bob 的结果与设置分组时，本地看到的仍是同一边缘分布。</p>
+</details>
+<p>下一课：<a href="qi-02-algorithms.html">量子算法</a>将讨论这些状态与门怎样组成计算过程，以及查询次数、门数和输出信息量为什么需要分开核算。</p>
+</div>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="gr-04-kerr-causal.html"><span class="pager-label">上一页</span>广相 IV · Kerr 黑洞与因果结构</a>
