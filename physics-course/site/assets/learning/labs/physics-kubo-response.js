@@ -1,312 +1,137 @@
-(function (root, factory) {
-  "use strict";
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("physics-kubo-response", exported.mount);
-  }
-  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module) {
-    try {
-      var report = exported.selfTest();
-      console.log("physics-kubo-response self-test: PASS (" + report.checks + " checks)");
-    } catch (error) {
-      console.error("physics-kubo-response self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
-  }
-})(typeof window !== "undefined" ? window : null, function (host) {
-  "use strict";
+(function(hostWindow){"use strict";
+'use strict';
+const LIMITS={weightTenths:[1,40],tauTenths:[1,40],mixPercent:[0,100],tauRatioTenths:[1,50],fieldTenths:[-20,20],driveTenths:[0,60],pulseTenths:[1,50],cutoffUnits:[2,40],panels:[4,80],temperatureTenths:[1,40],gapTenths:[1,40],windowUnits:[1,40]};
+const DEFAULT={weightTenths:10,tauTenths:20,mixPercent:30,tauRatioTenths:30,fieldTenths:5,driveTenths:10,pulseTenths:20,cutoffUnits:8,panels:40,temperatureTenths:10,gapTenths:10,windowUnits:6};
+const PRESETS=[
+ ['default','两种记忆时间',{}],['zero','零外场',{fieldTenths:0}],['reverse','反向外场',{fieldTenths:-5}],['single','单一Drude',{mixPercent:0}],['fast','很快的第二通道',{mixPercent:70,tauRatioTenths:1}],['slow','慢通道与短记录',{mixPercent:70,tauRatioTenths:50,windowUnits:1}],['short','有限时间窗',{windowUnits:1}],['coarse','积分分辨率不足',{panels:4,driveTenths:60,windowUnits:40}],['endpoint','硬截断端点',{cutoffUnits:2,driveTenths:20}],['cold','低温量子谱',{temperatureTenths:1,gapTenths:40}],['thermal','高温极限',{temperatureTenths:40,gapTenths:1}],['strong','强场热平衡对照',{fieldTenths:20,gapTenths:2}]
+].map(([id,name,parameters])=>({id,name,parameters}));
+function config(p={}){if(!p||typeof p!=='object'||Array.isArray(p)||Object.getPrototypeOf(p)!==Object.prototype)throw Error('Expected plain input object');for(const k of Object.keys(p))if(!Object.hasOwn(LIMITS,k))throw Error('Unknown control '+k);const c={...DEFAULT,...p};for(const[k,[a,b]]of Object.entries(LIMITS))if(!Number.isInteger(c[k])||c[k]<a||c[k]>b)throw Error('Invalid '+k);return c;}
+const sum=a=>a.reduce((s,x)=>s+x,0);
+function model(c){const D=c.weightTenths/10,tau=c.tauTenths/10,f=c.mixPercent/100;return {weight:D,tau,field:c.fieldTenths/10,omega:c.driveTenths/(10*tau),pulse:c.pulseTenths*tau/10,cutoff:c.cutoffUnits/tau,cutoffX:c.cutoffUnits,window:c.windowUnits*tau,temperature:c.temperatureTenths/10,gap:c.gapTenths/10,modes:[{index:0,weight:D*(1-f),tau},{index:1,weight:D*f,tau:tau*c.tauRatioTenths/10}]};}
+function sigma(M,w){const modes=M.modes.map(q=>{const x=w*q.tau,den=1+x*x;return {index:q.index,real:q.weight*q.tau/den,imag:q.weight*q.tau*x/den};});return {omega:w,real:sum(modes.map(q=>q.real)),imag:sum(modes.map(q=>q.imag)),modes};}
+function kernel(M,t){return t<0?0:sum(M.modes.map(q=>q.weight*Math.exp(-t/q.tau)));}
+function current(M,t){if(t<=0)return 0;return sum(M.modes.map(q=>q.weight*q.tau*M.field*(t<=M.pulse?-Math.expm1(-t/q.tau):Math.exp(-(t-M.pulse)/q.tau)*(-Math.expm1(-M.pulse/q.tau)))));}
+function timed(M,t){const E=t>=0&&t<M.pulse?M.field:0;const modes=M.modes.map(q=>{const t0=t<=0?0:t<=M.pulse?-Math.expm1(-t/q.tau):Math.exp(-(t-M.pulse)/q.tau)*(-Math.expm1(-M.pulse/q.tau));const J=q.weight*q.tau*M.field*t0;return {index:q.index,current:J,derivative:t<0?0:q.weight*E-J/q.tau};});return {t,field:E,kernel:kernel(M,t),correlation:M.temperature*sum(M.modes.map(q=>q.weight*Math.exp(-Math.abs(t)/q.tau))),stepCurrent:t<=0?0:M.field*sum(M.modes.map(q=>q.weight*q.tau*(-Math.expm1(-t/q.tau)))),pulseCurrent:sum(modes.map(q=>q.current)),derivative:sum(modes.map(q=>q.derivative)),modes};}
+function windowExact(M,w,T=M.window){const modes=M.modes.map(q=>{const a=1/q.tau,e=Math.exp(-a*T),angle=w*T,nr=-Math.expm1(-a*T)+2*e*Math.sin(angle/2)**2,ni=-e*Math.sin(angle),den=a*a+w*w;return {index:q.index,real:q.weight*(nr*a-ni*w)/den,imag:q.weight*(nr*w+ni*a)/den};});return {omega:w,window:T,real:sum(modes.map(q=>q.real)),imag:sum(modes.map(q=>q.imag)),modes};}
+function simpsonWindow(M,w,panels){const N=2*panels,h=M.window/N,nodes=Array.from({length:N+1},(_,index)=>{const t=index*h,weight=index===0||index===N?1:index%2?4:2,k=kernel(M,t);return {index,t,weight,real:k*Math.cos(w*t),imag:k*Math.sin(w*t)};});const real=h/3*sum(nodes.map(x=>x.weight*x.real)),imag=h/3*sum(nodes.map(x=>x.weight*x.imag)),exact=windowExact(M,w),infinite=sigma(M,w);return {panels,subintervals:N,h,real,imag,exactReal:exact.real,exactImag:exact.imag,quadratureErrorReal:real-exact.real,quadratureErrorImag:imag-exact.imag,missingTailReal:infinite.real-exact.real,missingTailImag:infinite.imag-exact.imag,tailMagnitude:Math.hypot(infinite.real-exact.real,infinite.imag-exact.imag),tailBound:sum(M.modes.map(q=>q.weight*q.tau*Math.exp(-M.window/q.tau))),nodes};}
+function kk(M,x,panels,includeNodes=false){const w=x/M.tau,L=M.cutoff,endpoint=x===M.cutoffX;const truth=sigma(M,w).real;
+ // A hard spectral cutoff creates a logarithmic endpoint divergence.
+ if(endpoint)return {x,omega:w,cutoff:L,status:'hard-cutoff-endpoint-divergence',realExact:null,realNumeric:null,truth,quadratureError:null,modelTail:null,logPV:null,nodes:includeNodes?[]:null};
+ const logPV=w===0?0:Math.log(Math.abs((L-w)/(L+w)))/(2*w);
+ const g=w*sigma(M,w).imag;
+ const exact=2/Math.PI*(sum(M.modes.map(q=>q.weight*q.tau*Math.atan(L*q.tau)/(1+(w*q.tau)**2)))+g*logPV);
+ const N=2*panels,h=L/N,nodes=Array.from({length:N+1},(_,index)=>{const nu=index*h,weight=index===0||index===N?1:index%2?4:2;const regular=sum(M.modes.map(q=>q.weight*q.tau**2/((1+(nu*q.tau)**2)*(1+(w*q.tau)**2))));return {index,nu,weight,regular};});
+ const realNumeric=2/Math.PI*(h/3*sum(nodes.map(q=>q.weight*q.regular))+g*logPV);
+ return {x,omega:w,cutoff:L,status:w<L?'inside-band-principal-value':'outside-band-ordinary-integral',realExact:exact,realNumeric,truth,quadratureError:realNumeric-exact,modelTail:truth-exact,logPV,nodes:includeNodes?nodes:null};
+}
+function area(M,w){const retained=sum(M.modes.map(q=>q.weight*Math.atan(w*q.tau))),full=Math.PI*M.weight/2;return {omega:w,retained,full,missing:full-retained,fraction:retained/full};}
+function quantum(M){const beta=1/M.temperature,gap=M.gap,e=Math.exp(-beta*gap),pg=1/(1+e),pe=e/(1+e),imbalance=Math.tanh(beta*gap/2),chi0=2*imbalance/gap;
+ const atoms=[-1,1].map(sign=>{const omega=sign*gap,unsym=2*Math.PI*(sign>0?pg:pe),chiImag=sign*Math.PI*imbalance,sym=Math.PI;return {omega,unsym,sym,chiImag,coth:1/Math.tanh(beta*omega/2),fdtSym:chiImag/Math.tanh(beta*omega/2),fdtUnsymFactor:-Math.expm1(-beta*omega)/2,fromUnsym:-Math.expm1(-beta*omega)*unsym/2};});
+ const field=f=>{const energy=Math.hypot(gap/2,f),exact=f/energy*Math.tanh(beta*energy),linear=chi0*f;return {field:f,positiveEnergy:energy,exact,linear,difference:exact-linear,relativeDifference:linear===0?null:(exact-linear)/linear,comparison:'re-equilibrated Gibbs states; not an isolated quench'};};
+ return {beta,gap,pg,pe,imbalance,chi0,detailedBalance:e,observedWeightRatio:atoms[0].unsym/atoms[1].unsym,atoms,field:field(M.field),fieldScan:Array.from({length:81},(_,i)=>field((i-40)/20)),times:Array.from({length:241},(_,i)=>{const t=(i-40)*M.window/200,a=gap*t;return {t,correlationReal:Math.cos(a),correlationImag:-imbalance*Math.sin(a),symmetrized:Math.cos(a),commutatorReal:0,commutatorImag:-2*imbalance*Math.sin(a),retarded:t<0?0:2*imbalance*Math.sin(a)};}),spectralConvention:'Atom weights multiply delta(omega-position); not density heights',timeConvention:'hbar=kB=q=1; H0=Delta*sigma_z/2; Hprime=-f*sigma_x'};
+}
+function compute(p={}){const c=config(p),M=model(c),times=[...Array.from({length:281},(_,i)=>-M.tau+i*(M.tau+M.pulse+6*Math.max(...M.modes.map(q=>q.tau)))/280),0,M.pulse].sort((a,b)=>a-b).filter((x,i,a)=>i===0||x!==a[i-1]);
+ const frequency=Array.from({length:241},(_,i)=>{const x=i/30,w=x/M.tau,s=sigma(M,w),v=windowExact(M,w);return {x,...s,windowReal:v.real,windowImag:v.imag,phase:Math.atan2(s.imag,s.real),magnitude:Math.hypot(s.real,s.imag),currentNoise:2*M.temperature*s.real};});
+ const chosen=sigma(M,M.omega),window=simpsonWindow(M,M.omega,c.panels),chosenKK=kk(M,c.driveTenths/10,c.panels,true),scan=Array.from({length:241},(_,i)=>kk(M,c.cutoffUnits*i/200,c.panels));
+ const q=quantum(M),convergence=[2,4,8,16,32,64,128].map(p=>{const a=simpsonWindow(M,M.omega,p),k=kk(M,c.driveTenths/10,p);delete a.nodes;return {panels:p,window:a,kk:k};});
+ return {schema:'kubo201-v1',parameters:c,model:M,dc:sigma(M,0).real,poles:M.modes.map(q=>({index:q.index,real:0,imag:-1/q.tau,weight:q.weight,present:q.weight>0})),chosen:{...chosen,power:M.field**2*chosen.real*(M.omega===0?1:.5),powerConvention:M.omega===0?'DC constant field, no factor one-half':'average over a complete nonzero-frequency sinusoidal period'},times:times.map(t=>timed(M,t)),frequency,window,kk:chosenKK,kkScan:scan,spectralWeight:area(M,M.cutoff),areaScan:Array.from({length:241},(_,i)=>({x:c.cutoffUnits*i/240,...area(M,c.cutoffUnits*i/(240*M.tau))})),quantum:q,convergence,boundaries:{causalKernel:true,correlationNotRetardedKernel:true,positiveMixtureNotUniversalMaterial:true,fixedTotalDrudeWeight:true,timeWindowNotMaterialDamping:true,quadratureSeparateFromTruncation:true,hardCutoffEndpointNotClipped:true,kkTailUsesKnownModel:true,finiteBandNotFullCausalityTest:true,quantumAtomsNotDensitySamples:true,thermalReferenceNotPostQuenchState:true,finiteSystemNotSteadyBath:true,equilibriumKMSRequired:true,dcPeriodAverageLimitDistinguished:true,sourceCouplingSignExplicit:true,unitsModelSpecific:true}};
+}
+function coreSelfTest(){let checks=0;const ok=v=>{if(!v)throw Error('Kubo201 check '+checks);checks++;};for(const p of PRESETS){const s=compute(p.parameters);ok(s.times.filter(q=>q.t<0).every(q=>q.kernel===0&&q.pulseCurrent===0));ok(s.times.filter(q=>q.t<0).some(q=>q.correlation>0));ok(s.poles.every(q=>q.imag<0));ok(Math.abs(s.quantum.pg+s.quantum.pe-1)<1e-14);for(const a of s.quantum.atoms){ok(Math.abs(a.fdtSym-a.sym)<1e-13);ok(Math.abs(a.fromUnsym-a.chiImag)<1e-13);}ok(s.spectralWeight.missing>=0);ok(s.window.tailMagnitude<=s.window.tailBound+1e-12);ok(s.kkScan[200].status==='hard-cutoff-endpoint-divergence');ok(s.kkScan[200].realExact===null);}
+ const q=compute({cutoffUnits:2,driveTenths:20});ok(q.kk.realExact===null);ok(compute({fieldTenths:0}).times.every(x=>x.pulseCurrent===0));return {status:'PASS',checks,presets:PRESETS.length};}
+const QUESTIONS=[
+ ['固定总Drude权重D，只增加单通道弛豫时间τ，整个正频率电导实部面积会增加吗？',['不会；面积仍为πD/2，峰变窄而DC值增大','会；DC值增大就代表总谱重增加'],0,'单通道积分∫0∞Dτ/(1+ω²τ²)dω=πD/2。必须说明固定的是D，而不是把σDC和τ都当作独立不变参数。'],
+ ['把有限时间记录的积分网格加密，就一定能得到无限时间电导吗？',['一定，数值积分精度足够就能补回所有过去','不一定；网格误差和未观测的时间尾是两件事'],1,'加密只改善已有时间窗内的积分。窗外记忆仍需更长测量或明确的模型外推，不能由精细网格创造出来。'],
+ ['在硬频率截断的端点ω=Λ，直接把有限带宽KK公式中的无穷值改成0正确吗？',['不正确；端点对数发散必须保留为不适用状态','正确；端点只有一个点，不会影响推断'],0,'完整响应可以光滑，而硬截断谱的端点PV并不存在。对数项揭示了截断造成的边缘问题；删掉它不会恢复真实响应。'],
+ ['有限两能级系统的δ谱线权重，能直接当作某个频率上的有限谱密度高度吗？',['能，δ峰就是一个很窄但固定高度的点','不能；δ谱线是测度，必须区分积分权重和展宽后的密度'],1,'本页列出δ(ω−Δ)的系数。给谱线展宽需要额外约定，不能把点权重当成取样密度，也不能据此宣称孤立有限系统已形成稳态耗散浴。']
+];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=4||![0,1].includes(j))throw Error('choice');return {correct:j===QUESTIONS[i][2],text:(j===QUESTIONS[i][2]?'正确。':'需要修正。')+QUESTIONS[i][3]};}
+const LABELS={weightTenths:'总Drude权重 D ×10',tauTenths:'第一通道时间 τ1 ×10',mixPercent:'第二通道权重比例 ×100',tauRatioTenths:'时间比 τ2/τ1 ×10',fieldTenths:'外场幅度 ×10（两模型各用参考单位）',driveTenths:'选定频率 ωτ1 ×10',pulseTenths:'矩形脉冲长度 L/τ1 ×10',cutoffUnits:'频段上限 Λτ1',panels:'Simpson半分段数（总段数为2倍）',temperatureTenths:'温度 T ×10（kB=1）',gapTenths:'量子能隙 Δ ×10（ℏ=1）',windowUnits:'记录长度 Tobs/τ1',
+causalKernel:'响应核在负时间严格为零',correlationNotRetardedKernel:'平衡相关不是retarded响应',positiveMixtureNotUniversalMaterial:'正权重两通道不是通用材料定律',fixedTotalDrudeWeight:'改变时间时保持总Drude权重固定',timeWindowNotMaterialDamping:'记录窗不是额外材料阻尼',quadratureSeparateFromTruncation:'积分误差与截断误差分别记账',hardCutoffEndpointNotClipped:'硬截断端点不抹成有限数',kkTailUsesKnownModel:'KK缺失尾使用已知模型参照',finiteBandNotFullCausalityTest:'有限频段不足以完整检验因果性',quantumAtomsNotDensitySamples:'量子谱线权重不是密度取样',thermalReferenceNotPostQuenchState:'热平衡比较不是孤立淬火轨迹',finiteSystemNotSteadyBath:'有限系统不等于稳态耗散浴',equilibriumKMSRequired:'FDT使用平衡KMS条件',dcPeriodAverageLimitDistinguished:'区分DC与先取周期平均的零频极限',sourceCouplingSignExplicit:'明确Hprime=-fB与对易子次序',unitsModelSpecific:'各模型参考单位分别解释'};
+function fmt(x){if(x===null||x===undefined)return'不适用';if(typeof x==='boolean')return x?'是':'否';if(Array.isArray(x))return'['+x.map(fmt).join(', ')+']';if(typeof x==='object')return JSON.stringify(x);if(typeof x==='number')return Number.isInteger(x)&&Math.abs(x)<1e6?String(x):Math.abs(x)<1e-4||Math.abs(x)>=1e5?x.toExponential(5):Number(x.toPrecision(7)).toString();return LABELS[x]??String(x);}
+const COLORS=['#3875ba','#c55b32','#368661','#9860a8','#856722','#646e7c'];
+function frame(key,title,xLabel,yLabel,series,domain){const ys=series.flatMap(s=>s.points.filter(Boolean).map(p=>p[1]));let lo=Math.min(0,...ys),hi=Math.max(0,...ys);if(hi===lo)hi=lo+1;const pad=.07*(hi-lo);return{key,title,xLabel,yLabel,xMin:domain[0],xMax:domain[1],yMin:lo-pad,yMax:hi+pad,series};}
+function plots(s){const M=s.model,scale=M.weight*M.tau,series=(name,color,points,extra={})=>({name,color:COLORS[color],points,...extra}),tlo=s.times[0].t/M.tau,thi=s.times.at(-1).t/M.tau;
+ return[
+ frame('time','外场停止后，系统还记得什么？','t/τ1（保留负时间）','归一化电流、核、相关与参考外场',[
+ series('矩形外场 E/Eref',0,[[tlo,0],[0,0],[0,M.field],[M.pulse/M.tau,M.field],[M.pulse/M.tau,0],[thi,0]]),
+ series('脉冲电流 J/(Dτ1 Eref)',1,s.times.map(p=>[p.t/M.tau,p.pulseCurrent/scale])),
+ series('响应核 Φ/D',2,s.times.flatMap(p=>p.t===0?[[0,0],[0,p.kernel/M.weight]]:[[p.t/M.tau,p.kernel/M.weight]])),
+ series('平衡相关 C/(TD)',3,s.times.map(p=>[p.t/M.tau,p.correlation/(M.temperature*M.weight)]))
+ ],[tlo,thi]),
+ frame('frequency','同一个因果核的实部、虚部与噪声','ωτ1','电导除以Dτ1；噪声再除以2T',[
+ series('Re σ',0,s.frequency.map(p=>[p.x,p.real/scale])),
+ series('Im σ',1,s.frequency.map(p=>[p.x,p.imag/scale])),
+ series('平衡电流谱 SJJ/(2T)',2,s.frequency.map(p=>[p.x,p.currentNoise/(2*M.temperature*scale)]),{boundaryMarkers:true}),
+ series('当前频率的实部',4,[[s.parameters.driveTenths/10,s.chosen.real/scale]],{markersOnly:true})
+ ],[0,8]),
+ frame('window','有限时间窗仍会漏掉记忆尾','ωτ1','有限窗与无限时间电导 / (Dτ1)',[
+ series('无限时间 Re σ',0,s.frequency.map(p=>[p.x,p.real/scale])),
+ series('有限时间 Re σT',1,s.frequency.map(p=>[p.x,p.windowReal/scale])),
+ series('无限时间 Im σ',2,s.frequency.map(p=>[p.x,p.imag/scale])),
+ series('有限时间 Im σT',3,s.frequency.map(p=>[p.x,p.windowImag/scale]))
+ ],[0,8]),
+ frame('kk','有限频段KK：分辨率和带宽不能互相代替','ωτ1；空断点为硬截断端点Λτ1','重建实部 / (Dτ1)；保留负值与边缘效应',[
+ series('完整模型真实 Re σ',0,s.kkScan.map(p=>[p.x,p.truth/scale])),
+ series('保留频段的精确PV',1,s.kkScan.map(p=>p.realExact===null?null:[p.x,p.realExact/scale])),
+ series('同一频段的Simpson近似',2,s.kkScan.map(p=>p.realNumeric===null?null:[p.x,p.realNumeric/scale]))
+ ],[0,1.2*s.parameters.cutoffUnits]),
+ frame('weight','谱重守恒：DC峰高不等于总面积','积分上限 Ωτ1','∫0Ω Re σ dω / (πD/2)',[
+ series('已包含的谱重比例',0,s.areaScan.map(p=>[p.x,p.fraction])),
+ series('仍未测到的比例',1,s.areaScan.map(p=>[p.x,1-p.fraction])),
+ series('无限频段总量',2,[[0,1],[s.parameters.cutoffUnits,1]])
+ ],[0,s.parameters.cutoffUnits]),
+ frame('quantum','两能级系统：画δ谱线系数，不画有限密度高度','ω/Δ；只有±1两条谱线','δ谱线系数 / π（ℏ=q=1）',[
+ series('非对称谱 S>(ω) 的权重',0,s.quantum.atoms.map(p=>[p.omega/M.gap,p.unsym/Math.PI]),{markersOnly:true,markerRadius:7}),
+ series('对称噪声谱权重',1,s.quantum.atoms.map(p=>[p.omega/M.gap,p.sym/Math.PI]),{markersOnly:true,markerRadius:5}),
+ series('χ双撇耗散谱权重（带符号）',2,s.quantum.atoms.map(p=>[p.omega/M.gap,p.chiImag/Math.PI]),{markersOnly:true,markerRadius:3})
+ ],[-1.5,1.5])
+ ];
+}
+function tables(s){const M=s.model,Q=s.quantum;return[
+ {key:'parameters',title:'输入、两个模型的单位与当前响应',headers:['类别','量','值'],rows:[...Object.entries(s.parameters).map(([k,v])=>['输入',k,v]),...Object.entries(M).map(([k,v])=>['参考物理量',k,v]),...Object.entries(s.chosen).map(([k,v])=>['当前频率',k,v]),['DC','电导',s.dc],['量子模型','约定',Q.timeConvention],['量子模型','静态易感率',Q.chi0],['量子模型','基态概率',Q.pg],['量子模型','激发态概率',Q.pe]]},
+ {key:'time',title:'全部时刻：外场、因果核、相关和脉冲电流',headers:['t','外场','Φ','C','阶跃电流','脉冲电流','右侧时间导数','两个模式'],rows:s.times.map(p=>[p.t,p.field,p.kernel,p.correlation,p.stepCurrent,p.pulseCurrent,p.derivative,p.modes])},
+ {key:'frequency',title:'241个频率：完整电导、有限窗、噪声与相位',headers:['ωτ1','ω','Re σ','Im σ','|σ|','相位rad','电流双边噪声','Re σT','Im σT','两通道'],rows:s.frequency.map(p=>[p.x,p.omega,p.real,p.imag,p.magnitude,p.phase,p.currentNoise,p.windowReal,p.windowImag,p.modes])},
+ {key:'window',title:'全部时间积分节点和独立的截断误差',headers:['类型','索引/量','t/值','权重','实部被积函数','虚部被积函数'],rows:[...s.window.nodes.map(p=>['节点',p.index,p.t,p.weight,p.real,p.imag]),...Object.entries(s.window).filter(([k])=>k!=='nodes').map(([k,v])=>['结果',k,v,null,null,null])]},
+ {key:'kk-nodes',title:'KK正则化积分的全部节点与端点状态',headers:['类型','索引/量','ν/值','权重','正则被积函数'],rows:[...(s.kk.nodes??[]).map(p=>['节点',p.index,p.nu,p.weight,p.regular]),...Object.entries(s.kk).filter(([k])=>k!=='nodes').map(([k,v])=>['结果',k,v,null,null])]},
+ {key:'kk-scan',title:'241个测试频率：完整模型与保留频段分别列出',headers:['ωτ1','ω','Λ','状态','有限段精确值','有限段数值值','完整真值','数值误差','模型给出的缺失尾','PV常数'],rows:s.kkScan.map(p=>[p.x,p.omega,p.cutoff,p.status,p.realExact,p.realNumeric,p.truth,p.quadratureError,p.modelTail,p.logPV])},
+ {key:'weight',title:'全部积分上限：保留谱重与遗漏谱重',headers:['Ωτ1','Ω','保留面积','全部面积','缺失面积','保留比例'],rows:s.areaScan.map(p=>[p.x,p.omega,p.retained,p.full,p.missing,p.fraction])},
+ {key:'atoms',title:'两条量子δ谱线的完整权重与FDT检验',headers:['ω','S>权重','对称谱权重','χ双撇权重','coth(βω/2)','由对称FDT恢复','非对称FDT因子','由非对称FDT恢复'],rows:Q.atoms.map(p=>[p.omega,p.unsym,p.sym,p.chiImag,p.coth,p.fdtSym,p.fdtUnsymFactor,p.fromUnsym])},
+ {key:'quantum-time',title:'量子相关、对易子与retarded响应的全部时刻',headers:['t','Re C>','Im C>','对称相关','Re对易子','Im对易子','retarded χ'],rows:Q.times.map(p=>[p.t,p.correlationReal,p.correlationImag,p.symmetrized,p.commutatorReal,p.commutatorImag,p.retarded])},
+ {key:'nonlinear',title:'重新达到热平衡后的有限外场：与线性项比较',headers:['外场f','正能量E','精确〈B〉','线性χ0 f','精确−线性','相对差','实验约定'],rows:[...Q.fieldScan,Q.field].map(p=>[p.field,p.positiveEnergy,p.exact,p.linear,p.difference,p.relativeDifference,p.comparison])},
+ {key:'convergence',title:'加密积分：看清数值误差仍无法补回窗外信息',headers:['半分段数','有限窗实部','有限窗虚部','实部积分误差','虚部积分误差','缺失实部尾','缺失虚部尾','有限带宽KK数值','KK积分误差','KK缺失模型尾'],rows:s.convergence.map(p=>[p.panels,p.window.real,p.window.imag,p.window.quadratureErrorReal,p.window.quadratureErrorImag,p.window.missingTailReal,p.window.missingTailImag,p.kk.realNumeric,p.kk.quadratureError,p.kk.modelTail])},
+ {key:'boundaries',title:'全部模型边界、极点与谱线约定',headers:['量','内容'],rows:[...Object.entries(s.boundaries),['极点',s.poles],['谱线',Q.spectralConvention],['谱线详细平衡比',Q.detailedBalance],['实际权重比',Q.observedWeightRatio]]}
+];}
 
-  var STYLE_ID = "cl-physics-kubo-response-styles";
-  var PI = Math.PI;
-  var TIME_MIN = -4;
-  var TIME_MAX = 16;
-  var FREQUENCY_MAX = 9;
-  var CURRENT_MAX = 2;
-  var STYLE_TEXT = [
-    '[data-learning-lab="physics-kubo-response"]{--kr-blue:#2f6f9f;--kr-red:#b3483b;--kr-gold:#a36a16;--kr-green:#39734d;color:var(--fg,currentColor);line-height:1.55;max-width:100%;min-width:0;overflow-wrap:anywhere}',
-    '[data-learning-lab="physics-kubo-response"] *{box-sizing:border-box}',
-    '[data-learning-lab="physics-kubo-response"] h3{margin:0;font-size:1.16rem;letter-spacing:0}',
-    '[data-learning-lab="physics-kubo-response"] p{margin:.65rem 0}',
-    '[data-learning-lab="physics-kubo-response"] .kr-gate{margin:14px 0;padding:12px 14px;border-left:3px solid var(--kr-gold);background:var(--bg,transparent)}',
-    '[data-learning-lab="physics-kubo-response"] .kr-gate label{display:grid;gap:5px;margin:8px 0;font-weight:700}',
-    '[data-learning-lab="physics-kubo-response"] select,[data-learning-lab="physics-kubo-response"] input,[data-learning-lab="physics-kubo-response"] button{font:inherit;min-height:44px}',
-    '[data-learning-lab="physics-kubo-response"] select{width:100%;padding:7px 9px;color:inherit;background:var(--bg,transparent);border:1px solid var(--border,#b8b8b8)}',
-    '[data-learning-lab="physics-kubo-response"] button{padding:8px 13px;border:1px solid var(--border,#b8b8b8);background:var(--bg,transparent);color:inherit;cursor:pointer;border-radius:5px}',
-    '[data-learning-lab="physics-kubo-response"] button:hover{border-color:var(--kr-blue)}',
-    '[data-learning-lab="physics-kubo-response"] button:focus-visible,[data-learning-lab="physics-kubo-response"] select:focus-visible,[data-learning-lab="physics-kubo-response"] input:focus-visible{outline:2px solid var(--kr-blue);outline-offset:2px}',
-    '[data-learning-lab="physics-kubo-response"] .kr-primary{background:var(--kr-blue);border-color:var(--kr-blue);color:#fff;font-weight:700}',
-    '[data-learning-lab="physics-kubo-response"] .kr-actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}',
-    '[data-learning-lab="physics-kubo-response"] .kr-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:end;margin:14px 0}',
-    '[data-learning-lab="physics-kubo-response"] .kr-control{min-width:0}',
-    '[data-learning-lab="physics-kubo-response"] .kr-control label{display:grid;gap:5px;font-weight:700}',
-    '[data-learning-lab="physics-kubo-response"] .kr-control output{font-weight:400;color:var(--fg-soft,currentColor);font-variant-numeric:tabular-nums}',
-    '[data-learning-lab="physics-kubo-response"] input[type="range"]{width:100%;accent-color:var(--kr-blue)}',
-    '[data-learning-lab="physics-kubo-response"] .kr-result[hidden]{display:none}',
-    '[data-learning-lab="physics-kubo-response"] .kr-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}',
-    '[data-learning-lab="physics-kubo-response"] .kr-metric{padding:8px;border-top:3px solid var(--kr-blue);background:var(--bg,transparent);min-width:0}',
-    '[data-learning-lab="physics-kubo-response"] .kr-metric:nth-child(2){border-top-color:var(--kr-red)}',
-    '[data-learning-lab="physics-kubo-response"] .kr-metric:nth-child(3){border-top-color:var(--kr-gold)}',
-    '[data-learning-lab="physics-kubo-response"] .kr-metric:nth-child(4){border-top-color:var(--kr-green)}',
-    '[data-learning-lab="physics-kubo-response"] .kr-metric span{display:block;font-size:12px;color:var(--fg-soft,currentColor)}',
-    '[data-learning-lab="physics-kubo-response"] .kr-metric strong{display:block;margin-top:3px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}',
-    '[data-learning-lab="physics-kubo-response"] .kr-frame{border:1px solid var(--border,#b8b8b8);padding:6px;min-width:0;overflow:hidden}',
-    '[data-learning-lab="physics-kubo-response"] .kr-svg{display:block;width:100%;height:auto;color:var(--fg,currentColor)}',
-    '[data-learning-lab="physics-kubo-response"] .kr-svg-compact{display:none!important}',
-    '[data-learning-lab="physics-kubo-response"] .kr-svg text{font-family:inherit;fill:currentColor;letter-spacing:0}',
-    '[data-learning-lab="physics-kubo-response"] .kr-note{margin:12px 0;padding:10px 12px;border-left:3px solid var(--kr-green);font-size:13px;line-height:1.7}',
-    '[data-learning-lab="physics-kubo-response"] .kr-status{min-height:1.5em;color:var(--fg-soft,currentColor);font-size:13px}',
-    '@media(max-width:760px){[data-learning-lab="physics-kubo-response"] .kr-controls{grid-template-columns:1fr 1fr}[data-learning-lab="physics-kubo-response"] .kr-metrics{grid-template-columns:1fr 1fr}}',
-    '@media(max-width:600px){[data-learning-lab="physics-kubo-response"] .kr-svg-wide{display:none!important}[data-learning-lab="physics-kubo-response"] .kr-svg-compact{display:block!important}}',
-    '@media(max-width:460px){[data-learning-lab="physics-kubo-response"] .kr-controls{grid-template-columns:1fr}[data-learning-lab="physics-kubo-response"] .kr-actions{display:grid;grid-template-columns:1fr}[data-learning-lab="physics-kubo-response"] .kr-actions button{width:100%}}'
-  ].join("");
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=10000?v.toExponential(2):Number(v.toFixed(3)).toString();
+function svg(p){const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 580" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+const discrete=p.key==='quantum';const xticks=discrete?[...new Set(Array.from({length:5},(_,i)=>Math.round(p.xMin+(p.xMax-p.xMin)*i/4)))]:Array.from({length:5},(_,i)=>p.xMin+(p.xMax-p.xMin)*i/4);for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+axisFmt(y)+'</text>';}for(const x of xticks){out+='<text x="'+X(x)+'" y="410" text-anchor="middle">'+axisFmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen&&!s.markersOnly?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const marks=s.markersOnly?s.points.filter(Boolean):s.boundaryMarkers?[...new Set([s.points.find(Boolean),s.points.filter(Boolean).at(-1)])].filter(Boolean):s.points.filter(Boolean).length===1?s.points.filter(Boolean):[];marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="'+(s.markerRadius??5)+'" stroke="'+s.color+'" fill="'+(s.hollow?'none':s.open?'var(--bg,#fff)':s.color)+'" stroke-width="'+(s.markerStrokeWidth??2.5)+'"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});if(!p.series.some(s=>s.points.some(Boolean)))out+='<text x="450" y="245" text-anchor="middle">当前模型在此参数下无适用数据</text>';return out+'</svg>';}
 
-  function assert(condition, message) {
-    if (!condition) throw new Error(message);
-  }
+var mounted=new WeakMap();
+function mount(root){const doc=root.ownerDocument,previous=mounted.get(root);if(previous)previous();root.replaceChildren();root.classList.add('kubo201');let c=config(PRESETS[0].parameters),choices={},revealed=false,url=null,current=null,view=0,valid=true;
+ const el=(tag,attrs={},text)=>{const e=doc.createElement(tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
+ if(!doc.querySelector('[data-kubo201-style]')){const style=el('style',{'data-kubo201-style':''});style.textContent='.kubo201{margin-inline:0!important;width:100%;min-width:0;color:var(--fg,#222);line-height:1.65}.kubo201 *{box-sizing:border-box}.kubo201 button,.kubo201 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.kubo201 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.kubo201 button:focus-visible,.kubo201 select:focus-visible,.kubo201 [tabindex]:focus-visible{outline:3px solid #2474bc}.kubo201 .kb-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.kubo201 label{display:grid;gap:4px;min-width:0}.kubo201 input{width:100%;min-height:44px;font:inherit;color:inherit;background:var(--bg,#fff)}.kubo201 .kb-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.kubo201 .kb-pred>strong{display:block;margin-bottom:6px}.kubo201 .kb-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.kubo201 .kb-feedback{margin:7px 0}.kubo201 .kb-scroll{max-width:100%;overflow:auto}.kubo201 svg{display:block;min-width:680px;width:100%;height:auto}.kubo201 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.kubo201 td,.kubo201 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.kubo201 [hidden]{display:none!important}.kubo201 details{margin:12px 0}.kubo201 summary{min-height:44px;cursor:pointer}.kubo201 .kb-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.kubo201 .kb-correct{color:var(--cl-green,#277540)}.kubo201 .kb-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.kubo201 .kb-grid{grid-template-columns:1fr}}';doc.head.append(style);}
+ root.append(el('h3',{},'因果响应怎样变成可测的电导和量子噪声？'),el('p',{},'两通道电流模型连接时间、频率和有限记录；独立两能级模型核对量子对易子与谱线权重。先预测，再对照完整表格和可下载记录。'));
+ const presets=el('div',{class:'kb-row','aria-label':'教学预设'});for(const p of PRESETS){const b=el('button',{type:'button','data-preset':p.id},p.label);b.onclick=()=>{c=config(p.parameters);valid=true;sync();reset();};presets.append(b);}root.append(presets);
+ const fields={},outs={},grid=el('div',{class:'kb-grid'});
 
-  function near(left, right, tolerance) {
-    var scale = Math.max(1, Math.abs(left), Math.abs(right));
-    return Math.abs(left - right) <= (tolerance || 1e-9) * scale;
-  }
 
-  function finiteNumber(value, fallback) {
-    var number = Number(value);
-    return isFinite(number) ? number : fallback;
-  }
 
-  function clamp(value, minimum, maximum) {
-    return Math.max(minimum, Math.min(maximum, value));
-  }
 
-  function causalKernel(time, sigma0, tau) {
-    var t = Number(time);
-    var width = Math.max(1e-9, Number(tau));
-    if (!isFinite(t) || t < 0) return 0;
-    return Number(sigma0) / width * Math.exp(-t / width);
-  }
+ for(const[key,title]of Object.entries(LABELS).filter(([key])=>Object.hasOwn(LIMITS,key))){const[min,max]=LIMITS[key],label=el('label',{},title),out=el('output'),input=el('input',{type:'range',min,max,step:1,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.oninput=input.onchange=change;}root.append(grid);
+ function change(){try{c=config(Object.fromEntries(Object.entries(fields).map(([k,e])=>[k,e.value===''?NaN:Number(e.value)])));valid=true;sync();reset();}catch(e){valid=false;reset();status.textContent='请使用控件范围内的整数，再按标签倍率换成实际量。';}}
+ const note=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(note,prediction);prediction.append(el('h4',{},'先预测：谱重、记录窗、端点与量子谱线'),el('p',{},'四题的条件固定写在题干里；参数用来检查例子，不自动改变问题。'));
+ const feedbacks=[],buttons=[];QUESTIONS.forEach((q,i)=>{const row=el('div',{class:'kb-pred'});row.append(el('strong',{},q[0]));buttons[i]=[];q[1].forEach((text,j)=>{const b=el('button',{type:'button','data-prediction':i,'data-choice':String(j===0),'aria-pressed':'false'},text);b.onclick=()=>{choices[i]=j;buttons[i].forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));if(revealed)showFeedback();};row.append(b);buttons[i].push(b);});feedbacks[i]=el('p',{class:'kb-feedback','data-feedback':i});row.append(feedbacks[i]);prediction.append(row);});
+ const check=el('button',{type:'button','data-check':''},'核对预测并显示完整结果'),status=el('p',{class:'kb-status','aria-live':'polite'});root.append(check,status);
+ const stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),summary=el('p'),plotButtons=el('div',{class:'kb-row'}),plotWrap=el('div',{class:'kb-scroll',tabindex:0,role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'时间与频率图采用标签写明的归一化。有限频段KK保留负值，硬截断端点断开并记为不适用；量子点表示δ谱线的积分系数。积分网格、观测时间和频率范围是三个不同的限制。'),tableHost=el('div'),download=el('a',{'data-download':'',download:'kb-record.json'},'下载当前完整记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);
+ function sync(){for(const[k,e]of Object.entries(fields))e.value=c[k];}
+ function reset(){if(url){hostWindow.URL.revokeObjectURL(url);url=null;download.removeAttribute('href');}revealed=false;choices={};stage.hidden=true;delete root.__kuboSnapshot;for(let i=0;i<4;i++){feedbacks[i].textContent='';for(const b of buttons[i])b.setAttribute('aria-pressed','false');}for(const[k,o]of Object.entries(outs))o.textContent=fmt(c[k]);note.textContent='时间用第一通道τ1作标尺；频率是角频率。温度与能隙只改变独立量子模型和平衡噪声的相应量；外场幅度在电流模型与两能级模型中分别采用各自参考单位。两通道始终保持总Drude权重D固定。';status.textContent='完成四项预测后显示当前结果。';}
+ function showFeedback(){let n=0;for(let i=0;i<4;i++){if(!Number.isInteger(choices[i]))continue;const f=feedback(i,choices[i]);n+=+f.correct;feedbacks[i].textContent=f.text;feedbacks[i].className='kb-feedback '+(f.correct?'kb-correct':'kb-wrong');}status.textContent='预测核对：'+n+'/4 正确。图、表和下载均对应当前参数。';}
+ function draw(){const ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+ function render(){current=compute(c);root.__kuboSnapshot=current;stage.hidden=false;summary.textContent='DC电导='+fmt(current.dc)+'；当前复电导='+fmt(current.chosen.real)+' + i '+fmt(current.chosen.imag)+'。记录窗外尾的模='+fmt(current.window.tailMagnitude)+'；频段内谱重占比='+fmt(current.spectralWeight.fraction)+'。量子静态易感率='+fmt(current.quantum.chi0)+'。'+(current.kk.realExact===null?'选定频率正好处在硬截断端点；有限段KK积分不适用。':'有限段KK与完整模型差='+fmt(current.kk.modelTail)+'，该尾参照使用了已知模型。');plotButtons.replaceChildren();plots(current).forEach((p,i)=>{const b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();for(const t of tables(current)){const d=el('details',{'data-table':t.key});d.append(el('summary',{},t.title));d.addEventListener('toggle',()=>{if(!d.open||d.children.length>1)return;const wrap=el('div',{class:'kb-scroll',tabindex:0,role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),thead=el('thead'),tr=el('tr'),tbody=el('tbody');for(const h of t.headers)tr.append(el('th',{scope:'col'},h));thead.append(tr);for(const row of t.rows){const r=el('tr');for(const v of row)r.append(el('td',{},fmt(v)));tbody.append(r);}table.append(thead,tbody);wrap.append(table);d.append(wrap);});tableHost.append(d);}if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current)],{type:'application/json'}));download.href=url;showFeedback();}
+ check.onclick=()=>{if(!valid){status.textContent='请先修正无效参数。';return;}if(![0,1,2,3].every(i=>Number.isInteger(choices[i]))){status.textContent='请先为四个问题各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
+}
 
-  function stepResponse(time, field, sigma0, tau) {
-    var t = Number(time);
-    if (!isFinite(t) || t < 0) return 0;
-    return Number(sigma0) * Number(field) * (1 - Math.exp(-t / Math.max(1e-9, Number(tau))));
-  }
-
-  function complexConductivity(omega, sigma0, tau) {
-    var reduced = Number(omega) * Number(tau);
-    var denominator = 1 + reduced * reduced;
-    var real = Number(sigma0) / denominator;
-    var imaginary = Number(sigma0) * reduced / denominator;
-    return {
-      real: real,
-      imaginary: imaginary,
-      magnitude: Math.sqrt(real * real + imaginary * imaginary),
-      phase: Math.atan2(imaginary, real) * 180 / PI,
-      reducedFrequency: reduced
-    };
-  }
-
-  function evaluate(options) {
-    var settings = options || {};
-    var sigma0 = 1;
-    var tau = clamp(finiteNumber(settings.tau, 2), 0.5, 4);
-    var omega = clamp(finiteNumber(settings.omega, 0.5), 0.1, 2);
-    var field = clamp(finiteNumber(settings.field, 1), 0.5, 2);
-    var frequency = complexConductivity(omega, sigma0, tau);
-    return {
-      sigma0: sigma0,
-      tau: tau,
-      omega: omega,
-      field: field,
-      frequency: frequency,
-      stepAtTau: stepResponse(tau, field, sigma0, tau),
-      kernelAtTau: causalKernel(tau, sigma0, tau)
-    };
-  }
-
-  function format(value, digits) {
-    if (!isFinite(value)) return "—";
-    var places = digits === undefined ? 3 : digits;
-    return Number(value).toFixed(places).replace(/0+$/, "").replace(/\.$/, "");
-  }
-
-  function pathFrom(points) {
-    return points.map(function (point, index) {
-      return (index === 0 ? "M" : "L") + point[0].toFixed(1) + " " + point[1].toFixed(1);
-    }).join(" ");
-  }
-
-  function chartSvg(model, compact) {
-    var width = compact ? 360 : 790;
-    var height = compact ? 690 : 410;
-    var left = compact ? { x: 44, y: 50, w: 272, h: 210 } : { x: 52, y: 55, w: 315, h: 235 };
-    var right = compact ? { x: 44, y: 380, w: 272, h: 210 } : { x: 438, y: 55, w: 292, h: 235 };
-    var tMin = TIME_MIN;
-    var tMax = TIME_MAX;
-    var currentMax = CURRENT_MAX * model.sigma0;
-    var stepPoints = [];
-    var i;
-    for (i = 0; i <= 140; i += 1) {
-      var time = tMin + (tMax - tMin) * i / 140;
-      var response = stepResponse(time, model.field, model.sigma0, model.tau);
-      stepPoints.push([left.x + left.w * i / 140, left.y + left.h - left.h * response / currentMax]);
-    }
-    var realPoints = [];
-    var imaginaryPoints = [];
-    var frequencyMax = FREQUENCY_MAX;
-    for (i = 0; i <= 140; i += 1) {
-      var reduced = frequencyMax * i / 140;
-      var denominator = 1 + reduced * reduced;
-      realPoints.push([right.x + right.w * i / 140, right.y + right.h - right.h * (1 / denominator)]);
-      imaginaryPoints.push([right.x + right.w * i / 140, right.y + right.h - right.h * (reduced / denominator)]);
-    }
-    var zeroX = left.x + left.w * (0 - tMin) / (tMax - tMin);
-    var selectedX = right.x + right.w * model.frequency.reducedFrequency / frequencyMax;
-    var selectedLabelX = selectedX > right.x + right.w - 55 ? selectedX - 55 : selectedX + 5;
-    var grid = "";
-    function panelGrid(panel) {
-      var output = "";
-      [0, 0.25, 0.5, 0.75, 1].forEach(function (fraction) {
-        var x = panel.x + panel.w * fraction;
-        output += '<line x1="' + x.toFixed(1) + '" y1="' + panel.y + '" x2="' + x.toFixed(1) + '" y2="' + (panel.y + panel.h) + '" class="kr-grid"/>';
-      });
-      [0, 0.5, 1].forEach(function (fraction) {
-        var y = panel.y + panel.h - panel.h * fraction;
-        output += '<line x1="' + panel.x + '" y1="' + y.toFixed(1) + '" x2="' + (panel.x + panel.w) + '" y2="' + y.toFixed(1) + '" class="kr-grid"/>';
-      });
-      return output;
-    }
-    grid += panelGrid(left) + panelGrid(right);
-    var timeTicks = '<text x="' + left.x + '" y="' + (left.y + left.h + 18) + '" text-anchor="start">−4</text><text x="' + (zeroX) + '" y="' + (left.y + left.h + 18) + '" text-anchor="middle">0</text><text x="' + (left.x + left.w * 12 / 20).toFixed(1) + '" y="' + (left.y + left.h + 18) + '" text-anchor="middle">8</text><text x="' + (left.x + left.w) + '" y="' + (left.y + left.h + 18) + '" text-anchor="end">16</text>';
-    var frequencyTicks = '<text x="' + right.x + '" y="' + (right.y + right.h + 18) + '" text-anchor="start">0</text><text x="' + (right.x + right.w / 2) + '" y="' + (right.y + right.h + 18) + '" text-anchor="middle">4.5</text><text x="' + (right.x + right.w) + '" y="' + (right.y + right.h + 18) + '" text-anchor="end">9</text>';
-    var footer = compact
-      ? '<text x="44" y="650" font-size="11">固定物理时间轴保留 t&lt;0 的因果零响应</text><text x="44" y="672" font-size="11">左图是绝对 J(t)；E₀ 改变会改变曲线高度</text>'
-      : '<text x="52" y="395" font-size="11">固定物理时间轴保留 t&lt;0 零区；左图为绝对 J(t)，右图为 σ/σ₀</text>';
-    return '<svg class="kr-svg ' + (compact ? 'kr-svg-compact' : 'kr-svg-wide') + '" viewBox="0 0 ' + width + ' ' + height + '" role="img" aria-label="左侧为保留 t&lt;0 因果零区的绝对阶跃电流 J(t)，右侧为归一化复电导的实部与虚部随无量纲频率变化">' +
-      '<style>.kr-grid{stroke:currentColor;stroke-opacity:.16;stroke-width:1}.kr-axis{stroke:currentColor;stroke-width:1.2}.kr-step{fill:none;stroke:#2f6f9f;stroke-width:3}.kr-real{fill:none;stroke:#39734d;stroke-width:3}.kr-imag{fill:none;stroke:#b3483b;stroke-width:2.5}.kr-marker{stroke:#a36a16;stroke-width:1.8;stroke-dasharray:5 4}.kr-zero{stroke:#b3483b;stroke-width:1.8;stroke-dasharray:5 4}</style>' +
-      grid +
-      '<line x1="' + left.x + '" y1="' + (left.y + left.h) + '" x2="' + (left.x + left.w) + '" y2="' + (left.y + left.h) + '" class="kr-axis"/><line x1="' + left.x + '" y1="' + left.y + '" x2="' + left.x + '" y2="' + (left.y + left.h) + '" class="kr-axis"/>' +
-      '<line x1="' + right.x + '" y1="' + (right.y + right.h) + '" x2="' + (right.x + right.w) + '" y2="' + (right.y + right.h) + '" class="kr-axis"/><line x1="' + right.x + '" y1="' + right.y + '" x2="' + right.x + '" y2="' + (right.y + right.h) + '" class="kr-axis"/>' +
-      '<path d="' + pathFrom(stepPoints) + '" class="kr-step"/><path d="' + pathFrom(realPoints) + '" class="kr-real"/><path d="' + pathFrom(imaginaryPoints) + '" class="kr-imag"/>' +
-      '<line x1="' + zeroX.toFixed(1) + '" y1="' + left.y + '" x2="' + zeroX.toFixed(1) + '" y2="' + (left.y + left.h) + '" class="kr-zero"/><line x1="' + selectedX.toFixed(1) + '" y1="' + right.y + '" x2="' + selectedX.toFixed(1) + '" y2="' + (right.y + right.h) + '" class="kr-marker"/>' +
-      '<text x="' + left.x + '" y="' + (compact ? 24 : 28) + '" font-weight="700">阶跃响应 J(t)</text><text x="' + right.x + '" y="' + (compact ? 354 : 28) + '" font-weight="700">复电导 / σ₀</text>' +
-      timeTicks + frequencyTicks +
-      '<text x="' + (left.x + left.w / 2) + '" y="' + (left.y + left.h + 38) + '" text-anchor="middle">t / fs</text><text x="' + (right.x + right.w / 2) + '" y="' + (right.y + right.h + 38) + '" text-anchor="middle">ωτ</text>' +
-      '<text x="' + (zeroX + 5).toFixed(1) + '" y="' + (left.y + 22) + '" fill="#b3483b">t=0</text><text x="' + (left.x + 6) + '" y="' + (left.y + 22) + '" fill="#2f6f9f">E₀=' + format(model.field, 1) + '</text>' +
-      '<text x="' + (right.x + 6) + '" y="' + (right.y + 22) + '" fill="#39734d">Re σ</text><text x="' + (right.x + 70) + '" y="' + (right.y + 22) + '" fill="#b3483b">Im σ</text>' +
-      '<text x="' + selectedLabelX.toFixed(1) + '" y="' + (right.y + 42) + '" fill="#a36a16">当前 ωτ</text>' +
-      '<text x="' + (left.x - 5) + '" y="' + (left.y + 4) + '" text-anchor="end">' + format(currentMax, 1) + '</text><text x="' + (left.x - 5) + '" y="' + (left.y + left.h) + '" text-anchor="end">0</text><text x="' + (right.x - 5) + '" y="' + (right.y + 4) + '" text-anchor="end">1</text><text x="' + (right.x - 5) + '" y="' + (right.y + right.h) + '" text-anchor="end">0</text>' +
-      footer +
-      '</svg>';
-  }
-
-  function chart(model) {
-    return '<div class="kr-chart">' + chartSvg(model, false) + chartSvg(model, true) + '</div>';
-  }
-
-  function ensureStyles() {
-    if (!host || !host.document || host.document.getElementById(STYLE_ID)) return;
-    var style = host.document.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = STYLE_TEXT;
-    host.document.head.appendChild(style);
-  }
-
-  function resultHtml(model) {
-    return '<div class="kr-metrics">' +
-      '<div class="kr-metric"><span>J(τ)</span><strong>' + format(model.stepAtTau, 5) + '</strong></div>' +
-      '<div class="kr-metric"><span>Re σ / σ₀</span><strong>' + format(model.frequency.real, 4) + '</strong></div>' +
-      '<div class="kr-metric"><span>Im σ / σ₀</span><strong>' + format(model.frequency.imaginary, 4) + '</strong></div>' +
-      '<div class="kr-metric"><span>相位角</span><strong>' + format(model.frequency.phase, 2) + '°</strong></div>' +
-      '</div><div class="kr-frame">' + chart(model) + '</div>' +
-      '<div class="kr-note">左图把阶跃场写成时间卷积：t&lt;0 没有响应，且绝对电流 J(t)=σ₀E₀(1−e⁻ᵗ/τ)θ(t)，所以改变 E₀ 会改变路径高度。右图把同一个核 Fourier 变换；Re σ 是耗散部，Im σ 是色散/储能部。这里使用 σ(ω)=σ₀/(1−iωτ) 的 eⁱωᵗ 变换约定，数值实验只检验因果 toy 的内部一致性。</div>' +
-      '<p class="kr-status" aria-live="polite">读数已更新：E₀ = ' + format(model.field, 2) + '，J(τ) = ' + format(model.stepAtTau, 4) + '；ωτ = ' + format(model.frequency.reducedFrequency, 3) + '，|σ|/σ₀ = ' + format(model.frequency.magnitude, 4) + '。</p>';
-  }
-
-  function mount(root) {
-    ensureStyles();
-    root.innerHTML =
-      '<div class="kr-gate"><strong>揭示前预测</strong>' +
-      '<label>t&lt;0 时，retarded 电流响应怎样？<select data-role="causal-prediction"><option value="">请选择</option><option value="correct">严格为 0</option><option value="wrong-memory">保持上一次响应</option><option value="wrong-nonzero">可以任意非零</option></select></label>' +
-      '<label>ωτ=1 时，Re σ 与 Im σ 的关系？<select data-role="crossing-prediction"><option value="">请选择</option><option value="correct">大小相等，都是 σ₀/2</option><option value="wrong-real">Re σ=σ₀，Im σ=0</option><option value="wrong-double">Im σ 是 Re σ 的两倍</option></select></label>' +
-      '<label>平衡相关函数能否定义上直接替代响应？<select data-role="fdt-prediction"><option value="">请选择</option><option value="correct">不能；FDT 需要额外平衡条件</option><option value="wrong-yes">能，二者就是同一个量</option><option value="wrong-temperature">能，只要调一个有效温度</option></select></label>' +
-      '</div>' +
-      '<div class="kr-actions"><button class="kr-primary" type="button" data-role="reveal">提交预测并显示响应</button><button type="button" data-role="reset">重置</button></div>' +
-      '<p class="kr-status" data-role="gate-status" aria-live="polite">先完成三项预测。</p>' +
-      '<div class="kr-controls">' +
-      '<div class="kr-control"><label>弛豫时间 τ <output data-role="tau-output">2 fs</output><input data-role="tau" type="range" min="0.5" max="4" step="0.25" value="2"></label></div>' +
-      '<div class="kr-control"><label>角频率 ω <output data-role="omega-output">0.5 fs⁻¹</output><input data-role="omega" type="range" min="0.1" max="2" step="0.1" value="0.5"></label></div>' +
-      '<div class="kr-control"><label>阶跃场 E₀ <output data-role="field-output">1</output><input data-role="field" type="range" min="0.5" max="2" step="0.5" value="1"></label></div>' +
-      '</div><div class="kr-result" data-role="result" hidden></div>';
-
-    var tau = root.querySelector('[data-role="tau"]');
-    var omega = root.querySelector('[data-role="omega"]');
-    var field = root.querySelector('[data-role="field"]');
-    var result = root.querySelector('[data-role="result"]');
-    var gateStatus = root.querySelector('[data-role="gate-status"]');
-    var revealed = false;
-
-    function currentModel() {
-      return evaluate({ tau: tau.value, omega: omega.value, field: field.value });
-    }
-
-    function updateOutputs() {
-      root.querySelector('[data-role="tau-output"]').textContent = format(Number(tau.value), 2) + " fs";
-      root.querySelector('[data-role="omega-output"]').textContent = format(Number(omega.value), 2) + " fs⁻¹";
-      root.querySelector('[data-role="field-output"]').textContent = format(Number(field.value), 1);
-      if (revealed) result.innerHTML = resultHtml(currentModel());
-    }
-
-    [tau, omega, field].forEach(function (input) { input.addEventListener("input", updateOutputs); });
-    root.querySelector('[data-role="reveal"]').addEventListener("click", function () {
-      var complete = root.querySelector('[data-role="causal-prediction"]').value === "correct" &&
-        root.querySelector('[data-role="crossing-prediction"]').value === "correct" &&
-        root.querySelector('[data-role="fdt-prediction"]').value === "correct";
-      if (!complete) {
-        gateStatus.textContent = "预测还没有闭合；请分别检查时间箭头、ωτ=1 和 FDT 的适用条件。";
-        return;
-      }
-      revealed = true;
-      result.hidden = false;
-      result.innerHTML = resultHtml(currentModel());
-      gateStatus.textContent = "预测门通过：现在可以把时间响应和频域响应对照起来。";
-    });
-    root.querySelector('[data-role="reset"]').addEventListener("click", function () {
-      root.querySelectorAll("select").forEach(function (select) { select.value = ""; });
-      tau.value = "2";
-      omega.value = "0.5";
-      field.value = "1";
-      revealed = false;
-      result.hidden = true;
-      result.innerHTML = "";
-      gateStatus.textContent = "先完成三项预测。";
-      updateOutputs();
-    });
-    updateOutputs();
-  }
-
-  function selfTest() {
-    var checks = 0;
-    var model = evaluate({ tau: 2, omega: 0.5, field: 1 });
-    assert(causalKernel(-1, 1, 2) === 0, "causal kernel boundary"); checks += 1;
-    assert(stepResponse(-1, 1, 1, 2) === 0, "step response boundary"); checks += 1;
-    assert(near(stepResponse(2, 1, 1, 2), 1 - Math.exp(-1), 1e-12), "step at tau"); checks += 1;
-    assert(near(model.frequency.reducedFrequency, 1, 1e-12), "reduced frequency"); checks += 1;
-    assert(near(model.frequency.real, 0.5, 1e-12), "real part at crossing"); checks += 1;
-    assert(near(model.frequency.imaginary, 0.5, 1e-12), "imaginary part at crossing"); checks += 1;
-    assert(near(model.frequency.magnitude, 1 / Math.sqrt(2), 1e-12), "magnitude"); checks += 1;
-    assert(near(model.frequency.phase, 45, 1e-12), "phase"); checks += 1;
-    assert(near(causalKernel(2, 1, 2), 0.5 * Math.exp(-1), 1e-12), "kernel at tau"); checks += 1;
-    assert(TIME_MIN < 0 && TIME_MAX >= 4 * 4, "fixed physical time domain"); checks += 1;
-    var doubledField = evaluate({ tau: 2, omega: 0.5, field: 2 });
-    assert(near(doubledField.stepAtTau, 2 * model.stepAtTau, 1e-12), "absolute E0 response"); checks += 1;
-    assert(stepResponse(2, 2, 1, 2) !== stepResponse(2, 1, 1, 2), "E0 changes current path"); checks += 1;
-    assert(chart(model) !== chart(doubledField), "E0 changes rendered current path"); checks += 1;
-    var rendered = chart(model);
-    assert(rendered.indexOf("J(t)") !== -1 && rendered.indexOf("E₀=1") !== -1, "absolute current semantic labels"); checks += 1;
-    assert(rendered.indexOf("kr-svg-compact") !== -1 && rendered.indexOf("t&lt;0") !== -1, "causal region and mobile chart labels"); checks += 1;
-    return { checks: checks };
-  }
-
-  return { mount: mount, selfTest: selfTest };
-});
+function selfTest(){let checks=coreSelfTest().checks;const ok=v=>{if(!v)throw Error('Kubo201 view '+checks);checks++;};for(const p of PRESETS){const s=compute(p.parameters);ok(plots(s).length===6);ok(tables(s).length===12);for(const plot of plots(s))for(const q of plot.series)for(const v of q.points)if(v)ok(v.every(Number.isFinite));for(let i=0;i<4;i++)ok(feedback(i,QUESTIONS[i][2]).correct);}return {status:'PASS',checks};}
+const API={LIMITS,DEFAULT,PRESETS,config,QUESTIONS,compute,snapshot:compute,plots,tables,svg,feedback,fmt,mount,selfTest,model,sigma,kernel,current,timed,windowExact,simpsonWindow,kk,area,quantum};if(typeof module!=="undefined"&&module.exports)module.exports=API;if(hostWindow&&hostWindow.CourseLearning)hostWindow.CourseLearning.register("physics-kubo-response",mount);})(typeof window!=="undefined"?window:null);
