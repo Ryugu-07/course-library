@@ -56,77 +56,225 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 02:03</div>
+    <div class="build-time">构建于 2026-09-13 15:35</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 能量没有变化，绕一圈为何仍能留下相位</a></li>
-<li><a href="#2">2. 先写出下能级的向量，符号才有依据</a></li>
-<li><a href="#3">3. 北边好用的相位，到南极失效</a></li>
-<li><a href="#4">4. 一条纬线与整个球面是两个不同问题</a></li>
-<li><a href="#5">5. 迁移题</a></li>
-<li><a href="#_1">速查与下一步</a></li>
+<li><a href="#1">1. 能谱相同，不意味着量子态沿途没有变化</a></li>
+<li><a href="#2">2. 下能级的符号要从向量算出来</a></li>
+<li><a href="#3">3. 两个局部规范，以及不能漏掉的端点</a></li>
+<li><a href="#4-chern">4. 一条纬线的相位，不等于整个球面的 Chern 数</a></li>
+<li><a href="#5">5. 用重叠乘积计算相位：闭合和采样都要正确</a></li>
+<li><a href="#6">6. 真实旋转磁场：用一个精确解检查绝热说法</a></li>
+<li><a href="#7">7. 几何网格与时间网格是两个独立旋钮</a></li>
+<li><a href="#8">8. 给相位一条参考臂，才能得到可比较的干涉概率</a></li>
+<li><a href="#9">9. 能隙关闭与换单位：公式能画，不等于条件成立</a></li>
+<li><a href="#10">10. 实验顺序与继续学习</a></li>
 </ul>
 </div>
 </details>
-<h1 id="03-berry">基础衔接 03 · Berry 联络与曲率：把两能级的相位算清楚<a class="headerlink" href="#03-berry" title="Permanent link"></a></h1>
+<h1 id="03-berry">基础衔接 03 · Berry 几何相位：把规范、网格与真实演化分开<a class="headerlink" href="#03-berry" title="Permanent link"></a></h1>
 <blockquote>
-<p>先修：<a href="qm-01-framework.html">量子态与内积</a>、<a href="qm-03-angular-hydrogen.html">自旋</a>、<a href="qm-06-wkb-variational-adiabatic.html">绝热近似</a>。目标：从一个明确本征态推出联络、曲率与回路相位，再接到<a href="solid-04-topological.html">拓扑能带</a>。全讲固定 <span class="arithmatex">\(A=i\langle u|du\rangle\)</span>，曲率 <span class="arithmatex">\(F=dA\)</span>，球面取向为 <span class="arithmatex">\(d\theta\wedge d\phi\)</span>。</p>
+<p>先修：<a href="qm-01-framework.html">量子态与内积</a>、<a href="qm-03-angular-hydrogen.html">自旋</a>、<a href="qm-06-wkb-variational-adiabatic.html">绝热近似</a>。目标：从两能级本征态推出联络、曲率和回路相位，再用可精确求解的演化检查绝热近似。固定 <span class="arithmatex">\(A=i\langle u|du\rangle\)</span>、<span class="arithmatex">\(F=dA\)</span>，球面取向为 <span class="arithmatex">\(d\theta\wedge d\phi\)</span>。</p>
 </blockquote>
 <div data-learning-page></div>
-<section class="learning-layer">
-<h2 id="1">1. 能量没有变化，绕一圈为何仍能留下相位<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>取 Hamiltonian <span class="arithmatex">\(H=E\mathbf n\cdot\boldsymbol\sigma\)</span>，<span class="arithmatex">\(E&gt;0\)</span> 是能量，<span class="arithmatex">\(\mathbf n=(\sin\theta\cos\phi,\sin\theta\sin\phi,\cos\theta)\)</span> 为单位向量，角度以弧度计。两条能量恒为 <span class="arithmatex">\(\pm E\)</span>，能隙恒为 <span class="arithmatex">\(2E\)</span>。改变 <span class="arithmatex">\(\mathbf n\)</span> 不改能谱，却会改变本征态。</p>
-<p>若沿缓慢路径保持在一个非简并本征态，设 <span class="arithmatex">\(|\psi(t)\rangle=e^{i\alpha(t)}|u(t)\rangle\)</span>。代入 Schrödinger 方程，并左乘 <span class="arithmatex">\(\langle u|\)</span>，得到</p>
-<div class="arithmatex">\[\dot\alpha=-\varepsilon/\hbar+i\langle u|\dot u\rangle.\]</div>
-<p>总相位包含动力学部分 <span class="arithmatex">\(-\int\varepsilon dt/\hbar\)</span> 与几何部分 <span class="arithmatex">\(\gamma=\int i\langle u|du\rangle\)</span>。本实验只算后者；快速驱动引起跃迁时，这个绝热单带描述就不够了。</p>
-<h2 id="2">2. 先写出下能级的向量，符号才有依据<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p>记 <span class="arithmatex">\(s=\sin(\theta/2),c=\cos(\theta/2)\)</span>，选择</p>
+<section class="learning-layer berry207-course">
+<style>.berry207-static{max-width:100%;overflow:auto}.berry207-static table{display:table;max-width:none;overflow:visible;min-width:100%;width:max-content}.berry207-static td,.berry207-static th{white-space:nowrap}.berry207-course .arithmatex{max-width:100%;overflow-x:auto}</style>
+<h2 id="1">1. 能谱相同，不意味着量子态沿途没有变化<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>取 <span class="arithmatex">\(H=E\mathbf n\cdot\boldsymbol\sigma\)</span>，其中 <span class="arithmatex">\(E&gt;0\)</span>，<span class="arithmatex">\(\mathbf n=(\sin\theta\cos\phi,\sin\theta\sin\phi,\cos\theta)\)</span>。两条能量恒为 <span class="arithmatex">\(\pm E\)</span>，能隙是 <span class="arithmatex">\(2E\)</span>；改变方向会改变本征态，即使能谱不动。</p>
+<p>先假设系统缓慢运动并保持在非简并瞬时本征态，写 <span class="arithmatex">\(|\psi(t)\rangle=e^{i\alpha(t)}|u(t)\rangle\)</span>。代入 Schrödinger 方程，再左乘 <span class="arithmatex">\(\langle u|\)</span>：</p>
+<div class="arithmatex">\[\dot\alpha=-\frac{\varepsilon}{\hbar}+i\langle u|\dot u\rangle.\]</div>
+<p>第一项给动力学相位，第二项给几何相位。只有明确绝热条件，才能把真实演化简单写成“瞬时本征态乘这两个相位”。本课的实验同时计算本征态族的几何性质和真实有限速度演化，以便看见这项假设何时不够。</p>
+<p>几何相位是相对于参考过程的相位，单独量一次同一态的概率无法读取全局相位。后面会指定一条参考臂，实际计算干涉端口概率。</p>
+<h2 id="2">2. 下能级的符号要从向量算出来<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>记 <span class="arithmatex">\(s=\sin(\theta/2)\)</span>、<span class="arithmatex">\(c=\cos(\theta/2)\)</span>，选择北侧局部表示</p>
 <div class="arithmatex">\[|u_-^N\rangle=\begin{pmatrix}-e^{-i\phi}s\\c\end{pmatrix},\qquad
-H/E=\begin{pmatrix}\cos\theta&amp;e^{-i\phi}\sin\theta\\e^{i\phi}\sin\theta&amp;-\cos\theta\end{pmatrix}.\]</div>
-<p>其范数为一。第一分量相乘后为 <span class="arithmatex">\(e^{-i\phi}(-s\cos\theta+c\sin\theta)=e^{-i\phi}s\)</span>；第二分量为 <span class="arithmatex">\(-s\sin\theta-c\cos\theta=-c\)</span>。故 <span class="arithmatex">\(H|u_-^N\rangle=-E|u_-^N\rangle\)</span>，确实是下能级。</p>
-<p>直接求导：</p>
-<div class="arithmatex">\[\partial_\theta u_-^N=\tfrac12(-e^{-i\phi}c,-s)^T,\qquad
-\partial_\phi u_-^N=(ie^{-i\phi}s,0)^T.\]</div>
-<p>于是 <span class="arithmatex">\(\langle u|\partial_\theta u\rangle=0\)</span>，<span class="arithmatex">\(\langle u|\partial_\phi u\rangle=-is^2\)</span>，所以</p>
+\frac HE=\begin{pmatrix}\cos\theta&amp;e^{-i\phi}\sin\theta\\e^{i\phi}\sin\theta&amp;-\cos\theta\end{pmatrix}.\]</div>
+<p>范数为一。矩阵乘法的第一分量是 <span class="arithmatex">\(e^{-i\phi}(-s\cos\theta+c\sin\theta)=e^{-i\phi}s\)</span>，第二分量是 <span class="arithmatex">\(-s\sin\theta-c\cos\theta=-c\)</span>，所以它确实满足 <span class="arithmatex">\(H|u_-^N\rangle=-E|u_-^N\rangle\)</span>。</p>
+<p>求导得到 <span class="arithmatex">\(\partial_\theta u_-^N=(-e^{-i\phi}c,-s)^T/2\)</span>、<span class="arithmatex">\(\partial_\phi u_-^N=(ie^{-i\phi}s,0)^T\)</span>。由 <span class="arithmatex">\(\langle u|\partial_\theta u\rangle=0\)</span>、<span class="arithmatex">\(\langle u|\partial_\phi u\rangle=-is^2\)</span>，</p>
 <div class="arithmatex">\[A_N=\frac{1-\cos\theta}{2}\,d\phi,\qquad
-F=dA_N=\frac{\sin\theta}{2}\,d\theta\wedge d\phi.\]</div>
-<p>下能级在本约定下是正号。换上能级、改 <span class="arithmatex">\(A\)</span> 的定义或反转取向都可能改变符号；固定了三者之后，符号就不能随意挑选。</p>
-<h2 id="3">3. 北边好用的相位，到南极失效<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>在北极 <span class="arithmatex">\(\theta=0\)</span>，<span class="arithmatex">\(u_-^N=(0,1)^T\)</span> 不依赖 <span class="arithmatex">\(\phi\)</span>。在南极却成为 <span class="arithmatex">\((-e^{-i\phi},0)^T\)</span>，同一个物理点用了不同向量表示。不是量子态奇异，而是这个局部相位选择不能覆盖整个球面。</p>
-<p>取南侧规范 <span class="arithmatex">\(u_-^S=e^{i\phi}u_-^N=(-s,e^{i\phi}c)^T\)</span>，它在南极良好。一般相位变换 <span class="arithmatex">\(u'=e^{i\chi}u\)</span> 给出</p>
-<div class="arithmatex">\[A'=i\langle u'|du'\rangle=A-d\chi.\]</div>
-<p>因此 <span class="arithmatex">\(A_S=-(1+\cos\theta)d\phi/2\)</span>，但 <span class="arithmatex">\(dA_S=dA_N\)</span>。联络的局部表达不同，曲率相同。两个规范沿重叠处通过过渡函数连接；这与<a href="../../grad-math/site/bridge-04-sheaves.html">数学的层与粘合</a>共享局部数据的组织方式，不过这里还多了 Hermitian 内积与联络。</p>
-<p><img alt="北侧和南侧规范的联络分别为二分之一乘一减余弦及负二分之一乘一加余弦，两者相差负dφ而曲率相同。" src="assets/img/bridge-03-berry.svg" /></p>
-<h2 id="4">4. 一条纬线与整个球面是两个不同问题<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p>固定 <span class="arithmatex">\(0&lt;\theta&lt;\pi\)</span>，令 <span class="arithmatex">\(\phi\)</span> 正向走一圈：</p>
-<div class="arithmatex">\[\gamma_N=\pi(1-\cos\theta),\qquad \gamma_S=\gamma_N-2\pi.\]</div>
-<p>两种结果有相同的 <span class="arithmatex">\(e^{i\gamma}\)</span>。对任意非周期规范，闭合物理路径的规范不变表达还应包括端点项：<span class="arithmatex">\(\gamma=\int A+\arg\langle u(0)|u(T)\rangle\)</span>。不能只积分一个在首尾选了不同相位的向量而漏掉这个补偿。</p>
-<p>整个球面上 <span class="arithmatex">\(\int F=2\pi\)</span>，故第一 Chern 数 <span class="arithmatex">\(C=(2\pi)^{-1}\int F=1\)</span>。一条纬线相位一般不是整数；球面整体积分则是本征线丛的不变量。</p>
-<p>把球面参数换成任意 <span class="arithmatex">\(x,y\)</span>，下带曲率是拉回：</p>
-<div class="arithmatex">\[F_{xy}=\tfrac12\mathbf n\cdot(\partial_x\mathbf n\times\partial_y\mathbf n).\]</div>
-<p>这也可由 <span class="arithmatex">\(P_-=(1-\mathbf n\cdot\boldsymbol\sigma)/2\)</span> 与 <span class="arithmatex">\(F_{xy}=i\operatorname{Tr}P_-[\partial_xP_-,\partial_yP_-]\)</span> 得到。用 <span class="arithmatex">\([\mathbf a\cdot\boldsymbol\sigma,\mathbf b\cdot\boldsymbol\sigma]=2i(\mathbf a\times\mathbf b)\cdot\boldsymbol\sigma\)</span> 即可检查正号。它是检查 QWZ 能带公式的独立方法。</p>
-<div class="learning-lab" data-learning-lab="research-geometry" data-research-topic="berry">
-<p>先预测：换南侧规范后，相位改了 <span class="arithmatex">\(2\pi\)</span>，干涉结果会改变吗？默认 <span class="arithmatex">\(\theta/\pi=0.5\)</span>、北侧规范、64 个回路分段。精确相位 <span class="arithmatex">\(\gamma=\pi\)</span>，<span class="arithmatex">\(F_{\theta\phi}=1/2\)</span>；南侧为 <span class="arithmatex">\(-\pi\)</span>，但两者的复相位都为 <span class="arithmatex">\(-1\)</span>。</p>
+F=\frac{\sin\theta}{2}\,d\theta\wedge d\phi.\]</div>
+<p>这里下带曲率为正，依据是已固定的联络定义、下能级和球面取向。改取上能级、反转取向或改联络定义都可能改变符号；不能在其他约定之间只抄一个正负号。</p>
+<details class="answer">
+<summary>练习 1 · θ=π/3，正向纬线的几何相位和局部曲率是多少？</summary>
+<p>联络沿 <span class="arithmatex">\(\phi:0\to2\pi\)</span> 积分给 <span class="arithmatex">\(\gamma_N=\pi(1-\cos\theta)=\pi/2\)</span>，所以复相位为 <span class="arithmatex">\(i\)</span>。曲率分量为 <span class="arithmatex">\(F_{\theta\phi}=\sin(\pi/3)/2=\sqrt3/4\)</span>。局部曲率分量、整圈相位和复相位是三种不同对象，不应把它们的数值混用。</p>
+</details>
+<h2 id="3">3. 两个局部规范，以及不能漏掉的端点<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>北极处 <span class="arithmatex">\(u_-^N=(0,1)^T\)</span> 不依赖 <span class="arithmatex">\(\phi\)</span>，但南极处变成 <span class="arithmatex">\((-e^{-i\phi},0)^T\)</span>。同一个物理点出现不同向量表示，是这一局部规范不能覆盖全球；投影态本身并没有奇异。</p>
+<p>取南侧表示 <span class="arithmatex">\(u_-^S=e^{i\phi}u_-^N=(-s,e^{i\phi}c)^T\)</span>。一般变换 <span class="arithmatex">\(u'=e^{i\chi}u\)</span> 给出</p>
+<div class="arithmatex">\[A'=A-d\chi,\qquad A_S=-\frac{1+\cos\theta}{2}\,d\phi,\qquad dA_S=dA_N.\]</div>
+<p>沿正向纬线，<span class="arithmatex">\(\gamma_S=\gamma_N-2\pi\)</span>，两者的 <span class="arithmatex">\(e^{i\gamma}\)</span> 相同。若相位选择在首尾并不周期，就必须写成</p>
+<div class="arithmatex">\[e^{i\gamma}=\exp\left(i\int A\right)\frac{\langle u(0)|u(T)\rangle}{|\langle u(0)|u(T)\rangle|}.\]</div>
+<p>这里物理投影路径闭合，因此首尾态只差相位，重叠模为一。联络积分改变 <span class="arithmatex">\(-\Delta\chi\)</span>，端点重叠的相位改变 <span class="arithmatex">\(+\Delta\chi\)</span>，二者相消。实数相位可以差整倍 <span class="arithmatex">\(2\pi\)</span>，比较时应看复相位或模 <span class="arithmatex">\(2\pi\)</span> 的圆周距离。</p>
+<p>实验额外使用平滑 <span class="arithmatex">\(\chi=a\phi+b\sin(3\phi)\)</span>。非整数 <span class="arithmatex">\(a\)</span> 使端点向量相位不同；<span class="arithmatex">\(b\)</span> 会改变沿途联络，但其首尾变化为零。两者都不改变投影或曲率。</p>
+<p><img alt="北侧和南侧联络相差负dφ，曲率相同；局部向量的规范选择不能覆盖整个球面。" src="assets/img/bridge-03-berry.svg" /></p>
+<details class="answer">
+<summary>练习 2 · 北侧纬线再乘exp(0.7iφ)，为什么只积分联络会错？</summary>
+<p>新积分是 <span class="arithmatex">\(\gamma_N-1.4\pi\)</span>。首尾重叠为 <span class="arithmatex">\(e^{i1.4\pi}\)</span>；其主值相位也可以写成 <span class="arithmatex">\(-0.6\pi\)</span>。补偿后的实数代表可能成为 <span class="arithmatex">\(\gamma_N-2\pi\)</span>，但复相位准确回到 <span class="arithmatex">\(e^{i\gamma_N}\)</span>。主值分支跳变不是干涉突变。</p>
+</details>
+<h2 id="4-chern">4. 一条纬线的相位，不等于整个球面的 Chern 数<a class="headerlink" href="#4-chern" title="Permanent link"></a></h2>
+<p>纬线相位 <span class="arithmatex">\(\pi(1-\cos\theta)\)</span> 随极角连续变化，一般不是 <span class="arithmatex">\(2\pi\)</span> 的整数倍。整个定向球面的积分则是</p>
+<div class="arithmatex">\[\int_{S^2}F=\int_0^{2\pi}d\phi\int_0^\pi\frac{\sin\theta}{2}d\theta=2\pi,\qquad C=\frac1{2\pi}\int F=1.\]</div>
+<p>这里 Chern 数属于有能隙的下带本征线丛。反向走同一条纬线会使该回路相位变号，却不会同时反转我们已固定的整个球面取向；不能因此把这张球面的 Chern 数也自动改号。</p>
+<p>不依赖向量相位的检查方法是投影 <span class="arithmatex">\(P_-=(1-\mathbf n\cdot\boldsymbol\sigma)/2\)</span>。若把球面参数写成 <span class="arithmatex">\(x,y\)</span>，</p>
+<div class="arithmatex">\[F_{xy}=i\operatorname{Tr}P_-[\partial_xP_-,\partial_yP_-]
+=\frac12\mathbf n\cdot(\partial_x\mathbf n\times\partial_y\mathbf n).\]</div>
+<p>用 Pauli 交换关系可以独立核对正号。这为<a href="solid-04-topological.html">拓扑能带</a>的两带模型提供了可迁移的计算工具。</p>
+<details class="answer">
+<summary>练习 3 · 数值中点积分得到1.006而不是1，能否说Chern数不是整数？</summary>
+<p>不能直接这样判断。将 <span class="arithmatex">\(\theta\)</span> 等分为 <span class="arithmatex">\(n\)</span> 段，中点法给</p>
+<div class="arithmatex">\[C_n=\frac{\pi}{2n\sin(\pi/(2n))},\]</div>
+<p>它有限网格时略大于一，随细分趋于一。也可对每个纬带精确积分，单元通量为 <span class="arithmatex">\(\pi[\cos\theta_j-\cos\theta_{j+1}]\)</span>，相加直接望远镜式抵消成 <span class="arithmatex">\(2\pi\)</span>。实验把近似求积和精确单元通量分别列出，不把前者当精确拓扑整数。</p>
+</details>
+<h2 id="5">5. 用重叠乘积计算相位：闭合和采样都要正确<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>取 <span class="arithmatex">\(N\)</span> 个分段，包含首尾点 <span class="arithmatex">\(u_0,\ldots,u_N\)</span>。令 <span class="arithmatex">\(P_{\rm open}=\prod_{j=0}^{N-1}\langle u_j|u_{j+1}\rangle\)</span>，<span class="arithmatex">\(z=\langle u_0|u_N\rangle\)</span>，离散复相位定义为</p>
+<div class="arithmatex">\[W_N=\overline{\frac{P_{\rm open}}{|P_{\rm open}|}}\frac z{|z|}.\]</div>
+<p>它等价于给乘积加上闭合项 <span class="arithmatex">\(\langle u_N|u_0\rangle\)</span> 后再取负相位。每个点的规范因子沿乘积逐项相消，因此规范不变性在有限网格就成立；有限网格与连续曲线之间仍可能有几何离散误差。这是两个不同判断。</p>
+<p>对于等间距纬线，北侧每一段的重叠相同：<span class="arithmatex">\(z_\Delta=c^2+s^2e^{-i\Delta\phi}\)</span>，故相位可独立由 <span class="arithmatex">\(-N\arg z_\Delta\)</span> 检查。实验保留全部节点、复重叠和模，而不是只输出一个角度。</p>
+<details class="answer">
+<summary>练习 4 · 为什么赤道只分两段时，相位算法失效？</summary>
+<p>此时 <span class="arithmatex">\(c^2=s^2=1/2\)</span>、<span class="arithmatex">\(\Delta\phi=\pi\)</span>，因此 <span class="arithmatex">\(z_\Delta=(1+e^{-i\pi})/2=0\)</span>。相邻态正交，零复数没有相位。真实连续赤道回路仍有几何相位 <span class="arithmatex">\(\pi\)</span>；出问题的是这套采样。细分到非正交邻点后才能计算。代码为这一精确数学条件报告“不适用”，不采用三角函数舍入留下的极小复数方向。</p>
+</details>
+<h2 id="6">6. 真实旋转磁场：用一个精确解检查绝热说法<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>现在取 <span class="arithmatex">\(\phi(t)=\omega t\)</span>，一圈时间 <span class="arithmatex">\(T=2\pi/|\omega|\)</span>，初态为 <span class="arithmatex">\(u_-^N(\theta,0)\)</span>。以下取 <span class="arithmatex">\(\hbar=1\)</span>，所以 <span class="arithmatex">\(E\)</span> 与 <span class="arithmatex">\(\omega\)</span> 同量纲；恢复单位时应把能量与 <span class="arithmatex">\(\hbar\omega\)</span> 比较。</p>
+<p>写 <span class="arithmatex">\(R(t)=e^{-i\omega t\sigma_z/2}\)</span>、<span class="arithmatex">\(\psi=R\xi\)</span>，旋转参考系中的 Hamiltonian 为</p>
+<div class="arithmatex">\[H_{\rm rot}=E\sin\theta\,\sigma_x+(E\cos\theta-\omega/2)\sigma_z,\qquad
+U(t)=R(t)e^{-iH_{\rm rot}t}.\]</div>
+<p>右侧是常矩阵指数，因此可精确计算每个时刻，而不预设系统始终在下带。令 <span class="arithmatex">\(\mathbf h=(E\sin\theta,0,E\cos\theta-\omega/2)\)</span>，</p>
+<div class="arithmatex">\[e^{-i\mathbf h\cdot\boldsymbol\sigma t}=\cos(|\mathbf h|t)I-i\frac{\sin(|\mathbf h|t)}{|\mathbf h|}\mathbf h\cdot\boldsymbol\sigma.\]</div>
+<p>当 <span class="arithmatex">\(|\mathbf h|=0\)</span> 时连续取 <span class="arithmatex">\(\sin(|\mathbf h|t)/|\mathbf h|\to t\)</span>，不需要人为加小数避免除零。对 <span class="arithmatex">\(E&gt;0\)</span>，从初始下带出发，瞬时上带跃迁概率为</p>
+<div class="arithmatex">\[P_+(t)=\frac{\omega^2\sin^2\theta}{4|\mathbf h|^2}\sin^2(|\mathbf h|t).\]</div>
+<p>页面另画解析包络 <span class="arithmatex">\(\omega^2\sin^2\theta/(4|\mathbf h|^2)\)</span>，对所有时刻给出上界。图中129个时刻只是采样，极慢驱动时可能无法解析整圈中的快速小幅振荡；不能把采样连线当成全部连续细节。速度图也只连接81个采样点。适当慢驱动下跃迁很小；快速时则可能显著。某些速度恰好一圈后回到原带，也不能据终点一次复现就断言沿途绝热，必须检查时间曲线和相位。</p>
+<details class="answer">
+<summary>练习 5 · 推出旋转系中的负ω/2项，并解释一圈后的负号</summary>
+<p>代入 <span class="arithmatex">\(i\dot\psi=H\psi\)</span> 得 <span class="arithmatex">\(i\dot\xi=(R^\dagger HR-iR^\dagger\dot R)\xi\)</span>，而 <span class="arithmatex">\(R^\dagger\dot R=-i\omega\sigma_z/2\)</span>，所以附加项是 <span class="arithmatex">\(-\omega\sigma_z/2\)</span>。一圈时 <span class="arithmatex">\(\omega T=\pm2\pi\)</span>，<span class="arithmatex">\(R(T)=-I\)</span>。这个自旋旋转负号必须保留在真实演化中，但不能孤立地把它当作整项 Berry 相位；另一矩阵指数仍包含动力学与方向信息。</p>
+</details>
+<h2 id="7">7. 几何网格与时间网格是两个独立旋钮<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>几何分段数 <span class="arithmatex">\(N\)</span> 决定重叠乘积如何近似指定回路；时间步数 <span class="arithmatex">\(M\)</span> 决定如何近似真实的时间有序演化。实验的数值演化在每个时间段中点取 <span class="arithmatex">\(H\)</span>，按时间顺序相乘 <span class="arithmatex">\(e^{-iH(t_{j+1/2})\Delta t}\)</span>，并与上一节精确解比较。</p>
+<p>每个小步都幺正，因此范数可以非常接近一；粗网格仍可能算错方向和相位。页面给出完整态矢误差 <span class="arithmatex">\(\|\psi_M(T)-\psi_{\rm exact}(T)\|\)</span>、上态概率误差和范数偏离，三者分开列出。此处两算法使用同一初态和同一相位约定，比较完整态矢相位有意义。</p>
+<details class="answer">
+<summary>练习 6 · 慢驱动时，固定16个时间步为什么也可能很不准？</summary>
+<p>减小 <span class="arithmatex">\(|\omega|\)</span> 会增加整圈时间 <span class="arithmatex">\(T\)</span>，固定 <span class="arithmatex">\(M\)</span> 时每步 <span class="arithmatex">\(\Delta t=T/M\)</span> 反而变大。即使 Hamiltonian 的方向每步只转固定小角度，长时间积累的相位仍可能使离散演化偏离。预设“保持幺正也可能算不准”取 <span class="arithmatex">\(E=1,\theta=60^\circ,|\omega|=10^{-1.5},M=16\)</span>，完整态矢误差约 <span class="arithmatex">\(0.975\)</span>，但范数仍接近一。提高 <span class="arithmatex">\(M\)</span> 是检查数值积分；提高 <span class="arithmatex">\(N\)</span> 不能修复这个时间积分误差。</p>
+</details>
+<h2 id="8">8. 给相位一条参考臂，才能得到可比较的干涉概率<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>理想平衡干涉仪的一臂经历真实演化 <span class="arithmatex">\(U(T)\)</span>，另一臂保持初始下态并积累参考动力学相位 <span class="arithmatex">\(e^{iET}\)</span>。定义两臂态的重叠</p>
+<div class="arithmatex">\[\mathcal A=e^{-iET}\langle u_0|U(T)|u_0\rangle,\qquad
+P(\varphi)=\frac{1+\operatorname{Re}(e^{-i\varphi}\mathcal A)}2.\]</div>
+<p>这里 <span class="arithmatex">\(\varphi\)</span> 是可调参考相位，<span class="arithmatex">\(P\)</span> 是一个输出端口的总概率，未对自旋态另行后选择。条纹可见度为 <span class="arithmatex">\(|\mathcal A|\)</span>。若真实演化有跃迁，两臂内部态不完全一致，可见度会降低；有限速度下 <span class="arithmatex">\(\mathcal A\)</span> 不能直接称作一个纯 Berry 相位。</p>
+<p>隔离下带的绝热极限预测 <span class="arithmatex">\(\mathcal A\to e^{i\gamma}\)</span>，于是 <span class="arithmatex">\(P\to[1+\cos(\gamma-\varphi)]/2\)</span>。实验既画真实演化条纹，也画这个有条件的预测。默认 <span class="arithmatex">\(\theta=60^\circ\)</span>，绝热几何复相位是 <span class="arithmatex">\(i\)</span>；有限速度下仍应使用实际复振幅。</p>
+<details class="answer">
+<summary>练习 7 · 一个参考相位下测得P=1/2，能否断定γ=π/2？</summary>
+<p>不能。在理想可见度一、参考相位零时，<span class="arithmatex">\(\gamma=\pi/2\)</span> 和 <span class="arithmatex">\(-\pi/2\)</span> 都给同一概率；可见度降低还会产生更多可能。扫描参考相位得到整条条纹，才能区分复振幅的方向和模。回路反向时，几何相位变号，这一区别在完整参考相位扫描中可见。</p>
+</details>
+<h2 id="9">9. 能隙关闭与换单位：公式能画，不等于条件成立<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>实验允许 <span class="arithmatex">\(E=0\)</span>。这时 <span class="arithmatex">\(H=0\)</span>，真实演化仍有明确答案 <span class="arithmatex">\(U=I\)</span>；但 Hamiltonian 不再选出唯一隔离下带。代码保留人为指定的向量族及其投影几何，同时将物理下带 Chern 数和绝热 Berry 预测标为“不适用”。上、下投影也只表示对指定两个向量的投影，不能再叫能量带占据。</p>
+<p>北极与南极的方向不随 <span class="arithmatex">\(\phi\)</span> 改变，几何复相位为一。局部规范在某个极点不适合作全球坐标，并不意味着有真实跃迁或物理奇点。与此不同，能隙消失确实改变了隔离带条件。</p>
+<details class="answer">
+<summary>练习 8 · 同时把E、ω乘α，并把时间除α，哪些结果应保持不变？</summary>
+<p>每个指数中的 <span class="arithmatex">\(Ht\)</span> 和 <span class="arithmatex">\(\omega t\)</span> 不变，因此真实终态、跃迁概率、两臂重叠与端口概率均不变。固定相同 <span class="arithmatex">\(M\)</span> 时，中点时间演化也保持相同的无量纲步骤。只降低 <span class="arithmatex">\(E\)</span> 而固定 <span class="arithmatex">\(\omega\)</span> 则改变了驱动相对能隙的速度，不能称作换单位；<span class="arithmatex">\(E=0\)</span> 还失去唯一隔离能带。</p>
+</details>
+<h2 id="10">10. 实验顺序与继续学习<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>先保持物理回路不变，切换北南规范和端点相位；再用两段赤道观察离散算法失效，随后只细分 <span class="arithmatex">\(N\)</span>。接着固定物理演化，只细分 <span class="arithmatex">\(M\)</span>，对照范数与态矢误差。最后改变真实驱动速度并扫描参考臂相位，区分几何预测、动力学和数值误差。</p>
+<div class="learning-lab" data-learning-lab="scalar-berry">
+<p>默认 <span class="arithmatex">\(\theta=60^\circ,N=64,E=1,|\omega|=0.1,M=256\)</span>。禁用脚本仍可查看固定记录；启用后可调十一项输入，并查看每个采样态、复重叠和实际演化。</p>
+<p><strong>无脚本对照：</strong>六份完整记录区分本征态族几何与真实演化。复数采用[实部, 虚部]；关闭能隙的记录只保留人为选态族的几何，隔离带预测不适用。</p>
+<div aria-label="Berry固定记录，可横向滚动" class="berry207-static" role="region" tabindex="0">
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th>隔离带</th>
+<th>离散相位有定义</th>
+<th>离散复相位</th>
+<th style="text-align: right;">终态上投影概率</th>
+<th style="text-align: right;">时间网格态矢误差</th>
+<th>真实参考重叠</th>
+<th>Berry预测</th>
+<th style="text-align: right;">端口概率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>default</td>
+<td>是</td>
+<td>是</td>
+<td>[0.000946806587, 0.999999552]</td>
+<td style="text-align: right;">0.00196133469</td>
+<td style="text-align: right;">0.00150214674</td>
+<td>[-0.0603487905, 0.997194409]</td>
+<td>[5.0532155e-16, 1]</td>
+<td style="text-align: right;">0.469825605</td>
+</tr>
+<tr>
+<td>twist</td>
+<td>是</td>
+<td>是</td>
+<td>[0.000946806587, 0.999999552]</td>
+<td style="text-align: right;">0.00196133469</td>
+<td style="text-align: right;">0.00150214674</td>
+<td>[-0.0603487905, 0.997194409]</td>
+<td>[5.0532155e-16, 1]</td>
+<td style="text-align: right;">0.469825605</td>
+</tr>
+<tr>
+<td>orthogonal</td>
+<td>是</td>
+<td>否</td>
+<td>不适用</td>
+<td style="text-align: right;">1.53320766e-05</td>
+<td style="text-align: right;">0.00158342004</td>
+<td>[-0.996921179, -0.0783123913]</td>
+<td>[-1, 5.6655389e-16]</td>
+<td style="text-align: right;">0.00153941046</td>
+</tr>
+<tr>
+<td>fast</td>
+<td>是</td>
+<td>是</td>
+<td>[0.000946806587, 0.999999552]</td>
+<td style="text-align: right;">0.139067398</td>
+<td style="text-align: right;">0.000151196353</td>
+<td>[-0.666130924, 0.645911909]</td>
+<td>[5.0532155e-16, 1]</td>
+<td style="text-align: right;">0.166934538</td>
+</tr>
+<tr>
+<td>coarse</td>
+<td>是</td>
+<td>是</td>
+<td>[0.000946806587, 0.999999552]</td>
+<td style="text-align: right;">9.43168009e-05</td>
+<td style="text-align: right;">0.975443098</td>
+<td>[-0.0188205138, 0.999775711]</td>
+<td>[5.0532155e-16, 1]</td>
+<td style="text-align: right;">0.490589743</td>
+</tr>
+<tr>
+<td>closedgap</td>
+<td>否</td>
+<td>是</td>
+<td>[0.000946806587, 0.999999552]</td>
+<td style="text-align: right;">1.12481984e-32</td>
+<td style="text-align: right;">0</td>
+<td>[1, 0]</td>
+<td>不适用</td>
+<td style="text-align: right;">1</td>
+</tr>
+</tbody>
+</table>
 </div>
-<p>数值实验用闭合重叠乘积 <span class="arithmatex">\(\gamma_N^{\rm disc}=-\arg\prod_j\langle u_j|u_{j+1}\rangle\)</span>，比较的是模 <span class="arithmatex">\(2\pi\)</span> 的误差。离散点太少会有误差；若相邻重叠为零，取相位本身失去定义。实验限制角度远离两极，并显示分段数以避免把网格结果当精确公式。</p>
-<h2 id="5">5. 迁移题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>题一。</strong> 取 <span class="arithmatex">\(\theta=\pi/3\)</span>，计算两种规范的纬线相位与共同曲率。</p>
-<details>
-<summary>查看计算</summary>
-<p><span class="arithmatex">\(\gamma_N=\pi/2\)</span>，<span class="arithmatex">\(\gamma_S=-3\pi/2\)</span>，二者的复相位均为 <span class="arithmatex">\(i\)</span>；<span class="arithmatex">\(F_{\theta\phi}=\sqrt3/4\)</span>。不能因原始实数相位不同就判断物理不同。</p>
-</details>
-<p><strong>题二。</strong> 把 <span class="arithmatex">\(E\)</span> 从正数连续降到零，球面方向 <span class="arithmatex">\(\mathbf n\)</span> 仍可在代码里定义，这是否保证 Berry 单带结论仍适用？</p>
-<details>
-<summary>查看能隙条件</summary>
-<p>不保证。<span class="arithmatex">\(E=0\)</span> 时整个两能级简并，Hamiltonian 不再选定唯一的下带投影。继续代入同一个向量只是在简并空间中人为挑选一个态，不能当作隔离能带的几何不变量。</p>
-</details>
+<p><a download="berry-frozen-records.json" href="assets/learning/projects/berry-certificates/run-snapshot.json">下载六份完整记录</a>，含全部复态、相邻重叠、曲率和演化扫描。</p>
+</div>
+<figure>
+<p><img alt="六组Berry实验比较几何采样误差、端点规范补偿、真实跃迁、幺正时间步误差、慢驱动极限和参考臂干涉条纹。" src="assets/img/bridge-03-berry-certificates.svg" /></p>
+<figcaption>几何回路、本征态族和真实演化分别定义。能隙为零时不输出唯一隔离带的预测；零相邻重叠不输出离散相位。</figcaption>
+</figure>
+<p>回到<a href="solid-04-topological.html">拓扑能带</a>，再进入<a href="research-09-quantum-metric.html">量子几何张量与量子度量</a>。局部规范的粘合也可联系<a href="../../grad-math/site/bridge-04-sheaves.html">数学的层与粘合</a>，但物理本征态族还带有 Hermitian 内积与联络。</p>
+<p>原始来源：<a href="https://doi.org/10.1098/rspa.1984.0023">Berry：Quantal phase factors accompanying adiabatic changes</a>，以及<a href="https://michaelberryphysics.wordpress.com/wp-content/uploads/2013/07/berry120.pdf">作者公开的论文原文</a>。已核查原文相位分解与干涉讨论；本课按明确下带和联络约定独立展开两能级计算，并用旋转系精确解检查有限速度效应。核查：2026-09-13。</p>
 </section>
-<h2 id="_1">速查与下一步<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<p>本约定下 <span class="arithmatex">\(A_N=(1-\cos\theta)d\phi/2\)</span>，<span class="arithmatex">\(F_{\theta\phi}=\sin\theta/2\)</span>，下带球面 Chern 数为 <span class="arithmatex">\(+1\)</span>。回到<a href="solid-04-topological.html">拓扑能带</a>，再进入<a href="research-09-quantum-metric.html">量子几何张量与量子度量</a>。几何相位的原始定义参见 <a href="https://doi.org/10.1098/rspa.1984.0023">Berry：Quantal phase factors accompanying adiabatic changes</a>；正文计算使用明确约定独立展开。核查：2026-09-08。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="bridge-02-loop-subtraction.html"><span class="pager-label">上一页</span>计算桥 II · 圈积分与减法</a>
@@ -137,7 +285,6 @@ F=dA_N=\frac{\sin\theta}{2}\,d\theta\wedge d\phi.\]</div>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
 <script defer src="assets/learning/learning.js"></script>
-<script defer src="assets/learning/research-renderer.js?v=b69c61f59cae"></script>
-<script defer src="assets/learning/labs/research-geometry.js?v=1b5ebf5a0b7b"></script>
+<script defer src="assets/learning/labs/scalar-berry.js"></script>
 </body>
 </html>
