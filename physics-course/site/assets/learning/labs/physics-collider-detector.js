@@ -1,480 +1,162 @@
-(function (root, factory) {
-  "use strict";
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") root.CourseLearning.register("physics-collider-detector", exported.mount);
-  if (typeof module === "object" && module.exports && typeof require === "function" && require.main === module) {
-    try { var report = exported.selfTest(); console.log("physics-collider-detector self-test: PASS (" + report.checks + " checks)"); }
-    catch (error) { console.error("physics-collider-detector self-test: FAIL\n" + error.stack); process.exitCode = 1; }
-  }
-})(typeof window !== "undefined" ? window : typeof globalThis !== "undefined" ? globalThis : this, function (host) {
-  "use strict";
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var STYLE_ID = "physics-collider-detector-lab-styles";
-  var INSTANCE = 0;
-  var EPS = 1e-9;
-  var MASS_DOMAIN_MIN = 0;
-  var MASS_DOMAIN_MAX = 500;
-  var MASS_MIN = 20;
-  var MASS_MAX = 450;
-  var HISTOGRAM_BINS = 32;
-  var DEFAULTS = { mass: 125, resolution: 0.04, signal: 240, background: 720, window: 10, seed: 17 };
-  var PRESETS = [
-    { id: "higgs-like", label: "窄峰：125 GeV", mass: 125, resolution: 0.04, signal: 240, background: 720, window: 10, seed: 17 },
-    { id: "poor-resolution", label: "差分辨率", mass: 125, resolution: 0.11, signal: 240, background: 720, window: 15, seed: 17 },
-    { id: "background-heavy", label: "背景主导", mass: 180, resolution: 0.05, signal: 120, background: 1400, window: 12, seed: 29 },
-    { id: "calibration-check", label: "理想校准", mass: 100, resolution: 0, signal: 80, background: 300, window: 6, seed: 7 }
-  ];
+(function(hostWindow){"use strict";
 
-  function finite(value) { return typeof value === "number" && isFinite(value); }
-  function near(a, b, tolerance) { return Math.abs(a - b) <= (tolerance || EPS) * Math.max(1, Math.abs(a), Math.abs(b)); }
-  function clamp(value, lo, hi) { return Math.max(lo, Math.min(hi, value)); }
-  function format(value, digits) {
-    if (!finite(value)) return "—";
-    return value.toFixed(digits === undefined ? 2 : digits).replace(/0+$/, "").replace(/\.$/, "");
-  }
+const LIMITS={massGeV:[20,400],logPtWidthPercent:[0,20],calibrationPercent:[-10,10],rapidityHundred:[-200,200],signalCount:[0,200],backgroundCount:[0,500],windowGeV:[1,60],etaCutHundred:[20,300],onCount:[0,200],offCount:[0,500],tauTenths:[1,100],seed:[1,99]};
+const DEFAULT={massGeV:125,logPtWidthPercent:6,calibrationPercent:0,rapidityHundred:0,signalCount:80,backgroundCount:240,windowGeV:10,etaCutHundred:250,onCount:35,offCount:100,tauTenths:50,seed:17};
+function config(input={}){if(input===null||typeof input!=='object'||Array.isArray(input))throw Error('parameters');for(const k of Object.keys(input))if(!Object.prototype.hasOwnProperty.call(LIMITS,k))throw Error('unknown '+k);const c={...DEFAULT,...input};for(const[k,[lo,hi]]of Object.entries(LIMITS))if(!Number.isInteger(c[k])||c[k]<lo||c[k]>hi)throw Error('domain '+k);return c;}
+const PRESETS=[['default','质量响应与独立控制区计数',{}],['perfect','零分辨率宽度：保留精确质量',{logPtWidthPercent:0}],['wide','加宽每个对象的对数pT响应',{logPtWidthPercent:20}],['calibration','共同能标偏高10%',{calibrationPercent:10}],['boost','整体纵向boost：质量不变，接受度会变',{rapidityHundred:200}],['tight','缩小赝快度接受范围',{etaCutHundred:50}],['empty-template','无合成模板，计数实验仍独立',{signalCount:0,backgroundCount:0}],['deficit','信号区亏损：物理MLE在s=0边界',{onCount:5,offCount:100,tauTenths:50}],['empty-counts','两个观察区均为零',{onCount:0,offCount:0}],['zero-off','控制区零计数：不等于精确零背景',{onCount:8,offCount:0,tauTenths:10}],['weak-control','小控制区曝光比',{onCount:35,offCount:10,tauTenths:5}],['tail','极小条件尾概率与溢出记账',{onCount:200,offCount:0,tauTenths:100,massGeV:400,logPtWidthPercent:20,calibrationPercent:10}]].map(([id,label,p])=>({id,label,parameters:config(p)}));
+const EDGES=Array.from({length:49},(_,i)=>20+10*i),SQRT2=Math.sqrt(2),LOG2=Math.log(2);
+// Q(1/2,z²/2)/2: convergent series near zero, Lentz continued fraction in the tail.
+function normalTailLog(z){
+ if(z===0)return-LOG2;
+ if(z<0)return Math.log1p(-Math.exp(normalTailLog(-z)));
+ const x=z*z/2,a=.5,logPref=-x+a*Math.log(x)-.5*Math.log(Math.PI);
+ if(x<1.5){let term=1/a,s=term;for(let n=1;n<200;n++){term*=x/(a+n);s+=term;if(Math.abs(term)<Math.abs(s)*2e-16)break;}return Math.log1p(-Math.exp(logPref)*s)-LOG2;}
+ let b=x+1-a,c=1e300,d=1/b,h=d;
+ for(let i=1;i<200;i++){const an=-i*(i-a);b+=2;d=an*d+b;if(Math.abs(d)<1e-300)d=1e-300;c=b+an/c;if(Math.abs(c)<1e-300)c=1e-300;d=1/d;const delta=d*c;h*=delta;if(Math.abs(delta-1)<2e-15)break;}
+ return logPref+Math.log(h)-LOG2;
+}
+const normalCDF=z=>z<=0?Math.exp(normalTailLog(-z)):-Math.expm1(normalTailLog(z));
+function massKernel(M,c){const r=c.logPtWidthPercent/100,g=1+c.calibrationPercent/100,logMean=Math.log(M*g)-r*r/2,logSD=r/SQRT2,central=M*g;
+ const cdf=m=>logSD===0?(m<central?0:1):m<=0?0:normalCDF((Math.log(m)-logMean)/logSD);
+ // All bins are [low,high); the r=0 atom at an edge belongs to the bin on its right.
+ const below=m=>logSD===0?(central<m?1:0):cdf(m);
+ const bins=EDGES.slice(0,-1).map((low,i)=>({low,high:EDGES[i+1],probability:below(EDGES[i+1])-below(low)})),underflow=below(20),overflow=1-below(500);
+ return{truthMass:M,logMean,logSD,meanMass:central*Math.exp(-r*r/4),medianMass:central*Math.exp(-r*r/2),bins,underflow,overflow,totalProbability:underflow+overflow+bins.reduce((v,p)=>v+p.probability,0),containsAcceptance:false};
+}
+function randomStream(seed){let state=seed;const records=[];return{records,next(){state=(1664525*state+1013904223)>>>0;const u=(state+.5)/4294967296;records.push({index:records.length,state,u});return u;}};}
+function four(pt,eta,phi){return[pt*Math.cosh(eta),pt*Math.cos(phi),pt*Math.sin(phi),pt*Math.sinh(eta)];}
+function kinematics(pt1,pt2,eta1,eta2,phi1=0,phi2=Math.PI){const p1=four(pt1,eta1,phi1),p2=four(pt2,eta2,phi2),total=p1.map((v,i)=>v+p2[i]),massSquared=total[0]**2-total[1]**2-total[2]**2-total[3]**2,transverseFormula=2*pt1*pt2*(Math.cosh(eta1-eta2)-Math.cos(phi1-phi2)),mass=massSquared>=0?Math.sqrt(massSquared):null,missingPt=[-total[1],-total[2]];
+ return{pt1,pt2,eta1,eta2,phi1,phi2,p1,p2,total,massSquared,transverseFormula,mass,missingPt,missingPtMagnitude:Math.hypot(...missingPt)};
+}
+function binBoundary(value,edges){const tolerance=128*Number.EPSILON*Math.max(1,Math.abs(value)),edge=edges.find(x=>Math.abs(value-x)<=tolerance),nearBoundary=edge!==undefined;
+ return{raw:value,value:nearBoundary?edge:value,tolerance,nearBoundary,shift:nearBoundary?edge-value:0,rule:'snap only within 128*epsilon*max(1,abs(mass)); raw mass retained'};
+}
+function dataset(c){const rng=randomStream(c.seed),events=[],r=c.logPtWidthPercent/100,g=1+c.calibrationPercent/100,y=c.rapidityHundred/100;
+ for(let i=0;i<c.signalCount+c.backgroundCount;i++){
+  const kind=i<c.signalCount?'signal':'background',uMass=rng.next(),uAngle=rng.next(),u1=rng.next(),u2=rng.next(),truthMass=kind==='signal'?c.massGeV:20-80*Math.log1p(-uMass*(-Math.expm1(-(500-20)/80))),cosTheta=-.96+1.92*uAngle,etaStar=Math.atanh(cosTheta),pt=truthMass/(2*Math.cosh(etaStar)),rad=Math.sqrt(-2*Math.log(u1)),z1=rad*Math.cos(2*Math.PI*u2),z2=rad*Math.sin(2*Math.PI*u2),response1=Math.exp(r*z1-r*r/2),response2=Math.exp(r*z2-r*r/2),truth=kinematics(pt,pt,y+etaStar,y-etaStar),reco=kinematics(pt*g*response1,pt*g*response2,y+etaStar,y-etaStar),anglePass=Math.abs(reco.eta1)<c.etaCutHundred/100&&Math.abs(reco.eta2)<c.etaCutHundred/100,ptPass=reco.pt1>10&&reco.pt2>10,accepted=anglePass&&ptPass,m=reco.mass;
+  if(m===null)throw Error('Non-timelike reconstructed pair');
+  const binning=binBoundary(m,EDGES),windowBinning=binBoundary(m,[c.massGeV-c.windowGeV,c.massGeV+c.windowGeV]),bm=binning.value,bin=bm<20?-1:bm>=500?48:Math.floor((bm-20)/10);
+  events.push({index:i,kind,uniforms:[uMass,uAngle,u1,u2],truthMass,cosTheta,etaStar,z1,z2,response1,response2,truth,reco,anglePass,ptPass,accepted,binning,windowBinning,bin,inWindow:accepted&&windowBinning.value>=c.massGeV-c.windowGeV&&windowBinning.value<c.massGeV+c.windowGeV});
+ }
+ const bins=EDGES.slice(0,-1).map((low,i)=>({index:i,low,high:EDGES[i+1],truthSignal:0,truthBackground:0,recoSignal:0,recoBackground:0,selectedSignal:0,selectedBackground:0}));
+ const ledger={generated:{signal:0,background:0},accepted:{signal:0,background:0},rejected:{signal:0,background:0},underflow:{signal:0,background:0},overflow:{signal:0,background:0},selectedUnderflow:{signal:0,background:0},selectedOverflow:{signal:0,background:0},window:{signal:0,background:0}};
+ for(const e of events){const suffix=e.kind==='signal'?'Signal':'Background',k=e.kind;ledger.generated[k]++;ledger[e.accepted?'accepted':'rejected'][k]++;if(e.inWindow)ledger.window[k]++;
+  const tbin=e.truthMass<20?-1:e.truthMass>=500?48:Math.floor((e.truthMass-20)/10);if(tbin>=0&&tbin<48)bins[tbin]['truth'+suffix]++;
+  if(e.bin===null)throw Error('Non-timelike reconstructed pair');
+  if(e.bin<0){ledger.underflow[k]++;if(e.accepted)ledger.selectedUnderflow[k]++;}
+  else if(e.bin>=48){ledger.overflow[k]++;if(e.accepted)ledger.selectedOverflow[k]++;}
+  else{bins[e.bin]['reco'+suffix]++;if(e.accepted)bins[e.bin]['selected'+suffix]++;}
+ }
+ return{events,randomRecords:rng.records,bins,ledger,window:{low:c.massGeV-c.windowGeV,high:c.massGeV+c.windowGeV,convention:'[low,high)'},fixedTemplateCountsNotPoissonData:true,truthLabelsForDiagnosticsOnly:true};
+}
+const LOGFACT=[0];for(let i=1;i<=700;i++)LOGFACT.push(LOGFACT.at(-1)+Math.log(i));
+function conditional(n,m,tau,full=false){const N=n+m,p=1/(1+tau),logP=Math.log(p),logQ=Math.log1p(-p),logs=Array.from({length:N+1},(_,k)=>LOGFACT[N]-LOGFACT[k]-LOGFACT[N-k]+k*logP+(N-k)*logQ),tail=logs.slice(n),peak=Math.max(...tail),logTail=peak+Math.log(tail.reduce((v,l)=>v+Math.exp(l-peak),0)),clampedLog=Math.min(0,logTail),value=Math.exp(clampedLog),row={N,p,upperFrom:n,logTail:clampedLog,rawLogTail:logTail,tail:value,bonferroni20:Math.min(1,20*value),independent20:-Math.expm1(20*Math.log1p(-value)),twentyTestsAreIllustrative:true};
+ if(full){row.distribution=logs.map((l,k)=>({k,logProbability:l,probability:Math.exp(l),inUpperTail:k>=n}));row.probabilitySum=row.distribution.reduce((v,q)=>v+q.probability,0);}
+ return row;
+}
+function logPoissonTerm(n,mean){return n===0?-mean:mean>0?n*Math.log(mean)-mean:-Infinity;}
+const logLikelihood=(n,m,tau,s,b)=>logPoissonTerm(n,s+b)+logPoissonTerm(m,tau*b);
+function profileBackground(n,m,tau,s){const A=1+tau,C=n+m-A*s,D=Math.hypot(C,2*Math.sqrt(A*m*s));return m*s===0?Math.max(0,C/A):C>=0?(C+D)/(2*A):2*m*s/(D-C);}
+function profilePoint(n,m,tau,s,hat){const b=profileBackground(n,m,tau,s),logL=logLikelihood(n,m,tau,s,b),qRaw=2*(hat.logL-logL),fixedB=m/tau,fixedLogL=logLikelihood(n,m,tau,s,fixedB),fixedHatS=Math.max(0,n-fixedB),fixedHatLogL=logLikelihood(n,m,tau,fixedHatS,fixedB),fixedQ=Number.isFinite(fixedLogL)?2*(fixedHatLogL-fixedLogL):null;
+ return{s,b,meanOn:s+b,meanOff:tau*b,logL,qRaw,q:Math.max(0,qRaw),fixedB,fixedLogL:Number.isFinite(fixedLogL)?fixedLogL:null,fixedQ:fixedQ===null?null:Math.max(0,fixedQ),fixedStatus:fixedQ===null?'zero-mean-contradiction':'finite',backgroundScore:b>0?(n/(s+b)+m/b-(1+tau)):null};
+}
+function onoff(n,m,tau,full=false){const unrestrictedS=n-m/tau,atBoundary=unrestrictedS<=0,hat={s:Math.max(0,unrestrictedS),b:unrestrictedS>=0?m/tau:(n+m)/(1+tau)};hat.logL=logLikelihood(n,m,tau,hat.s,hat.b);const zero=profilePoint(n,m,tau,0,hat),q0=atBoundary?0:zero.q,asymptoticZ=Math.sqrt(q0),asymptoticLogTail=normalTailLog(asymptoticZ);
+ return{n,m,tau,unrestrictedS,atBoundary,hat,zero,q0,asymptoticZ,asymptoticLogTail,asymptoticTail:Math.exp(asymptoticLogTail),conditional:conditional(n,m,tau,full),asymptoticNotExact:true};
+}
+function compute(input={}){const c=config(input),data=dataset(c),count=onoff(c.onCount,c.offCount,c.tauTenths/10,true),maxSignal=Math.max(50,c.onCount+6*Math.sqrt(c.onCount+c.offCount+1)),profileScan=Array.from({length:201},(_,i)=>profilePoint(c.onCount,c.offCount,c.tauTenths/10,maxSignal*i/200,count.hat)),onScan=Array.from({length:201},(_,n)=>onoff(n,c.offCount,c.tauTenths/10)),tauScan=Array.from({length:100},(_,i)=>onoff(c.onCount,c.offCount,(i+1)/10)),kernel=massKernel(c.massGeV,c),responseMatrix=Array.from({length:21},(_,i)=>massKernel(20+20*i,c)),etaStar=.7,pt=c.massGeV/(2*Math.cosh(etaStar)),example=kinematics(pt,pt,c.rapidityHundred/100+etaStar,c.rapidityHundred/100-etaStar),boostScan=Array.from({length:81},(_,i)=>{const y=-2+i/20,k=kinematics(pt,pt,y+etaStar,y-etaStar);return{y,...k,angleAccepted:Math.abs(k.eta1)<c.etaCutHundred/100&&Math.abs(k.eta2)<c.etaCutHundred/100};}),calibrationScan=Array.from({length:21},(_,i)=>{const percent=-10+i,k=massKernel(c.massGeV,{...c,calibrationPercent:percent});return{percent,meanMass:k.meanMass,medianMass:k.medianMass};});
+ return{schema:'collider199-v1',parameters:c,units:{energy:'GeV',rapidity:'dimensionless; eta=y for massless objects',fourVector:'[E,px,py,pz], metric +---',logPtWidth:'standard deviation of ln(pT response)',counts:'template counts and independent on/off observations',tau:'known control-to-signal background exposure ratio'},data,count,maxSignal,profileScan,onScan,tauScan,kernel,responseMatrix,example,boostScan,calibrationScan,boundaries:{syntheticTruthNotObservedSignal:true,fixedTemplateCountsNotPoisson:true,onOffCountsIndependentOfTemplates:true,noHardClampedBackground:true,positiveLognormalResponse:true,unbiasedPtNotUnbiasedMass:true,massKernelExcludesAcceptance:true,underflowOverflowRetained:true,boostChangesAcceptanceNotInvariantMass:true,missingPtNotProofOfInvisibleParticle:true,tauAssumedExactlyKnown:true,zeroOffNotKnownZeroBackground:true,conditionalTailFiniteSample:true,asymptoticZNotExactTailConversion:true,twentyIndependentTestsNotCorrelatedWindowScan:true,profileNotBayesianMarginalization:true,noDiscoveryClaim:true}};
+}
+const QUESTIONS=[
+ ['对两个无质量对象整体施加同一个纵向boost，什么量保持不变？',['两体不变质量；但探测器赝快度接受度可能改变','每个对象的能量和赝快度都不变'],0,'四动量内积在共同Lorentz变换下不变。能量与纵向方向会变，有限几何覆盖下是否通过选择也会变；接受度不是Lorentz不变量。'],
+ ['本实验每个对象的pT响应均值无偏，是否保证重建质量的均值也无偏？',['保证，两个无偏量的任何函数都无偏','不保证，质量对两个响应的平方根乘积是非线性的'],1,'独立对数正态响应Ri=exp(rzi−r²/2)满足E[Ri]=1；但E[sqrt(R1R2)]=exp(−r²/4)。本模型的质量均值因此需要单独校准。'],
+ ['控制区观察到m=0，是否可以直接宣布信号区背景期望b被精确知道为0？',['不能；零次观测仍允许正背景期望，需联合似然','可以；观察计数就是Poisson期望的精确值'],0,'m服从均值τb的Poisson分布，P(m=0|b)=exp(−τb)在有限正b下仍非零。把m/τ直接当精确背景会夸大证据。'],
+ ['如果在同一数据上扫描许多相关质量窗口，能否把单窗口p值直接当全局p值？',['可以，只报告最高峰就不需要其他窗口','不能；需要考虑完整搜索规则和窗口间相关性'],1,'示例的20个独立同分布测试公式只在该独立模型中成立。相关滑窗的全局校准需要相应模型或完整搜索的背景模拟；Bonferroni给保守上界，不自动给精确答案。']
+];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=4||![0,1].includes(j))throw Error('choice');return{correct:j===QUESTIONS[i][2],text:(j===QUESTIONS[i][2]?'正确。':'需要修正。')+QUESTIONS[i][3]};}
+const LABELS={massGeV:'合成信号质量 M/GeV',logPtWidthPercent:'单对象 σln(pT响应) ×100',calibrationPercent:'共同pT校准偏移（百分数）',rapidityHundred:'共同纵向快度 y ×100',signalCount:'固定合成信号模板条数（不用于下方计数似然）',backgroundCount:'固定合成背景模板条数（不用于下方计数似然）',windowGeV:'诊断质量窗口半宽/GeV',etaCutHundred:'两对象 |η| 上限 ×100',onCount:'独立计数实验：信号区观测 n',offCount:'独立计数实验：控制区观测 m',tauTenths:'精确已知的背景曝光比 τ ×10',seed:'合成模板种子',signal:'合成信号标签',background:'合成背景标签',syntheticTruthNotObservedSignal:'合成真值不等于观测到的信号',fixedTemplateCountsNotPoisson:'固定模板条数不当Poisson观测',onOffCountsIndependentOfTemplates:'on/off计数实验独立于模板',noHardClampedBackground:'背景用正规截断分布，不硬截成堆积',positiveLognormalResponse:'每个对象的pT响应始终正',unbiasedPtNotUnbiasedMass:'pT均值无偏不保证质量均值无偏',massKernelExcludesAcceptance:'质量核尚不含几何与pT接受度',underflowOverflowRetained:'保留下溢、上溢和未通过选择条数',boostChangesAcceptanceNotInvariantMass:'boost可改接受度而不改不变质量',missingPtNotProofOfInvisibleParticle:'缺失横动量不单独证明新粒子',tauAssumedExactlyKnown:'本计数模型假设τ精确已知',zeroOffNotKnownZeroBackground:'控制区零计数不等于精确零背景',conditionalTailFiniteSample:'条件二项尾概率适用于有限样本',asymptoticZNotExactTailConversion:'渐近sqrt(q0)不是精确条件p的换算',twentyIndependentTestsNotCorrelatedWindowScan:'20独立测试不代替相关滑窗扫描',profileNotBayesianMarginalization:'profile最大化不等于贝叶斯积分',noDiscoveryClaim:'不把教学结果作发现声明',generated:'生成条数',accepted:'通过选择',rejected:'未通过选择',underflow:'重建质量下溢',overflow:'重建质量上溢',selectedUnderflow:'已选条目下溢',selectedOverflow:'已选条目上溢',window:'诊断窗口内','zero-mean-contradiction':'错误固定零背景产生不可能事件','finite':'有限'};
+function fmt(x){if(x===null||x===undefined)return'不适用';if(typeof x==='boolean')return x?'是':'否';if(Array.isArray(x))return'['+x.map(fmt).join(', ')+']';if(typeof x==='object')return JSON.stringify(x);if(typeof x==='number')return Number.isInteger(x)&&Math.abs(x)<1e6?String(x):Math.abs(x)<1e-4||Math.abs(x)>=1e5?x.toExponential(5):Number(x.toPrecision(7)).toString();return LABELS[x]??String(x);}
+const COLORS=['#3875ba','#c55b32','#368661','#9860a8','#856722','#646e7c'];
+function frame(key,title,xLabel,yLabel,series,domain,range){const ys=series.flatMap(s=>s.points.filter(Boolean).map(p=>p[1]));let lo=range?.[0]??Math.min(0,...ys),hi=range?.[1]??Math.max(0,...ys);if(hi===lo)hi=lo+1;if(!range){const pad=.07*(hi-lo);lo-=pad;hi+=pad;}return{key,title,xLabel,yLabel,xMin:domain[0],xMax:domain[1],yMin:lo,yMax:hi,series};}
+function plots(s){const series=(name,color,points,extra={})=>({name,color:COLORS[color],points,...extra}),step=(rows,f)=>rows.flatMap(p=>[[p.low,f(p)],[p.high,f(p)]]),N=s.count.conditional.N;return[
+ frame('mass','合成模板：真值、响应和选择分开记账','两体质量/GeV；每个区间宽10 GeV','固定条数模板，不是观测信号率',[
+ series('生成的全部真值质量',0,step(s.data.bins,p=>p.truthSignal+p.truthBackground)),
+ series('全部重建质量',1,step(s.data.bins,p=>p.recoSignal+p.recoBackground)),
+ series('通过选择的重建质量',2,step(s.data.bins,p=>p.selectedSignal+p.selectedBackground)),
+ series('已选信号真值标签（仅诊断）',3,s.data.bins.map(p=>[(p.low+p.high)/2,p.selectedSignal]),{markersOnly:true,markerRadius:3})
+ ],[20,500]),
+ frame('boost','共同纵向boost：能量变化，质量不变','共同快度 y；固定两体方向η*=±0.7','两体总能量与不变质量/GeV',[
+ series('总能量 E1+E2',1,s.boostScan.map(p=>[p.y,p.total[0]])),
+ series('四动量内积得到的不变质量',0,s.boostScan.map(p=>[p.y,p.mass])),
+ series('当前共同快度',2,[[s.parameters.rapidityHundred/100,s.example.mass]],{markersOnly:true,markerRadius:6})
+ ],[-2,2]),
+ frame('response','质量响应核：逐区间概率，不含接受度','重建质量/GeV；每格10 GeV，溢出另列','P(重建质量落入该格 | 固定真值质量)',[
+ series('当前真值M='+s.parameters.massGeV,0,step(s.kernel.bins,p=>p.probability)),
+ ...[4,9,14].map((j,i)=>series('示例真值M='+s.responseMatrix[j].truthMass,i+1,step(s.responseMatrix[j].bins,p=>p.probability)))
+ ],[20,500]),
+ frame('profile','控制区约束：让背景随假设信号重新拟合','假设信号期望 s；on/off数据保持不变','−2 ln似然比；只显示0..12，原始值全保留',[
+ series('联合似然profile b(s)',0,s.profileScan.map(p=>p.q<=12?[p.s,p.q]:null)),
+ series('把m/τ错误当精确背景',1,s.profileScan.map(p=>p.fixedQ!==null&&p.fixedQ<=12?[p.s,p.fixedQ]:null)),
+ series('物理约束下的MLE',2,[[s.count.hat.s,0]],{markersOnly:true,markerRadius:6})
+ ],[0,s.maxSignal],[-.4,12.4]),
+ frame('counts','同一控制区：有限样本尾概率与渐近近似','假设观测到的信号区条数 n（整数）','−log10(p)；精确条件p与渐近q0映射不同',[
+ series('精确条件二项上尾',0,s.onScan.map(p=>[p.n,-p.conditional.logTail/Math.LN10]),{markersOnly:true,markerRadius:2}),
+ series('渐近：正态尾(sqrt(q0))',1,s.onScan.map(p=>[p.n,-p.asymptoticLogTail/Math.LN10]),{markersOnly:true,markerRadius:2}),
+ series('当前n的精确条件尾',2,[[s.count.n,-s.count.conditional.logTail/Math.LN10]],{markersOnly:true,markerRadius:6})
+ ],[0,200]),
+ frame('conditional','背景假设下，固定总计数后的二项分布','信号区计数 k；总计数 N=n+m 固定','P(k | N, s=0)；橙点是k≥当前n的上尾',[
+ series('完整条件概率质量函数',0,s.count.conditional.distribution.map(p=>[p.k,p.probability]),{markersOnly:true,markerRadius:3}),
+ series('参与上尾求和的项',1,s.count.conditional.distribution.filter(p=>p.inUpperTail).map(p=>[p.k,p.probability]),{markersOnly:true,markerRadius:2})
+ ],[0,Math.max(1,N)])
+ ];}
+function tables(s){const c=s.count,p=s.parameters;return[
+ {key:'parameters',title:'12个输入：模板与计数实验各有独立含义',headers:['输入','整数值'],rows:Object.entries(p)},
+ {key:'events',title:'全部合成事件：响应、选择与分箱边界',headers:['编号','真值标签','M/GeV','cosθ*','η*','z1,z2','响应R1,R2','真值质量','重建质量','几何通过','pT通过','最终通过','bin(-1下溢/48上溢)','诊断窗口','分箱使用质量','近分箱边界','归类微调','舍入容差','窗口归类质量'],rows:s.data.events.map(e=>[e.index,e.kind,e.truthMass,e.cosTheta,e.etaStar,[e.z1,e.z2],[e.response1,e.response2],e.truth.mass,e.reco.mass,e.anglePass,e.ptPass,e.accepted,e.bin,e.inWindow,e.binning.value,e.binning.nearBoundary,e.binning.shift,e.binning.tolerance,e.windowBinning.value])},
+ {key:'vectors',title:'每个事件的完整真值/重建四动量与缺失横动量',headers:['编号','设置','pT1,pT2','η1,η2','φ1,φ2','p1=[E,px,py,pz]','p2','总四动量','内积m²','横向式m²','m','负的可见总pT','其模长'],rows:s.data.events.flatMap(e=>['truth','reco'].map(k=>{const v=e[k];return[e.index,k==='truth'?'真值':'重建',[v.pt1,v.pt2],[v.eta1,v.eta2],[v.phi1,v.phi2],v.p1,v.p2,v.total,v.massSquared,v.transverseFormula,v.mass,v.missingPt,v.missingPtMagnitude];}))},
+ {key:'random',title:'完整可复现随机流：每个事件固定消耗四个数',headers:['随机流编号','32位状态','开区间均匀数u'],rows:s.data.randomRecords.map(p=>[p.index,p.state,p.u])},
+ {key:'histogram',title:'48个质量格与全部损失、溢出、诊断窗口计数',headers:['对象','编号/下界','上界/量名','真值信号/计数','真值背景/计数','重建信号','重建背景','已选信号','已选背景'],rows:[...s.data.bins.map(p=>['[low,high)',p.low,p.high,p.truthSignal,p.truthBackground,p.recoSignal,p.recoBackground,p.selectedSignal,p.selectedBackground]),...Object.entries(s.data.ledger).map(([k,v])=>['计数账',null,k,v.signal,v.background,null,null,null,null])]},
+ {key:'response',title:'当前核与21个真值质量：48格概率加下溢/上溢',headers:['对象','真值M','lnm均值','lnm标准差','质量均值','质量中位数','48格概率（20..500，每格10）','下溢','上溢','总概率','含接受度'],rows:[['当前',s.kernel],...s.responseMatrix.map(p=>['矩阵列',p])].map(([n,p])=>[n,p.truthMass,p.logMean,p.logSD,p.meanMass,p.medianMass,p.bins.map(x=>x.probability),p.underflow,p.overflow,p.totalProbability,p.containsAcceptance])},
+ {key:'count',title:'独立on/off数据、MLE、零信号拟合与两种尾概率',headers:['量','值'],rows:[
+ ['观察n,m,τ',[c.n,c.m,c.tau]],['未约束信号估计 n−m/τ',c.unrestrictedS],['是否位于s=0边界',c.atBoundary],['约束MLE s,b,logL',[c.hat.s,c.hat.b,c.hat.logL]],
+ ['H0下b与两区期望',[c.zero.b,c.zero.meanOn,c.zero.meanOff]],['H0 logL',c.zero.logL],['发现统计量q0',c.q0],['渐近Z=sqrt(q0)',c.asymptoticZ],['渐近正态尾',c.asymptoticTail],['渐近尾自然对数',c.asymptoticLogTail],
+ ['条件N,p',[c.conditional.N,c.conditional.p]],['精确条件尾',c.conditional.tail],['精确条件尾自然对数',c.conditional.logTail],['直接求和的原始log尾',c.conditional.rawLogTail],
+ ['20测试Bonferroni上界',c.conditional.bonferroni20],['20独立同分布测试的示例',c.conditional.independent20],['条件PMF总和',c.conditional.probabilitySum]
+ ]},
+ {key:'profile',title:'201个信号假设：背景profile及错误固定背景对照',headers:['s','b(s)','信号区期望','控制区期望','logL','原始q','显示q','固定b=m/τ','固定背景logL','固定背景q','状态','内部背景得分'],rows:s.profileScan.map(p=>[p.s,p.b,p.meanOn,p.meanOff,p.logL,p.qRaw,p.q,p.fixedB,p.fixedLogL,p.fixedQ,p.fixedStatus,p.backgroundScore])},
+ {key:'on',title:'0..200个信号区观察计数：控制区m与τ固定',headers:['n','m','τ','sHat','bHat','q0','渐近Z','渐近log尾','条件log尾','条件尾p','20测试上界'],rows:s.onScan.map(p=>[p.n,p.m,p.tau,p.hat.s,p.hat.b,p.q0,p.asymptoticZ,p.asymptoticLogTail,p.conditional.logTail,p.conditional.tail,p.conditional.bonferroni20])},
+ {key:'tau',title:'100个已知曝光比：同一n,m的解释依赖τ',headers:['τ','n','m','sHat','bHat','q0','渐近Z','条件log尾','条件尾p'],rows:s.tauScan.map(p=>[p.tau,p.n,p.m,p.hat.s,p.hat.b,p.q0,p.asymptoticZ,p.conditional.logTail,p.conditional.tail])},
+ {key:'conditional',title:'固定N的全部二项概率项，含极小尾部的对数',headers:['k','log P(k|N)','P(k|N)','是否计入上尾'],rows:c.conditional.distribution.map(p=>[p.k,p.logProbability,p.probability,p.inUpperTail])},
+ {key:'kinematics',title:'完整boost/校准扫描和模型边界',headers:['对象','参数/量名','值或总四动量','质量/中位数','能量/均值','几何接受度'],rows:[...s.boostScan.map(p=>['共同boost',p.y,p.total,p.mass,p.total[0],p.angleAccepted]),...s.calibrationScan.map(p=>['共同校准百分数',p.percent,null,p.medianMass,p.meanMass,null]),...Object.entries(s.boundaries).map(([k,v])=>['模型边界',k,v,null,null,null]),...Object.entries(s.units).map(([k,v])=>['单位约定',k,v,null,null,null])]}
+ ];}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=10000?v.toExponential(2):Number(v.toFixed(3)).toString();
+function svg(p){const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 580" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+const discrete=['counts','conditional'].includes(p.key);const xticks=discrete?[...new Set(Array.from({length:5},(_,i)=>Math.round(p.xMin+(p.xMax-p.xMin)*i/4)))]:Array.from({length:5},(_,i)=>p.xMin+(p.xMax-p.xMin)*i/4);for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+axisFmt(y)+'</text>';}for(const x of xticks){out+='<text x="'+X(x)+'" y="410" text-anchor="middle">'+axisFmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen&&!s.markersOnly?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const marks=s.markersOnly?s.points.filter(Boolean):s.boundaryMarkers?[...new Set([s.points.find(Boolean),s.points.filter(Boolean).at(-1)])].filter(Boolean):s.points.filter(Boolean).length===1?s.points.filter(Boolean):[];marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="'+(s.markerRadius??5)+'" stroke="'+s.color+'" fill="'+(s.hollow?'none':s.open?'var(--bg,#fff)':s.color)+'" stroke-width="'+(s.markerStrokeWidth??2.5)+'"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});if(!p.series.some(s=>s.points.some(Boolean)))out+='<text x="450" y="245" text-anchor="middle">当前模型在此参数下无适用数据</text>';return out+'</svg>';}
 
-  function normalize(input) {
-    input = input || {};
-    var mass = Number(input.mass);
-    var resolution = Number(input.resolution);
-    var signal = Number(input.signal);
-    var background = Number(input.background);
-    var window = Number(input.window);
-    var seed = Number(input.seed === undefined ? DEFAULTS.seed : input.seed);
-    if (!finite(mass) || !finite(resolution) || !finite(signal) || !finite(background) || !finite(window) || !finite(seed)) throw new TypeError("质量、分辨率、计数、窗口和 seed 必须是有限数");
-    if (!(mass >= MASS_MIN && mass <= MASS_MAX)) throw new RangeError("共振质量应在 20 到 450 GeV 之间");
-    if (resolution < 0 || resolution > 0.25) throw new RangeError("相对质量分辨率应在 0 到 25% 之间");
-    if (!(signal >= 0 && signal <= 2000 && Math.round(signal) === signal)) throw new RangeError("信号事件数必须是 0 到 2000 的整数");
-    if (!(background >= 0 && background <= 5000 && Math.round(background) === background)) throw new RangeError("背景事件数必须是 0 到 5000 的整数");
-    if (!(window > 0 && window < 100)) throw new RangeError("质量窗口必须为正且小于 100 GeV");
-    return { mass: mass, resolution: resolution, signal: signal, background: background, window: window, seed: Math.floor(seed) >>> 0 };
-  }
+var mounted=new WeakMap();
+function mount(root){const doc=root.ownerDocument,previous=mounted.get(root);if(previous)previous();root.replaceChildren();root.classList.add('collider199');let c=config(PRESETS[0].parameters),choices={},revealed=false,url=null,current=null,view=0,valid=true;
+ const el=(tag,attrs={},text)=>{const e=doc.createElement(tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
+ if(!doc.querySelector('[data-collider199-style]')){const style=el('style',{'data-collider199-style':''});style.textContent='.collider199{margin-inline:0!important;width:100%;min-width:0;color:var(--fg,#222);line-height:1.65}.collider199 *{box-sizing:border-box}.collider199 button,.collider199 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.collider199 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.collider199 button:focus-visible,.collider199 select:focus-visible,.collider199 [tabindex]:focus-visible{outline:3px solid #2474bc}.collider199 .cl-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.collider199 label{display:grid;gap:4px;min-width:0}.collider199 input{width:100%;min-height:44px;font:inherit;color:inherit;background:var(--bg,#fff)}.collider199 .cl-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.collider199 .cl-pred>strong{display:block;margin-bottom:6px}.collider199 .cl-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.collider199 .cl-feedback{margin:7px 0}.collider199 .cl-scroll{max-width:100%;overflow:auto}.collider199 svg{display:block;min-width:680px;width:100%;height:auto}.collider199 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.collider199 td,.collider199 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.collider199 [hidden]{display:none!important}.collider199 details{margin:12px 0}.collider199 summary{min-height:44px;cursor:pointer}.collider199 .cl-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.collider199 .cl-correct{color:var(--cl-green,#277540)}.collider199 .cl-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.collider199 .cl-grid{grid-template-columns:1fr}}';doc.head.append(style);}
+ root.append(el('h3',{},'从四动量到控制区：让每个推断有对应证据'),el('p',{},'先核对合成事件如何通过探测器，再核对独立计数实验怎样约束信号。模板的真值标签只供诊断；下方n、m、τ单独规定统计数据。'));
+ const presets=el('div',{class:'cl-row','aria-label':'教学预设'});for(const p of PRESETS){const b=el('button',{type:'button','data-preset':p.id},p.label);b.onclick=()=>{c=config(p.parameters);valid=true;sync();reset();};presets.append(b);}root.append(presets);
+ const fields={},outs={},grid=el('div',{class:'cl-grid'});
 
-  function reconstructMass(event) {
-    var pT1 = Number(event.pT1);
-    var pT2 = Number(event.pT2);
-    var eta1 = Number(event.eta1);
-    var eta2 = Number(event.eta2);
-    var phi1 = Number(event.phi1);
-    var phi2 = Number(event.phi2);
-    if (!finite(pT1) || !finite(pT2) || !finite(eta1) || !finite(eta2) || !finite(phi1) || !finite(phi2)) return NaN;
-    return Math.sqrt(Math.max(0, 2 * pT1 * pT2 * (Math.cosh(eta1 - eta2) - Math.cos(phi1 - phi2))));
-  }
 
-  function randomGenerator(seed) {
-    var state = (Math.floor(Number(seed)) >>> 0) || 1;
-    return function () { state = (1664525 * state + 1013904223) >>> 0; return state / 4294967296; };
-  }
 
-  function gaussian(random) {
-    var u = 0;
-    var v = 0;
-    while (u <= 1e-12) u = random();
-    while (v <= 1e-12) v = random();
-    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
-  }
 
-  function makeEvent(kind, targetMass, resolution, random) {
-    var rapidity = (random() - 0.5) * 1.6;
-    var massScale = resolution > 0 ? Math.max(0.01, 1 + resolution * gaussian(random)) : 1;
-    var measuredMass = targetMass * massScale;
-    var pT = measuredMass / (2 * Math.cosh(rapidity));
-    var event = {
-      kind: kind,
-      targetMass: targetMass,
-      pT1: pT,
-      pT2: pT,
-      eta1: rapidity,
-      eta2: -rapidity,
-      phi1: 0,
-      phi2: Math.PI
-    };
-    event.mass = reconstructMass(event);
-    return event;
-  }
+ for(const[key,title]of Object.entries(LABELS).filter(([key])=>Object.hasOwn(LIMITS,key))){const[min,max]=LIMITS[key],label=el('label',{},title),out=el('output'),input=el('input',{type:'range',min,max,step:1,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.oninput=input.onchange=change;}root.append(grid);
+ function change(){try{c=config(Object.fromEntries(Object.entries(fields).map(([k,e])=>[k,e.value===''?NaN:Number(e.value)])));valid=true;sync();reset();}catch(e){valid=false;reset();status.textContent='请使用各控件范围内的整数，再按标签倍率换成实际物理量。';}}
+ const note=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(note,prediction);prediction.append(el('h4',{},'先预测：boost、非线性响应、零计数与多重搜索'),el('p',{},'四题的条件固定写在题干里；参数用来检查例子，不自动改变问题。'));
+ const feedbacks=[],buttons=[];QUESTIONS.forEach((q,i)=>{const row=el('div',{class:'cl-pred'});row.append(el('strong',{},q[0]));buttons[i]=[];q[1].forEach((text,j)=>{const b=el('button',{type:'button','data-prediction':i,'data-choice':String(j===0),'aria-pressed':'false'},text);b.onclick=()=>{choices[i]=j;buttons[i].forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));if(revealed)showFeedback();};row.append(b);buttons[i].push(b);});feedbacks[i]=el('p',{class:'cl-feedback','data-feedback':i});row.append(feedbacks[i]);prediction.append(row);});
+ const check=el('button',{type:'button','data-check':''},'核对预测并显示完整结果'),status=el('p',{class:'cl-status','aria-live':'polite'});root.append(check,status);
+ const stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),summary=el('p'),plotButtons=el('div',{class:'cl-row'}),plotWrap=el('div',{class:'cl-scroll',tabindex:0,role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'质量图展示固定条数的合成模板；响应核不含接受度。似然图只显示q≤12的点，超出值和不可能事件均在表与下载中保留。计数图是离散点；精确条件尾与渐近尾使用不同校准。'),tableHost=el('div'),download=el('a',{'data-download':'',download:'cl-record.json'},'下载当前完整记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);
+ function sync(){for(const[k,e]of Object.entries(fields))e.value=c[k];}
+ function reset(){if(url){hostWindow.URL.revokeObjectURL(url);url=null;download.removeAttribute('href');}revealed=false;choices={};stage.hidden=true;delete root.__colliderSnapshot;for(let i=0;i<4;i++){feedbacks[i].textContent='';for(const b of buttons[i])b.setAttribute('aria-pressed','false');}for(const[k,o]of Object.entries(outs))o.textContent=fmt(c[k]);note.textContent='σ是单对象pT响应的对数标准差；快度与η上限除以100，τ除以10。窗口只统计合成模板，不自动改变独立on/off观测。严格几何和pT切选，以及极近分箱边界的舍入规则，均写入完整记录。';status.textContent='完成四项预测后显示当前结果。';}
+ function showFeedback(){let n=0;for(let i=0;i<4;i++){if(!Number.isInteger(choices[i]))continue;const f=feedback(i,choices[i]);n+=+f.correct;feedbacks[i].textContent=f.text;feedbacks[i].className='cl-feedback '+(f.correct?'cl-correct':'cl-wrong');}status.textContent='预测核对：'+n+'/4 正确。图、表和下载均对应当前参数。';}
+ function draw(){const ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+ function render(){current=compute(c);root.__colliderSnapshot=current;stage.hidden=false;summary.textContent='合成模板通过选择：信号标签 '+current.data.ledger.accepted.signal+'，背景标签 '+current.data.ledger.accepted.background+'。独立计数n='+current.count.n+'、m='+current.count.m+'、τ='+fmt(current.count.tau)+'：约束MLE s='+fmt(current.count.hat.s)+'，b='+fmt(current.count.hat.b)+'；精确条件尾p='+fmt(current.count.conditional.tail)+'，渐近尾='+fmt(current.count.asymptoticTail)+'。两种尾概率不可混称精确显著性。';plotButtons.replaceChildren();plots(current).forEach((p,i)=>{const b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();for(const t of tables(current)){const d=el('details',{'data-table':t.key});d.append(el('summary',{},t.title));d.addEventListener('toggle',()=>{if(!d.open||d.children.length>1)return;const wrap=el('div',{class:'cl-scroll',tabindex:0,role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),thead=el('thead'),tr=el('tr'),tbody=el('tbody');for(const h of t.headers)tr.append(el('th',{scope:'col'},h));thead.append(tr);for(const row of t.rows){const r=el('tr');for(const v of row)r.append(el('td',{},fmt(v)));tbody.append(r);}table.append(thead,tbody);wrap.append(table);d.append(wrap);});tableHost.append(d);}if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current)],{type:'application/json'}));download.href=url;showFeedback();}
+ check.onclick=()=>{if(!valid){status.textContent='请先修正无效参数。';return;}if(![0,1,2,3].every(i=>Number.isInteger(choices[i]))){status.textContent='请先为四个问题各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
+}
 
-  function generateDataset(input) {
-    var params = normalize(input);
-    var random = randomGenerator(params.seed);
-    var events = [];
-    var i;
-    for (i = 0; i < params.signal; i += 1) events.push(makeEvent("signal", params.mass, params.resolution, random));
-    for (i = 0; i < params.background; i += 1) {
-      var target = clamp(28 - 38 * Math.log(Math.max(1e-8, 1 - random())), 18, 245);
-      events.push(makeEvent("background", target, params.resolution, random));
-    }
-    return events;
-  }
-
-  function histogram(events, bins, minimum, maximum) {
-    bins = bins || 32;
-    minimum = minimum === undefined ? 0 : minimum;
-    maximum = maximum === undefined ? MASS_DOMAIN_MAX : maximum;
-    var rows = [];
-    var i;
-    for (i = 0; i < bins; i += 1) rows.push({ low: minimum + (maximum - minimum) * i / bins, high: minimum + (maximum - minimum) * (i + 1) / bins, signal: 0, background: 0, total: 0 });
-    events.forEach(function (event) {
-      if (!finite(event.mass) || event.mass < minimum || event.mass >= maximum) return;
-      var index = Math.min(bins - 1, Math.floor((event.mass - minimum) / (maximum - minimum) * bins));
-      rows[index][event.kind] += 1;
-      rows[index].total += 1;
-    });
-    return rows;
-  }
-
-  function asimovSignificance(signal, background) {
-    signal = Number(signal);
-    background = Number(background);
-    if (!finite(signal) || !finite(background) || signal < 0 || background <= 0) return NaN;
-    if (!(signal > 0)) return 0;
-    return Math.sqrt(2 * ((signal + background) * Math.log(1 + signal / background) - signal));
-  }
-
-  function windowStatistics(events, mass, width) {
-    var low = mass - width;
-    var high = mass + width;
-    var signal = 0;
-    var background = 0;
-    events.forEach(function (event) {
-      if (event.mass < low || event.mass > high) return;
-      if (event.kind === "signal") signal += 1;
-      else background += 1;
-    });
-    return { low: low, high: high, signal: signal, background: background, total: signal + background, sOverRootB: background > 0 ? signal / Math.sqrt(background) : NaN, asimov: asimovSignificance(signal, background), significanceStatus: background > 0 ? "defined" : "requires-positive-background" };
-  }
-
-  function analyze(input) {
-    var params;
-    try { params = normalize(input); } catch (error) { return { ok: false, status: "invalid-input", message: error.message }; }
-    var events = generateDataset(params);
-    var rows = histogram(events, HISTOGRAM_BINS, MASS_DOMAIN_MIN, MASS_DOMAIN_MAX);
-    var windowStats = windowStatistics(events, params.mass, params.window);
-    var peak = rows.reduce(function (best, row) { return row.signal > best.signal ? row : best; }, rows[0]);
-    var example = events.filter(function (event) { return event.kind === "signal"; })[0] || events[0];
-    return { ok: true, status: "synthetic-sample", params: params, events: events, histogram: rows, window: windowStats, signalPeak: peak.low + (peak.high - peak.low) / 2, example: example, total: events.length, observationNote: "合成观测：四动量经过有限响应后形成质量直方图。", inferenceNote: "模型推断：峰位置、窗口计数和显著性依赖选择、背景和系统误差。" };
-  }
-
-  function assert(condition, message) { if (!condition) throw new Error("physics-collider-detector self-test failed: " + message); }
-  function selfTest() {
-    var checks = 0;
-    function check(condition, message) { checks += 1; assert(condition, message); }
-    var ideal = reconstructMass({ pT1: 62.5, pT2: 62.5, eta1: 0, eta2: 0, phi1: 0, phi2: Math.PI });
-    check(near(ideal, 125, 1e-12), "ideal two-body mass");
-    var first = generateDataset(DEFAULTS);
-    var second = generateDataset(DEFAULTS);
-    check(first.length === DEFAULTS.signal + DEFAULTS.background, "event count");
-    check(JSON.stringify(first) === JSON.stringify(second), "seeded sample deterministic");
-    var result = analyze(DEFAULTS);
-    check(result.ok && result.window.total >= 0, "default analysis");
-    check(result.window.signal <= DEFAULTS.signal && result.window.background <= DEFAULTS.background, "window counts bounded");
-    check(result.histogram.reduce(function (sum, row) { return sum + row.total; }, 0) <= result.total, "histogram visible count bounded");
-    check(asimovSignificance(240, 720) > 0, "Asimov significance");
-    check(!finite(asimovSignificance(240, 0)), "zero-background Asimov significance is undefined");
-    var zeroBackground = windowStatistics([], 125, 10);
-    check(!finite(zeroBackground.sOverRootB) && !finite(zeroBackground.asimov) && zeroBackground.significanceStatus === "requires-positive-background", "zero-background window requires positive B");
-    check(near(reconstructMass({ pT1: 50, pT2: 50, eta1: 0, eta2: 0, phi1: 0, phi2: Math.PI }), 100, 1e-12), "second ideal mass");
-    var perfect = generateDataset({ mass: 450, resolution: 0, signal: 40, background: 0, window: 10, seed: 17 });
-    check(perfect.every(function (event) { return near(event.mass, 450, 1e-12); }), "zero resolution reconstructs the true mass");
-    var smeared = generateDataset({ mass: 125, resolution: 0.08, signal: 512, background: 0, window: 10, seed: 17 });
-    var mean = smeared.reduce(function (sum, event) { return sum + event.mass; }, 0) / smeared.length;
-    var relativeWidth = Math.sqrt(smeared.reduce(function (sum, event) { return sum + Math.pow(event.mass - mean, 2); }, 0) / smeared.length) / mean;
-    check(Math.abs(relativeWidth - 0.08) < 0.015, "resolution control is sigma_m over M");
-    var highMass = analyze({ mass: 450, resolution: 0, signal: 40, background: 20, window: 10, seed: 17 });
-    check(highMass.ok && highMass.histogram.reduce(function (sum, row) { return sum + row.signal; }, 0) === 40 && highMass.signalPeak >= MASS_DOMAIN_MIN && highMass.signalPeak <= MASS_DOMAIN_MAX, "450 GeV signal is inside the histogram domain");
-    var massRejected = false;
-    try { normalize({ mass: 451, resolution: 0, signal: 1, background: 1, window: 5, seed: 17 }); } catch (error) { massRejected = true; }
-    check(massRejected, "mass above the legal 450 GeV limit rejected");
-    var rejected = false;
-    try { normalize({ mass: 125, resolution: 0.04, signal: 2.5, background: 720, window: 10, seed: 17 }); } catch (error) { rejected = true; }
-    check(rejected, "fractional event count rejected");
-    return { checks: checks, presets: PRESETS.length };
-  }
-
-  function setAttributes(node, attrs) {
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", String(value));
-      else if (key === "htmlFor") node.setAttribute("for", String(value));
-      else if (key === "text") node.textContent = String(value);
-      else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, String(value));
-    });
-    return node;
-  }
-  function appendChildren(node, children, doc) {
-    if (children === undefined || children === null) return node;
-    (Array.isArray(children) ? children : [children]).forEach(function (child) { if (child !== undefined && child !== null && child !== false) node.appendChild(child && child.nodeType ? child : doc.createTextNode(String(child))); });
-    return node;
-  }
-  function make(api, doc, tag, attrs, children) {
-    if (api && typeof api.el === "function") return api.el(tag, attrs || {}, children);
-    return appendChildren(setAttributes(doc.createElement(tag), attrs || {}), children, doc);
-  }
-  function svg(doc, tag, attrs, text) {
-    var node = setAttributes(doc.createElementNS(SVG_NS, tag), attrs || {});
-    if (text !== undefined) node.textContent = String(text);
-    return node;
-  }
-  function replaceChildren(node, children, doc) {
-    if (typeof node.replaceChildren === "function") { node.replaceChildren.apply(node, Array.isArray(children) ? children : [children]); return; }
-    while (node.firstChild) node.removeChild(node.firstChild);
-    appendChildren(node, children, doc);
-  }
-  function announce(api, root, message) { if (api && typeof api.announce === "function") api.announce(root, message); }
-
-  function installStyles(doc) {
-    if (!doc || !doc.head || doc.getElementById(STYLE_ID)) return;
-    var style = doc.createElement("style");
-    style.id = STYLE_ID;
-    style.textContent = [
-      ".pcd-lab{color:var(--fg,#20252b);line-height:1.55;overflow-wrap:anywhere}.pcd-lab *{box-sizing:border-box}.pcd-lab [hidden]{display:none!important}.pcd-lab h3{margin:0;color:var(--fg,#20252b);font-size:1.15rem}.pcd-note,.pcd-feedback{color:var(--fg-soft,var(--muted,#5d6873));font-size:.9rem}.pcd-lab fieldset{min-width:0;margin:12px 0;padding:9px 10px;border:1px solid var(--border,#c8cdd3)}.pcd-lab legend{max-width:100%;font-weight:750}.pcd-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.pcd-choice{display:flex;gap:7px;align-items:flex-start;min-width:0;padding:8px;border:1px solid var(--border,#c8cdd3);border-radius:6px}.pcd-choice input{margin-top:3px;accent-color:var(--accent,#1769aa)}",
-      ".pcd-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.pcd-lab button,.pcd-lab select,.pcd-lab input{font:inherit}.pcd-lab button{min-height:44px;padding:8px 11px;border:1px solid var(--border,#c8cdd3);border-radius:6px;background:var(--bg,#fff);color:inherit;cursor:pointer}.pcd-lab button:hover{border-color:var(--accent,#1769aa)}.pcd-lab button:focus-visible,.pcd-lab select:focus-visible,.pcd-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.pcd-primary{background:var(--accent,#1769aa)!important;color:var(--bg,#fff)!important;font-weight:750}.pcd-pass{color:var(--cl-green,#2f7547)}.pcd-warn{color:var(--cl-red,#b43d32)}",
-      ".pcd-layout{display:grid;grid-template-columns:minmax(200px,.7fr) minmax(0,1.3fr);gap:14px;align-items:start}.pcd-controls{display:grid;gap:10px;padding:11px;border:1px solid var(--border,#c8cdd3);border-radius:7px}.pcd-field{display:grid;gap:5px}.pcd-field label{font-size:.82rem;font-weight:700;color:var(--fg-soft,var(--muted,#5d6873))}.pcd-field select,.pcd-field input{width:100%;min-height:42px;padding:7px 8px;border:1px solid var(--border,#c8cdd3);border-radius:5px;background:var(--bg,#fff);color:inherit}.pcd-field input[type=range]{padding:0;accent-color:var(--accent,#1769aa)}.pcd-output{font-variant-numeric:tabular-nums;color:var(--accent,#1769aa)}",
-      ".pcd-frame{min-width:0;border:1px solid var(--border,#c8cdd3);border-radius:7px;background:var(--bg,#fff);overflow:hidden}.pcd-svg{display:block;width:100%;height:auto}.pcd-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}.pcd-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:10px}.pcd-metric{min-width:0;padding:8px;border-top:2px solid var(--border,#c8cdd3);background:var(--bg,#fff)}.pcd-metric:nth-child(4n+1){border-color:var(--cl-blue,#2c6aa0)}.pcd-metric:nth-child(4n+2){border-color:var(--cl-gold,#95670d)}.pcd-metric:nth-child(4n+3){border-color:var(--cl-green,#347247)}.pcd-metric:nth-child(4n){border-color:var(--cl-red,#b43d32)}.pcd-metric span{display:block;color:var(--fg-soft,var(--muted,#5d6873));font-size:.73rem}.pcd-metric strong{display:block;margin-top:3px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}.pcd-table-wrap{max-width:100%;overflow-x:auto;margin-top:10px}.pcd-table{width:100%;min-width:660px;border-collapse:collapse;font-size:.8rem}.pcd-table th,.pcd-table td{padding:7px;border-bottom:1px solid var(--border,#c8cdd3);text-align:left;vertical-align:top}.pcd-table th{color:var(--fg-soft,var(--muted,#5d6873));font-size:.74rem}.pcd-interpretation{margin-top:10px;padding:9px 11px;border-left:3px solid var(--cl-blue,#2c6aa0);background:var(--block-bg,var(--bg,#fff));font-size:.86rem}",
-      "@media(max-width:760px){.pcd-layout{grid-template-columns:minmax(0,1fr)}}@media(max-width:600px){.pcd-choices{grid-template-columns:minmax(0,1fr)}.pcd-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(prefers-reduced-motion:reduce){.pcd-lab *{transition:none!important;animation:none!important}}"
-    ].join("\n");
-    doc.head.appendChild(style);
-  }
-  function metric(api, doc, label) {
-    var value = make(api, doc, "strong", {}, ["—"]);
-    return make(api, doc, "div", { className: "pcd-metric" }, [make(api, doc, "span", {}, [label]), value]);
-  }
-
-  function drawChart(doc, node, result) {
-    replaceChildren(node, [], doc);
-    node.setAttribute("viewBox", "0 0 860 390");
-    node.setAttribute("role", "img");
-    node.setAttribute("aria-label", "合成碰撞事件的不变质量直方图与两体事件示意");
-    var left = 56, right = 565, top = 42, bottom = 295, min = MASS_DOMAIN_MIN, max = MASS_DOMAIN_MAX;
-    var x = function (value) { return left + (value - min) / (max - min) * (right - left); };
-    var peakCount = Math.max.apply(null, result.histogram.map(function (row) { return row.total; }).concat([1]));
-    var y = function (value) { return bottom - value / peakCount * (bottom - top) * 0.88; };
-    node.appendChild(svg(doc, "title", { id: "pcd-title" }, "重建不变质量与事件统计"));
-    node.appendChild(svg(doc, "desc", { id: "pcd-desc" }, "左侧按重建质量分箱，蓝色为信号、金色为背景；右侧显示一个两体事件的横向动量与角度信息。"));
-    node.setAttribute("aria-labelledby", "pcd-title pcd-desc");
-    var windowLow = clamp(result.window.low, min, max);
-    var windowHigh = clamp(result.window.high, min, max);
-    node.appendChild(svg(doc, "rect", { x: x(windowLow), y: top, width: Math.max(0, x(windowHigh) - x(windowLow)), height: bottom - top, fill: "var(--cl-green,#2f7547)", "fill-opacity": "0.08" }));
-    [0, 0.25, 0.5, 0.75, 1].forEach(function (fraction) {
-      var value = Math.round(peakCount * fraction);
-      node.appendChild(svg(doc, "line", { x1: left, y1: y(value), x2: right, y2: y(value), stroke: "var(--border,#c8cdd3)", "stroke-width": "1" }));
-      node.appendChild(svg(doc, "text", { x: left - 8, y: y(value) + 4, "text-anchor": "end", "font-size": "11" }, String(value)));
-    });
-    [0, 100, 200, 300, 400, 500].forEach(function (value) {
-      node.appendChild(svg(doc, "line", { x1: x(value), y1: top, x2: x(value), y2: bottom, stroke: "var(--border,#c8cdd3)", "stroke-width": "1", "stroke-opacity": "0.6" }));
-      node.appendChild(svg(doc, "text", { x: x(value), y: bottom + 18, "text-anchor": "middle", "font-size": "11" }, String(value)));
-    });
-    node.appendChild(svg(doc, "line", { x1: left, y1: bottom, x2: right, y2: bottom, stroke: "currentColor", "stroke-width": "1.2" }));
-    node.appendChild(svg(doc, "line", { x1: left, y1: top, x2: left, y2: bottom, stroke: "currentColor", "stroke-width": "1.2" }));
-    result.histogram.forEach(function (row) {
-      var x0 = x(row.low) + 1;
-      var width = Math.max(1, x(row.high) - x(row.low) - 2);
-      var backgroundTop = y(row.background);
-      var totalTop = y(row.total);
-      node.appendChild(svg(doc, "rect", { x: x0, y: backgroundTop, width: width, height: bottom - backgroundTop, fill: "var(--cl-gold,#95670d)", "fill-opacity": "0.65" }));
-      node.appendChild(svg(doc, "rect", { x: x0, y: totalTop, width: width, height: Math.max(0, backgroundTop - totalTop), fill: "var(--cl-blue,#2c6aa0)", "fill-opacity": "0.85" }));
-    });
-    var massMarkerX = x(clamp(result.params.mass, min, max));
-    node.appendChild(svg(doc, "line", { x1: massMarkerX, y1: top, x2: massMarkerX, y2: bottom, stroke: "var(--cl-red,#b43d32)", "stroke-width": "2", "stroke-dasharray": "6 4" }));
-    node.appendChild(svg(doc, "text", { x: clamp(massMarkerX + 6, left + 4, right - 4), y: top + 15, "font-size": "11" }, "真值 M=" + format(result.params.mass, 1) + " GeV"));
-    node.appendChild(svg(doc, "text", { x: left, y: 23, "font-size": "13", "font-weight": "700" }, "重建不变质量 mrec"));
-    node.appendChild(svg(doc, "text", { x: right, y: 23, "text-anchor": "end", "font-size": "11" }, "蓝：信号叠加层　金：背景　绿：窗口"));
-    node.appendChild(svg(doc, "text", { x: (left + right) / 2, y: 342, "text-anchor": "middle", "font-size": "12" }, "mrec / GeV"));
-    var cx = 710, cy = 176, event = result.example;
-    if (!event) {
-      node.appendChild(svg(doc, "text", { x: cx, y: cy, "text-anchor": "middle", "font-size": "13", "font-weight": "700" }, "当前没有合成事件"));
-      return;
-    }
-    node.appendChild(svg(doc, "text", { x: cx, y: 30, "text-anchor": "middle", "font-size": "13", "font-weight": "700" }, "一个合成两体事件"));
-    [42, 68, 94].forEach(function (radius) { node.appendChild(svg(doc, "circle", { cx: cx, cy: cy, r: radius, fill: "none", stroke: "var(--border,#c8cdd3)", "stroke-width": "1" })); });
-    var r1 = 95 * clamp(event.pT1 / (result.params.mass / 2), 0.45, 1.2);
-    var r2 = 95 * clamp(event.pT2 / (result.params.mass / 2), 0.45, 1.2);
-    node.appendChild(svg(doc, "line", { x1: cx, y1: cy, x2: cx + r1 * Math.cos(event.phi1), y2: cy - r1 * Math.sin(event.phi1), stroke: "var(--cl-blue,#2c6aa0)", "stroke-width": "5", "stroke-linecap": "round" }));
-    node.appendChild(svg(doc, "line", { x1: cx, y1: cy, x2: cx + r2 * Math.cos(event.phi2), y2: cy - r2 * Math.sin(event.phi2), stroke: "var(--cl-red,#b43d32)", "stroke-width": "5", "stroke-linecap": "round" }));
-    node.appendChild(svg(doc, "circle", { cx: cx, cy: cy, r: "4", fill: "currentColor" }));
-    node.appendChild(svg(doc, "text", { x: 610, y: 302, "font-size": "11" }, "pT1=" + format(event.pT1, 1) + " GeV, η1=" + format(event.eta1, 2)));
-    node.appendChild(svg(doc, "text", { x: 610, y: 321, "font-size": "11" }, "pT2=" + format(event.pT2, 1) + " GeV, η2=" + format(event.eta2, 2)));
-    node.appendChild(svg(doc, "text", { x: 610, y: 340, "font-size": "11" }, "mrec=" + format(event.mass, 2) + " GeV"));
-  }
-
-  function mount(root, api) {
-    if (!root || !root.ownerDocument) return;
-    var doc = root.ownerDocument;
-    installStyles(doc);
-    INSTANCE += 1;
-    var prefix = "pcd-" + INSTANCE;
-    var state = { presetId: "higgs-like", mass: DEFAULTS.mass, resolution: DEFAULTS.resolution, signal: DEFAULTS.signal, background: DEFAULTS.background, window: DEFAULTS.window, seed: DEFAULTS.seed, revealed: false, predictions: {} };
-    var refs = {};
-    root.classList.add("pcd-lab");
-    var heading = make(api, doc, "h3", { id: prefix + "-heading" }, ["碰撞事件账本：从四动量到峰与显著性"]);
-    var intro = make(api, doc, "p", { className: "pcd-note" }, ["这里的样本是确定性合成数据：先用可重建的四动量形成质量直方图，再在一个质量窗口中统计信号与背景。显著性是模型化的统计摘要，不是自动发现。"]);
-    var form = make(api, doc, "fieldset", {});
-    form.appendChild(make(api, doc, "legend", {}, ["预测门：先写公式结论，再揭晓样本"]));
-    var questions = [
-      { key: "mass", text: "pT1=pT2=62.5 GeV、Δη=0、Δφ=π 时，mrec？", expected: "125", options: [["125", "125 GeV"], ["62.5", "62.5 GeV"], ["250", "250 GeV"]] },
-      { key: "resolution", text: "相对分辨率变大时，窄峰怎样变化？", expected: "broader", options: [["broader", "变宽"], ["higher", "必然更高"], ["same", "完全不变"]] },
-      { key: "statistics", text: "S、B 同时加倍且系统误差忽略时，S/√B？", expected: "sqrt", options: [["sqrt", "乘 √2"], ["double", "乘 2"], ["same", "保持不变"]] }
-    ];
-    questions.forEach(function (question) {
-      var block = make(api, doc, "div", {});
-      block.appendChild(make(api, doc, "p", { className: "pcd-note" }, [question.text]));
-      var choices = make(api, doc, "div", { className: "pcd-choices" });
-      question.options.forEach(function (option) {
-        var radio = make(api, doc, "input", { type: "radio", name: prefix + "-" + question.key, value: option[0] });
-        radio.addEventListener("change", function () { state.predictions[question.key] = option[0]; });
-        choices.appendChild(make(api, doc, "label", { className: "pcd-choice" }, [radio, make(api, doc, "span", {}, [option[1]])]));
-      });
-      block.appendChild(choices);
-      form.appendChild(block);
-    });
-    var actions = make(api, doc, "div", { className: "pcd-actions" });
-    var reveal = make(api, doc, "button", { type: "button", className: "pcd-primary" }, ["核对预测并揭晓"]);
-    var reset = make(api, doc, "button", { type: "button" }, ["重置预测"]);
-    actions.appendChild(reveal);
-    actions.appendChild(reset);
-    refs.feedback = make(api, doc, "p", { className: "pcd-feedback", "aria-live": "polite", "aria-atomic": "true" }, []);
-    var shell = make(api, doc, "div", { hidden: true });
-    var controls = make(api, doc, "div", { className: "pcd-controls" });
-    var preset = make(api, doc, "select", { "aria-label": "碰撞统计预设" });
-    PRESETS.forEach(function (item) { preset.appendChild(make(api, doc, "option", { value: item.id }, [item.label])); });
-    var massInput = make(api, doc, "input", { type: "number", min: "20", max: "450", step: "1", value: String(DEFAULTS.mass), "aria-label": "真值质量 / GeV" });
-    var resolutionInput = make(api, doc, "input", { type: "range", min: "0", max: "0.2", step: "0.005", value: String(DEFAULTS.resolution), "aria-label": "相对质量分辨率 σm/M" });
-    var resolutionOutput = make(api, doc, "output", { className: "pcd-output" }, ["4%"]);
-    var signalInput = make(api, doc, "input", { type: "range", min: "0", max: "600", step: "10", value: String(DEFAULTS.signal), "aria-label": "信号事件数 Nsig" });
-    var signalOutput = make(api, doc, "output", { className: "pcd-output" }, [String(DEFAULTS.signal)]);
-    var backgroundInput = make(api, doc, "input", { type: "range", min: "0", max: "2000", step: "20", value: String(DEFAULTS.background), "aria-label": "背景事件数 Nbkg" });
-    var backgroundOutput = make(api, doc, "output", { className: "pcd-output" }, [String(DEFAULTS.background)]);
-    var windowInput = make(api, doc, "input", { type: "range", min: "2", max: "35", step: "1", value: String(DEFAULTS.window), "aria-label": "质量窗口半宽 / GeV" });
-    var windowOutput = make(api, doc, "output", { className: "pcd-output" }, ["±10 GeV"]);
-    function labelled(label, input, output, id) {
-      input.id = id;
-      return make(api, doc, "div", { className: "pcd-field" }, [make(api, doc, "label", { htmlFor: id }, [label, output]), input]);
-    }
-    preset.id = prefix + "-preset";
-    controls.appendChild(make(api, doc, "div", { className: "pcd-field" }, [make(api, doc, "label", { htmlFor: preset.id }, ["教学预设"]), preset]));
-    controls.appendChild(labelled("真值质量 / GeV：", massInput, null, prefix + "-mass"));
-    controls.appendChild(labelled("相对质量分辨率 σm/M：", resolutionInput, resolutionOutput, prefix + "-resolution"));
-    controls.appendChild(labelled("信号事件 Nsig：", signalInput, signalOutput, prefix + "-signal"));
-    controls.appendChild(labelled("背景事件 Nbkg：", backgroundInput, backgroundOutput, prefix + "-background"));
-    controls.appendChild(labelled("窗口半宽：", windowInput, windowOutput, prefix + "-window"));
-    controls.appendChild(make(api, doc, "p", { className: "pcd-note" }, ["随机种子固定为每次刷新相同的合成样本；现实分析还要把触发、选择、校准和系统误差加入似然。"]));
-    var stage = make(api, doc, "div", {});
-    var frame = make(api, doc, "div", { className: "pcd-frame" });
-    var chart = doc.createElementNS(SVG_NS, "svg");
-    chart.setAttribute("class", "pcd-svg");
-    frame.appendChild(chart);
-    stage.appendChild(frame);
-    var metrics = make(api, doc, "div", { className: "pcd-metrics" });
-    var tableWrap = make(api, doc, "div", { className: "pcd-table-wrap" });
-    var interpretation = make(api, doc, "p", { className: "pcd-interpretation", "aria-live": "polite" }, []);
-    stage.appendChild(metrics);
-    stage.appendChild(tableWrap);
-    stage.appendChild(interpretation);
-    shell.appendChild(make(api, doc, "div", { className: "pcd-layout" }, [controls, stage]));
-    root.appendChild(heading);
-    root.appendChild(intro);
-    root.appendChild(form);
-    root.appendChild(actions);
-    root.appendChild(refs.feedback);
-    root.appendChild(shell);
-
-    function applyPreset(id) {
-      var selected = PRESETS.filter(function (item) { return item.id === id; })[0];
-      if (!selected) return;
-      state.presetId = selected.id;
-      state.mass = selected.mass;
-      state.resolution = selected.resolution;
-      state.signal = selected.signal;
-      state.background = selected.background;
-      state.window = selected.window;
-      state.seed = selected.seed;
-    }
-    function renderTable(result) {
-      replaceChildren(tableWrap, [], doc);
-      var table = make(api, doc, "table", { className: "pcd-table" });
-      table.appendChild(make(api, doc, "caption", {}, ["统计账本：窗口计数与显著性摘要"]));
-      table.appendChild(make(api, doc, "thead", {}, [make(api, doc, "tr", {}, [make(api, doc, "th", { scope: "col" }, ["量"]), make(api, doc, "th", { scope: "col" }, ["数值"]), make(api, doc, "th", { scope: "col" }, ["状态"]), make(api, doc, "th", { scope: "col" }, ["解释"])])]));
-      var rows = [
-        ["质量窗口", format(result.window.low, 1) + "–" + format(result.window.high, 1) + " GeV", "选择", "围绕真值的分析窗口"],
-        ["S window", String(result.window.signal), "合成计数", "窗口内的 signal 标签数"],
-        ["B window", String(result.window.background), "合成计数", "窗口内的 background 标签数"],
-        ["S/√B", format(result.window.sOverRootB, 3), result.window.background > 0 ? "近似" : "未定义", result.window.background > 0 ? "大 B、无系统误差时的快速摘要" : "需要窗口内 B>0；没有背景时不报告有限值"],
-        ["Z_A", format(result.window.asimov, 3), result.window.background > 0 ? "近似" : "未定义", result.window.background > 0 ? "Poisson 计数的 Asimov 近似，仍未含 nuisance" : "需要窗口内 B>0；没有背景时不伪造有限显著性"]
-      ];
-      var body = make(api, doc, "tbody");
-      rows.forEach(function (row) { body.appendChild(make(api, doc, "tr", {}, row.map(function (value) { return make(api, doc, "td", {}, [value]); }))); });
-      table.appendChild(body);
-      tableWrap.appendChild(table);
-    }
-    function render() {
-      preset.value = state.presetId;
-      massInput.value = String(state.mass);
-      resolutionInput.value = String(state.resolution);
-      resolutionOutput.textContent = format(state.resolution * 100, 1) + "%";
-      signalInput.value = String(state.signal);
-      signalOutput.textContent = String(state.signal);
-      backgroundInput.value = String(state.background);
-      backgroundOutput.textContent = String(state.background);
-      windowInput.value = String(state.window);
-      windowOutput.textContent = "±" + format(state.window, 0) + " GeV";
-      shell.hidden = !state.revealed;
-      if (!state.revealed) return;
-      var result = analyze({ mass: state.mass, resolution: state.resolution, signal: state.signal, background: state.background, window: state.window, seed: state.seed });
-      if (!result.ok) {
-        replaceChildren(chart, [], doc);
-        replaceChildren(metrics, [], doc);
-        replaceChildren(tableWrap, [], doc);
-        replaceChildren(interpretation, ["模型停止：" + result.message], doc);
-        interpretation.className = "pcd-interpretation pcd-warn";
-        return;
-      }
-      drawChart(doc, chart, result);
-      replaceChildren(metrics, [metric(api, doc, "信号峰 / GeV"), metric(api, doc, "S window"), metric(api, doc, "B window"), metric(api, doc, "Z_A")], doc);
-      [format(result.signalPeak, 1), String(result.window.signal), String(result.window.background), format(result.window.asimov, 3)].forEach(function (value, index) { metrics.querySelectorAll("strong")[index].textContent = value; });
-      renderTable(result);
-      interpretation.textContent = "观测层：" + result.observationNote + " 模型层：" + result.inferenceNote + " 当前峰位置和窗口计数会随响应、选择和样本量变化；把 Z_A 当作发现阈值前，必须建立完整的背景与系统误差模型。";
-    }
-    preset.addEventListener("change", function () { applyPreset(preset.value); render(); });
-    massInput.addEventListener("input", function () { state.mass = Number(massInput.value); state.presetId = "custom"; render(); });
-    resolutionInput.addEventListener("input", function () { state.resolution = Number(resolutionInput.value); state.presetId = "custom"; render(); });
-    signalInput.addEventListener("input", function () { state.signal = Number(signalInput.value); state.presetId = "custom"; render(); });
-    backgroundInput.addEventListener("input", function () { state.background = Number(backgroundInput.value); state.presetId = "custom"; render(); });
-    windowInput.addEventListener("input", function () { state.window = Number(windowInput.value); state.presetId = "custom"; render(); });
-    reveal.addEventListener("click", function () {
-      var missing = questions.filter(function (question) { return !state.predictions[question.key]; });
-      if (missing.length) {
-        var missingMessage = "请先完成全部预测，再揭晓。";
-        refs.feedback.textContent = missingMessage;
-        refs.feedback.className = "pcd-feedback pcd-warn";
-        announce(api, root, missingMessage);
-        return;
-      }
-      var correct = questions.filter(function (question) { return state.predictions[question.key] === question.expected; }).length;
-      state.revealed = true;
-      var message = "已揭晓：" + correct + "/" + questions.length + " 命中。现在可改变响应、信号、背景和窗口。";
-      refs.feedback.textContent = message;
-      refs.feedback.className = "pcd-feedback " + (correct === questions.length ? "pcd-pass" : "pcd-warn");
-      render();
-      announce(api, root, message);
-    });
-    reset.addEventListener("click", function () {
-      state.presetId = "higgs-like";
-      state.mass = DEFAULTS.mass;
-      state.resolution = DEFAULTS.resolution;
-      state.signal = DEFAULTS.signal;
-      state.background = DEFAULTS.background;
-      state.window = DEFAULTS.window;
-      state.seed = DEFAULTS.seed;
-      state.revealed = false;
-      state.predictions = {};
-      form.querySelectorAll("input[type=radio]").forEach(function (radio) { radio.checked = false; });
-      refs.feedback.textContent = "";
-      render();
-      announce(api, root, "碰撞事件预测已重置。");
-    });
-    render();
-  }
-  return { DEFAULTS: DEFAULTS, PRESETS: PRESETS, MASS_DOMAIN_MIN: MASS_DOMAIN_MIN, MASS_DOMAIN_MAX: MASS_DOMAIN_MAX, normalize: normalize, reconstructMass: reconstructMass, generateDataset: generateDataset, histogram: histogram, asimovSignificance: asimovSignificance, windowStatistics: windowStatistics, analyze: analyze, mount: mount, selfTest: selfTest };
-});
+function selfTest(){let checks=0;const ok=x=>{checks++;if(!x)throw Error('collider invariant '+checks);};for(const p of PRESETS){const s=compute(p.parameters);ok(plots(s).length===6);ok(tables(s).length===12);ok(Math.abs(s.kernel.totalProbability-1)<2e-12);ok(Math.abs(s.count.conditional.probabilitySum-1)<2e-11);ok(s.count.conditional.tail>=0&&s.count.conditional.tail<=1);for(const e of s.data.events){ok(e.response1>0&&e.response2>0);ok(Math.abs(e.truth.mass-e.truthMass)<1e-8);ok(Math.abs(e.reco.mass-e.truthMass*(1+s.parameters.calibrationPercent/100)*Math.sqrt(e.response1*e.response2))<1e-8);}for(const plot of plots(s))for(const q of plot.series)for(const point of q.points)if(point)ok(point.every(Number.isFinite));for(let i=0;i<4;i++)ok(feedback(i,QUESTIONS[i][2]).correct);}return{status:'PASS',checks};}
+const API={LIMITS,DEFAULT,config,PRESETS,QUESTIONS,compute,snapshot:compute,plots,tables,svg,feedback,fmt,mount,selfTest,normalTailLog,normalCDF,massKernel,kinematics,conditional,profileBackground,onoff};if(typeof module!=="undefined"&&module.exports)module.exports=API;if(hostWindow&&hostWindow.CourseLearning)hostWindow.CourseLearning.register("physics-collider-detector",mount);})(typeof window!=="undefined"?window:null);
