@@ -67,7 +67,7 @@
   return {env,Heff,a,psi,E,ground:exactCache.get(g),localResidual:norm(mv(Heff,a).map((v,i)=>v-E*a[i])),physicalResidual:norm(mv(H,psi).map((v,i)=>v-E*psi[i])),physicalEnergy:dot(psi,mv(H,psi)),norm:dot(psi,psi)};
  }
  const configs={center:{title:"环境固定以后，中心能优化到哪里？",predict:"先预测：8 维局部残差接近零，是否保证完整 16 维态也是本征态？",
- scope:"四站开放 Ising，Pauli ±1、J=1；左块站1，中心站2，右块站3–4。固定正交块基，χL=χR=2。只解一次中心问题，不执行扫描。",
+ scope:"四站开放 Ising，Pauli ±1、J=1；左块站1，中心站2，右块站3–4。本组件只用实张量。固定正交块基，χL=χR=2。只解一次中心问题，不执行扫描。",
  controls:[["alpha","右块混合角 α（度）",0,90,5,45],["g","横场比 g",.2,2,.1,1]],
  compute(v){const m=calculate(v.alpha,v.g);return {numeric:m,
  rows:[["中心分量数",8],["物理态范数平方",m.norm],["右块边界矩阵非对角元",m.env.C[0][1]],["右块内部能量矩阵 K₀₀",m.env.K[0][0]],["局部最低能量",m.E],["完整态重算能量",m.physicalEnergy],["精确四站基态",m.ground],["剩余能量差",m.E-m.ground],["8 维局部残差",m.localResidual],["16 维物理残差",m.physicalResidual]],

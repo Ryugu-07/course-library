@@ -56,7 +56,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 02:03</div>
+    <div class="build-time">构建于 2026-09-13 20:36</div>
   </div>
 </nav>
 <main id="content">
@@ -79,7 +79,7 @@ try {
 <p>先修：<a href="bridge-07-mps-metric.html">MPS 范数与局部优化</a>、<a href="bridge-08-product-sweeps.html">乘积态往返扫描</a>、<a href="route-01-mps-readiness.html">路线验收</a>。本讲把邻居标量提升为矩阵，推导任意键维下最近邻 Ising 链的环境递推，再完整求解一个四站、键维 2、中心 8 维的例子。只更新一次中心，不宣称已经实现一般 DMRG 扫描。</p>
 </blockquote>
 <div data-learning-page></div>
-<section class="learning-layer">
+<section class="learning-layer environments214-course">
 <h2 id="1">1. 从一个邻居数，变成一组环境矩阵<a class="headerlink" href="#1" title="Permanent link"></a></h2>
 <p>χ=1 时，邻居只提供一个期望值 x。χ&gt;1 时，中心会连接多个左块态和右块态，必须保留它们之间的交叉矩阵元，不能把每个虚拟通道当成互不相干的概率。</p>
 <p>在中心站 j 展开</p>
@@ -91,6 +91,9 @@ try {
 K_L{}_{\ell\ell'}=\langle L_\ell|H_L|L_{\ell'}\rangle,\quad
 C_L{}_{\ell\ell'}=\langle L_\ell|X_{j-1}|L_{\ell'}\rangle.\]</div>
 <p><span class="arithmatex">\(H_L\)</span> 只含左块内部的键与横场。右侧类似，<span class="arithmatex">\(C_R\)</span> 用右块最靠近中心的 <span class="arithmatex">\(X_{j+1}\)</span>。G 记录范数，K 记录块内能量，C 记录跨向中心的边界算符；三者作用不同。空块的起点为 G=(1)、K=(0)、C=(0)。</p>
+<p>可以先把环境理解为“在选定块态之间查询一个算符的全部矩阵元”。对角元只告诉你每个块态单独的结果；非对角元还告诉你叠加时的干涉。第 4 节将得到 <span class="arithmatex">\(C_R=\sin\alpha\,X\)</span>。于是两个等概率叠加态</p>
+<div class="arithmatex">\[|R_\pm\rangle=\frac{|R_0\rangle\pm|R_1\rangle}{\sqrt2}\]</div>
+<p>具有完全相同的两项概率，却给出相反的边界期望 <span class="arithmatex">\(\langle R_\pm|X_3|R_\pm\rangle=\pm\sin\alpha\)</span>。若只传递概率，两者就无法区分，中心与右块之间的能量也会算错。</p>
 <h2 id="2">2. 五种项怎样进入中心问题<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <p>按坐标顺序 (ℓ,s,r)，将 H 的项分为左块、右块、中心横场与两条跨块键，得到</p>
 <div class="arithmatex">\[\boxed{N=G_L\otimes I\otimes G_R,}\]</div>
@@ -122,6 +125,44 @@ C'_L=\sum_{s,t}X_{st}(A^s)^\dagger G_LA^t,\]</div>
 <p>则</p>
 <div class="arithmatex">\[G'_R=\mathcal T_B(I,G_R),\quad C'_R=\mathcal T_B(X,G_R),\]</div>
 <div class="arithmatex">\[K'_R=\mathcal T_B(I,K_R)-g\mathcal T_B(Z,G_R)-\mathcal T_B(X,C_R).\]</div>
+<p>读收缩式时，可以先把自由指标圈出来：<span class="arithmatex">\(b,b'\)</span> 不求和，它们是新矩阵的行、列；<span class="arithmatex">\(s,t,r,r'\)</span> 全部收缩。右式的第一份 <span class="arithmatex">\(B\)</span> 来自 bra，所以带复共轭；第二份来自 ket，所以不共轭。</p>
+<table>
+<thead>
+<tr>
+<th>对象</th>
+<th>行与列</th>
+<th>在收缩中做什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>左张量 <span class="arithmatex">\(A^s\)</span></td>
+<td>旧左块 <span class="arithmatex">\(\ell\)</span> × 新左块 <span class="arithmatex">\(b\)</span></td>
+<td>先乘旧环境，再投到新块</td>
+</tr>
+<tr>
+<td>右张量 <span class="arithmatex">\(B^s\)</span></td>
+<td>新右块 <span class="arithmatex">\(b\)</span> × 旧右块 <span class="arithmatex">\(r\)</span></td>
+<td>从新块的每个系数展开到旧块</td>
+</tr>
+<tr>
+<td>旧环境 <span class="arithmatex">\(E\)</span></td>
+<td>旧块 bra × 旧块 ket</td>
+<td>接住两条旧虚拟指标</td>
+</tr>
+<tr>
+<td>新环境 <span class="arithmatex">\(\mathcal T_B(O,E)\)</span></td>
+<td>新块 bra <span class="arithmatex">\(b\)</span> × 新块 ket <span class="arithmatex">\(b'\)</span></td>
+<td>只留下新块的两条虚拟指标</td>
+</tr>
+</tbody>
+</table>
+<details class="answer">
+<summary>一行反例：复共轭为什么不能省略？</summary>
+<p>从空块 <span class="arithmatex">\(G=(1)\)</span> 开始，只保留一个新块态，取 <span class="arithmatex">\(B^0=(1)\)</span>、<span class="arithmatex">\(B^1=(i)\)</span>。这个态是 <span class="arithmatex">\(|0\rangle+i|1\rangle\)</span>，还没有归一化。正确范数为</p>
+<div class="arithmatex">\[G'=\overline1\,1+\overline i\,i=1+1=2.\]</div>
+<p>若误把 bra 当成 ket，会得到 <span class="arithmatex">\(1^2+i^2=0\)</span>：非零态竟被当作零范数。再令 <span class="arithmatex">\(W=(1,i)^T/\sqrt2\)</span>，正确的 <span class="arithmatex">\(W^\dagger W=1\)</span>，而 <span class="arithmatex">\(W^T W=0\)</span>。因此一般公式必须写共轭转置 <span class="arithmatex">\(\dagger\)</span>。这一反例核查的是复数公式；下方交互组件仍只实现实张量。</p>
+</details>
 <p>这套公式允许任意相容键维与复张量，针对的是本讲的最近邻 XX 与横场 Z 模型。更一般 Hamiltonian 通常用 MPO 组织更多算符通道，不能把三个环境矩阵无条件套到所有相互作用上。网页实验使用实张量。</p>
 <h2 id="4-2">4. 一个可以逐项算完的键维 2 右块<a class="headerlink" href="#4-2" title="Permanent link"></a></h2>
 <p>取 L=4，中心 j=2。左块态直接为 <span class="arithmatex">\(|L_0\rangle=|0\rangle,|L_1\rangle=|1\rangle\)</span>，所以</p>
@@ -143,7 +184,8 @@ K_R=\begin{pmatrix}-\sin2\alpha-2g\cos2\alpha&amp;0\\0&amp;0\end{pmatrix}.}\]</d
 <p>中心有 <span class="arithmatex">\(2\times2\times2=8\)</span> 个分量。G_L=G_R=I，故 N=I₈，将上面的 K、C 代入第 2 节即可构造一个实对称 8×8 矩阵。</p>
 <p>完整映射是 <span class="arithmatex">\(W=I_2\otimes I_2\otimes R\)</span>，其中 R 是按 00、01、10、11 排列的 4×2 列矩阵</p>
 <div class="arithmatex">\[R=\begin{pmatrix}c&amp;0\\0&amp;1\\0&amp;0\\s&amp;0\end{pmatrix}.\]</div>
-<p>因此可独立构造完整 16×16 自旋 Hamiltonian，核对 <span class="arithmatex">\(W^T W=I_8\)</span> 和 <span class="arithmatex">\(H_{\rm eff}=W^THW\)</span>。实际大链不会存储这个指数大的 W；四站模型只是让每个索引都可核验。</p>
+<p>因此可独立构造完整 16×16 自旋 Hamiltonian，核对 <span class="arithmatex">\(W^\dagger W=I_8\)</span> 和 <span class="arithmatex">\(H_{\rm eff}=W^\dagger HW\)</span>。实际大链不会存储这个指数大的 W；四站模型只是让每个索引都可核验。 本例 <span class="arithmatex">\(R,W\)</span> 都为实矩阵，所以数值上共轭转置等于普通转置；上面的写法也适用于复数块态。</p>
+<p>本页数组按 <span class="arithmatex">\(|s_1s_2s_3s_4\rangle\)</span> 排列：物理行号是 <span class="arithmatex">\(8s_1+4s_2+2s_3+s_4\)</span>，中心列号是 <span class="arithmatex">\(4\ell+2s+r\)</span>，各位从 0 开始。例如中心坐标 <span class="arithmatex">\((\ell,s,r)=(1,0,0)\)</span> 经 <span class="arithmatex">\(W\)</span> 映到 <span class="arithmatex">\(c|1000\rangle+s|1011\rangle\)</span>。先明确这张索引表，再比较矩阵，避免将另一实验的位序直接照搬过来。</p>
 <p>默认 α=45°、g=1，<span class="arithmatex">\(C_R=X/\sqrt2,K_R=\operatorname{diag}(-1,0)\)</span>。计算账本为：</p>
 <table>
 <thead>
@@ -182,21 +224,30 @@ K_R=\begin{pmatrix}-\sin2\alpha-2g\cos2\alpha&amp;0\\0&amp;0\end{pmatrix}.}\]</d
 <p>图中的每个 α 都重新构造右块并优化中心。α 改变 span{R₀,R₁}，因而改变可搜索的物理子空间，并非只在同一子空间内作可逆换坐标。不同 α 的子空间同为 8 维，却通常没有包含关系，不能要求能量随 α 单调。</p>
 <h2 id="6">6. 为什么局部解得准，完整态仍不够好？<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p>因为 W 是等距嵌入，局部本征方程只要求</p>
-<div class="arithmatex">\[W^T(H\psi-E\psi)=0.\]</div>
-<p>它消除了残差在可搜索子空间中的分量，却没有消除正交补中的分量。对归一化 ψ，完整残差平方正是能量方差</p>
+<div class="arithmatex">\[W^\dagger(H\psi-E\psi)=0.\]</div>
+<p>它消除了残差在可搜索子空间中的分量，却没有消除正交补中的分量。 更具体地，令 <span class="arithmatex">\(P=WW^\dagger\)</span>，它是到当前搜索子空间的正交投影。只有在本节 <span class="arithmatex">\(W^\dagger W=I\)</span> 且局部本征方程已精确解出时，才有</p>
+<div class="arithmatex">\[PH\psi=E\psi,\qquad r=H\psi-E\psi=(I-P)H\psi.\]</div>
+<p>如果数值求解还有误差，应保留两部分：<span class="arithmatex">\(r=Pr+(I-P)r\)</span>，且 <span class="arithmatex">\(\|r\|^2=\|Pr\|^2+\|(I-P)r\|^2\)</span>。前一项测局部方程有没有解准，后一项测固定块空间有没有漏掉物理方向。</p>
+<details class="answer">
+<summary>二维算例：局部残差 0，完整残差 1</summary>
+<p>取 <span class="arithmatex">\(H=X\)</span>，只允许搜索 <span class="arithmatex">\(W=|0\rangle\)</span> 张成的一维空间。此时 <span class="arithmatex">\(W^\dagger HW=0\)</span>，局部解为 <span class="arithmatex">\(a=1,E=0\)</span>，所以局部残差恰为 0。放回完整空间后，<span class="arithmatex">\(\psi=|0\rangle\)</span>，但 <span class="arithmatex">\(H\psi=|1\rangle\)</span>，故 <span class="arithmatex">\(r=|1\rangle\)</span>、<span class="arithmatex">\(\|r\|=1\)</span>。完整 <span class="arithmatex">\(H\)</span> 的最低能量其实是 <span class="arithmatex">\(-1\)</span>；局部解没有找到它，因为相应本征向量不在这一维搜索空间中。</p>
+</details>
+<p>对归一化 ψ，完整残差平方正是能量方差</p>
 <div class="arithmatex">\[\|H\psi-E\psi\|^2=\langle H^2\rangle-\langle H\rangle^2,\]</div>
 <p>其中 E 必须是该态的实际能量。零方差意味着某个本征态，也不能单靠它区分基态与激发态。</p>
 <p>这里 χ=2 的默认能量甚至高于上一讲优化后的 χ=1 乘积态。没有违反变分家族包含关系：<strong>所有</strong> χ≤2 的 MPS 包含 χ=1 态，但本讲锁死了左右块，只搜索其中一个 8 维子空间，未必包含上一讲得到的乘积态。扩大允许键维与改变固定环境不是同一操作。</p>
 <p>下一步完整扫描需移动正交中心、更新环境并处理键维；两站点更新后还要做 SVD 分解与截断。这里完成的是一般键维环境递推及一次具体中心求解，为这些步骤提供可核验的中间量。</p>
 <h2 id="7">7. 两道迁移题<a class="headerlink" href="#7" title="Permanent link"></a></h2>
 <p><strong>题一。</strong> α=0° 时为什么中心与第三站之间的有效 XX 项消失？推导任意 g&gt;0 时的局部最低能量。</p>
-<details>
+<details class="answer">
 <summary>从固定右块的物理含义推导</summary>
-<p>此时右块为 span{|00⟩,|01⟩}，第三站固定为 |0⟩，故投影后的 X₃ 为零，C_R=0。前三项剩下第一、二站的 <span class="arithmatex">\(-X_1X_2-g(Z_1+Z_2)\)</span>，以及右块内部最低能 −2g。两自旋 Hamiltonian 的偶块本征值为 <span class="arithmatex">\(\pm\sqrt{1+4g^2}\)</span>，奇块为 ±1；g&gt;0 时最低为 <span class="arithmatex">\(-\sqrt{1+4g^2}\)</span>。所以 <span class="arithmatex">\(E_{\min}=-2g-\sqrt{1+4g^2}\)</span>，g=1 时给出 −4.236067977。</p>
+<p>此时右块为 span{|00⟩,|01⟩}，第三站固定为 |0⟩，故投影后的 X₃ 为零，C_R=0。前三项剩下第一、二站的 <span class="arithmatex">\(-X_1X_2-g(Z_1+Z_2)\)</span>，以及右块内部最低能 −2g。将两自旋基按偶空间 <span class="arithmatex">\((|00\rangle,|11\rangle)\)</span>、奇空间 <span class="arithmatex">\((|01\rangle,|10\rangle)\)</span> 分组，矩阵分别是</p>
+<div class="arithmatex">\[\begin{gathered}H_{\rm even}=\begin{pmatrix}-2g&amp;-1\\-1&amp;2g\end{pmatrix},\\[4pt]H_{\rm odd}=\begin{pmatrix}0&amp;-1\\-1&amp;0\end{pmatrix}.\end{gathered}\]</div>
+<p>偶块的特征方程是 <span class="arithmatex">\(E^2-(1+4g^2)=0\)</span>，奇块则是 <span class="arithmatex">\(E^2-1=0\)</span>。因此两自旋 Hamiltonian 的偶块本征值为 <span class="arithmatex">\(\pm\sqrt{1+4g^2}\)</span>，奇块为 ±1；g&gt;0 时最低为 <span class="arithmatex">\(-\sqrt{1+4g^2}\)</span>。所以 <span class="arithmatex">\(E_{\min}=-2g-\sqrt{1+4g^2}\)</span>，g=1 时给出 −4.236067977。</p>
 <p>有效键消失只说明它在选定子空间内的矩阵元为零；完整 H 仍会把态带到子空间外，因此不能据此删除物理模型中的那条键。</p>
 </details>
 <p><strong>题二。</strong> 将右块基换成 R′=RS，其中 S 是可逆但不正交的 2×2 矩阵。空间是否改变？能否继续令 G_R=I？</p>
-<details>
+<details class="answer">
 <summary>把基变换和物理子空间变化分开</summary>
 <p>列空间不变，但 <span class="arithmatex">\(G'_R=S^\dagger G_RS=S^\dagger S\)</span>，<span class="arithmatex">\(K'_R=S^\dagger K_RS\)</span>、<span class="arithmatex">\(C'_R=S^\dagger C_RS\)</span>。令 T=I⊗I⊗S，则 <span class="arithmatex">\(N'=T^\dagger NT\)</span>、<span class="arithmatex">\(H'_{\rm eff}=T^\dagger H_{\rm eff}T\)</span>；用广义 Rayleigh 商仍得到同一个最低能量。继续错误地令 G_R=I，会把坐标长度误当物理范数。这与改变 α 的实验不同：可逆 S 保留原来的列空间。</p>
 </details>
@@ -217,6 +268,6 @@ K_R=\begin{pmatrix}-\sin2\alpha-2g\cos2\alpha&amp;0\\0&amp;0\end{pmatrix}.}\]</d
 <script defer src="assets/site.js"></script>
 <script defer src="assets/learning/learning.js"></script>
 <script defer src="assets/learning/research-renderer.js?v=b69c61f59cae"></script>
-<script defer src="assets/learning/labs/research-environments.js?v=d3b82df0dfef"></script>
+<script defer src="assets/learning/labs/research-environments.js?v=1c99d7a2f422"></script>
 </body>
 </html>

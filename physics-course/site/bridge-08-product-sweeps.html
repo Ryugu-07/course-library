@@ -56,79 +56,59 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 02:03</div>
+    <div class="build-time">构建于 2026-09-13 20:36</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 局部题会做了，为什么还要来回扫描？</a></li>
-<li><a href="#2">2. 先写整个态的能量，再提取一个局部问题</a></li>
-<li><a href="#3-cauchyschwarz">3. 更新式来自 Cauchy–Schwarz，不是经验调参</a></li>
-<li><a href="#4">4. 把一轮定义清楚，再看八次更新</a></li>
-<li><a href="#5">5. 一个反例：每点都已经最优，整体却还可以更好</a></li>
-<li><a href="#6">6. 收敛、表达误差和全局最优分别检查</a></li>
-<li><a href="#7">7. 两道迁移题</a></li>
+<li><a href="#1">1. 一次局部求解之后，邻居已经变了</a></li>
+<li><a href="#2">2. 从完整能量中分离一个站点</a></li>
+<li><a href="#3">3. 一步下降的证明有一个关键前提</a></li>
+<li><a href="#4">4. 默认账本：每个数都来自一个完整态</a></li>
+<li><a href="#5">5. 同步更新：遗漏的相邻键修正可以大过所有下降</a></li>
+<li><a href="#6">6. 零局部残差的陷阱：联合方向才看得见</a></li>
+<li><a href="#7">7. 什么时候能给乘积态全局最优的证明？</a></li>
+<li><a href="#8">8. 再算量子方差：局部停止与本征态分开</a></li>
+<li><a href="#9">9. 实验：每一种“停止”都给出对应证据</a></li>
+<li><a href="#10">10. 八道迁移题：给“收敛”加上准确的主语</a></li>
 <li><a href="#_1">速查与原始阅读</a></li>
 </ul>
 </div>
 </details>
-<h1 id="08-mps">基础衔接 08 · 一次完整扫描：四自旋乘积 MPS 的能量账本<a class="headerlink" href="#08-mps" title="Permanent link"></a></h1>
+<h1 id="08">基础衔接 08 · 完整扫描：局部下降为什么不能代替整体判断？<a class="headerlink" href="#08" title="Permanent link"></a></h1>
 <blockquote>
-<p>先修：<a href="bridge-07-mps-metric.html">MPS 范数与局部优化</a>、<a href="mb-01-tensor-networks.html">张量网络</a>、<a href="bridge-06-ising-parity.html">Ising 自旋矩阵</a>。本讲完成键维 χ=1 的一次真实往返优化扫描。固定四站、开放边界、Pauli 本征值 ±1、J=1；它不是一般键维的 DMRG 实现。</p>
+<p>先修：<a href="bridge-07-mps-metric.html">MPS 范数与局部优化</a>、<a href="mb-01-tensor-networks.html">张量网络</a>、<a href="bridge-06-ising-parity.html">Ising 自旋矩阵</a>。本讲实际执行四站开放链的乘积态扫描，对照依次更新、同步更新和不相邻分组。固定 Pauli 本征值 ±1、J=1、正横场；键维始终为1，没有实现一般 DMRG。</p>
 </blockquote>
 <div data-learning-page></div>
-<section class="learning-layer">
-<h2 id="1">1. 局部题会做了，为什么还要来回扫描？<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>上一讲把固定环境下的更新写成 <span class="arithmatex">\(H_{\rm eff}a=ENa\)</span>。但更新一个站点以后，它又成为相邻站点的新环境。若每个站点只用最初的邻居，就没有实现依次使用最新信息的扫描。</p>
-<p>我们选择最小、能把每一步都列出来的 MPS 家族：</p>
-<div class="arithmatex">\[|\Psi\rangle=\bigotimes_{j=1}^4|u_j\rangle,\qquad
-|u_j\rangle=\cos\frac{\phi_j}{2}|0\rangle+
-\sin\frac{\phi_j}{2}|1\rangle.\]</div>
-<p>每个 MPS 张量只是两个数，虚拟键的维数 χ=1，没有跨切口纠缠。这里 <span class="arithmatex">\(\phi_j\)</span> 是 Bloch 球角度，态振幅中出现的是半角。定义</p>
-<div class="arithmatex">\[x_j=\langle X_j\rangle=\sin\phi_j,\quad
-z_j=\langle Z_j\rangle=\cos\phi_j,\quad x_j^2+z_j^2=1.\]</div>
-<p>实验从统一的 <span class="arithmatex">\(\phi_j=\theta\in[0,\pi/2]\)</span> 出发，允许更新后各点角度不同。正的横场和非负的初始 x 分量使这个区间在本实验更新下保持不变；这并不枚举所有复数 MPS。</p>
-<h2 id="2">2. 先写整个态的能量，再提取一个局部问题<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p>四站开放链 Hamiltonian 是</p>
-<div class="arithmatex">\[H=-\sum_{j=1}^3X_jX_{j+1}-g\sum_{j=1}^4Z_j,\qquad g&gt;0.\]</div>
-<p>这里只有三条键，没有 <span class="arithmatex">\(X_4X_1\)</span>。因此不能直接使用周期链那一讲的基态数值作为参照。由于是乘积态，跨站期望值因子化：</p>
-<div class="arithmatex">\[\boxed{E=-x_1x_2-x_2x_3-x_3x_4-g(z_1+z_2+z_3+z_4).}\]</div>
-<p>固定除 j 以外所有站点，将含 j 的项收集起来：</p>
-<div class="arithmatex">\[E=E_{\rm env}-b_jx_j-gz_j,
-\quad b_j=\begin{cases}x_2,&amp;j=1,\\x_{j-1}+x_{j+1},&amp;j=2,3,\\x_3,&amp;j=4.\end{cases}\]</div>
-<p>所以局部两维 Hamiltonian 为</p>
-<div class="arithmatex">\[h_j=-b_jX-gZ=
-\begin{pmatrix}-g&amp;-b_j\\-b_j&amp;g\end{pmatrix}.\]</div>
-<p>左右环境各只有一个归一态，中心的两个基态 <span class="arithmatex">\(|0\rangle,|1\rangle\)</span> 也正交，因此本例局部范数矩阵正好是 I。省略 N 在这里有明确理由。<span class="arithmatex">\(E_{\rm env}\)</span> 是固定常数，它不改变最优局部向量，但报告完整能量时必须加回。</p>
-<h2 id="3-cauchyschwarz">3. 更新式来自 Cauchy–Schwarz，不是经验调参<a class="headerlink" href="#3-cauchyschwarz" title="Permanent link"></a></h2>
-<p>令 <span class="arithmatex">\(r_j=\sqrt{b_j^2+g^2}&gt;0\)</span>。单位 Bloch 向量满足</p>
-<div class="arithmatex">\[b_jx_j+gz_j\le\sqrt{b_j^2+g^2}\sqrt{x_j^2+z_j^2}=r_j.\]</div>
-<p>等号在两个向量同向时达到，故局部最低态的期望值为</p>
-<div class="arithmatex">\[\boxed{x_j^{\rm new}=\frac{b_j}{r_j},\qquad
-z_j^{\rm new}=\frac g{r_j}.}\]</div>
-<p>这也对应 <span class="arithmatex">\(h_j\)</span> 的最低本征值 <span class="arithmatex">\(-r_j\)</span>。若要恢复张量，取 <span class="arithmatex">\(\phi_j^{\rm new}=\operatorname{atan2}(b_j,g)\)</span>，再写半角的两个振幅。</p>
-<p>更新前后的完整能量差为</p>
-<div class="arithmatex">\[E_{\rm new}-E_{\rm old}
-=-r_j+(b_jx_j^{\rm old}+gz_j^{\rm old})\le0.\]</div>
-<p>因为其他站点固定，<span class="arithmatex">\(E_{\rm env}\)</span> 抵消。这证明<strong>一次精确局部更新</strong>不会升高能量。它不证明同时更新所有站点、加入截断或带误差求解时仍有同样保证，也不证明多次更新后的极限是全局最优。</p>
-<h2 id="4">4. 把一轮定义清楚，再看八次更新<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p>本讲一轮往返扫描固定为</p>
-<div class="arithmatex">\[1\to2\to3\to4\to4\to3\to2\to1.\]</div>
-<p>转向时重复端点，所以一轮恰有八次局部求解。第 5 次的环境与第 4 次相同，状态已经局部最优，因此能量不变；相邻两轮之间重复站点 1 同理。实际程序可以省掉这些重复，我们保留它们是为了让扫描顺序可逐项核查。</p>
-<p><img alt="四站开放链先向右更新再向左更新，每步使用最新邻居，记录完整能量并与精确谱参照比较。" src="assets/img/bridge-08-product-sweeps.svg" /></p>
-<p>默认 g=1、初始 θ=30°，故全部 <span class="arithmatex">\(x_j=1/2,z_j=\sqrt3/2\)</span>，</p>
-<div class="arithmatex">\[E_{\rm initial}=-\frac34-2\sqrt3\approx-4.214101615.\]</div>
-<p>第一站只看一个邻居，<span class="arithmatex">\(b_1=1/2\)</span>，得到</p>
-<div class="arithmatex">\[x_1=1/\sqrt5,\qquad z_1=2/\sqrt5.\]</div>
-<p>第二站必须使用刚更新的 <span class="arithmatex">\(x_1\)</span>，所以 <span class="arithmatex">\(b_2=1/\sqrt5+1/2\approx0.947213595\)</span>，而不是仍取 1。以此向右再向左，完整账本为：</p>
+<style>.sweeps212-static{max-width:100%;overflow:auto}.sweeps212-static table{display:table;max-width:none;overflow:visible;min-width:100%;width:max-content}.sweeps212-static td,.sweeps212-static th{white-space:nowrap}.sweeps212-course .arithmatex{max-width:100%;overflow-x:auto}</style>
+<section class="learning-layer sweeps212-course">
+<h2 id="1">1. 一次局部求解之后，邻居已经变了<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>上一讲把固定环境的更新写成广义本征问题。但一个站点更新后，它就成了相邻站点的新环境。依次使用最新邻居，与各自看旧邻居、最后一起替换，是两个不同算法。</p>
+<p>这里的每个 MPS 张量只有两个数，虚拟键维 <span class="arithmatex">\(\chi=1\)</span>，完整态为四个单站点态的乘积：</p>
+<div class="arithmatex">\[|\Psi\rangle=\bigotimes_{j=1}^4|u_j\rangle,\qquad |u_j\rangle=\cos\frac{\phi_j}{2}|0\rangle+\sin\frac{\phi_j}{2}|1\rangle,\qquad x_j=\sin\phi_j,\quad z_j=\cos\phi_j.\]</div>
+<p>态振幅使用半角，Bloch 分量使用整角。实验允许四个不同的初始角，包括负角和负 <span class="arithmatex">\(z\)</span>；默认均为30°。每次输出把等价角规范到 <span class="arithmatex">\((-\pi,\pi]\)</span>，只选一个可重复的振幅代表，不改变物理态。这个实乘积家族没有跨切口纠缠。</p>
+<h2 id="2">2. 从完整能量中分离一个站点<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>本讲固定开放链，需与 Ising 奇偶扇区一讲使用的周期链区别开：</p>
+<div class="arithmatex">\[H=-\sum_{j=1}^3X_jX_{j+1}-g\sum_{j=1}^4Z_j,\qquad g&gt;0,\qquad E=-\sum_{j=1}^3x_jx_{j+1}-g\sum_{j=1}^4z_j.\]</div>
+<p>只有三条相邻键，没有第四到第一站点的键。固定其他站点，定义 <span class="arithmatex">\(b_j\)</span> 为实际邻居的 <span class="arithmatex">\(x\)</span> 分量之和，边界站点只有一个邻居。完整能量可以写成 <span class="arithmatex">\(E=E_{\rm env}-b_jx_j-gz_j\)</span>，对应的局部问题为</p>
+<div class="arithmatex">\[h_j=-b_jX-gZ=\begin{pmatrix}-g&amp;-b_j\\-b_j&amp;g\end{pmatrix},\qquad E_{{\rm local},\pm}=\pm\sqrt{b_j^2+g^2}.\]</div>
+<p>其他三个站点都是归一态，中央的两个物理基矢也正交，因此本例局部范数矩阵确实是 <span class="arithmatex">\(I\)</span>。环境常数不改变最低局部向量，但报告四站能量时必须加回来。完整账本同时保留局部本征值、环境常数和“只替换本站点”的完整候选能量。</p>
+<h2 id="3">3. 一步下降的证明有一个关键前提<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>由 Cauchy–Schwarz，<span class="arithmatex">\(b_jx_j+gz_j\le\sqrt{b_j^2+g^2}\)</span>，等号给出</p>
+<div class="arithmatex">\[x_j^{\rm new}=\frac{b_j}{\sqrt{b_j^2+g^2}},\qquad z_j^{\rm new}=\frac{g}{\sqrt{b_j^2+g^2}},\qquad \Delta E_j=-\sqrt{b_j^2+g^2}+b_jx_j^{\rm old}+gz_j^{\rm old}\le0.\]</div>
+<p>这里固定了所有其他站点，所以环境常数抵消。正横场保证分母非零，最低局部态唯一。这个证明允许任意实初始角，更新后 <span class="arithmatex">\(z_j&gt;0\)</span>；它没有证明“所有点同时换掉”的总能量也等于这些下降量之和。</p>
+<p>默认一轮顺序固定为 <span class="arithmatex">\(1\to2\to3\to4\to4\to3\to2\to1\)</span>。转向重复端点，所以一轮恰有八次求解。重复的端点没有新环境，精确算术中能量不变；相邻两轮之间重复站点1同理。保留这些步骤，是为了让次数、状态和账本一一对应。</p>
+<p><img alt="四站开放链往返扫描，每次依次使用最新邻居，并记录完整能量。" src="assets/img/bridge-08-product-sweeps.svg" /></p>
+<h2 id="4">4. 默认账本：每个数都来自一个完整态<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>默认 <span class="arithmatex">\(g=1\)</span>、四角均为30°，所以 <span class="arithmatex">\(x_j=1/2,z_j=\sqrt3/2\)</span>，初始能量为 <span class="arithmatex">\(-3/4-2\sqrt3\approx-4.214101615\)</span>。第一站更新后 <span class="arithmatex">\(x_1=1/\sqrt5,z_1=2/\sqrt5\)</span>；第二站必须使用这个新邻居，得到 <span class="arithmatex">\(b_2=1/\sqrt5+1/2\)</span>，不能仍取1。</p>
 <table>
 <thead>
 <tr>
 <th style="text-align: right;">步数</th>
 <th style="text-align: right;">更新站点</th>
-<th style="text-align: right;">更新后的完整能量</th>
+<th style="text-align: right;">完整能量</th>
 </tr>
 </thead>
 <tbody>
@@ -179,41 +159,172 @@ z_j^{\rm new}=\frac g{r_j}.}\]</div>
 </tr>
 </tbody>
 </table>
-<p>两轮后能量约 −4.403606895。完整 16 维自旋矩阵对角化给出同一开放模型的基态能量约 −4.758770483；两者还差约 0.355163588。实验中的精确参照独立构造全部自旋矩阵，不用乘积态能量公式伪造。</p>
-<div class="learning-lab" data-learning-lab="research-descent" data-research-topic="sweep">
-<p>先预测：把初始角改为 0°，增加轮数能让状态离开原地吗？默认 g=1、θ=30°、两轮；首轮八次更新见上表。图绘制全部更新，表格保留首轮账本；两轮后的局部更新残差约 0.006576565，能量差约 0.355163588。横场范围 0.2 到 2，轮数 1 到 8。</p>
+<p>两轮后为约−4.403606895。同一开放模型的完整16维矩阵给出量子基态能量约−4.758770483，剩余能量差约0.355163588。新账本保留全部轮次与每个完整16分量态，同时计算 <span class="arithmatex">\(H\Psi\)</span>、完整范数和能量；没有只用首轮几个数代表整次优化。</p>
+<h2 id="5">5. 同步更新：遗漏的相邻键修正可以大过所有下降<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>设一批同时更新的站点集合为 <span class="arithmatex">\(B\)</span>，每个局部题都使用同一批次开始时的旧邻居。令 <span class="arithmatex">\(\Delta x_j=x_j^{\rm new}-x_j^{\rm old}\)</span>。逐条展开键能量，得到精确恒等式：</p>
+<div class="arithmatex">\[\Delta E_B=\sum_{j\in B}\Delta E_j^{\rm solo}-\sum_{\substack{j,j+1\in B}}\Delta x_j\Delta x_{j+1}.\]</div>
+<p>第一项是“其余点不变，只换本站点”时的下降；第二项来自两个端点同时改变的键。它没有固定符号。不相邻站点可以一起更新，因为第二项为空；四点同步一般不行。</p>
+<p>一个完全可复算的反例取 <span class="arithmatex">\(g=1/2\)</span>，初始四角为 <span class="arithmatex">\((0°,60°,-60°,0°)\)</span>。旧分量为 <span class="arithmatex">\(x=(0,\sqrt3/2,-\sqrt3/2,0)\)</span>、<span class="arithmatex">\(z=(1,1/2,1/2,1)\)</span>，能量为−3/4。四点各自精确求解后得到交错的新 <span class="arithmatex">\(x=(\sqrt3/2,-\sqrt3/2,\sqrt3/2,-\sqrt3/2)\)</span>，新 <span class="arithmatex">\(z\)</span> 都为1/2，完整能量为5/4。</p>
+<div class="arithmatex">\[\sum_j\Delta E_j^{\rm solo}=-4,\qquad-\sum_{j=1}^3\Delta x_j\Delta x_{j+1}=6,\qquad\Delta E=2.\]</div>
+<p>实验实际运行三种调度，每轮都计八次局部求解：逐点顺序如上；四点同步两批；不相邻分组为 <span class="arithmatex">\((1,3)\to(2,4)\to(2,4)\to(1,3)\)</span>。图的横轴按局部求解次数比较，表同时给批次和轮次。不能用“每批”作横轴，却把一站和四站的工作量混为一谈。</p>
+<h2 id="6">6. 零局部残差的陷阱：联合方向才看得见<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>全 <span class="arithmatex">\(+Z\)</span> 初态满足 <span class="arithmatex">\(x_j=0,z_j=1\)</span>。每个站点看到 <span class="arithmatex">\(b_j=0\)</span>，局部最低态仍是原态，任何轮数都停在 <span class="arithmatex">\(E=-4g\)</span>。但在 <span class="arithmatex">\(g=1\)</span>，把四个角一起改成小的 <span class="arithmatex">\(\alpha\)</span>，有 <span class="arithmatex">\(E=-3\sin^2\alpha-4\cos\alpha=-4-\alpha^2+O(\alpha^4)\)</span>，所以整体能量可以下降。</p>
+<p>统一扰动仍只检查了一个方向。令 <span class="arithmatex">\(\phi\)</span> 是四个小角组成的向量，<span class="arithmatex">\(A\)</span> 是四站路径图的邻接矩阵，则</p>
+<div class="arithmatex">\[E(\phi)=-4g+\frac12\phi^T(gI-A)\phi+O(\|\phi\|^4),\qquad A=\begin{pmatrix}0&amp;1&amp;0&amp;0\\1&amp;0&amp;1&amp;0\\0&amp;1&amp;0&amp;1\\0&amp;0&amp;1&amp;0\end{pmatrix}.\]</div>
+<p>用端点外补零的正弦递推可直接验算四个正交方向：<span class="arithmatex">\(v_j^{(k)}=\sqrt{2/5}\sin(jk\pi/5)\)</span>，其中 <span class="arithmatex">\(j,k=1,\ldots,4\)</span>。相应曲率为 <span class="arithmatex">\(g-2\cos(k\pi/5)\)</span>。最低曲率的变号点是</p>
+<div class="arithmatex">\[g_*=2\cos\frac\pi5=\frac{1+\sqrt5}{2}\approx1.618034.\]</div>
+<p>统一归一方向 <span class="arithmatex">\((1,1,1,1)/2\)</span> 的曲率只有 <span class="arithmatex">\(g-1.5\)</span>。因此 <span class="arithmatex">\(g=1.6\)</span> 时，统一方向已不下降，最低本征方向仍可下降。实验以角度向量的欧氏范数 <span class="arithmatex">\(\varepsilon\)</span> 为扰动幅度；四点统一扰动时，每点角度是 <span class="arithmatex">\(\varepsilon/2\)</span>。默认5°范数下，最低方向实际能量差约−0.000065138。</p>
+<p>Hessian 判断足够小的扰动，不能保证任意有限幅度都下降。图把实际能量差、二阶预测和余项分别保留，让45°等较大幅度也可直接比较。</p>
+<h2 id="7">7. 什么时候能给乘积态全局最优的证明？<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>这里可以证明一部分参数范围。对任意纯乘积 Bloch 向量，固定 <span class="arithmatex">\(x_j\)</span> 后，正横场使最大允许的 <span class="arithmatex">\(z_j=\sqrt{1-x_j^2}\)</span> 最有利；取 <span class="arithmatex">\(y_j=0\)</span> 就能实现。因此考虑实态并不损失这个全局下界。</p>
+<p>利用 <span class="arithmatex">\(\sqrt{1-x^2}\le1-x^2/2\)</span> 和邻接矩阵的最大本征值 <span class="arithmatex">\(g_*\)</span>，得到</p>
+<div class="arithmatex">\[E=-\frac12x^TAx-g\sum_j\sqrt{1-x_j^2}\ge-4g+\frac12x^T(gI-A)x\ge-4g+\frac{g-g_*}{2}\|x\|^2.\]</div>
+<p>所以 <span class="arithmatex">\(g\ge g_*\)</span> 时，全 <span class="arithmatex">\(+Z\)</span> 态确实是整个乘积态家族的全局最优。即使恰在阈值，非零 <span class="arithmatex">\(x\)</span> 也使平方根不等式严格，零曲率不意味着一整条等能态。<span class="arithmatex">\(g&lt;g_*\)</span> 时，负曲率给出联合下降见证；多个初值找到相同终态，仍不能替代全局最优证明。</p>
+<p>这是固定四站、固定 <span class="arithmatex">\(\chi=1\)</span> 变分家族中的分岔。它不是四站量子系统的真正相变，也不能当作无限 Ising 链的临界点。完整量子问题的边界、维数和允许纠缠都不同。</p>
+<h2 id="8">8. 再算量子方差：局部停止与本征态分开<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>局部残差在结束状态的同一组邻居上计算：</p>
+<div class="arithmatex">\[r_{\rm loc}=\max_j\left\|\binom{x_j}{z_j}-\frac{1}{\sqrt{b_j^2+g^2}}\binom{b_j}{g}\right\|.\]</div>
+<p>它只表示继续单点更新能改变多少。完整量子方差则为 <span class="arithmatex">\(\operatorname{Var}(H)=\|(H-\langle H\rangle)\Psi\|^2\)</span>。实验从完整16维矩阵直接计算这个非负平方范数，同时给出基态保真度和能量差。</p>
+<p>全 <span class="arithmatex">\(+Z\)</span> 态是最清楚的对照。场项只贡献−4g，三条 <span class="arithmatex">\(XX\)</span> 键产生三个相互正交的双翻转态，所以</p>
+<div class="arithmatex">\[r_{\rm loc}=0,\qquad \operatorname{Var}_{|0000\rangle}(H)=3,\qquad \|(H-\langle H\rangle)|0000\rangle\|=\sqrt3.\]</div>
+<p>即使在已证明乘积态全局最优的强场范围，它也不是完整 Hamiltonian 的本征态。优化误差与表示限制必须分开；单次未收敛扫描的剩余能量差通常同时混合两者。一般情况下方差为零只证明是某个本征态，还需能量等信息判断是否为基态。</p>
+<h2 id="9">9. 实验：每一种“停止”都给出对应证据<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>先看默认扫描，再选择全Z固定点。比较 <span class="arithmatex">\(g=1.6\)</span> 和 <span class="arithmatex">\(g=1.7\)</span>：前者存在联合下降方向，后者有乘积态最优证明，两者的量子方差仍都是3。最后选择同步反例，把单点预测、内部键修正和实际变化逐项相加。</p>
+<p><div class="learning-lab" data-learning-lab="scalar-product-sweeps" markdown="1">
+<strong>无脚本对照：</strong>六份固定记录保留三种调度的全部批次、每次局部矩阵、完整量子态与所有扫描。下面的结束值对应所列调度，完整下载同时包含其余调度。</p>
+<div aria-label="乘积态扫描固定记录，可横向滚动" class="sweeps212-static" role="region" tabindex="0">
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th style="text-align: right;">g</th>
+<th style="text-align: right;">轮数</th>
+<th>当前调度</th>
+<th style="text-align: right;">结束能量</th>
+<th style="text-align: right;">局部残差</th>
+<th style="text-align: right;">量子方差</th>
+<th style="text-align: right;">最大批次上升</th>
+<th style="text-align: right;">最低联合曲率</th>
+<th>乘积全局证书</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>默认两轮</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td>依次单点</td>
+<td style="text-align: right;">-4.40360689</td>
+<td style="text-align: right;">0.00657656515</td>
+<td style="text-align: right;">0.493919523</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-0.618033989</td>
+<td>否</td>
+</tr>
+<tr>
+<td>零局部残差</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+<td>依次单点</td>
+<td style="text-align: right;">-4</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-0.618033989</td>
+<td>否</td>
+</tr>
+<tr>
+<td>同步反例</td>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">2</td>
+<td>四点同步</td>
+<td style="text-align: right;">1.92530928</td>
+<td style="text-align: right;">1.93089734</td>
+<td style="text-align: right;">3.47696861</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">-1.11803399</td>
+<td>否</td>
+</tr>
+<tr>
+<td>隐藏下降方向</td>
+<td style="text-align: right;">1.6</td>
+<td style="text-align: right;">2</td>
+<td>依次单点</td>
+<td style="text-align: right;">-6.4</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">-0.0180339887</td>
+<td>否</td>
+</tr>
+<tr>
+<td>乘积全局证书</td>
+<td style="text-align: right;">1.7</td>
+<td style="text-align: right;">2</td>
+<td>依次单点</td>
+<td style="text-align: right;">-6.8</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.0819660113</td>
+<td>是</td>
+</tr>
+<tr>
+<td>十二轮扫描</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">12</td>
+<td>依次单点</td>
+<td style="text-align: right;">-4.40366948</td>
+<td style="text-align: right;">2.78103976e-13</td>
+<td style="text-align: right;">0.480783639</td>
+<td style="text-align: right;">8.8817842e-16</td>
+<td style="text-align: right;">-0.618033989</td>
+<td>否</td>
+</tr>
+</tbody>
+</table>
 </div>
-<h2 id="5">5. 一个反例：每点都已经最优，整体却还可以更好<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p>令全部 <span class="arithmatex">\(\phi_j=0\)</span>，即 <span class="arithmatex">\(x_j=0,z_j=1\)</span>。每个站点看到 <span class="arithmatex">\(b_j=0\)</span>，局部最低态仍为 <span class="arithmatex">\(|0\rangle\)</span>。不管扫描多少轮，都停在</p>
-<div class="arithmatex">\[E=-4g.\]</div>
-<p>但 g=1 时，让四个角一起变成小的正数 φ，得到</p>
-<div class="arithmatex">\[E(\phi)=-3\sin^2\phi-4\cos\phi
-=-4-\phi^2+O(\phi^4).\]</div>
-<p>所以足够小的非零 φ 会降低能量。这个状态虽对任一单站点变化都已最优，却不是联合变化下的局部最小值。这是坐标优化会停住的具体机制；不能把“所有单点题都做对”自动提升成“整体已解对”。</p>
-<p>也可不使用渐近展开：统一 θ=30° 的能量 −4.214101615 已低于 θ=0° 的 −4。两个都是 χ=1 的合法态，所以这个失败不能全部归咎于表达能力不足。</p>
-<h2 id="6">6. 收敛、表达误差和全局最优分别检查<a class="headerlink" href="#6" title="Permanent link"></a></h2>
-<p>实验显示两类停止信号：最后一轮能量下降，以及局部更新残差</p>
-<div class="arithmatex">\[r_{\rm loc}=\max_j\sqrt{(x_j-b_j/\sqrt{b_j^2+g^2})^2+
-(z_j-g/\sqrt{b_j^2+g^2})^2}.\]</div>
-<p>它在<strong>扫描结束后的同一组邻居</strong>上统一计算。接近零表示再做单点更新改变很小；不代表真实态已接近精确基态。上节 θ=0° 的陷阱就有严格零残差。</p>
-<p>有精确基准时比较 <span class="arithmatex">\(E-E_0\)</span>；没有时，要结合多个初值、增加键维、能量方差和其他可观测量检查。即使能量很稳定，仍可能有有限 χ 的表示误差。反之一次扫描后的能量差也混合了尚未收敛和表示限制，不能仅凭这个差就把两种误差分别定量。</p>
-<p>在一般 χ 的 MPS 中，本讲的邻居标量会被左右环境张量替代，局部向量有约 <span class="arithmatex">\(d\chi_L\chi_R\)</span> 个分量。还需维护正交中心、实现有效 Hamiltonian 作用、更新环境；若做两站点更新与 SVD 截断，还要记录截断误差。完成 χ=1 扫描是这条算法链的可核查第一步。</p>
-<h2 id="7">7. 两道迁移题<a class="headerlink" href="#7" title="Permanent link"></a></h2>
-<p><strong>题一。</strong> 默认第一站更新后，为何不能直接把局部本征值 <span class="arithmatex">\(-\sqrt{1.25}\)</span> 报作四站能量？请算出此时的环境常数。</p>
-<details>
-<summary>把没有含站点 1 的项加回来</summary>
-<p>固定其他三个站点的 x=1/2、z=√3/2，未涉及站点 1 的两个键贡献 −1/2，后三个横场贡献 −3√3/2。因此 <span class="arithmatex">\(E_{\rm env}=-1/2-3\sqrt3/2\)</span>，加局部最低能 <span class="arithmatex">\(-\sqrt5/2\)</span> 得 −4.216110200。边界站点只有一个邻居；误加第四到第一的键会换成周期模型。</p>
+<p><a download="sweeps-frozen-records.json" href="assets/learning/projects/sweeps-certificates/run-snapshot.json">下载六份完整记录</a>，含全部16维态、Hamiltonian、每次局部解、内部键修正和联合方向。</p>
+</div>
+<p>七张图分别显示完整能量、局部残差、量子方差、批次修正、联合曲率、实际扰动和多初值结果。十五张表保留三种调度的全部批次、每个局部矩阵、每条内部键、所有完整态系数与扫描点。浮点算术中约 <span class="arithmatex">\(10^{-15}\)</span> 的能量差不应解释成有限的上升机制；原始差值仍保留，同步反例的升高2则远离这个尺度。</p>
+<p><img alt="完整扫描、同步交叉修正、联合曲率与量子误差的计算证书。" src="assets/img/bridge-08-sweeps-certificates.svg" /></p>
+<h2 id="10">10. 八道迁移题：给“收敛”加上准确的主语<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>1. 默认第一站求解后，环境常数是多少？</summary>
+<p>没有包含站点1的两条键贡献−1/2，后三个场项贡献−3√3/2，所以环境常数为−1/2−3√3/2。加局部最低值−√5/2，才得到完整能量−4.216110200。直接报告局部本征值会漏掉其余站点。</p>
 </details>
-<p><strong>题二。</strong> g=1、θ=0° 时扫描能量完全不变，局部残差为零。能否据此宣布 χ=1 家族已达到最优，或者宣布 χ=1 是唯一误差来源？</p>
-<details>
-<summary>先在同一表示家族内寻找反例</summary>
-<p>不能。统一 θ=30° 仍是 χ=1 的态，能量 −4.214101615 已低于 −4；联合微小转动也可降低能量。这里首先存在优化陷阱。即使换初值后得到更低、稳定的乘积态，也还需与更丰富表示和基准比较，才能区分剩余误差。</p>
+<details class="answer">
+<summary>2. 转向时重复端点，为什么恰好没有新的下降？</summary>
+<p>前后两次使用同一组邻居。第一次已选中唯一最低局部态，第二次没有新环境，精确结果不变。程序仍把它计作一次局部求解；实际实现可省掉，但应同步修改工作量定义。</p>
+</details>
+<details class="answer">
+<summary>3. 同步反例里，每个局部题都下降，为何完整能量升高？</summary>
+<p>各点单独替换的预测变化为−1/2、−3/2、−3/2、−1/2，合计−4。三个内部键的交叉修正为3/2、3、3/2，合计6。实际变化是−4+6=2。各局部证明所固定的其他站点，在同步替换中也动了。</p>
+</details>
+<details class="answer">
+<summary>4. 为什么站点1和3可以一起更新，站点1和2却需额外检查？</summary>
+<p>开放链的1与3之间没有直接键，各自变化不会产生一条两端同时更新的能量项，所以预测下降可以相加。1与2之间存在XX键，必须保留−Δx1Δx2。分组的安全性依赖Hamiltonian的实际耦合结构。</p>
+</details>
+<details class="answer">
+<summary>5. g=1.6时，统一方向与最低曲率方向给出什么不同结论？</summary>
+<p>统一归一方向的曲率为0.1，最低Hessian方向的曲率约−0.018034。前者不能降低足够小扰动的能量，后者可以。只检查统一方向会漏掉邻接矩阵最大本征向量对应的变化。</p>
+</details>
+<details class="answer">
+<summary>6. 阈值处有一个零曲率方向，为什么全Z仍是唯一乘积态最优？</summary>
+<p>二阶项不能独自判断阈值，但全局不等式仍有效。只要任一x非零，平方根不等式就是严格的，能量严格高于−4g。曲率为零表示二阶项消失，不表示有限扰动也没有代价。</p>
+</details>
+<details class="answer">
+<summary>7. g=1.7、全Z初态不动，为什么仍需给出量子误差？</summary>
+<p>此时有解析证明表明它是乘积态家族全局最优，优化本身可以结束。但完整H仍通过三条XX键产生三个双翻转态，方差为3，因此还存在超出chi=1表示能力的量子修正。不能把“家族内全局最优”省略成“量子基态”。</p>
+</details>
+<details class="answer">
+<summary>8. 多个初值都达到稳定能量，能否定量分离所有误差？</summary>
+<p>不能。它能减少对某条优化路径的担忧，却不是全局证明。还应比较局部残差、量子方差、更丰富的键维和独立基准。若没有额外界限，同一个能量差通常不能被唯一拆成优化误差和表示误差。</p>
 </details>
 </section>
 <h2 id="_1">速查与原始阅读<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<p>固定环境 → 计算邻居场 b_j → 解 2×2 局部题 → 用最新结果更新下一站 → 记录完整能量 → 往返并检查停止信号。本讲明确 χ=1、开放边界、统一能量单位。一般 MPS 扫描与环境张量见 <a href="https://arxiv.org/abs/1008.3477">Schollwöck 综述</a>。返回<a href="mb-01-tensor-networks.html">张量网络</a>。核查：2026-09-08。</p>
-<p>路线验收：<a href="route-01-mps-readiness.html">连续作业：从 Schmidt 截断到变分扫描</a>。先独立提交中间计算，再用题解定位需要回补的步骤。</p>
-<p>继续计算：<a href="bridge-09-mps-environments.html">MPS 环境与八维中心求解</a>。</p>
+<p>每次固定环境、解局部问题、按实际调度更新，再记录完整态；单点下降证明、同步修正和联合Hessian各自回答不同问题。一般 MPS 扫描与环境张量见 <a href="https://arxiv.org/abs/1008.3477">Schollwöck 综述</a>第6.3、6.4节；本讲四站反例、Hessian和乘积态下界独立推导。来源核查2026-09-13。</p>
+<p>返回<a href="mb-01-tensor-networks.html">张量网络</a>，继续<a href="bridge-09-mps-environments.html">八维中心与环境收缩</a>、<a href="bridge-10-two-site-truncation.html">两站点截断</a>，或完成<a href="route-01-mps-readiness.html">从 Schmidt 截断到变分扫描的连续作业</a>。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="bridge-07-mps-metric.html"><span class="pager-label">上一页</span>计算桥 VII · MPS 范数与局部优化</a>
@@ -224,7 +335,6 @@ z_j^{\rm new}=\frac g{r_j}.}\]</div>
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
 <script defer src="assets/learning/learning.js"></script>
-<script defer src="assets/learning/research-renderer.js?v=b69c61f59cae"></script>
-<script defer src="assets/learning/labs/research-descent.js?v=19a4bbd7f49e"></script>
+<script defer src="assets/learning/labs/scalar-product-sweeps.js"></script>
 </body>
 </html>

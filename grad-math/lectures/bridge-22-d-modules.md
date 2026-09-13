@@ -3,7 +3,7 @@
 > 先修：[模与商](bridge-01-modules.html)、[链复形](bridge-03-complexes.html)、[联络与单值化](bridge-08-connections.html)、[导出范畴与 roofs](bridge-21-derived-category-roofs.html)。本讲固定在特征 $0$ 的复数域上，先从仿射直线的第一 Weyl 代数算起，再说明哪些结论能推广到光滑簇。目标是分清“向量丛带可积联络”与“一般 D-模”，并用特征簇、正则奇点和不规则奇点回答三种不同的问题。
 
 <div data-learning-page></div>
-<section class="learning-layer" markdown="1" aria-labelledby="d-modules-title">
+<section class="learning-layer dmodules215-course" markdown="1" aria-labelledby="d-modules-title">
 
 <h2 id="d-modules-title">同一个微分算子，怎样既描述函数，也描述只活在一点上的对象？</h2>
 
@@ -43,7 +43,7 @@ $$
 
 右边多出的 $3x^2$ 正是 Leibniz 规则，不是排序误差。若错误地令 $x\partial=\partial x$，就会把所有导数对系数的作用删掉。
 
-正规形的存在来自反复用 $\partial x=x\partial+1$ 换序；唯一性可用算子作用检验：若最高阶为 r 的组合恒为零，连续与乘 x 取 r 次交换子会得到 $r!a_r(x)=0$，特征0迫使最高系数为零，再向下归纳。
+正规形的存在来自反复用 $\partial x=x\partial+1$ 换序；唯一性可用算子作用检验：若最高阶为 r 的组合恒为零，连续地与乘以 x 的算子取 r 次交换子会得到 $r!a_r(x)=0$，特征0迫使最高系数为零，再向下归纳。
 
 一个**左 $A_1$-模** $M$ 同时给出 $x$ 与 $\partial$ 在 $M$ 上的作用，并要求二者满足同一交换子关系。元素 $m\in M$ 可被多项式乘，也可被求导方向作用；一个循环模常写成
 
@@ -52,6 +52,9 @@ M=A_1/A_1P,
 $$
 
 其中 $A_1P$ 是由算子 $P$ 生成的左理想。关系 $P\bar1=0$ 把微分方程保存在模内部。
+
+“左”指可以在左边继续乘任意算子：$Q\cdot(RP)=(QR)P$ 仍在 $A_1P$ 中。生成元 $P$ 因此写在每项的右端；$PA_1$ 是右理想，不能交换顺序。这里取的是左模的商，一般不是能任意相乘陪集的代数商。
+
 
 ## 2. 一般光滑簇上的 $\mathcal D_X$
 
@@ -151,6 +154,31 @@ $$
 $$
 \delta,\partial\delta,\partial^2\delta,\ldots.
 $$
+
+<details class="answer" markdown="1"><summary>为什么这真是基，而不仅是一组生成元？</summary>
+
+换序关系已经把每个向量写成有限和 $\sum_jc_j\partial^j\delta$。为了排除这些向量之间的隐藏关系，在另一个多项式空间 $\mathbb C[t]$ 上定义
+
+$$\partial\cdot f(t)=tf(t),\qquad x\cdot f(t)=-f'(t).$$
+
+这里 $t$ 是检验模型的坐标，不是原来的 $x$。直接计算
+
+$$\begin{aligned}
+(\partial x-x\partial)\cdot f
+&=-tf'(t)+(tf(t))'\\
+&=f(t),
+\end{aligned}$$
+
+所以它确实是一个左 $A_1$-模。又因为 $x\cdot1=0$，映射
+
+$$\Phi:M_\delta\longrightarrow\mathbb C[t],\qquad [Q]\longmapsto Q\cdot1$$
+
+是良定义的：改变代表元所加的 $Rx$ 总把 $1$ 送到 $0$。而 $\Phi(\partial^j\delta)=t^j$。若商模中有有限线性关系，取像就得到 $\sum_jc_jt^j=0$，各系数只能全为零。这补齐了线性无关，也给出了 $M_\delta\cong\mathbb C[t]$ 的具体模型。
+
+注意 $x\delta=0$ 只约束生成元，不表示 $x$ 杀死所有向量；例如 $x\partial\delta=-\delta$。若误取由 $x$ 生成的双边理想，那么 $\partial x$ 和 $x\partial$ 都在理想中，连 $1=\partial x-x\partial$ 也在其中，商代数只剩零。
+
+</details>
+
 
 它不是有限维，也不是 $\mathbb C[x]$-有限生成模：乘 $x$ 只能把导数阶数向下降，无法从有限多个基向量生成任意高阶 $\partial^j\delta$。但把 $x$ 局部化为可逆元后，$x\delta=0$ 会推出 $\delta=0$，所以这个模的几何支撑只在 $x=0$。
 
@@ -296,11 +324,26 @@ $$
 
 沿 $\theta=0$ 接近原点时它快速衰减，沿 $\theta=\pi$ 时却以 $e^{1/r}$ 快速增长；$\theta=\pi/2,3\pi/2$ 是增长类型改变的方向。系数 $1/x^2$ 是二阶极点，这个秩一模型在 $0$ 有**不规则奇点**，它的指数增长类型不能由普通单值化矩阵完整记录。这个秩一精确指数例没有非平凡的 Stokes 矩阵；高秩系统中不同扇区的渐近基还可能通过非平凡 Stokes 矩阵连接，不能把本例的方向增长直接当成已经算出了那些矩阵。
 
+
+还可以把“不规则”和“仍然 holonomic”在同一个对象上核验。先在 $\mathbb G_m$ 上看秩一联络，再选择它在仿射直线上的一个延拓
+
+$$\widetilde M_{\rm irr}=A_1/A_1P,\qquad P=x^2\partial-1.$$
+
+在 $x\ne0$ 的开集上，乘以可逆系数 $x^{-2}$ 就恢复原方程。在整个仿射直线上按**微分阶数**过滤，$x$ 是零阶，因此 $P$ 的最高阶符号为 $x^2\xi$，不是按 $x$ 与 $\partial$ 的总次数过滤。对任意非零 $Q$，主符号环 $\mathbb C[x,\xi]$ 是整环，故 $\sigma(QP)=\sigma(Q)x^2\xi$，没有最高阶抵消。由商过滤得到
+
+$$\operatorname{gr}\widetilde M_{\rm irr}\cong\mathbb C[x,\xi]/(x^2\xi).$$
+
+所以集合意义下
+
+$$\begin{gathered}\operatorname{Char}(\widetilde M_{\rm irr})=V(\xi)\cup V(x),\\[3pt]\dim\operatorname{Char}(\widetilde M_{\rm irr})=1.\end{gathered}$$
+
+它是 holonomic，却在原点不正则。其特征簇集合与上节选定正则模型的相同；这让“特征方向”和“奇点增长类型”两个问题有了直接对照。这里保持 holonomic 这一术语，避免将它与普通复分析中的“全纯函数”混淆。
+
 因此三张账必须分开：
 
 | 性质 | 回答的问题 | 本讲例子 |
 |---|---|---|
-| holonomic | 特征簇是否达到最小维数 | $M_{\rm fun},M_\delta,M_\alpha$ 都是 |
+| holonomic | 特征簇是否达到最小维数 | $M_{\rm fun},M_\delta$ 及选定的正则、不规则延拓都是 |
 | regular singular | 奇点附近是否只有受控的正则增长 | $x\partial-\alpha$ 在 $0$ 正则 |
 | monodromy | 沿闭路解析延拓怎样变换解 | $e^{2\pi i\alpha}$；$e^{-1/x}$ 的普通单值化为 $1$ |
 
@@ -341,7 +384,7 @@ $$
 
 求局部函数解，计算其在 $\mathbb A^1$ 上的特征簇并判断是否 holonomic。把直线紧化到 $\mathbb P^1$ 后，$\infty$ 是正则还是不规则奇点？
 
-<details markdown="1"><summary>查看解、主符号与无穷远渐近</summary>
+<details class="answer" markdown="1"><summary>查看解、主符号与无穷远渐近</summary>
 
 方程是 $u'=xu$，所以
 
@@ -357,7 +400,11 @@ $$
 
 是零截面，维数 $1$；因此 $M$ holonomic。
 
-令 $z=1/x$。因为 $\partial_x=-z^2\partial_z$，方程变成
+令 $z=1/x$。由链式法则 $\partial_x=-z^2\partial_z$，先把算子本身换元：
+
+$$(-z^2\partial_z-z^{-1})u=0.$$
+
+在穿孔邻域 $z\ne0$ 除以 $-z^2$，方程才变成
 
 $$
 \partial_z u=-\frac1{z^3}u,
@@ -369,7 +416,7 @@ $$
 
 **题二。** 比较 $M_{\rm fun}=A_1/A_1\partial$ 与 $M_\delta=A_1/A_1x$。分别算 $x\partial^2$ 对循环生成元的作用，并说明为什么两者都是 holonomic，却只有前者来自 $\mathbb A^1$ 上的向量丛带联络。
 
-<details markdown="1"><summary>查看交换子、支撑与底层 O 模</summary>
+<details class="answer" markdown="1"><summary>查看交换子、支撑与底层 O 模</summary>
 
 在 $M_{\rm fun}$ 中 $\partial e=0$，所以
 

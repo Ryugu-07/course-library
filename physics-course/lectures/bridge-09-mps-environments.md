@@ -3,7 +3,7 @@
 > 先修：[MPS 范数与局部优化](bridge-07-mps-metric.html)、[乘积态往返扫描](bridge-08-product-sweeps.html)、[路线验收](route-01-mps-readiness.html)。本讲把邻居标量提升为矩阵，推导任意键维下最近邻 Ising 链的环境递推，再完整求解一个四站、键维 2、中心 8 维的例子。只更新一次中心，不宣称已经实现一般 DMRG 扫描。
 
 <div data-learning-page></div>
-<section class="learning-layer" markdown="1">
+<section class="learning-layer environments214-course" markdown="1">
 
 ## 1. 从一个邻居数，变成一组环境矩阵
 
@@ -24,6 +24,13 @@ K_L{}_{\ell\ell'}=\langle L_\ell|H_L|L_{\ell'}\rangle,\quad
 C_L{}_{\ell\ell'}=\langle L_\ell|X_{j-1}|L_{\ell'}\rangle.$$
 
 $H_L$ 只含左块内部的键与横场。右侧类似，$C_R$ 用右块最靠近中心的 $X_{j+1}$。G 记录范数，K 记录块内能量，C 记录跨向中心的边界算符；三者作用不同。空块的起点为 G=(1)、K=(0)、C=(0)。
+
+可以先把环境理解为“在选定块态之间查询一个算符的全部矩阵元”。对角元只告诉你每个块态单独的结果；非对角元还告诉你叠加时的干涉。第 4 节将得到 $C_R=\sin\alpha\,X$。于是两个等概率叠加态
+
+$$|R_\pm\rangle=\frac{|R_0\rangle\pm|R_1\rangle}{\sqrt2}$$
+
+具有完全相同的两项概率，却给出相反的边界期望 $\langle R_\pm|X_3|R_\pm\rangle=\pm\sin\alpha$。若只传递概率，两者就无法区分，中心与右块之间的能量也会算错。
+
 
 ## 2. 五种项怎样进入中心问题
 
@@ -77,6 +84,26 @@ $$G'_R=\mathcal T_B(I,G_R),\quad C'_R=\mathcal T_B(X,G_R),$$
 
 $$K'_R=\mathcal T_B(I,K_R)-g\mathcal T_B(Z,G_R)-\mathcal T_B(X,C_R).$$
 
+
+读收缩式时，可以先把自由指标圈出来：$b,b'$ 不求和，它们是新矩阵的行、列；$s,t,r,r'$ 全部收缩。右式的第一份 $B$ 来自 bra，所以带复共轭；第二份来自 ket，所以不共轭。
+
+| 对象 | 行与列 | 在收缩中做什么 |
+|---|---|---|
+| 左张量 $A^s$ | 旧左块 $\ell$ × 新左块 $b$ | 先乘旧环境，再投到新块 |
+| 右张量 $B^s$ | 新右块 $b$ × 旧右块 $r$ | 从新块的每个系数展开到旧块 |
+| 旧环境 $E$ | 旧块 bra × 旧块 ket | 接住两条旧虚拟指标 |
+| 新环境 $\mathcal T_B(O,E)$ | 新块 bra $b$ × 新块 ket $b'$ | 只留下新块的两条虚拟指标 |
+
+<details class="answer" markdown="1"><summary>一行反例：复共轭为什么不能省略？</summary>
+
+从空块 $G=(1)$ 开始，只保留一个新块态，取 $B^0=(1)$、$B^1=(i)$。这个态是 $|0\rangle+i|1\rangle$，还没有归一化。正确范数为
+
+$$G'=\overline1\,1+\overline i\,i=1+1=2.$$
+
+若误把 bra 当成 ket，会得到 $1^2+i^2=0$：非零态竟被当作零范数。再令 $W=(1,i)^T/\sqrt2$，正确的 $W^\dagger W=1$，而 $W^T W=0$。因此一般公式必须写共轭转置 $\dagger$。这一反例核查的是复数公式；下方交互组件仍只实现实张量。
+
+</details>
+
 这套公式允许任意相容键维与复张量，针对的是本讲的最近邻 XX 与横场 Z 模型。更一般 Hamiltonian 通常用 MPO 组织更多算符通道，不能把三个环境矩阵无条件套到所有相互作用上。网页实验使用实张量。
 
 ## 4. 一个可以逐项算完的键维 2 右块
@@ -115,7 +142,10 @@ K_R=\begin{pmatrix}-\sin2\alpha-2g\cos2\alpha&0\\0&0\end{pmatrix}.}$$
 
 $$R=\begin{pmatrix}c&0\\0&1\\0&0\\s&0\end{pmatrix}.$$
 
-因此可独立构造完整 16×16 自旋 Hamiltonian，核对 $W^T W=I_8$ 和 $H_{\rm eff}=W^THW$。实际大链不会存储这个指数大的 W；四站模型只是让每个索引都可核验。
+因此可独立构造完整 16×16 自旋 Hamiltonian，核对 $W^\dagger W=I_8$ 和 $H_{\rm eff}=W^\dagger HW$。实际大链不会存储这个指数大的 W；四站模型只是让每个索引都可核验。 本例 $R,W$ 都为实矩阵，所以数值上共轭转置等于普通转置；上面的写法也适用于复数块态。
+
+本页数组按 $|s_1s_2s_3s_4\rangle$ 排列：物理行号是 $8s_1+4s_2+2s_3+s_4$，中心列号是 $4\ell+2s+r$，各位从 0 开始。例如中心坐标 $(\ell,s,r)=(1,0,0)$ 经 $W$ 映到 $c|1000\rangle+s|1011\rangle$。先明确这张索引表，再比较矩阵，避免将另一实验的位序直接照搬过来。
+
 
 默认 α=45°、g=1，$C_R=X/\sqrt2,K_R=\operatorname{diag}(-1,0)$。计算账本为：
 
@@ -139,9 +169,21 @@ $$R=\begin{pmatrix}c&0\\0&1\\0&0\\s&0\end{pmatrix}.$$
 
 因为 W 是等距嵌入，局部本征方程只要求
 
-$$W^T(H\psi-E\psi)=0.$$
+$$W^\dagger(H\psi-E\psi)=0.$$
 
-它消除了残差在可搜索子空间中的分量，却没有消除正交补中的分量。对归一化 ψ，完整残差平方正是能量方差
+它消除了残差在可搜索子空间中的分量，却没有消除正交补中的分量。 更具体地，令 $P=WW^\dagger$，它是到当前搜索子空间的正交投影。只有在本节 $W^\dagger W=I$ 且局部本征方程已精确解出时，才有
+
+$$PH\psi=E\psi,\qquad r=H\psi-E\psi=(I-P)H\psi.$$
+
+如果数值求解还有误差，应保留两部分：$r=Pr+(I-P)r$，且 $\|r\|^2=\|Pr\|^2+\|(I-P)r\|^2$。前一项测局部方程有没有解准，后一项测固定块空间有没有漏掉物理方向。
+
+<details class="answer" markdown="1"><summary>二维算例：局部残差 0，完整残差 1</summary>
+
+取 $H=X$，只允许搜索 $W=|0\rangle$ 张成的一维空间。此时 $W^\dagger HW=0$，局部解为 $a=1,E=0$，所以局部残差恰为 0。放回完整空间后，$\psi=|0\rangle$，但 $H\psi=|1\rangle$，故 $r=|1\rangle$、$\|r\|=1$。完整 $H$ 的最低能量其实是 $-1$；局部解没有找到它，因为相应本征向量不在这一维搜索空间中。
+
+</details>
+
+对归一化 ψ，完整残差平方正是能量方差
 
 $$\|H\psi-E\psi\|^2=\langle H^2\rangle-\langle H\rangle^2,$$
 
@@ -155,9 +197,13 @@ $$\|H\psi-E\psi\|^2=\langle H^2\rangle-\langle H\rangle^2,$$
 
 **题一。** α=0° 时为什么中心与第三站之间的有效 XX 项消失？推导任意 g>0 时的局部最低能量。
 
-<details markdown="1"><summary>从固定右块的物理含义推导</summary>
+<details class="answer" markdown="1"><summary>从固定右块的物理含义推导</summary>
 
-此时右块为 span{|00⟩,|01⟩}，第三站固定为 |0⟩，故投影后的 X₃ 为零，C_R=0。前三项剩下第一、二站的 $-X_1X_2-g(Z_1+Z_2)$，以及右块内部最低能 −2g。两自旋 Hamiltonian 的偶块本征值为 $\pm\sqrt{1+4g^2}$，奇块为 ±1；g>0 时最低为 $-\sqrt{1+4g^2}$。所以 $E_{\min}=-2g-\sqrt{1+4g^2}$，g=1 时给出 −4.236067977。
+此时右块为 span{|00⟩,|01⟩}，第三站固定为 |0⟩，故投影后的 X₃ 为零，C_R=0。前三项剩下第一、二站的 $-X_1X_2-g(Z_1+Z_2)$，以及右块内部最低能 −2g。将两自旋基按偶空间 $(|00\rangle,|11\rangle)$、奇空间 $(|01\rangle,|10\rangle)$ 分组，矩阵分别是
+
+$$\begin{gathered}H_{\rm even}=\begin{pmatrix}-2g&-1\\-1&2g\end{pmatrix},\\[4pt]H_{\rm odd}=\begin{pmatrix}0&-1\\-1&0\end{pmatrix}.\end{gathered}$$
+
+偶块的特征方程是 $E^2-(1+4g^2)=0$，奇块则是 $E^2-1=0$。因此两自旋 Hamiltonian 的偶块本征值为 $\pm\sqrt{1+4g^2}$，奇块为 ±1；g>0 时最低为 $-\sqrt{1+4g^2}$。所以 $E_{\min}=-2g-\sqrt{1+4g^2}$，g=1 时给出 −4.236067977。
 
 有效键消失只说明它在选定子空间内的矩阵元为零；完整 H 仍会把态带到子空间外，因此不能据此删除物理模型中的那条键。
 
@@ -165,7 +211,7 @@ $$\|H\psi-E\psi\|^2=\langle H^2\rangle-\langle H\rangle^2,$$
 
 **题二。** 将右块基换成 R′=RS，其中 S 是可逆但不正交的 2×2 矩阵。空间是否改变？能否继续令 G_R=I？
 
-<details markdown="1"><summary>把基变换和物理子空间变化分开</summary>
+<details class="answer" markdown="1"><summary>把基变换和物理子空间变化分开</summary>
 
 列空间不变，但 $G'_R=S^\dagger G_RS=S^\dagger S$，$K'_R=S^\dagger K_RS$、$C'_R=S^\dagger C_RS$。令 T=I⊗I⊗S，则 $N'=T^\dagger NT$、$H'_{\rm eff}=T^\dagger H_{\rm eff}T$；用广义 Rayleigh 商仍得到同一个最低能量。继续错误地令 G_R=I，会把坐标长度误当物理范数。这与改变 α 的实验不同：可逆 S 保留原来的列空间。
 
