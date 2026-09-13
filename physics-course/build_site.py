@@ -396,6 +396,8 @@ def sync_learning_assets(md_names):
         shutil.copytree(SHARED / "projects" / "loop-certificates", destination / "projects" / "loop-certificates")
     if "scalar-berry" in names:
         shutil.copytree(SHARED / "projects" / "berry-certificates", destination / "projects" / "berry-certificates")
+    if "scalar-spectral-response" in names:
+        shutil.copytree(SHARED / "projects" / "response-certificates", destination / "projects" / "response-certificates")
 
 
 def previous_build_time(out: Path, fallback: str) -> str:

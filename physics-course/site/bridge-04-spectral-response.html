@@ -56,83 +56,249 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 02:03</div>
+    <div class="build-time">构建于 2026-09-13 16:11</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 正外场应该把系统推向哪一边</a></li>
-<li><a href="#2">2. 从密度矩阵的一阶展开确定顺序</a></li>
-<li><a href="#3-lehmann">3. 插入能量本征态，得到 Lehmann 表示</a></li>
-<li><a href="#4">4. 两能级的每一项都能列出</a></li>
-<li><a href="#5">5. 迁移题</a></li>
+<li><a href="#1">1. 先固定问题：我们改变什么，又读取什么</a></li>
+<li><a href="#2">2. 静态小场给出一个不能回避的符号检验</a></li>
+<li><a href="#3">3. 从密度矩阵确定响应核</a></li>
+<li><a href="#4">4. 同一组矩阵元，三种不同的谱</a></li>
+<li><a href="#5">5. 把谱线画宽，究竟保留了什么</a></li>
+<li><a href="#6">6. 一段有限记录，与无限时间谱还差什么</a></li>
+<li><a href="#7">7. 守恒量为何能有静态导数，却没有封闭动态响应</a></li>
+<li><a href="#8">8. 单位变换也是一种交叉检查</a></li>
+<li><a href="#9">9. 实验：每次只改变一个物理问题</a></li>
+<li><a href="#10">10. 迁移题：先说条件，再动手计算</a></li>
 <li><a href="#_1">速查与下一步</a></li>
 </ul>
 </div>
 </details>
-<h1 id="04-kubo">基础衔接 04 · 从对易子到响应谱：Kubo 公式怎样真正算出一个数<a class="headerlink" href="#04-kubo" title="Permanent link"></a></h1>
+<h1 id="04">基础衔接 04 · 从对易子到响应谱：噪声、吸收与有限时间读数<a class="headerlink" href="#04" title="Permanent link"></a></h1>
 <blockquote>
-<p>先修：<a href="qm-01-framework.html">量子态与密度矩阵</a>、<a href="neq-02-kubo-transport.html">Kubo 与因果输运</a>。本讲固定扰动 <span class="arithmatex">\(H'=-f(t)B\)</span>，响应 <span class="arithmatex">\(\delta\langle B\rangle=\chi*f\)</span>，Fourier 变换用 <span class="arithmatex">\(e^{+i\omega t}\)</span>。目标：从算符推导谱函数，并用一个可精确对角化的模型检查正负号和单位。</p>
+<p>先修：<a href="qm-01-framework.html">量子态与密度矩阵</a>、<a href="neq-02-kubo-transport.html">Kubo 与因果输运</a>。本讲始终使用外场项 <span class="arithmatex">\(H'=-f(t)B\)</span>、响应方向 <span class="arithmatex">\(\delta\langle B\rangle=\chi*f\)</span> 和 Fourier 核 <span class="arithmatex">\(e^{+i\omega t}\)</span>。正文先保留 <span class="arithmatex">\(\hbar\)</span>，实验取 <span class="arithmatex">\(\hbar=1\)</span>。目标：亲自从一个二阶矩阵算出响应，同时区分谱线面积、有限记录和热平衡导数。</p>
 </blockquote>
 <div data-learning-page></div>
-<section class="learning-layer">
-<h2 id="1">1. 正外场应该把系统推向哪一边<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>考虑 <span class="arithmatex">\(H_0=\Delta\sigma_z/2\)</span>，其中能隙 <span class="arithmatex">\(\Delta&gt;0\)</span>；取 <span class="arithmatex">\(B=q\sigma_x\)</span>，<span class="arithmatex">\(q\)</span> 与被测量量具有相同单位，<span class="arithmatex">\(f\)</span> 的单位是能量除以 <span class="arithmatex">\(q\)</span>。静态总 Hamiltonian 为</p>
-<div class="arithmatex">\[H=\Delta\sigma_z/2-fq\sigma_x.\]</div>
-<p>零温基态能量可精确算出：<span class="arithmatex">\(E_g(f)=-\sqrt{(\Delta/2)^2+(fq)^2}\)</span>。利用 Hellmann–Feynman 关系，</p>
-<div class="arithmatex">\[\langle B\rangle_f=-\partial_f E_g
+<style>.response208-static{max-width:100%;overflow:auto}.response208-static table{display:table;max-width:none;overflow:visible;min-width:100%;width:max-content}.response208-static td,.response208-static th{white-space:nowrap}.response208-course .arithmatex{max-width:100%;overflow-x:auto}</style>
+<section class="learning-layer response208-course">
+<h2 id="1">1. 先固定问题：我们改变什么，又读取什么<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>把系统想成一个有上下两级的量子探针。外场不是直接把“响应曲线”推高，而是改变 Hamiltonian；探针随后怎样演化，取决于初态、作用时间以及是否允许它重新与热浴交换能量。先把这些条件写在纸上，公式的符号才有可核查的含义。</p>
+<p>取 <span class="arithmatex">\(H_0=\Delta\sigma_z/2\)</span>，其中 <span class="arithmatex">\(\Delta&gt;0\)</span>，参考态是温度固定的 Gibbs 态，<span class="arithmatex">\(\beta=1/(k_BT_{\rm bath})\)</span>。测量算符选为</p>
+<div class="arithmatex">\[B=q(\sin\theta\,\sigma_x+\cos\theta\,\sigma_z),\qquad 0\leq\theta\leq\pi/2.\]</div>
+<p><span class="arithmatex">\(q\)</span> 带有被测量量的单位，<span class="arithmatex">\(f\)</span> 的单位是能量除以 <span class="arithmatex">\(q\)</span>。倾角 <span class="arithmatex">\(\theta\)</span> 改变的是算符方向；它不是温度，也不是本征能隙。<span class="arithmatex">\(\theta=\pi/2\)</span> 时外场连接两个能级；<span class="arithmatex">\(\theta=0\)</span> 时 <span class="arithmatex">\(B\)</span> 与 <span class="arithmatex">\(H_0\)</span> 对易。后一个例子会检验我们是否把几种“静态”混在了一起。</p>
+<p>写 <span class="arithmatex">\(\omega_0=\Delta/\hbar\)</span>、<span class="arithmatex">\(r=\tanh(\beta\Delta/2)\)</span>，则 <span class="arithmatex">\(p_g=(1+r)/2\)</span>、<span class="arithmatex">\(p_e=(1-r)/2\)</span>，参考平均值为 <span class="arithmatex">\(\mu_0=-q\cos\theta\,r\)</span>。注意两个不同的量：<span class="arithmatex">\(\langle B^2\rangle=q^2\)</span>，而连接方差 <span class="arithmatex">\(\langle(B-\mu_0)^2\rangle=q^2-\mu_0^2\)</span>。当均值不为零时，它们不相等。</p>
+<h2 id="2">2. 静态小场给出一个不能回避的符号检验<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>先设纯横向 <span class="arithmatex">\(\theta=\pi/2\)</span>、零温。精确基态能量是 <span class="arithmatex">\(E_g(f)=-\sqrt{(\Delta/2)^2+(fq)^2}\)</span>。由于外场项是 <span class="arithmatex">\(-fB\)</span>，Hellmann–Feynman 关系给出</p>
+<div class="arithmatex">\[\langle B\rangle_f=-\partial_fE_g(f)
 =\frac{fq^2}{\sqrt{(\Delta/2)^2+(fq)^2}}
 =\frac{2q^2}{\Delta}f+O(f^3).\]</div>
-<p>因此静态易感率必须为正的 <span class="arithmatex">\(2q^2/\Delta\)</span>。这比“符号取决于约定”更有约束：一旦规定了 <span class="arithmatex">\(-fB\)</span> 和响应方向，任何公式都必须与这个精确小场极限一致。</p>
-<h2 id="2">2. 从密度矩阵的一阶展开确定顺序<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p>设参考态 <span class="arithmatex">\(\rho_0\)</span> 与 <span class="arithmatex">\(H_0\)</span> 对易。在相互作用绘景中，</p>
-<div class="arithmatex">\[\delta\rho_I(t)=-\frac{i}{\hbar}\int_{-\infty}^t[H'_I(t'),\rho_0]dt'
-=\frac{i}{\hbar}\int_{-\infty}^t f(t')[B_I(t'),\rho_0]dt'.\]</div>
-<p>对可观测量 <span class="arithmatex">\(A\)</span> 取迹，用迹的循环性：</p>
-<div class="arithmatex">\[\operatorname{Tr}\{A[B,\rho_0]\}=\operatorname{Tr}\{\rho_0[A,B]\}.\]</div>
-<p>所以</p>
-<div class="arithmatex">\[\boxed{\chi^R_{AB}(t)=\frac{i}{\hbar}\theta(t)\langle[A(t),B(0)]\rangle_0.}\]</div>
-<p>若将对易子写成 <span class="arithmatex">\([B(0),A(t)]\)</span>，前面必须同时改为 <span class="arithmatex">\(-i/\hbar\)</span>。这里 <span class="arithmatex">\(A=B\)</span> 不代表对易子为零，因为两个算符在不同时刻。<span class="arithmatex">\(\theta(t)\)</span> 保证外场之前没有响应，不是把负时间的平衡涨落删掉。</p>
-<h2 id="3-lehmann">3. 插入能量本征态，得到 Lehmann 表示<a class="headerlink" href="#3-lehmann" title="Permanent link"></a></h2>
-<p>令 <span class="arithmatex">\(H_0|n\rangle=E_n|n\rangle\)</span>，平衡概率 <span class="arithmatex">\(p_n=e^{-\beta E_n}/Z\)</span>，<span class="arithmatex">\(\beta=1/(k_BT)\)</span>。对 Hermitian <span class="arithmatex">\(B\)</span>，直接插入完备关系得到</p>
-<div class="arithmatex">\[\langle[B(t),B(0)]\rangle
-=\sum_{n,m}(p_n-p_m)|B_{nm}|^2e^{-i(E_m-E_n)t/\hbar}.\]</div>
-<p>为使 Fourier 积分收敛，先乘 <span class="arithmatex">\(e^{-\eta t}\)</span>，<span class="arithmatex">\(\eta&gt;0\)</span>。用 <span class="arithmatex">\(\int_0^\infty e^{ixt-\eta t}dt=i/(x+i\eta)\)</span>，再令 <span class="arithmatex">\(\eta\to0^+\)</span>：</p>
-<div class="arithmatex">\[\chi^R_{BB}(\omega)=-\frac1\hbar\sum_{n,m}
-\frac{(p_n-p_m)|B_{nm}|^2}{\omega-(E_m-E_n)/\hbar+i0^+}.\]</div>
-<p>所有极点都在下半平面。使用 <span class="arithmatex">\(1/(x+i0)=\mathcal P(1/x)-i\pi\delta(x)\)</span>，正频率的吸收权重来自低能级向高能级跃迁；热平衡下 <span class="arithmatex">\(p_n-p_m&gt;0\)</span>，故 <span class="arithmatex">\(\chi''(\omega)&gt;0\)</span>。</p>
-<h2 id="4">4. 两能级的每一项都能列出<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p>令 <span class="arithmatex">\(\omega_0=\Delta/\hbar\)</span>、<span class="arithmatex">\(r=p_g-p_e=\tanh(\beta\Delta/2)\)</span>。只有基态与激发态之间的矩阵元非零，模平方为 <span class="arithmatex">\(q^2\)</span>。于是</p>
-<div class="arithmatex">\[\chi(t)=\frac{2rq^2}{\hbar}\theta(t)\sin(\omega_0t),\]</div>
-<div class="arithmatex">\[\chi(\omega)=\frac{rq^2}{\hbar}\left[\frac1{\omega+\omega_0+i0^+}-\frac1{\omega-\omega_0+i0^+}\right],\]</div>
-<div class="arithmatex">\[\chi''(\omega)=\frac{\pi rq^2}{\hbar}[\delta(\omega-\omega_0)-\delta(\omega+\omega_0)].\]</div>
-<p>零频极限为 <span class="arithmatex">\(2rq^2/\Delta\)</span>，零温时与第一节完全相同。该模型 <span class="arithmatex">\(B\)</span> 没有对角矩阵元，因此这里的静态极限与平衡小场导数一致；一般系统还涉及守恒量、弛豫机制以及静态与长波极限的顺序，不能只凭本例推广。</p>
-<p><img alt="两能级之间正频率吸收与负频率发射的谱线，在对易子响应中带相反符号。" src="assets/img/bridge-04-spectral-response.svg" /></p>
-<p>图中的负频率负峰不意味着负概率。它属于对易子的响应谱；无序相关 <span class="arithmatex">\(S(\omega)=\int dt\,e^{i\omega t}\langle B(t)B(0)\rangle\)</span> 则为</p>
-<div class="arithmatex">\[S(\omega)=2\pi q^2[p_g\delta(\omega-\omega_0)+p_e\delta(\omega+\omega_0)].\]</div>
-<p>两峰都非负，且权重比 <span class="arithmatex">\(p_e/p_g=e^{-\beta\Delta}\)</span>。对称噪声谱满足</p>
-<div class="arithmatex">\[S_{\rm sym}(\omega)=\hbar\coth(\beta\hbar\omega/2)\chi''(\omega).\]</div>
-<p>在两条非零频率谱线上，<span class="arithmatex">\(r\coth(\beta\Delta/2)=1\)</span> 正好把温度因子抵消。这里是分布意义下的热平衡 FDT，并非把任意非平衡噪声曲线乘一个常数。</p>
-<div class="learning-lab" data-learning-lab="research-observables" data-research-topic="response">
-<p>先预测：把温度升高，正负相关谱的总权重是否改变？实验用 <span class="arithmatex">\(\hbar=q=1\)</span>、参考能量单位固定，默认 <span class="arithmatex">\(\Delta=1,\beta=2,\eta=0.1,\omega=1\)</span>。<span class="arithmatex">\(r\approx0.761594\)</span>，展宽后的 <span class="arithmatex">\(\chi'\approx0.379847,\chi''\approx7.596949\)</span>；未经展宽的静态极限 <span class="arithmatex">\(2r\approx1.523188\)</span>。</p>
+<p>因此正小外场必须带来正的平均变化。改写对易子顺序时可以一起改符号，但不能在同一个约定下算出相反的物理方向。</p>
+<p>一般倾角、有限温度也能精确算。令 <span class="arithmatex">\(h_x=-fq\sin\theta\)</span>、<span class="arithmatex">\(h_z=\Delta/2-fq\cos\theta\)</span>、<span class="arithmatex">\(h=\sqrt{h_x^2+h_z^2}\)</span>。由于 <span class="arithmatex">\((\mathbf h\cdot\boldsymbol\sigma)^2=h^2I\)</span>，有</p>
+<div class="arithmatex">\[e^{-\beta\mathbf h\cdot\boldsymbol\sigma}
+=\cosh(\beta h)I-\frac{\sinh(\beta h)}h\mathbf h\cdot\boldsymbol\sigma,
+\qquad
+\mu_{\rm eq}(f)=-q\frac{h_x\sin\theta+h_z\cos\theta}{h}\tanh(\beta h).\]</div>
+<p>对零场求导，得到<strong>等温静态导数</strong></p>
+<div class="arithmatex">\[\chi_{\rm iso}
+=\left.\partial_f\mu_{\rm eq}(f)\right|_{f=0}
+=\frac{2rq^2\sin^2\theta}{\Delta}
++\beta q^2\cos^2\theta(1-r^2).\]</div>
+<p>第一项来自能级本征方向的改变，第二项来自热占据的改变。这里比较的是一系列同温度平衡态，不是在声称一个孤立探针会自动到达这些态。有限场 <span class="arithmatex">\(h=0\)</span> 时 Hamiltonian 为零，Gibbs 态为 <span class="arithmatex">\(I/2\)</span>；用 <span class="arithmatex">\(\tanh(\beta h)/h\to\beta\)</span> 取极限即可，不应除以一个人为设置的小数。</p>
+<h2 id="3">3. 从密度矩阵确定响应核<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>相互作用绘景中，一阶展开满足</p>
+<div class="arithmatex">\[\delta\rho_I(t)=\frac{i}{\hbar}\int_{-\infty}^t f(t')[B_I(t'),\rho_0]dt'.
+\]</div>
+<p>取迹时使用 <span class="arithmatex">\(\operatorname{Tr}\{A[B,\rho_0]\}=\operatorname{Tr}\{\rho_0[A,B]\}\)</span>，得到本讲的约定</p>
+<div class="arithmatex">\[\boxed{\chi^R_{AB}(t)=\frac{i}{\hbar}\Theta(t)\langle[A(t),B(0)]\rangle_0.}\]</div>
+<p><span class="arithmatex">\(A=B\)</span> 并不意味着对易子为零：一般情况下两个算符处在不同时刻。阶跃函数 <span class="arithmatex">\(\Theta(t)\)</span> 表示外场之前没有响应；平衡相关函数在负时间仍有意义。若把对易子写成 <span class="arithmatex">\([B(0),A(t)]\)</span>，前面的符号也必须一起反过来。</p>
+<p>插入能量本征态，Fourier 变换前先乘 <span class="arithmatex">\(e^{-\eta t}\)</span>、<span class="arithmatex">\(\eta&gt;0\)</span>：</p>
+<div class="arithmatex">\[\chi^R_{BB}(\omega)
+=-\frac1\hbar\sum_{n,m}\frac{(p_n-p_m)|B_{nm}|^2}
+{\omega-(E_m-E_n)/\hbar+i\eta}.
+\]</div>
+<p>极点在下半平面。<span class="arithmatex">\(\eta\to0^+\)</span> 时，<span class="arithmatex">\(1/(x+i0)=\mathcal P(1/x)-i\pi\delta(x)\)</span> 给出正频率吸收的正权重。对本例，只有横向矩阵元进入占据差；对角项 <span class="arithmatex">\(n=m\)</span> 在对易子里恰好相消。</p>
+<h2 id="4">4. 同一组矩阵元，三种不同的谱<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>简记 <span class="arithmatex">\(v=q^2\sin^2\theta\)</span>、<span class="arithmatex">\(d_0=q^2\cos^2\theta(1-r^2)\)</span>，并令 <span class="arithmatex">\(\delta B=B-\mu_0\)</span>。直接做二阶矩阵乘法得到连接相关函数</p>
+<div class="arithmatex">\[C(t)=\langle\delta B(t)\delta B(0)\rangle
+=v[p_ge^{-i\omega_0t}+p_ee^{i\omega_0t}]+d_0.
+\]</div>
+<p>因此无序连接噪声 <span class="arithmatex">\(S(\omega)=\int dt\,e^{i\omega t}C(t)\)</span> 有三条非负谱线：</p>
+<div class="arithmatex">\[S(\omega)=2\pi\{vp_g\delta(\omega-\omega_0)
++vp_e\delta(\omega+\omega_0)+d_0\delta(\omega)\}.
+\]</div>
+<p>积分除以 <span class="arithmatex">\(2\pi\)</span> 恢复连接方差 <span class="arithmatex">\(v+d_0\)</span>。若使用未经扣均值的相关，还需增加 <span class="arithmatex">\(2\pi\mu_0^2\delta(\omega)\)</span>，总积分才恢复 <span class="arithmatex">\(q^2\)</span>。不能把这个额外的均值平方叫作涨落。</p>
+<p>对易子响应则为 <span class="arithmatex">\(\chi(t)=2rv\Theta(t)\sin(\omega_0t)/\hbar\)</span>，其理想谱是</p>
+<div class="arithmatex">\[\chi''(\omega)=\frac{\pi rv}{\hbar}
+[\delta(\omega-\omega_0)-\delta(\omega+\omega_0)],\qquad
+\chi^R(0)=\frac{2rv}{\Delta}.
+\]</div>
+<p>负频率负峰属于有符号的响应谱，不是负概率。高温 <span class="arithmatex">\(r\to0\)</span> 时两条跃迁噪声的权重趋于相等；相减后响应趋零，横向噪声总面积仍为 <span class="arithmatex">\(2\pi v\)</span>。守恒零频噪声 <span class="arithmatex">\(d_0\)</span> 也没有因此被删除。</p>
+<p><img alt="纯横向算符的两能级谱线：响应谱在正负频率有相反符号，噪声谱的两条权重均非负。" src="assets/img/bridge-04-spectral-response.svg" /></p>
+<p>上图对应 <span class="arithmatex">\(\theta=\pi/2\)</span>。加入纵向分量后，连接噪声还会出现零频谱线，而响应谱不会多出同样的一条线。</p>
+<h2 id="5">5. 把谱线画宽，究竟保留了什么<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>实验用归一化的 <span class="arithmatex">\(L_\eta(x)=\eta/[\pi(x^2+\eta^2)]\)</span> 代替 delta 峰。这等价于给相关函数乘 <span class="arithmatex">\(e^{-\eta|t|}\)</span>、给因果核乘 <span class="arithmatex">\(e^{-\eta t}\)</span>，并给出</p>
+<div class="arithmatex">\[\chi_\eta(\omega)=\frac{rv}{\hbar}
+\left[\frac1{\omega+\omega_0+i\eta}-\frac1{\omega-\omega_0+i\eta}\right].
+\]</div>
+<p>每条 Lorentz 峰在全轴的面积保持不变，峰高却与 <span class="arithmatex">\(1/\eta\)</span> 成正比。有限带宽内的面积还会漏掉尾部；例如</p>
+<div class="arithmatex">\[\int_a^b L_\eta(\omega-c)d\omega
+=\frac1\pi\left[\arctan\frac{b-c}{\eta}-\arctan\frac{a-c}{\eta}\right].\]</div>
+<p>另外，<span class="arithmatex">\(\chi''_\eta\)</span> 的正半轴面积不是单条正峰的全轴面积：负频峰的尾部也伸入正半轴。实际结果为 <span class="arithmatex">\(\int_0^\infty\chi''_\eta d\omega=(2rv/\hbar)\arctan(\omega_0/\eta)\)</span>，只有 <span class="arithmatex">\(\eta\to0\)</span> 才趋于 <span class="arithmatex">\(\pi rv/\hbar\)</span>。零频响应同样变成 <span class="arithmatex">\(2rv\omega_0/[\hbar(\omega_0^2+\eta^2)]\)</span>。</p>
+<p>这种一致的展宽仍严格保留 <span class="arithmatex">\(S_\eta(\omega)-S_\eta(-\omega)=2\hbar\chi''_\eta(\omega)\)</span>，但一般不保留逐频率的热平衡关系 <span class="arithmatex">\(S(-\omega)=e^{-\beta\hbar\omega}S(\omega)\)</span>。所以不能把 <span class="arithmatex">\(\hbar\coth(\beta\hbar\omega/2)\chi''_\eta\)</span> 当作已证明等于 <span class="arithmatex">\(S_{\rm sym,\eta}\)</span> 的曲线。实验把两者都画出来，以它们的差来展示条件失效。</p>
+<p>对于未展宽的非零频谱线，<span class="arithmatex">\(S_{\rm sym}=\hbar\coth(\beta\hbar\omega/2)\chi''\)</span> 成立；守恒的零频 delta 噪声须另外说明，不能通过在 <span class="arithmatex">\(\omega=0\)</span> 代入一个奇异的 <span class="arithmatex">\(\coth\)</span> 来重建。实验在 <span class="arithmatex">\(\beta=0\)</span> 或 <span class="arithmatex">\(\omega=0\)</span> 显示的“形式 FDT 曲线”采用相应极限，它依然只是比较对象。<strong>本讲没有由热浴模型推导寿命或弛豫率。</strong></p>
+<p>账本还给出有界的详细平衡偏差 <span class="arithmatex">\((S_\eta(-\omega)-e^{-\beta\hbar\omega}S_\eta(\omega))/(S_\eta(-\omega)+e^{-\beta\hbar\omega}S_\eta(\omega))\)</span>。分母正，结果在 <span class="arithmatex">\([-1,1]\)</span>；这样不会让负频率处很大的指数权重掩盖比较本身。</p>
+<h2 id="6">6. 一段有限记录，与无限时间谱还差什么<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>以下取 <span class="arithmatex">\(\hbar=1\)</span>，并用 <span class="arithmatex">\(T\)</span> 表示记录长度。实际计算对象是 <span class="arithmatex">\(\chi_{\eta,T}(\omega)=\int_0^T\chi_\eta(t)e^{i\omega t}dt\)</span>。先定义一个可复算积分</p>
+<div class="arithmatex">\[I(x,T)=\frac{1-e^{-(\eta-ix)T}}{\eta-ix},\qquad
+\chi_{\eta,T}=\frac{rv}{i}[I(\omega+\Delta,T)-I(\omega-\Delta,T)].\]</div>
+<p>由 <span class="arithmatex">\(|\sin\Delta t|\leq1\)</span>，缺失尾部满足 <span class="arithmatex">\(|\chi_\eta-\chi_{\eta,T}|\leq2|rv|e^{-\eta T}/\eta\)</span>。这是整个连续尾部的上界，不是拿有限几个采样点猜测的误差。</p>
+<p>再用 <span class="arithmatex">\(M\)</span> 个时间中点做实际求和：<span class="arithmatex">\(t_j=(j+1/2)T/M\)</span>，<span class="arithmatex">\(Q_M=(T/M)\sum_j\chi_\eta(t_j)e^{i\omega t_j}\)</span>。实验保留每个 <span class="arithmatex">\(t_j\)</span>、核值和复贡献，并分别列出 <span class="arithmatex">\(|Q_M-\chi_{\eta,T}|\)</span> 与 <span class="arithmatex">\(|\chi_{\eta,T}-\chi_\eta|\)</span>。三角不等式把总误差上界分为这两部分，但两种实际误差可能在复平面部分抵消，不能只检查最终一个标量。</p>
+<p>默认 <span class="arithmatex">\(\Delta=q=1\)</span>、<span class="arithmatex">\(\beta=2\)</span>、<span class="arithmatex">\(\eta=0.1\)</span>、<span class="arithmatex">\(\omega=1\)</span> 时，<span class="arithmatex">\(\chi_\eta\approx0.379847+7.596949i\)</span>。只记录两个基本周期，有限积分约为 <span class="arithmatex">\(0.271739+5.434785i\)</span>；即便中点和已经收敛，也仍缺少明显的尾部。减小 <span class="arithmatex">\(\eta\)</span> 让谱线更窄，同时需要更长记录。反过来，只延长 <span class="arithmatex">\(T\)</span> 而不增加 <span class="arithmatex">\(M\)</span>，可能把振荡采样得更糟。</p>
+<h2 id="7">7. 守恒量为何能有静态导数，却没有封闭动态响应<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>突然施加常外场后，真实封闭演化是 <span class="arithmatex">\(\rho(t)=e^{-iH_ft}\rho_0e^{iH_ft}\)</span>，<span class="arithmatex">\(H_f=\mathbf h\cdot\boldsymbol\sigma\)</span>。这里没有 <span class="arithmatex">\(\eta\)</span>：先前的谱展宽没有偷偷变成演化方程里的热浴。</p>
+<p>用 <span class="arithmatex">\(\rho=(I+\mathbf b\cdot\boldsymbol\sigma)/2\)</span>，初始 <span class="arithmatex">\(\mathbf b_0=(0,0,-r)\)</span>。因为 Pauli 矩阵指数能精确展开，Bloch 向量绕 <span class="arithmatex">\(\mathbf h/h\)</span> 旋转角度 <span class="arithmatex">\(2ht\)</span>；它的长度始终为 <span class="arithmatex">\(r\)</span>。实验直接计算这个旋转，并与密度矩阵指数独立核对。</p>
+<p>一阶阶跃响应是 <span class="arithmatex">\(\delta\mu_{\rm lin}(t)=f\chi^R(0)[1-\cos(\Delta t)]\)</span>。这不是一条自动趋于热平衡值的曲线；孤立两能级系统可以持续振荡，较大外场还会偏离线性近似。</p>
+<p>取 <span class="arithmatex">\(\theta=0\)</span> 时，<span class="arithmatex">\(B=q\sigma_z\)</span> 与 <span class="arithmatex">\(H_f\)</span> 仍对易。所有时刻 <span class="arithmatex">\(\mu(t)=\mu_0\)</span>，对易子响应为零。但是同温度平衡态的平均为 <span class="arithmatex">\(-q\tanh[\beta(\Delta/2-fq)]\)</span>，其零场导数是 <span class="arithmatex">\(\beta q^2(1-r^2)\)</span>，一般非零。差异来自是否允许占据重新调整，而不是计算器漏掉了一项。</p>
+<p>当这个纵向例子取 <span class="arithmatex">\(f=\Delta/(2q)\)</span>，<span class="arithmatex">\(H_f=0\)</span>。原来的封闭初态仍不动；若另行制备这个 Hamiltonian 的 Gibbs 态，却得到 <span class="arithmatex">\(I/2\)</span>。实验中的“有限外场简并”预设专门保留了这个区别。</p>
+<h2 id="8">8. 单位变换也是一种交叉检查<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>保持 <span class="arithmatex">\(q\)</span> 不变，同时令 <span class="arithmatex">\(\Delta,\eta,\omega,f\)</span> 乘 <span class="arithmatex">\(\alpha&gt;0\)</span>，令 <span class="arithmatex">\(\beta,T\)</span> 除以 <span class="arithmatex">\(\alpha\)</span>。这保持 <span class="arithmatex">\(\beta H\)</span>、<span class="arithmatex">\(Ht\)</span> 和无量纲外场 <span class="arithmatex">\(2fq/\Delta\)</span> 不变。有限场热平均与真实演化因此不变。</p>
+<p>频域密度却不能要求数值全部不变：<span class="arithmatex">\(\chi_\eta\)</span>、<span class="arithmatex">\(S_\eta\)</span>、有限记录积分以及静态导数都除以 <span class="arithmatex">\(\alpha\)</span>，频率积分元乘 <span class="arithmatex">\(\alpha\)</span>，所以谱面积保持不变。固定同一个 <span class="arithmatex">\(M\)</span> 时，中点和也除以 <span class="arithmatex">\(\alpha\)</span>。实验账本逐项列出这些变换。</p>
+<p>只把能隙加大、而保持温度、频率和观测时间不动，改变的是物理过程；它不是上述单位变换。</p>
+<h2 id="9">9. 实验：每次只改变一个物理问题<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p>先选“横向响应”，记录正负峰的面积与静态值。再选“等占据”，检查噪声之和与响应之差。转到“守恒量”，同时查看封闭演化与等温导数；它们比较的条件已经不同。</p>
+<p>接着固定物理参数，选“截短记录”并逐级增加 <span class="arithmatex">\(M\)</span>，观察网格误差与尾部误差分别怎样变化；再保持 <span class="arithmatex">\(M\)</span>，改变记录长度。最后用“谱线更窄”与“扩大带宽”区分峰高、全轴面积和带内面积。不要仅凭图上一条曲线看起来平滑就认为窄峰或快速振荡已经解析。</p>
+<div class="learning-lab" data-learning-lab="scalar-spectral-response">
+<p>默认 <span class="arithmatex">\(\Delta=q=1,\beta=2,\theta=\pi/2,\eta=0.1,\omega=1,M=512\)</span>，记录两个基本周期。启用脚本可调十一项输入；禁用脚本仍可阅读和下载完整固定记录。</p>
+<p><strong>无脚本对照：</strong>六份固定记录把连接噪声、响应与等温比较分开。复数以[实部, 虚部]表示；实际封闭演化不包含热浴。</p>
+<div aria-label="谱响应固定记录，可横向滚动" class="response208-static" role="region" tabindex="0">
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th style="text-align: right;">迟滞零频极限</th>
+<th style="text-align: right;">等温导数</th>
+<th>无限时间χ</th>
+<th>有限记录χ</th>
+<th style="text-align: right;">尾部误差</th>
+<th style="text-align: right;">时间网格误差</th>
+<th style="text-align: right;">封闭演化变化</th>
+<th style="text-align: right;">重新热平衡变化</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>default</td>
+<td style="text-align: right;">1.52318831</td>
+<td style="text-align: right;">1.52318831</td>
+<td>[0.379847459, 7.59694919]</td>
+<td>[0.271739247, 5.43478495]</td>
+<td style="text-align: right;">2.16486526</td>
+<td style="text-align: right;">2.73524101e-05</td>
+<td style="text-align: right;">0.0312759183</td>
+<td style="text-align: right;">0.223980421</td>
+</tr>
+<tr>
+<td>mixed</td>
+<td style="text-align: right;">0.761594156</td>
+<td style="text-align: right;">1.1815685</td>
+<td>[0.18992373, 3.79847459]</td>
+<td>[0.135869624, 2.71739247]</td>
+<td style="text-align: right;">1.08243263</td>
+<td style="text-align: right;">1.3676205e-05</td>
+<td style="text-align: right;">0.287601145</td>
+<td style="text-align: right;">0.202811338</td>
+</tr>
+<tr>
+<td>commuting</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.839948683</td>
+<td>[0, 0]</td>
+<td>[0, 0]</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.157226379</td>
+</tr>
+<tr>
+<td>coarse</td>
+<td style="text-align: right;">1.52318831</td>
+<td style="text-align: right;">1.52318831</td>
+<td>[0.379847459, 7.59694919]</td>
+<td>[0.379846135, 7.59692269]</td>
+<td style="text-align: right;">2.65262585e-05</td>
+<td style="text-align: right;">2.40051595</td>
+<td style="text-align: right;">0.0562601718</td>
+<td style="text-align: right;">0.223980421</td>
+</tr>
+<tr>
+<td>narrow</td>
+<td style="text-align: right;">1.52318831</td>
+<td style="text-align: right;">1.52318831</td>
+<td>[0.380759002, 38.0759002]</td>
+<td>[0.0846169567, 8.46169567]</td>
+<td style="text-align: right;">29.6156852</td>
+<td style="text-align: right;">8.49688809e-06</td>
+<td style="text-align: right;">0.0312759183</td>
+<td style="text-align: right;">0.223980421</td>
+</tr>
+<tr>
+<td>degenerate</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.839948683</td>
+<td>[0, 0]</td>
+<td>[0, 0]</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.761594156</td>
+</tr>
+</tbody>
+</table>
 </div>
-<p>图中用有限 <span class="arithmatex">\(\eta\)</span> 把 delta 峰画为 Lorentz 峰，对应时间核乘 <span class="arithmatex">\(e^{-\eta t}\)</span>。这是可读的展宽模型，<strong>不是已经推导了热浴或有限寿命</strong>。静态展宽结果为 <span class="arithmatex">\(2rq^2\omega_0/[\hbar(\omega_0^2+\eta^2)]\)</span>，与 <span class="arithmatex">\(\eta\to0\)</span> 极限有差别；也不能把展宽后的曲线逐点代入上述理想两谱线 FDT，声称仍是精确平衡模型。</p>
-<h2 id="5">5. 迁移题<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p><strong>题一。</strong> 零温下将能隙加倍，保持 <span class="arithmatex">\(q\)</span> 固定，静态易感率如何变化？正频率 delta 谱峰的面积呢？</p>
-<details>
-<summary>核对不同的量</summary>
-<p>静态易感率 <span class="arithmatex">\(2q^2/\Delta\)</span> 减半；正频率响应峰面积 <span class="arithmatex">\(\pi q^2/\hbar\)</span> 不变，只向更高频移动。峰位置、面积与零频响应不是同一件事。</p>
+<p><a download="response-frozen-records.json" href="assets/learning/projects/response-certificates/run-snapshot.json">下载六份完整记录</a>，含每个时间节点的复贡献、完整谱线与温度/场强/带宽扫描。</p>
+</div>
+<p>下面六幅图来自同一套可下载计算记录。曲线是明确标注点数的采样，误差尾界和 Lorentz 面积则由解析表达式计算。完整账本包括每个实际中点贡献、全部频率/时长/场强扫描及共同单位变换。</p>
+<p><img alt="两能级谱响应的六项检查：噪声和吸收、展宽FDT偏差、守恒量的静态动态差异、网格误差、记录尾部和有限场热平衡。" src="assets/img/bridge-04-response-certificates.svg" /></p>
+<h2 id="10">10. 迁移题：先说条件，再动手计算<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<details class="answer">
+<summary>练习 1 · 零温纯横向，能隙加倍，零频响应和理想正峰面积如何改变？</summary>
+<p><span class="arithmatex">\(r=1\)</span>、<span class="arithmatex">\(v=q^2\)</span>，<span class="arithmatex">\(\chi^R(0)=2q^2/\Delta\)</span> 减半，而理想正峰面积 <span class="arithmatex">\(\pi q^2/\hbar\)</span> 不变，只是峰的位置从 <span class="arithmatex">\(\Delta/\hbar\)</span> 移到 <span class="arithmatex">\(2\Delta/\hbar\)</span>。若固定非零温度，<span class="arithmatex">\(r\)</span> 也随能隙变化，不能直接照搬这个数值结论。</p>
 </details>
-<p><strong>题二。</strong> 正负频率相关谱的权重相等时，是否说明量子涨落消失？</p>
-<details>
-<summary>核对高温极限</summary>
-<p>不。<span class="arithmatex">\(\beta\Delta\to0\)</span> 时 <span class="arithmatex">\(p_g,p_e\to1/2\)</span>，相关总权重仍为 <span class="arithmatex">\(2\pi q^2\)</span>；响应中的差 <span class="arithmatex">\(r\)</span> 趋零。相等的跃迁权重相减后响应变小，不能把差为零误读为两个权重都为零。</p>
+<details class="answer">
+<summary>练习 2 · β趋零时，两个能级等占据，为什么仍有噪声？</summary>
+<p><span class="arithmatex">\(p_g,p_e\to1/2\)</span>，两条横向噪声面积分别为 <span class="arithmatex">\(\pi v\)</span>，都是非负的；对易子取两者之差，因此响应趋零。连接总方差趋于 <span class="arithmatex">\(v+q^2\cos^2\theta=q^2\)</span>。不能从差为零推出每项为零。</p>
+</details>
+<details class="answer">
+<summary>练习 3 · θ=0、有限β，分别算封闭响应与等温导数。</summary>
+<p>由于 <span class="arithmatex">\([B,H_0]=0\)</span>，<span class="arithmatex">\(B(t)=B\)</span>，响应对易子严格为零。另一个问题是在每个场强下重新制备同温度 Gibbs 态：对 <span class="arithmatex">\(-q\tanh[\beta(\Delta/2-fq)]\)</span> 求导，得 <span class="arithmatex">\(\beta q^2\operatorname{sech}^2(\beta\Delta/2)\)</span>。后者允许占据变化，不能当作前者的自动长时间极限。</p>
+</details>
+<details class="answer">
+<summary>练习 4 · 为何连接谱的积分不是总等于2πq²？</summary>
+<p>连接谱使用 <span class="arithmatex">\(\delta B=B-\mu_0\)</span>，积分除以 <span class="arithmatex">\(2\pi\)</span> 为 <span class="arithmatex">\(\langle B^2\rangle-\mu_0^2\)</span>。本例 <span class="arithmatex">\(\mu_0=-q\cos\theta\,r\)</span>，所以结果是 <span class="arithmatex">\(q^2(1-r^2\cos^2\theta)\)</span>。未经扣均值的谱要额外加入 <span class="arithmatex">\(2\pi\mu_0^2\delta(\omega)\)</span>；这部分是固定均值，不是连接涨落。</p>
+</details>
+<details class="answer">
+<summary>练习 5 · 正半轴响应面积为何小于理想正谱线面积？</summary>
+<p>正峰的一部分尾部落在负半轴，负峰的一部分尾部又落在正半轴并被相减。分别积分两个 Lorentz 函数，得到 <span class="arithmatex">\((2rv/\hbar)\arctan(\omega_0/\eta)\)</span>。有限 <span class="arithmatex">\(\eta&gt;0\)</span> 时 <span class="arithmatex">\(\arctan(\omega_0/\eta)&lt;\pi/2\)</span>；只有展宽趋零才恢复 <span class="arithmatex">\(\pi rv/\hbar\)</span>。</p>
+</details>
+<details class="answer">
+<summary>练习 6 · 数值中点和误差已很小，为什么无限时间谱仍算不准？</summary>
+<p>小的是 <span class="arithmatex">\(|Q_M-\chi_{\eta,T}|\)</span>，而目标可能是 <span class="arithmatex">\(\chi_\eta\)</span>。还需控制缺失尾部 <span class="arithmatex">\(|\chi_{\eta,T}-\chi_\eta|\)</span>；它不随 <span class="arithmatex">\(M\)</span> 改变。先用三角不等式分解，再用 <span class="arithmatex">\(2|rv|e^{-\eta T}/\eta\)</span> 控制尾部，才能把“积分算准”与“记录足够长”分别说清楚。</p>
+</details>
+<details class="answer">
+<summary>练习 7 · 同样展宽保留了噪声差恒等式，为何仍不能声称精确热平衡FDT？</summary>
+<p>噪声差等式来自同一个相关函数及其反序项；乘相同的时间窗后，两边仍匹配。热平衡详细平衡还要求不同频率的权重满足 <span class="arithmatex">\(e^{-\beta\hbar\omega}\)</span> 因子。卷积展宽把不同原始频率的权重混在同一位置，通常不保持这个因子。归一化全轴面积只检查一个积分条件，并不足以保证每个频率都满足热平衡条件。</p>
+</details>
+<details class="answer">
+<summary>练习 8 · 共同能量尺度乘α后，谱密度、谱面积和封闭演化怎样改变？</summary>
+<p>同时变换 <span class="arithmatex">\(\beta\to\beta/\alpha\)</span>、<span class="arithmatex">\(T\to T/\alpha\)</span>，保持 <span class="arithmatex">\(\beta H\)</span> 和 <span class="arithmatex">\(Ht\)</span>。封闭演化及热平均不变；响应与噪声密度除以 <span class="arithmatex">\(\alpha\)</span>，而积分频率元乘 <span class="arithmatex">\(\alpha\)</span>，所以面积不变。若只改变频率轴却保持密度高度不变，就把总权重错误地乘了 <span class="arithmatex">\(\alpha\)</span>。</p>
 </details>
 </section>
 <h2 id="_1">速查与下一步<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<p>对 <span class="arithmatex">\(H'=-fB\)</span>，响应核是 <span class="arithmatex">\(+i\theta(t)\langle[A(t),B]\rangle/\hbar\)</span>。相关谱有非负跃迁权重，响应谱取占据概率之差。继续<a href="research-10-metric-spectroscopy.html">弱驱动与量子度量谱学</a>，把同一矩阵元接到可测跃迁率。一般响应理论参见 <a href="https://davidtong.org/pdfs/teaching/kinetic-theory/kinetic4.pdf">Tong：Kinetic Theory，线性响应部分</a>；本讲两能级与符号检验在正文独立展开。核查：2026-09-08。</p>
+<p>固定 <span class="arithmatex">\(H'=-fB\)</span> 后，响应取 <span class="arithmatex">\(+i\Theta(t)\langle[B(t),B]\rangle/\hbar\)</span>。相关谱保留非负跃迁权重和守恒零模；响应取占据差。静态比较还须说明占据是否可以重新平衡，数值频谱还须分别控制时间网格与记录尾部。继续<a href="research-10-metric-spectroscopy.html">弱驱动与量子度量谱学</a>，把非对角矩阵元连接到跃迁率；可回到<a href="neq-02-kubo-transport.html">Kubo 与因果输运</a>比较更一般的极限顺序。</p>
+<p>原始资料：<a href="https://davidtong.org/pdfs/teaching/kinetic-theory/kinetic4.pdf">Tong，Kinetic Theory 第4章</a>，§4.1、§4.3、§4.3.2。原文采用 <span class="arithmatex">\(H_{\rm source}=+\phi O\)</span>，其响应和FDT符号与本讲 <span class="arithmatex">\(-fB\)</span> 约定相反；对照时须先转换外场定义。已核对原PDF印刷页94、98。这里的倾斜算符、有限场热态、展宽与有限时间算例均在正文独立推导。核查：2026-09-13。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="bridge-03-berry.html"><span class="pager-label">上一页</span>计算桥 III · Berry 联络与曲率</a>
@@ -143,7 +309,6 @@ try {
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
 <script defer src="assets/learning/learning.js"></script>
-<script defer src="assets/learning/research-renderer.js?v=b69c61f59cae"></script>
-<script defer src="assets/learning/labs/research-observables.js?v=1ce56382ebf8"></script>
+<script defer src="assets/learning/labs/scalar-spectral-response.js"></script>
 </body>
 </html>
