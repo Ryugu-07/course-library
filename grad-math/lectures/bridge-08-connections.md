@@ -48,6 +48,14 @@ $$\text{存在全局非零水平截面}
 <figcaption>默认 α=1/2。两圈返回不等于一次生成回路的单值化平凡；全局水平截面的判断只看 M₁。</figcaption>
 </figure>
 
+### 平坦联络的运输不一定保持长度
+
+正文允许 $\alpha=u+iv$，其中 u、v 为实数。一次单值化可以拆成
+
+$$M_1=e^{-2\pi v}\,e^{2\pi i u}.$$
+
+实部 u 控制旋转，虚部 v 控制模长变化。例如 α=i 时，一圈后乘 $e^{-2\pi}$；曲率仍为零，但在固定的标准 Hermitian 长度下运输并不保长。实验限制 α 为实数，所以画出的乘数都在单位圆上；这是参数范围带来的性质，不是“平坦”二字自动保证的性质。
+
 ## 3. 整数规范变换改表达，不改单值化
 
 在 $\mathbb C^*$ 上，$z^m$ 对任意整数 $m$ 都是处处可逆的代数函数。改用基
@@ -56,8 +64,7 @@ $$e'=z^m e$$
 
 时，
 
-$$\nabla e'=d(z^m)e+z^m\nabla e
-=-(\alpha-m)\frac{dz}{z}e'.$$
+$$\begin{aligned}\nabla e'&=d(z^m)e+z^m\nabla e\\&=-(\alpha-m)\frac{dz}{z}e'.\end{aligned}$$
 
 所以新参数为
 
@@ -101,6 +108,16 @@ $$\nabla_D(fe)=0\quad\Longleftrightarrow\quad(D-\alpha)f=0.$$
 
 D-模把“函数乘法”和“求导”同时作为作用保存，并要求 $[\partial_z,z]=1$。这里由一个秩一平坦联络得到最简单的 D-模入口；一般 D-模可以有奇异支撑、非局部自由底层模和更复杂的正则或不规则行为，不能全部改写成一个 $z^\alpha$。
 
+### 模的生成元关系，与水平系数的方程要分开
+
+记 $\mathscr D_X$ 为微分算子层。本讲由联络得到的左 $\mathscr D_X$-模 $M=\mathcal O_Xe$ 中，算子作用是 $\partial_z\cdot e=-\alpha z^{-1}e$，所以生成元满足
+
+$$(z\partial_z+\alpha)e=0.$$
+
+而对一个变动系数 f，Leibniz 规则给出 $(z\partial_z)\cdot(fe)=(zf'-\alpha f)e$；令它为零，才得到水平系数的方程 $(z\partial_z-\alpha)f=0$。两个符号来自不同对象，不能把 f 和生成元 e 混成同一个未知量。
+
+若进一步取解函子 $\operatorname{Hom}_{\mathscr D}(M,\mathcal O)$，一个同态把 e 送到 h，生成元关系强迫 $zh'+\alpha h=0$，局部解为 $z^{-\alpha}$。其单值化是 $e^{-2\pi i\alpha}$，与 M 的水平截面单值化互为对偶。取 α=1/3 时，一者为 $-1/2+i\sqrt3/2$，另一者为 $-1/2-i\sqrt3/2$；不像 α=1/2 的特例，两者已经能直接区分。此处只计算秩一的普通解，不展开导出解函子。
+
 在[几何 Langlands](frontier-03-geometric-langlands.html#langlands-prerequisite-route)中，D-模承担自守侧的微分方程数据，局部系统承担谱侧的平坦运输数据。本讲让“联络、水平截面、单值化、微分算子作用”各自成为可计算对象，但没有构造 $\operatorname{Bun}_G$ 上的 D-模范畴或证明 Riemann-Hilbert、几何 Langlands 对应。
 
 ## 6. 两道迁移题
@@ -125,6 +142,6 @@ $f=z^{-2}$ 满足 $zf'=-2f$，所以 $z^{-2}e$ 是 $\mathbb C^*$ 上的全局代
 
 ## 速查与资料
 
-$\nabla=d-\alpha\,dz/z$ 的局部水平解为 $z^\alpha$；一次单值化为 $e^{2\pi i\alpha}$；整数规范 $e'=z^me$ 给 $\alpha'=\alpha-m$ 而不改单值化；$D=z\partial_z$ 把水平条件写成 $(D-\alpha)f=0$。联络的 Leibniz 规则与 de Rham 复形见 [Stacks Project：Connections](https://stacks.math.columbia.edu/tag/07I0)；D-模的进一步入口见 [Ginzburg：Lectures on D-modules](https://math.berkeley.edu/~nadler/ginzburg.dmodules.pdf)。本讲只处理 $\mathbb C^*$ 上秩一、平坦、正则奇点模型。核查：2026-09-08。
+$\nabla=d-\alpha\,dz/z$ 的局部水平解为 $z^\alpha$；一次单值化为 $e^{2\pi i\alpha}$；整数规范 $e'=z^me$ 给 $\alpha'=\alpha-m$ 而不改单值化；$D=z\partial_z$ 把水平条件写成 $(D-\alpha)f=0$。联络的 Leibniz 规则与 de Rham 复形见 [Stacks Project：Connections](https://stacks.math.columbia.edu/tag/07I0)；D-模的进一步入口见 [Ginzburg：Lectures on D-modules](https://math.berkeley.edu/~nadler/ginzburg.dmodules.pdf)。本讲只处理 $\mathbb C^*$ 上秩一、平坦、正则奇点模型。核查：2026-09-13。
 
 继续用[一般D模与奇点](bridge-22-d-modules.html)比较底层O-凝聚的联络与点支撑模；留意解函子与模本身的水平截面单值化互为对偶。

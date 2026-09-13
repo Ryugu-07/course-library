@@ -146,6 +146,36 @@ $$
 \leq\sqrt{\frac{N^{1-4s}}{4s-1}}.
 $$
 
+### 若每次重抽系数，曲线为什么不能证明同一个极限？
+
+假如截断 N 与 M 分别使用独立系数，记对应平均为 $\widetilde Y_N,\widetilde Y_M$。它们均值为零而互不相关，因此
+
+$$\mathbb E|\widetilde Y_M-\widetilde Y_N|^2
+=\operatorname{Var}Y_M+\operatorname{Var}Y_N.$$
+
+在 s=1/2 时，两项各趋于 $\pi^2/6$，差的均方反而趋于 $\pi^2/3$，不趋零。它们的边缘分布仍可以越来越接近同一个分布；失败的是这个独立耦合下的 $L^2$ Cauchy 性。因此读实验时要分开“分布是否稳定”与“同一组随机系数下两截断是否接近”。
+
+### 点上的平方什么时候也能收敛？
+
+令 $T=X_M(x)-X_N(x)$。在本讲同一组系数的耦合下，T 与 $X_N(x)$ 独立，方差为 $C_M-C_N$。展开可得
+
+$$\begin{aligned}W_M-W_N&=2X_NT+T^2\\&\quad-(C_M-C_N).\end{aligned}$$
+
+利用独立性和中心 Gaussian 的奇数阶矩为零，交叉期望消失，从而
+
+$$\begin{aligned}\mathbb E|W_M-W_N|^2
+&=4C_N(C_M-C_N)\\&\quad+2(C_M-C_N)^2\\&=2(C_M^2-C_N^2).\end{aligned}$$
+
+因此点上的 Wick 平方在 $L^2$ 中 Cauchy，恰好要求 $C_N$ 有有限极限，即 s>1/2。结合平均量的结论：
+
+| 参数范围 | 点上 $X_N$ 与 $W_N$ 的 $L^2$ Cauchy 性 | 圆周平均 $Y_N$ 的 $L^2$ Cauchy 性 |
+|---|---|---|
+| $0\le s\le1/4$ | 不成立 | 不成立 |
+| $1/4<s\le1/2$ | 不成立 | 成立 |
+| $s>1/2$ | 成立 | 成立 |
+
+中间这一段正是本讲关心的现象：点值不能稳定，某个测试函数配对却可以稳定。它仍未替代第六节要求的所有测试函数与函数空间估计。
+
 ## 5. 临界反例与默认实验
 
 临界值 $s=1/4$ 不能靠“差一点”蒙混过去。令 $M=2N$，则
@@ -232,7 +262,7 @@ $$
 | 常数测试函数 | $\mathbb E\lvert Y_M-Y_N\rvert^2=\sum_{N<k\leq M}k^{-4s}$ | 当且仅当 $s>1/4$ 时 $L^2$ Cauchy |
 | 随机分布或 SPDE | 还需所有测试函数和尺度的一致估计 | 本讲没有证明 |
 
-更广的 Wick 幂与 Fourier 截断背景可参见 Hairer 的 [Advanced Stochastic Analysis 讲义](https://hairer.org/notes/StochasticAnalysisCourse.pdf)，其中以 Gaussian Fourier 场构造 $\Phi^4_2$；奇异方程中近似、反项与极限解的关系见 Hairer 的 [Renormalisation of parabolic stochastic PDEs](https://arxiv.org/abs/1803.03044)。本讲的有限和、阈值与误差界均已在正文独立推导，不把这个一维标量算例冒充一般定理。资料核查：2026-09-08。
+更广的 Wick 幂与 Fourier 截断背景可参见 Hairer 的 [Advanced Stochastic Analysis 讲义](https://hairer.org/notes/StochasticAnalysisCourse.pdf)，其中以 Gaussian Fourier 场构造 $\Phi^4_2$；奇异方程中近似、反项与极限解的关系见 Hairer 的 [Renormalisation of parabolic stochastic PDEs](https://arxiv.org/abs/1803.03044)。本讲的有限和、阈值与误差界均已在正文独立推导，不把这个一维标量算例冒充一般定理。资料核查：2026-09-13。
 
 连续训练：[路径熵与随机场极限](route-02-stochastic-readiness.html)把有限模型、误差控制和退出题接成可交卷的路线。
 

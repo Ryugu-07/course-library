@@ -21,6 +21,10 @@ $$
 
 张量积不是笛卡尔积。若 $V=R^r,W=R^s$ 都自由，则 $e_i\otimes f_j$ 构成 $rs$ 个基向量；一般元素是它们的线性组合，并非都能写成单个纯张量。
 
+### “张量积”里为什么还要允许加法？
+
+在两个二维实向量空间中，$e_1\otimes f_1+e_2\otimes f_2$ 对应系数矩阵 I₂。若它能写成一个纯张量 $u\otimes v$，系数矩阵就是 $uv^T$，秩至多为 1；但 I₂ 的秩为 2，矛盾。因此“由纯张量生成”指每个元素是纯张量的有限和，不是每个元素都等于一个纯张量。
+
 ## 2. 不靠猜：算出两个循环模的张量积
 
 取正整数 $m,n$，设 $d=\gcd(m,n)$。每个纯张量都能写成
@@ -31,7 +35,7 @@ $$\bar a\otimes\bar b=ab(\bar1\otimes\bar1).$$
 
 “至多”还不是等号。构造双线性映射
 
-$$b:(\mathbb Z/m)\times(\mathbb Z/n)\to\mathbb Z/d,\qquad b(\bar a,\bar b)=\overline{ab}.$$
+$$\begin{gathered}b:(\mathbb Z/m)\times(\mathbb Z/n)\to\mathbb Z/d,\\b(\bar a,\bar b)=\overline{ab}.\end{gathered}$$
 
 改变 $a$ 的代表元会增加 $mb$，它被 $d$ 整除；改变 $b$ 同理，所以映射良定义。它把 $t$ 送到 $\bar1$，因此 $t$ 的阶至少为 $d$。两边合起来证明
 
@@ -76,11 +80,23 @@ $$\operatorname{Tor}^{\mathbb Z}_1(\mathbb Z/m,\mathbb Z/n)\cong\mathbb Z/d,\qqu
 先预测：把 $m=6,n=4$ 改成 $m=5,n=4$，核和余核怎样变化？实验逐个列出模 $n$ 的乘法像；默认核为 $\{0,2\}$，像为 $\{0,2\}$，余核有两类，Tor₁ 也有两个元素。
 </div>
 
+### 默认例里的两个“二元素对象”具体长什么样？
+
+对于 m=6、n=4，Tor₁ 实现为源 $\mathbb Z/4$ 中的核 $\{0,2\}$；普通张量积实现为目标按像 $\{0,2\}$ 取商，其两个元素是陪集 $\{0,2\}$ 与 $\{1,3\}$。它们都与 $\mathbb Z/2$ 同构，但“核中的元素 2”不能直接读成“余核中的类 [2]”：后者等于零类，而前者在核中非零。
+
+可明确写出两种同构：把 $[a]\in\mathbb Z/2$ 送到核元素 $[2a]\in\mathbb Z/4$；把余核中的类 $[b]+\operatorname{im}(\times6)$ 送到 b 的奇偶类。这样就不会因为两个答案写成同一个抽象群，而混淆它们在计算中的位置。
+
 ## 5. 平坦不是“挑一个例子没有出错”
 
 模 $N$ 称为平坦，当与它张量保持所有短正合列正合。自由模是平坦的，因为与自由模张量相当于取若干份直和。局部化 $S^{-1}R$ 也是平坦的；这把本讲接回[允许新分母](bridge-02-localization.html)的操作。
 
 $\mathbb Z/n$ 在 $n>1$ 时不平坦：用整数乘 $n$ 的单射就能构造失败。即便实验中选择互素的 $m,n$ 得到 Tor₁ 为零，也只验证了一个输入，不能推出 $\mathbb Z/n$ 平坦。反过来，平坦并不要求有有限个基；例如 $\mathbb Q$ 是 $\mathbb Z$ 的局部化，平坦，却不是非零自由 $\mathbb Z$-模。
+
+<details markdown="1"><summary>为什么 Q 平坦却不是自由整数模？</summary>
+
+平坦性来自 Q 是整数环的局部化。非自由性可以直接反证：Q 中每个元素都能除以 2；但任一非零自由整数模 $\bigoplus_{i\in I}\mathbb Z e_i$ 中，基元素 $e_i$ 不可能等于 2v，因为它在第 i 个坐标上的系数是 1。这个性质在模同构下不变，所以 Q 不可能是非零自由整数模。这里没有把“平坦”误认为“存在一组基”。
+
+</details>
 
 在导出几何里，换底不能只看普通张量积；先选合适分解再张量，会保留 Tor 所记录的高次信息。这是[几何 Langlands 页的导出交点算例](frontier-03-geometric-langlands.html#derived-intersection-calculation)的入口，不等于已经构造了整个导出范畴。
 
@@ -106,7 +122,7 @@ $d=4$，两者都同构于 $\mathbb Z/4$。乘八的核是 $\{0,3,6,9\}$，像�
 
 ## 速查与资料
 
-双线性映射经张量积唯一分解；右正合保留余核；平坦要求也保留单射；Tor 由自由或投射分解张量后的同调计算。下一讲：[射影直线上的 Čech 上同调](bridge-06-cech.html)。定义与一般定理参见 [Stacks：张量积](https://stacks.math.columbia.edu/tag/00CV)、[平坦模](https://stacks.math.columbia.edu/tag/00H9)、[计算 Tor](https://stacks.math.columbia.edu/tag/064F)。本讲的循环模计算已在正文证明。核查：2026-09-08。
+双线性映射经张量积唯一分解；右正合保留余核；平坦要求也保留单射；Tor 由自由或投射分解张量后的同调计算。下一讲：[射影直线上的 Čech 上同调](bridge-06-cech.html)。定义与一般定理参见 [Stacks：张量积](https://stacks.math.columbia.edu/tag/00CV)、[平坦模](https://stacks.math.columbia.edu/tag/00H9)、[计算 Tor](https://stacks.math.columbia.edu/tag/064F)。本讲的循环模计算已在正文证明。核查：2026-09-13。
 
 路线验收：[连续作业：从整数分解到导出观点](route-01-derived-readiness.html)。先独立提交中间计算，再用题解定位需要回补的步骤。
 

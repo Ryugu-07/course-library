@@ -93,6 +93,17 @@ $$U=\begin{pmatrix}u&v\\-n/d&-a/d\end{pmatrix},\qquad \det U=1,\qquad U\binom{-a
 
 但这个抽象群只看到 $d$，扩张类却看到 $a$ 模 $n$。例如 $n=5$ 时，$a=1,2,3,4$ 都有 $d=1$，所以中间模都同构于 $\mathbb Z$；它们仍代表 $\operatorname{Ext}^1\cong\mathbb Z/5$ 中四个不同的非零类，因为固定的注入和商映射不同。
 
+### 把“同一个中间群，不同的扩张”写成具体映射
+
+取 n=5。对 a=1，可把 $E_1$ 识别成整数群，令 e 对应 5、x 对应 1；注入是乘五，商映射是 $k\mapsto[k]$。对 a=2，也可识别成整数群，但令 e 对应 5、x 对应 2；此时商映射必须是 $k\mapsto[3k]$，因为 $3\cdot2\equiv1\pmod5$。两个识别都满足 $5x=ae$，且因 5 与 a 互素而覆盖整个整数群。
+
+| 扩张类 | 中间群 | 注入 $i(r)$ | 商映射 $p(k)$ |
+|---|---|---|---|
+| [1] | $\mathbb Z$ | 5r | k 模五 |
+| [2] | $\mathbb Z$ | 5r | 3k 模五 |
+
+整数群的自同构只有乘 ±1；要与左端恒等映射及注入乘五交换，就只能取 +1。但恒等映射不能把这两个商映射变成同一个，所以两条扩张不等价。差别现在藏在可直接计算的箭头里，无须只凭“类不同”来判断。
+
 分裂条件也能直接从关系看出。若有截面，$[1]$ 的某个提升 $y=x+i(b)$ 必须满足 $ny=0$，即 $i(a+nb)=0$。由 $i$ 单射，必须有 $a\equiv0\pmod n$。反之 $a\equiv0$ 时可调整提升使其被 $n$ 杀死，从而得到截面。因此
 
 $$\text{扩张分裂}\quad\Longleftrightarrow\quad[a]=0\text{ in }\mathbb Z/n.$$
@@ -131,7 +142,7 @@ $[a]=[6]\in\mathbb Z/8$，$d=\gcd(6,8)=2$，所以 $E_6\cong\mathbb Z\oplus\math
 
 ## 速查与资料
 
-自由分解后应用 $\operatorname{Hom}(-,\mathbb Z)$，一次余核给出 $\operatorname{Ext}^1_{\mathbb Z}(\mathbb Z/n,\mathbb Z)=\mathbb Z/n$；具体类 $[a]$ 可写成 $nx=ae$；分裂等价于 $[a]=0$。下一讲：[联络、水平截面与 D-模入口](bridge-08-connections.html)。扩张及固定两端的等价定义见 [Stacks Project：Extensions](https://stacks.math.columbia.edu/tag/010I)，Ext 与扩张类的识别见 [Stacks Project：Injective modules](https://stacks.math.columbia.edu/tag/01D8)。本讲循环模计算已逐步展开。核查：2026-09-08。
+自由分解后应用 $\operatorname{Hom}(-,\mathbb Z)$，一次余核给出 $\operatorname{Ext}^1_{\mathbb Z}(\mathbb Z/n,\mathbb Z)=\mathbb Z/n$；具体类 $[a]$ 可写成 $nx=ae$；分裂等价于 $[a]=0$。下一讲：[联络、水平截面与 D-模入口](bridge-08-connections.html)。扩张及固定两端的等价定义见 [Stacks Project：Extensions](https://stacks.math.columbia.edu/tag/010I)，Ext 与扩张类的识别见 [Stacks Project：Injective modules](https://stacks.math.columbia.edu/tag/01D8)。本讲循环模计算已逐步展开。核查：2026-09-13。
 
 
 下一步可用[导出范畴与roofs](bridge-21-derived-category-roofs.html)把拟同构真正形式求逆，借同伦拉回或射影提升计算复合，并追踪Ext类的代表元与同伦见证。
