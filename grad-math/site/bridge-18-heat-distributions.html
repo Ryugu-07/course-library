@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:55</div>
+    <div class="build-time">构建于 2026-09-13 23:09</div>
   </div>
 </nav>
 <main id="content">
@@ -65,11 +65,14 @@ try {
 <li><a href="#3">3. 临界值不能靠有限曲线蒙混</a></li>
 <li><a href="#4">4. 一个测试函数的收敛，究竟少了什么？</a></li>
 <li><a href="#5">5. 为什么白噪声不是“每一点抽一个普通随机数”？</a></li>
-<li><a href="#6">6. 热核怎样平滑，又在哪个拓扑回去？</a></li>
+<li><a href="#6">6. 热核怎样平滑，又在哪个拓扑回去？</a><ul>
+<li><a href="#_1">把收敛证明变成一条可以安排计算量的误差界</a></li>
+</ul>
+</li>
 <li><a href="#7">7. 实验怎样读：频率滤波不是收敛证书</a></li>
 <li><a href="#8">8. 两道迁移题</a></li>
 <li><a href="#9-spde">9. 这一步离奇异 SPDE 还有多远？</a></li>
-<li><a href="#_1">速查与资料</a></li>
+<li><a href="#_2">速查与资料</a></li>
 </ul>
 </div>
 </details>
@@ -275,6 +278,20 @@ E\|X_\epsilon'-X\|_{H^s}^2
 <p>热核让每个固定 <span class="arithmatex">\(\epsilon&gt;0\)</span> 的场变光滑；让 <span class="arithmatex">\(\epsilon\downarrow0\)</span> 时，只有先选定 <span class="arithmatex">\(s&lt;\alpha-1/2\)</span> 并沿用同一噪声，才能得到这里证明的强 <span class="arithmatex">\(L^2(\Omega;H^s)\)</span> 极限。</p>
 </figcaption>
 </figure>
+<h3 id="_1">把收敛证明变成一条可以安排计算量的误差界<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>固定白噪声例 <span class="arithmatex">\(\alpha=0,s=-3/4\)</span>。取整数 <span class="arithmatex">\(L\ge1\)</span>，令热时间 <span class="arithmatex">\(\epsilon=L^{-2}\)</span>，并在频率L处分开求和。低频利用 <span class="arithmatex">\(1-e^{-z}\le z\)</span>，以及 <span class="arithmatex">\((1+k^2)^{-3/4}\le k^{-3/2}\)</span>：</p>
+<div class="arithmatex">\[\begin{aligned}
+&amp;2\sum_{k\le L}(1+k^2)^{-3/4}
+ (1-e^{-k^2/L^2})^2\\
+&amp;\quad\le 2L^{-4}\sum_{k\le L}k^{5/2}
+\le2L^{-1/2}.
+\end{aligned}\]</div>
+<p>高频直接用 <span class="arithmatex">\((1-e^{-z})^2\le1\)</span> 和已经证明的尾界，得到至多 <span class="arithmatex">\(4L^{-1/2}\)</span>。所以</p>
+<div class="arithmatex">\[\boxed{
+E\|X_{L^{-2}}-X\|_{H^{-3/4}}^2
+\le6L^{-1/2}.}\]</div>
+<p>例如 <span class="arithmatex">\(L=100\)</span>、<span class="arithmatex">\(\epsilon=10^{-4}\)</span> 时，平方误差至多0.6；这组参数超出当前热时间滑块，适合作为离线精度安排的例子。它是保守上界，不能当作实际误差值。</p>
+<p>若希望平方误差不超过 <span class="arithmatex">\(\delta&gt;0\)</span>，这条充分条件是 <span class="arithmatex">\(L\ge(6/\delta)^2\)</span>。若目标是 <span class="arithmatex">\(L^2(\Omega;H^{-3/4})\)</span> <strong>范数</strong>误差不超过 <span class="arithmatex">\(\eta\)</span>，则要先令 <span class="arithmatex">\(\delta=\eta^2\)</span>。沿这组热时间，平方误差界按 <span class="arithmatex">\(\epsilon^{1/4}\)</span> 衰减，范数界按 <span class="arithmatex">\(\epsilon^{1/8}\)</span> 衰减。这样选参数，才同时控制了可见低频和全部未显示的高频。</p>
 <h2 id="7">7. 实验怎样读：频率滤波不是收敛证书<a class="headerlink" href="#7" title="Permanent link"></a></h2>
 <p>实验使用 <span class="arithmatex">\(\alpha\in[0,2]\)</span>、<span class="arithmatex">\(s\in[-1.5,1]\)</span>、截断 <span class="arithmatex">\(N\in\{8,16,32,64,128\}\)</span> （截断滑块选择指数 <span class="arithmatex">\(n\)</span>，即 <span class="arithmatex">\(N=2^n\)</span>）与热时间 <span class="arithmatex">\(\epsilon\in[0.01,0.2]\)</span>；建议默认 <span class="arithmatex">\(\alpha=0\)</span>、<span class="arithmatex">\(s=-3/4\)</span>、<span class="arithmatex">\(N=16\)</span>、<span class="arithmatex">\(\epsilon=0.05\)</span>。它画出原始与热过滤后的模态贡献，并报告部分和、倍增壳层和理论尾界。</p>
 <p>按下面顺序操作：</p>
@@ -369,7 +386,7 @@ E\|X_{2N}-X_N\|_{H^{-1/2}}^2\to2\log2\ne0.
 <p>本讲构造了一个线性 Gaussian 随机分布，证明 Fourier 截断和热核正则化在指定负 Sobolev 空间中收敛。它已经比单一测试函数配对更强，却还没有定义 <span class="arithmatex">\(X^2\)</span>、Wick 幂或任何非线性方程。</p>
 <p>进入<a href="frontier-02-singular-spde.html">奇异 SPDE</a>时，困难会从“场在哪个空间”升级为“粗糙对象能否相乘、近似反项是否一致、解映射是否连续”。热核能制造光滑近似，但“每个 <span class="arithmatex">\(\epsilon\)</span> 都可计算”本身不保证非线性结果随 <span class="arithmatex">\(\epsilon\downarrow0\)</span> 收敛，更不保证不同正则化方案给出同一物理参数。</p>
 </section>
-<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">速查与资料<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p>两份实 Fourier 模态 → <span class="arithmatex">\(H^s\)</span> 二阶矩级数 → 阈值 <span class="arithmatex">\(s&lt;\alpha-1/2\)</span> → 临界壳层 <span class="arithmatex">\(2\log2\)</span> → 热乘子 <span class="arithmatex">\(e^{-\epsilon k^2}\)</span> → 同噪声下的支配收敛。回到<a href="bridge-09-wick-limits.html">Wick 平方</a>时，应明确那里只证明了一个二次场的常数配对极限；本讲证明的是线性场自身在完整 Sobolev 范数中的极限。</p>
 <p>Gaussian 随机变量、Hilbert 空间随机级数与正则化背景见 Hairer 的 <a href="https://hairer.org/notes/StochasticAnalysisCourse.pdf">Advanced Stochastic Analysis</a>；热半群、空间白噪声与分布值 SPDE 的系统入口见作者讲义 <a href="https://arxiv.org/abs/0907.4178">An Introduction to Stochastic PDEs</a>；圆周 Fourier 与 Sobolev 归一化可对照 Hairer 与 Kurniawan 的 <a href="https://www.hairer.org/papers/multiscale_spde.pdf">Stochastic PDEs with multiscale structure</a>。本讲阈值、临界壳层和尾界均由正文级数独立推出。资料核查：2026-09-08。</p>
 <p>后续练习：<a href="bridge-19-products-reconstruction.html">分布乘积与重建</a>从相位反例、负Sobolev单壳层极限走到准确的模型相容条件，区分重整化对象与重建定理的职责。</p>

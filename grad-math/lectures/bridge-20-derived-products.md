@@ -126,6 +126,24 @@ $$
 
 一个直接的失败对照：在 $R=k[x]$ 中用重复方程 $(x,x)$ 表示商 $B=k$。其Koszul复形有闭元 $\eta=\varepsilon_2-\varepsilon_1$，且 $d(\varepsilon_1\varepsilon_2)=x\eta$，所以 $H^{-1}=k\eta\ne0$。它不是B的分解。若取A=R，真实的 $R\otimes_R^{\mathbf L}B\simeq B$ 无负次同调，错误地套这个Koszul复形却会多出一类。非正则输入的修复需要继续加生成元杀同调，而不是把错误结果改名成Tor。
 
+### 重复方程的错误，怎样真正修复？
+
+继续上面的 $K_{k[x]}(x,x)$。改用生成元 $e=\varepsilon_1$ 与 $\eta=\varepsilon_2-\varepsilon_1$，便有 $de=x,d\eta=0$。要杀掉多出的负一次类，附加次数−2的**偶**生成元z，规定 $dz=\eta$：
+
+$$Q=k[x]\otimes\Lambda(e,\eta)\otimes k[z].$$
+
+这里 $|e|=|\eta|=-1$，$|z|=-2$。z可以有任意高次幂；不能因为微分中出现奇生成元η，就把z也误作平方为零的外代数生成元。Leibniz规则给
+
+$$d(z^j)=jz^{j-1}\eta,\qquad d(\eta z^j)=0.$$
+
+因此对每个 $j\ge0$，
+
+$$\eta z^j=d\left(\frac{z^{j+1}}{j+1}\right).$$
+
+我们固定 $k=\mathbb C$，所以这些除法合法。子代数 $k[z]\otimes\Lambda(\eta)$ 只留下次数0的常数同调；再与 $k[x]\otimes\Lambda(e)$、$de=x$ 张量，得到 $H^0(Q)=k$、全部负次同调为零。于是增广 $Q\to k$ 才是一份合法的半自由代数分解。
+
+修复增加的是一个偶生成元及其无限多幂，而不是在最后的Tor表格中手动删除一行。这个例子也说明为什么当前计算明确固定特征0：在正特征下，$j$ 可能为零，以上消去论证不能照搬。
+
 ## 3. 横截直线：微分消掉全部负次数
 
 令

@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:55</div>
+    <div class="build-time">构建于 2026-09-13 23:09</div>
   </div>
 </nav>
 <main id="content">
@@ -65,11 +65,14 @@ try {
 <li><a href="#3">3. 热核让近似可乘，却不自动决定极限</a></li>
 <li><a href="#4">4. 一个随机单壳层：减均值以后仍留下什么？</a></li>
 <li><a href="#5">5. 重建定理不是“自动修好乘法”的按钮</a></li>
-<li><a href="#6-taylor">6. 用普通 Taylor 展开看见重建估计的原型</a></li>
+<li><a href="#6-taylor">6. 用普通 Taylor 展开看见重建估计的原型</a><ul>
+<li><a href="#_1">把“不同基点相容”算成两个系数</a></li>
+</ul>
+</li>
 <li><a href="#7">7. 实验：分别检查频率共振与局部重建</a></li>
 <li><a href="#8">8. 两道迁移题</a></li>
 <li><a href="#9-spde">9. 到奇异 SPDE 还缺哪些证明？</a></li>
-<li><a href="#_1">速查与资料</a></li>
+<li><a href="#_2">速查与资料</a></li>
 </ul>
 </div>
 </details>
@@ -259,6 +262,21 @@ F(x)=f(x)\mathbf1+f'(x)\mathbf X.
 \le\frac12\|f''\|_{L^\infty(B(x,\lambda))}\lambda^2.
 \]</div>
 <p>这就是 <span class="arithmatex">\(\lambda^2\)</span> 重建误差的熟悉原型：局部线性描述在尺度 <span class="arithmatex">\(\lambda\)</span> 上漏掉二阶余项。真正的正则性结构用噪声、积分与复合符号扩充这张 Taylor 账本，但仍必须检查基点之间的相容性。</p>
+<h3 id="_1">把“不同基点相容”算成两个系数<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>仍用单位符号与一次符号，改取 <span class="arithmatex">\(f(z)=z^2\)</span>，于是</p>
+<div class="arithmatex">\[F(x)=x^2\mathbf1+2x\mathbf X.\]</div>
+<p>由 <span class="arithmatex">\(\Pi_x\Gamma_{xy}=\Pi_y\)</span> 可直接解出平移符号：</p>
+<div class="arithmatex">\[\Gamma_{xy}\mathbf X=\mathbf X+(x-y)\mathbf1.\]</div>
+<p>因为在x处解释右边，得到 <span class="arithmatex">\((z-x)+(x-y)=z-y\)</span>，恰是以y为基点的坐标。注意常数是x−y；把符号写反会破坏模型等式。</p>
+<p>把以y为基点的整个jet平移过来，再相减：</p>
+<div class="arithmatex">\[\boxed{\begin{aligned}
+&amp;F(x)-\Gamma_{xy}F(y)\\
+&amp;\quad=(x-y)^2\mathbf1+2(x-y)\mathbf X.
+\end{aligned}}\]</div>
+<p>例如 <span class="arithmatex">\(x=2,y=1\)</span>，<span class="arithmatex">\(F(2)=4\mathbf1+4\mathbf X\)</span>，而 <span class="arithmatex">\(\Gamma_{21}F(1)=3\mathbf1+2\mathbf X\)</span>，差为 <span class="arithmatex">\(\mathbf1+2\mathbf X\)</span>。次数0的系数按距离平方控制，次数1的系数按距离一次控制；这正是 <span class="arithmatex">\(\gamma=2\)</span> 时两条不同的相容要求。</p>
+<p>实际重建余项也没有谜团：</p>
+<div class="arithmatex">\[z^2-[x^2+2x(z-x)]=(z-x)^2.\]</div>
+<p>在半径λ的窗口里，它至多为 <span class="arithmatex">\(\lambda^2\)</span>。不同基点的代数平移和同一基点的解析误差，在这个小例子中可以分别逐项核对。</p>
 <h2 id="7">7. 实验：分别检查频率共振与局部重建<a class="headerlink" href="#7" title="Permanent link"></a></h2>
 <p>下面两个实验分别检查频率混合与多项式重建。</p>
 <p><strong>频率混合。</strong> 控制 <span class="arithmatex">\(N\in[2,64]\)</span>、<span class="arithmatex">\(A,B\in[0.5,2]\)</span> 和相位 <span class="arithmatex">\(\theta\in[0,\pi]\)</span>。图中画 <span class="arithmatex">\(u_N,v_N,u_Nv_N\)</span> 的复Fourier系数绝对值，表格另给乘积零模的符号与v的正频复系数。相同幅值的点可重叠，幅值图不显示相位；频率路径在机制图中明确标出</p>
@@ -334,7 +352,7 @@ u_Nv_N=3\cos\theta+3\cos(2Nx+\theta).
 <p>本讲已经区分四件事：经典乘积定理给出可直接相乘的正则性区；高频反例说明越界后普通连续延拓失败；指定近似与Wick约定，并证明增强对象收敛，才为特定Gaussian模型保留所需联合信息；重建定理把相容的抽象局部展开合成分布。</p>
 <p>完整奇异 SPDE 仍需：选择适合方程缩放的正则性结构，构造并重整化随机模型，证明模型随平滑尺度收敛，在模型分布空间解固定点，最后用重建与稳定性得到实际解。有限余弦、单壳层 Gaussian 和 Taylor jet 分别核验机制，不能拼接成这些一般定理的证明。</p>
 </section>
-<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">速查与资料<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p>高频乘高频会回落低频；<span class="arithmatex">\(\alpha+\beta&gt;0\)</span> 让经典共振级数可求和；Wick 排序指定随机收缩；模型保存被普通分布极限遗忘的联合信息；重建把相容局部展开变成普通分布，而不自动创造乘法。</p>
 <p>抛物乘积与奇异方程的系统实现参见 Gubinelli、Imkeller、Perkowski 的 <a href="https://arxiv.org/abs/1210.2684">Paracontrolled distributions and singular PDEs</a>；正则性结构、模型分布及重建定理的原始来源是 Hairer 的 <a href="https://arxiv.org/abs/1303.5113">A theory of regularity structures</a>；随机模型与反项的背景见 Hairer 的 <a href="https://arxiv.org/abs/1803.03044">Renormalisation of parabolic stochastic PDEs</a>。本讲有限 Fourier 与 Taylor 算例均在正文直接推导。资料核查：2026-09-09。</p>
 </article>
