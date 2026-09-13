@@ -1,1249 +1,142 @@
-(function () {
-  "use strict";
-
-  if (
-    typeof window === "undefined" ||
-    !window.CourseLearning ||
-    typeof window.CourseLearning.register !== "function"
-  ) {
-    return;
+(function(hostWindow){"use strict";
+"use strict";
+// Complex orthogonal factorization adapted from the independently checked research-tebd kernel.
+ const z=()=>[0,0],add=(a,b)=>[a[0]+b[0],a[1]+b[1]],sub=(a,b)=>[a[0]-b[0],a[1]-b[1]],mul=(a,b)=>[a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]],scale=(a,s)=>[a[0]*s,a[1]*s],conj=a=>[a[0],-a[1]],abs2=a=>a[0]*a[0]+a[1]*a[1];
+ const dot=(a,b)=>a.reduce((s,x,i)=>add(s,mul(conj(x),b[i])),z()),norm2=a=>a.reduce((s,x)=>s+abs2(x),0),dag=A=>A[0].map((_,j)=>A.map(r=>conj(r[j]))),mm=(A,B)=>A.map(row=>B[0].map((_,j)=>row.reduce((s,x,k)=>add(s,mul(x,B[k][j])),z())));
+ function columnJacobi(M){
+  const n=M[0].length,cols=Array.from({length:n},(_,j)=>M.map(row=>row[j].slice())),R=Array.from({length:n},(_,j)=>Array.from({length:n},(_,i)=>[+(i===j),0]));
+  let converged=false;
+  for(let sweep=0;sweep<100;sweep++){
+   let changed=false;
+   for(let p=0;p<n;p++)for(let q=p+1;q<n;q++){
+    const a=norm2(cols[p]),b=norm2(cols[q]),c=dot(cols[p],cols[q]),size=Math.hypot(...c);
+    if(size<=2e-14*Math.sqrt(a*b)||size<1e-300)continue;
+    const phase=scale(c,1/size),angle=.5*Math.atan2(2*size,b-a),co=Math.cos(angle),si=Math.sin(angle);
+    for(const rows of [cols,R]){const u=rows[p],v=rows[q];rows[p]=u.map((x,i)=>sub(scale(mul(phase,x),co),scale(v[i],si)));rows[q]=u.map((x,i)=>add(scale(mul(phase,x),si),scale(v[i],co)));}
+    changed=true;
+   }
+   if(!changed){converged=true;break;}
   }
-
-  var SVG_NS = "http://www.w3.org/2000/svg";
-  var RANK_TOL = 1e-8;
-  var ASSERT_TOL = 2e-7;
-  var INSTANCE = 0;
-
-  function setAttributes(node, attrs) {
-    Object.keys(attrs || {}).forEach(function (key) {
-      var value = attrs[key];
-      if (value === undefined || value === null || value === false) return;
-      if (key === "className") node.setAttribute("class", String(value));
-      else if (key === "htmlFor") node.setAttribute("for", String(value));
-      else if (key === "text") node.textContent = String(value);
-      else if (value === true) node.setAttribute(key, "");
-      else node.setAttribute(key, String(value));
-    });
-    return node;
+  if(!converged)throw Error("复数Jacobi SVD未收敛");
+  const order=Array.from({length:n},(_,j)=>j).sort((i,j)=>norm2(cols[j])-norm2(cols[i]));
+  return {columns:order.map(i=>cols[i]),right:order.map(i=>R[i])};
+ }
+ function svdLeft(M){
+  const m=M.length,n=M[0].length,Q=[];
+  if(m<n){const s=columnJacobi(dag(M));Q.push(...s.right);}
+  else{
+   const s=columnJacobi(M),largest=Math.sqrt(norm2(s.columns[0]));
+   const append=candidate=>{let q=candidate.map(x=>x.slice());for(let pass=0;pass<2;pass++)for(const p of Q){const c=dot(p,q);q=q.map((x,i)=>sub(x,mul(p[i],c)));}const norm=Math.sqrt(norm2(q));if(norm>1e-12)Q.push(q.map(x=>scale(x,1/norm)));};
+   for(const col of s.columns){const norm=Math.sqrt(norm2(col));if(norm>largest*1e-14)append(col.map(x=>scale(x,1/norm)));}
+   for(let i=0;Q.length<m&&i<m;i++)append(Array.from({length:m},(_,j)=>[+(i===j),0]));
   }
+  if(Q.length!==m)throw Error("复奇异向量基不完整");
+  const U=Array.from({length:m},(_,i)=>Q.map(q=>q[i])),B=mm(dag(U),M),weights=B.map(norm2);
+  return {U,B,weights};
+ }
+ function split(M,chi,direction=1,normalize=true){
+  const source=direction===1?M:dag(M),s=svdLeft(source),rank=Math.min(chi,source.length,source[0].length);
+  if(!Number.isInteger(rank)||rank<1)throw Error("无效截断维数");
+  const kept=s.weights.slice(0,rank).reduce((a,b)=>a+b,0),lost=s.weights.slice(rank).reduce((a,b)=>a+b,0),total=kept+lost;
+  if(!(kept>0))throw Error("零态不能归一化");
+  const L=s.U.map(row=>row.slice(0,rank)),R=s.B.slice(0,rank).map(row=>row.map(x=>scale(x,normalize?1/Math.sqrt(kept):1))),A=direction===1?L:dag(R),B=direction===1?R:dag(L),epsilon=lost/total;
+  return {A,B,epsilon,delta:Math.sqrt(2*epsilon/(1+Math.sqrt(Math.max(0,1-epsilon)))),weights:s.weights,total};
+ }
 
-  function appendChildren(node, children, doc) {
-    if (children === undefined || children === null) return node;
-    (Array.isArray(children) ? children : [children]).forEach(function (child) {
-      if (child === undefined || child === null || child === false) return;
-      node.appendChild(
-        child && child.nodeType ? child : doc.createTextNode(String(child))
-      );
-    });
-    return node;
-  }
+const LIMITS={state:[0,6],cut:[1,5],chi:[1,8],tailPower:[1,12],phaseSteps:[0,24],seed:[1,17],couplingTenths:[-20,20],fieldTenths:[0,20]};
+const DEFAULTS={state:1,cut:3,chi:1,tailPower:8,phaseSteps:0,seed:7,couplingTenths:10,fieldTenths:10};
+const STATE_NAMES=['乘积态','GHZ','开放链cluster','相邻Bell对','低熵的三权重态','微小满秩尾部','固定复随机态'];
+const PRESETS=[['ghz','GHZ压成一条通道',{}],['exact','GHZ保留两条通道',{chi:2}],['product','乘积态与节点方差',{state:0}],['cluster','链式cluster',{state:2,chi:2}],['bells','交替宽窄的Bell对',{state:3,chi:2}],['entropy','低熵不等于低秩',{state:4,chi:2}],['tail','高秩与微小尾部',{state:5,chi:1}],['tiny','更小的非零尾部',{state:5,chi:1,tailPower:12}],['random','复随机态压缩',{state:6,chi:2}],['full','复随机态保留全维',{state:6,chi:8}],['phase','局部相位旋转',{state:6,chi:2,phaseSteps:5}],['diagonal','零横场的本征态',{state:0,fieldTenths:0}]].map(([id,name,parameters])=>({id,name,parameters}));
+function config(input={}){if(!input||typeof input!=='object'||Array.isArray(input))throw Error('参数必须是对象');const out={...DEFAULTS};for(const [key,val]of Object.entries(input)){if(!Object.hasOwn(LIMITS,key)||!Number.isInteger(val)||val<LIMITS[key][0]||val>LIMITS[key][1])throw Error('无效参数 '+key);out[key]=val;}return out;}
+const sum=a=>a.reduce((s,x)=>s+x,0),normalize=v=>{const n=Math.sqrt(norm2(v));if(!(n>0))throw Error('零态');return v.map(x=>scale(x,1/n));};
+function stateVector(c){let v=Array.from({length:64},z);switch(c.state){
+case 0:v[0]=[1,0];break;
+case 1:v[0]=v[63]=[Math.SQRT1_2,0];break;
+case 2:for(let b=0;b<64;b++){let parity=0;for(let j=0;j<5;j++)parity^=((b>>j)&3)===3?1:0;v[b]=[(parity?-1:1)/8,0];}break;
+case 3:for(let b=0;b<64;b++)if([0,2,4].every(j=>((b>>j)&1)===((b>>(j+1))&1)))v[b]=[1/Math.sqrt(8),0];break;
+case 4:[.8,.1,.1].forEach((p,i)=>v[i*9]=[Math.sqrt(p),0]);break;
+case 5:{const e=10**(-c.tailPower);for(let i=0;i<8;i++)v[i*9]=[Math.sqrt(i===0?1-e:e/7),0];break;}
+case 6:{let seed=c.seed>>>0;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return(seed+.5)/4294967296-.5;};v=v.map(()=>[random(),random()]);break;}
+}v=normalize(v);return v.map((x,b)=>{let phase=0;for(let j=0;j<6;j++)phase+=(j+1)*((b>>(5-j))&1);phase*=Math.PI*c.phaseSteps/12;return mul(x,[Math.cos(phase),Math.sin(phase)]);});}
+const reshape=(v,rows)=>Array.from({length:rows},(_,i)=>v.slice(i*v.length/rows,(i+1)*v.length/rows));
+const distance2=(a,b)=>sum(a.map((x,i)=>abs2(sub(x,b[i]))));
+function orthError(U){const G=mm(dag(U),U);return Math.sqrt(sum(G.flatMap((row,i)=>row.map((x,j)=>abs2(sub(x,[+(i===j),0]))))));}
+function spectrum(v,k,chi){const C=reshape(v,2**k),s=svdLeft(C),count=Math.min(C.length,C[0].length),weights=s.weights.slice(0,count),sigmas=weights.map(Math.sqrt),keep=Math.min(chi,count),U=s.U.map(row=>row.slice(0,keep)),B=s.B.slice(0,keep),raw=mm(U,B).flat(),normalized=normalize(raw),lost=sum(s.weights.slice(keep)),kept=norm2(raw),ov=dot(v,normalized);return{cut:k,rows:C.length,columns:C[0].length,weights,sigmas,entanglementEnergies:weights.map(p=>p>0?-Math.log(p):null),entropy:-sum(weights.filter(p=>p>0).map(p=>p*Math.log(p))),numericalRank:sigmas.filter(x=>x>1e-6).length,rankThreshold:1e-6,retained:keep,discardedWeight:lost,retainedNormSquared:kept,overlapAmplitude:Math.sqrt(abs2(ov)),squaredFidelity:abs2(ov),errorSquared:distance2(v,raw),orthogonalityError:orthError(s.U),factorizationError:Math.sqrt(distance2(v,mm(s.U,s.B).flat())),coefficients:C,raw,normalized};}
+function expand(tensors){let M=[[[1,0]]];for(const A of tensors){const next=[];for(const row of M)for(let bit=0;bit<2;bit++)next.push(A[bit][0].map((_,r)=>row.reduce((s,x,l)=>add(s,mul(x,A[bit][l][r])),z())));M=next;}return M.flat();}
+function compress(v,chi){let rest=v.map(x=>x.slice()),left=1;const tensors=[],steps=[];for(let site=0;site<5;site++){const rows=2*left,M=reshape(rest,rows),s=svdLeft(M),keep=Math.min(chi,rows,M[0].length),L=s.U.map(row=>row.slice(0,keep));const A=Array.from({length:2},(_,bit)=>Array.from({length:left},(_,l)=>L[2*l+bit]));tensors.push(A);rest=s.B.slice(0,keep).flat();steps.push({cut:site+1,inputRows:rows,inputColumns:M[0].length,leftDimension:left,rightDimension:keep,weights:s.weights.slice(0,Math.min(rows,M[0].length)),incomingNormSquared:norm2(M.flat()),discardedWeight:sum(s.weights.slice(keep)),retainedNormSquared:norm2(rest),leftCanonicalError:orthError(L)});left=keep;}
+tensors.push(Array.from({length:2},(_,bit)=>Array.from({length:left},(_,l)=>[rest[2*l+bit]])));const raw=expand(tensors),normalized=normalize(raw),overlap=dot(v,normalized),n=norm2(raw),discarded=sum(steps.map(x=>x.discardedWeight));return{chi,tensors,steps,raw,normalized,retainedNormSquared:n,sumDiscarded:discarded,errorSquared:distance2(v,raw),squaredFidelity:abs2(overlap),overlapAmplitude:Math.sqrt(abs2(overlap)),normalizedDistanceSquared:distance2(v,normalized),projectionOverlap:dot(v,raw),maxCanonicalError:Math.max(...steps.map(x=>x.leftCanonicalError)),tensorEntries:sum(tensors.map(A=>A.flat(2).length))};}
+function applyH(v,J,h){return v.map((x,b)=>{let zz=0;for(let j=0;j<5;j++)zz+=((b>>j)&1)===((b>>(j+1))&1)?1:-1;let out=scale(x,-J*zz);for(let j=0;j<6;j++)out=sub(out,scale(v[b^(1<<j)],h));return out;});}
+function observables(v,J,h){const n=norm2(v),hv=applyH(v,J,h),mean=dot(v,hv),E=mean[0]/n,res=hv.map((x,i)=>sub(x,scale(v[i],E)));let magnet=0,zz=0,localEnergy=[0,0],sampledVariance=0,nodeResidual=0,nodes=0;const local=[];for(let b=0;b<64;b++){const p=abs2(v[b])/n;let m=0,c=0;for(let j=0;j<6;j++)m+=1-2*((b>>j)&1);for(let j=0;j<5;j++)c+=((b>>j)&1)===((b>>(j+1))&1)?1:-1;magnet+=p*m/6;zz+=p*c/5;let e=null;if(p>0){e=scale(mul(conj(v[b]),hv[b]),1/abs2(v[b]));localEnergy=add(localEnergy,scale(e,p));sampledVariance+=p*abs2(sub(e,[E,0]));}else{nodes++;nodeResidual+=abs2(hv[b])/n;}local.push({basis:b,probability:p,localEnergy:e,residualWeight:abs2(res[b])/n});}return{normSquared:n,energy:E,energyImaginary:mean[1]/n,variance:norm2(res)/n,magnetization:magnet,neighborZZ:zz,localEnergyMean:localEnergy,sampledLocalVariance:sampledVariance,nodeResidual,nodes,local};}
+function compute(input={}){const c=config(input),v=stateVector(c),J=c.couplingTenths/10,h=c.fieldTenths/10,original=observables(v,J,h),cuts=Array.from({length:5},(_,i)=>spectrum(v,i+1,c.chi)),selected=cuts[c.cut-1],chain=compress(v,c.chi),after=observables(chain.normalized,J,h),scan=Array.from({length:8},(_,i)=>{const q=compress(v,i+1),obs=observables(q.normalized,J,h);return{chi:i+1,sumDiscarded:q.sumDiscarded,errorSquared:q.errorSquared,retainedNormSquared:q.retainedNormSquared,squaredFidelity:q.squaredFidelity,energy:obs.energy,variance:obs.variance,tensorEntries:q.tensorEntries,maxCanonicalError:q.maxCanonicalError};}),knownRanks=[[1,1,1,1,1],[2,2,2,2,2],[2,2,2,2,2],[2,1,2,1,2],[1,2,3,3,2],[2,4,8,4,2],null][c.state],normBound=5*Math.abs(J)+6*Math.abs(h),energyBound=2*normBound*Math.sqrt(chain.sumDiscarded);
+const boundaries={complexAmplitudesRetained:true,exactRankFromAnalyticFamilyOnly:true,numericalRankThresholdExplicit:true,tinyTailSummedDirectly:true,selectedCutIsOptimalAtOneCut:true,chainReconstructedFromSavedTensors:true,stepWeightsAreNotOriginalCutTails:true,globalOptimalMPSNotClaimed:true,degenerateVectorsNotUnique:true,localPhasePreservesSpectra:true,varianceIsFullResidual:true,zeroVarianceNotGroundCertificate:true,nodeContributionExplicit:true,finiteSixSiteToyNotScalingTheorem:true};
+return{schema:'tensor203-v1',parameters:c,units:{N:6,hbar:1,entropy:'natural logarithm',phaseStep:'pi/12',energy:'fixed reference energy',rankThreshold:1e-6},state:{name:STATE_NAMES[c.state],amplitudes:v,knownExactRanks:knownRanks},selected,cuts,chain,chiScan:scan,observables:{J,h,original,compressed:after,normBound,energyShift:after.energy-original.energy,energyShiftBound:energyBound},comparison:{productOriginalCutFidelities:cuts.reduce((s,x)=>s*x.squaredFidelity,1),sumOriginalCutTails:sum(cuts.map(x=>x.discardedWeight)),sumActualStepTails:chain.sumDiscarded},boundaries};}
+const QUESTIONS=[
+['GHZ态在五个原始切口上用χ=1，各自保真度都是1/2。全链逐步压缩的保真度是(1/2)⁵吗？',['不是；首步丢掉一半，后面已是乘积态','是；五个独立截断的保真度相乘'],0,'这些切口分析都针对原始GHZ态；实际逐步算法每次处理上一步留下的态。首步保留一个分支后，后续没有相同的半权重可丢。全链F²=1/2。'],
+['Schmidt权重为(0.8,0.1,0.1)，熵小于ln2，所以χ=2可以精确表示吗？',['可以；熵没有超过两条通道的容量','不可以；仍有第三条非零通道，丢弃权重0.1'],1,'熵是所有权重的汇总；S≤lnχ不是原始态rank≤χ的充分条件。精确秩为3，最优两通道归一化近似F²=0.9。'],
+['对每个自旋分别施加相位门，会改变各切口的Schmidt权重吗？',['不会；每个切口两侧都只受到局部幺正变换','会；系数矩阵变成复数就会增加纠缠'],0,'变换形式C→U_A C U_Bᵀ，左右乘幺正矩阵不改变奇异值。复振幅和物理观测可以变，纠缠谱不因此改变。'],
+['|000000〉在H=−JΣZZ−hΣX、h≠0下，只采到一个构型且局部能量不变，完整量子方差就是0吗？',['是；样本的局部能量完全没有波动','不是；Hψ在零振幅构型上仍有分量，方差为6h²'],1,'局部能量(Hψ)_s/ψ_s在节点上无定义。只按|ψ|²采样会漏掉节点处的残差；本例均值−5J，完整残差范数平方为6h²。零方差即使成立，也只能证明本征态。']
+];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=4||![0,1].includes(j))throw Error('无效预测');return{correct:j===QUESTIONS[i][2],text:(j===QUESTIONS[i][2]?'正确。':'需要修正。')+QUESTIONS[i][3]};}
+const LABELS={state:'态族（编号见当前读数）',cut:'观察切口 k',chi:'每条键最多保留 χ',tailPower:'微小尾部 ε=10的负p次方：p',phaseSteps:'局部相位步数（每步π/12）',seed:'复随机态种子',couplingTenths:'Ising耦合 J ×10',fieldTenths:'横场 h ×10',complexAmplitudesRetained:'复振幅完整保留',exactRankFromAnalyticFamilyOnly:'精确秩仅对可解析态族声明',numericalRankThresholdExplicit:'数值秩阈值显式给出',tinyTailSummedDirectly:'微小尾部直接相加避免相消',selectedCutIsOptimalAtOneCut:'单切口最优性的适用范围明确',chainReconstructedFromSavedTensors:'从保存的张量实际收缩重建全链',stepWeightsAreNotOriginalCutTails:'实际步骤权重不同于原始切口尾部',globalOptimalMPSNotClaimed:'没有宣称全局最优MPS',degenerateVectorsNotUnique:'简并奇异向量不是唯一的',localPhasePreservesSpectra:'局部相位不改变纠缠谱',varianceIsFullResidual:'方差用完整残差计算',zeroVarianceNotGroundCertificate:'零方差不自动证明基态',nodeContributionExplicit:'零振幅节点的残差单列',finiteSixSiteToyNotScalingTheorem:'六站点例子不是渐近规模定理',normSquared:'范数平方',energy:'能量均值',energyImaginary:'能量虚部（浮点检查）',variance:'完整残差方差',magnetization:'平均Z磁化',neighborZZ:'平均相邻ZZ',localEnergyMean:'按概率求和的局部能量均值',sampledLocalVariance:'仅非零振幅处的局部能量方差',nodeResidual:'零振幅节点贡献',nodes:'精确零振幅构型数'};
+function fmt(x){if(x===null||x===undefined)return'不适用';if(typeof x==='boolean')return x?'是':'否';if(Array.isArray(x))return'['+x.map(fmt).join(', ')+']';if(typeof x==='object')return JSON.stringify(x);if(typeof x==='number')return Number.isInteger(x)&&Math.abs(x)<1e6?String(x):Math.abs(x)<1e-4||Math.abs(x)>=1e5?x.toExponential(5):Number(x.toPrecision(7)).toString();return LABELS[x]??String(x);}
+const COLORS=['#3875ba','#c55b32','#368661','#9860a8','#856722','#646e7c'];
+function frame(key,title,xLabel,yLabel,series,domain){const ys=series.flatMap(s=>s.points.filter(Boolean).map(p=>p[1]));let lo=Math.min(0,...ys),hi=Math.max(0,...ys);if(hi===lo)hi=lo+1;const pad=.07*(hi-lo);return{key,title,xLabel,yLabel,xMin:domain[0],xMax:domain[1],yMin:lo-pad,yMax:hi+pad,series};}
+function plots(s){const line=(name,i,points)=>({name,color:COLORS[i],points});let acc=0;return[
+frame('spectrum','当前切口的权重：大尾巴与小尾巴都要记账','奇异值序号 i','pᵢ=σᵢ²',[
+line('保留权重',0,s.selected.weights.map((p,i)=>i<s.selected.retained?[i+1,p]:null)),line('丢弃权重',1,s.selected.weights.map((p,i)=>i>=s.selected.retained?[i+1,p]:null))],[1,Math.max(2,s.selected.weights.length)]),
+frame('tail','对数视图：正的微小权重不会被线性坐标藏掉','奇异值序号 i','log₁₀ pᵢ；精确0不画在有限位置',[
+line('全部正权重的对数',0,s.selected.weights.map((p,i)=>p>0?[i+1,Math.log10(p)]:null)),line('数值秩阈值σ=10⁻⁶的平方',3,[[1,-12],[Math.max(2,s.selected.weights.length),-12]])],[1,Math.max(2,s.selected.weights.length)]),
+frame('cuts','每个原始切口的熵与可解析秩','切口 k','自然对数单位（无量纲）',[
+line('纠缠熵 S',0,s.cuts.map(p=>[p.cut,p.entropy])),line('可解析精确秩的 ln r',2,s.state.knownExactRanks?s.state.knownExactRanks.map((r,i)=>[i+1,Math.log(r)]):[]),line('当前键容量 ln χ',1,[[1,Math.log(s.parameters.chi)],[5,Math.log(s.parameters.chi)]])],[1,5]),
+frame('fidelity','真正收缩全链，再测归一化保真度','统一键维 χ','F²与保留范数平方',[
+line('实际全链F²',0,s.chiScan.map(p=>[p.chi,p.squaredFidelity])),line('未归一化重建态范数平方',2,s.chiScan.map(p=>[p.chi,p.retainedNormSquared]))],[1,8]),
+frame('steps','逐步丢弃的是当前余量，不是每个原始切口','从左向右处理的切口','相对于原始归一化态的权重',[
+line('当前步骤丢弃δk',0,s.chain.steps.map(p=>[p.cut,p.discardedWeight])),line('实际步骤累计丢弃',1,s.chain.steps.map(p=>[p.cut,acc+=p.discardedWeight])),line('原始态在该切口的尾部',3,s.cuts.map(p=>[p.cut,p.discardedWeight]))],[1,5]),
+frame('energy','压缩改变能量；本实验没有优化基态','统一键维 χ','能量（固定参考单位）',[
+line('压缩态能量',0,s.chiScan.map(p=>[p.chi,p.energy])),line('原始态能量',2,[[1,s.observables.original.energy],[8,s.observables.original.energy]])],[1,8])];}
+function tables(s){const scalar=o=>Object.entries(o).filter(([k])=>k!=='local'),bits=b=>b.toString(2).padStart(6,'0');return[
+{key:'parameters',title:'8项输入、态族与单位',headers:['量','值'],rows:[...Object.entries(s.parameters),['态族',s.state.name],['自旋数N',6],['相位门','第j站点乘exp(i j θ sⱼ)，θ=步数×π/12'],['数值秩阈值',s.selected.rankThreshold],['熵单位','自然对数'],['复数格式','[实部, 虚部]']]},
+{key:'cuts',title:'五个原始切口：精确秩、数值秩、熵与单切口截断',headers:['k','行','列','解析精确秩','数值秩σ>10⁻⁶','S','保留维数','尾部ε','F','F²','误差平方','分解残差','正交残差'],rows:s.cuts.map((p,i)=>[p.cut,p.rows,p.columns,s.state.knownExactRanks?.[i]??null,p.numericalRank,p.entropy,p.retained,p.discardedWeight,p.overlapAmplitude,p.squaredFidelity,p.errorSquared,p.factorizationError,p.orthogonalityError])},
+{key:'coefficients',title:'当前切口全部64个复系数',headers:['左索引','右索引','实部','虚部','模平方'],rows:s.selected.coefficients.flatMap((row,i)=>row.map((z,j)=>[i,j,z[0],z[1],abs2(z)]))},
+{key:'spectrum',title:'当前切口完整奇异值与纠缠谱',headers:['i','σᵢ','pᵢ','ξᵢ=−ln pᵢ','保留'],rows:s.selected.weights.map((p,i)=>[i+1,s.selected.sigmas[i],p,s.selected.entanglementEnergies[i],i<s.selected.retained])},
+{key:'amplitudes',title:'全部64构型：原始态、单切口近似和全链重建',headers:['二进制基底','原始复振幅','单切口归一化振幅','全链未归一化振幅','全链归一化振幅'],rows:s.state.amplitudes.map((z,i)=>[bits(i),z,s.selected.normalized[i],s.chain.raw[i],s.chain.normalized[i]])},
+{key:'steps',title:'五步TT-SVD的形状、权重与规范检查',headers:['cut','输入行','输入列','左键维','保留右键维','输入范数平方','当前丢弃δk','输出范数平方','左规范残差'],rows:s.chain.steps.map(p=>[p.cut,p.inputRows,p.inputColumns,p.leftDimension,p.rightDimension,p.incomingNormSquared,p.discardedWeight,p.retainedNormSquared,p.leftCanonicalError])},
+{key:'step-spectrum',title:'每次真正被截断矩阵的完整权重',headers:['步骤cut','序号i','未归一化权重','保留'],rows:s.chain.steps.flatMap(p=>p.weights.map((v,i)=>[p.cut,i+1,v,i<p.rightDimension]))},
+{key:'tensors',title:'可直接收缩重建的六个MPS张量',headers:['站点j','物理位s','左索引','右索引','实部','虚部'],rows:s.chain.tensors.flatMap((A,j)=>A.flatMap((M,b)=>M.flatMap((row,l)=>row.map((z,r)=>[j+1,b,l,r,z[0],z[1]]))))},
+{key:'chi',title:'χ=1至8的全部全链压缩结果',headers:['χ','当前步尾和','实际误差平方','保留范数平方','实际F²','能量','完整方差','复数参数个数','最大规范残差'],rows:s.chiScan.map(p=>[p.chi,p.sumDiscarded,p.errorSquared,p.retainedNormSquared,p.squaredFidelity,p.energy,p.variance,p.tensorEntries,p.maxCanonicalError])},
+{key:'observables',title:'完整态观测与不同误差口径的核对',headers:['对象','量','值'],rows:[...scalar(s.observables.original).map(([k,v])=>['原始态',k,v]),...scalar(s.observables.compressed).map(([k,v])=>['全链近似',k,v]),['比较','能量变化',s.observables.energyShift],['比较','能量变化保守界',s.observables.energyShiftBound],['比较','原始切口F²乘积（一般不等于全链）',s.comparison.productOriginalCutFidelities],['比较','原始切口尾部之和',s.comparison.sumOriginalCutTails],['比较','实际步骤尾部之和',s.comparison.sumActualStepTails],['比较','原态与未归一化重建态内积',s.chain.projectionOverlap]]},
+{key:'local',title:'原始态全部构型：局部能量与节点残差',headers:['基底','概率','局部能量（节点不适用）','完整残差权重'],rows:s.observables.original.local.map(p=>[bits(p.basis),p.probability,p.localEnergy,p.residualWeight])},
+{key:'boundaries',title:'结论、算法与有限精度边界',headers:['边界','是否明确'],rows:Object.entries(s.boundaries)}];}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=10000?v.toExponential(2):Number(v.toFixed(3)).toString();
+function svg(p){const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 580" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+const discrete=true;const xticks=Array.from({length:p.xMax-p.xMin+1},(_,i)=>p.xMin+i);for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+axisFmt(y)+'</text>';}for(const x of xticks){out+='<text x="'+X(x)+'" y="410" text-anchor="middle">'+axisFmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen&&!s.markersOnly?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const marks=s.points.filter(Boolean);marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="'+(3.5+1.5*i)+'" stroke="'+s.color+'" fill="'+(i>0?'none':s.color)+'" stroke-width="'+(s.markerStrokeWidth??2.5)+'"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});if(!p.series.some(s=>s.points.some(Boolean)))out+='<text x="450" y="245" text-anchor="middle">当前模型在此参数下无适用数据</text>';return out+'</svg>';}
 
-  function makeElement(doc, tag, attrs, children) {
-    return appendChildren(
-      setAttributes(doc.createElement(tag), attrs || {}),
-      children,
-      doc
-    );
-  }
+var mounted=new WeakMap();
+function mount(root){const doc=root.ownerDocument,previous=mounted.get(root);if(previous)previous();root.replaceChildren();root.classList.add('tensor203');let c=config(PRESETS[0].parameters),choices={},revealed=false,url=null,current=null,view=0,valid=true;
+ const el=(tag,attrs={},text)=>{const e=doc.createElement(tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
+ if(!doc.querySelector('[data-tensor203-style]')){const style=el('style',{'data-tensor203-style':''});style.textContent='.tensor203{margin-inline:0!important;width:100%;min-width:0;color:var(--fg,#222);line-height:1.65}.tensor203 *{box-sizing:border-box}.tensor203 button,.tensor203 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.tensor203 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.tensor203 button:focus-visible,.tensor203 select:focus-visible,.tensor203 [tabindex]:focus-visible{outline:3px solid #2474bc}.tensor203 .tn-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.tensor203 label{display:grid;gap:4px;min-width:0}.tensor203 input{width:100%;min-height:44px;font:inherit;color:inherit;background:var(--bg,#fff)}.tensor203 .tn-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.tensor203 .tn-pred>strong{display:block;margin-bottom:6px}.tensor203 .tn-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.tensor203 .tn-feedback{margin:7px 0}.tensor203 .tn-scroll{max-width:100%;overflow:auto}.tensor203 svg{display:block;min-width:680px;width:100%;height:auto}.tensor203 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.tensor203 td,.tensor203 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.tensor203 [hidden]{display:none!important}.tensor203 details{margin:12px 0}.tensor203 summary{min-height:44px;cursor:pointer}.tensor203 .tn-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.tensor203 .tn-correct{color:var(--cl-green,#277540)}.tensor203 .tn-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.tensor203 .tn-grid{grid-template-columns:1fr}}';doc.head.append(style);}
+ root.append(el('h3',{},'从一个切口到实际重建整条量子链'),el('p',{},'固定六个自旋，选择态和键维，保存每步张量、全部复振幅与误差。先预测，再核对单切口和全链压缩。'));
+ const presets=el('div',{class:'tn-row','aria-label':'教学预设'});for(const p of PRESETS){const b=el('button',{type:'button','data-preset':p.id},p.name);b.onclick=()=>{c=config(p.parameters);valid=true;sync();reset();};presets.append(b);}root.append(presets);
+ const fields={},outs={},grid=el('div',{class:'tn-grid'});
 
-  function makeSvg(doc, tag, attrs, children) {
-    return appendChildren(
-      setAttributes(doc.createElementNS(SVG_NS, tag), attrs || {}),
-      children,
-      doc
-    );
-  }
 
-  function clear(node) {
-    while (node && node.firstChild) node.removeChild(node.firstChild);
-  }
 
-  function clamp(value, min, max) {
-    return Math.max(min, Math.min(max, value));
-  }
 
-  function number(value, fallback) {
-    var parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : fallback;
-  }
+ for(const[key,title]of Object.entries(LABELS).filter(([key])=>Object.hasOwn(LIMITS,key))){const[min,max]=LIMITS[key],label=el('label',{},title),out=el('output'),input=el('input',{type:'range',min,max,step:1,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.oninput=input.onchange=change;}root.append(grid);
+ function change(){try{c=config(Object.fromEntries(Object.entries(fields).map(([k,e])=>[k,e.value===''?NaN:Number(e.value)])));valid=true;sync();reset();}catch(e){valid=false;reset();status.textContent='请使用控件范围内的整数，再按标签倍率换成实际量。';}}
+ const note=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(note,prediction);prediction.append(el('h4',{},'先预测：全链误差、低熵、局部相位与节点方差'),el('p',{},'四题的条件固定写在题干里；参数用来检查例子，不自动改变问题。'));
+ const feedbacks=[],buttons=[];QUESTIONS.forEach((q,i)=>{const row=el('div',{class:'tn-pred'});row.append(el('strong',{},q[0]));buttons[i]=[];q[1].forEach((text,j)=>{const b=el('button',{type:'button','data-prediction':i,'data-choice':String(j===0),'aria-pressed':'false'},text);b.onclick=()=>{choices[i]=j;buttons[i].forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));if(revealed)showFeedback();};row.append(b);buttons[i].push(b);});feedbacks[i]=el('p',{class:'tn-feedback','data-feedback':i});row.append(feedbacks[i]);prediction.append(row);});
+ const check=el('button',{type:'button','data-check':''},'核对预测并显示完整结果'),status=el('p',{class:'tn-status','aria-live':'polite'});root.append(check,status);
+ const stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),summary=el('p'),plotButtons=el('div',{class:'tn-row'}),plotWrap=el('div',{class:'tn-scroll',tabindex:0,role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'切口、键维和奇异值序号是离散数据，连线只辅助阅读。简并奇异向量的具体取法不唯一。约10⁻¹¹以下的绝对残差须结合浮点误差解释；微小尾部使用直接求和并独立核对。'),tableHost=el('div'),download=el('a',{'data-download':'',download:'tn-record.json'},'下载当前完整记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);
+ function sync(){for(const[k,e]of Object.entries(fields))e.value=c[k];}
+ function reset(){if(url){hostWindow.URL.revokeObjectURL(url);url=null;download.removeAttribute('href');}revealed=false;choices={};stage.hidden=true;delete root.__tensorSnapshot;for(let i=0;i<4;i++){feedbacks[i].textContent='';for(const b of buttons[i])b.setAttribute('aria-pressed','false');}for(const[k,o]of Object.entries(outs))o.textContent=fmt(c[k]);note.textContent='当前态族：'+STATE_NAMES[c.state]+'。χ限制每条键，cut只选择观察位置。局部相位门不改变纠缠谱，但可改变固定Hamiltonian的能量。能量与方差使用完整64维态；本页不运行DMRG优化。';status.textContent='完成四项预测后显示当前结果。';}
+ function showFeedback(){let n=0;for(let i=0;i<4;i++){if(!Number.isInteger(choices[i]))continue;const f=feedback(i,choices[i]);n+=+f.correct;feedbacks[i].textContent=f.text;feedbacks[i].className='tn-feedback '+(f.correct?'tn-correct':'tn-wrong');}status.textContent='预测核对：'+n+'/4 正确。图、表和下载均对应当前参数。';}
+ function draw(){const ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+ function render(){current=compute(c);root.__tensorSnapshot=current;stage.hidden=false;summary.textContent='单切口F²='+fmt(current.selected.squaredFidelity)+'；实际全链F²='+fmt(current.chain.squaredFidelity)+'；原始切口F²乘积='+fmt(current.comparison.productOriginalCutFidelities)+'。实际步骤尾和='+fmt(current.chain.sumDiscarded)+'；直接重建误差平方='+fmt(current.chain.errorSquared)+'。原始态完整方差='+fmt(current.observables.original.variance)+'。';plotButtons.replaceChildren();plots(current).forEach((p,i)=>{const b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();for(const t of tables(current)){const d=el('details',{'data-table':t.key});d.append(el('summary',{},t.title));d.addEventListener('toggle',()=>{if(!d.open||d.children.length>1)return;const wrap=el('div',{class:'tn-scroll',tabindex:0,role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),thead=el('thead'),tr=el('tr'),tbody=el('tbody');for(const h of t.headers)tr.append(el('th',{scope:'col'},h));thead.append(tr);for(const row of t.rows){const r=el('tr');for(const v of row)r.append(el('td',{},fmt(v)));tbody.append(r);}table.append(thead,tbody);wrap.append(table);d.append(wrap);});tableHost.append(d);}if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current)],{type:'application/json'}));download.href=url;showFeedback();}
+ check.onclick=()=>{if(!valid){status.textContent='请先修正无效参数。';return;}if(![0,1,2,3].every(i=>Number.isInteger(choices[i]))){status.textContent='请先为四个问题各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
+}
 
-  function formatNumber(api, value, digits) {
-    if (!Number.isFinite(value)) return "∞";
-    if (Math.abs(value) < 0.0005) value = 0;
-    if (api && typeof api.format === "function") {
-      return api.format(value, digits === undefined ? 3 : digits);
-    }
-    return value.toFixed(digits === undefined ? 3 : digits)
-      .replace(/0+$/, "")
-      .replace(/\.$/, "");
-  }
-
-  function formatList(api, values, digits) {
-    return values.map(function (value) {
-      return formatNumber(api, value, digits);
-    }).join(", ");
-  }
-
-  function assertCondition(condition, message) {
-    if (!condition) throw new Error("entanglement-cut assertion failed: " + message);
-  }
-
-  function injectStyles(doc) {
-    if (doc.querySelector && doc.querySelector("style[data-ent-cut-style]")) return;
-    var style = doc.createElement("style");
-    style.setAttribute("data-ent-cut-style", "true");
-    style.textContent = [
-      ".ent-cut-lab{--ec-fg:var(--fg,#292722);--ec-muted:var(--fg-soft,#6b6557);--ec-bg:var(--bg,#fff);--ec-panel:var(--block-bg,#f4f1e9);--ec-border:var(--border,#ded7c7);--ec-accent:var(--accent,#315f9d);--ec-gold:var(--cl-gold,#9b6a12);--ec-green:var(--cl-green,#39734d);--ec-red:var(--cl-red,#b64335);box-sizing:border-box;color:var(--ec-fg);font-size:.95em;line-height:1.5}",
-      ".ent-cut-lab *,.ent-cut-lab *::before,.ent-cut-lab *::after{box-sizing:border-box}",
-      ".ent-cut-lab .ent-cut-shell{min-width:0}",
-      ".ent-cut-lab .ent-cut-heading{margin:0 0 .25rem;color:var(--ec-accent);font-size:1.25rem}",
-      ".ent-cut-lab .ent-cut-intro,.ent-cut-lab .ent-cut-note,.ent-cut-lab .ent-cut-status{color:var(--ec-muted)}",
-      ".ent-cut-lab .ent-cut-intro{margin:0 0 1rem}",
-      ".ent-cut-lab .ent-cut-layout{display:grid;grid-template-columns:minmax(205px,.72fr) minmax(0,1.28fr);gap:18px;align-items:start}",
-      ".ent-cut-lab .ent-cut-controls,.ent-cut-lab .ent-cut-stage{min-width:0}",
-      ".ent-cut-lab .ent-cut-control-section{margin-top:1rem;padding-top:.8rem;border-top:1px solid var(--ec-border)}",
-      ".ent-cut-lab .ent-cut-control-section:first-child{margin-top:0;padding-top:0;border-top:0}",
-      ".ent-cut-lab h4{margin:0 0 .45rem;font-size:1rem}",
-      ".ent-cut-lab .ent-cut-field{display:grid;gap:4px;margin-top:.65rem}",
-      ".ent-cut-lab .ent-cut-field-caption{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px;color:var(--ec-muted);font-size:.9em;font-weight:650}",
-      ".ent-cut-lab .ent-cut-output{color:var(--ec-accent);font-variant-numeric:tabular-nums}",
-      ".ent-cut-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--ec-accent)}",
-      ".ent-cut-lab .ent-cut-button-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}",
-      ".ent-cut-lab .ent-cut-button{min-width:0;min-height:44px;padding:7px 9px;border:1px solid var(--ec-border);border-radius:6px;background:var(--ec-bg);color:inherit;cursor:pointer;font:inherit;line-height:1.35;overflow-wrap:anywhere}",
-      ".ent-cut-lab .ent-cut-button:hover:not(:disabled){border-color:var(--ec-accent)}",
-      ".ent-cut-lab .ent-cut-button[aria-pressed=true],.ent-cut-lab .ent-cut-button.ent-cut-primary{border-color:var(--ec-accent);background:var(--ec-accent);color:var(--ec-bg)}",
-      ".ent-cut-lab .ent-cut-button:disabled{cursor:not-allowed;opacity:.55}",
-      ".ent-cut-lab .ent-cut-button:focus-visible,.ent-cut-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}",
-      ".ent-cut-lab .ent-cut-formula{margin:.6rem 0 0;padding:8px 10px;overflow-x:auto;border-left:3px solid var(--ec-accent);background:var(--ec-bg);font-family:\"SF Mono\",Menlo,Consolas,monospace;font-size:.86em;line-height:1.55}",
-      ".ent-cut-lab .ent-cut-small{color:var(--ec-muted);font-size:.86em}",
-      ".ent-cut-lab .ent-cut-stage-frame{padding:10px;border:1px solid var(--ec-border);border-radius:6px;background:var(--ec-bg)}",
-      ".ent-cut-lab .ent-cut-stage-title{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-bottom:8px;color:var(--ec-muted);font-size:.88em}",
-      ".ent-cut-lab .ent-cut-figure{margin:0;min-width:0}",
-      ".ent-cut-lab .ent-cut-svg{display:block;width:100%;height:auto;max-width:100%;color:var(--ec-fg)}",
-      ".ent-cut-lab .ent-cut-svg text{fill:currentColor;font-family:inherit;letter-spacing:0}",
-      ".ent-cut-lab .ent-cut-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:12px}",
-      ".ent-cut-lab .ent-cut-metric{min-width:0;padding:9px;border-top:2px solid var(--ec-border);background:var(--ec-panel)}",
-      ".ent-cut-lab .ent-cut-metric span{display:block;color:var(--ec-muted);font-size:11.5px;line-height:1.35}",
-      ".ent-cut-lab .ent-cut-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
-      ".ent-cut-lab .ent-cut-checks{margin:.7rem 0 0;color:var(--ec-muted);font-size:.84em;line-height:1.55}",
-      ".ent-cut-lab .ent-cut-checks strong{color:var(--ec-green)}",
-      ".ent-cut-lab .ent-cut-status{min-height:1.5em;margin:.7rem 0 0}",
-      ".ent-cut-lab .ent-cut-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;color:var(--ec-muted);font-size:.82em}",
-      ".ent-cut-lab .ent-cut-legend-item{display:inline-flex;align-items:center;gap:5px}",
-      ".ent-cut-lab .ent-cut-swatch{display:inline-block;width:22px;height:0;border-top:3px solid var(--ec-accent)}",
-      ".ent-cut-lab .ent-cut-swatch-gold{border-color:var(--ec-gold)}",
-      ".ent-cut-lab .ent-cut-swatch-green{border-color:var(--ec-green)}",
-      ".ent-cut-lab .ent-cut-swatch-red{border-color:var(--ec-red)}",
-      "@media (max-width:760px){.ent-cut-lab .ent-cut-layout{grid-template-columns:minmax(0,1fr)}.ent-cut-lab .ent-cut-stage-frame{padding:7px}}",
-      "@media (max-width:520px){.ent-cut-lab .ent-cut-figure{overflow-x:auto;-webkit-overflow-scrolling:touch}.ent-cut-lab .ent-cut-svg{min-width:720px;max-width:none}.ent-cut-lab .ent-cut-button-grid{grid-template-columns:minmax(0,1fr)}}",
-      "@media (prefers-reduced-motion:reduce){.ent-cut-lab *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}"
-    ].join("\n");
-    var host = doc.head || doc.documentElement || doc.body;
-    if (host) host.appendChild(style);
-  }
-
-  function rangeField(doc, id, label, min, max, step, value) {
-    var wrapper = makeElement(doc, "label", {
-      className: "ent-cut-field",
-      htmlFor: id
-    });
-    var caption = makeElement(doc, "span", {
-      className: "ent-cut-field-caption"
-    });
-    var output = makeElement(doc, "output", {
-      className: "ent-cut-output",
-      htmlFor: id
-    });
-    caption.appendChild(makeElement(doc, "span", { text: label }));
-    caption.appendChild(output);
-    wrapper.appendChild(caption);
-    var input = makeElement(doc, "input", {
-      id: id,
-      type: "range",
-      min: min,
-      max: max,
-      step: step,
-      value: value,
-      "aria-label": label
-    });
-    wrapper.appendChild(input);
-    return { wrapper: wrapper, input: input, output: output };
-  }
-
-  function actionButton(doc, label, primary) {
-    return makeElement(doc, "button", {
-      type: "button",
-      className: primary ? "ent-cut-button ent-cut-primary" : "ent-cut-button",
-      text: label
-    });
-  }
-
-  function metricGrid(doc, items) {
-    var grid = makeElement(doc, "div", { className: "ent-cut-metrics" });
-    var refs = {};
-    items.forEach(function (item) {
-      var card = makeElement(doc, "div", { className: "ent-cut-metric" });
-      card.appendChild(makeElement(doc, "span", { text: item.label }));
-      var value = makeElement(doc, "strong", { text: "—" });
-      card.appendChild(value);
-      grid.appendChild(card);
-      refs[item.id] = value;
-    });
-    return { node: grid, refs: refs };
-  }
-
-  function svgText(doc, svg, x, y, value, attrs) {
-    var merged = {
-      x: x,
-      y: y,
-      "font-size": "11",
-      className: "ent-cut-svg-text"
-    };
-    Object.keys(attrs || {}).forEach(function (key) {
-      merged[key] = attrs[key];
-    });
-    svg.appendChild(makeSvg(doc, "text", merged, value));
-  }
-
-  function svgLine(doc, svg, x1, y1, x2, y2, className, extra) {
-    var attrs = { x1: x1, y1: y1, x2: x2, y2: y2 };
-    if (className) attrs.className = className;
-    Object.keys(extra || {}).forEach(function (key) { attrs[key] = extra[key]; });
-    svg.appendChild(makeSvg(doc, "line", attrs));
-  }
-
-  function svgRect(doc, svg, x, y, width, height, attrs) {
-    var merged = { x: x, y: y, width: width, height: height };
-    Object.keys(attrs || {}).forEach(function (key) { merged[key] = attrs[key]; });
-    svg.appendChild(makeSvg(doc, "rect", merged));
-  }
-
-  function svgCircle(doc, svg, cx, cy, radius, attrs) {
-    var merged = { cx: cx, cy: cy, r: radius };
-    Object.keys(attrs || {}).forEach(function (key) { merged[key] = attrs[key]; });
-    svg.appendChild(makeSvg(doc, "circle", merged));
-  }
-
-  function svgPath(doc, svg, d, attrs) {
-    var merged = { d: d, fill: "none" };
-    Object.keys(attrs || {}).forEach(function (key) { merged[key] = attrs[key]; });
-    svg.appendChild(makeSvg(doc, "path", merged));
-  }
-
-  function panel(doc, svg, x, y, width, height, title) {
-    svgRect(doc, svg, x, y, width, height, {
-      fill: "var(--ec-panel)",
-      stroke: "var(--ec-border)",
-      "stroke-width": 1
-    });
-    svgText(doc, svg, x + 12, y + 22, title, {
-      "font-size": 13,
-      "font-weight": 700,
-      fill: "var(--ec-fg)"
-    });
-  }
-
-  function zeroMatrix(rows, columns) {
-    var matrix = [];
-    for (var row = 0; row < rows; row += 1) {
-      matrix.push(new Array(columns).fill(0));
-    }
-    return matrix;
-  }
-
-  function matrixFromState(amplitudes, n, cut) {
-    var leftSize = 1 << cut;
-    var rightSize = 1 << (n - cut);
-    var matrix = zeroMatrix(leftSize, rightSize);
-    for (var index = 0; index < amplitudes.length; index += 1) {
-      var rightMask = rightSize - 1;
-      var row = index >> (n - cut);
-      var column = index & rightMask;
-      matrix[row][column] = amplitudes[index];
-    }
-    return matrix;
-  }
-
-  function normalizeAmplitudes(values) {
-    var normSquared = values.reduce(function (sum, value) {
-      return sum + value * value;
-    }, 0);
-    var norm = Math.sqrt(normSquared);
-    assertCondition(norm > 0, "state norm must be positive");
-    return values.map(function (value) { return value / norm; });
-  }
-
-  function makeProductState(n) {
-    var values = new Array(1 << n).fill(0);
-    values[0] = 1;
-    return values;
-  }
-
-  function makeGHZState(n) {
-    var values = new Array(1 << n).fill(0);
-    var amplitude = 1 / Math.sqrt(2);
-    values[0] = amplitude;
-    values[values.length - 1] = amplitude;
-    return values;
-  }
-
-  function makeClusterState(n) {
-    var size = 1 << n;
-    var amplitude = 1 / Math.sqrt(size);
-    var values = [];
-    for (var index = 0; index < size; index += 1) {
-      var phaseParity = 0;
-      for (var site = 0; site < n - 1; site += 1) {
-        var leftBit = (index >> (n - 1 - site)) & 1;
-        var rightBit = (index >> (n - 2 - site)) & 1;
-        phaseParity += leftBit * rightBit;
-      }
-      values.push(phaseParity % 2 === 0 ? amplitude : -amplitude);
-    }
-    return values;
-  }
-
-  function makeRandomState(n) {
-    var seed = (0x51a7c0de + 1009 * n) >>> 0;
-    function next() {
-      seed = (Math.imul(1664525, seed) + 1013904223) >>> 0;
-      return seed / 4294967296;
-    }
-    var values = [];
-    for (var index = 0; index < (1 << n); index += 1) {
-      values.push(2 * next() - 1);
-    }
-    return normalizeAmplitudes(values);
-  }
-
-  function amplitudesForPreset(preset, n) {
-    if (preset === "product") return makeProductState(n);
-    if (preset === "ghz") return makeGHZState(n);
-    if (preset === "cluster") return makeClusterState(n);
-    return makeRandomState(n);
-  }
-
-  /*
-   * Symmetric Jacobi rotations are sufficient for the Gram matrices here
-   * (at most 8 by 8). The returned vectors are row-wise eigenvectors.
-   */
-  function jacobiSymmetric(input) {
-    var n = input.length;
-    var matrix = input.map(function (row) { return row.slice(); });
-    var vectors = [];
-    var i;
-    var j;
-    for (i = 0; i < n; i += 1) {
-      vectors.push(new Array(n).fill(0));
-      vectors[i][i] = 1;
-    }
-    var limit = Math.max(120, 50 * n * n);
-    var iterations = 0;
-    for (; iterations < limit; iterations += 1) {
-      var p = 0;
-      var q = n > 1 ? 1 : 0;
-      var largest = 0;
-      for (i = 0; i < n; i += 1) {
-        for (j = i + 1; j < n; j += 1) {
-          if (Math.abs(matrix[i][j]) > largest) {
-            largest = Math.abs(matrix[i][j]);
-            p = i;
-            q = j;
-          }
-        }
-      }
-      if (largest < 1e-13 || n < 2) break;
-      var app = matrix[p][p];
-      var aqq = matrix[q][q];
-      var apq = matrix[p][q];
-      var tau = (aqq - app) / (2 * apq);
-      var tangent = (tau >= 0 ? 1 : -1) /
-        (Math.abs(tau) + Math.sqrt(1 + tau * tau));
-      var cosine = 1 / Math.sqrt(1 + tangent * tangent);
-      var sine = tangent * cosine;
-      for (i = 0; i < n; i += 1) {
-        if (i === p || i === q) continue;
-        var aip = matrix[i][p];
-        var aiq = matrix[i][q];
-        matrix[i][p] = cosine * aip - sine * aiq;
-        matrix[p][i] = matrix[i][p];
-        matrix[i][q] = sine * aip + cosine * aiq;
-        matrix[q][i] = matrix[i][q];
-      }
-      matrix[p][p] =
-        cosine * cosine * app - 2 * sine * cosine * apq + sine * sine * aqq;
-      matrix[q][q] =
-        sine * sine * app + 2 * sine * cosine * apq + cosine * cosine * aqq;
-      matrix[p][q] = 0;
-      matrix[q][p] = 0;
-      for (i = 0; i < n; i += 1) {
-        var vip = vectors[i][p];
-        var viq = vectors[i][q];
-        vectors[i][p] = cosine * vip - sine * viq;
-        vectors[i][q] = sine * vip + cosine * viq;
-      }
-    }
-    var order = [];
-    for (i = 0; i < n; i += 1) order.push(i);
-    order.sort(function (left, right) {
-      return matrix[right][right] - matrix[left][left];
-    });
-    var values = order.map(function (index) {
-      return Math.max(0, matrix[index][index]);
-    });
-    var sortedVectors = order.map(function (index) {
-      var vector = [];
-      for (var row = 0; row < n; row += 1) vector.push(vectors[row][index]);
-      return vector;
-    });
-    return {
-      values: values,
-      vectors: sortedVectors,
-      iterations: iterations
-    };
-  }
-
-  function dot(left, right) {
-    var total = 0;
-    for (var i = 0; i < left.length; i += 1) total += left[i] * right[i];
-    return total;
-  }
-
-  function maxAbs(values) {
-    var maximum = 0;
-    values.forEach(function (value) {
-      maximum = Math.max(maximum, Math.abs(value));
-    });
-    return maximum;
-  }
-
-  function computeSVD(matrix) {
-    var rows = matrix.length;
-    var columns = matrix[0].length;
-    var useLeftGram = rows <= columns;
-    var gramDimension = useLeftGram ? rows : columns;
-    var gram = zeroMatrix(gramDimension, gramDimension);
-    var row;
-    var column;
-    var other;
-    if (useLeftGram) {
-      for (row = 0; row < rows; row += 1) {
-        for (other = 0; other < rows; other += 1) {
-          var leftTotal = 0;
-          for (column = 0; column < columns; column += 1) {
-            leftTotal += matrix[row][column] * matrix[other][column];
-          }
-          gram[row][other] = leftTotal;
-        }
-      }
-    } else {
-      for (column = 0; column < columns; column += 1) {
-        for (other = 0; other < columns; other += 1) {
-          var rightTotal = 0;
-          for (row = 0; row < rows; row += 1) {
-            rightTotal += matrix[row][column] * matrix[row][other];
-          }
-          gram[column][other] = rightTotal;
-        }
-      }
-    }
-    var eigensystem = jacobiSymmetric(gram);
-    var rawSingular = eigensystem.values.map(function (value) {
-      return Math.sqrt(Math.max(0, value));
-    });
-    var normSquared = rawSingular.reduce(function (sum, value) {
-      return sum + value * value;
-    }, 0);
-    assertCondition(normSquared > 0, "SVD norm must be positive");
-    var probabilities = rawSingular.map(function (value) {
-      return (value * value) / normSquared;
-    });
-    var singular = probabilities.map(function (value) { return Math.sqrt(value); });
-    var leftVectors = [];
-    var rightVectors = [];
-    var singularResidual = 0;
-    var transposeResidual = 0;
-    for (var index = 0; index < singular.length; index += 1) {
-      if (rawSingular[index] <= RANK_TOL) {
-        leftVectors.push(new Array(rows).fill(0));
-        rightVectors.push(new Array(columns).fill(0));
-        continue;
-      }
-      var leftVector;
-      var rightVector;
-      if (useLeftGram) {
-        leftVector = eigensystem.vectors[index].slice();
-        rightVector = new Array(columns).fill(0);
-        for (column = 0; column < columns; column += 1) {
-          for (row = 0; row < rows; row += 1) {
-            rightVector[column] += matrix[row][column] * leftVector[row];
-          }
-          rightVector[column] /= rawSingular[index];
-        }
-      } else {
-        rightVector = eigensystem.vectors[index].slice();
-        leftVector = new Array(rows).fill(0);
-        for (row = 0; row < rows; row += 1) {
-          for (column = 0; column < columns; column += 1) {
-            leftVector[row] += matrix[row][column] * rightVector[column];
-          }
-          leftVector[row] /= rawSingular[index];
-        }
-      }
-      leftVectors.push(leftVector);
-      rightVectors.push(rightVector);
-      for (row = 0; row < rows; row += 1) {
-        var av = 0;
-        for (column = 0; column < columns; column += 1) {
-          av += matrix[row][column] * rightVector[column];
-        }
-        singularResidual = Math.max(
-          singularResidual,
-          Math.abs(av - rawSingular[index] * leftVector[row])
-        );
-      }
-      for (column = 0; column < columns; column += 1) {
-        var atU = 0;
-        for (row = 0; row < rows; row += 1) {
-          atU += matrix[row][column] * leftVector[row];
-        }
-        transposeResidual = Math.max(
-          transposeResidual,
-          Math.abs(atU - rawSingular[index] * rightVector[column])
-        );
-      }
-    }
-    var eigenResidual = 0;
-    var orthogonalityResidual = 0;
-    for (index = 0; index < gramDimension; index += 1) {
-      var vector = eigensystem.vectors[index];
-      for (var coordinate = 0; coordinate < gramDimension; coordinate += 1) {
-        var gramVector = 0;
-        for (other = 0; other < gramDimension; other += 1) {
-          gramVector += gram[coordinate][other] * vector[other];
-        }
-        eigenResidual = Math.max(
-          eigenResidual,
-          Math.abs(gramVector - eigensystem.values[index] * vector[coordinate])
-        );
-      }
-      for (other = 0; other < columns; other += 1) {
-        if (other >= gramDimension) break;
-        orthogonalityResidual = Math.max(
-          orthogonalityResidual,
-          Math.abs(dot(vector, eigensystem.vectors[other]) -
-            (index === other ? 1 : 0))
-        );
-      }
-    }
-    var reconstructionResidual = 0;
-    for (row = 0; row < rows; row += 1) {
-      for (column = 0; column < columns; column += 1) {
-        var reconstruction = 0;
-        for (index = 0; index < singular.length; index += 1) {
-          reconstruction += rawSingular[index] *
-            leftVectors[index][row] * rightVectors[index][column];
-        }
-        reconstructionResidual = Math.max(
-          reconstructionResidual,
-          Math.abs(reconstruction - matrix[row][column])
-        );
-      }
-    }
-    var rank = rawSingular.reduce(function (count, value) {
-      return count + (value > RANK_TOL ? 1 : 0);
-    }, 0);
-    var entropy = probabilities.reduce(function (sum, probability) {
-      return probability > RANK_TOL
-        ? sum - probability * Math.log(probability)
-        : sum;
-    }, 0);
-    var spectrum = probabilities.map(function (probability) {
-      return probability > RANK_TOL ? -Math.log(probability) : Infinity;
-    });
-    return {
-      rows: rows,
-      columns: columns,
-      gram: gram,
-      gramDimension: gramDimension,
-      singular: singular,
-      probabilities: probabilities,
-      spectrum: spectrum,
-      rank: rank,
-      entropy: entropy,
-      residuals: {
-        eigen: eigenResidual,
-        orthogonality: orthogonalityResidual,
-        singular: singularResidual,
-        transpose: transposeResidual,
-        reconstruction: reconstructionResidual
-      },
-      iterations: eigensystem.iterations
-    };
-  }
-
-  function analyzeState(amplitudes, n, cut, chi) {
-    var matrix = matrixFromState(amplitudes, n, cut);
-    var svd = computeSVD(matrix);
-    var keptProbability = svd.probabilities.slice(0, chi).reduce(function (sum, value) {
-      return sum + value;
-    }, 0);
-    var truncationError = clamp(1 - keptProbability, 0, 1);
-    var fidelitySquared = clamp(keptProbability, 0, 1);
-    var fidelity = Math.sqrt(fidelitySquared);
-    return {
-      cut: cut,
-      matrix: matrix,
-      svd: svd,
-      keptProbability: keptProbability,
-      truncationError: truncationError,
-      fidelitySquared: fidelitySquared,
-      fidelity: fidelity,
-      entropyCapacity: Math.log(chi)
-    };
-  }
-
-  function analyzeAll(amplitudes, n, chi) {
-    var cuts = [];
-    for (var cut = 1; cut < n; cut += 1) {
-      cuts.push(analyzeState(amplitudes, n, cut, chi));
-    }
-    var exactBondDimension = cuts.reduce(function (maximum, item) {
-      return Math.max(maximum, item.svd.rank);
-    }, 0);
-    var minimumRank = Math.min.apply(null, cuts.map(function (item) {
-      return item.svd.rank;
-    }));
-    var minimumEntropy = Math.min.apply(null, cuts.map(function (item) {
-      return item.svd.entropy;
-    }));
-    var minimumRankCuts = cuts.filter(function (item) {
-      return item.svd.rank === minimumRank;
-    }).map(function (item) { return item.cut; });
-    var minimumEntropyCuts = cuts.filter(function (item) {
-      return Math.abs(item.svd.entropy - minimumEntropy) < 1e-9;
-    }).map(function (item) { return item.cut; });
-    return {
-      cuts: cuts,
-      exactBondDimension: exactBondDimension,
-      minimumRank: minimumRank,
-      minimumRankCuts: minimumRankCuts,
-      minimumEntropy: minimumEntropy,
-      minimumEntropyCuts: minimumEntropyCuts,
-      maximumTruncationError: Math.max.apply(null, cuts.map(function (item) {
-        return item.truncationError;
-      })),
-      minimumFidelitySquared: Math.min.apply(null, cuts.map(function (item) {
-        return item.fidelitySquared;
-      }))
-    };
-  }
-
-  function validateData(data, preset, n) {
-    data.cuts.forEach(function (item) {
-      var totalProbability = item.svd.probabilities.reduce(function (sum, value) {
-        return sum + value;
-      }, 0);
-      assertCondition(Math.abs(totalProbability - 1) < ASSERT_TOL,
-        "Schmidt probabilities must sum to 1");
-      assertCondition(item.svd.residuals.eigen < ASSERT_TOL,
-        "Gram eigen residual is too large");
-      assertCondition(item.svd.residuals.orthogonality < ASSERT_TOL,
-        "right singular vectors are not orthogonal");
-      assertCondition(item.svd.residuals.singular < ASSERT_TOL,
-        "A v = sigma u residual is too large");
-      assertCondition(item.svd.residuals.transpose < ASSERT_TOL,
-        "A^T u = sigma v residual is too large");
-      assertCondition(item.svd.residuals.reconstruction < ASSERT_TOL,
-        "SVD reconstruction residual is too large");
-      assertCondition(item.svd.entropy <= Math.log(Math.max(1, item.svd.rank)) + ASSERT_TOL,
-        "entropy exceeds log exact rank");
-      assertCondition(Math.abs(
-        item.truncationError + item.fidelitySquared - 1
-      ) < ASSERT_TOL, "truncation and squared fidelity must complement");
-    });
-    assertCondition(data.cuts.length === n - 1, "all chain cuts must be present");
-    if (preset === "product") {
-      data.cuts.forEach(function (item) {
-        assertCondition(item.svd.rank === 1, "product state rank must be one");
-        assertCondition(item.svd.entropy < ASSERT_TOL, "product entropy must vanish");
-      });
-    }
-    if (preset === "ghz" || preset === "cluster") {
-      data.cuts.forEach(function (item) {
-        assertCondition(item.svd.rank === 2, "fixed entangled preset rank must be two");
-      });
-    }
-    if (preset === "random") {
-      data.cuts.forEach(function (item) {
-        var fullRank = Math.min(item.svd.rows, item.svd.columns);
-        assertCondition(item.svd.rank === fullRank,
-          "deterministic random toy must have full finite-cut rank");
-      });
-    }
-  }
-
-  function drawCoefficientPanel(doc, svg, x, y, width, height, data, state, api) {
-    panel(doc, svg, x, y, width, height, "① coefficient matrix C^(k)");
-    svgText(doc, svg, x + 12, y + 43,
-      "cut k=" + state.cut + "：2^" + state.cut + " × 2^" +
-      (state.n - state.cut) + " = " + data.svd.rows + " × " + data.svd.columns, {
-        fill: "var(--ec-muted)"
-      });
-    var left = x + 58;
-    var top = y + 68;
-    var plotWidth = width - 78;
-    var plotHeight = height - 96;
-    var cellWidth = plotWidth / data.svd.columns;
-    var cellHeight = plotHeight / data.svd.rows;
-    var maximum = 0;
-    data.matrix.forEach(function (row) {
-      row.forEach(function (value) { maximum = Math.max(maximum, Math.abs(value)); });
-    });
-    maximum = Math.max(maximum, 1e-12);
-    svgText(doc, svg, left + plotWidth / 2, y + 58, "右侧基底 β", {
-      "text-anchor": "middle",
-      "font-size": 10,
-      fill: "var(--ec-muted)"
-    });
-    svgText(doc, svg, x + 20, top + plotHeight / 2, "左侧 α", {
-      "text-anchor": "middle",
-      "font-size": 10,
-      fill: "var(--ec-muted)",
-      transform: "rotate(-90 " + (x + 20) + " " + (top + plotHeight / 2) + ")"
-    });
-    for (var row = 0; row < data.matrix.length; row += 1) {
-      for (var column = 0; column < data.matrix[row].length; column += 1) {
-        var value = data.matrix[row][column];
-        var magnitude = Math.abs(value) / maximum;
-        var fill = value >= 0 ? "var(--ec-accent)" : "var(--ec-red)";
-        svgRect(doc, svg, left + column * cellWidth, top + row * cellHeight,
-          Math.max(1, cellWidth - 1), Math.max(1, cellHeight - 1), {
-            fill: fill,
-            "fill-opacity": value === 0 ? 0.045 : 0.18 + 0.82 * magnitude,
-            stroke: "var(--ec-border)",
-            "stroke-width": 0.6
-          });
-        if (cellWidth >= 27 && cellHeight >= 19) {
-          svgText(doc, svg, left + column * cellWidth + cellWidth / 2,
-            top + row * cellHeight + cellHeight * 0.65,
-            formatNumber(api, value, 2), {
-              "text-anchor": "middle",
-              "font-size": 9,
-              fill: value === 0 ? "var(--ec-muted)" : "var(--ec-fg)"
-            });
-        }
-      }
-    }
-    for (column = 0; column < data.svd.columns; column += 1) {
-      svgText(doc, svg, left + (column + 0.5) * cellWidth, top - 5,
-        String(column), {
-          "text-anchor": "middle",
-          "font-size": 9,
-          fill: "var(--ec-muted)"
-        });
-    }
-    for (row = 0; row < data.svd.rows; row += 1) {
-      svgText(doc, svg, left - 7, top + (row + 0.65) * cellHeight,
-        String(row), {
-          "text-anchor": "end",
-          "font-size": 9,
-          fill: "var(--ec-muted)"
-        });
-    }
-    svgText(doc, svg, x + 12, y + height - 10,
-      "颜色：正/负振幅；透明度：|Cαβ| · ||C||F²=1", {
-        fill: "var(--ec-muted)",
-        "font-size": 10
-      });
-  }
-
-  function drawSpectrumPanel(doc, svg, x, y, width, height, data, state, api) {
-    panel(doc, svg, x, y, width, height, "② Schmidt / SVD：σᵢ、pᵢ、ξᵢ");
-    var svd = data.svd;
-    svgText(doc, svg, x + 12, y + 43,
-      "rank r=" + svd.rank + " · S=" + formatNumber(api, svd.entropy, 3) +
-      " · capacity lnχ=" + formatNumber(api, data.entropyCapacity, 3), {
-        fill: "var(--ec-muted)"
-      });
-    var left = x + 42;
-    var top = y + 66;
-    var right = x + width - 16;
-    var bottom = y + 185;
-    var plotWidth = right - left;
-    var plotHeight = bottom - top;
-    var maxProbability = Math.max.apply(null, svd.probabilities);
-    var barSlot = plotWidth / svd.probabilities.length;
-    var barWidth = Math.max(5, barSlot * 0.64);
-    [0, maxProbability / 2, maxProbability].forEach(function (tick) {
-      var tickY = bottom - (tick / Math.max(maxProbability, 1e-12)) * plotHeight;
-      svgLine(doc, svg, left, tickY, right, tickY, null, {
-        stroke: "var(--ec-border)",
-        "stroke-width": 0.8,
-        "stroke-dasharray": tick === 0 ? "" : "3 4"
-      });
-      svgText(doc, svg, left - 7, tickY + 4, formatNumber(api, tick, 2), {
-        "text-anchor": "end",
-        "font-size": 9,
-        fill: "var(--ec-muted)"
-      });
-    });
-    svgLine(doc, svg, left, top, left, bottom, null, {
-      stroke: "var(--ec-muted)",
-      "stroke-width": 1
-    });
-    svgLine(doc, svg, left, bottom, right, bottom, null, {
-      stroke: "var(--ec-muted)",
-      "stroke-width": 1
-    });
-    svd.probabilities.forEach(function (probability, index) {
-      var barX = left + index * barSlot + (barSlot - barWidth) / 2;
-      var barHeight = probability / Math.max(maxProbability, 1e-12) * plotHeight;
-      svgRect(doc, svg, barX, bottom - barHeight, barWidth, barHeight, {
-        fill: index < state.chi ? "var(--ec-accent)" : "var(--ec-red)",
-        "fill-opacity": probability < RANK_TOL ? 0.18 : 0.86,
-        stroke: index < state.chi ? "var(--ec-accent)" : "var(--ec-red)",
-        "stroke-width": 0.8
-      });
-      svgText(doc, svg, barX + barWidth / 2, bottom + 16,
-        String(index + 1), {
-          "text-anchor": "middle",
-          "font-size": 9,
-          fill: "var(--ec-muted)"
-        });
-    });
-    var cutX = left + Math.min(state.chi, svd.probabilities.length) * barSlot;
-    svgLine(doc, svg, cutX, top - 5, cutX, bottom + 4, null, {
-      stroke: "var(--ec-gold)",
-      "stroke-width": 2,
-      "stroke-dasharray": "4 3"
-    });
-    svgText(doc, svg, cutX, top - 9, "χ", {
-      "text-anchor": "middle",
-      "font-size": 10,
-      "font-weight": 700,
-      fill: "var(--ec-gold)"
-    });
-    var sigmaText = "σ: " + formatList(api, svd.singular, 3);
-    var xiText = "ξ=-ln p: " + svd.spectrum.map(function (value) {
-      return Number.isFinite(value) ? formatNumber(api, value, 2) : "∞";
-    }).join(", ");
-    svgText(doc, svg, x + 12, y + 220, sigmaText, {
-      "font-size": 10,
-      fill: "var(--ec-muted)"
-    });
-    svgText(doc, svg, x + 12, y + 240, xiText, {
-      "font-size": 10,
-      fill: "var(--ec-muted)"
-    });
-    svgText(doc, svg, x + 12, y + height - 31,
-      "εχ=" + formatNumber(api, data.truncationError, 4) +
-      " · Fχ=" + formatNumber(api, data.fidelity, 4) +
-      " · Fχ²=" + formatNumber(api, data.fidelitySquared, 4), {
-        "font-size": 11,
-        "font-weight": 700,
-        fill: data.truncationError < ASSERT_TOL ? "var(--ec-green)" : "var(--ec-fg)"
-      });
-    svgText(doc, svg, x + 12, y + height - 11,
-      "蓝色保留前 χ 条；红色是丢弃尾部 · pᵢ=σᵢ²", {
-        "font-size": 10,
-        fill: "var(--ec-muted)"
-      });
-  }
-
-  function drawBridgePanel(doc, svg, x, y, width, height, allData, state, api) {
-    panel(doc, svg, x, y, width, height, "③ 链上每个 cut：Schmidt rank / entropy 的桥");
-    var cuts = allData.cuts;
-    var left = x + 46;
-    var right = x + width - 46;
-    var siteY = y + 245;
-    var bridgeBase = y + 205;
-    var spacing = (right - left) / Math.max(1, state.n - 1);
-    var maxRank = Math.max.apply(null, cuts.map(function (item) {
-      return item.svd.rank;
-    }));
-    var maxEntropy = Math.max.apply(null, cuts.map(function (item) {
-      return item.svd.entropy;
-    }));
-    var minimumRank = allData.minimumRank;
-    var minimumEntropy = allData.minimumEntropy;
-    for (var site = 0; site < state.n - 1; site += 1) {
-      svgLine(doc, svg, left + site * spacing, siteY,
-        left + (site + 1) * spacing, siteY, null, {
-          stroke: "var(--ec-muted)",
-          "stroke-width": 2
-        });
-    }
-    for (site = 0; site < state.n; site += 1) {
-      svgCircle(doc, svg, left + site * spacing, siteY, 7, {
-        fill: "var(--ec-bg)",
-        stroke: "var(--ec-accent)",
-        "stroke-width": 2
-      });
-      svgText(doc, svg, left + site * spacing, siteY + 24, String(site + 1), {
-        "text-anchor": "middle",
-        "font-size": 10,
-        fill: "var(--ec-muted)"
-      });
-    }
-    cuts.forEach(function (item, index) {
-      var leftX = left + index * spacing;
-      var rightX = left + (index + 1) * spacing;
-      var isSelected = item.cut === state.cut;
-      var isMinRank = item.svd.rank === minimumRank;
-      var isMinEntropy = Math.abs(item.svd.entropy - minimumEntropy) < 1e-9;
-      var bridgeHeight = 37 + 22 * item.svd.rank / Math.max(1, maxRank);
-      var path = "M" + leftX.toFixed(2) + "," + bridgeBase.toFixed(2) +
-        " C" + leftX.toFixed(2) + "," + (bridgeBase - bridgeHeight).toFixed(2) +
-        " " + rightX.toFixed(2) + "," + (bridgeBase - bridgeHeight).toFixed(2) +
-        " " + rightX.toFixed(2) + "," + bridgeBase.toFixed(2);
-      svgPath(doc, svg, path, {
-        stroke: isSelected ? "var(--ec-accent)" :
-          isMinRank ? "var(--ec-gold)" : "var(--ec-muted)",
-        "stroke-width": isSelected ? 5 : 2 + 2 * item.svd.rank / Math.max(1, maxRank),
-        opacity: isSelected ? 1 : 0.78
-      });
-      var labelY = bridgeBase - bridgeHeight - 12;
-      svgText(doc, svg, (leftX + rightX) / 2, labelY,
-        "k" + item.cut + "  r" + item.svd.rank, {
-          "text-anchor": "middle",
-          "font-size": 10,
-          "font-weight": isSelected ? 700 : 500,
-          fill: isSelected ? "var(--ec-accent)" :
-            isMinRank ? "var(--ec-gold)" : "var(--ec-fg)"
-        });
-      svgText(doc, svg, (leftX + rightX) / 2, labelY + 13,
-        "S=" + formatNumber(api, item.svd.entropy, 2), {
-          "text-anchor": "middle",
-          "font-size": 9,
-          fill: isMinEntropy ? "var(--ec-green)" : "var(--ec-muted)"
-        });
-      if (isMinEntropy) {
-        svgCircle(doc, svg, (leftX + rightX) / 2, bridgeBase + 7, 3.5, {
-          fill: "var(--ec-green)"
-        });
-      }
-    });
-    svgText(doc, svg, x + 16, y + 42,
-      "蓝色=当前 cut · 金色=局部最小 rank（最窄 rank 桥）· 绿色点=最小熵 cut", {
-        "font-size": 10,
-        fill: "var(--ec-muted)"
-      });
-    svgText(doc, svg, x + 16, y + 73,
-      "统一 exact MPS χ*=max r=" + allData.exactBondDimension +
-      " · 当前固定 χ=" + state.chi +
-      " · 熵容量 lnχ=" + formatNumber(api, Math.log(state.chi), 3), {
-        "font-size": 11,
-        "font-weight": 700,
-        fill: state.chi >= allData.exactBondDimension
-          ? "var(--ec-green)" : "var(--ec-fg)"
-      });
-    svgText(doc, svg, x + 16, y + height - 47,
-      "min rank cuts: " + allData.minimumRankCuts.join(", ") +
-      " · min S cuts: " + allData.minimumEntropyCuts.join(", "), {
-        "font-size": 10,
-        fill: "var(--ec-muted)"
-      });
-    svgText(doc, svg, x + 16, y + height - 25,
-      "全链固定 χ 的最坏截断 ε=" +
-      formatNumber(api, allData.maximumTruncationError, 4) +
-      " · 最小 F²=" + formatNumber(api, allData.minimumFidelitySquared, 4), {
-        "font-size": 10,
-        fill: "var(--ec-muted)"
-      });
-    svgText(doc, svg, x + 16, y + height - 8,
-      "桥的 rank 与熵是两本账；熵小不自动保证谱尾小。", {
-        "font-size": 10,
-        fill: "var(--ec-muted)"
-      });
-  }
-
-  function drawDashboard(doc, stage, allData, state, api) {
-    var svg = stage.svg;
-    clear(svg);
-    var titleId = stage.id + "-title";
-    var descId = stage.id + "-desc";
-    svg.appendChild(makeSvg(doc, "title", { id: titleId },
-      "双分割系数矩阵、Schmidt SVD、纠缠谱、截断与链上桥宽"));
-    svg.appendChild(makeSvg(doc, "desc", { id: descId },
-      state.presetLabel + "，N=" + state.n + "，当前 cut=" + state.cut +
-      "，固定 bond dimension chi=" + state.chi +
-      "；图中显示 coefficient matrix、Schmidt weights、entanglement spectrum " +
-      "和每个 cut 的 rank 与 entropy。"));
-    svg.setAttribute("aria-labelledby", titleId + " " + descId);
-    svgRect(doc, svg, 0, 0, 900, 760, {
-      fill: "var(--ec-bg)",
-      stroke: "none"
-    });
-    var current = allData.cuts[state.cut - 1];
-    drawCoefficientPanel(doc, svg, 12, 12, 426, 310, current, state, api);
-    drawSpectrumPanel(doc, svg, 462, 12, 426, 310, current, state, api);
-    drawBridgePanel(doc, svg, 12, 334, 876, 414, allData, state, api);
-  }
-
-  function buildLab(root, api) {
-    var doc = root.ownerDocument || document;
-    injectStyles(doc);
-    root.classList.add("ent-cut-lab");
-    INSTANCE += 1;
-    var serial = INSTANCE;
-    var ids = {
-      n: "ent-cut-n-" + serial,
-      cut: "ent-cut-cut-" + serial,
-      chi: "ent-cut-chi-" + serial,
-      stage: "ent-cut-stage-" + serial
-    };
-    var presets = [
-      { id: "product", label: "product |000…0⟩" },
-      { id: "ghz", label: "GHZ" },
-      { id: "cluster", label: "cluster-like" },
-      { id: "random", label: "固定随机 toy" }
-    ];
-    var state = {
-      preset: "ghz",
-      presetLabel: "GHZ",
-      n: 6,
-      cut: 3,
-      chi: 2
-    };
-    var shell = makeElement(doc, "div", { className: "ent-cut-shell" });
-    shell.appendChild(makeElement(doc, "h3", {
-      className: "ent-cut-heading",
-      text: "Entanglement cut lab：从 C 到 Schmidt 桥宽"
-    }));
-    shell.appendChild(makeElement(doc, "p", {
-      className: "ent-cut-intro",
-      text: "所有态与数字都由固定公式/固定种子重算：先选一条态，再选 cut，最后固定 bond dimension χ。蓝色柱是保留谱，红色柱是截断尾；链图同时显示每个 cut 的 exact rank 与 entropy。"
-    }));
-
-    var layout = makeElement(doc, "div", { className: "ent-cut-layout" });
-    var controls = makeElement(doc, "aside", {
-      className: "ent-cut-controls",
-      "aria-label": "纠缠切分控制"
-    });
-    var presetSection = makeElement(doc, "div", {
-      className: "ent-cut-control-section"
-    });
-    presetSection.appendChild(makeElement(doc, "h4", {
-      text: "确定性态预设（先预测）"
-    }));
-    var presetButtons = {};
-    var presetGrid = makeElement(doc, "div", {
-      className: "ent-cut-button-grid",
-      role: "group",
-      "aria-label": "态预设"
-    });
-    presets.forEach(function (preset) {
-      var button = actionButton(doc, preset.label, preset.id === state.preset);
-      button.setAttribute("aria-pressed", preset.id === state.preset ? "true" : "false");
-      button.addEventListener("click", function () {
-        state.preset = preset.id;
-        state.presetLabel = preset.label;
-        render("已切换到“" + preset.label + "”；先比较五个 cut 的 rank，再看谱尾。");
-      });
-      presetButtons[preset.id] = button;
-      presetGrid.appendChild(button);
-    });
-    presetSection.appendChild(presetGrid);
-    controls.appendChild(presetSection);
-
-    var dimensionSection = makeElement(doc, "div", {
-      className: "ent-cut-control-section"
-    });
-    dimensionSection.appendChild(makeElement(doc, "h4", { text: "切分与接口容量" }));
-    var nField = rangeField(doc, ids.n, "qubit 数 N", 4, 8, 1, state.n);
-    var cutField = rangeField(doc, ids.cut, "当前 cut k", 1, state.n - 1, 1, state.cut);
-    var chiField = rangeField(doc, ids.chi, "固定 bond dimension χ", 1,
-      1 << Math.floor(state.n / 2), 1, state.chi);
-    dimensionSection.appendChild(nField.wrapper);
-    dimensionSection.appendChild(cutField.wrapper);
-    dimensionSection.appendChild(chiField.wrapper);
-    dimensionSection.appendChild(makeElement(doc, "div", {
-      className: "ent-cut-formula",
-      text: "C^(k) ∈ R^(2^k×2^(N−k))；p_i=σ_i²；S=−Σp_i ln p_i；εχ=Σ_{i>χ}p_i"
-    }));
-    controls.appendChild(dimensionSection);
-
-    var actionSection = makeElement(doc, "div", {
-      className: "ent-cut-control-section"
-    });
-    var resetButton = actionButton(doc, "重置为 N=6 的 GHZ / k=3 / χ=2", true);
-    resetButton.addEventListener("click", function () {
-      state.preset = "ghz";
-      state.presetLabel = "GHZ";
-      state.n = 6;
-      state.cut = 3;
-      state.chi = 2;
-      render("已重置：GHZ，N=6，cut k=3，固定 χ=2。");
-    });
-    actionSection.appendChild(resetButton);
-    actionSection.appendChild(makeElement(doc, "p", {
-      className: "ent-cut-note",
-      text: "χ 是统一的表示容量；它不是某个 cut 的 exact rank，也不是唯一的 MPS 参数坐标。固定 χ 时，实验按每个 cut 的谱分别计算最优截断。"
-    }));
-    controls.appendChild(actionSection);
-
-    var stage = makeElement(doc, "section", {
-      className: "ent-cut-stage",
-      "aria-labelledby": ids.stage
-    });
-    var stageFrame = makeElement(doc, "div", { className: "ent-cut-stage-frame" });
-    var stageTitle = makeElement(doc, "div", { className: "ent-cut-stage-title" }, [
-      makeElement(doc, "strong", {
-        id: ids.stage,
-        text: "三面板对账：C → SVD → 桥宽"
-      }),
-      makeElement(doc, "span", { text: "原生 SVG · 可重复 · 无远程依赖" })
-    ]);
-    var figure = makeElement(doc, "figure", {
-      className: "ent-cut-figure",
-      "aria-label": "纠缠切分三面板图"
-    });
-    var svg = makeSvg(doc, "svg", {
-      className: "ent-cut-svg",
-      viewBox: "0 0 900 760",
-      role: "img",
-      preserveAspectRatio: "xMidYMid meet"
-    });
-    figure.appendChild(svg);
-    stageFrame.appendChild(stageTitle);
-    stageFrame.appendChild(figure);
-    stage.appendChild(stageFrame);
-    var metrics = metricGrid(doc, [
-      { id: "rank", label: "当前 exact rank r_k" },
-      { id: "entropy", label: "当前 entropy S_k" },
-      { id: "capacity", label: "固定 χ 的 ln χ" },
-      { id: "tail", label: "当前截断 εχ" },
-      { id: "fidelity", label: "overlap Fχ" },
-      { id: "fidelitySquared", label: "squared fidelity Fχ²" },
-      { id: "exactChi", label: "全链 exact χ*" },
-      { id: "worstTail", label: "全链最坏 εχ" }
-    ]);
-    stage.appendChild(metrics.node);
-    var legend = makeElement(doc, "div", { className: "ent-cut-legend" }, [
-      makeElement(doc, "span", { className: "ent-cut-legend-item" }, [
-        makeElement(doc, "i", { className: "ent-cut-swatch" }), "当前 cut / 保留谱"
-      ]),
-      makeElement(doc, "span", { className: "ent-cut-legend-item" }, [
-        makeElement(doc, "i", { className: "ent-cut-swatch ent-cut-swatch-red" }), "截断尾"
-      ]),
-      makeElement(doc, "span", { className: "ent-cut-legend-item" }, [
-        makeElement(doc, "i", { className: "ent-cut-swatch ent-cut-swatch-gold" }), "最窄 rank 桥"
-      ]),
-      makeElement(doc, "span", { className: "ent-cut-legend-item" }, [
-        makeElement(doc, "i", { className: "ent-cut-swatch ent-cut-swatch-green" }), "最小 entropy"
-      ])
-    ]);
-    stage.appendChild(legend);
-    var checks = makeElement(doc, "p", { className: "ent-cut-checks" });
-    stage.appendChild(checks);
-    var status = makeElement(doc, "p", {
-      className: "ent-cut-status",
-      "data-cl-live": true,
-      "aria-live": "polite",
-      "aria-atomic": "true"
-    });
-    stage.appendChild(status);
-    layout.appendChild(controls);
-    layout.appendChild(stage);
-    shell.appendChild(layout);
-    root.replaceChildren(shell);
-
-    function maximumChi(n) {
-      return 1 << Math.floor(n / 2);
-    }
-
-    function presetId() {
-      return state.preset;
-    }
-
-    function render(message) {
-      state.n = clamp(Math.round(number(state.n, 6)), 4, 8);
-      state.cut = clamp(Math.round(number(state.cut, 3)), 1, state.n - 1);
-      state.chi = clamp(Math.round(number(state.chi, 2)), 1, maximumChi(state.n));
-      var amplitudes = amplitudesForPreset(state.preset, state.n);
-      var allData = analyzeAll(amplitudes, state.n, state.chi);
-      validateData(allData, state.preset, state.n);
-      var current = allData.cuts[state.cut - 1];
-      nField.input.value = String(state.n);
-      cutField.input.max = String(state.n - 1);
-      cutField.input.value = String(state.cut);
-      chiField.input.max = String(maximumChi(state.n));
-      chiField.input.value = String(state.chi);
-      nField.output.textContent = String(state.n);
-      cutField.output.textContent = "k=" + state.cut +
-        "（" + state.cut + " | " + (state.n - state.cut) + "）";
-      chiField.output.textContent = "χ=" + state.chi +
-        "，lnχ=" + formatNumber(api, Math.log(state.chi), 3);
-      metrics.refs.rank.textContent = String(current.svd.rank);
-      metrics.refs.entropy.textContent = formatNumber(api, current.svd.entropy, 4);
-      metrics.refs.capacity.textContent = formatNumber(api, Math.log(state.chi), 4);
-      metrics.refs.tail.textContent = formatNumber(api, current.truncationError, 5);
-      metrics.refs.fidelity.textContent = formatNumber(api, current.fidelity, 5);
-      metrics.refs.fidelitySquared.textContent = formatNumber(api, current.fidelitySquared, 5);
-      metrics.refs.exactChi.textContent = String(allData.exactBondDimension);
-      metrics.refs.worstTail.textContent = formatNumber(api, allData.maximumTruncationError, 5);
-      checks.replaceChildren(
-        doc.createTextNode(
-          "数值核对：每个 cut 都通过 Gram→Jacobi→SVD；"
-        ),
-        makeElement(doc, "strong", {
-          text: "本征残差 " + formatNumber(api, Math.max.apply(null,
-            allData.cuts.map(function (item) { return item.svd.residuals.eigen; })), 2) +
-            " · 正交残差 " + formatNumber(api, Math.max.apply(null,
-              allData.cuts.map(function (item) {
-                return item.svd.residuals.orthogonality;
-              })), 2) +
-            " · 重构残差 " + formatNumber(api, Math.max.apply(null,
-              allData.cuts.map(function (item) {
-                return item.svd.residuals.reconstruction;
-              })), 2)
-        }),
-        doc.createTextNode("；归一化、奇异向量残差与 εχ+Fχ²=1 也已断言。")
-      );
-      drawDashboard(doc, { svg: svg, id: "ent-cut-stage-" + serial },
-        allData, {
-          n: state.n,
-          cut: state.cut,
-          chi: state.chi,
-          presetLabel: state.presetLabel
-        }, api);
-      Object.keys(presetButtons).forEach(function (id) {
-        var active = id === presetId();
-        presetButtons[id].setAttribute("aria-pressed", active ? "true" : "false");
-        presetButtons[id].classList.toggle("ent-cut-primary", active);
-      });
-      var capacityMessage = current.svd.entropy <= Math.log(state.chi) + ASSERT_TOL
-        ? "当前 S≤lnχ 容量上界成立；仍需看 exact rank 与谱尾。"
-        : "当前 S>lnχ：固定 χ 的容量不足以承载该 cut 的熵。";
-      var exactMessage = state.chi >= allData.exactBondDimension
-        ? "全链 χ≥χ*，此预设可被统一 MPS 精确表示。"
-        : "全链 χ<χ*，至少一个 cut 需要截断；比较最坏 ε 与 F²。";
-      status.textContent = message || (
-        "当前为“" + state.presetLabel + "”，cut k=" + state.cut +
-        "；" + capacityMessage + " " + exactMessage
-      );
-      if (message && api && typeof api.announce === "function") {
-        api.announce(root, message);
-      }
-    }
-
-    nField.input.addEventListener("input", function () {
-      state.n = number(nField.input.value, state.n);
-      state.cut = clamp(state.cut, 1, Math.round(state.n) - 1);
-      state.chi = clamp(state.chi, 1, maximumChi(Math.round(state.n)));
-      render("");
-    });
-    cutField.input.addEventListener("input", function () {
-      state.cut = number(cutField.input.value, state.cut);
-      render("");
-    });
-    chiField.input.addEventListener("input", function () {
-      state.chi = number(chiField.input.value, state.chi);
-      render("");
-    });
-    render("已准备 GHZ 预设：先预测五个 cut 的 rank，再调 χ 看截断。");
-  }
-
-  window.CourseLearning.register("entanglement-cut", buildLab);
-}());
+function selfTest(){let checks=0;const ok=v=>{if(!v)throw Error('Tensor203 view '+checks);checks++;};for(const p of PRESETS){const s=compute(p.parameters);ok(plots(s).length===6);ok(tables(s).length===12);for(const plot of plots(s))for(const q of plot.series)for(const v of q.points)if(v)ok(v.every(Number.isFinite));for(let i=0;i<4;i++)ok(feedback(i,QUESTIONS[i][2]).correct);}return {status:'PASS',checks};}
+const API={LIMITS,DEFAULTS,PRESETS,STATE_NAMES,config,QUESTIONS,compute,snapshot:compute,plots,tables,svg,feedback,fmt,mount,selfTest,stateVector,spectrum,compress,expand,applyH,observables,svdLeft};if(typeof module!=="undefined"&&module.exports)module.exports=API;if(hostWindow&&hostWindow.CourseLearning)hostWindow.CourseLearning.register("entanglement-cut",mount);})(typeof window!=="undefined"?window:null);

@@ -1,184 +1,279 @@
-# 量子多体 · 张量网络与变分方法
+# 量子多体 · 从Schmidt分解到全链张量压缩
 
-> **对标**：Schollwöck（DMRG 综述）/ Orús（TN 入门）｜ **前置**：cm-01、qi-01（纠缠熵）、数学站 nla（SVD——本页的发动机）
-> N 个自旋 1/2 的一般纯态有 $2^N$ 个复振幅，显式存储成本随系统大小指数增长。一维、局域、有能隙等条件下的部分基态可以利用纠缠谱衰减压缩；张量网络为这类结构提供表示。本页从 SVD 进入 MPS／DMRG，再连接变分蒙卡与量子模拟。
+> 六个自旋只有64个复振幅，足以把张量网络的核心步骤完整展开：重排、分解、截断、收缩，以及检查损失了什么。
+>
+> **前置：**[纠缠与量子信息](qi-01-qubits.html)、[数值线性代数中的SVD](../../grad-math/site/nla-01-svd-stability.html)。如果对约化密度矩阵还不熟悉，先回到量子信息课核对偏迹。
+>
+> **完成后应能：**从系数矩阵读出纠缠谱，实际构造一条开放边界MPS，用保存的张量重建全态，并分别检查压缩误差、物理观测和方差。
 
 <div data-learning-page></div>
 
-<section class="learning-layer" markdown="1" aria-labelledby="mb-tensor-learning-title">
+<style>
+.tensor203-course .answer {margin:1rem 0;padding:.65rem .85rem;border:1px solid var(--border,#d8d1c2);border-radius:8px}
+.tensor203-course .answer summary {cursor:pointer;font-weight:600}
+.tensor203-network {max-width:100%;overflow-x:auto}
+.tensor203-network svg {display:block;width:100%;min-width:720px;height:auto}
+.tensor203-static {max-width:100%;overflow-x:auto}
+.tensor203-course .tensor203-static table {display:table;min-width:760px;max-width:none;overflow:visible}
+.tensor203-course .learning-lab {box-sizing:border-box;max-width:100%}
+@media(max-width:640px){.tensor203-course .learning-lab {margin-inline:0!important;width:100%}}
+</style>
 
-## 学习层：一条量子链的“桥”到底要多宽？
+<section class="learning-layer tensor203-course" markdown="1">
 
-<h3 id="mb-tensor-learning-title">1. 具体谜题：把一条切开的链交给一个窄接口</h3>
+## 1. 接口宽度到底在限制什么
 
-把 $N=6$ 个 qubit 排成一条链，在第 $k$ 个位置切开。左边有 $k$ 个 qubit，右边有 $N-k$ 个 qubit；整态仍有 $2^N$ 个振幅，但切口两边只通过一个“接口”交换信息。谜题是：**接口至少需要多少条独立通道，才能不丢掉这个态？**
+把六个自旋从左到右编号1至6。第 $k$ 个自旋之后切开，左边有 $2^k$ 个基态，右边有 $2^{6-k}$ 个基态。一般纯态需要64个复数：
+$|\psi\rangle=\sum_{s_1,\ldots,s_6}c_{s_1\cdots s_6}|s_1\cdots s_6\rangle$，其中 $s_j=0,1$，且 $\sum|c|^2=1$。
 
-这里的“通道数”不是物理上的粒子数，而是系数矩阵的秩。它会把四个容易混在一起的词拆开：
+先问一个具体问题：左右两边需要多少条彼此独立的关联通道，才能保存这个态？这里的通道数是矩阵的秩，不是粒子的数量，也不等于一个远程通信协议的速率。通道的权重同样重要：一百条极弱通道可能比两条同等重要的通道更容易近似舍弃。
 
-- **Schmidt rank**：精确表示所需的通道数；
-- **Schmidt coefficients** $\sigma_i$：每条通道的权重；
-- **entanglement spectrum**：约定 $\xi_i=-\ln p_i$，其中 $p_i=\sigma_i^2$ 是约化密度矩阵的本征值；
-- **截断误差**：固定接口宽度 $\chi$ 时，被丢掉的总权重，而不是“丢掉了多少个系数”。
+本页固定六站点，故意保留完整态作参照。把64个振幅预先算出来再压缩，不能证明算法在任意大系统中都高效；它让每一步可以检查，随后才接入直接操作张量的大链算法。
 
-<h3>2. 先做预测：先猜桥宽，再打开实验台</h3>
+## 2. 复系数矩阵与Schmidt分解
 
-对下面四个 $N=6$ 的确定态，先写下第 $k=3$ 个 cut 的 Schmidt rank，再预测 $\chi=2$ 是否能在所有 cuts 上精确表达：
-
-1. product：$|000000\rangle$；
-2. GHZ：$\bigl(|000000\rangle+|111111\rangle\bigr)/\sqrt2$；
-3. 链式 cluster-like：$\prod_{j=1}^{5}\mathrm{CZ}_{j,j+1}|+\rangle^{\otimes 6}$；
-4. 固定种子的实随机 toy：把 64 个确定性伪随机振幅归一化。
-
-特别预测两件反直觉的事：GHZ 并不需要随链长增长的 rank；而随机 toy 的中间 cut 通常会把 $8$ 条独立通道都用上。最后问自己：如果只知道 $S\leq\ln\chi$，是否就能断言“精确”或“高保真”？
-
-<h3>3. 最小模型：双分割 coefficient matrix → SVD → 纠缠谱</h3>
-
-以计算基底的二进制字符串为行列索引，把全态振幅重排为
+把二进制字符串的左、右部分分别当作行列编号：
 
 $$
-C^{(k)}_{\alpha\beta}=c_{\alpha\beta},
-\qquad C^{(k)}\in\mathbb{C}^{2^k\times 2^{N-k}},
-\qquad \sum_{\alpha,\beta}\lvert C^{(k)}_{\alpha\beta}\rvert^2=1.
+C^{(k)}_{\alpha\beta}=c_{\alpha\beta},\qquad
+C^{(k)}=U\Sigma V^\dagger,\qquad
+\rho_A=C^{(k)}C^{(k)\dagger}.
 $$
 
-对这一个**双分割系数矩阵**做 SVD：
+按从大到小排列奇异值 $\sigma_i\ge0$，令 $p_i=\sigma_i^2$。它们是约化密度矩阵的非零谱，满足 $\sum_i p_i=1$。本页约定纠缠谱为 $\xi_i=-\ln p_i$，纠缠熵为 $S=-\sum_i p_i\ln p_i$；$p_i=0$ 时熵贡献取连续极限0，而 $\xi_i$ 不放到一个伪造的有限高度上。
+
+复数的共轭不能省略。若 $u_i,v_i$ 指SVD矩阵 $U,V$ 的列向量，则态展开是
+$|\psi\rangle=\sum_i\sigma_i|u_i\rangle_A|\overline{v_i}\rangle_B$。
+也可以把右侧共轭列直接命名为Schmidt基矢；关键是定义前后一致。
+
+<details class="answer" markdown="1"><summary>练习1：为什么对一个自旋施加相位门不改变切口谱？</summary>
+
+对每个站点施加 $\operatorname{diag}(1,e^{ij\theta})$。无论在哪个切口，这些门都能写为左右两侧的乘积 $U_A\otimes U_B$，因此
+$C\mapsto U_A C U_B^T$。
+转置的 $U_B^T$ 仍是幺正矩阵，所以奇异值不变。振幅一般变成复数，但“出现虚部”本身不是纠缠增加的证据。
+
+实验中的相位控制就是这一组门。比较“复随机态压缩”和“局部相位旋转”两个预设，各切口权重应一致。固定Hamiltonian的能量却可能变化，因为我们改变了态，未同时变换观测算符。
+
+</details>
+
+## 3. 四种态，把“复杂”拆成不同含义
+
+乘积态 $|000000\rangle$ 在五个切口上的精确秩都是1。GHZ态
+$(|000000\rangle+|111111\rangle)/\sqrt2$ 的五个秩都是2，每处熵为 $\ln2$：宏观分支的叠加不必要求随链长增长的键维。
+
+相邻Bell对 $|\Phi^+\rangle_{12}|\Phi^+\rangle_{34}|\Phi^+\rangle_{56}$ 的秩依次为 $2,1,2,1,2$。切在一对内部时需要两条通道，切在完整Bell对之间时只需一条。开放链cluster态由 $|+\rangle^{\otimes6}$ 经过五个相邻CZ门制备，每个切口只有一条跨界纠缠边，精确秩为2。
+
+实验还提供固定种子的复随机向量。它是一份可复现的64维数据，不能据此宣称验证了Haar随机态的平均熵或某个热力学极限。
+
+<details class="answer" markdown="1"><summary>练习2：Bell对链需要的统一键维是多少？最窄的切口又在哪里？</summary>
+
+五个切口的秩是 $2,1,2,1,2$，因此精确表示所需的最小统一键维是最大值2。第2、4个切口最窄，但它们不能决定整条链的统一容量。
+
+开放边界MPS的第 $k$ 条内部键取值最多为 $\chi_k$，故 $r_k\le\chi_k$。给定一个态，在允许逐步精确SVD构造的情况下，最小统一键维为 $\max_k r_k$。这里说的是表示这个指定态，尚未解决如何找到某个Hamiltonian的基态。
+
+</details>
+
+## 4. 低熵、高秩与浮点阈值
+
+谱 $(0.8,0.1,0.1)$ 的熵约为0.639032，小于 $\ln2\approx0.693147$，但精确秩仍为3。必要条件 $S\le\ln\chi$ 不能反过来当作“原始态有rank不超过 $\chi$”的证明。
+
+更明显的例子是中间切口的八个权重
+$p_0=1-\varepsilon$、$p_1=\cdots=p_7=\varepsilon/7$。
+只要 $\varepsilon>0$，精确秩就为8；当 $\varepsilon=10^{-12}$ 时，却只需丢弃总权重 $10^{-12}$ 就得到单通道近似。
+
+网页单独显示数值秩：数出 $\sigma_i>10^{-6}$ 的项。这个阈值只是教学显示的诊断口径，**不用于截断张量**。在上述例子中，小奇异值约为 $3.78\times10^{-7}$，数值秩会显示1，而可解析精确秩仍是8。程序保留微小权重并直接求尾和，避免用 $1-\text{保留权重}$ 相减时损失有效数字。
+
+<details class="answer" markdown="1"><summary>练习3：对三权重态，χ=2时究竟丢了多少？</summary>
+
+保留0.8与0.1，丢弃权重为0.1。归一化以后，保留权重变成 $8/9,1/9$，与原态的重叠振幅为 $\sqrt{0.9}$，平方保真度为0.9。
+
+原始熵小于 $\ln2$，却仍达不到0.99的平方保真度目标。实验把这一谱放在中间切口，具体非零基底为 $|000000\rangle,|001001\rangle,|010010\rangle$；其他切口的谱需要重新重排计算。
+
+</details>
+
+## 5. 单个切口：实际重建最优近似
+
+保留前 $\chi$ 个奇异值，重建未归一化系数矩阵
+$C_\chi=U_\chi\Sigma_\chi V_\chi^\dagger$。在这个切口的矩阵秩约束下，Eckart–Young定理给出
 
 $$
-C^{(k)}=U\,\mathrm{diag}(\sigma_1,\sigma_2,\ldots)\,V^{\dagger},
-\qquad \sigma_1\geq\sigma_2\geq\cdots\geq0.
+\varepsilon_\chi=\sum_{i>\chi}p_i
+=\|C-C_\chi\|_F^2,
+\qquad \|C_\chi\|_F^2=1-\varepsilon_\chi.
 $$
 
-它等价于 Schmidt 分解
+再把 $C_\chi$ 展平成向量并归一化为 $|\phi_\chi\rangle$，得到
+$F=|\langle\psi|\phi_\chi\rangle|=\sqrt{1-\varepsilon_\chi}$，$F^2=1-\varepsilon_\chi$。
+本页的 $F$ 始终是重叠振幅，$F^2$ 始终是平方保真度。完整表保存真正重建的64个振幅，再直接测量重叠，不能只把同一个尾和公式复制成三列就称为独立验证。
+
+若截断位置处有相等的奇异值，最优保留子空间可能不唯一。不同SVD实现可以返回不同基矢乃至不同近似态，而达到相同最优误差；此时应比较误差和适当的不变量，不能要求每个奇异向量的字节都相同。
+
+<details class="answer" markdown="1"><summary>练习4：丢弃权重与归一化态距离有什么区别？</summary>
+
+未归一化误差平方是 $\varepsilon$。选取使重叠为正的相位后，归一化态距离平方为
+$2-2\sqrt{1-\varepsilon}=2\varepsilon/(1+\sqrt{1-\varepsilon})$。
+二者在很小的 $\varepsilon$ 时接近，但不是同一个定义。
+
+对GHZ的单通道近似，$\varepsilon=1/2$，归一化态距离平方则为 $2-\sqrt2\approx0.585786$。比较算法误差之前，必须先对齐是否归一化、是否平方，以及相位如何处理。
+
+</details>
+
+## 6. 从左到右，把SVD变成六个张量
+
+第一步把原态重排为 $2\times32$，做SVD后保留至多 $\chi$ 列。把左侧正交列重命名为 $A^{s_1}_{1a_1}$，将剩余乘积 $\Sigma V^\dagger$ 传给下一步。第二步把余量重排为 $(2r_1)\times16$，其中行索引是 $(a_1,s_2)$。继续进行，直到最后一个张量。
 
 $$
-\lvert\psi\rangle=\sum_i\sigma_i\lvert u_i\rangle_A\lvert v_i\rangle_B.
+\widetilde c_{s_1\cdots s_6}
+=\sum_{a_1,\ldots,a_5}
+A^{s_1}_{1a_1}A^{s_2}_{a_1a_2}\cdots A^{s_6}_{a_5 1}.
 $$
 
-因此 $p_i=\sigma_i^2$，$\rho_A=CC^{\dagger}$ 的非零本征值就是 $p_i$；纠缠熵为
+每个中间张量都满足左规范条件
+$\sum_{a_{j-1},s_j}\overline{A^{s_j}_{a_{j-1}a}}A^{s_j}_{a_{j-1}b}=\delta_{ab}$。
+这保证已经处理过的左侧基是正交的。实验保存每个张量的所有复数元素，并实际按上式收缩；最后的64个振幅可以与输入逐项比较。
+
+<figure class="diagram" markdown="1">
+<div class="tensor203-network" role="region" tabindex="0" aria-label="六站点MPS结构图，可横向滚动">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 350" role="img" aria-labelledby="tn-chain-title tn-chain-desc"><title id="tn-chain-title">六个张量如何连成一个量子态</title><desc id="tn-chain-desc">六个方框分别代表六个站点的张量。向上的线是维数为二的物理指标，五条横线是要对所有取值求和的内部虚拟指标。两端没有悬空虚拟键，边界键维为一。</desc><rect width="900" height="350" rx="12" fill="#fffdf7"/><g fill="#263442" font-family="system-ui,sans-serif" text-anchor="middle"><text x="450" y="35" font-size="24">先固定六个物理指标，再把内部指标全部求和</text>
+<path d="M133 185H207" stroke="#ac5151" stroke-width="3"/><text x="170" y="235" font-size="20">α1</text>
+<path d="M100 151V100" stroke="#2474bc" stroke-width="3"/><text x="100" y="78" font-size="22">s1=0,1</text><rect x="67" y="151" width="66" height="68" rx="7" stroke="#2474bc" stroke-width="2" fill="#edf4fc"/><text x="100" y="192" font-size="24">A1</text>
+<path d="M273 185H347" stroke="#ac5151" stroke-width="3"/><text x="310" y="235" font-size="20">α2</text>
+<path d="M240 151V100" stroke="#2474bc" stroke-width="3"/><text x="240" y="78" font-size="22">s2=0,1</text><rect x="207" y="151" width="66" height="68" rx="7" stroke="#2474bc" stroke-width="2" fill="#edf4fc"/><text x="240" y="192" font-size="24">A2</text>
+<path d="M413 185H487" stroke="#ac5151" stroke-width="3"/><text x="450" y="235" font-size="20">α3</text>
+<path d="M380 151V100" stroke="#2474bc" stroke-width="3"/><text x="380" y="78" font-size="22">s3=0,1</text><rect x="347" y="151" width="66" height="68" rx="7" stroke="#2474bc" stroke-width="2" fill="#edf4fc"/><text x="380" y="192" font-size="24">A3</text>
+<path d="M553 185H627" stroke="#ac5151" stroke-width="3"/><text x="590" y="235" font-size="20">α4</text>
+<path d="M520 151V100" stroke="#2474bc" stroke-width="3"/><text x="520" y="78" font-size="22">s4=0,1</text><rect x="487" y="151" width="66" height="68" rx="7" stroke="#2474bc" stroke-width="2" fill="#edf4fc"/><text x="520" y="192" font-size="24">A4</text>
+<path d="M693 185H767" stroke="#ac5151" stroke-width="3"/><text x="730" y="235" font-size="20">α5</text>
+<path d="M660 151V100" stroke="#2474bc" stroke-width="3"/><text x="660" y="78" font-size="22">s5=0,1</text><rect x="627" y="151" width="66" height="68" rx="7" stroke="#2474bc" stroke-width="2" fill="#edf4fc"/><text x="660" y="192" font-size="24">A5</text>
+<path d="M800 151V100" stroke="#2474bc" stroke-width="3"/><text x="800" y="78" font-size="22">s6=0,1</text><rect x="767" y="151" width="66" height="68" rx="7" stroke="#2474bc" stroke-width="2" fill="#edf4fc"/><text x="800" y="192" font-size="24">A6</text>
+<text x="450" y="285" font-size="21">蓝线：选定一个自旋基态　红线：共享索引，范围由键维决定</text><text x="450" y="323" font-size="20">一个方框 = 一份张量；整条链收缩 = 一个复振幅 c(s₁,…,s₆)</text></g></svg>
+</div>
+<figcaption>物理腿的维数是2；内部键维取决于需要保留的通道。实际元素与收缩结果见实验的张量表。</figcaption>
+</figure>
+
+本实现中间不归一化，便于记绝对权重账。只有全部步骤结束后，才将重建态归一化用于物理观测。张量规范不是额外的物理自由度：在内部键插入 $X X^{-1}$ 不改变收缩后的态，但任意规范下的局部矩阵范数未必就是物理态范数。
+
+## 7. 全链误差：哪一组尾和可以相加
+
+记第 $j$ 步从**当前未归一化余量**丢掉的权重为 $\delta_j$。它与“对原始态在第 $j$ 个切口独立做SVD所得的尾部”一般不同。
+
+在精确算术和正交投影下，本页这一次从左到右的压缩具有嵌套的保留子空间。早先丢掉的分量与以后仍能保留的全部分量正交，因此
 
 $$
-S_k=-\sum_i p_i\ln p_i,
-\qquad \xi_i=-\ln p_i\quad(p_i>0),
-\qquad r_k=\#\{i:\sigma_i>0\}.
+\|\psi-\widetilde\psi\|^2=\sum_{j=1}^{5}\delta_j,
+\qquad \|\widetilde\psi\|^2=1-\sum_j\delta_j,
+\qquad F_{\rm chain}^2=\|\widetilde\psi\|^2.
 $$
 
-$\sigma_i$ 是 Schmidt 系数，不能未经说明就把它们本身叫作 entanglement spectrum；本页采用 $\xi_i=-\ln p_i$ 的约定。实验会同时显示 $C^{(k)}$、$p_i$ 和 $\xi_i$，让三个层次互相对账。
+最后一个等式使用归一化的重建态来计算保真度。程序同时记录尾和、直接重建距离、保留范数和内积；浮点计算的微小差异通过独立复算监测，上式不是一个包含严格浮点舍入界的证书。
 
-### 4. 动手验证：固定 bond dimension，看截断究竟保留了什么
+这些等式适用于这里的嵌套投影过程。不能拿它们去直接替代多步时间演化的误差传播：两个压缩之间若还有幺正门，投影子空间未必嵌套，见[张量时间演化与误差](bridge-16-tebd-errors.html)。
 
-实验台的控制顺序就是算法顺序：先选态，再选 cut，再调固定 bond dimension $\chi$。
+<details class="answer" markdown="1"><summary>练习5：GHZ为什么得到1/2，而不是1/32？</summary>
 
-1. **Coefficient matrix** 面板显示 $C^{(k)}$ 的每个振幅；矩阵尺寸随 $2^k\times2^{N-k}$ 改变。
-2. **Schmidt/SVD** 面板显示 $p_i=\sigma_i^2$ 的权重柱、被 $\chi$ 切开的尾部和 $\xi_i=-\ln p_i$。
-3. 对最优 rank-$\chi$ 近似，Eckart–Young 给出 $\varepsilon_\chi=\sum_{i>\chi}p_i=1-\sum_{i\leq\chi}p_i$、$F_\chi=\sqrt{1-\varepsilon_\chi}$、$F_\chi^2=1-\varepsilon_\chi$。这里 $F_\chi$ 明确指归一化截断态的 overlap amplitude，$F_\chi^2$ 是常用的 squared fidelity；实验两者都标出，避免“保真度”口径漂移。
-4. 链底部把每个 cut 画成一座桥，标出 $(r_k,S_k)$。金色标记“最窄桥”（局部 rank/entropy 最小），蓝色标记精确 MPS 的最大需求 $\chi_* = \max_k r_k$；这两个量不要混为一个“瓶颈”。
+从左向右以 $\chi=1$ 压缩GHZ，第一步选择一个等权分支并丢弃另一半，$\delta_1=1/2$。留下的态已经是一个未归一化乘积态，后四步的实际丢弃权重都是0。所以全链 $F^2=1/2$。
+
+若另外对原始GHZ的五个切口独立计算，每处的最佳单通道保真度都为1/2。将它们相乘得到1/32，是把五次“针对同一个原始态的分析”误当成了五次“作用于更新后余量的算法”。实验的步骤图把这两组尾部放在一起比较。
+
+</details>
+
+## 8. 压缩并没有自动求出基态
+
+给定Hamiltonian
+$H=-J\sum_{j=1}^{5}Z_jZ_{j+1}-h\sum_{j=1}^{6}X_j$，本页用对角ZZ项和单比特翻转完整计算 $H|\psi\rangle$。压缩前后都测量能量、平均磁化、相邻ZZ和完整残差方差。
+
+压缩原始态是在尽量保存这个态；DMRG则在MPS族中变分降低能量。两者的目标不同。逐步SVD在每个当前矩阵上最优，并不保证得到所有有限键维MPS中的全局最佳近似，也不保证压缩后能量单调降低。
+
+对归一化纯态，保守观测界为
+$|\langle H\rangle_\phi-\langle H\rangle_\psi|\le2\|H\|\sqrt{1-F^2}$，
+且这里可用 $\|H\|\le5|J|+6|h|$。它可能很松；实验同时给出实际能量差，避免把一个宽上界读成实际误差。
+
+<details class="answer" markdown="1"><summary>练习6：为什么能量很接近，也未必意味着态很接近？</summary>
+
+能量只是一个观测的平均值。不同本征态的叠加可以给同样的均值，近简并能级之间也可能有很小能量差却完全正交。若要从能量误差推到基态重叠，需要已知基态能量、谱隙及其适用条件；本页没有把这些外部信息悄悄补上。
+
+上面的观测界是“态接近 ⇒ 有界观测接近”的方向，不能无条件倒过来。网页保留全态保真度与完整方差，正是为了避免只用一条能量曲线验收。
+
+</details>
+
+## 9. 完整方差、局部能量与节点
+
+完整方差为
+$\operatorname{Var}_\psi(H)=\|(H-E)|\psi\rangle\|^2/\|\psi\|^2$，其中 $E=\langle H\rangle$。
+变分蒙卡常按 $p_s=|\psi_s|^2/\|\psi\|^2$ 采样，使用非零振幅处的局部能量
+$E_{\rm loc}(s)=(H\psi)_s/\psi_s$ 估计均值。
+
+对于离散基底，若试探态有精确节点，局部能量方差需要格外小心。设 $S=\{s:\psi_s\ne0\}$，直接拆开完整残差可得
+
+$$
+\operatorname{Var}_\psi(H)
+=\sum_{s\in S}p_s|E_{\rm loc}(s)-E|^2
++\frac{\sum_{s\notin S}|(H\psi)_s|^2}{\|\psi\|^2}.
+$$
+
+最后一项在只按 $|\psi|^2$ 采样时不会出现。若没有节点，或Hamiltonian不把态送到节点上，它才为零。本页把节点的局部能量记为不适用，并逐构型列出残差，不用除以一个人为小数掩盖问题。
+
+<details class="answer" markdown="1"><summary>练习7：乘积态|000000〉的样本方差为什么会骗人？</summary>
+
+它只以概率1采到全零构型。在该构型上 $E_{\rm loc}=-5J$，所以样本局部能量没有波动。但 $-h\sum_jX_j$ 还产生六个互相正交、各有振幅 $-h$ 的单翻转态，它们都在原态的节点上。
+
+因此 $E=-5J$，完整方差为 $6h^2$。默认 $J=h=1$ 时能量为−5，样本局部方差为0，完整方差为6。把横场设为0后，完整方差才为0；若再取 $J<0$，这个零方差态也不是反铁磁耦合的基态。
+
+</details>
+
+## 10. 面积律、DMRG和神经拟设各自承诺什么
+
+一维短程局域、有能隙等条件下的基态面积律解释了许多成功的MPS近似；但本页已经展示，低熵不等于固定小键维的精确表示。需要的近似键维还取决于误差目标、谱尾和系统规模。临界态、淬火后的长时态及二维系统需要重新检查这些条件。
+
+DMRG的实际表现应以键维、多个初态、扫描收敛、能量和方差报告，不能对任意Hamiltonian预先承诺机器精度。二维PEPS与MERA改变网络结构，也引入各自的收缩代价或近似条件。
+
+神经网络波函数扩大了可选择的试探态族。它的优点必须与采样、优化、对称性约束和独立基准一起评估；“表达力强”不自动消除符号/相位结构的困难，不保证找到全局最优，也不等于在所有问题上替代MPS。本站AI课程可帮助理解模型与优化，但多体物理的误差验收仍要落在观测和可复算的参照上。
+
+## 11. 实验：先预测，再保存可重建的证据
+
+先选GHZ与 $\chi=1$，读出五步丢弃权重，再把 $\chi$ 改为2。接着选择微小尾部，比较线性权重图、对数图、解析精确秩和数值秩。最后比较复随机态及其局部相位旋转，检查谱不变而能量可能改变。
+
+完整记录包含八项输入、64个原始振幅、每个切口的谱、六个张量、逐步权重、所有重建振幅及逐构型残差。下载以后可以独立收缩，不必相信网页的总结数字。
 
 <div class="learning-lab" data-learning-lab="entanglement-cut" markdown="1">
 
-**无 JavaScript 时的静态读法：**固定 $N=6$，$k=3$ 时 $C$ 是 $8\times8$ 矩阵。默认 GHZ 态的非零元只有
+**无脚本对照：**六份记录包含输入态、全部切口、逐步张量、重建振幅与完整残差。每张图标明所用态族；连线只帮助比较离散数据。
 
-<pre><code>C^{(3)}_{0,0}=C^{(3)}_{7,7}=1/√2，其他元为 0。
-σ=(1/√2, 1/√2, 0, …)，p=(1/2, 1/2, 0, …)，S=ln 2，r=2。
-χ=1: εχ=1/2，Fχ=1/√2，Fχ²=1/2；χ=2: εχ=0，Fχ=1。</code></pre>
+<figure class="plot" markdown="1">
+![六图：纠缠权重、微小尾部、Bell对切口、全链保真度、逐步误差与能量。](assets/img/mb-01-tensor-certificates.svg)
+<figcaption>单切口最优性不能代替全链重建；实际步骤尾和不同于原始切口尾部。数值阈值不用于截断张量。</figcaption>
+</figure>
 
-| 固定态（$N=6$） | 各 cut 的 exact Schmidt rank | 中间 cut 的读法 | $\chi=2$ 能否跨过所有 cut？ |
-|---|---:|---|---|
-| product 态（全零计算基） | $1,1,1,1,1$ | $S_k=0$ | 能，精确 |
-| GHZ | $2,2,2,2,2$ | $p=(1/2,1/2)$，$S_k=\ln2$ | 能，精确 |
-| 链式 cluster-like | $2,2,2,2,2$ | 每个相邻 cut 至多一条 graph-state 纠缠边，$S_k=\ln2$ | 能，精确 |
-| 固定随机 toy | $2,4,8,4,2$（本 toy 为满秩） | 权重通常不均匀，$S_3$ 需由完整谱计算 | 不能精确跨过中间 cut |
+<div class="tensor203-static" role="region" tabindex="0" aria-label="张量压缩固定记录，可横向滚动" markdown="1">
 
-因此 exact MPS bond dimension 是 $\chi_*=\max_k r_k$；但若只求近似，真正要看的不是 rank，而是 $\sum_{i>\chi}p_i$。随机行只是一组 $64$ 维的可复现实验数据，不是 Page 定理，也不声称代表随机态系综的渐近平均。
+| 预设 | χ | 中间切口熵 | 实际步尾和 | 全链F² | 原始切口F²乘积 | 原态完整方差 |
+|---|---:|---:|---:|---:|---:|---:|
+| ghz | 1 | 0.69314718 | 0.5 | 0.5 | 0.03125 | 6 |
+| entropy | 2 | 0.63903186 | 0.1 | 0.9 | 0.81 | 16.302742 |
+| tiny | 1 | 3.057702e-11 | 1e-12 | 1 | 1 | 6.0000045 |
+| bells | 2 | 0.69314718 | 0 | 1 | 1 | 14 |
+| random | 2 | 1.625649 | 0.644562 | 0.355438 | 0.25608124 | 12.376965 |
+| phase | 2 | 1.625649 | 0.644562 | 0.355438 | 0.25608124 | 11.790817 |
 
 </div>
 
-<h3>5. 误区与边界：低熵、低 rank、面积律不是同一句话</h3>
+[下载六份完整记录](assets/learning/projects/tensor-certificates/run-snapshot.json){download="tensor-frozen-records.json"}。GHZ的五个原始切口F²乘积是1/32，实际全链F²却是1/2；请从保存的张量独立收缩核对。
 
-- **Exact rank 与近似 $\chi$ 不同。** 一个态可以有很大的 exact rank，但尾部权重极小，因而用小 $\chi$ 得到高保真近似；反过来，若保真度目标很高，必须检查具体谱的尾和，而不是只看一个 rank 标签。
-- **$S\leq\ln\chi$ 只是容量上界。** 它是 rank-$\chi$ 表示的必要条件，不是充分条件。比如谱权重 $(0.8,0.1,0.1)$ 的熵约为 $0.639<\ln2$，但 exact rank 是 $3$，$\chi=2$ 时最多保留 $F^2=0.9$；熵没有告诉你尾部如何分布。
-- **面积律有前提。** 一维、局域、短程、通常还要有能隙和适当的基态条件时，许多体系的基态纠缠熵才呈现与边界相关的面积律；临界基态可有对数修正，激发态、长时间演化态、无序/随机态和高维问题不能直接套用“所有局域哈密顿量都满足面积律”。面积律也主要约束熵；它本身不把 exact rank 变成固定小数，也不自动给出某个保真度下的 $\chi$。
-- **MPS 有规范冗余。** 内部键上做可逆变换 $A^{s_j}\mapsto X_{j-1}^{-1}A^{s_j}X_j$，物理态不变。$\chi$ 是表示容量，不是唯一参数坐标；左/右规范或 mixed-canonical form 才把 SVD 的 Schmidt 系数放到清楚的位置。
-- **随机 toy 不是定理。** 本实验的伪随机向量、有限 $N$ 和有限精度只用于把“中间 cut 需要更多通道”变成可复核观察；Page 型陈述必须另行声明随机系综、平均/典型性与维数极限。
 
-<h3>6. 回到 formal：MPS 为什么把每个 cut 的答案串起来</h3>
+</div>
 
-开放边界 MPS 写成
+<details class="answer" markdown="1"><summary>练习8：怎样验收一个新的张量压缩实现？</summary>
 
-$$
-c_{s_1\cdots s_N}=\sum_{a_1,\ldots,a_{N-1}}
-A^{s_1}_{1a_1}A^{s_2}_{a_1a_2}\cdots A^{s_N}_{a_{N-1}1}.
-$$
+至少选择乘积态、GHZ、Bell对、简并谱、微小非零尾部和一般复态。分别检查输入归一化、复数共轭、奇异值谱、左规范、保存张量的独立收缩和最终物理观测。用完整态残差检查误差，而不只复用同一套尾和公式。
 
-在第 $k$ 个 cut 上，虚拟指标 $a_k$ 的取值最多为 $\chi_k$，所以 $r_k\leq\chi_k$ 且 $S_k\leq\ln\chi_k$。对所有 cuts 同时要求精确表示时，最小的统一 bond dimension 为
+对简并谱，不把另一套SVD给出的不同基矢直接判错；对微小尾部，要求相对误差检查，不能用宽绝对容差允许把正权重变成0。若要转向大链，就换成独立MPO收缩与可控小系统基准，并明确哪些完整态参照已无法继续使用。
 
-$$
-\chi_*=\max_{1\leq k<N}r_k.
-$$
+</details>
 
-实际局部更新的推导见[MPS 范数与局部优化](bridge-07-mps-metric.html)：先从环境重叠构造 N，再解 H_eff a=ENa；左右环境正交后才能省略 N。随后可在[乘积 MPS 往返扫描](bridge-08-product-sweeps.html)中逐次核查完整能量，比较固定点与精确基态。
+## 12. 从压缩练习走向真正的变分计算
 
-这解释了链图的两种读法：金色“最窄桥”告诉你哪里局部最容易压缩；蓝色最大桥需求才决定统一 MPS 的 exact capacity。DMRG 做的不是凭空假定态低秩，而是在一组有限 $\chi$ 的 MPS 中变分最小化 $\langle\psi|H|\psi\rangle$；若能隙、纠缠谱衰减等条件让截断尾部很小，它就会高效，但“低熵”仍不能替代对谱尾和误差的检查。
+下一步在[MPS范数与局部优化](bridge-07-mps-metric.html)中构造环境度量，再到[乘积MPS往返扫描](bridge-08-product-sweeps.html)核对每次能量变化。[MPO与Krylov](bridge-14-mpo-krylov.html)提供算符作用接口；[全链方差与初态](bridge-15-variance-initial-states.html)比较完整方差与局部残差；[连续作业](route-01-mps-readiness.html)要求独立提交中间计算。
 
-### 7. 迁移问题：把桥宽账本带到新态
-
-1. 对六 qubit 的 Bell-pair 链 $\lvert\Phi^+\rangle_{12}\lvert\Phi^+\rangle_{34}\lvert\Phi^+\rangle_{56}$，其中 $\lvert\Phi^+\rangle=(\lvert00\rangle+\lvert11\rangle)/\sqrt2$，预测 cuts $k=1,2,3,4,5$ 的 rank 图样。哪几座桥是最窄的？统一 exact $\chi_*$ 是多少？
-2. 构造一个只在某个 cut 有 Schmidt 权重 $(0.8,0.1,0.1)$ 的态。为什么 $S<\ln2$ 仍不能说 $\chi=2$ 精确？若要求 squared fidelity 至少 $0.99$，你还缺什么信息？
-3. 把“局域基态通常可压缩”迁移到二维 PEPS、临界链或 quench 后的态：逐项写下你需要重新检查的条件，并区分“有一个近似算法表现不错”与“有一个无条件定理”。
+进一步阅读：[Schollwöck的MPS综述，4.1与4.5节](https://arxiv.org/html/1008.3477)核对规范与截断；[Orús的张量网络入门](https://arxiv.org/html/1306.2164)比较不同网络结构；[Carleo与Troyer的神经网络波函数论文，附录A](https://arxiv.org/html/1606.02318)给出局部能量和随机优化的定义。本页的误差账本与节点反例直接从所写有限模型推导，不能据此宣称覆盖了所有张量算法或采样方法。
 
 </section>
-
-
-<figure class="diagram" markdown="1">
-![MPS/张量网络图：张量方块 + 物理腿/虚拟键的连线。](assets/img/mb-01-tensor-network.svg)
-<figcaption><span class="fig-id">图 mb-01.1</span>MPS/张量网络图：张量方块 + 物理腿/虚拟键的连线。</figcaption>
-</figure>
-
-## 1. 指数墙与纠缠的地图
-
-一般态 $|\psi\rangle = \sum c_{s_1\cdots s_N}|s_1\cdots s_N\rangle$——$2^N$ 个系数。**但一类物理基态特殊**：在一维短程局域、能隙等条件下，许多局域哈密顿量的基态满足**面积律**【引用】——子区域纠缠熵 ∝ 边界面积而非体积（一维 = 常数！对比典型高维随机系综的体积律）：**自然界的一部分基态是低纠缠的**——指数空间里的可压缩角落（可与机器学习中的低维结构假设作启发性比较，但两者的假设、误差和定理不同）。这不是所有局域哈密顿量、所有激发态或所有有限随机 toy 的无条件结论。
-
-## 2. 矩阵乘积态（MPS）：SVD 的物理加冕
-
-**构造【推导级】**：对系数张量沿链逐点做 SVD（数学站 nla-01 的 Eckart–Young 连环使用），每步只保留前 $\chi$ 个奇异值：
-
-$$
-c_{s_1s_2\cdots s_N} \approx \sum_{\{a\}} A^{s_1}_{a_1}A^{s_2}_{a_1a_2}\cdots A^{s_N}_{a_{N-1}}
-$$
-
-——**态 = 一串小矩阵的乘积**；参数从 $2^N$ 压到 $O(N\chi^2)$。**键维 $\chi$ 的含义**：截断处的奇异值是 Schmidt 系数，其平方 $p_i=\sigma_i^2$ 是约化密度矩阵的谱（常用 entanglement spectrum 再记作 $\xi_i=-\ln p_i$）——$\chi$ 直接封顶纠缠熵 $S \leq \ln\chi$。对**一维有能隙局域哈密顿量的基态**，面积律使 MPS 通常能以适中的 $\chi$ 高效逼近，而不是说每个面积律态都能被固定的小 $\chi$ 精确表示；临界系统还会出现对数纠缠修正。压缩格式与物理规律因此相配（Eckart–Young + 纠缠谱衰减，是 DMRG 成功的核心解释）。
-
-**DMRG【机理级】**：在 MPS 族内变分极小化 $\langle\psi|H|\psi\rangle$（qm-04 变分法的多体版）——逐点扫描优化局部张量（交替最小二乘的气质，数学站优化线）。**战绩**：一维量子系统的基态能量算到机器精度级——凝聚态数值的金标准（White 1992【引用】）；二维用 PEPS 推广（收缩变难【引用】）、临界系统用 MERA（尺度分层——**RG 思想（asm-03）内建进网络结构**：张量网络是"RG 的数据结构化"）。
-
-## 3. 变分蒙卡与神经网络波函数
-
-**VMC 框架**：参数化试探态 $|\psi_\theta\rangle$，蒙卡采样（comp-01 Metropolis 按 $|\psi|^2$）估计能量与梯度、随机梯度下降——**"猜家族 + 采样 + 优化"**：物理版的机器学习训练循环（逐项对应：模型/损失/SGD）。
-
-**神经网络波函数（2017–）【引用 Carleo–Troyer】**：试探态取 RBM/深网——**用 ML 的表达力换更大的纠缠覆盖**（超越 MPS 的面积律限制）；自旋系统与量子化学（FermiNet 类）上已具竞争力——**Hubbard/高温超导（cm 线的未解）是它与 DMRG、量子计算机（qi-03 量子模拟）三方赛跑的共同靶场**：本站三大板块（物理/数值/ML）在此汇成同一条前沿。
-
-**符号问题一嘴**（comp-01 的欠条）：费米子行列式的负权重使 QMC 指数变慢——正是这堵墙让"量子模拟量子"（费曼初心）与神经网络方法有了不可替代的席位。
-
-## 4. 方法之间的连接
-
-这条课程路线在这里汇合：**多体物理的前沿方法 = 线性代数（SVD）+ 统计（蒙卡）+ 优化（变分）+ 信息（纠缠熵）+ ML（神经拟设）**——这些先修在同一研究问题中共同发挥作用。往前每一步（更好的拟设、更聪明的采样、量子硬件）都在本站的知识地图上有坐标。
-
-## 5. 练习与要点
-
-**例 1（MPS 手算最小例）** 四自旋 GHZ 态 $\frac{|0000\rangle + |1111\rangle}{\sqrt2}$：$\chi = 2$ 的 MPS 显式写出（每个矩阵 $2\times2$ 对角）——"宏观叠加纠缠熵却只有 $\ln2$"：低纠缠 ≠ 平庸的样本。
-
-**例 2（面积律的反差数感）** 在完整 Hilbert 空间上按 Haar 测度抽取的典型纯态，等分链的纠缠熵接近 $\frac N2\ln2$，精确 MPS 表示一般需要指数级键维；这不是所有随机生成协议的结论。基态即使 $S\sim O(1)$，给定近似误差所需的 $\chi$ 也须检查纠缠谱尾部。许多局域淬火会在一定时间窗口内产生随时间增长的纠缠，使固定键维的长时间演化更难；不要将其当作所有 Hamiltonian 的无条件规律。
-
-**例 3（VMC 玩具全流程）** 一维横场 Ising（$N = 10$）：RBM 拟设 + Metropolis + SGD 找基态、对照精确对角化——实现时应报告软件环境、采样误差、多个初值和对角化基准，不预先承诺代码长度或收敛时间：**物理 × ML 的进阶上机作业**。$\blacksquare$
-
----
-
-## 物理讲义库落成
-
-沿着基础路线回顾：牛顿的苹果 → 场与波 → 熵与量子 → 时空曲率 → 规范对称 → 多体涌现。回望全程，三条母题反复出现：**变分原理**（力学-量子-场论-ML 的通用语法）、**对称性**（Noether-规范-破缺——守恒与相互作用与质量的总出处）、**统计涌现**（配分函数-相变-RG——多者异也）。它们与数学站的地基、AI 站的应用连成一张网——**物理是这张网的中枢**：往下是数学的严格，往上是计算与智能的工程。祝复习顺利、常回来查表。
-
-路线验收：[连续作业：从 Schmidt 截断到变分扫描](route-01-mps-readiness.html)。先独立提交中间计算，再用题解定位需要回补的步骤。
-
-后续计算：[MPO与Krylov](bridge-14-mpo-krylov.html)把算符也组织成张量，通过 Hv 接口接回缓存扫描；显式局部残差与SVD丢弃权重分开检查。
-
-后续诊断：[全链方差与初态](bridge-15-variance-initial-states.html)用双层MPO测H²，比较四个初态；两站点零方差激发态解释为何局部残差不能充当基态证书。
-
-继续演化：[张量时间演化与误差](bridge-16-tebd-errors.html)实际施加复数门、移动正交中心并截断；用三条轨迹区分时间分裂、压缩与浮点检查，给可证明的多步误差界。

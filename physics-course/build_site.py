@@ -386,6 +386,8 @@ def sync_learning_assets(md_names):
         shutil.copytree(SHARED / "projects" / "kubo-certificates", destination / "projects" / "kubo-certificates")
     if "physics-active-matter" in names:
         shutil.copytree(SHARED / "projects" / "active-certificates", destination / "projects" / "active-certificates")
+    if "entanglement-cut" in names:
+        shutil.copytree(SHARED / "projects" / "tensor-certificates", destination / "projects" / "tensor-certificates")
 
 
 def previous_build_time(out: Path, fallback: str) -> str:
