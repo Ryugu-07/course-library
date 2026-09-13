@@ -380,6 +380,8 @@ def sync_learning_assets(md_names):
         shutil.copytree(SHARED / "projects" / "neutrino-certificates", destination / "projects" / "neutrino-certificates")
     if "physics-collider-detector" in names:
         shutil.copytree(SHARED / "projects" / "collider-certificates", destination / "projects" / "collider-certificates")
+    if "fluctuation-symmetry" in names:
+        shutil.copytree(SHARED / "projects" / "fluctuation-certificates", destination / "projects" / "fluctuation-certificates")
 
 
 def previous_build_time(out: Path, fallback: str) -> str:
