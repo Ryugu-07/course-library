@@ -392,6 +392,8 @@ def sync_learning_assets(md_names):
         shutil.copytree(SHARED / "projects" / "evidence-certificates", destination / "projects" / "evidence-certificates")
     if "scalar-lsz" in names:
         shutil.copytree(SHARED / "projects" / "lsz-certificates", destination / "projects" / "lsz-certificates")
+    if "scalar-loop-subtraction" in names:
+        shutil.copytree(SHARED / "projects" / "loop-certificates", destination / "projects" / "loop-certificates")
 
 
 def previous_build_time(out: Path, fallback: str) -> str:
