@@ -56,7 +56,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 02:03</div>
+    <div class="build-time">构建于 2026-09-14 00:51</div>
   </div>
 </nav>
 <main id="content">
@@ -68,9 +68,12 @@ try {
 <li><a href="#3">3. 从光学信号到摩尔分数，中间必须有校准</a></li>
 <li><a href="#4">4. 仪器读得准确，不等于每小时都代表背景大气</a></li>
 <li><a href="#5-057020047">5. 0.57、0.20与0.47为什么都可能是正确的？</a></li>
-<li><a href="#6">6. 从变化率到排放，缺的是可辨识的物理模型</a></li>
+<li><a href="#6">6. 从变化率到排放，缺的是可辨识的物理模型</a><ul>
+<li><a href="#_1">湿度也测得不准时，干空气换算会增加多少不确定度？</a></li>
+</ul>
+</li>
 <li><a href="#7">7. 两道迁移题</a></li>
-<li><a href="#_1">速查与资料</a></li>
+<li><a href="#_2">速查与资料</a></li>
 </ul>
 </div>
 </details>
@@ -118,6 +121,17 @@ try {
 <p>这里必须先把C、源E和汇S定义为相容量纲；例如C为箱内CO₂摩尔量，E、S为摩尔/年。即使知道<span class="arithmatex">\(dC/dt\)</span>，也只知道差值：对任意函数h，同时令<span class="arithmatex">\(E'=E+h,S'=S+h\)</span>，观测变化率不变。只靠C无法把源和汇分别识别出来。</p>
 <p>实际单站测量还含空间输运；ppm/年是摩尔分数的变化率，不能直接替换成Gt/年。要推断排放，还需大气总量、空间代表性、输运、源汇与其他观测约束。本项目的真实数据拟合只给一条站点记录在指定模型下的统计描述。</p>
 <p>同样，2020—2021留出检验只表示这些行没有用于本课程回归的系数计算；数据本身是2026修订版。我们没有把这项事后练习当成当年的实时预测或新的气候研究结论。</p>
+<h3 id="_1">湿度也测得不准时，干空气换算会增加多少不确定度？<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>本页用 <span class="arithmatex">\(x_d=x_w/(1-h)\)</span>，其中 <span class="arithmatex">\(h\)</span> 是水汽摩尔分数；<span class="arithmatex">\(h=0.03\)</span> 对应 3%，不是把数字 3 直接代入分母。在线性误差传播近似下，两种输入的灵敏度为</p>
+<div class="arithmatex">\[\frac{\partial x_d}{\partial x_w}=\frac1{1-h},\qquad \frac{\partial x_d}{\partial h}=\frac{x_w}{(1-h)^2}.\]</div>
+<p>若湿值误差与湿度误差独立，标准差分别为 <span class="arithmatex">\(\sigma_w\)</span> 与 <span class="arithmatex">\(\sigma_h\)</span>，则</p>
+<div class="arithmatex">\[\sigma_d^2\simeq\frac{\sigma_w^2}{(1-h)^2}+\frac{x_w^2\sigma_h^2}{(1-h)^4}.\]</div>
+<p>做一个假设的仪器算例：以本页 414.58 ppm 干值为起点，<span class="arithmatex">\(h=0.03\)</span> 给湿值 <span class="arithmatex">\(x_w=402.1426\)</span> ppm。另假设 <span class="arithmatex">\(\sigma_w=0.1\)</span> ppm、<span class="arithmatex">\(\sigma_h=0.001\)</span>（即 0.1 个百分点），两项对输出标准差的贡献约为 0.103093 ppm 与 0.427402 ppm，合成约 0.439660 ppm。此处湿度不确定度更显著，单看湿 CO₂ 读数的小误差会漏项。</p>
+<p>这些湿度及仪器误差是为解释机制而指定的数，不是 NOAA 当月记录；计算结果也不是对官方 monthly_unc=0.20 ppm 的重算。近似要求误差相对分母 <span class="arithmatex">\(1-h\)</span> 足够小；接近纯水汽或误差很大时需另算非线性传播。</p>
+<details>
+<summary>迁移核对：两种输入误差相关，仍能直接平方相加吗？</summary>
+<p>不能，还要加 <span class="arithmatex">\(2x_w\operatorname{Cov}(x_w,h)/(1-h)^3\)</span>。正相关会增大本例的一阶方差，负相关会减小它；协方差须来自测量模型或独立数据，不能为得到更小误差条随意选择。这里讨论换算层，尚未包含所有校准与月平均代表性误差。</p>
+</details>
 <h2 id="7">7. 两道迁移题<a class="headerlink" href="#7" title="Permanent link"></a></h2>
 <p><strong>题一。</strong> 同一团干空气的真实CO₂为420 ppm，加入水汽后湿空气水汽摩尔分数为2%。直接报告湿空气ppm是多少？再假设温度不变、干空气压力减半，干摩尔分数与单位体积CO₂数密度各怎样改变？</p>
 <details>
@@ -130,7 +144,7 @@ try {
 <p>仪器间一致能检验部分独立误差，却可能看不到共用标准带来的偏差；还需独立溯源或不同校准链。源汇可取<span class="arithmatex">\((E,S)=(8,3)\)</span>或<span class="arithmatex">\((15,10)\)</span> mol/年，都给净增加5。更复杂多项式只拟合净变化，不能由同一观测增加关于E与S的独立约束。若未加入新的物理条件或观测，两种机制仍不可辨识。</p>
 </details>
 </section>
-<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">速查与资料<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p>先确认干/湿分母，再确认校准和背景选择；月均unc、回归残差和参数标准误各自有定义；站点趋势不能直接变成全球排放。原始方法见<a href="https://gml.noaa.gov/ccgg/about/co2_measurements.html">NOAA测量说明</a>，数据聚合、不确定度和站点变化见<a href="https://gml.noaa.gov/ccgg/trends/mlo.html">月均值说明</a>，数据使用条件见<a href="https://gml.noaa.gov/about/disclaimer.html">GML条款</a>。核查：2026-09-09。</p>
 </article>
 <footer class="pager">

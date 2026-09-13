@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:55</div>
+    <div class="build-time">构建于 2026-09-14 00:51</div>
   </div>
 </nav>
 <main id="content">
@@ -65,10 +65,13 @@ try {
 <li><a href="#3">3. 第一站：从向后势算出八条路径</a></li>
 <li><a href="#4">4. 第二站：端点不动，只改条件桥</a></li>
 <li><a href="#5-wick">5. 第三站：用正交性把 Wick 平方变成有限和</a></li>
-<li><a href="#6">6. 第四站：从有限尾和判定真正的收敛对象</a></li>
+<li><a href="#6">6. 第四站：从有限尾和判定真正的收敛对象</a><ul>
+<li><a href="#_1">两次模拟各自正确，相减为什么还可能不收敛？</a></li>
+</ul>
+</li>
 <li><a href="#7">7. 退出题：换一次输入，证据链还在吗？</a></li>
 <li><a href="#8">8. 边界清单：四站结束后仍不能声称什么</a></li>
-<li><a href="#_1">速查与资料</a></li>
+<li><a href="#_2">速查与资料</a></li>
 </ul>
 </div>
 </details>
@@ -425,6 +428,21 @@ Y_N=\langle:X_N^2:,1\rangle,
 </table>
 <div class="learning-lab" data-learning-lab="research-limits" data-research-topic="wick"></div>
 <p>这两站只为常数测试函数建立了一个标量 <span class="arithmatex">\(L^2\)</span> 极限。它为<a href="frontier-02-singular-spde.html">奇异 SPDE</a>提供“点值发散但测试函数配对可能收敛”的具体证据，却不能推出任意测试函数下一致收敛，更不能推出某个非线性 SPDE 的解存在、唯一或与近似无关。</p>
+<h3 id="_1">两次模拟各自正确，相减为什么还可能不收敛？<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>沿用第三站的 <span class="arithmatex">\(Y_N=\tfrac12\sum_{k=1}^N k^{-2s}Q_k\)</span>。其中 <span class="arithmatex">\(Q_k=A_k^2+B_k^2-2\)</span>，所有 <span class="arithmatex">\(A_k,B_k\)</span> 独立且为标准 Gaussian，故 <span class="arithmatex">\(\operatorname{Var}(Q_k)=4\)</span>。取 <span class="arithmatex">\(s=1/2\)</span>，于是 <span class="arithmatex">\(\operatorname{Var}(Y_N)=\sum_{k\le N}k^{-2}\)</span>。</p>
+<p>同一组系数下，<span class="arithmatex">\(Y_{2N}-Y_N\)</span> 恰好只剩新加入的高频：</p>
+<div class="arithmatex">\[\mathbb E|Y_{2N}-Y_N|^2=\sum_{k=N+1}^{2N}k^{-2}\le\frac1N\longrightarrow0.\]</div>
+<p>若第二次把所有旧系数也重新独立抽样，记所得量为 <span class="arithmatex">\(\widetilde Y_N\)</span>，则旧的低频不再抵消。独立性反而给</p>
+<div class="arithmatex">\[\begin{aligned}
+\mathbb E|Y_{2N}-\widetilde Y_N|^2
+&amp;=\sum_{k=1}^{2N}k^{-2}+\sum_{k=1}^Nk^{-2}\\
+&amp;\longrightarrow\frac{\pi^2}{3}.
+\end{aligned}\]</div>
+<p><span class="arithmatex">\(N=1\)</span> 时，这两种比较的均方差分别为 <span class="arithmatex">\(1/4\)</span> 与 <span class="arithmatex">\(9/4\)</span>。每一次模拟的边缘分布都可以正确，但两次结果之间的联合分布不同。<strong>要检查本路线的 L² 收敛，实验必须保留旧随机系数，再添加高频系数。</strong> 这与“多次独立重复以估计某个期望”是两个不同实验设计。</p>
+<details>
+<summary>迁移核对：独立重采样的差不趋零，推翻了原来的极限吗？</summary>
+<p>没有。它检验的是另一个耦合下的差。原证明依赖同一概率空间中共用低频变量的 Cauchy 性。仅比较两张分布直方图，也既不能证明、又不能否定这个具体耦合下的 L² 收敛。</p>
+</details>
 <h2 id="7">7. 退出题：换一次输入，证据链还在吗？<a class="headerlink" href="#7" title="Permanent link"></a></h2>
 <p>合上四站题解，分别完成两小题。它们互相独立，可以分两页提交。</p>
 <p><strong>路径题。</strong> 保持第二站的端点表 <span class="arithmatex">\(\pi\)</span>，只把 <span class="arithmatex">\((0,0)\)</span> 条件桥从 <span class="arithmatex">\((9/10,1/10)\)</span> 改成 <span class="arithmatex">\((4/5,1/5)\)</span>。计算路径 KL 增量与新总 KL。</p>
@@ -499,7 +517,7 @@ C_N=\sum_{k=1}^Nk^{-3/4}
 </tbody>
 </table>
 </section>
-<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">速查与资料<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>

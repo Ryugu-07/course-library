@@ -111,6 +111,27 @@ $$
 
 </div>
 
+### 为什么不能把改变噪声强度也算成漂移能量？
+
+取同一起点、零漂移的两种 Brownian 运动：参考增量方差为 $\varepsilon\Delta t$，候选为 $a\Delta t$，其中 $a,\varepsilon>0$。在 $[0,T]$ 上只观察 $n$ 个等长增量，两种有限维 Gaussian 律互相绝对连续。把单个 Gaussian 密度的对数比按候选律积分，再将独立增量的 KL 相加，得到
+
+$$H(P_n\mid R_n)=\frac n2\left(\frac a\varepsilon-1-\log\frac a\varepsilon\right).$$
+
+只要 $a\ne\varepsilon$，括号严格为正，观测网格越细，KL 线性增长。例如 $a=2\varepsilon$，每个增量贡献 $(1-\log2)/2$ nat；两边漂移都为零，前面那条漂移能量公式却会误算成零，因为它的“同扩散项”条件已经失效。
+
+还可直接说明连续路径为何可区分。沿二分网格，平方增量和 $V_n=\sum(\Delta X)^2$ 的期望与方差为
+
+$$\mathbb E_P V_n=aT,\qquad \operatorname{Var}_P(V_n)=\frac{2a^2T^2}{n}.$$
+
+取 $n=2^m$，Chebyshev 上界可求和，Borel–Cantelli 推出 $V_{2^m}\to aT$ 几乎处处；参考律下极限则为 $\varepsilon T$。两种律把概率 1 放在互不相交的路径事件上，故相互奇异。这里并未依靠“有限维 KL 发散”一句话就跳到奇异性。
+
+<details markdown="1">
+<summary>迁移核对：只改变常数漂移 v，保持扩散强度 ε 呢？</summary>
+
+每个增量的均值从零变成 $vT/n$，方差仍为 $\varepsilon T/n$，所以每项 KL 为 $v^2T/(2\varepsilon n)$。相加得到 $v^2T/(2\varepsilon)$，不随网格数改变，与固定初始律的漂移能量相符。本段只比较这些可精确计算的 Gaussian 模型，尚未建立一般扩散的换测度定理。
+
+</details>
+
 ## 6. 两道迁移题
 
 **题 1。** 参考链绝不换位置，即 $K=I$。若初始边缘为 $(1/2,1/2)$，目标为 $(1/4,3/4)$，能否找到有限路径 KL 的桥？

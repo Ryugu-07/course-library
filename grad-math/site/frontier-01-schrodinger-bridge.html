@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-14 00:51</div>
   </div>
 </nav>
 <main id="content">
@@ -64,10 +64,13 @@ try {
 <li><a href="#2">2. 关键推导：先固定端点，再看中间</a></li>
 <li><a href="#3">3. 从乘子得到桥的动力学</a></li>
 <li><a href="#4">4. 连续时间：控制能量为什么等于路径熵</a></li>
-<li><a href="#5">5. 可算的端点练习</a></li>
+<li><a href="#5">5. 可算的端点练习</a><ul>
+<li><a href="#_1">为什么不能把改变噪声强度也算成漂移能量？</a></li>
+</ul>
+</li>
 <li><a href="#6">6. 两道迁移题</a></li>
 <li><a href="#7">7. 正在向哪里推进</a></li>
-<li><a href="#_1">速查：路径桥的三个层次</a></li>
+<li><a href="#_2">速查：路径桥的三个层次</a></li>
 </ul>
 </div>
 </details>
@@ -170,6 +173,17 @@ p=\frac{1}{2(1+e^{-1/\varepsilon})},\qquad q=\frac12-p.
 </table>
 <p>实验界面采用到均匀四格耦合的 <span class="arithmatex">\(\mathrm{KL}(\pi\mid1/4)=\sum\pi_{ij}\log\pi_{ij}+\log4\)</span>；乘以 <span class="arithmatex">\(\varepsilon\)</span> 后只比上述目标多常数 <span class="arithmatex">\(\varepsilon\log4\)</span>，极小解相同。Sinkhorn 缩放使用核 <span class="arithmatex">\(K_{ij}=e^{-C_{ij}/\varepsilon}\)</span>；在这个对称例中一次共同归一化就满足边缘。参数趋零时趋于对角运输，趋无穷时四格趋于 <span class="arithmatex">\(1/4\)</span>。矩阵和行列和可以手算复核；它检验端点优化机制，尚不检验神经网络的路径近似精度。</p>
 </div>
+<h3 id="_1">为什么不能把改变噪声强度也算成漂移能量？<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>取同一起点、零漂移的两种 Brownian 运动：参考增量方差为 <span class="arithmatex">\(\varepsilon\Delta t\)</span>，候选为 <span class="arithmatex">\(a\Delta t\)</span>，其中 <span class="arithmatex">\(a,\varepsilon&gt;0\)</span>。在 <span class="arithmatex">\([0,T]\)</span> 上只观察 <span class="arithmatex">\(n\)</span> 个等长增量，两种有限维 Gaussian 律互相绝对连续。把单个 Gaussian 密度的对数比按候选律积分，再将独立增量的 KL 相加，得到</p>
+<div class="arithmatex">\[H(P_n\mid R_n)=\frac n2\left(\frac a\varepsilon-1-\log\frac a\varepsilon\right).\]</div>
+<p>只要 <span class="arithmatex">\(a\ne\varepsilon\)</span>，括号严格为正，观测网格越细，KL 线性增长。例如 <span class="arithmatex">\(a=2\varepsilon\)</span>，每个增量贡献 <span class="arithmatex">\((1-\log2)/2\)</span> nat；两边漂移都为零，前面那条漂移能量公式却会误算成零，因为它的“同扩散项”条件已经失效。</p>
+<p>还可直接说明连续路径为何可区分。沿二分网格，平方增量和 <span class="arithmatex">\(V_n=\sum(\Delta X)^2\)</span> 的期望与方差为</p>
+<div class="arithmatex">\[\mathbb E_P V_n=aT,\qquad \operatorname{Var}_P(V_n)=\frac{2a^2T^2}{n}.\]</div>
+<p>取 <span class="arithmatex">\(n=2^m\)</span>，Chebyshev 上界可求和，Borel–Cantelli 推出 <span class="arithmatex">\(V_{2^m}\to aT\)</span> 几乎处处；参考律下极限则为 <span class="arithmatex">\(\varepsilon T\)</span>。两种律把概率 1 放在互不相交的路径事件上，故相互奇异。这里并未依靠“有限维 KL 发散”一句话就跳到奇异性。</p>
+<details>
+<summary>迁移核对：只改变常数漂移 v，保持扩散强度 ε 呢？</summary>
+<p>每个增量的均值从零变成 <span class="arithmatex">\(vT/n\)</span>，方差仍为 <span class="arithmatex">\(\varepsilon T/n\)</span>，所以每项 KL 为 <span class="arithmatex">\(v^2T/(2\varepsilon n)\)</span>。相加得到 <span class="arithmatex">\(v^2T/(2\varepsilon)\)</span>，不随网格数改变，与固定初始律的漂移能量相符。本段只比较这些可精确计算的 Gaussian 模型，尚未建立一般扩散的换测度定理。</p>
+</details>
 <h2 id="6">6. 两道迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>题 1。</strong> 参考链绝不换位置，即 <span class="arithmatex">\(K=I\)</span>。若初始边缘为 <span class="arithmatex">\((1/2,1/2)\)</span>，目标为 <span class="arithmatex">\((1/4,3/4)\)</span>，能否找到有限路径 KL 的桥？</p>
 <details>
@@ -191,7 +205,7 @@ p=\frac{1}{2(1+e^{-1/\varepsilon})},\qquad q=\frac12-p.
 <li>Noble 等，<a href="https://arxiv.org/abs/2607.16987">Twisted Schrödinger Bridge Matching</a>：首发 <strong>2026-07-18</strong>，所查页面标为<strong>预印本</strong>；推广到带势能的桥，并报告数值实验，不能据此宣布所有训练情境均有保证。</li>
 </ul>
 </section>
-<h2 id="_1">速查：路径桥的三个层次<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">速查：路径桥的三个层次<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>

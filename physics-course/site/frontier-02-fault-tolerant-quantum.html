@@ -56,7 +56,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:33</div>
+    <div class="build-time">构建于 2026-09-14 00:51</div>
   </div>
 </nav>
 <main id="content">
@@ -69,10 +69,11 @@ try {
 <li><a href="#3">3. 时间方向也是解码图的一部分</a></li>
 <li><a href="#4">4. 阈值、存储寿命与通用计算不是同一指标</a></li>
 <li><a href="#5">5. 最新推进：用纠错数据追踪控制漂移</a></li>
+<li><a href="#_1">只保留“综合全正常”的轮次，会改变错误率的分母</a></li>
 <li><a href="#6">6. 迁移题</a></li>
 </ul>
 </li>
-<li><a href="#_1">速查：从独立错误到持续容错</a></li>
+<li><a href="#_2">速查：从独立错误到持续容错</a></li>
 </ul>
 </div>
 </details>
@@ -134,6 +135,45 @@ p_L(d)\approx A\left(\frac p{p_{\rm th}}\right)^{(d+1)/2}.
 <p>实验重复执行较短的量子存储任务，每次试验都重新准备量子态，再用数据更新控制策略；它没有在同一次长算法中持续保持逻辑态并实时调参。后一个场景在论文中由距离 3 表面码的数值模拟研究，需权衡探索参数带来的额外错误；解码器调整还依赖逻辑错误率估计，直接扩展到实时运行仍有限制。<a href="https://arxiv.org/html/2511.08493v4">作者全文的实验与模拟说明</a></p>
 <p>检测事件减少只是优化的代理信号，仍须独立检查逻辑错误。下一步是让学习跟得上漂移，同时保证实际采用的探索策略也保护计算，而不只验证最后学得的平均策略。</p>
 <p>尚未消失的难题包括罕见大范围相关故障、持续漂移、非 Clifford 逻辑门的成本，以及解码吞吐量是否跟得上综合产生速度。评价新成果时，应同时问：保护什么逻辑操作、用了多少物理比特、运行多少轮、是否实时纠正、是否丢弃失败样本？只给一个“逻辑比特数”无法回答这些问题。</p>
+<h3 id="_1">只保留“综合全正常”的轮次，会改变错误率的分母<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>仍用本页三比特噪声模型，先不恢复，只接收两个 <span class="arithmatex">\(Z\)</span> 校验都报 <span class="arithmatex">\(+1\)</span> 的轮次。在理想校验下，八种错误串中只有 <span class="arithmatex">\(000\)</span> 与 <span class="arithmatex">\(111\)</span> 被接收；后者正是一个不可检测的逻辑 <span class="arithmatex">\(X\)</span>。</p>
+<p>独立分支中这两串概率为 <span class="arithmatex">\((1-p)^3\)</span> 与 <span class="arithmatex">\(p^3\)</span>；共同分支始终只有这两串，全部通过。因此</p>
+<div class="arithmatex">\[\begin{aligned}
+&amp;P(\mathrm{接收})\\&amp;\quad=(1-c)[(1-p)^3+p^3]+c,\\
+&amp;P(\mathrm{逻辑错且接收})\\&amp;\quad=(1-c)p^3+cp.
+\end{aligned}\]</div>
+<p>接收率正时，两者相除才是接收样本中的逻辑错误率。取 <span class="arithmatex">\(p=0.1\)</span>：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">共同分支比例 <span class="arithmatex">\(c\)</span></th>
+<th style="text-align: right;">接收率</th>
+<th style="text-align: right;">接收样本中的逻辑错误率</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.73</td>
+<td style="text-align: right;">约 0.001370</td>
+</tr>
+<tr>
+<td style="text-align: right;">0.5</td>
+<td style="text-align: right;">0.865</td>
+<td style="text-align: right;">约 0.058382</td>
+</tr>
+<tr>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">0.1</td>
+</tr>
+</tbody>
+</table>
+<p>相关噪声越强，这个例子中综合反而越常“全正常”，但被接收的逻辑信息更容易出错。报告错误率时必须同时报告筛选规则与接收率；上表的条件错误率不能直接和保留所有轮次、实施恢复后的 <span class="arithmatex">\(p_L(c)\)</span> 当作同一指标。</p>
+<details>
+<summary>迁移核对：c=1 时检测事件可以一直很少，为什么不能据此称纠错成功？</summary>
+<p>共同逻辑 <span class="arithmatex">\(X\)</span> 与两个校验都对易，不留下该综合的变化，却改变编码的逻辑态。检测事件只是噪声的部分证据，仍需检验逻辑错误。本算例采用理想校验与一次位翻转噪声，不是对真实硬件论文数据的重新估计。</p>
+</details>
 <h3 id="6">6. 迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h3>
 <ol>
 <li><span class="arithmatex">\(p=0.02,c=0.25\)</span>，求玩具逻辑失败率；与完全独立时相比增加多少？为什么不能靠单比特边缘错误率识别这个差别？</li>
@@ -147,7 +187,7 @@ p_L(d)\approx A\left(\frac p{p_{\rm th}}\right)^{(d+1)/2}.
 </ol>
 </details>
 </section>
-<h2 id="_1">速查：从独立错误到持续容错<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">速查：从独立错误到持续容错<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <ul>
 <li>理想三比特位翻转码：<span class="arithmatex">\(p_L=3p^2-2p^3\)</span>；相关分支使它变为 <span class="arithmatex">\((1-c)p_L+cp\)</span>，不保护一般相位噪声。</li>
 <li>表面码校验对易，综合定位错误链端点；码距与完整线路的容错性需同时检查。</li>

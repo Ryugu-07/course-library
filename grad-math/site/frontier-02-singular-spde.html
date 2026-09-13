@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:49</div>
+    <div class="build-time">构建于 2026-09-14 00:51</div>
   </div>
 </nav>
 <main id="content">
@@ -64,7 +64,10 @@ try {
 <li><a href="#2">2. 一个能算到底的模型：平方的均值从哪里来</a></li>
 <li><a href="#3">3. 从单个随机数到随机分布</a></li>
 <li><a href="#4-taylor">4. 正则性结构怎样扩充 Taylor 展开</a></li>
-<li><a href="#5">5. 为什么必须检查“次临界”</a></li>
+<li><a href="#5">5. 为什么必须检查“次临界”</a><ul>
+<li><a href="#3cx">三次项均值本来就是零，为什么仍要减去 3CX？</a></li>
+</ul>
+</li>
 <li><a href="#6">6. 两道迁移题</a></li>
 <li><a href="#7">7. 从个别修正到系统方法</a></li>
 <li><a href="#_1">速查：重整化不止是减均值</a></li>
@@ -180,6 +183,19 @@ e^{tX-Ct^2/2}
 </table>
 <p>例如 <span class="arithmatex">\(C=2,z=0\)</span> 时，两条曲线的输出为 <span class="arithmatex">\(0,-2\)</span>；<span class="arithmatex">\(z=1\)</span> 时为 <span class="arithmatex">\(2,0\)</span>；<span class="arithmatex">\(z=2\)</span> 时为 <span class="arithmatex">\(8,6\)</span>。均值为零不意味着曲线处处为零，也不意味着每次抽样后的经验均值精确等于零。</p>
 </div>
+<h3 id="3cx">三次项均值本来就是零，为什么仍要减去 3CX？<a class="headerlink" href="#3cx" title="Permanent link"></a></h3>
+<p>若只要求中心化，<span class="arithmatex">\(X^3\)</span> 已经满足 <span class="arithmatex">\(\mathbb E X^3=0\)</span>。但它仍混有与线性变量 <span class="arithmatex">\(X\)</span> 同方向的部分。把随机变量看成带内积 <span class="arithmatex">\(\langle U,V\rangle=\mathbb E[UV]\)</span> 的向量，寻找最接近 <span class="arithmatex">\(X^3\)</span> 的线性项 <span class="arithmatex">\(\alpha X\)</span>：</p>
+<div class="arithmatex">\[\begin{aligned}
+\mathbb E[(X^3-\alpha X)^2]
+&amp;=15C^3-6\alpha C^2+\alpha^2C\\
+&amp;=6C^3+C(\alpha-3C)^2.
+\end{aligned}\]</div>
+<p><span class="arithmatex">\(C&gt;0\)</span> 时唯一最优系数为 <span class="arithmatex">\(\alpha=3C\)</span>，余项 <span class="arithmatex">\(:X^3:\)</span> 与 <span class="arithmatex">\(X\)</span> 正交，因为 <span class="arithmatex">\(\mathbb E[X(X^3-3CX)]=3C^2-3C^2=0\)</span>。这给出了低阶反项的一个可检查理由：它去除指定 Gaussian 内积中的低阶成分，而不仅是把均值平移到零。</p>
+<p><span class="arithmatex">\(C=2\)</span> 时，原 <span class="arithmatex">\(X^3\)</span> 的方差为 120，投影项 <span class="arithmatex">\(6X\)</span> 的方差为 72，余项方差为 48；正交性使 <span class="arithmatex">\(120=72+48\)</span>。投影减少这个单变量的均方大小，仍不保证随截断增长的场会收敛。</p>
+<details>
+<summary>迁移核对：仍用方差 C 的变量，却错用反项 3(C+c)X 呢？</summary>
+<p>余项变成 <span class="arithmatex">\(:X^3:-3cX\)</span>，与 <span class="arithmatex">\(X\)</span> 的内积为 <span class="arithmatex">\(-3cC\)</span>，不再正交；其方差为 <span class="arithmatex">\(6C^3+9c^2C\)</span>。有限反项的选择改变了低阶成分。这里的投影解释针对单个 Gaussian 三次多项式，不能把完整奇异 SPDE 的所有重整化简化为一次回归。</p>
+</details>
 <h2 id="6">6. 两道迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>题 1。</strong> <span class="arithmatex">\(X\sim N(0,C)\)</span>。求 <span class="arithmatex">\(Y=X^3-3CX\)</span> 的均值与方差，判断它是否因为中心化而在 <span class="arithmatex">\(C\to\infty\)</span> 时保持有界方差。</p>
 <details>
