@@ -250,6 +250,25 @@ $$
 
 它不是满射：像中的一对多项式在 $s=0$ 必须取相同值。这个单射说明总空间 $X'$ 本身是两条相交的约化直线；但它在 $s=0$ 上的纤维仍是 $\operatorname{Spec}\mathbb C[x]/(x^2)$，是非约化双点。约化的总空间可以拥有非约化纤维，这两句话并不冲突。
 
+### 哪些分支上的函数对确实来自总空间？
+
+前面的单射有一个完整的像描述：恰好是满足 p(0)=q(0) 的多项式对 $(p(s),q(s))$。必要性已由两分支共用原点说明。反过来，若 p(0)=q(0)，则 p−q 能被 s 整除，所以
+
+$$\begin{gathered}
+A(s)=\frac{p(s)+q(s)}2,\\
+B(s)=\frac{p(s)-q(s)}{2s}
+\end{gathered}$$
+
+都是多项式，而 $h(s,x)=A(s)+xB(s)$ 在两分支上的限制正是 p、q。这给出了可直接执行的粘合公式。
+
+例如 $(p,q)=(1+s,1-s)$ 来自 $h=1+x$；但 $(1,0)$ 在原点取值不同，不能来自总空间的一个正则函数。
+
+删掉 s=0 后，最后这个函数对终于可以实现：
+
+$$e_+=\frac12\left(1+\frac xs\right),\qquad e_-=1-e_+.$$
+
+由 $x^2=s^2$ 可验证 $e_+^2=e_+$、$e_-^2=e_-$、$e_+e_-=0$；它们分别限制为 $(1,0)$ 和 $(0,1)$。这些幂等元正是直积两部分的投影函数。公式中的 $1/s$ 显示了为什么它们不能直接穿过原点：分支交会处要求函数值一致。
+
 ## 7. 实验怎样读，哪些东西它没有画出
 
 实验固定复数底域，只让闭点参数 $a$ 沿实区间 $[-2,2]$ 移动。它会把 $x^2=a$ 的根画在复平面上：负 $a$ 给两个纯虚根，正 $a$ 给两个实根，$a=0$ 显示一个带长度 2 标记的双点。根轨迹只是闭点支撑的动画，不是完整概形，也没有画出泛点、局部环或所有素理想。
@@ -336,7 +355,7 @@ $$
 | 总长度 | 有限复纤维坐标环的复维数 | 始终为 2 |
 | 基变换 | 纤维积，对应环张量积 | $x^2-s^2=0$ 的两分支只在 $s\ne0$ 分裂 |
 
-概形纤维的定义与剩余域见 [Stacks Project：Base change in algebraic geometry](https://stacks.math.columbia.edu/tag/01JW)，仿射纤维积的张量积公式见 [Fibre products of schemes](https://stacks.math.columbia.edu/tag/01JO)。有限局部自由态射的秩与纤维次数可对照 [Finite locally free morphisms](https://stacks.math.columbia.edu/tag/02KA) 和 [Universally bounded fibres](https://stacks.math.columbia.edu/tag/03J3)。资料核查：2026-09-08。
+概形纤维的定义与剩余域见 [Stacks Project：Base change in algebraic geometry](https://stacks.math.columbia.edu/tag/01JW)，仿射纤维积的张量积公式见 [Fibre products of schemes](https://stacks.math.columbia.edu/tag/01JO)。有限局部自由态射的秩与纤维次数可对照 [Finite locally free morphisms](https://stacks.math.columbia.edu/tag/02KA) 和 [Universally bounded fibres](https://stacks.math.columbia.edu/tag/03J3)。资料核查：2026-09-13。
 
 下一步可回到[切空间](bridge-11-tangent-spaces.html)，比较双点的普通点、长度与 $\mathfrak m/\mathfrak m^2$；也可回到[张量积与 Tor](bridge-05-tensor-tor.html)，理解基变换为何由张量积执行。
 

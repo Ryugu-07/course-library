@@ -289,6 +289,33 @@ $$
 
 在这里所有参考概率都正，等号要求端点表就是 $\pi$，且每个端点条件桥都等于参考条件桥，因此 $P$ 是唯一极小解。这一证明针对由 $(u,w)$ 生成的 $\mu,\nu$；它没有跳过“任意给定 $\nu$ 时怎样求势”的另一半问题。
 
+### 让同一个端点对走另一条中间路，会多付多少熵？
+
+默认模型中，端点对 $(0,0)$ 的总概率是 $\pi_{00}=5/22$；条件中间状态概率为 $(9/10,1/10)$。构造 Q：保持全部端点对的概率不变，只把这个端点对内部的两条路径改成各占一半。于是 $Q(000)=Q(010)=5/44$，其余六条路径仍取 P 的值。Q 与 P 的起、终边缘完全相同。
+
+链式分解直接给出新增代价
+
+记新增代价为 $\Delta H$，则
+
+$$\begin{aligned}
+\Delta H&=\frac5{22}\left(\frac12\log\frac59+\frac12\log5\right)\\
+&=\frac5{22}\log\frac53>0.
+\end{aligned}$$
+
+这说明只把端点表做对还不够：中间条件分布偏离参考桥也要付费。这里 Q 只需是一条路径概率律，比较定理并未要求所有候选 Q 都具有 Markov 性。
+
+### 这个两状态模型能否反过来匹配指定终边缘？
+
+能，而且可以先证明解唯一。令 $a_i=(K^2)_{i1}$，则 $0<a_i<1$。给定起点 i 时，新过程终点为 1 的概率是
+
+$$\begin{gathered}p_i(w)=\frac{a_iw}{1-a_i+a_iw},\\\nu_1(w)=\sum_i\mu_i p_i(w).\end{gathered}$$
+
+逐项求导：
+
+$$\nu_1'(w)=\sum_i\mu_i\frac{a_i(1-a_i)}{(1-a_i+a_iw)^2}>0.$$
+
+同时 $w\downarrow0$ 时 $\nu_1\to0$，$w\to\infty$ 时 $\nu_1\to1$。由连续性和严格单调性，任意指定 $0<\nu_1<1$ 都对应唯一的正 w。因此本例可以用一维求根找到势；当前实验仍然把 w 当输入，而且滑块只覆盖有限区间，不能把滑块范围误当成全部可达终边缘。这是一维特例的存在唯一性证明，更多状态的一般问题仍需求解耦合势方程。
+
 ## 7. 两道迁移题
 
 **题一。** 保持任意 $0<r<1$ 和 $0<u<1$，但令 $w=1$。求 $g_2,g_1,g_0,f$ 与两步转移，并说明为什么新过程仍不一定等于参考过程。
@@ -327,7 +354,7 @@ $r=0$ 时 $K=I$，故 $g_0=g_1=g_2$，路径权重中的终端势与分母相消
 | KL 望远镜 | $H(P\mid R)=H(\pi\mid R_{02})$ | 没有额外条件路径代价 |
 | 熵投影 | $H(Q\mid R)\ge H(P\mid R)$ | 对导出的 $\mu,\nu$，$P$ 是极小桥 |
 
-路径空间 Schrödinger 问题、熵的条件分解与 $(f,g)$ 变换可参见 Léonard 的 [A survey of the Schrödinger problem and some of its connections with optimal transport](https://arxiv.org/abs/1308.0215)；离散 Markov 近似和迭代比例拟合的现代计算路线可参见 Bernton、Heng、Doucet、Jacob 的 [Schrödinger Bridge Samplers](https://arxiv.org/abs/1912.13170)。本讲的八路径结论已在正文中逐项推导；资料核查：2026-09-08。
+路径空间 Schrödinger 问题、熵的条件分解与 $(f,g)$ 变换可参见 Léonard 的 [A survey of the Schrödinger problem and some of its connections with optimal transport](https://arxiv.org/abs/1308.0215)；离散 Markov 近似和迭代比例拟合的现代计算路线可参见 Bernton、Heng、Doucet、Jacob 的 [Schrödinger Bridge Samplers](https://arxiv.org/abs/1912.13170)。本讲的八路径结论已在正文中逐项推导；资料核查：2026-09-13。
 
 连续训练：[路径熵与随机场极限](route-02-stochastic-readiness.html)把有限模型、误差控制和退出题接成可交卷的路线。
 

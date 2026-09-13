@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 01:55</div>
+    <div class="build-time">构建于 2026-09-13 22:08</div>
   </div>
 </nav>
 <main id="content">
@@ -65,9 +65,13 @@ try {
 <li><a href="#3-doob">3. Doob 转移为什么每行和为一</a></li>
 <li><a href="#4">4. 默认八路径账本</a></li>
 <li><a href="#5">5. 固定端点以后，中间桥为什么原封不动</a></li>
-<li><a href="#6">6. 为什么它真是这对边缘的熵极小桥</a></li>
+<li><a href="#6">6. 为什么它真是这对边缘的熵极小桥</a><ul>
+<li><a href="#_1">让同一个端点对走另一条中间路，会多付多少熵？</a></li>
+<li><a href="#_2">这个两状态模型能否反过来匹配指定终边缘？</a></li>
+</ul>
+</li>
 <li><a href="#7">7. 两道迁移题</a></li>
-<li><a href="#_1">速查与资料</a></li>
+<li><a href="#_3">速查与资料</a></li>
 </ul>
 </div>
 </details>
@@ -340,6 +344,21 @@ H(Q_{02}\mid R_{02})
 H(Q\mid R)\ge H(P\mid R).
 \]</div>
 <p>在这里所有参考概率都正，等号要求端点表就是 <span class="arithmatex">\(\pi\)</span>，且每个端点条件桥都等于参考条件桥，因此 <span class="arithmatex">\(P\)</span> 是唯一极小解。这一证明针对由 <span class="arithmatex">\((u,w)\)</span> 生成的 <span class="arithmatex">\(\mu,\nu\)</span>；它没有跳过“任意给定 <span class="arithmatex">\(\nu\)</span> 时怎样求势”的另一半问题。</p>
+<h3 id="_1">让同一个端点对走另一条中间路，会多付多少熵？<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>默认模型中，端点对 <span class="arithmatex">\((0,0)\)</span> 的总概率是 <span class="arithmatex">\(\pi_{00}=5/22\)</span>；条件中间状态概率为 <span class="arithmatex">\((9/10,1/10)\)</span>。构造 Q：保持全部端点对的概率不变，只把这个端点对内部的两条路径改成各占一半。于是 <span class="arithmatex">\(Q(000)=Q(010)=5/44\)</span>，其余六条路径仍取 P 的值。Q 与 P 的起、终边缘完全相同。</p>
+<p>链式分解直接给出新增代价</p>
+<p>记新增代价为 <span class="arithmatex">\(\Delta H\)</span>，则</p>
+<div class="arithmatex">\[\begin{aligned}
+\Delta H&amp;=\frac5{22}\left(\frac12\log\frac59+\frac12\log5\right)\\
+&amp;=\frac5{22}\log\frac53&gt;0.
+\end{aligned}\]</div>
+<p>这说明只把端点表做对还不够：中间条件分布偏离参考桥也要付费。这里 Q 只需是一条路径概率律，比较定理并未要求所有候选 Q 都具有 Markov 性。</p>
+<h3 id="_2">这个两状态模型能否反过来匹配指定终边缘？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>能，而且可以先证明解唯一。令 <span class="arithmatex">\(a_i=(K^2)_{i1}\)</span>，则 <span class="arithmatex">\(0&lt;a_i&lt;1\)</span>。给定起点 i 时，新过程终点为 1 的概率是</p>
+<div class="arithmatex">\[\begin{gathered}p_i(w)=\frac{a_iw}{1-a_i+a_iw},\\\nu_1(w)=\sum_i\mu_i p_i(w).\end{gathered}\]</div>
+<p>逐项求导：</p>
+<div class="arithmatex">\[\nu_1'(w)=\sum_i\mu_i\frac{a_i(1-a_i)}{(1-a_i+a_iw)^2}&gt;0.\]</div>
+<p>同时 <span class="arithmatex">\(w\downarrow0\)</span> 时 <span class="arithmatex">\(\nu_1\to0\)</span>，<span class="arithmatex">\(w\to\infty\)</span> 时 <span class="arithmatex">\(\nu_1\to1\)</span>。由连续性和严格单调性，任意指定 <span class="arithmatex">\(0&lt;\nu_1&lt;1\)</span> 都对应唯一的正 w。因此本例可以用一维求根找到势；当前实验仍然把 w 当输入，而且滑块只覆盖有限区间，不能把滑块范围误当成全部可达终边缘。这是一维特例的存在唯一性证明，更多状态的一般问题仍需求解耦合势方程。</p>
 <h2 id="7">7. 两道迁移题<a class="headerlink" href="#7" title="Permanent link"></a></h2>
 <p><strong>题一。</strong> 保持任意 <span class="arithmatex">\(0&lt;r&lt;1\)</span> 和 <span class="arithmatex">\(0&lt;u&lt;1\)</span>，但令 <span class="arithmatex">\(w=1\)</span>。求 <span class="arithmatex">\(g_2,g_1,g_0,f\)</span> 与两步转移，并说明为什么新过程仍不一定等于参考过程。</p>
 <p><details markdown="1"><summary>分开检查转移与初始分布</summary></p>
@@ -356,7 +375,7 @@ f_i=\frac{\mu_i}{R_0(i)}=2\mu_i,
 <p>若强行要求不同的终边缘，就必须给换状态路径正概率，但参考律在这些路径上为零。候选律不再满足 <span class="arithmatex">\(P\ll R\)</span>，于是 <span class="arithmatex">\(H(P\mid R)=+\infty\)</span>。这不是数值迭代太少，而是支持不可达。实验域取 <span class="arithmatex">\(r\ge0.05\)</span> 正是为了把可计算的全支持模型与这个边界反例分开。</p>
 </details>
 </section>
-<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_3">速查与资料<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -393,7 +412,7 @@ f_i=\frac{\mu_i}{R_0(i)}=2\mu_i,
 </tr>
 </tbody>
 </table>
-<p>路径空间 Schrödinger 问题、熵的条件分解与 <span class="arithmatex">\((f,g)\)</span> 变换可参见 Léonard 的 <a href="https://arxiv.org/abs/1308.0215">A survey of the Schrödinger problem and some of its connections with optimal transport</a>；离散 Markov 近似和迭代比例拟合的现代计算路线可参见 Bernton、Heng、Doucet、Jacob 的 <a href="https://arxiv.org/abs/1912.13170">Schrödinger Bridge Samplers</a>。本讲的八路径结论已在正文中逐项推导；资料核查：2026-09-08。</p>
+<p>路径空间 Schrödinger 问题、熵的条件分解与 <span class="arithmatex">\((f,g)\)</span> 变换可参见 Léonard 的 <a href="https://arxiv.org/abs/1308.0215">A survey of the Schrödinger problem and some of its connections with optimal transport</a>；离散 Markov 近似和迭代比例拟合的现代计算路线可参见 Bernton、Heng、Doucet、Jacob 的 <a href="https://arxiv.org/abs/1912.13170">Schrödinger Bridge Samplers</a>。本讲的八路径结论已在正文中逐项推导；资料核查：2026-09-13。</p>
 <p>连续训练：<a href="route-02-stochastic-readiness.html">路径熵与随机场极限</a>把有限模型、误差控制和退出题接成可交卷的路线。</p>
 <p>继续<a href="bridge-17-continuous-control.html">连续时间路径熵与控制</a>，用完整高斯模型对照终端倾斜、Doob漂移、条件桥与路径能量。</p>
 </article>

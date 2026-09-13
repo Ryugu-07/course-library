@@ -253,14 +253,40 @@ $$
 
 所以实割线趋向 $x$ 轴。要系统记录最低次齐次方程及重数，需要切锥等进一步工具；本讲只计算一阶 Zariski 切空间。
 
+### 通过一阶检验的方向，未必能继续延长
+
+在尖点原点，把一阶候选 $(a\epsilon,b\epsilon)$ 延长为
+
+$$\begin{gathered}x=a\epsilon+c\epsilon^2,\\y=b\epsilon+d\epsilon^2\end{gathered}$$
+
+并改在 $\mathbb C[\epsilon]/(\epsilon^3)$ 中检查。关系 $y^2-x^3$ 的像是 $b^2\epsilon^2$，所以必须有 b=0；一阶允许的 $(0,1)$ 已被二阶测试排除。
+
+即使取方向 $(1,0)$，再多保留一阶也会失败：在模 $\epsilon^4$ 的探针里，无论怎样加入高阶系数，y 的最低次数至少为二，而 $x^3$ 的三次项为 $\epsilon^3$。因此 $y^2-x^3$ 的三次项为 $-\epsilon^3$，无法消去。
+
+| 候选方向 | 模 $\epsilon^2$ | 能延长到模 $\epsilon^3$？ | 能延长到模 $\epsilon^4$？ |
+|---|---|---|---|
+| $(0,1)$ | 通过 | 不能 | 不能 |
+| $(1,0)$ | 通过 | 能 | 不能 |
+
+这不否定二维 Zariski 切空间的计算。切空间按定义只检测第一阶；更高阶关系回答的是能否把该一阶方向延长。参数化 $(t^2,t^3)$ 在 t=0 的一阶速度恰好为零，也与这里的障碍一致。
+
+### 多写一个冗余方程，与把方程平方不同
+
+令 $F=y-x^2$。用 $(F,F^2)$ 定义的理想仍是 $(F)$，第二个 Jacobian 行在曲线上为零，不改变第一行给出的切空间。但若只保留 $F^2=0$，理想变成 $(F^2)$；普通复数点集仍是一条抛物线，然而在其每个点
+
+$$\nabla(F^2)=2F\nabla F=0.$$
+
+所以这个加厚结构的 Zariski 切空间处处为二维。要检查“换了一组方程，答案是否不变”，必须确认定义的是同一个理想；仅仅零点集相同还不够。
+
 ## 7. 切空间仍然看不见全部厚度
 
 再比较两个都只有一个闭点的局部 Artin 概形：
 
 $$
-Z_2=\operatorname{Spec}\mathbb C[\eta]/(\eta^2),
-\qquad
+\begin{gathered}
+Z_2=\operatorname{Spec}\mathbb C[\eta]/(\eta^2),\\
 Z_3=\operatorname{Spec}\mathbb C[\eta]/(\eta^3).
+\end{gathered}
 $$
 
 两者的极大理想都由 $\eta$ 生成，而且
@@ -334,6 +360,6 @@ $$
 | 双数提升 | $p+\epsilon v$，其中 $\epsilon^2=0$ | 精确导出 $J_F(p)v=0$ |
 | 更高商 $\mathfrak m^n/\mathfrak m^{n+1}$ | 高阶厚度 | 双重与三重厚点切维相同但长度不同 |
 
-双数定义、切空间及其与局部余切空间的对偶见 [Stacks Project：Tangent spaces](https://stacks.math.columbia.edu/tag/0B28)；闭点剩余域的限定见 [Hilbert Nullstellensatz](https://stacks.math.columbia.edu/tag/00FV)。本讲只在复仿射有限型闭点上推导 Jacobian 核，不把尖点算例扩张成一般概形光滑性判据。资料核查：2026-09-08。
+双数定义、切空间及其与局部余切空间的对偶见 [Stacks Project：Tangent spaces](https://stacks.math.columbia.edu/tag/0B28)；闭点剩余域的限定见 [Hilbert Nullstellensatz](https://stacks.math.columbia.edu/tag/00FV)。本讲只在复仿射有限型闭点上推导 Jacobian 核，不把尖点算例扩张成一般概形光滑性判据。资料核查：2026-09-13。
 
 继续计算：[纤维与基变换](bridge-14-fibers-base-change.html)通过平方映射的双点纤维，把环上的张量积、几何重数与底空间变化联系起来。

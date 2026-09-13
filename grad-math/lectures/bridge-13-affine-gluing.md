@@ -239,9 +239,29 @@ $$
 
 恰好让两张标准图直接适用。
 
+### 用同一个点核对两张图
+
+取 d=2。源点 $[1:2]$ 在两张图中分别写成 z=2 与 w=1/2。第一张图给 u=4，第二张图给 v=1/4，正好满足目标关系 uv=1；它们都是目标点 $[1:4]$。这里四个数属于不同坐标，不能因为 4 与 1/4 不相等就判定局部公式冲突。
+
+源点 $[0:1]$ 只在第二张图里，坐标 w=0；公式给 v=0，目标仍是 $[0:1]$。因此不需要给“无穷大”做幂运算：在覆盖该点的坐标图里，计算只是 $0^2=0$。
+
+| 源点 | 可用坐标 | 局部输出 | 同一个目标点 |
+|---|---|---|---|
+| $[1:2]$ | z=2，w=1/2 | u=4，v=1/4 | $[1:4]$ |
+| $[1:0]$ | z=0 | u=0 | $[1:0]$ |
+| $[0:1]$ | w=0 | v=0 | $[0:1]$ |
+
+这张表帮助检查坐标归属，证明仍是正文中 Laurent 环里的恒等式。
+
 ## 6. 相容必须作为概形态射成立
 
 在复闭点上代几个数只能发现明显错误，不能证明两份局部态射相同。环同态相等会同时控制所有素谱点以及结构层拉回，才是完整的仿射检查。反过来，两个公式即使在少数闭点上碰巧给出同值，也可能在坐标环中不同。
+
+在非约化空间上，即使检查**全部**普通点也仍可能不够。取双数环 $D=\mathbb C[\epsilon]/(\epsilon^2)$，两个环同态
+
+$$\varphi_0(\epsilon)=0,\qquad\varphi_1(\epsilon)=\epsilon$$
+
+都合法，且它们诱导的 $\operatorname{Spec}D\to\operatorname{Spec}D$ 都把唯一的点送到自身。但两者的函数拉回不同，因而是不同的概形态射。这说明核验环同态还会保住图画看不见的无穷小信息。
 
 因此两图粘合可以压缩成下面的证据链：
 
@@ -308,7 +328,7 @@ $$
 | $F_d$ 的零号图 | $U_0\to\{Y_0\ne0\}$，$u=z^d$ | $\mathbb C[u]\to\mathbb C[z]$ |
 | 粘合态射 | 在源重叠上比较局部映射 | 在局部化环中比较拉回 |
 
-概形粘合定理与两个标准例子见 [Stacks Project：Glueing schemes](https://stacks.math.columbia.edu/tag/01JA)、[Projective line](https://stacks.math.columbia.edu/tag/01JE) 和 [Affine space with zero doubled](https://stacks.math.columbia.edu/tag/01JD)。仿射态射与环同态反向对应见 [The category of affine schemes](https://stacks.math.columbia.edu/tag/01HX)；双原点直线使用的分离性判据见 [Separation axioms](https://stacks.math.columbia.edu/tag/01KH)。资料核查：2026-09-08。
+概形粘合定理与两个标准例子见 [Stacks Project：Glueing schemes](https://stacks.math.columbia.edu/tag/01JA)、[Projective line](https://stacks.math.columbia.edu/tag/01JE) 和 [Affine space with zero doubled](https://stacks.math.columbia.edu/tag/01JD)。仿射态射与环同态反向对应见 [The category of affine schemes](https://stacks.math.columbia.edu/tag/01HX)；双原点直线使用的分离性判据见 [Separation axioms](https://stacks.math.columbia.edu/tag/01KH)。资料核查：2026-09-13。
 
 继续计算：[射影直线上的 Čech 上同调](bridge-06-cech.html)把相容函数对推广到 $\mathcal O(k)$ 的局部截面，并测量一次粘合障碍。
 

@@ -247,6 +247,34 @@ $$
 <div class="learning-lab" data-learning-lab="research-derived-fibers" data-research-topic="torsion" markdown="1">
 </div>
 
+### 相同的 Tor 维数，也未必恢复整个族
+
+把含挠族推广为
+
+$$T_m=B[x]/(x^2,t^m x),\qquad m\ge1.$$
+
+作为 B-模，它是 $B\oplus(B/(t^m))x$。在原点，普通纤维始终是 $\mathbb C[x]/(x^2)$；乘 t 的核始终一维，只是生成元变成 $t^{m-1}x$。因此只看各普通闭点上 $H^0$ 与 $H^{-1}$ 的维数，不能区分 m=1、2、3。Tor 补回一份信息，并不意味着一张维数表已经编码了整个族。
+
+可以把底空间探针加厚：令 $B_\ell=B/(t^\ell)$。普通基变换给出
+
+$$\begin{gathered}
+T_m\otimes_B B_\ell
+\cong B_\ell\oplus\bigl(B/(t^{\min(m,\ell)})\bigr)x,\\
+\dim_{\mathbb C}(T_m\otimes_B B_\ell)
+=\ell+\min(m,\ell).
+\end{gathered}$$
+
+原因是挠项同时满足 $t^m x=0$ 与 $t^\ell x=0$，留下 $x,tx,\ldots,t^{\min(m,\ell)-1}x$。与自由部分的 $1,t,\ldots,t^{\ell-1}$ 合起来，维数可以直接数基得到。
+
+| 族 | $\ell=1$ | $\ell=2$ | $\ell=3$ |
+|---|---:|---:|---:|
+| $T_1$ | 2 | 3 | 4 |
+| $T_2$ | 2 | 4 | 5 |
+| $T_3$ | 2 | 4 | 6 |
+| 秩二自由平方族 | 2 | 4 | 6 |
+
+表中最后两行在这些探针下仍相同，但 $\ell=4$ 时分别为 7 和 8。这提醒我们保留每个测试的范围；有限几个相同结果不能直接推出两个族相同。
+
 ## 8. 两道迁移题
 
 **题一。** 仍令 $B=\mathbb C[t]$，把含挠族改成
@@ -351,7 +379,7 @@ $$
 | 为什么不平坦？ | 乘 $t:B\to B$ 的单射张量后失效 | $tx=0$ 但 $x\ne0$ |
 | 是否还有更高 Tor？ | $\kappa_0$ 的自由分解长度 | 本例 $i\ge2$ 时为零 |
 
-Tor 由自由分解张量后取同调的定义见 [Stacks Project：Tor groups and flatness](https://stacks.math.columbia.edu/tag/00LY)，平坦性等价于张量保持单射可对照 [Flat modules and flat ring maps](https://stacks.math.columbia.edu/tag/00H9)。导出张量的负次数同调满足 $H^{-p}=\operatorname{Tor}_p$，见 [Computing Tor](https://stacks.math.columbia.edu/tag/064F)；一般 K-flat 语境下的定义见 [Derived tensor product](https://stacks.math.columbia.edu/tag/06XY)。资料核查：2026-09-08。
+Tor 由自由分解张量后取同调的定义见 [Stacks Project：Tor groups and flatness](https://stacks.math.columbia.edu/tag/00LY)，平坦性等价于张量保持单射可对照 [Flat modules and flat ring maps](https://stacks.math.columbia.edu/tag/00H9)。导出张量的负次数同调满足 $H^{-p}=\operatorname{Tor}_p$，见 [Computing Tor](https://stacks.math.columbia.edu/tag/064F)；一般 K-flat 语境下的定义见 [Derived tensor product](https://stacks.math.columbia.edu/tag/06XY)。资料核查：2026-09-13。
 
 下一步可把这里的两项复形带到闭嵌入的交中，观察普通张量给出交点环，而 Tor 记录非横截相交留下的额外同调；也可回到[纤维与基变换](bridge-14-fibers-base-change.html)，比较“零纤维非约化”与“总族不平坦”为什么是两件不同的事。
 
