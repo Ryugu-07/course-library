@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Independent stdlib oracle: erfc, integer binomial coefficients, concave score bisection."""
 import math,json,sys
+from fractions import Fraction
 CHECKS=0
 LIMITS={'massGeV':(20,400),'logPtWidthPercent':(0,20),'calibrationPercent':(-10,10),'rapidityHundred':(-200,200),'signalCount':(0,200),'backgroundCount':(0,500),'windowGeV':(1,60),'etaCutHundred':(20,300),'onCount':(0,200),'offCount':(0,500),'tauTenths':(1,100),'seed':(1,99)}
 INTEGER_KEYS=set(LIMITS)|{'index','state','N','n','m','k','upperFrom','bin','truthSignal','truthBackground','recoSignal','recoBackground','selectedSignal','selectedBackground'}
@@ -64,13 +65,13 @@ def conditional(n,m,t,full):
   out['probabilitySum']=math.fsum(math.exp(x)for x in logs)
  return out
 def onoff(n,m,t,full=False):
- u=n-m/t;hat=dict(s=max(0,u),b=m/t if u>=0 else(n+m)/(1+t));hat['logL']=ll(n,m,t,hat['s'],hat['b'])
+ exact=Fraction(n)-Fraction(m)/Fraction(str(t));u=0. if exact==0 else n-m/t;hat=dict(s=0. if exact<=0 else u,b=n if exact==0 else m/t if exact>0 else(n+m)/(1+t));hat['logL']=ll(n,m,t,hat['s'],hat['b'])
  zero=profile(n,m,t,0,hat)
  # At s=0 the two Poisson terms combine into the sufficient total count.
  # Use its analytic MLE for the scalar q0, avoiding bisection roundoff before sqrt.
- q=0 if u<=0 else max(0,2*(hat['logL']-ll(n,m,t,0,(n+m)/(1+t))))
+ q=0 if exact<=0 else max(0,2*(hat['logL']-ll(n,m,t,0,(n+m)/(1+t))))
  z=math.sqrt(q);tail=.5*math.erfc(z/math.sqrt(2))
- return dict(n=n,m=m,tau=t,unrestrictedS=u,atBoundary=u<=0,hat=hat,zero=zero,q0=q,asymptoticZ=z,asymptoticLogTail=math.log(tail),asymptoticTail=tail,conditional=conditional(n,m,t,full),asymptoticNotExact=True)
+ return dict(n=n,m=m,tau=t,unrestrictedS=u,atBoundary=exact<=0,hat=hat,zero=zero,q0=q,asymptoticZ=z,asymptoticLogTail=math.log(tail),asymptoticTail=tail,conditional=conditional(n,m,t,full),asymptoticNotExact=True)
 def check_count(p,n,m,t,full=False):
  e=onoff(n,m,t,full);close(p,e,'onoff')
  for key in ['asymptoticTail']:relative(p[key],e[key],key)
@@ -150,11 +151,18 @@ f=json.loads(fixture.read_text());assert f['provenance']['sourceSha256']==hashli
 code=r"""
 const a=require(process.argv[1]),f=require(process.argv[2]);
 const extras=[{massGeV:20,logPtWidthPercent:0},{massGeV:100,logPtWidthPercent:0},{massGeV:400,logPtWidthPercent:0},{signalCount:0,backgroundCount:0,onCount:0,offCount:0},{onCount:55,offCount:484,tauTenths:88},{rapidityHundred:-200,etaCutHundred:20},{onCount:200,offCount:500,tauTenths:1},{onCount:1,offCount:0,tauTenths:100},{onCount:0,offCount:500},{massGeV:20,calibrationPercent:-10},{signalCount:200,backgroundCount:500,seed:99},{massGeV:337,logPtWidthPercent:13,calibrationPercent:-7,rapidityHundred:117,signalCount:137,backgroundCount:319,windowGeV:43,etaCutHundred:167,onCount:173,offCount:277,tauTenths:71,seed:41}];
+let exactBoundaryChecks=0;
+for(let n=0;n<=200;n++)for(let t=1;t<=100;t++){
+ const m=n*t/10;if(!Number.isInteger(m)||m>500)continue;
+ const q=a.onoff(n,m,t/10);
+ for(const good of[q.atBoundary===true,q.unrestrictedS===0,q.hat.s===0,q.hat.b===n,q.q0===0,q.asymptoticZ===0]){if(!good)throw Error('Exact MLE boundary '+[n,m,t]);exactBoundaryChecks++;}
+ for(const nn of[n-1,n+1])if(nn>=0&&nn<=200){const v=a.onoff(nn,m,t/10);if(v.atBoundary!==(nn<n)||!(nn<n?v.hat.s===0:v.hat.s>0))throw Error('Boundary neighbor');exactBoundaryChecks+=2;}
+}
 const records=[...a.PRESETS.map(p=>a.compute(p.parameters)),...extras.map(p=>a.compute(p))],frozen=f.records.map(r=>a.compute(r.data.parameters));let invalid=0;
 const bad=[null,[],1,'x',{x:0},{constructor:1},{toString:1},JSON.parse('{"__proto__":{}}')];for(const[k,[lo,hi]]of Object.entries(a.LIMITS))for(const v of [null,'1',NaN,Infinity,-Infinity,1.5,lo-1,hi+1])bad.push({[k]:v});
 for(const p of bad){let rejected=false;try{a.compute(p)}catch(e){rejected=true}if(!rejected)throw Error('Invalid accepted '+JSON.stringify(p));invalid++;}
 let feedback=0;for(let i=0;i<4;i++)for(let j=0;j<2;j++){const r=a.feedback(i,j);if(r.correct!==(j===a.QUESTIONS[i][2])||!r.text)throw Error('Feedback');feedback++;}
-process.stdout.write(JSON.stringify({records,frozen,invalid,feedback,self:a.selfTest(),rendered:records.map(r=>({plots:a.plots(r),tables:a.tables(r),svgs:a.plots(r).map(a.svg)}))}));
+process.stdout.write(JSON.stringify({records,frozen,invalid,feedback,exactBoundaryChecks,self:a.selfTest(),rendered:records.map(r=>({plots:a.plots(r),tables:a.tables(r),svgs:a.plots(r).map(a.svg)}))}));
 """
 d=json.loads(subprocess.check_output(prefix+['node','-e',code,str(js),str(fixture)],text=True))
 assert len(d['records'])==24 and len(d['frozen'])==6 and d['self']['status']=='PASS'
@@ -248,4 +256,4 @@ for change in [lambda x:x['data']['events'][0]['reco']['p1'].__setitem__(0,0),la
  try:validate(mutant)
  except AssertionError:mutations+=1
  else:raise AssertionError('Undetected scientific mutation '+str(mutations))
-print(json.dumps({'status':'PASS','records':len(d['records']),'frozen':len(f['records']),'checks':science_checks,'plotCoordinates':plotcoords,'markers':markers,'ledgerRows':table_rows,'invalid':d['invalid'],'feedback':d['feedback'],'mutations':mutations,'self':d['self']['checks'],'replayGuards':guards}))
+print(json.dumps({'status':'PASS','exactBoundaryChecks':d['exactBoundaryChecks'],'records':len(d['records']),'frozen':len(f['records']),'checks':science_checks,'plotCoordinates':plotcoords,'markers':markers,'ledgerRows':table_rows,'invalid':d['invalid'],'feedback':d['feedback'],'mutations':mutations,'self':d['self']['checks'],'replayGuards':guards}))
