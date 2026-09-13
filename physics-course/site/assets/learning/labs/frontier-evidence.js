@@ -1,585 +1,96 @@
-(function (root, factory) {
-  "use strict";
+(function(hostWindow){"use strict";
+'use strict';
+const LIMITS={energyTenths:[0,100],scaleTenths:[10,190],c6Tenths:[-20,20],c8Tenths:[-20,20],precisionExp:[1,18],order:[1,4],responseTenths:[-10,10],sharedTenths:[0,100],y1Tenths:[-40,40],y2Tenths:[-40,40],boundTenths:[0,40],powerChoice:[0,1]};
+const DEFAULTS={energyTenths:40,scaleTenths:80,c6Tenths:10,c8Tenths:0,precisionExp:10,order:1,responseTenths:-10,sharedTenths:0,y1Tenths:0,y2Tenths:0,boundTenths:0,powerChoice:0};
+const PRESETS=[{id:'default',name:'弱修正与零中心值',parameters:{}},{id:'planck',name:'Planck量级算例',parameters:{scaleTenths:190,precisionExp:15}},{id:'cancel',name:'两个算符相消',parameters:{scaleTenths:45,c6Tenths:1,c8Tenths:-10}},{id:'zero',name:'零耦合无尺度界',parameters:{c6Tenths:0}},{id:'dimension8',name:'首项消失后看下一阶',parameters:{c6Tenths:0,c8Tenths:10,powerChoice:1}},{id:'outside',name:'展开域外仍可算数',parameters:{energyTenths:50,scaleTenths:40,order:4}},{id:'singular',name:'重复通道的平坦方向',parameters:{responseTenths:10,y1Tenths:10,y2Tenths:20}},{id:'near',name:'几乎重复的通道',parameters:{responseTenths:9,y1Tenths:10,y2Tenths:20}},{id:'shared',name:'共享系统误差不平均掉',parameters:{sharedTenths:50}},{id:'opposite',name:'两个通道相反偏移',parameters:{y1Tenths:20,y2Tenths:-20}},{id:'bounded',name:'有界偏差与精度下限',parameters:{precisionExp:12,boundTenths:20}},{id:'power4',name:'换成四次幂尺度映射',parameters:{powerChoice:1,c8Tenths:10}}];
+const Z95=1.959963984540054;
+function config(input={}){if(!input||typeof input!=='object'||Array.isArray(input))throw TypeError('Object required');for(const k of Object.keys(input))if(!Object.hasOwn(LIMITS,k))throw RangeError('Unknown field '+k);const c={...DEFAULTS,...input};for(const[k,[lo,hi]]of Object.entries(LIMITS))if(!Number.isInteger(c[k])||c[k]<lo||c[k]>hi)throw RangeError('Integer range '+k);return c;}
+function cdf(z){if(z>=9)return 1;if(z<=-9)return 0;const a=0,b=Math.abs(z),f=x=>Math.exp(-x*x/2)/Math.sqrt(2*Math.PI);function rec(l,r,fl,fm,fr,S,tol,n){const m=(l+r)/2,u=(l+m)/2,v=(m+r)/2,fu=f(u),fv=f(v),L=(m-l)*(fl+4*fu+fm)/6,R=(r-m)*(fm+4*fv+fr)/6,d=L+R-S;return n===0||Math.abs(d)<=15*tol?L+R+d/15:rec(l,m,fl,fu,fm,L,tol/2,n-1)+rec(m,r,fm,fv,fr,R,tol/2,n-1);}const fa=f(a),fm=f(b/2),fb=f(b),S=b*(fa+4*fm+fb)/6,I=rec(a,b,fa,fm,fb,S,2e-14,20);return Math.max(0,Math.min(1,.5+Math.sign(z)*I));}
+function expansion(c,x,K){let sum=0;const terms=[];for(let j=1;j<=K;j++){const term=c*(j%2?1:-1)*x**j;sum+=term;terms.push({order:j,term,partial:sum});}const exact=c*x/(1+x),remainder=(K%2?-1:1)*c*x**(K+1)/(1+x);return{x,ratio:Math.sqrt(x),order:K,c,exact,partial:sum,remainder,absoluteRemainder:Math.abs(remainder),directDifference:exact-sum,relativeError:c===0?null:x**K,nextTermBound:Math.abs(c)*x**(K+1),insideGeometricDomain:x<1,seriesConverges:c===0||x<1,terms};}
+function gaussianFit(r,tau,y1,y2){const t2=tau*tau,C=[[1+t2,t2],[t2,1+t2]],den=1+2*t2,W=[[(1+t2)/den,-t2/den],[-t2/den,(1+t2)/den]],M=[[1,1],[1,r]],g00=2,g01=1+r,g11=1+r*r,large=(g00+g11+Math.hypot(g00-g11,2*g01))/2,small=(1-r)**2/large;
+const fixedA=(y1+y2)/2,fixedVariance=.5+t2,fixedChi2=(y1-y2)**2/2,singular=r===1;
+let a=null,b=null,varA=null,varB=null,covAB=null;if(!singular){a=(y2-r*y1)/(1-r);b=(y1-y2)/(1-r);varA=(1+r*r)/(1-r)**2+t2;varB=2/(1-r)**2;covAB=-(1+r)/(1-r)**2;}
+return{r,tau,y1,y2,design:M,covariance:C,precision:W,singular,rank:singular?1:2,conditionNumber:singular?null:Math.sqrt(large/small),a,b,varA,varB,covAB,chi2Min:singular?fixedChi2:0,aInterval:singular?null:[a-Z95*Math.sqrt(varA),a+Z95*Math.sqrt(varA)],bInterval:singular?null:[b-Z95*Math.sqrt(varB),b+Z95*Math.sqrt(varB)],fixedB:0,fixedA,fixedVariance,fixedChi2,fixedAInterval:[fixedA-Z95*Math.sqrt(fixedVariance),fixedA+Z95*Math.sqrt(fixedVariance)],naiveIndependentVariance:(1+t2)/2,identifiedCombination:singular?'a+b':'a and b',identifiedSumEstimate:singular?fixedA:null,identifiedSumVariance:singular?fixedVariance:null};}
+function profile(f,a){const W=f.precision,r=f.r,v=[1,r],res=[f.y1-a,f.y2-a],dot=(x,y)=>x[0]*(W[0][0]*y[0]+W[0][1]*y[1])+x[1]*(W[1][0]*y[0]+W[1][1]*y[1]);const b=dot(v,res)/dot(v,v),e=[res[0]-b,res[1]-r*b],q=dot(e,e);return{a,b,chi2:q,deltaChi2:f.singular?0:(a-f.a)**2/f.varA,fixedDeltaChi2:(a-f.fixedA)**2/f.fixedVariance};}
+function bounded(y,sigma,B){const h=Z95*sigma+B,wrong=Math.hypot(Z95*sigma,B);return{y,sigma,B,z:Z95,halfWidth:h,interval:[y-h,y+h],nullIncluded:Math.abs(y)<=h,wrongQuadratureHalfWidth:wrong,coverageAtZeroBias:cdf(Z95+B/sigma)-cdf(-Z95-B/sigma),coverageAtExtremeBias:cdf(Z95)-cdf(-Z95-2*B/sigma),wrongCoverageAtExtremeBias:cdf(Z95*Z95*sigma/(wrong+B))-cdf(-(wrong+B)/sigma),nuisanceDistribution:'deterministic unknown bias in [-B,B]',noiseDistribution:'Gaussian with known sigma'};}
+function scaleBound(E,c,n,sigma,B){const U=Z95*sigma+B;if(c===0)return{E,c,n,sigma,B,U,lower:null,logLower:null,controlledExcludedInterval:null,assumptions:'zero central observation; fixed coupling; pure power response'};const logLower=Math.log10(E)+(Math.log10(Math.abs(c))-Math.log10(U))/n,lower=10**logLower;return{E,c,n,sigma,B,U,lower,logLower,controlledExcludedInterval:lower>E?[E,lower]:null,assumptions:'zero central observation; fixed coupling; pure power response'};}
+function compute(input={}){const c=config(input),E=10**(c.energyTenths/10),Lambda=10**(c.scaleTenths/10),x=10**(2*(c.energyTenths-c.scaleTenths)/10),c6=c.c6Tenths/10,c8=c.c8Tenths/10,sigma=10**(-c.precisionExp),B=c.boundTenths*1e-11,n=c.powerChoice?4:2,model={E,Lambda,x,c6,c8,sigma,B,n,scaleCoupling:n===2?c6:c8,r:c.responseTenths/10,tau:c.sharedTenths/10,y1:c.y1Tenths/10,y2:c.y2Tenths/10};
+const ex=expansion(c6,x,c.order),poly={leading:c6*x,next:c8*x*x,total:c6*x+c8*x*x,signalOverSigma:(c6*x+c8*x*x)/sigma,nextToLeading:c6===0?null:Math.abs(c8*x/c6),unknownFurtherTermsBound:null};
+const fit=gaussianFit(model.r,model.tau,model.y1,model.y2),obs=model.y1*sigma,bnd=bounded(obs,sigma,B),reach=scaleBound(E,model.scaleCoupling,n,sigma,B);
+const expansionScan=Array.from({length:87},(_,i)=>{const logRatio=-4+i*.05;return{logRatio,...expansion(c6,10**(2*logRatio),c.order)};}),coefficientScan=Array.from({length:81},(_,i)=>{const d=-2+i*.05;return{c8:d,leading:c6*x,next:d*x*x,total:c6*x+d*x*x};});
+const center=fit.singular?fit.fixedA:fit.a,width=fit.singular?8:Math.max(8,3*Math.sqrt(fit.varA));const profileScan=Array.from({length:81},(_,i)=>profile(fit,center-width+2*width*i/80));
+const sharedScan=Array.from({length:51},(_,i)=>{const tau=i/5;return{tau,correctVariance:.5+tau*tau,naiveVariance:(1+tau*tau)/2};});
+const boundedProfile=Array.from({length:81},(_,i)=>{const mu=obs+(-2+4*i/80)*bnd.halfWidth;return{mu,biasBest:Math.max(-B,Math.min(B,obs-mu)),q:(Math.max(Math.abs(obs-mu)-B,0)/sigma)**2};});
+const precisionScan=Array.from({length:69},(_,i)=>{const p=1+i/4,s=10**(-p);return{precisionExp:p,...bounded(obs,s,B),scale:scaleBound(E,model.scaleCoupling,n,s,B),scaleNoBias:scaleBound(E,model.scaleCoupling,n,s,0)};});
+return{schema:'lookout204-v1',parameters:c,model,expansion:ex,polynomial:poly,fit,bounded:bnd,scale:reach,expansionScan,coefficientScan,profileScan,sharedScan,boundedProfile,precisionScan,boundaries:{allDataSynthetic:true,mediatorNotUniversalUVCompletion:true,finiteIdentityNotConvergenceProof:true,cancellationNotAbsentOperators:true,signalNoiseRatioNotDiscovery:true,zeroCouplingNoScaleBound:reach.lower===null||model.scaleCoupling!==0,rankLossNotFiniteConstraint:!fit.singular||fit.aInterval===null,sharedNoiseNotIndependent:true,boundedBiasNotGaussian:true,confidenceNotPosterior:true,scaleMappingUsesNullCentralValue:true,frontierFrameworkNotSelectedByToy:true}};}
+const QUESTIONS=[
+['本页F=cx/(1+x)在x=10时，增加Taylor截断阶数一定更准确吗？',['不会；有限恒等式不保证级数收敛','会；高阶总比低阶更专业'],0,'相对误差是x^K（c非零）。x=10时，更多项会增大误差；本函数的收敛域不能改称所有EFT的通用阈值。'],
+['两个通道都只测a+b，是否已分别限制a与b？',['是；两个数据足够拟合两个参数','否；响应矩阵只有秩1，仍有平坦方向'],1,'把a增大、b等量减小不会改变均值。若把b固定为0才得到有限a区间，必须公开这项假设。'],
+['随机噪声为高斯，但额外偏差只知|β|≤B，应直接把B当标准差平方相加吗？',['不应；有界信息没有指定高斯分布','应当；所有不确定度都按方差相加'],0,'区间并集给出半宽zσ+B，对允许的固定偏差都至少95%覆盖。错误的混合半宽在偏差占主导时可能只有约50%覆盖。'],
+['某个固定耦合和算符模型的尺度区域被排除，是否就排除了整个量子引力思想家族？',['是；没有信号说明整个方向错误','否；结论限于模型映射及实际检验范围'],1,'换耦合、算符、退化方向或误差模型可能改变限制。toy数值没有为弦论、圈量子引力或其他路线作经验判决。']
+];
+function feedback(i,j){if(!Number.isInteger(i)||i<0||i>=4||![0,1].includes(j))throw Error('无效预测');return{correct:j===QUESTIONS[i][2],text:(j===QUESTIONS[i][2]?'正确。':'需要修正。')+QUESTIONS[i][3]};}
+const LABELS={energyTenths:'实验能量 log₁₀(E/GeV) ×10',scaleTenths:'候选尺度 log₁₀(Λ/GeV) ×10',c6Tenths:'二次幂系数 c₆ ×10',c8Tenths:'独立四次幂系数 c₈ ×10',precisionExp:'随机标准差 σ=10⁻ᵖ：p',order:'有理函数的截断阶数 K',responseTenths:'第二通道响应 r ×10',sharedTenths:'共享高斯分量标准差 τ ×10',y1Tenths:'第一通道观测 y₁ ×10（归一化单位）',y2Tenths:'第二通道观测 y₂ ×10（归一化单位）',boundTenths:'固定偏差界 B（读数×10⁻¹¹）',powerChoice:'尺度映射：0为二次幂，1为四次幂',scaleCoupling:'尺度面板采用的系数c',E:'E（GeV）',Lambda:'Λ（GeV）',x:'x=(E/Λ)²',c6:'c₆',c8:'c₈',sigma:'独立高斯σ',B:'固定偏差界B',n:'尺度映射幂次n',r:'通道响应r',tau:'共享高斯τ',y1:'归一化y₁',y2:'归一化y₂',leading:'独立多项式领先项',next:'独立多项式下一项',total:'独立多项式总和',signalOverSigma:'有符号信号/σ（不是发现判决）',nextToLeading:'下一项绝对值/领先项绝对值',unknownFurtherTermsBound:'未知更高项的上界',y:'单测量物理观测y=归一化y₁×σ',z:'95%双侧Gaussian分位数',halfWidth:'有界偏差区间半宽',interval:'有界偏差区间',nullIncluded:'区间是否包含零',wrongQuadratureHalfWidth:'未经假设的混合半宽',coverageAtZeroBias:'真实偏差0时的覆盖率',coverageAtExtremeBias:'真实偏差B时的覆盖率',wrongCoverageAtExtremeBias:'错误半宽在偏差B时的覆盖率',nuisanceDistribution:'偏差信息',noiseDistribution:'随机噪声分布',singular:'响应矩阵是否退化',rank:'响应矩阵秩',conditionNumber:'响应矩阵2范数条件数',a:'自由拟合â',b:'自由拟合b̂',varA:'Var(â)',varB:'Var(b̂)',covAB:'Cov(â,b̂)',chi2Min:'自由拟合最小χ²',aInterval:'a的95%区间（不适用=无界）',bInterval:'b的95%区间（不适用=无界）',fixedB:'固定的b值',fixedA:'固定b后的â',fixedVariance:'固定b后的Var(â)',fixedChi2:'固定b后的最小χ²',fixedAInterval:'固定b后的a区间',naiveIndependentVariance:'错误独立假设的平均值方差',identifiedCombination:'可识别的组合',identifiedSumEstimate:'退化时(a+b)估计',identifiedSumVariance:'退化时(a+b)方差',allDataSynthetic:'全部数据是合成算例',mediatorNotUniversalUVCompletion:'有理函数不是普适UV完成',finiteIdentityNotConvergenceProof:'有限恒等式不证明收敛',cancellationNotAbsentOperators:'相消不等于算符不存在',signalNoiseRatioNotDiscovery:'信噪比不自动证明发现',zeroCouplingNoScaleBound:'零耦合不返回有限尺度界',rankLossNotFiniteConstraint:'秩退化不返回有限参数界',sharedNoiseNotIndependent:'共享噪声没有按独立处理',boundedBiasNotGaussian:'有界偏差未假定高斯',confidenceNotPosterior:'置信区间不是后验概率',scaleMappingUsesNullCentralValue:'尺度面板独立固定观测中心为零',frontierFrameworkNotSelectedByToy:'toy没有选择自然界的理论', 'deterministic unknown bias in [-B,B]':'固定未知偏差，仅知[-B,B]','Gaussian with known sigma':'已知σ的高斯噪声','a and b':'a与b分别可识别','a+b':'仅a+b可识别'};
+Object.assign(LABELS,{ratio:'E/Λ',c:'指定函数的系数c',exact:'精确响应F',partial:'有限部分和S_K',remainder:'有符号余量F−S_K',absoluteRemainder:'余量绝对值',directDifference:'直接相减的浮点结果',relativeError:'相对截断误差',nextTermBound:'下一项绝对值界',insideGeometricDomain:'在非平凡几何级数域x<1内',seriesConverges:'该系数下级数是否收敛',design:'响应矩阵M',covariance:'协方差C',precision:'逆协方差W'});
+function fmt(x){if(x===null||x===undefined)return'不适用';if(typeof x==='boolean')return x?'是':'否';if(Array.isArray(x))return'['+x.map(fmt).join(', ')+']';if(typeof x==='object')return JSON.stringify(x);if(typeof x==='number')return Number.isInteger(x)&&Math.abs(x)<1e6?String(x):Math.abs(x)<1e-4||Math.abs(x)>=1e5?x.toExponential(5):Number(x.toPrecision(7)).toString();return LABELS[x]??String(x);}
+const COLORS=['#3875ba','#c55b32','#368661','#9860a8','#856722','#646e7c'];
+function frame(key,title,xLabel,yLabel,series,domain){const ys=series.flatMap(s=>s.points.filter(Boolean).map(p=>p[1]));let lo=Math.min(0,...ys),hi=Math.max(0,...ys);if(hi===lo)hi=lo+1;const pad=.07*(hi-lo);return{key,title,xLabel,yLabel,xMin:domain[0],xMax:domain[1],yMin:lo-pad,yMax:hi+pad,series};}
+function plots(s){const line=(name,i,points)=>({name,color:COLORS[i],points}),pts=(rows,x,y)=>rows.map(p=>p[y]===null?null:[p[x],p[y]]);return[
+frame('expansion','精确响应、有限和与有符号余量','log₁₀(E/Λ)；0是本级数收敛边界','无量纲响应',[
+line('指定函数F',0,pts(s.expansionScan,'logRatio','exact')),line('当前阶数有限和S',1,pts(s.expansionScan,'logRatio','partial')),line('精确余量F−S',2,pts(s.expansionScan,'logRatio','remainder'))],[-4,.3]),
+frame('cancellation','独立算符可以抵消；更高项未给定','独立系数c₈（固定当前x与c₆）','无量纲观测修正',[
+line('领先项c₆x',0,pts(s.coefficientScan,'c8','leading')),line('下一项c₈x²',1,pts(s.coefficientScan,'c8','next')),line('两项之和',2,pts(s.coefficientScan,'c8','total')),line('当前c₈与总修正',3,[[s.model.c8,s.polynomial.total]])],[-2,2]),
+frame('profile','允许另一个参数变化，区间可能变宽或无界','a（两个通道的归一化单位）','ln(1+Δχ²)；未转换值见表',[
+line('自由剖面b',0,s.profileScan.map(p=>[p.a,Math.log1p(p.deltaChi2)])),line('固定b=0',1,s.profileScan.map(p=>[p.a,Math.log1p(p.fixedDeltaChi2)])),line('95%单参数Gaussian阈值',2,[[s.profileScan[0].a,Math.log1p(Z95*Z95)],[s.profileScan.at(-1).a,Math.log1p(Z95*Z95)]])],[s.profileScan[0].a,s.profileScan.at(-1).a]),
+frame('shared','共享随机误差不会被取平均消除','共享高斯分量标准差τ','两个通道平均值的标准差',[
+line('保留协方差',0,s.sharedScan.map(p=>[p.tau,Math.sqrt(p.correctVariance)])),line('错误地当成相互独立',1,s.sharedScan.map(p=>[p.tau,Math.sqrt(p.naiveVariance)]))],[0,10]),
+frame('interval','降低随机噪声后，固定偏差仍留下区间宽度','随机精度p，σ=10⁻ᵖ；固定B','log₁₀ 区间半宽',[
+line('覆盖有效：zσ+B',0,s.precisionScan.map(p=>[p.precisionExp,Math.log10(p.halfWidth)])),line('未经假设的混合半宽',1,s.precisionScan.map(p=>[p.precisionExp,Math.log10(p.wrongQuadratureHalfWidth)])),line('仅随机噪声zσ',2,s.precisionScan.map(p=>[p.precisionExp,Math.log10(Z95*p.sigma)]))],[1,18]),
+frame('scale','固定零中心值与非零耦合后的条件尺度界','随机精度p；与可调观测面板分开','log₁₀(尺度/GeV)；无界时不画',[
+line('包含固定偏差界B',0,s.precisionScan.map(p=>p.scale.logLower===null?null:[p.precisionExp,p.scale.logLower])),line('另外假设B=0',1,s.precisionScan.map(p=>p.scaleNoBias.logLower===null?null:[p.precisionExp,p.scaleNoBias.logLower])),line('直接实验能量E',2,[[1,Math.log10(s.model.E)],[18,Math.log10(s.model.E)]] )],[1,18])];}
+function tables(s){const pairs=(name,obj)=>Object.entries(obj).map(([k,v])=>[name,k,v]);return[
+{key:'parameters',title:'12项输入、物理量与不同模型的读数',headers:['模型','量','值'],rows:[...pairs('控件',s.parameters),...pairs('单位与比例',s.model),...pairs('独立两算符',s.polynomial),...pairs('单测量有界偏差',s.bounded)]},
+{key:'terms',title:'当前比值下的每一项与余量',headers:['量','值'],rows:[...Object.entries(s.expansion).filter(([k])=>k!=='terms'),...s.expansion.terms.flatMap(p=>[['第'+p.order+'项',p.term],['第'+p.order+'部分和',p.partial]])]},
+{key:'expansion',title:'完整展开扫描：精确值与直接误差',headers:['log比值','x','K','精确F','有限和S','余量R','绝对余量','直接相减','相对误差','下一项界','非平凡几何级数域内'],rows:s.expansionScan.map(p=>[p.logRatio,p.x,p.order,p.exact,p.partial,p.remainder,p.absoluteRemainder,p.directDifference,p.relativeError,p.nextTermBound,p.insideGeometricDomain])},
+{key:'coefficient',title:'独立四次幂系数扫描',headers:['c₈','领先项','下一项','总和'],rows:s.coefficientScan.map(p=>[p.c8,p.leading,p.next,p.total])},
+{key:'fit',title:'自由拟合与固定参数拟合的全部读数',headers:['量','值'],rows:Object.entries(s.fit).filter(([k])=>!['design','covariance','precision'].includes(k))},
+{key:'matrices',title:'响应、协方差与逆协方差矩阵',headers:['矩阵','行','列','元素'],rows:['design','covariance','precision'].flatMap(k=>s.fit[k].flatMap((r,i)=>r.map((v,j)=>[k,i+1,j+1,v])))},
+{key:'profile',title:'每个a对应的最佳b与未变换χ²',headers:['a','最佳b','χ²','自由剖面Δχ²','固定b的Δχ²'],rows:s.profileScan.map(p=>[p.a,p.b,p.chi2,p.deltaChi2,p.fixedDeltaChi2])},
+{key:'shared',title:'共享误差与错误独立假设',headers:['τ','正确方差','错误方差'],rows:s.sharedScan.map(p=>[p.tau,p.correctVariance,p.naiveVariance])},
+{key:'interval',title:'有界偏差剖面：候选μ、最佳偏差与q',headers:['μ','最佳β','q'],rows:s.boundedProfile.map(p=>[p.mu,p.biasBest,p.q])},
+{key:'precision',title:'固定偏差下的精度扫描与真实覆盖率',headers:['p','σ','B','正确半宽','错误半宽','区间下端','区间上端','偏差0覆盖率','偏差B覆盖率','错误覆盖率'],rows:s.precisionScan.map(p=>[p.precisionExp,p.sigma,p.B,p.halfWidth,p.wrongQuadratureHalfWidth,...p.interval,p.coverageAtZeroBias,p.coverageAtExtremeBias,p.wrongCoverageAtExtremeBias])},
+{key:'scales',title:'零中心值下的条件尺度映射（不是实时实验限制）',headers:['p','E','c','n','B','U','Λ下限','logΛ下限','开区间端点(E,下限)','额外假设B=0时下限'],rows:s.precisionScan.map(p=>[p.precisionExp,p.scale.E,p.scale.c,p.scale.n,p.scale.B,p.scale.U,p.scale.lower,p.scale.logLower,p.scale.controlledExcludedInterval,p.scaleNoBias.lower])},
+{key:'boundaries',title:'哪些结论不能由本实验推出',headers:['边界','是否明确'],rows:Object.entries(s.boundaries)}];}
+const axisFmt=v=>v===0?'0':Math.abs(v)<.001||Math.abs(v)>=10000?v.toExponential(2):Number(v.toFixed(3)).toString();
+function svg(p){const left=100,right=855,top=95,bottom=385,X=v=>left+(v-p.xMin)/(p.xMax-p.xMin)*(right-left),Y=v=>bottom-(v-p.yMin)/(p.yMax-p.yMin)*(bottom-top),esc=v=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));let out='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 580" role="img" aria-label="'+esc(p.title)+'"><title>'+esc(p.title)+'</title><style>text{font:15px system-ui;fill:currentColor}</style><text x="30" y="30" font-weight="700">'+esc(p.title)+'</text><text x="25" y="70">'+esc(p.yLabel)+'</text>';
+const discrete=false;const xticks=Array.from({length:5},(_,i)=>p.xMin+(p.xMax-p.xMin)*i/4);for(let i=0;i<=4;i++){const x=p.xMin+(p.xMax-p.xMin)*i/4,y=p.yMin+(p.yMax-p.yMin)*i/4;out+='<line x1="100" x2="855" y1="'+Y(y)+'" y2="'+Y(y)+'" stroke="currentColor" opacity=".18"/><text x="85" y="'+(Y(y)+5)+'" text-anchor="end">'+axisFmt(y)+'</text>';}for(const x of xticks){out+='<text x="'+X(x)+'" y="410" text-anchor="middle">'+axisFmt(x)+'</text>';}
+out+='<text x="477" y="442" text-anchor="middle">'+esc(p.xLabel)+'</text>';
+p.series.forEach((s,i)=>{let pen=false;const path=s.points.map(q=>{if(!q){pen=false;return '';}const d=(pen&&!s.markersOnly?'L':'M')+X(q[0]).toFixed(6)+','+Y(q[1]).toFixed(6);pen=true;return d;}).join(' ');out+='<path data-series="'+i+'" d="'+path+'" stroke="'+s.color+'" stroke-width="2.8" fill="none"/>';const points=s.points.filter(Boolean);const marks=points.filter((_,j)=>j===0||j===points.length-1);marks.forEach(q=>out+='<circle cx="'+X(q[0])+'" cy="'+Y(q[1])+'" r="'+(3.5+1.5*i)+'" stroke="'+s.color+'" fill="'+(i>0?'none':s.color)+'" stroke-width="'+(s.markerStrokeWidth??2.5)+'"/>');out+='<line x1="'+(40+430*(i%2))+'" x2="'+(60+430*(i%2))+'" y1="'+(473+32*Math.floor(i/2))+'" y2="'+(473+32*Math.floor(i/2))+'" stroke="'+s.color+'" stroke-width="3"/><text x="'+(68+430*(i%2))+'" y="'+(478+32*Math.floor(i/2))+'">'+esc(s.name)+'</text>';});if(!p.series.some(s=>s.points.some(Boolean)))out+='<text x="450" y="245" text-anchor="middle">当前模型在此参数下无适用数据</text>';return out+'</svg>';}
 
-  var exported = factory(root);
-  if (typeof module === "object" && module.exports) module.exports = exported;
-  if (root && root.CourseLearning && typeof root.CourseLearning.register === "function") {
-    root.CourseLearning.register("frontier-evidence", exported.mount);
-  }
-  if (
-    typeof module === "object" &&
-    module.exports &&
-    typeof require === "function" &&
-    require.main === module
-  ) {
-    try {
-      var report = exported.selfTest();
-      console.log(
-        "frontier-evidence self-test: PASS (" +
-          report.checks +
-          " checks, " +
-          report.claims +
-          " claims)"
-      );
-    } catch (error) {
-      console.error("frontier-evidence self-test: FAIL\n" + error.stack);
-      process.exitCode = 1;
-    }
-  }
-})(
-  typeof window !== "undefined" ? window : typeof self !== "undefined" ? self : null,
-  function (host) {
-    "use strict";
+var mounted=new WeakMap();
+function mount(root){const doc=root.ownerDocument,previous=mounted.get(root);if(previous)previous();root.replaceChildren();root.classList.add('lookout204');let c=config(PRESETS[0].parameters),choices={},revealed=false,url=null,current=null,view=0,valid=true;
+ const el=(tag,attrs={},text)=>{const e=doc.createElement(tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(text!==undefined)e.textContent=text;return e;};
+ if(!doc.querySelector('[data-lookout204-style]')){const style=el('style',{'data-lookout204-style':''});style.textContent='.lookout204{margin-inline:0!important;width:100%;min-width:0;color:var(--fg,#222);line-height:1.65}.lookout204 *{box-sizing:border-box}.lookout204 button,.lookout204 select{font:inherit;min-height:44px;padding:8px;border:1px solid var(--border,#aaa);border-radius:5px;background:var(--block-bg,#eee);color:inherit;max-width:100%;white-space:normal}.lookout204 button[aria-pressed="true"]{outline:2px solid var(--accent,#a33)}.lookout204 button:focus-visible,.lookout204 select:focus-visible,.lookout204 [tabindex]:focus-visible{outline:3px solid #2474bc}.lookout204 .lo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.lookout204 label{display:grid;gap:4px;min-width:0}.lookout204 input{width:100%;min-height:44px;font:inherit;color:inherit;background:var(--bg,#fff)}.lookout204 .lo-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.lookout204 .lo-pred>strong{display:block;margin-bottom:6px}.lookout204 .lo-pred{padding:10px 0;border-top:1px solid var(--border,#aaa)}.lookout204 .lo-feedback{margin:7px 0}.lookout204 .lo-scroll{max-width:100%;overflow:auto}.lookout204 svg{display:block;min-width:680px;width:100%;height:auto}.lookout204 table{display:table;overflow:visible;max-width:none;border-collapse:collapse;width:max-content;min-width:100%;font-variant-numeric:tabular-nums}.lookout204 td,.lookout204 th{white-space:nowrap;text-align:right;padding:7px;border:1px solid var(--border,#bbb)}.lookout204 [hidden]{display:none!important}.lookout204 details{margin:12px 0}.lookout204 summary{min-height:44px;cursor:pointer}.lookout204 .lo-status{border-left:3px solid var(--accent,#a33);padding:8px 12px}.lookout204 .lo-correct{color:var(--cl-green,#277540)}.lookout204 .lo-wrong{color:var(--cl-red,#a33)}@media(max-width:600px){.lookout204 .lo-grid{grid-template-columns:1fr}}';doc.head.append(style);}
+ root.append(el('h3',{},'把模型假设带进每一步结论'),el('p',{},'三种明确分开的合成模型：响应展开、双通道高斯拟合、单测量有界偏差。先预测，再核对完整记录。'));
+ const presets=el('div',{class:'lo-row','aria-label':'教学预设'});for(const p of PRESETS){const b=el('button',{type:'button','data-preset':p.id},p.name);b.onclick=()=>{c=config(p.parameters);valid=true;sync();reset();};presets.append(b);}root.append(presets);
+ const fields={},outs={},grid=el('div',{class:'lo-grid'});
 
-    var SVG_NS = "http://www.w3.org/2000/svg";
-    var STYLE_ID = "cl-frontier-evidence-style";
-    var INSTANCE = 0;
 
-    var DEFAULTS = {
-      claimId: "quantum-gravity",
-      energyExp: 4,
-      scaleExp: 19,
-      couplingExp: 0,
-      precisionExp: 15
-    };
 
-    var CLAIMS = [
-      {
-        id: "quantum-gravity",
-        label: "Planck 尺度量子引力",
-        phenomenon: "GR 与量子理论都指向需要更高能的统一描述。",
-        evidence: "问题与低能有效场论成立；UV 完成尚无实验判决。",
-        boundary: "候选框架的内部自洽或数学产出不等于自然界已选择它。"
-      },
-      {
-        id: "dark-matter",
-        label: "暗物质粒子身份",
-        phenomenon: "旋转曲线、透镜、CMB 与结构形成给出共同引力证据。",
-        evidence: "额外引力源这一现象证据强；微观粒子身份仍未知。",
-        boundary: "确认现象不能自动确认任一 WIMP、轴子或其他候选。"
-      },
-      {
-        id: "supersymmetry",
-        label: "低能超对称",
-        phenomenon: "它可改善部分自然性问题并提供候选暗物质粒子。",
-        evidence: "搜索的零结果排除了被检验的质量与耦合区域。",
-        boundary: "零结果压缩参数空间，不等于逻辑上排除全部 SUSY 实现。"
-      },
-      {
-        id: "proton-decay",
-        label: "质子衰变与简单 GUT",
-        phenomenon: "许多统一模型给出可检验的质子衰变通道。",
-        evidence: "寿命下限能够排除作出过快衰变预言的模型区域。",
-        boundary: "一个 GUT 实现失败，不推出所有统一思想都失败。"
-      },
-      {
-        id: "holography",
-        label: "全息对偶",
-        phenomenon: "特定引力理论与低维量子场论存在精确或受控对偶。",
-        evidence: "在规定模型中的数学/理论证据很强，并可作计算工具。",
-        boundary: "特定 AdS/CFT 对偶不直接证明真实宇宙就是该模型。"
-      }
-    ];
 
-    function assert(condition, message) {
-      if (!condition) throw new Error(message);
-    }
+ for(const[key,title]of Object.entries(LABELS).filter(([key])=>Object.hasOwn(LIMITS,key))){const[min,max]=LIMITS[key],label=el('label',{},title),out=el('output'),input=el('input',{type:'range',min,max,step:1,'data-field':key,'aria-label':title});label.append(out,input);grid.append(label);fields[key]=input;outs[key]=out;input.oninput=input.onchange=change;}root.append(grid);
+ function change(){try{c=config(Object.fromEntries(Object.entries(fields).map(([k,e])=>[k,e.value===''?NaN:Number(e.value)])));valid=true;sync();reset();}catch(e){valid=false;reset();status.textContent='请使用控件范围内的整数，再按标签倍率换成实际量。';}}
+ const note=el('p'),prediction=el('section',{'aria-label':'先预测'});root.append(note,prediction);prediction.append(el('h4',{},'先预测：收敛、可识别性、不确定度与理论结论'),el('p',{},'四题的条件固定写在题干里；参数用来检查例子，不自动改变问题。'));
+ const feedbacks=[],buttons=[];QUESTIONS.forEach((q,i)=>{const row=el('div',{class:'lo-pred'});row.append(el('strong',{},q[0]));buttons[i]=[];q[1].forEach((text,j)=>{const b=el('button',{type:'button','data-prediction':i,'data-choice':String(j===0),'aria-pressed':'false'},text);b.onclick=()=>{choices[i]=j;buttons[i].forEach((x,k)=>x.setAttribute('aria-pressed',String(j===k)));if(revealed)showFeedback();};row.append(b);buttons[i].push(b);});feedbacks[i]=el('p',{class:'lo-feedback','data-feedback':i});row.append(feedbacks[i]);prediction.append(row);});
+ const check=el('button',{type:'button','data-check':''},'核对预测并显示完整结果'),status=el('p',{class:'lo-status','aria-live':'polite'});root.append(check,status);
+ const stage=el('section',{'data-stage':'',hidden:'','aria-label':'实验结果'}),summary=el('p'),plotButtons=el('div',{class:'lo-row'}),plotWrap=el('div',{class:'lo-scroll',tabindex:0,role:'region','aria-label':'图表，可横向滚动'}),plotNote=el('p',{},'曲线采样点与所有表格均可下载。前两图扫参数，后四图分别改变统计假设；尺度图固定观测中心为0。对数纵轴已标明，精确零或无界结果不伪装成有限对数。'),tableHost=el('div'),download=el('a',{'data-download':'',download:'lo-record.json'},'下载当前完整记录（JSON）');stage.append(summary,plotButtons,plotWrap,plotNote,tableHost,download);root.append(stage);
+ function sync(){for(const[k,e]of Object.entries(fields))e.value=c[k];}
+ function reset(){if(url){hostWindow.URL.revokeObjectURL(url);url=null;download.removeAttribute('href');}revealed=false;choices={};stage.hidden=true;delete root.__lookoutSnapshot;for(let i=0;i<4;i++){feedbacks[i].textContent='';for(const b of buttons[i])b.setAttribute('aria-pressed','false');}for(const[k,o]of Object.entries(outs))o.textContent=fmt(c[k]);note.textContent='E=10^'+fmt(c.energyTenths/10)+' GeV；Λ=10^'+fmt(c.scaleTenths/10)+' GeV；c₆='+fmt(c.c6Tenths/10)+'；c₈='+fmt(c.c8Tenths/10)+'；σ=10^−'+c.precisionExp+'；B='+fmt(c.boundTenths*1e-11)+'。双通道观测归一化；尺度面板n=2用c₆、n=4用c₈，另固定观测中心为0、n='+(c.powerChoice?4:2)+'。';status.textContent='完成四项预测后显示当前结果。';}
+ function showFeedback(){let n=0;for(let i=0;i<4;i++){if(!Number.isInteger(choices[i]))continue;const f=feedback(i,choices[i]);n+=+f.correct;feedbacks[i].textContent=f.text;feedbacks[i].className='lo-feedback '+(f.correct?'lo-correct':'lo-wrong');}status.textContent='预测核对：'+n+'/4 正确。图、表和下载均对应当前参数。';}
+ function draw(){const ps=plots(current);plotWrap.innerHTML=svg(ps[view]);Array.from(plotButtons.children).forEach((b,i)=>b.setAttribute('aria-pressed',String(i===view)));}
+ function render(){current=compute(c);root.__lookoutSnapshot=current;stage.hidden=false;summary.textContent='指定有理函数：'+(current.expansion.insideGeometricDomain?'在非平凡几何级数域内':'在非平凡几何级数域外')+'；独立两项响应='+fmt(current.polynomial.total)+'。双通道响应秩='+current.fit.rank+'；自由a区间='+(current.fit.singular?'无界':fmt(current.fit.aInterval))+'。固定偏差模型的区间半宽='+fmt(current.bounded.halfWidth)+'；零中心值条件尺度下限='+fmt(current.scale.lower)+' GeV。';plotButtons.replaceChildren();plots(current).forEach((p,i)=>{const b=el('button',{type:'button','data-plot':p.key},p.title);b.onclick=()=>{view=i;draw();};plotButtons.append(b);});draw();tableHost.replaceChildren();for(const t of tables(current)){const d=el('details',{'data-table':t.key});d.append(el('summary',{},t.title));d.addEventListener('toggle',()=>{if(!d.open||d.children.length>1)return;const wrap=el('div',{class:'lo-scroll',tabindex:0,role:'region','aria-label':t.title+'，可横向滚动'}),table=el('table'),thead=el('thead'),tr=el('tr'),tbody=el('tbody');for(const h of t.headers)tr.append(el('th',{scope:'col'},h));thead.append(tr);for(const row of t.rows){const r=el('tr');for(const v of row)r.append(el('td',{},fmt(v)));tbody.append(r);}table.append(thead,tbody);wrap.append(table);d.append(wrap);});tableHost.append(d);}if(url)hostWindow.URL.revokeObjectURL(url);url=hostWindow.URL.createObjectURL(new hostWindow.Blob([JSON.stringify(current)],{type:'application/json'}));download.href=url;showFeedback();}
+ check.onclick=()=>{if(!valid){status.textContent='请先修正无效参数。';return;}if(![0,1,2,3].every(i=>Number.isInteger(choices[i]))){status.textContent='请先为四个问题各选一个预测。';return;}revealed=true;render();};sync();reset();mounted.set(root,()=>{if(url)hostWindow.URL.revokeObjectURL(url);});
+}
 
-    function finiteNumber(value, name) {
-      var number = Number(value);
-      if (!Number.isFinite(number)) throw new TypeError(name + " must be finite");
-      return number;
-    }
-
-    function inRange(value, min, max, name) {
-      var number = finiteNumber(value, name);
-      if (number < min || number > max) {
-        throw new RangeError(name + " must be in [" + min + ", " + max + "]");
-      }
-      return number;
-    }
-
-    function clamp(value, min, max) {
-      return Math.max(min, Math.min(max, value));
-    }
-
-    function findClaim(id) {
-      for (var i = 0; i < CLAIMS.length; i += 1) {
-        if (CLAIMS[i].id === id) return CLAIMS[i];
-      }
-      throw new RangeError("unknown claim: " + id);
-    }
-
-    function evaluate(input) {
-      var source = input || {};
-      var claim = findClaim(source.claimId || DEFAULTS.claimId);
-      var energyExp = inRange(
-        source.energyExp === undefined ? DEFAULTS.energyExp : source.energyExp,
-        0,
-        19,
-        "energyExp"
-      );
-      var scaleExp = inRange(
-        source.scaleExp === undefined ? DEFAULTS.scaleExp : source.scaleExp,
-        3,
-        19,
-        "scaleExp"
-      );
-      var couplingExp = inRange(
-        source.couplingExp === undefined ? DEFAULTS.couplingExp : source.couplingExp,
-        -6,
-        0,
-        "couplingExp"
-      );
-      var precisionExp = inRange(
-        source.precisionExp === undefined ? DEFAULTS.precisionExp : source.precisionExp,
-        1,
-        18,
-        "precisionExp"
-      );
-
-      var ratioLog = energyExp - scaleExp;
-      var logSignal = couplingExp + 2 * ratioLog;
-      var logFloor = -precisionExp;
-      // A visible teaching threshold, not a universal EFT convergence theorem.
-      var controlled = ratioLog <= -0.5;
-      var testable = controlled && logSignal >= logFloor;
-      var status = !controlled
-        ? "out-of-domain"
-        : testable
-          ? "detectable"
-          : "below-sensitivity";
-      var maxIndirectScaleExp = energyExp + (precisionExp + couplingExp) / 2;
-
-      return {
-        claim: claim,
-        energyExp: energyExp,
-        scaleExp: scaleExp,
-        couplingExp: couplingExp,
-        precisionExp: precisionExp,
-        ratioLog: ratioLog,
-        logSignal: logSignal,
-        logFloor: logFloor,
-        controlled: controlled,
-        testable: testable,
-        status: status,
-        maxIndirectScaleExp: maxIndirectScaleExp
-      };
-    }
-
-    function expectedAnswers() {
-      return {
-        distinct: "required",
-        nullResult: "region",
-        consistency: "not-evidence",
-        indirect: "conditional"
-      };
-    }
-
-    function questionSpecs() {
-      return [
-        {
-          key: "distinct",
-          prompt: "一个框架要获得新的经验支持，是否需要可区分于既有理论的预言？",
-          choices: [
-            { value: "required", label: "需要可区分预言" },
-            { value: "beauty", label: "数学优美就足够" },
-            { value: "citation", label: "引用很多就足够" }
-          ]
-        },
-        {
-          key: "nullResult",
-          prompt: "一次搜索没有发现信号，最直接排除的是什么？",
-          choices: [
-            { value: "region", label: "被检验的参数区域" },
-            { value: "all", label: "整个思想家族" },
-            { value: "nothing", label: "什么也没学到" }
-          ]
-        },
-        {
-          key: "consistency",
-          prompt: "理论内部自洽与经验确认之间是什么关系？",
-          choices: [
-            { value: "not-evidence", label: "必要但不是经验确认" },
-            { value: "same", label: "二者完全相同" },
-            { value: "irrelevant", label: "自洽毫无意义" }
-          ]
-        },
-        {
-          key: "indirect",
-          prompt: "低能精密实验能否约束更高能的新物理？",
-          choices: [
-            { value: "conditional", label: "可在模型桥梁下约束" },
-            { value: "never", label: "绝对不可能" },
-            { value: "always", label: "总能直接发现" }
-          ]
-        }
-      ];
-    }
-
-    function selfTest() {
-      var checks = 0;
-      function check(condition, message) {
-        checks += 1;
-        assert(condition, message);
-      }
-
-      var baseline = evaluate(DEFAULTS);
-      check(baseline.status === "below-sensitivity", "Planck baseline is below sensitivity");
-      check(baseline.controlled, "Planck baseline stays inside the EFT toy domain");
-      check(baseline.logSignal === -30, "dimension-six toy scaling is exact");
-      check(baseline.logFloor === -15, "precision floor uses the declared exponent");
-      check(baseline.maxIndirectScaleExp === 11.5, "indirect reach solves the signal inequality");
-
-      var detectable = evaluate({ energyExp: 4, scaleExp: 8, couplingExp: -2, precisionExp: 12 });
-      check(detectable.logSignal === -10, "detectable fixture signal");
-      check(detectable.status === "detectable", "detectable fixture classification");
-      check(detectable.testable, "detectable fixture boolean");
-
-      var boundary = evaluate({ energyExp: 4, scaleExp: 8, couplingExp: -2, precisionExp: 10 });
-      check(boundary.status === "detectable", "equality with the floor is detectable");
-      var hidden = evaluate({ energyExp: 4, scaleExp: 8, couplingExp: -2, precisionExp: 9 });
-      check(hidden.status === "below-sensitivity", "signal below the floor stays hidden");
-
-      var outside = evaluate({ energyExp: 10, scaleExp: 9, couplingExp: 0, precisionExp: 8 });
-      check(outside.status === "out-of-domain", "E at or above the scale invalidates the EFT toy");
-      check(!outside.testable, "out-of-domain arithmetic is not a test certificate");
-
-      var answers = expectedAnswers();
-      check(answers.distinct === "required", "distinct prediction answer");
-      check(answers.nullResult === "region", "null-result answer");
-      check(answers.consistency === "not-evidence", "consistency answer");
-      check(answers.indirect === "conditional", "indirect constraint answer");
-      check(findClaim("dark-matter").evidence.indexOf("现象证据强") >= 0, "phenomenon and identity are separated");
-      check(findClaim("supersymmetry").boundary.indexOf("全部") >= 0, "parameter-region boundary is explicit");
-
-      var threw = false;
-      try { evaluate({ claimId: "missing" }); } catch (error) { threw = error instanceof RangeError; }
-      check(threw, "unknown claims are rejected");
-      threw = false;
-      try { evaluate({ precisionExp: NaN }); } catch (error2) { threw = error2 instanceof TypeError; }
-      check(threw, "non-finite inputs are rejected");
-      threw = false;
-      try { evaluate({ couplingExp: 1 }); } catch (error3) { threw = error3 instanceof RangeError; }
-      check(threw, "out-of-range couplings are rejected");
-
-      return { checks: checks, claims: CLAIMS.length };
-    }
-
-    function element(doc, tag, attributes, children) {
-      var node = doc.createElement(tag);
-      var attrs = attributes || {};
-      Object.keys(attrs).forEach(function (key) {
-        if (key === "className") node.className = attrs[key];
-        else if (key === "textContent") node.textContent = attrs[key];
-        else node.setAttribute(key, attrs[key]);
-      });
-      if (children !== undefined && children !== null) {
-        var list = Array.isArray(children) ? children : [children];
-        list.forEach(function (child) {
-          node.appendChild(typeof child === "string" ? doc.createTextNode(child) : child);
-        });
-      }
-      return node;
-    }
-
-    function svgElement(doc, tag, attributes) {
-      var node = doc.createElementNS(SVG_NS, tag);
-      Object.keys(attributes || {}).forEach(function (key) {
-        node.setAttribute(key, attributes[key]);
-      });
-      return node;
-    }
-
-    function clear(node) {
-      while (node.firstChild) node.removeChild(node.firstChild);
-    }
-
-    function ensureStyle(doc) {
-      if (doc.getElementById(STYLE_ID)) return;
-      var style = element(doc, "style", { id: STYLE_ID });
-      style.textContent = [
-        ".fe-lab *,.fe-lab *::before,.fe-lab *::after{box-sizing:border-box}",
-        ".fe-lab [hidden]{display:none!important}",
-        ".fe-lab{--fe-blue:#246b91;--fe-green:#2f7d55;--fe-red:#aa3e3e;--fe-gold:#9b6b16;min-width:0}",
-        ".fe-lab h3,.fe-lab h4{margin:0;color:var(--fg);letter-spacing:0}.fe-lab h3{font-size:1.12rem}.fe-lab h4{margin-top:14px;font-size:1rem}",
-        ".fe-lab p{margin:8px 0}.fe-lab .fe-note,.fe-lab .fe-feedback{color:var(--fg-soft);font-size:13px;line-height:1.65}",
-        ".fe-lab button,.fe-lab select,.fe-lab input{font:inherit;letter-spacing:0}.fe-lab button,.fe-lab select{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);line-height:1.35;cursor:pointer;overflow-wrap:anywhere}",
-        ".fe-lab button:hover{border-color:var(--accent)}.fe-lab button:focus-visible,.fe-lab select:focus-visible,.fe-lab input:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}",
-        ".fe-lab button[aria-pressed=true],.fe-lab button.fe-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750}",
-        ".fe-lab fieldset{min-width:0;margin:10px 0;padding:9px 10px;border:1px solid var(--border)}.fe-lab legend{max-width:100%;padding:0 4px;font-size:13px;font-weight:750;line-height:1.5}",
-        ".fe-lab .fe-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.fe-lab .fe-options button{font-size:12px}",
-        ".fe-lab .fe-prediction{margin:14px 0;padding:12px 14px;border-left:3px solid var(--fe-gold);background:var(--block-bg,var(--bg))}.fe-lab .fe-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}.fe-lab .fe-actions>*{flex:1 1 180px}",
-        ".fe-lab .fe-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}.fe-lab .fe-control{min-width:0;padding:10px;border:1px solid var(--border);border-radius:6px}.fe-lab .fe-control label{display:block;font-size:13px;font-weight:750}.fe-lab .fe-control output{float:right;font-variant-numeric:tabular-nums}.fe-lab .fe-control input{width:100%;min-height:44px;margin-top:4px}.fe-lab .fe-control select{width:100%;margin-top:6px}",
-        ".fe-lab .fe-results{margin-top:14px}.fe-lab .fe-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:12px}.fe-lab .fe-panel{min-width:0;padding:11px;border:1px solid var(--border);border-radius:6px;background:var(--block-bg,var(--bg))}",
-        ".fe-lab svg{display:block;width:100%;height:auto;min-height:220px}.fe-lab .fe-metric{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}.fe-lab .fe-metric div{min-width:0;padding:9px;border:1px solid var(--border);border-radius:5px}.fe-lab .fe-metric strong{display:block;font-size:1.05rem;overflow-wrap:anywhere}",
-        ".fe-lab table{width:100%;border-collapse:collapse;font-size:13px}.fe-lab th,.fe-lab td{padding:7px;border:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere}.fe-lab .fe-pass{color:var(--fe-green);font-weight:750}.fe-lab .fe-warn{color:var(--fe-red);font-weight:750}",
-        "@media(max-width:760px){.fe-lab .fe-grid,.fe-lab .fe-controls{grid-template-columns:1fr}.fe-lab .fe-options{grid-template-columns:1fr}.fe-lab .fe-metric{grid-template-columns:1fr}.fe-lab svg{min-height:190px}}"
-      ].join("");
-      (doc.head || doc.documentElement).appendChild(style);
-    }
-
-    function formatPower(exp) {
-      return "10^" + Number(exp).toFixed(Number(exp) % 1 ? 1 : 0);
-    }
-
-    function renderEnergyChart(doc, container, report) {
-      clear(container);
-      var svg = svgElement(doc, "svg", {
-        viewBox: "0 0 640 230",
-        role: "img",
-        "aria-label": "实验能标、新物理尺度与间接灵敏度范围"
-      });
-      var title = svgElement(doc, "title", {});
-      title.textContent = "能标账本：直接能量、候选尺度和精密实验的间接触及";
-      svg.appendChild(title);
-      var left = 52;
-      var right = 606;
-      var y = 118;
-      function x(exp) { return left + (right - left) * clamp(exp / 19, 0, 1); }
-      var axis = svgElement(doc, "line", { x1: left, y1: y, x2: right, y2: y, stroke: "currentColor", "stroke-width": 2 });
-      svg.appendChild(axis);
-      [0, 4, 8, 12, 16, 19].forEach(function (tick) {
-        svg.appendChild(svgElement(doc, "line", { x1: x(tick), y1: y - 6, x2: x(tick), y2: y + 7, stroke: "currentColor" }));
-        var label = svgElement(doc, "text", { x: x(tick), y: y + 25, "text-anchor": "middle", fill: "currentColor", "font-size": 12 });
-        label.textContent = "10^" + tick;
-        svg.appendChild(label);
-      });
-      var reach = report.maxIndirectScaleExp;
-      var reachPlot = clamp(reach, 0, 19);
-      var reachOutsideAxis = reach < 0 || reach > 19;
-      svg.appendChild(svgElement(doc, "rect", { x: left, y: 72, width: Math.max(1, x(reachPlot) - left), height: 18, rx: 4, fill: "#2f7d55", opacity: 0.35 }));
-      var reachLabel = svgElement(doc, "text", { x: x(reachPlot), y: 66, "text-anchor": reach < 0 ? "start" : "end", fill: "currentColor", "font-size": 12 });
-      reachLabel.textContent = "toy 间接触及 ≤ 10^" + reach.toFixed(1) + " GeV" + (reachOutsideAxis ? "（超出图轴）" : "");
-      svg.appendChild(reachLabel);
-      [
-        { exp: report.energyExp, y: 104, color: "#246b91", label: "直接能量 E" },
-        { exp: report.scaleExp, y: 104, color: "#aa3e3e", label: "候选尺度 Λ" }
-      ].forEach(function (mark) {
-        svg.appendChild(svgElement(doc, "circle", { cx: x(mark.exp), cy: mark.y, r: 7, fill: mark.color }));
-        var textNode = svgElement(doc, "text", { x: x(mark.exp), y: mark.y - 16, "text-anchor": "middle", fill: "currentColor", "font-size": 12 });
-        textNode.textContent = mark.label;
-        svg.appendChild(textNode);
-      });
-      var note = svgElement(doc, "text", { x: left, y: 184, fill: "currentColor", "font-size": 13 });
-      note.textContent = "绿色区不是直接生产粒子，而是给定算符与耦合假设后的精密约束范围。";
-      svg.appendChild(note);
-      var domain = svgElement(doc, "text", { x: left, y: 207, fill: report.controlled ? "#2f7d55" : "#aa3e3e", "font-size": 13, "font-weight": 700 });
-      domain.textContent = report.controlled
-        ? "通过教学阈值 E/Λ≤10^-0.5；真实误差仍需 Wilson 系数与截断阶数"
-        : "未通过教学阈值；本 toy 不再签发 EFT 适用证书";
-      svg.appendChild(domain);
-      container.appendChild(svg);
-    }
-
-    function renderResults(doc, container, report) {
-      clear(container);
-      var statusText = report.status === "detectable"
-        ? "在 toy 假设下可检验"
-        : report.status === "below-sensitivity"
-          ? "信号低于当前 toy 灵敏度"
-          : "已越过 EFT toy 适用域";
-      var metrics = element(doc, "div", { className: "fe-metric" });
-      [
-        ["信号量级", formatPower(report.logSignal)],
-        ["测量底噪", formatPower(report.logFloor)],
-        ["判决", statusText]
-      ].forEach(function (item) {
-        metrics.appendChild(element(doc, "div", {}, [
-          element(doc, "span", { className: "fe-note" }, item[0]),
-          element(doc, "strong", {}, item[1])
-        ]));
-      });
-      container.appendChild(metrics);
-
-      var grid = element(doc, "div", { className: "fe-grid" });
-      var chartPanel = element(doc, "section", { className: "fe-panel" }, [element(doc, "h4", {}, "能标与灵敏度")]);
-      var chart = element(doc, "div");
-      chartPanel.appendChild(chart);
-      renderEnergyChart(doc, chart, report);
-      grid.appendChild(chartPanel);
-
-      var ledger = element(doc, "section", { className: "fe-panel" }, [element(doc, "h4", {}, report.claim.label)]);
-      var table = element(doc, "table");
-      var body = element(doc, "tbody");
-      [
-        ["现象/动机", report.claim.phenomenon],
-        ["当前证据", report.claim.evidence],
-        ["不能越过", report.claim.boundary],
-        ["toy 结论", statusText]
-      ].forEach(function (row) {
-        body.appendChild(element(doc, "tr", {}, [element(doc, "th", {}, row[0]), element(doc, "td", {}, row[1])]));
-      });
-      table.appendChild(body);
-      ledger.appendChild(table);
-      ledger.appendChild(element(doc, "p", { className: "fe-note" }, "公式使用一个维数六算符的透明缩放：log10(signal)=log10(c)+2 log10(E/Λ)。它教学的是量纲与可检验性，不是任何具体实验的实时排除曲线。"));
-      grid.appendChild(ledger);
-      container.appendChild(grid);
-    }
-
-    function mount(root, api) {
-      if (!root || !root.ownerDocument) return;
-      var doc = root.ownerDocument;
-      ensureStyle(doc);
-      INSTANCE += 1;
-      var serial = INSTANCE;
-      var state = {
-        claimId: DEFAULTS.claimId,
-        energyExp: DEFAULTS.energyExp,
-        scaleExp: DEFAULTS.scaleExp,
-        couplingExp: DEFAULTS.couplingExp,
-        precisionExp: DEFAULTS.precisionExp,
-        answers: { distinct: null, nullResult: null, consistency: null, indirect: null },
-        revealed: false
-      };
-
-      clear(root);
-      root.classList.add("fe-lab");
-      var shell = element(doc, "div");
-      shell.appendChild(element(doc, "h3", {}, "证据分级台：能标差距不等于无法做科学"));
-      shell.appendChild(element(doc, "p", { className: "fe-note" }, "先判读四条认识论命题，再用透明的有效算符 toy 检查直接能量、测量精度与新物理尺度如何共同决定可检验性。"));
-
-      var prediction = element(doc, "section", { className: "fe-prediction", "aria-labelledby": "fe-prediction-title-" + serial });
-      prediction.appendChild(element(doc, "strong", { id: "fe-prediction-title-" + serial }, "预测门：先把理论价值与经验证据分账"));
-      var questionList = element(doc, "div");
-      prediction.appendChild(questionList);
-      var reveal = element(doc, "button", { type: "button", className: "fe-primary" }, "核对预测并揭示");
-      var reset = element(doc, "button", { type: "button" }, "重置实验");
-      prediction.appendChild(element(doc, "div", { className: "fe-actions" }, [reveal, reset]));
-      var status = element(doc, "p", { className: "fe-feedback", "aria-live": "polite", "aria-atomic": "true" }, "先回答四项预测。" );
-      prediction.appendChild(status);
-      shell.appendChild(prediction);
-
-      var controls = element(doc, "section", { className: "fe-controls", "aria-label": "有效场论 toy 参数" });
-      var claimControl = element(doc, "div", { className: "fe-control" });
-      claimControl.appendChild(element(doc, "label", { for: "fe-claim-" + serial }, "判读对象"));
-      var claimSelect = element(doc, "select", { id: "fe-claim-" + serial });
-      CLAIMS.forEach(function (claim) { claimSelect.appendChild(element(doc, "option", { value: claim.id }, claim.label)); });
-      claimControl.appendChild(claimSelect);
-      controls.appendChild(claimControl);
-
-      function rangeControl(key, label, min, max, step, formatter) {
-        var box = element(doc, "div", { className: "fe-control" });
-        var id = "fe-" + key + "-" + serial;
-        var output = element(doc, "output", { for: id });
-        var labelNode = element(doc, "label", { for: id }, [label, output]);
-        var input = element(doc, "input", { id: id, type: "range", min: min, max: max, step: step });
-        box.appendChild(labelNode);
-        box.appendChild(input);
-        controls.appendChild(box);
-        return { key: key, input: input, output: output, formatter: formatter };
-      }
-
-      var ranges = [
-        rangeControl("energyExp", "直接实验 log10(E/GeV)", 0, 19, 1, function (value) { return Number(value).toFixed(0); }),
-        rangeControl("scaleExp", "新物理 log10(Λ/GeV)", 3, 19, 1, function (value) { return Number(value).toFixed(0); }),
-        rangeControl("couplingExp", "耦合 log10(c)", -6, 0, 1, function (value) { return Number(value).toFixed(0); }),
-        rangeControl("precisionExp", "精度 10^-p 中的 p", 1, 18, 1, function (value) { return Number(value).toFixed(0); })
-      ];
-      shell.appendChild(controls);
-
-      var results = element(doc, "section", { className: "fe-results", hidden: "hidden", "aria-live": "polite" });
-      shell.appendChild(results);
-      root.appendChild(shell);
-
-      function renderQuestions() {
-        clear(questionList);
-        questionSpecs().forEach(function (question) {
-          var fieldset = element(doc, "fieldset");
-          fieldset.appendChild(element(doc, "legend", {}, question.prompt));
-          var options = element(doc, "div", { className: "fe-options", role: "group", "aria-label": question.prompt });
-          question.choices.forEach(function (choice) {
-            var button = element(doc, "button", { type: "button", "aria-pressed": state.answers[question.key] === choice.value ? "true" : "false" }, choice.label);
-            button.addEventListener("click", function () {
-              state.answers[question.key] = choice.value;
-              state.revealed = false;
-              results.hidden = true;
-              renderQuestions();
-              status.className = "fe-feedback";
-              status.textContent = "预测已记录；四项完成后再揭示。";
-            });
-            options.appendChild(button);
-          });
-          fieldset.appendChild(options);
-          questionList.appendChild(fieldset);
-        });
-      }
-
-      function renderControls() {
-        claimSelect.value = state.claimId;
-        ranges.forEach(function (item) {
-          item.input.value = state[item.key];
-          item.output.textContent = item.formatter(state[item.key]);
-        });
-      }
-
-      function resetReveal(message) {
-        state.revealed = false;
-        results.hidden = true;
-        status.className = "fe-feedback";
-        status.textContent = message;
-      }
-
-      claimSelect.addEventListener("change", function () {
-        state.claimId = claimSelect.value;
-        resetReveal("判读对象已改变，请重新核对预测。" );
-      });
-      ranges.forEach(function (item) {
-        item.input.addEventListener("input", function () {
-          state[item.key] = Number(item.input.value);
-          item.output.textContent = item.formatter(state[item.key]);
-          resetReveal("参数已改变，请重新核对预测。" );
-        });
-      });
-
-      reveal.addEventListener("click", function () {
-        var keys = Object.keys(state.answers);
-        if (keys.some(function (key) { return state.answers[key] === null; })) {
-          status.className = "fe-feedback fe-warn";
-          status.textContent = "请先回答四项预测。";
-          if (api && typeof api.announce === "function") api.announce(root, status.textContent);
-          return;
-        }
-        var expected = expectedAnswers();
-        var score = keys.reduce(function (total, key) { return total + (state.answers[key] === expected[key] ? 1 : 0); }, 0);
-        var report = evaluate(state);
-        state.revealed = true;
-        results.hidden = false;
-        renderResults(doc, results, report);
-        status.className = "fe-feedback " + (score === keys.length ? "fe-pass" : "fe-warn");
-        status.textContent = "已揭示：命中 " + score + "/" + keys.length + "；结论只属于声明的 toy 与证据层级。";
-        if (api && typeof api.announce === "function") api.announce(root, status.textContent);
-      });
-
-      reset.addEventListener("click", function () {
-        state = {
-          claimId: DEFAULTS.claimId,
-          energyExp: DEFAULTS.energyExp,
-          scaleExp: DEFAULTS.scaleExp,
-          couplingExp: DEFAULTS.couplingExp,
-          precisionExp: DEFAULTS.precisionExp,
-          answers: { distinct: null, nullResult: null, consistency: null, indirect: null },
-          revealed: false
-        };
-        renderQuestions();
-        renderControls();
-        results.hidden = true;
-        status.className = "fe-feedback";
-        status.textContent = "已重置到 LHC 与 Planck 能标 toy。";
-        if (api && typeof api.announce === "function") api.announce(root, status.textContent);
-      });
-
-      renderQuestions();
-      renderControls();
-    }
-
-    return {
-      CLAIMS: CLAIMS,
-      DEFAULTS: DEFAULTS,
-      evaluate: evaluate,
-      expectedAnswers: expectedAnswers,
-      mount: mount,
-      selfTest: selfTest
-    };
-  }
-);
+function selfTest(){let checks=0;const ok=v=>{if(!v)throw Error('Lookout204 view '+checks);checks++;};for(const p of PRESETS){const s=compute(p.parameters);ok(plots(s).length===6);ok(tables(s).length===12);for(const plot of plots(s))for(const q of plot.series)for(const v of q.points)if(v)ok(v.every(Number.isFinite));for(let i=0;i<4;i++)ok(feedback(i,QUESTIONS[i][2]).correct);}return{status:'PASS',checks};}
+const API={LIMITS,DEFAULTS,PRESETS,Z95,config,cdf,expansion,gaussianFit,profile,bounded,scaleBound,compute,QUESTIONS,feedback,fmt,plots,tables,svg,mount,selfTest};if(typeof module!=="undefined"&&module.exports)module.exports=API;if(hostWindow&&hostWindow.CourseLearning)hostWindow.CourseLearning.register("frontier-evidence",mount);})(typeof window!=="undefined"?window:null);
