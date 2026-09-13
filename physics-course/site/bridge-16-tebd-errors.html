@@ -56,7 +56,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-13 20:36</div>
+    <div class="build-time">构建于 2026-09-13 22:47</div>
   </div>
 </nav>
 <main id="content">
@@ -68,10 +68,13 @@ try {
 <li><a href="#3-svd">3. 每次SVD之前，正交中心必须在正确位置</a></li>
 <li><a href="#4">4. 单次丢弃权重怎样变成态距离？</a></li>
 <li><a href="#5-oh2">5. 不只写O(h²)：给一个有常数的全程分裂界</a></li>
-<li><a href="#6">6. 三条轨迹必须在同一时间轴比较</a></li>
+<li><a href="#6">6. 三条轨迹必须在同一时间轴比较</a><ul>
+<li><a href="#_1">态距离最终怎样限制可观测量？</a></li>
+</ul>
+</li>
 <li><a href="#7">7. 浮点检查与适用边界</a></li>
 <li><a href="#8">8. 两道迁移题</a></li>
-<li><a href="#_1">速查与资料</a></li>
+<li><a href="#_2">速查与资料</a></li>
 </ul>
 </div>
 </details>
@@ -196,6 +199,15 @@ try {
 <div class="learning-lab" data-learning-lab="research-tebd" data-research-topic="evolution">
 <p>无脚本后备：默认数值见上表。χ4/L4消除实际截断以后，缩小步长主要检查二阶时间分裂；χ1会产生更大的压缩误差。累计丢弃权重0.000581不能被当作态距离上界，因为实际压缩路径差约0.050415。</p>
 </div>
+<h3 id="_1">态距离最终怎样限制可观测量？<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>取两个归一化态 ψ、φ，已知 <span class="arithmatex">\(\|\psi-\phi\|\le d\)</span>。对 Hermitian 观测 O，令其谱落在 <span class="arithmatex">\([o_{\min},o_{\max}]\)</span>，减去中点 <span class="arithmatex">\(c=(o_{\min}+o_{\max})/2\)</span> 不改变两态的期望值差。把差拆成两项，再用 Cauchy–Schwarz，得到</p>
+<div class="arithmatex">\[\begin{aligned}
+|\langle O\rangle_\psi-\langle O\rangle_\phi|
+&amp;\le2\|O-cI\|d\\
+&amp;=(o_{\max}-o_{\min})d.
+\end{aligned}\]</div>
+<p>平均磁化 <span class="arithmatex">\(\overline Z=L^{-1}\sum_jZ_j\)</span> 的谱在 [−1,1]，所以差不超过 <span class="arithmatex">\(\min(2,2d)\)</span>。如果经过有效的误差分析得到 d≤0.01，便能保证磁化误差不超过0.02；如果输入的是与小系统参照相比的实测距离，则得到的是该次比较的估计，不能自动升级成覆盖所有浮点误差的认证界。</p>
+<p>这个界也可能很松。若 φ=−ψ，固定相位的态距离是2，但所有观测完全相同。采用适当的整体相位可以缩小距离；这就是网页同时报告不保真度的原因。另一方面，能量误差小只控制一个观测，无法反推出所有磁化与关联函数都准确。</p>
 <h2 id="7">7. 浮点检查与适用边界<a class="headerlink" href="#7" title="Permanent link"></a></h2>
 <p>独立验算使用NumPy复SVD和SciPy完整矩阵指数，对每个时间步的能量、磁化、范数、三条误差、每次丢弃权重逐项比较，并检查每次门更新后的左右正交块。一般复矩形矩阵也用于核验分解和保真度恒等式；不能只在实数或所有项对易的模型上测试。</p>
 <p>数值线性代数本身会制造假误差：先形成MM†再求SVD会平方条件数。本页直接对复列做Jacobi旋转，仍不宣称达到任意精度。约10⁻¹¹以下的态差结合独立参照与规范误差解释；公式中的精确SVD和酉性不能未经检查地替换成“电脑总会精确做到”。</p>
@@ -212,9 +224,9 @@ try {
 <p>正确态是<span class="arithmatex">\((e^{-it}|0\rangle+e^{it}|1\rangle)/\sqrt2\)</span>，所以<span class="arithmatex">\(\langle X\rangle=\cos2t\)</span>；错误程序始终给1。两者能量都为0，能量守恒未发现相对相位错误。固定χ下h收敛只表明某个时间离散误差可能已小，仍须增大χ并比较压缩路径差、相关观测与独立参照，不能直接宣称精确动力学。</p>
 </details>
 </section>
-<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">速查与资料<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p>门真正作用在张量上；SVD前确认块基正交；同一门序列下累加δ；另给分裂算符界；浮点检查单列。三条误差曲线比只看能量或Σε更能解释哪里需要增加预算。</p>
-<p>MPS/TEBD实时演化与Strang分裂背景见 <a href="https://arxiv.org/html/1008.3477v2">Schollwöck的MPS综述第7节</a>；更紧的对易子误差分析可读 <a href="https://arxiv.org/abs/1912.08854">Childs等的Theory of Trotter Error with Commutator Scaling</a>。本页实际使用的保守常数由第5节独立推导，没有把更紧论文界未经实现地放进实验。资料核查：2026-09-09。</p>
+<p>MPS/TEBD实时演化与Strang分裂背景见 <a href="https://arxiv.org/html/1008.3477v2">Schollwöck的MPS综述第7节</a>；更紧的对易子误差分析可读 <a href="https://arxiv.org/abs/1912.08854">Childs等的Theory of Trotter Error with Commutator Scaling</a>。本页实际使用的保守常数由第5节独立推导，没有把更紧论文界未经实现地放进实验。资料核查：2026-09-13。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="bridge-15-variance-initial-states.html"><span class="pager-label">上一页</span>计算桥 XV · 全链方差与初态</a>

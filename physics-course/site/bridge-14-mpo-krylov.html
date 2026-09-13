@@ -56,7 +56,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-13 20:36</div>
+    <div class="build-time">构建于 2026-09-13 22:47</div>
   </div>
 </nav>
 <main id="content">
@@ -67,10 +67,13 @@ try {
 <li><a href="#2">2. 环境多了一个算符键</a></li>
 <li><a href="#3-h">3. 只实现 H 的作用</a></li>
 <li><a href="#4-krylov">4. 用算符作用生长一个 Krylov 空间</a></li>
-<li><a href="#5">5. 残差必须直接量，零残差还不是基态证明</a></li>
+<li><a href="#5">5. 残差必须直接量，零残差还不是基态证明</a><ul>
+<li><a href="#_1">小投影问题解得精确，为何原问题仍有残差？</a></li>
+</ul>
+</li>
 <li><a href="#6">6. 接回扫描，分开观察三种误差</a></li>
 <li><a href="#7">7. 两道迁移题</a></li>
-<li><a href="#_1">速查与资料</a></li>
+<li><a href="#_2">速查与资料</a></li>
 </ul>
 </div>
 </details>
@@ -127,6 +130,36 @@ W_j^{ss'}[a,b]W_{j+1}^{tt'}[b,c]\\
 <p>求得 v 后，本页重新调用作用接口，计算</p>
 <div class="arithmatex">\[\lambda=v^THv,\qquad r=\|Hv-\lambda v\|_2.\]</div>
 <p>它在 SVD <strong>之前</strong>、当前两侧块支撑所定义的<strong>局部空间</strong>中测量。不要把它当作截断后整条链的物理残差。投影矩阵内部残差很小，也不意味着原局部算符的 r 很小。</p>
+<h3 id="_1">小投影问题解得精确，为何原问题仍有残差？<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>取一个可以直接算完的对称矩阵与起点：</p>
+<div class="arithmatex">\[H=\begin{pmatrix}0&amp;1\\1&amp;2\end{pmatrix},\qquad q_1=\begin{pmatrix}1\\0\end{pmatrix}.\]</div>
+<p>只取 K=1 时，Q 只有第一列，投影矩阵 B=(0)。它的最低本征对是 y=1、λ=0，投影残差当然为零；但恢复 v=q₁ 后，<span class="arithmatex">\(Hv=(0,1)^T\)</span>，所以原问题残差是 1。</p>
+<p>继续一次作用与正交化，得到 <span class="arithmatex">\(q_2=(0,1)^T\)</span>。现在 Q 覆盖完整二维空间，最低 Ritz 值为 <span class="arithmatex">\(1-\sqrt2\)</span>，恢复的向量才有零残差。</p>
+<table>
+<thead>
+<tr>
+<th>搜索空间</th>
+<th style="text-align: right;">最低 Ritz 值</th>
+<th style="text-align: right;">投影内部残差</th>
+<th style="text-align: right;">原算符残差</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>只有 q₁</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>q₁、q₂</td>
+<td style="text-align: right;"><span class="arithmatex">\(1-\sqrt2\)</span></td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<p>这一小例说明为什么要再次调用原来的 Hv 接口：投影内部的求解精度只回答小问题是否解好。它是独立手算例，网页扫描的最小步数仍为2。</p>
 <p>再正交产生的新方向范数若低于 10⁻¹¹，程序停止生长；也会在达到最大步数或 D 时停止。最终仍报告显式 r，不能把任何停止原因都叫作收敛。</p>
 <p>一个三维反例足以说明初向量的重要性：</p>
 <div class="arithmatex">\[H=\operatorname{diag}(-2,1,5),\qquad q_1=(0,1,0)^T.\]</div>
@@ -206,9 +239,9 @@ W_j^{ss'}[a,b]W_{j+1}^{tt'}[b,c]\\
 <p>不能。r只测当前块支撑内Ritz态的本征方程，尚未包括SVD对物理态的改变，也未检查当前块外的方向。丢弃权重描述另一项压缩误差。截断后升能可以来自SVD的范数最佳近似并非能量最佳近似，不能单凭升能判定缓存有错。应分别对照完整小系统的算符作用、块正交性、局部残差、压缩保真度、全局能量与方差。</p>
 </details>
 </section>
-<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">速查与资料<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <p>MPO携带算符路径；环境携带算符键和两份态键；Krylov只要求能计算Hv；残差必须回到原局部作用接口测量。下一步是张量方差与初态敏感性，它们没有被本页局部残差代替。</p>
-<p>MPO表达、作用与变分求解背景见 <a href="https://arxiv.org/html/1008.3477v2">Schollwöck 的MPS综述第5、6节</a>。本页将算法限制在明示的实数/开放链模型，并以非Ising矩阵和独立NumPy扫描参照核验实现；这些有限验算不构成一般收敛定理。来源核查：2026-09-08。</p>
+<p>MPO表达、作用与变分求解背景见 <a href="https://arxiv.org/html/1008.3477v2">Schollwöck 的MPS综述第5、6节</a>。本页将算法限制在明示的实数/开放链模型，并以非Ising矩阵和独立NumPy扫描参照核验实现；这些有限验算不构成一般收敛定理。来源核查：2026-09-13。</p>
 <p>后续诊断：<a href="bridge-15-variance-initial-states.html">全链方差与初态</a>用双层MPO测H²，比较四个初态；两站点零方差激发态解释为何局部残差不能充当基态证书。</p>
 </article>
 <footer class="pager">

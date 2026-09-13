@@ -151,11 +151,23 @@ $$\boxed{|\mathcal M|^2_{\rm NLO}=\lambda^2-2\lambda\operatorname{Re}\mathcal M_
 
 调z变号只交换t与u，所以角分布必须前后对称。只有树级时它是平的；单圈通道对数引入角依赖。小λ与本页有限能区使示例修正温和，但“小修正”不能证明所有未知高阶项都小；大对数、强耦合等情形需要额外分析。
 
+### 用总事件率核对完整球面与半球约定
+
+树级角分布为常数。采用正文完整球面的相同粒子约定，积分得到
+
+$$\sigma_{\rm tree}=4\pi\frac{\lambda^2}{128\pi^2s}=\frac{\lambda^2}{32\pi s}.$$
+
+若改为每对末态只选一个代表方向，就只积分一个半球：此时微分式没有末态1/2，系数为 $\lambda^2/(64\pi^2s)$，乘半球立体角2π后仍得到同一个总截面。对本讲单圈角分布，因为 z→−z 只交换 t、u，同样能验证这两个计数约定的总事件率一致。
+
+例如 m=1、s=8、λ=1，树级总截面是 $1/(256\pi)$。这一步只处理末态事件是否重复计数；泡图内部线的1/2仍然保留在振幅中，两个来源不会相互取代。
+
 ## 8. 任意尺度的正确含义：换点必须同时换参数
 
 令原尺度为$\mu_1$、耦合$\lambda_1$。要求两套定义描述同一振幅，到单圈阶得到
 
-$$\boxed{\lambda_2=\lambda_1+\frac{3\lambda_1^2}{32\pi^2}[L(-\mu_2^2)-L(-\mu_1^2)]+O(\lambda_1^3).}$$
+记 $\Delta L=L(-\mu_2^2)-L(-\mu_1^2)$，则
+
+$$\boxed{\begin{aligned}\lambda_2&=\lambda_1+\frac{3\lambda_1^2}{32\pi^2}\Delta L\\&\quad+O(\lambda_1^3).\end{aligned}}$$
 
 推导只需代回：$-\lambda_2$的变化抵消三份减法常数的变化；在单圈系数里用$\lambda_2^2$替代$\lambda_1^2$仅产生$O(\lambda_1^3)$差。因此是“到已计算阶次一致”，不是把有限截断公式宣称为精确尺度无关。
 
@@ -169,6 +181,18 @@ $$\frac{d\lambda}{d\log\mu}
 =\frac{3\lambda^2}{16\pi^2}\int_0^1dx\,\frac{\mu^2x(1-x)}{m^2+\mu^2x(1-x)}+O(\lambda^3).$$
 
 当$\mu\gg m$，积分趋向1，恢复$3\lambda^2/(16\pi^2)$；当$\mu\ll m$，积分约为$\mu^2/(6m^2)$。不能把高能极限直接当成本方案所有尺度的公式。
+
+### 从低能到高能，β函数的系数怎样平滑变化？
+
+写 $q=\mu^2/m^2>0$，把上一式的积分记为 J(q)。由于 $v=x(1-x)$ 满足 $0\le v\le1/4$ 且 $\int_0^1v\,dx=1/6$，有
+
+$$\frac{q}{6(1+q/4)}\le J(q)\le\min\left(1,\frac q6\right).$$
+
+下界来自 $1+qv\le1+q/4$，上界分别来自被积函数不超过1和不超过qv。对 q 求导还得到
+
+$$J'(q)=\int_0^1\frac{x(1-x)}{[1+qx(1-x)]^2}\,dx>0.$$
+
+因此这一质量依赖方案的一圈系数随尺度平滑增大；低能时受 $\mu^2/m^2$ 抑制，高能极限才趋向通常的常数。以上不等式不把固定单圈计算延伸成强耦合或任意高能的保证。
 
 ## 9. 迁移题：检查你是否真正连接了各步
 
@@ -200,4 +224,4 @@ $$\frac{d\lambda}{d\log\mu}
 
 树级$-\lambda$；三泡图各1/2；极点质量固定；对称Euclidean点定义λ；减法后取完整三个通道；虚部检验幺正性；NLO截面只留干涉；换μ同时匹配λ。
 
-图的系数和发散项可交叉检查 [FeynCalc官方φ⁴单圈重整化算例](https://feyncalc.github.io/FeynCalcExamples/Phi4/OneLoop/Renormalization)，该算例的MS方案需与本讲有限MOM减法区分。场论正规化与参数定义背景见 [Pawlowski量子场论讲义第7章](https://www.thphys.uni-heidelberg.de/~pawlowski/qftII_23/script/QFT_lectureNotes_22-23.pdf)；幺正性关系参见 [Cambridge相对论光学定理补充讲义](https://www.damtp.cam.ac.uk/user/tong/qft/col1.pdf)。本页给出具体模型的推导与独立数值复算，资料核查：2026-09-09。
+图的系数和发散项可交叉检查 [FeynCalc官方φ⁴单圈重整化算例](https://feyncalc.github.io/FeynCalcExamples/Phi4/OneLoop/Renormalization)，该算例的MS方案需与本讲有限MOM减法区分。场论正规化与参数定义背景见 [Pawlowski量子场论讲义第7章](https://www.thphys.uni-heidelberg.de/~pawlowski/qftII_23/script/QFT_lectureNotes_22-23.pdf)；幺正性关系参见 [Cambridge相对论光学定理补充讲义](https://www.damtp.cam.ac.uk/user/tong/qft/col1.pdf)。本页给出具体模型的推导与独立数值复算，资料核查：2026-09-13。

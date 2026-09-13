@@ -56,21 +56,27 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-13 20:36</div>
+    <div class="build-time">构建于 2026-09-13 22:47</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 先问：局部之外还有哪些方向？</a></li>
+<li><a href="#1">1. 先问：局部之外还有哪些方向？</a><ul>
+<li><a href="#_1">一行局部矩阵，可能漏掉一个完整物理方向</a></li>
+</ul>
+</li>
 <li><a href="#2">2. 从能量分布推导方差</a></li>
-<li><a href="#3">3. 一个两站点反例，比一段“已收敛”提示更有用</a></li>
+<li><a href="#3">3. 一个两站点反例，比一段“已收敛”提示更有用</a><ul>
+<li><a href="#_2">奇偶期望值还能直接读成扇区权重</a></li>
+</ul>
+</li>
 <li><a href="#4-mpo">4. 真正把MPO乘起来</a></li>
 <li><a href="#5">5. 做四个初态，保持计算预算相同</a></li>
 <li><a href="#6">6. 大数相减时，不要把浮点零当成证明</a></li>
 <li><a href="#7">7. 两道迁移题</a></li>
-<li><a href="#_1">速查与资料</a></li>
+<li><a href="#_3">速查与资料</a></li>
 </ul>
 </div>
 </details>
@@ -93,11 +99,17 @@ try {
 <div class="arithmatex">\[W^\dagger H^2W-H_{\mathrm{eff}}^2
 =W^\dagger H(I-P_W)HW\succeq0.\]</div>
 <p>因此把小矩阵H_eff平方，不能代替真正的全链H²。测量时必须使用最终<strong>截断后</strong>的MPS；SVD前的向量属于另一个检查阶段。</p>
+<h3 id="_1">一行局部矩阵，可能漏掉一个完整物理方向<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>令完整空间为二维，<span class="arithmatex">\(H=X\)</span>，当前块基只有 <span class="arithmatex">\(W=(1,0)^T\)</span>，归一化态为 <span class="arithmatex">\(\psi=W\)</span>。则</p>
+<div class="arithmatex">\[H_{\rm eff}=W^\dagger XW=0,\qquad E=0.\]</div>
+<p>局部残差是零，但 <span class="arithmatex">\(H\psi=(0,1)^T\)</span> 完全落在当前支撑外；真正的全局残差为1、方差为1。具体比较二阶矩：</p>
+<div class="arithmatex">\[W^\dagger H^2W=1,\qquad H_{\rm eff}^2=0.\]</div>
+<p>遗漏的差正是前面那项正半定贡献。在这个例子里，先把 H 投影到只剩一个方向的空间再平方，会把它先离开、再返回的作用路径删掉。</p>
 <h2 id="2">2. 从能量分布推导方差<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <p>全讲取有限维、Hermitian Hamiltonian和非零态。先除以范数：</p>
-<div class="arithmatex">\[N=\langle\psi|\psi\rangle,\quad
-E=\frac{\langle\psi|H|\psi\rangle}{N},\quad
-V=\frac{\langle\psi|H^2|\psi\rangle}{N}-E^2.\]</div>
+<div class="arithmatex">\[\begin{gathered}N=\langle\psi|\psi\rangle,\\
+E=\frac{\langle\psi|H|\psi\rangle}{N},\\
+V=\frac{\langle\psi|H^2|\psi\rangle}{N}-E^2.\end{gathered}\]</div>
 <p>因为E是实数，展开平方得到</p>
 <div class="arithmatex">\[\boxed{V=\frac{\|(H-E)\psi\|^2}{N}\ge0.}\]</div>
 <p>单位也有区别：E以J计，V以J²计，残差范数<span class="arithmatex">\(\sqrt V\)</span>以J计；网页固定J=1。</p>
@@ -121,10 +133,14 @@ H_-=\begin{pmatrix}0&amp;-1\\-1&amp;0\end{pmatrix}.\]</div>
 <div class="arithmatex">\[|\psi_-\rangle=\frac{|01\rangle+|10\rangle}{\sqrt2}.\]</div>
 <p>它满足<span class="arithmatex">\(P\psi_-=-\psi_-\)</span>、<span class="arithmatex">\(H\psi_-=-\psi_-\)</span>，所以E=−1、V=0。但g=1时基态能量是<span class="arithmatex">\(-\sqrt5\)</span>。从只含该奇扇区的向量出发，H的任意幂仍看不到偶扇区基态。增加Krylov步数并不能补上缺失的初始方向。</p>
 <p>这不是说每个MPS扫描都严格困在初始奇偶扇区：若采用精确对称张量，扇区约束是实现的一部分；本页用普通实张量，浮点误差和截断可能混合扇区，所以另测<span class="arithmatex">\(\langle P\rangle\)</span>。若归一化态满足<span class="arithmatex">\(\langle P\rangle=\pm1\)</span>，由于P的本征值只有±1，才能判定它位于单一扇区；接近±1表示大部分权重在那里。</p>
+<h3 id="_2">奇偶期望值还能直接读成扇区权重<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>投影到两种奇偶的算符为 <span class="arithmatex">\(\Pi_\pm=(I\pm P)/2\)</span>，因为 <span class="arithmatex">\(P^2=I\)</span>，它们满足 <span class="arithmatex">\(\Pi_\pm^2=\Pi_\pm\)</span>、<span class="arithmatex">\(\Pi_+\Pi_-=0\)</span>。归一化态的权重因而是</p>
+<div class="arithmatex">\[p_+=\frac{1+\langle P\rangle}{2},\qquad p_-=\frac{1-\langle P\rangle}{2}.\]</div>
+<p>例如 <span class="arithmatex">\(\langle P\rangle=-0.98\)</span> 表示奇扇区占99%、偶扇区占1%；不是“98% 的态处于奇扇区”。这个读数只定位扇区，仍不告诉我们该扇区中的能量是否最低。</p>
 <h2 id="4-mpo">4. 真正把MPO乘起来<a class="headerlink" href="#4-mpo" title="Permanent link"></a></h2>
 <p>下面用A、B表示两个算符的局部MPO张量。乘积AB在一个站点的张量是</p>
-<div class="arithmatex">\[C^{st}[(a,c),(b,d)]
-=\sum_u A^{su}[a,b]B^{ut}[c,d].\]</div>
+<div class="arithmatex">\[\begin{gathered}C^{st}[(a,c),(b,d)]\\
+=\sum_u A^{su}[a,b]B^{ut}[c,d].\end{gathered}\]</div>
 <p>先作用B，再作用A；u是B的输出与A的输入。左右算符键各取张量积，边界也变成<span class="arithmatex">\(\ell_A\otimes\ell_B\)</span>与<span class="arithmatex">\(r_A\otimes r_B\)</span>。物理指标u在本地求和，不能与算符键混为一谈，也不能调换非对易算符的顺序。</p>
 <p>对上一讲算符键维3的Ising MPO，直接令A=B得到键维9的H²。它保留所有跨站点交叉项，包括两个不同横场或不同相邻项的乘积；并非只把每个单项平方后求和。这里没有再做MPO压缩，9只是该直接构造的键维，不声称最小。</p>
 <p>用上一讲的全链环境递推分别收缩I、H、H²，以及P的键维1乘积表示。最后除以同一范数N，再相减得到V。这个步骤只测已有MPS的全链矩，不重新优化，也不在两次H之间插入块基投影。它比只算H需要更多算符键存储与运算；网页未声称最优复杂度。</p>
@@ -201,9 +217,9 @@ H_-=\begin{pmatrix}0&amp;-1\\-1&amp;0\end{pmatrix}.\]</div>
 <p>漏掉的是正半定矩阵<span class="arithmatex">\(W^\dagger H(I-P_W)HW\)</span>；在当前态上它贡献<span class="arithmatex">\(\|(I-P_W)HWv\|^2\)</span>。应对最终保存的MPS收缩真正H²和范数，测全部物理方向。四个初态可发现初态敏感性，却没有遍历全部变分态，也没有排除共同的局部陷阱或错误扇区；还要结合键维、预算、对称性和独立谱信息。</p>
 </details>
 </section>
-<h2 id="_1">速查与资料<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_3">速查与资料<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p>先分辨测量对象：局部Ritz态、截断候选、最终全链态。再检查真实H²、归一化和浮点消减；最后用多初态与奇偶辅助判断。下一步的时间演化还要分开Trotter与逐步截断误差，不能直接从静态小方差推得长期动力学准确。</p>
-<p>双层MPO收缩H²及中间投影遗漏信息的讨论，可参照 <a href="https://arxiv.org/html/1008.3477v2">Schollwöck的MPS综述第6.4节与图44、45</a>。本页方差恒等式、谱概率界与两站点反例由正文直接推导。来源核查：2026-09-09。</p>
+<p>双层MPO收缩H²及中间投影遗漏信息的讨论，可参照 <a href="https://arxiv.org/html/1008.3477v2">Schollwöck的MPS综述第6.4节与图44、45</a>。本页方差恒等式、谱概率界与两站点反例由正文直接推导。来源核查：2026-09-13。</p>
 <p>继续演化：<a href="bridge-16-tebd-errors.html">张量时间演化与误差</a>实际施加复数门、移动正交中心并截断；用三条轨迹区分时间分裂、压缩与浮点检查，给可证明的多步误差界。</p>
 </article>
 <footer class="pager">

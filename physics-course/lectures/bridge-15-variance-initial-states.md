@@ -29,13 +29,25 @@ $$W^\dagger H^2W-H_{\mathrm{eff}}^2
 
 因此把小矩阵H_eff平方，不能代替真正的全链H²。测量时必须使用最终**截断后**的MPS；SVD前的向量属于另一个检查阶段。
 
+### 一行局部矩阵，可能漏掉一个完整物理方向
+
+令完整空间为二维，$H=X$，当前块基只有 $W=(1,0)^T$，归一化态为 $\psi=W$。则
+
+$$H_{\rm eff}=W^\dagger XW=0,\qquad E=0.$$
+
+局部残差是零，但 $H\psi=(0,1)^T$ 完全落在当前支撑外；真正的全局残差为1、方差为1。具体比较二阶矩：
+
+$$W^\dagger H^2W=1,\qquad H_{\rm eff}^2=0.$$
+
+遗漏的差正是前面那项正半定贡献。在这个例子里，先把 H 投影到只剩一个方向的空间再平方，会把它先离开、再返回的作用路径删掉。
+
 ## 2. 从能量分布推导方差
 
 全讲取有限维、Hermitian Hamiltonian和非零态。先除以范数：
 
-$$N=\langle\psi|\psi\rangle,\quad
-E=\frac{\langle\psi|H|\psi\rangle}{N},\quad
-V=\frac{\langle\psi|H^2|\psi\rangle}{N}-E^2.$$
+$$\begin{gathered}N=\langle\psi|\psi\rangle,\\
+E=\frac{\langle\psi|H|\psi\rangle}{N},\\
+V=\frac{\langle\psi|H^2|\psi\rangle}{N}-E^2.\end{gathered}$$
 
 因为E是实数，展开平方得到
 
@@ -82,12 +94,20 @@ $$|\psi_-\rangle=\frac{|01\rangle+|10\rangle}{\sqrt2}.$$
 
 这不是说每个MPS扫描都严格困在初始奇偶扇区：若采用精确对称张量，扇区约束是实现的一部分；本页用普通实张量，浮点误差和截断可能混合扇区，所以另测$\langle P\rangle$。若归一化态满足$\langle P\rangle=\pm1$，由于P的本征值只有±1，才能判定它位于单一扇区；接近±1表示大部分权重在那里。
 
+### 奇偶期望值还能直接读成扇区权重
+
+投影到两种奇偶的算符为 $\Pi_\pm=(I\pm P)/2$，因为 $P^2=I$，它们满足 $\Pi_\pm^2=\Pi_\pm$、$\Pi_+\Pi_-=0$。归一化态的权重因而是
+
+$$p_+=\frac{1+\langle P\rangle}{2},\qquad p_-=\frac{1-\langle P\rangle}{2}.$$
+
+例如 $\langle P\rangle=-0.98$ 表示奇扇区占99%、偶扇区占1%；不是“98% 的态处于奇扇区”。这个读数只定位扇区，仍不告诉我们该扇区中的能量是否最低。
+
 ## 4. 真正把MPO乘起来
 
 下面用A、B表示两个算符的局部MPO张量。乘积AB在一个站点的张量是
 
-$$C^{st}[(a,c),(b,d)]
-=\sum_u A^{su}[a,b]B^{ut}[c,d].$$
+$$\begin{gathered}C^{st}[(a,c),(b,d)]\\
+=\sum_u A^{su}[a,b]B^{ut}[c,d].\end{gathered}$$
 
 先作用B，再作用A；u是B的输出与A的输入。左右算符键各取张量积，边界也变成$\ell_A\otimes\ell_B$与$r_A\otimes r_B$。物理指标u在本地求和，不能与算符键混为一谈，也不能调换非对易算符的顺序。
 
@@ -163,6 +183,6 @@ $$1-p_0\le\frac{0.36}{1.8^2}=\frac19\approx0.111111.$$
 
 先分辨测量对象：局部Ritz态、截断候选、最终全链态。再检查真实H²、归一化和浮点消减；最后用多初态与奇偶辅助判断。下一步的时间演化还要分开Trotter与逐步截断误差，不能直接从静态小方差推得长期动力学准确。
 
-双层MPO收缩H²及中间投影遗漏信息的讨论，可参照 [Schollwöck的MPS综述第6.4节与图44、45](https://arxiv.org/html/1008.3477v2)。本页方差恒等式、谱概率界与两站点反例由正文直接推导。来源核查：2026-09-09。
+双层MPO收缩H²及中间投影遗漏信息的讨论，可参照 [Schollwöck的MPS综述第6.4节与图44、45](https://arxiv.org/html/1008.3477v2)。本页方差恒等式、谱概率界与两站点反例由正文直接推导。来源核查：2026-09-13。
 
 继续演化：[张量时间演化与误差](bridge-16-tebd-errors.html)实际施加复数门、移动正交中心并截断；用三条轨迹区分时间分裂、压缩与浮点检查，给可证明的多步误差界。
