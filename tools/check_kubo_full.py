@@ -101,12 +101,39 @@ fixture=Path(sys.argv[2]).resolve()if len(sys.argv)>2 else ROOT/'course-shared/p
 f=json.loads(fixture.read_text());assert f['provenance']['sourceSha256']==hashlib.sha256(js.read_bytes()).hexdigest()
 code=r"""
 const a=require(process.argv[1]),f=require(process.argv[2]);
+// Mount the actual runtime; check names before any reveal or numeric computation.
+function mountPresetNames(api){
+ class E{
+  constructor(tag,doc){this.tag=tag;this.ownerDocument=doc;this.children=[];this.attrs={};this._text='';this.classList={add(){}};}
+  set textContent(v){this._text=String(v);this.children=[];}
+  get textContent(){return this._text+this.children.map(c=>c.textContent).join('');}
+  append(...xs){this.children.push(...xs);}
+  replaceChildren(...xs){this._text='';this.children=[...xs];}
+  setAttribute(k,v){this.attrs[k]=String(v);}
+  getAttribute(k){return Object.hasOwn(this.attrs,k)?this.attrs[k]:null;}
+  removeAttribute(k){delete this.attrs[k];}
+  addEventListener(){}
+ }
+ const doc={createElement(t){return new E(t,this);},querySelector(){return null;}};doc.head=new E('head',doc);
+ const root=new E('div',doc);api.mount(root);const all=[];function visit(e){if(e.getAttribute('data-preset')!==null)all.push(e);e.children.forEach(visit);}visit(root);
+ if(all.length!==api.PRESETS.length)throw Error('Preset mount count');
+ all.forEach((b,i)=>{const p=api.PRESETS[i],expected=p.name??p.label,name=(b.getAttribute('aria-label')||b.textContent).trim();if(typeof expected!=='string'||!expected.trim()||name!==expected||b.textContent.trim()!==expected)throw Error('Missing preset accessible name: '+p.id);});
+ return all.length;
+}
+const mountLabels=mountPresetNames(a);
+const originalSource=require('fs').readFileSync(process.argv[1],'utf8'),needle='},p.name);';
+if(!originalSource.includes(needle))throw Error('Expected mounted name field');
+const mutantSource=originalSource.replace(needle,'},p.label);'),sandbox={module:{exports:{}}};
+require('vm').runInNewContext(mutantSource,sandbox);let mountMutations=0;
+try{mountPresetNames(sandbox.module.exports);}catch(e){mountMutations++;}
+if(mountMutations!==1)throw Error('Blank-label mutation not detected');
+
 const extras=[{mixPercent:100},{tauRatioTenths:1},{tauRatioTenths:50,windowUnits:1},{cutoffUnits:2,driveTenths:20},{cutoffUnits:2,driveTenths:19},{cutoffUnits:2,driveTenths:21},{driveTenths:0},{temperatureTenths:1,gapTenths:40},{temperatureTenths:40,gapTenths:1},{weightTenths:1,tauTenths:1,tauRatioTenths:1,cutoffUnits:40,panels:4,driveTenths:60,windowUnits:40},{tauRatioTenths:10,mixPercent:77},{weightTenths:31,tauTenths:17,mixPercent:43,tauRatioTenths:27,fieldTenths:-13,driveTenths:37,pulseTenths:19,cutoffUnits:4,panels:23,temperatureTenths:17,gapTenths:29,windowUnits:11}];
 const records=[...a.PRESETS.map(p=>a.compute(p.parameters)),...extras.map(p=>a.compute(p))],frozen=f.records.map(r=>a.compute(r.data.parameters));let invalid=0;
 const bad=[null,[],1,'x',{x:0},{constructor:1},{toString:1},JSON.parse('{"__proto__":{}}')];for(const[k,[lo,hi]]of Object.entries(a.LIMITS))for(const v of [null,'1',NaN,Infinity,-Infinity,1.5,lo-1,hi+1])bad.push({[k]:v});
 for(const p of bad){let rejected=false;try{a.compute(p)}catch(e){rejected=true}if(!rejected)throw Error('Invalid accepted '+JSON.stringify(p));invalid++;}
 let feedback=0;for(let i=0;i<4;i++)for(let j=0;j<2;j++){const r=a.feedback(i,j);if(r.correct!==(j===a.QUESTIONS[i][2])||!r.text)throw Error('Feedback');feedback++;}
-process.stdout.write(JSON.stringify({records,frozen,invalid,feedback,self:a.selfTest(),rendered:records.map(r=>({plots:a.plots(r),tables:a.tables(r),svgs:a.plots(r).map(a.svg)}))}));
+process.stdout.write(JSON.stringify({records,frozen,invalid,feedback,mountLabels,mountMutations,self:a.selfTest(),rendered:records.map(r=>({plots:a.plots(r),tables:a.tables(r),svgs:a.plots(r).map(a.svg)}))}));
 """
 d=json.loads(subprocess.check_output(prefix+['node','-e',code,str(js),str(fixture)],text=True))
 assert len(d['records'])==24 and len(d['frozen'])==6 and d['self']['status']=='PASS'
@@ -201,4 +228,4 @@ for change in [lambda x:x['quantum'].update(pe=0),lambda x:x['quantum']['atoms']
  try:validate(mutant)
  except AssertionError:pass
  else:raise AssertionError('Rare quantum line rounded to zero')
-print(json.dumps({'status':'PASS','records':len(d['records']),'frozen':len(f['records']),'checks':science_checks,'plotCoordinates':plotcoords,'markers':markers,'ledgerRows':table_rows,'invalid':d['invalid'],'feedback':d['feedback'],'mutations':mutations,'rareLineMutations':2,'self':d['self']['checks'],'replayGuards':guards}))
+print(json.dumps({'status':'PASS','records':len(d['records']),'frozen':len(f['records']),'checks':science_checks,'plotCoordinates':plotcoords,'markers':markers,'ledgerRows':table_rows,'invalid':d['invalid'],'feedback':d['feedback'],'mutations':mutations,'rareLineMutations':2,'self':d['self']['checks'],'replayGuards':guards,'mountLabels':d['mountLabels'],'mountMutations':d['mountMutations']}))

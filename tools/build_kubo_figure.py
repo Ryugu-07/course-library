@@ -18,4 +18,3 @@ for r in json.loads(fixture.read_text())['records']:
  rows.append('| '+' | '.join(map(fmt,v))+' |')
 text='**无脚本对照：**六份固定记录保留全部时间和频率扫描、每个积分节点、积分误差与遗漏尾、谱重、量子谱线和有限场比较。硬截断端点保存为明确的不适用状态。\\n'.replace('\\n','\n')+'\n<figure class="plot" markdown="1">\n![六图：脉冲响应、复电导、有限时间窗、有限频段KK、谱重与量子谱线。](assets/img/neq-02-kubo-certificates.svg)\n<figcaption>前五图属于两通道电流模型，第六图属于独立两能级模型。图中的量子点是δ谱线系数，有限频段尾部参照使用了已知模型。</figcaption>\n</figure>\n\n<div class="kubo201-static" role="region" tabindex="0" aria-label="Kubo固定记录，可横向滚动" markdown="1">\n\n| 预设 | DC电导 | Re σ | Im σ | 时间窗遗漏尾模 | 带内KK | 已含谱重比例 | 量子χ0 |\n|---|---:|---:|---:|---:|---:|---:|---:|\n'+'\n'.join(rows)+'\n\n</div>\n\n[下载六份完整记录](assets/learning/projects/kubo-certificates/run-snapshot.json){download="kubo-frozen-records.json"}。默认有限窗积分误差约百万分之一，而窗外尾约0.0792；这两类误差由不同原因产生。\n'
 md.write_text(text,encoding='utf-8');print({'plots':6,'rows':6,'bytes':svg.stat().st_size})
-
