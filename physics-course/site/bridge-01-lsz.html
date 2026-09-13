@@ -56,82 +56,214 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 02:03</div>
+    <div class="build-time">构建于 2026-09-13 14:19</div>
   </div>
 </nav>
 <main id="content">
 <article>
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
-<li><a href="#1">1. 你算出的四点函数，还不是碰撞概率</a></li>
-<li><a href="#2">2. 粒子为什么表现为一个极点</a></li>
-<li><a href="#3">3. 一次完整的四条外腿账本</a></li>
-<li><a href="#4">4. 场强留数不能忘，也不能乘两遍</a></li>
-<li><a href="#5">5. 实验：漏掉一条腿，数值会怎样</a></li>
-<li><a href="#6">6. 验收与边界</a></li>
-<li><a href="#_1">速查与后续路线</a></li>
+<li><a href="#1">1. 先明确终点：关联函数、振幅和截面是三个量</a></li>
+<li><a href="#2">2. 稳定粒子怎样出现在二点函数里</a></li>
+<li><a href="#3-i">3. 把四条外腿和顶点的每个 i 留下来</a></li>
+<li><a href="#4">4. 完整传播子截肢之后，为什么还要留数</a></li>
+<li><a href="#5">5. 一个可以完整复算的局部极点模型</a></li>
+<li><a href="#6">6. 三种看起来相近的计算，有限参数下并不相同</a></li>
+<li><a href="#7">7. 为什么“两个数都很小”还不够</a></li>
+<li><a href="#8">8. 换一个场的大小，物理结果为什么不变</a></li>
+<li><a href="#9">9. 八个可以逐步核对的练习</a></li>
+<li><a href="#10">10. 带着完整账本走向下一讲</a></li>
 </ul>
 </div>
 </details>
-<h1 id="01">场论计算桥 01 · 从关联函数到散射：外腿究竟在算什么<a class="headerlink" href="#01" title="Permanent link"></a></h1>
+<h1 id="01">场论计算桥 01 · 从关联函数到散射：把四条外腿逐项算清<a class="headerlink" href="#01" title="Permanent link"></a></h1>
 <blockquote>
-<p>先修：<a href="aqm-02-scattering.html">散射与 Born 近似</a>、<a href="qft-02-feynman.html">Feynman 图</a>、<a href="qft-03-path-renorm.html">路径积分</a>。目标：亲自从标量四点函数中去掉外腿，得到树级散射振幅；解释单粒子极点与场强留数。本讲使用 <span class="arithmatex">\(\hbar=c=1\)</span>、度规 <span class="arithmatex">\((+,-,-,-)\)</span>。</p>
+<p>先修：<a href="aqm-02-scattering.html">散射与 Born 近似</a>、<a href="qft-02-feynman.html">Feynman 图</a>、<a href="qft-03-path-renorm.html">路径积分</a>。本讲目标：从四点函数得到标量散射振幅，保留复数相位，核对留数，并分清代数相消和物理极限。采用 <span class="arithmatex">\(\hbar=c=1\)</span>、度规 <span class="arithmatex">\((+,-,-,-)\)</span>。</p>
 </blockquote>
 <div data-learning-page></div>
-<section class="learning-layer">
-<h2 id="1">1. 你算出的四点函数，还不是碰撞概率<a class="headerlink" href="#1" title="Permanent link"></a></h2>
-<p>时序四点函数 <span class="arithmatex">\(G^{(4)}(x_1,\ldots,x_4)=\langle\Omega|T\phi(x_1)\cdots\phi(x_4)|\Omega\rangle\)</span> 描述真空中四次场插入的关联。它包括从插入点传播到相互作用区域的过程。实验中的散射问题却从远处已经准备好的粒子态开始，问碰撞后得到什么出射粒子。</p>
-<p>还须先取连通部分 <span class="arithmatex">\(G_c^{(4)}\)</span>。自由理论的四点函数不为零，有三种两点函数乘积，但它们代表互不相连的传播，不是四个粒子通过同一次相互作用发生散射。自由场的连通四点函数为零，与没有相互作用散射相符。</p>
-<p>我们采用单粒子态归一化</p>
-<div class="arithmatex">\[\langle\mathbf p'|\mathbf p\rangle=2E_{\mathbf p}(2\pi)^3\delta^3(\mathbf p'-\mathbf p),\]</div>
-<p>并定义 <span class="arithmatex">\(\langle f|S-1|i\rangle=i(2\pi)^4\delta^4(P_f-P_i)\mathcal M\)</span>。这里的 <span class="arithmatex">\(\mathcal M\)</span> 才是约化散射振幅。概率或截面还需取模平方、乘相空间、除入射流强，不能把 <span class="arithmatex">\(\mathcal M\)</span> 本身叫概率。</p>
-<h2 id="2">2. 粒子为什么表现为一个极点<a class="headerlink" href="#2" title="Permanent link"></a></h2>
-<p>对能与稳定单粒子态重叠的标量场，设 <span class="arithmatex">\(\langle\Omega|\phi(0)|\mathbf p\rangle=\sqrt Z\)</span>。在两次场插入之间插入完整能量本征态，单粒子部分贡献一个能量确定的传播项；Fourier 变换后，对应</p>
-<div class="arithmatex">\[\widetilde G^{(2)}(p)=\frac{iZ}{p^2-m_{\rm phys}^2+i0}+\text{在该极点附近正则的部分}.\]</div>
-<p><span class="arithmatex">\(m_{\rm phys}\)</span> 是极点质量，<span class="arithmatex">\(Z\)</span> 是这项极点的留数系数，而不是把整条传播子都乘同一个经验修正。多粒子连续谱还会形成阈值与割线。上式只描述孤立稳定粒子极点附近，不能把不稳定共振当作同样的外部渐近粒子。</p>
-<p>LSZ 约化利用这个极点，提取每次场插入与渐近粒子的重叠。【引用】存在合适渐近态等条件时，乘去每条外腿的单粒子极点因子，并作壳上极限，可从连通时序函数得到 S 矩阵。完整证明需要渐近场和波包极限；这里完成其树级计算用法。</p>
-<h2 id="3">3. 一次完整的四条外腿账本<a class="headerlink" href="#3" title="Permanent link"></a></h2>
-<p>取相互作用 <span class="arithmatex">\(\mathcal L_{\rm int}=-\lambda\phi^4/4!\)</span>，树级 <span class="arithmatex">\(Z=1,m_{\rm phys}=m\)</span>。Fourier 动量全取流入，则 <span class="arithmatex">\(\sum_i p_i=0\)</span>；物理出射动量在这里取负号。一次四场顶点的 <span class="arithmatex">\(4!\)</span> 种收缩与拉氏量分母抵消，顶点因子为 <span class="arithmatex">\(-i\lambda\)</span>。树级连通函数是</p>
+<section class="learning-layer lsz205-course">
+<style>.lsz205-static{max-width:100%;overflow:auto}.lsz205-static table{display:table;max-width:none;overflow:visible;min-width:100%;width:max-content}.lsz205-static td,.lsz205-static th{white-space:nowrap}.lsz205-course .arithmatex{max-width:100%;overflow-x:auto}</style>
+<h2 id="1">1. 先明确终点：关联函数、振幅和截面是三个量<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<p>四点时序函数 <span class="arithmatex">\(G^{(4)}=\langle\Omega|T\phi(x_1)\phi(x_2)\phi(x_3)\phi(x_4)|\Omega\rangle\)</span> 从四次场插入出发。它含有粒子从插入位置传播到相互作用区域的过程。散射实验则从远处准备好的粒子态出发，比较相互作用前后的渐近态。</p>
+<p>首先取<strong>完全连通部分</strong> <span class="arithmatex">\(G_c^{(4)}\)</span>。自由场也有非零四点函数，因为 Wick 定理给出三种两点函数乘积；这些互不相连的传播并不构成四个外态通过同一次相互作用发生散射。去除真空气泡的归一化也很重要，但“没有真空气泡”还不等于“四个外点完全连通”。</p>
+<p>采用单粒子态归一化</p>
+<div class="arithmatex">\[\langle\mathbf p'|\mathbf p\rangle=2E_{\mathbf p}(2\pi)^3\delta^3(\mathbf p'-\mathbf p),\qquad
+\langle f|S-1|i\rangle=i(2\pi)^4\delta^4(P_f-P_i)\mathcal M.\]</div>
+<p>由此定义的 <span class="arithmatex">\(\mathcal M\)</span> 是约化振幅。截面还需要 <span class="arithmatex">\(|\mathcal M|^2\)</span>、末态相空间、入射流强以及相同末态粒子的计数。不能把图上的一条曲线直接叫“碰撞概率”。</p>
+<p><strong>先检查一个极端情形。</strong> 自由理论中 <span class="arithmatex">\(G_c^{(4)}=0\)</span>，所以相互作用部分 <span class="arithmatex">\(S-1\)</span> 的四外态振幅为零；这不要求整个 <span class="arithmatex">\(G^{(4)}\)</span> 为零。</p>
+<h2 id="2">2. 稳定粒子怎样出现在二点函数里<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>若标量场能产生一个稳定单粒子态，令 <span class="arithmatex">\(\langle\Omega|\phi(0)|\mathbf p\rangle=\sqrt Z\)</span>。在二点函数中插入完整能量本征态，单粒子贡献在动量空间形成孤立极点：</p>
+<div class="arithmatex">\[\widetilde G^{(2)}(p)=\frac{iZ}{p^2-m_{\rm phys}^2+i0}+\text{该极点附近的正则部分}.\]</div>
+<p>极点位置给出物理质量，系数 <span class="arithmatex">\(Z\)</span> 给出这个场与该单粒子态的重叠强度。多粒子连续谱一般还会带来阈值与割线，不能把全部传播子都替换成一个任意修正系数。</p>
+<p>这里需要<strong>孤立、稳定、可用作渐近外态</strong>的粒子。有限寿命共振的内部极点不自动给出同样的外部粒子；无质量长程相互作用、红外问题、约束与禁闭也需要另外处理。<span class="arithmatex">\(i0\)</span> 是分布的边界值处方，后面实验里的有限 <span class="arithmatex">\(i\eta\)</span> 只是一个数值调节量，不是测得的粒子宽度。</p>
+<h2 id="3-i">3. 把四条外腿和顶点的每个 i 留下来<a class="headerlink" href="#3-i" title="Permanent link"></a></h2>
+<p>取 <span class="arithmatex">\(\mathcal L_{\rm int}=-\lambda\phi^4/4!\)</span>。树级 <span class="arithmatex">\(Z=1\)</span>，一次顶点的 <span class="arithmatex">\(4!\)</span> 种收缩抵消拉氏量中的分母，顶点因子为 <span class="arithmatex">\(-i\lambda\)</span>。四个动量都记为流入，物理出射动量因此要取负号，满足 <span class="arithmatex">\(\sum_i p_i=0\)</span>。</p>
 <div class="arithmatex">\[\widetilde G_c^{(4)}=(2\pi)^4\delta^4\!\left(\sum_i p_i\right)
-\left[\prod_{i=1}^4\frac{i}{p_i^2-m^2+i0}\right](-i\lambda).\]</div>
-<p>先把公共的动量守恒 delta 提出去。每条外腿乘逆自由传播子 <span class="arithmatex">\((p_i^2-m^2+i0)/i\)</span>，四次相消后只剩 <span class="arithmatex">\(-i\lambda\)</span>。再取壳上极限 <span class="arithmatex">\(p_i^2=m^2\)</span>，与定义里的 <span class="arithmatex">\(i\mathcal M\)</span> 对照，得到</p>
+\left[\prod_{j=1}^4\frac{i}{p_j^2-m^2+i0}\right](-i\lambda).\]</div>
+<p>先提出公共的动量守恒 delta。每条腿乘逆自由传播子 <span class="arithmatex">\((p_j^2-m^2+i0)/i\)</span>，四次相消后得到 <span class="arithmatex">\(-i\lambda\)</span>。与 <span class="arithmatex">\(i\mathcal M\)</span> 对照：</p>
 <div class="arithmatex">\[i\mathcal M=-i\lambda,\qquad\mathcal M=-\lambda.\]</div>
-<p>不能先把每条传播子代成 <span class="arithmatex">\(1/0\)</span> 再相乘，也不能丢掉所有 <span class="arithmatex">\(i\)</span> 后凭记忆猜振幅符号。这里的 <span class="arithmatex">\(i0\)</span> 是分布边界值处方；截肢可先作为逆传播子的代数相消，物理 LSZ 则用波包与极限严格定义，并非对 delta 函数作普通数值除法。</p>
+<p>这是逆传播子的代数相消。不要先把每条传播子代成 <span class="arithmatex">\(1/0\)</span>，也不要对 delta 函数做普通数值除法。严格的 LSZ 约化用渐近场、波包和分布极限把这套计算与散射态联系起来。</p>
 <figure>
-<p><img alt="四点连通图的四条外腿各带一个传播子；乘逆传播子后去掉外腿，剩顶点负i乘lambda；约化振幅为负lambda。" src="assets/img/bridge-01-lsz.svg" /></p>
-<figcaption>截肢去掉外腿传播，不会去掉相互作用内部的传播子。内部极点正是后续因子化研究的重要对象。</figcaption>
+<p><img alt="四点连通图的四条外腿各带传播子；逆传播子逐条相消后剩下顶点负i乘lambda。" src="assets/img/bridge-01-lsz.svg" /></p>
+<figcaption>只去掉连接外部场插入的传播子。相互作用内部的传播子保留，其极点与因子化是后续课程的研究对象。</figcaption>
 </figure>
-<h2 id="4">4. 场强留数不能忘，也不能乘两遍<a class="headerlink" href="#4" title="Permanent link"></a></h2>
-<p>若 <span class="arithmatex">\(Z\ne1\)</span>，采用完整传播子截肢得到的核记为 <span class="arithmatex">\(\Gamma_{
-\rm amp}\)</span>。极点附近的四点函数等于四条完整外腿乘该核，加上不具全部四个单粒子极点的项。LSZ 对每腿额外保留 <span class="arithmatex">\(\sqrt Z\)</span>，因此</p>
+<h2 id="4">4. 完整传播子截肢之后，为什么还要留数<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>把四条<strong>完整传播子</strong>去掉后得到的核记为 <span class="arithmatex">\(\Gamma_{\rm amp}\)</span>。四点函数在四个单粒子极点附近的最强极点项为 <span class="arithmatex">\(\prod_j\widetilde G^{(2)}(p_j)\,\Gamma_{\rm amp}\)</span>。LSZ 每条腿使用 <span class="arithmatex">\((p_j^2-m_{\rm phys}^2)/(i\sqrt Z)\)</span> 提取极点，于是每条腿剩下 <span class="arithmatex">\(\sqrt Z\)</span>：</p>
 <div class="arithmatex">\[i\mathcal M=Z^2\Gamma_{\rm amp}\big|_{\rm on\ shell}.\]</div>
-<p>等价地，直接在未截肢四点函数上，每腿乘 <span class="arithmatex">\((p_i^2-m_{\rm phys}^2)/(i\sqrt Z)\)</span> 并提取极点系数。若选择单位留数的重整化场，则对应的外腿 <span class="arithmatex">\(Z\)</span> 因子已吸收进场的定义，不能再重复乘。多种粒子、混合场和自旋场需要各自的留数矩阵或波函数，本讲公式只适用于这里的单种标量。</p>
-<h2 id="5">5. 实验：漏掉一条腿，数值会怎样<a class="headerlink" href="#5" title="Permanent link"></a></h2>
-<p>先设 <span class="arithmatex">\(Z=1\)</span>，暂不考虑公共 delta，把四条外腿的离壳量都形式上设为 <span class="arithmatex">\(p_i^2-m^2=\mu_*^2\delta\)</span>，<span class="arithmatex">\(\mu_*&gt;0\)</span> 是固定单位。去掉相应单位幂后，截去 <span class="arithmatex">\(k\)</span> 条外腿的核的模为</p>
-<div class="arithmatex">\[A_k(\delta)=|\lambda|\delta^{k-4},\qquad\delta&gt;0.\]</div>
-<p>这是检查代数极点阶数的模型，不是一个满足所有散射运动学条件的动量扫描，也没有计算有限 <span class="arithmatex">\(i\epsilon\)</span> 的真实过程。先预测 <span class="arithmatex">\(k=3\)</span> 与 <span class="arithmatex">\(k=4\)</span> 在 <span class="arithmatex">\(\delta\to0\)</span> 时的差别。</p>
-<div class="learning-lab" data-learning-lab="research-foundations" data-research-topic="lsz">
-<p>静态默认：<span class="arithmatex">\(\lambda=0.2,\delta=0.1,k=3\)</span>。比较未截肢、当前截肢与全部截肢后的模。</p>
+<p>“截肢核”这个名称本身不足以决定是否再乘 <span class="arithmatex">\(Z^2\)</span>。有的约定已经把外态归一化包括在核里；那就不能再乘一次。本讲的 <span class="arithmatex">\(\Gamma_{\rm amp}\)</span> 明确指去掉完整传播子、尚未乘外态留数的核。</p>
+<p>若四条外腿对应不同稳定标量粒子，因子改为 <span class="arithmatex">\(\prod_j\sqrt{Z_j}\)</span>；混合场与自旋场还要使用相应矩阵或波函数。本页只计算单种标量的四外态情形。</p>
+<h2 id="5">5. 一个可以完整复算的局部极点模型<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>为把代数与数值分开，提出固定参考质量 <span class="arithmatex">\(\mu_*&gt;0\)</span> 的单位幂，定义 <span class="arithmatex">\(\delta_j=(p_j^2-m^2)/\mu_*^2=w_j\delta\)</span>，并把公共动量 delta 提出。下面所有输入都是无量纲数：</p>
+<div class="arithmatex">\[D_j=i\left(\frac{Z}{\delta_j+i\eta}+R\right),\qquad
+K=-i\lambda,\qquad G=K\prod_{j=1}^4D_j+iB.\]</div>
+<p><span class="arithmatex">\(R\)</span> 是两点函数的局部正则项，<span class="arithmatex">\(B\)</span> 是四点函数的一个完全正则项。它们让我们检验“极点之外还有东西”怎样影响有限离壳计算。真实四点函数也可以含有只有部分外腿极点的项；常数 <span class="arithmatex">\(B\)</span> 只是一个明确的例子，没有代表全部可能余项。</p>
+<p>默认 <span class="arithmatex">\(\lambda=0.2,Z=1,R=B=0,w_j=1,\delta=0.1\)</span>，且 <span class="arithmatex">\(\eta=10^{-12}\)</span>。当 <span class="arithmatex">\(\eta/\delta\)</span> 很小时，未截肢、截三条腿、截四条腿的模分别接近 <span class="arithmatex">\(2000,2,0.2\)</span>。近似值源于有限调节量；完整表格保留实际复数。</p>
+<p><strong>单位检查。</strong> 恢复参考单位后，<span class="arithmatex">\(D\)</span> 带 <span class="arithmatex">\(\mu_*^{-2}\)</span>，<span class="arithmatex">\(G\)</span> 带 <span class="arithmatex">\(\mu_*^{-8}\)</span>，截去 <span class="arithmatex">\(k\)</span> 条腿的核带 <span class="arithmatex">\(\mu_*^{-8+2k}\)</span>。把各自单位提出后可以比较数值的离壳趋势，但不能把不同 <span class="arithmatex">\(k\)</span> 的模当作具有同一物理量纲的截面。</p>
+<div class="learning-lab" data-learning-lab="scalar-lsz">
+<p>交互实验：先完成四项预测，再展开复数账本。默认结果与六份固定记录在下方保留。</p>
+<p><strong>无脚本对照：</strong>六份固定记录保留全部复数外腿、路径与换场扫描。复数格式为[实部, 虚部]，数值已提出各自的参考质量单位。</p>
+<figure class="plot">
+<p><img alt="六图展示外腿、留数、取极限路径、正则项、场重标定与复数相位。" src="assets/img/bridge-01-lsz-certificates.svg" /></p>
+<figcaption>这些是局部Laurent模型的计算，不是满足全部动量约束的散射模拟，也没有给出截面。</figcaption>
+</figure>
+<div aria-label="LSZ固定复数记录，可横向滚动" class="lsz205-static" role="region" tabindex="0">
+<table>
+<thead>
+<tr>
+<th>预设</th>
+<th style="text-align: right;">Z</th>
+<th>Γ</th>
+<th>Z²Γ</th>
+<th>实分子提取</th>
+<th>极点目标iM</th>
+<th>换场后Z′²Γ′</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>default</td>
+<td style="text-align: right;">1</td>
+<td>[-1.0842022e-27, -0.2]</td>
+<td>[-1.0842022e-27, -0.2]</td>
+<td>[-8e-12, -0.2]</td>
+<td>[0, -0.2]</td>
+<td>[-1.0842022e-27, -0.2]</td>
+</tr>
+<tr>
+<td>residue</td>
+<td style="text-align: right;">0.5</td>
+<td>[-1.0842022e-27, -0.2]</td>
+<td>[-2.7105054e-28, -0.05]</td>
+<td>[-2e-12, -0.05]</td>
+<td>[0, -0.05]</td>
+<td>[-2.7105054e-28, -0.05]</td>
+</tr>
+<tr>
+<td>path</td>
+<td style="text-align: right;">1</td>
+<td>[0, -0.2]</td>
+<td>[0, -0.2]</td>
+<td>[0, 0.05]</td>
+<td>[0, -0.2]</td>
+<td>[0, -0.2]</td>
+</tr>
+<tr>
+<td>regular</td>
+<td style="text-align: right;">1</td>
+<td>[-1.0086031e-27, -0.2]</td>
+<td>[-1.0086031e-27, -0.2]</td>
+<td>[-1.3824e-11, -0.41472]</td>
+<td>[0, -0.2]</td>
+<td>[-1.0086031e-27, -0.2]</td>
+</tr>
+<tr>
+<td>rescale</td>
+<td style="text-align: right;">0.5</td>
+<td>[-2.5720165e-14, -0.1992284]</td>
+<td>[-6.4300412e-15, -0.049807099]</td>
+<td>[-3.456e-12, -0.10328]</td>
+<td>[0, -0.05]</td>
+<td>[-6.4300412e-15, -0.049807099]</td>
+</tr>
+<tr>
+<td>zero</td>
+<td style="text-align: right;">1</td>
+<td>[-4.9673706e-15, 0.00013660269]</td>
+<td>[-4.9673706e-15, 0.00013660269]</td>
+<td>[0, 0.0002]</td>
+<td>[0, 0]</td>
+<td>[-4.9673706e-15, 0.00013660269]</td>
+</tr>
+</tbody>
+</table>
 </div>
-<p>默认结果依次为 2000、2、0.2。把 <span class="arithmatex">\(\delta\)</span> 减半，漏一条外腿的结果翻倍；四条全部去掉后保持 0.2。因为剩余外腿数不同，这几种中间核具有不同质量量纲；图中比较的是按同一参考尺度分别无量纲化后的数，不能把它们当作三种截面。</p>
-<h2 id="6">6. 验收与边界<a class="headerlink" href="#6" title="Permanent link"></a></h2>
-<p><strong>题一。</strong> 在 <span class="arithmatex">\(-\lambda\phi^4/4!\)</span> 理论中取 <span class="arithmatex">\(\lambda=0.3\)</span>。若得到顶点 <span class="arithmatex">\(-0.3i\)</span>，<span class="arithmatex">\(\mathcal M\)</span>、<span class="arithmatex">\(|\mathcal M|^2\)</span> 分别是什么？它们是否已经是总截面？</p>
-<details>
-<summary>核对定义</summary>
-<p><span class="arithmatex">\(\mathcal M=-0.3\)</span>，<span class="arithmatex">\(|\mathcal M|^2=0.09\)</span>。都不是总截面；还须给定运动学、相空间积分、流强与相同末态粒子的计数因子。</p>
+<p><a download="lsz-frozen-records.json" href="assets/learning/projects/lsz-certificates/run-snapshot.json">下载六份完整记录</a>。零复数相位不适用；正则项造成的传播子零点不当作单粒子极点。</p>
+</div>
+<h2 id="6">6. 三种看起来相近的计算，有限参数下并不相同<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>完整外腿截肢为 <span class="arithmatex">\(\Gamma=G/\prod_jD_j\)</span>。本模型中 <span class="arithmatex">\(\Gamma=K+iB/\prod_jD_j\)</span>，所以有限离壳时存在 <span class="arithmatex">\(B\)</span> 的修正。只有在适当的极点极限下才得到 <span class="arithmatex">\(K\)</span>。</p>
+<p>实验另外计算</p>
+<div class="arithmatex">\[L_{\rm real}=G\prod_j\frac{\delta_j}{i\sqrt Z},\qquad
+L_{\rm reg}=G\prod_j\frac{\delta_j+i\eta}{i\sqrt Z}.\]</div>
+<p><span class="arithmatex">\(L_{\rm reg}\)</span> 可以在有限 <span class="arithmatex">\(\eta\)</span> 下代数相消纯极点分母；<span class="arithmatex">\(L_{\rm real}\)</span> 则保留了 <span class="arithmatex">\(\delta_j/(\delta_j+i\eta)\)</span>。两者在正则项存在时仍有有限离壳修正。比较 <span class="arithmatex">\(L_{\rm real},L_{\rm reg},Z^2\Gamma\)</span> 时，先看定义，再看何种极限使它们相同。</p>
+<p>误差图画的是实际浮点结果与目标极点系数的差。接近机器精度后的小幅起伏或精确零可能来自舍入；它们不是新的物理修正，也不是严格数值误差界。复平面曲线连接193个明确采样点，完整数值保留在表格和下载中。</p>
+<p>若在 <span class="arithmatex">\(\eta=0\)</span> 的离壳代数式中，<span class="arithmatex">\(R\)</span> 使局部模型的 <span class="arithmatex">\(D_j\)</span> 恰好为零，就不能再作除以该 <span class="arithmatex">\(D_j\)</span> 的运算；实分子提取仍可直接由 <span class="arithmatex">\(G\)</span> 计算。那是这个局部模型在极点之外的零点，不是目标单粒子极点。不能用零点附近很大的除法结果宣布发现新的散射共振。</p>
+<h2 id="7">7. 为什么“两个数都很小”还不够<a class="headerlink" href="#7" title="Permanent link"></a></h2>
+<p>先取 <span class="arithmatex">\(R=B=0\)</span>、四条相同离壳量，实分子提取变成</p>
+<div class="arithmatex">\[L_{\rm real}=-i\lambda Z^2\left(\frac{\delta}{\delta+i\eta}\right)^4.\]</div>
+<p>先在离壳处令 <span class="arithmatex">\(\eta\to0\)</span>，再令 <span class="arithmatex">\(\delta\to0\)</span>，得到目标 <span class="arithmatex">\(-i\lambda Z^2\)</span>。反过来，在固定 <span class="arithmatex">\(\eta&gt;0\)</span> 时先令 <span class="arithmatex">\(\delta\to0\)</span>，得到零。若沿 <span class="arithmatex">\(\eta=c\delta\)</span> 一起接近，极限为 <span class="arithmatex">\(-i\lambda Z^2/(1+ic)^4\)</span>。尤其 <span class="arithmatex">\(c=1\)</span> 时，因子为 <span class="arithmatex">\(-1/4\)</span>，既改变模也改变方向。</p>
+<p>不同权重时因子变成 <span class="arithmatex">\(\prod_j w_j/(w_j+ic)\)</span>。实验的“路径”图把固定 <span class="arithmatex">\(\eta\)</span>、<span class="arithmatex">\(\eta=\delta\)</span>、<span class="arithmatex">\(\eta=\delta^2\)</span> 和先取 <span class="arithmatex">\(\eta=0\)</span> 的离壳代数值放在一起。</p>
+<p>这些数值路径揭示了<strong>普通函数的极限不能任意交换</strong>，并没有用一个滑块证明或否定 LSZ 定理。定理的散射态、分布处方与波包极限仍须单独建立。</p>
+<h2 id="8">8. 换一个场的大小，物理结果为什么不变<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>作常数场重定义 <span class="arithmatex">\(\phi'=\alpha\phi\)</span>，其中 <span class="arithmatex">\(\alpha&gt;0\)</span>。四次场插入使 <span class="arithmatex">\(G'=\alpha^4G\)</span>，两点函数使 <span class="arithmatex">\(D'_j=\alpha^2D_j\)</span>，留数变为 <span class="arithmatex">\(Z'=\alpha^2Z\)</span>。因此</p>
+<div class="arithmatex">\[\Gamma'=\alpha^{-4}\Gamma,\qquad Z'^2\Gamma'=Z^2\Gamma.\]</div>
+<p>在本模型中还须同时取 <span class="arithmatex">\(R'=\alpha^2R,K'=\alpha^{-4}K,B'=\alpha^4B\)</span>。这些不同幂次来自它们所处的位置；并不是所有参数都乘同一个系数。实分子提取也不变，因为四个 <span class="arithmatex">\(1/\sqrt{Z'}\)</span> 因子合计提供 <span class="arithmatex">\(\alpha^{-4}\)</span>。</p>
+<p>“换场”预设展示的是同一个模型的不同写法；单独拖动 <span class="arithmatex">\(Z\)</span>、保持 <span class="arithmatex">\(K\)</span> 不变则改变了模型的目标振幅。本页局部模型没有借用某个特定场规范的谱归一化去宣称任意重标定后都有 <span class="arithmatex">\(Z\le1\)</span>。</p>
+<h2 id="9">9. 八个可以逐步核对的练习<a class="headerlink" href="#9" title="Permanent link"></a></h2>
+<p><strong>题一：从定义找符号。</strong> 树级顶点为 <span class="arithmatex">\(-0.3i\)</span>，求 <span class="arithmatex">\(\mathcal M\)</span> 与 <span class="arithmatex">\(|\mathcal M|^2\)</span>。</p>
+<details class="answer">
+<summary>先与iM比较，再取模</summary>
+<p>由 <span class="arithmatex">\(i\mathcal M=-0.3i\)</span> 得 <span class="arithmatex">\(\mathcal M=-0.3\)</span>，所以 <span class="arithmatex">\(|\mathcal M|^2=0.09\)</span>。后者没有相空间和流强，仍不是总截面。</p>
 </details>
-<p><strong>题二。</strong> 四条完整传播子截肢后 <span class="arithmatex">\(\Gamma_{\rm amp}=-ig\)</span>，每腿留数 <span class="arithmatex">\(Z=1/2\)</span>。物理振幅为何？</p>
-<details>
-<summary>核对外态归一化</summary>
-<p><span class="arithmatex">\(i\mathcal M=Z^2(-ig)=-ig/4\)</span>，所以 <span class="arithmatex">\(\mathcal M=-g/4\)</span>。如果原先所谓“截肢核”已经包含 LSZ 外态归一化，则不能再乘这个因子；答题时必须说明核的定义。</p>
+<p><strong>题二：四条留数。</strong> 完整传播子截肢核为 <span class="arithmatex">\(-ig\)</span>，每条腿 <span class="arithmatex">\(Z=1/2\)</span>。</p>
+<details class="answer">
+<summary>四个平方根相乘</summary>
+<p>四条腿给 <span class="arithmatex">\((\sqrt{1/2})^4=1/4\)</span>，故 <span class="arithmatex">\(i\mathcal M=-ig/4\)</span>，<span class="arithmatex">\(\mathcal M=-g/4\)</span>。这里的核尚未包含外态归一化；若定义已包含，再乘会重复计数。</p>
 </details>
-<p>无质量长程相互作用、红外发散和约束场需要更仔细的渐近态处理；束缚或禁闭的场变量也不自动对应可观测外部粒子。一个函数有形式分母，不能单凭外形宣布存在可用的粒子 S 矩阵。</p>
+<p><strong>题三：漏一条腿。</strong> 令 <span class="arithmatex">\(Z=1,R=B=0\)</span> 并取 <span class="arithmatex">\(\eta=0\)</span> 的离壳代数式。离壳量减半后，截三条腿与截四条腿的模怎样变化？</p>
+<details class="answer">
+<summary>先数剩余分母</summary>
+<p>截三条腿还剩一个 <span class="arithmatex">\(1/\delta\)</span>，模翻倍；四条全部截去只剩 <span class="arithmatex">\(|-i\lambda|\)</span>，不随 <span class="arithmatex">\(\delta\)</span> 变化。这个比较使用分别提出单位后的数值，不是两种截面的比。</p>
+</details>
+<p><strong>题四：相同小量。</strong> 取默认 <span class="arithmatex">\(\lambda=0.2,Z=1,R=B=0\)</span>，沿 <span class="arithmatex">\(\eta=\delta\)</span> 求实分子提取的极限。</p>
+<details class="answer">
+<summary>保留复数的四次幂</summary>
+<p><span class="arithmatex">\((1+i)^2=2i\)</span>，所以 <span class="arithmatex">\((1+i)^4=-4\)</span>，其倒数为 <span class="arithmatex">\(-1/4\)</span>。因此极限为 <span class="arithmatex">\((-0.2i)(-1/4)=+0.05i\)</span>。它不是目标 <span class="arithmatex">\(-0.2i\)</span>，不能因为两参数都接近零就忽略比值。</p>
+</details>
+<p><strong>题五：完整换场。</strong> 取 <span class="arithmatex">\(\alpha=2\)</span>，写出 <span class="arithmatex">\(G,D,Z,\Gamma\)</span> 的缩放，并验证归一化结果。</p>
+<details class="answer">
+<summary>分别数场插入和传播子</summary>
+<p><span class="arithmatex">\(G'=16G,D'=4D,Z'=4Z,\Gamma'=\Gamma/16\)</span>。于是 <span class="arithmatex">\(Z'^2\Gamma'=(4Z)^2\Gamma/16=Z^2\Gamma\)</span>。只把 <span class="arithmatex">\(G\)</span> 乘16而保持其余量不变不叫完整换场。</p>
+</details>
+<p><strong>题六：正则四点项。</strong> 令 <span class="arithmatex">\(R=0,\eta=0,w_j=1\)</span>，求 <span class="arithmatex">\(B\)</span> 对 <span class="arithmatex">\(Z^2\Gamma\)</span> 的贡献。</p>
+<details class="answer">
+<summary>先计算四条外腿的乘积</summary>
+<p><span class="arithmatex">\(\prod_jD_j=(iZ/\delta)^4=Z^4/\delta^4\)</span>，所以 <span class="arithmatex">\(Z^2\Gamma=Z^2K+iB\delta^4/Z^2\)</span>。这个正则贡献随 <span class="arithmatex">\(\delta^4\)</span> 消失；有限离壳时却未必为零。<span class="arithmatex">\(\lambda=0,B\ne0\)</span> 时，有限关联函数仍可非零，而该模型的极点振幅为零。</p>
+</details>
+<p><strong>题七：自由场的四点函数。</strong> 四点函数非零是否足以证明存在四粒子相互作用散射？</p>
+<details class="answer">
+<summary>区分断开的传播与完全连通</summary>
+<p>不够。自由场的三种两点函数乘积使完整四点函数非零，但完全连通四点函数为零。散射约化要先分清完全连通部分、真空归一化以及 <span class="arithmatex">\(S-1\)</span> 的定义。</p>
+</details>
+<p><strong>题八：内部极点。</strong> 截肢是否也应乘掉相互作用内部的传播子？</p>
+<details class="answer">
+<summary>从外腿定义判断</summary>
+<p>不应。外腿传播把场插入接到相互作用区域；内部传播子描述相互作用过程本身，决定振幅的内部极点、阈值和因子化。把内部传播子也消掉，会改变所计算的振幅。</p>
+</details>
+<h2 id="10">10. 带着完整账本走向下一讲<a class="headerlink" href="#10" title="Permanent link"></a></h2>
+<p>本讲的验收不是记住“去掉外腿”四个字，而是能写出：完全连通函数、每腿极点及留数、所采用的截肢定义、极限条件，以及最终 <span class="arithmatex">\(i\mathcal M\)</span> 的归一化。遇到不稳定外态、红外问题或混合场时，应重新核对定理的条件。</p>
+<p>下一步用<a href="bridge-02-loop-subtraction.html">重整化积分与减法</a>处理圈图，再读<a href="research-07-scattering-amplitudes.html">散射振幅与因子化</a>。<a href="route-02-field-readiness.html">关联函数到振幅的连续训练</a>检查各份账本是否一致；<a href="bridge-17-phi4-scattering.html">同一φ⁴模型的单圈散射训练</a>进一步连接二点反项、三通道泡图、阈值虚部和物理截面。</p>
+<p>一手教学来源：<a href="https://davidtong.org/teaching/quantum-field-theory/qfthtml/S3">David Tong，Interacting Fields，第3.7节</a>，讨论时序关联、散射矩阵与 LSZ 约化。本页的常数正则项、有限调节量和数值路径是独立声明的教学算例；不声称从这个局部模型构造出了完整量子场论。资料核查：2026-09-13。</p>
 </section>
-<h2 id="_1">速查与后续路线<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
-<p>连通关联函数 → 单粒子极点与留数 → 外腿截肢和归一化 → 壳上振幅 → 相空间与截面。接着读<a href="bridge-02-loop-subtraction.html">重整化的积分与减法</a>，再返回<a href="research-07-scattering-amplitudes.html">散射振幅与因子化</a>。</p>
-<p>一手教学来源：<a href="https://davidtong.org/teaching/quantum-field-theory/qfthtml/S3">David Tong：Interacting Fields</a>，包括时序关联、S 矩阵及 LSZ 约化。公式的标量、稳定粒子、树级与归一化约定已在正文分别限定。资料核查：2026-09-08。</p>
-<p>连续训练：<a href="route-02-field-readiness.html">从关联函数到振幅</a>用四份账本检查外腿归一化、同处方减法、参数匹配和内部极点。</p>
-<p>进一步把二点反项、s/t/u三泡图、离壳减法点和物理截面接通，可做<a href="bridge-17-phi4-scattering.html">同一φ⁴模型的单圈散射训练</a>，并用阈值虚部与换点匹配独立核验。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="project-02-co2-measurements.html"><span class="pager-label">上一页</span>项目 02 · CO₂真实测量与误差</a>
@@ -142,7 +274,6 @@ try {
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
 <script defer src="assets/learning/learning.js"></script>
-<script defer src="assets/learning/research-renderer.js?v=b69c61f59cae"></script>
-<script defer src="assets/learning/labs/research-foundations.js?v=081e076804d6"></script>
+<script defer src="assets/learning/labs/scalar-lsz.js"></script>
 </body>
 </html>
