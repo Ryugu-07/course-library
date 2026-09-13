@@ -56,7 +56,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-13 20:36</div>
+    <div class="build-time">构建于 2026-09-13 21:13</div>
   </div>
 </nav>
 <main id="content">
@@ -64,14 +64,21 @@ try {
 <details class="page-toc"><summary>本页目录</summary><div class="toc">
 <ul>
 <li><a href="#1">1. 会更新一条键，为什么还没有学会扫描？</a></li>
-<li><a href="#2">2. 从当前态重建当前块基</a></li>
+<li><a href="#2">2. 从当前态重建当前块基</a><ul>
+<li><a href="#_1">“右边要取复共轭”可以直接算一次</a></li>
+<li><a href="#_2">数值阈值会把精确等式变成近似等式</a></li>
+</ul>
+</li>
 <li><a href="#3">3. 更新的是态，也必须更新环境</a></li>
-<li><a href="#4">4. 给接受规则一个明确含义</a></li>
+<li><a href="#4">4. 给接受规则一个明确含义</a><ul>
+<li><a href="#_3">先用一个不依赖求解器的账本检查接受逻辑</a></li>
+</ul>
+</li>
 <li><a href="#5">5. 默认账本：环境空间真的在变化</a></li>
 <li><a href="#6">6. 单调、停滞、收敛是三件事</a></li>
 <li><a href="#7">7. 为什么不能把所有 ε 相加当作最终误差？</a></li>
 <li><a href="#8">8. 两道迁移题</a></li>
-<li><a href="#_1">速查与下一步</a></li>
+<li><a href="#_4">速查与下一步</a></li>
 </ul>
 </div>
 </details>
@@ -102,6 +109,18 @@ try {
 <div class="arithmatex">\[W^\dagger W=I,\qquad WW^\dagger|\psi_{\rm old}\rangle=|\psi_{\rm old}\rangle.\]</div>
 <p>第二式表示当前态就在当前可搜索空间内。两侧支撑投影作用于不同物理块，彼此对易；它们各自都保留当前态，因此联合作用也保留当前态。这是未截断局部求解不升能的重要前提。</p>
 <p>数值实验只保留约化密度矩阵权重大于 10⁻¹² 的方向，并直接检查当前态的投影误差。它不主动补齐零权重方向，所以局部空间会从初态的最小支撑逐步增长；该阈值是数值规则，不是物理定律。</p>
+<h3 id="_1">“右边要取复共轭”可以直接算一次<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>取 <span class="arithmatex">\(|\psi\rangle=|0\rangle(|0\rangle+i|1\rangle)/\sqrt2\)</span>，系数矩阵为</p>
+<div class="arithmatex">\[P=\frac1{\sqrt2}\begin{pmatrix}1&amp;i\\0&amp;0\end{pmatrix}.\]</div>
+<p><span class="arithmatex">\(P^\dagger P\)</span> 的非零本征向量可取 <span class="arithmatex">\(v=(1,-i)^T/\sqrt2\)</span>，而右边的物理 ket 是 <span class="arithmatex">\(\overline v=(1,i)^T/\sqrt2\)</span>。原因是 <span class="arithmatex">\(P=U\Sigma V^\dagger\)</span> 的展开系数包含 <span class="arithmatex">\(V^\dagger_{a j}=\overline{V_{j a}}\)</span>。若误把 v 当作右 ket，本例中得到的右态与正确右态正交。实数实验看不出这个错误，所以推广复振幅时必须单独检查。</p>
+<h3 id="_2">数值阈值会把精确等式变成近似等式<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>上面的 <span class="arithmatex">\(WW^\dagger\psi_{\rm old}=\psi_{\rm old}\)</span> 指保留全部非零支撑时的数学结论。实际删去小于阈值的权重后，应读取表中的投影误差，而不是假定它严格为零。记 <span class="arithmatex">\(P_W=WW^\dagger\)</span>，在块基正交的前提下定义</p>
+<div class="arithmatex">\[\begin{gathered}\delta=\|(I-P_W)\psi_{\rm old}\|&lt;1,\\
+|\widehat\psi\rangle=\frac{P_W|\psi_{\rm old}\rangle}{\sqrt{1-\delta^2}}.\end{gathered}\]</div>
+<p><span class="arithmatex">\(\widehat\psi\)</span> 确实在搜索空间内，与旧态的保真度为 <span class="arithmatex">\(1-\delta^2\)</span>。若完整 H 的谱位于 <span class="arithmatex">\([E_{\min},E_{\max}]\)</span>，上一讲的谱宽界给出</p>
+<div class="arithmatex">\[E_*\le E_{\widehat\psi}
+\le E_{\rm old}+(E_{\max}-E_{\min})\delta.\]</div>
+<p>因此投影误差非零时，“精确局部求解必不升能”要改成带误差的上界。δ 是范数误差，δ² 才是投影损失的权重；不要再多平方或少开一次方。本页各步直接核验 δ，实际轨迹中它接近舍入尺度。</p>
 <h2 id="3">3. 更新的是态，也必须更新环境<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <p>当前中心问题为</p>
 <div class="arithmatex">\[H_{\rm eff}=W^\dagger HW,\qquad H_{\rm eff}a=E_*a.\]</div>
@@ -119,6 +138,33 @@ try {
 <div class="arithmatex">\[(1,2)\to(2,3)\to(3,4)\to(2,3)\to(1,2).\]</div>
 <p>共有五次尝试；下一轮重复这一序列，所以轮与轮相接时会连续访问 (1,2)。这是本页采用的计数约定，并不要求每次访问都产生不同物理态。</p>
 <p>每一步都记账：旧态能量 E_old、未截断局部最低能量 E_*、归一化候选能量 E_cand、接受决定与本次 ε。接受态的能量才是下一步的起点。下方图线连接的是离散更新记录，不代表连续时间动力学。</p>
+<h3 id="_3">先用一个不依赖求解器的账本检查接受逻辑<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>假设旧能量 −4.50，未截断局部能量 −4.60，归一化截断候选 −4.48。局部求解改善了 0.10，但压缩损失了 0.12；候选比旧态高 0.02，开启规则时应拒绝。下一步继续使用旧态及 −4.50。不能把 −4.60 写进接受曲线，也不能用 −4.48 的候选去构造下一步环境。</p>
+<table>
+<thead>
+<tr>
+<th>这次尝试</th>
+<th style="text-align: right;">未截断最优</th>
+<th style="text-align: right;">截断候选</th>
+<th style="text-align: right;">实际接受态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>拒绝规则开启</td>
+<td style="text-align: right;">−4.60</td>
+<td style="text-align: right;">−4.48</td>
+<td style="text-align: right;">−4.50（旧态）</td>
+</tr>
+<tr>
+<td>拒绝规则关闭</td>
+<td style="text-align: right;">−4.60</td>
+<td style="text-align: right;">−4.48</td>
+<td style="text-align: right;">−4.48（候选）</td>
+</tr>
+</tbody>
+</table>
+<p>这是接受规则的手算例；下节才是本页 Hamiltonian 的实际轨迹。先明确每条曲线记录哪个态，再读细小的数值变化。</p>
 <h2 id="5">5. 默认账本：环境空间真的在变化<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p>默认 g=1、χ=2、两轮、开启拒绝规则。初态所有切口秩均为 1，所以第一步局部空间只有 4 维。更新后第一站出现两个 Schmidt 方向，第二步变成 8 维；等另一端也获得第二个方向，首次回程的中间键问题才达到 16 维。</p>
 <table>
@@ -210,6 +256,10 @@ try {
 <p>关闭拒绝规则后，能量可能上升或在相近候选间来回变化；这同样不能被称为收敛。单调有下界的能量序列至多保证能量值有极限，不能仅凭这一点证明态收敛，更不能证明极限是完整系统的基态。</p>
 <p>本页 χ=4 已允许四站所有切口的最大秩，且实际扫描在第一轮第 4 步遇到完整 16 维搜索空间，因而本模型可到达精确基态。这是具体模型和这条轨迹的验证结果，不能推广成任意初态、任意 Hamiltonian 的全局收敛定理。有限轮算法随 χ 改变也会改变搜索路径，不能把理想变分家族的包含关系直接当成每次有限运行的单调性保证。</p>
 <p>最终至少同时看：接受能量的变化、完整残差、增加 χ 后的变化，以及不同初态的结果。实验固定一个初态，尚未完成初态敏感性分析。残差为零说明某个本征态；仍需能量或其他证据判断它是不是基态。</p>
+<details>
+<summary>一个零残差仍不是基态的最小反例</summary>
+<p>取 <span class="arithmatex">\(H=\operatorname{diag}(0,1)\)</span>，态为 <span class="arithmatex">\((0,1)^T\)</span>。其能量 E=1，<span class="arithmatex">\((H-E)\psi=0\)</span>，但基态能量是 0。再取 <span class="arithmatex">\(\psi_n=(-1)^n(1,0)^T\)</span>，能量始终为 0，向量却交替变号；物理纯态的密度矩阵完全相同。这说明讨论“态是否变化”还应去掉无物理意义的整体相位，例如比较密度矩阵、保真度或可观测量。对于存在简并的 H，相同能量的不同物理态也可以共存。</p>
+</details>
 <h2 id="7">7. 为什么不能把所有 ε 相加当作最终误差？<a class="headerlink" href="#7" title="Permanent link"></a></h2>
 <p>ε 比较的是某一步未截断优化态与该步的压缩候选，不是候选与精确全局基态。下一次的环境又依赖真正接受的态，优化过程通常是非线性的。因此不同尝试的 ε 不能直接拼成一次全局保真度公式。</p>
 <p>本实验的“单步最大丢弃权重”也包括被拒绝的候选，用来监控压缩压力。一个被拒绝的候选可以有正 ε，但实际接受态完全没变。累积这些 ε，甚至会在相同物理态上不断增大。要控制多次近似的整体误差，需要明确比较哪两条演化或优化轨迹，并证明每步映射具有怎样的误差传播性质。</p>
@@ -225,9 +275,9 @@ try {
 <p>都不能。ε=0.02 是未截断局部优化态与归一化候选之间的保真度损失。候选被拒绝后，实际接受态仍是旧态，所以这一次实际状态变化为零，相对旧态的保真度仍为 1。重复拒绝也不会累计出物理态的损失。它说明压缩与接受规则发生冲突，值得调整键维或优化策略；没有给出接受态离全局基态多远的答案。</p>
 </details>
 </section>
-<h2 id="_1">速查与下一步<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_4">速查与下一步<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
 <p>每次以接受态重建左右块基 → 核验旧态在搜索空间内 → 解投影本征问题 → 截断并归一化 → 重算候选能量 → 接受或拒绝 → 移到下一键。一次往返覆盖所有键，不等于全局收敛证明。</p>
-<p>算法背景见 <a href="https://arxiv.org/html/1008.3477v2">Schollwöck 的 MPS 综述，第 6 节</a>与 <a href="https://tensornetwork.org/mps/algorithms/dmrg/">两站点 DMRG 步骤</a>。本页用独立 NumPy SVD 实现对照逐步轨迹，JavaScript 通过约化密度矩阵提取实块基；它们都使用同一明示的四站 Hamiltonian。下一步才是取消全态存储、实现缓存环境和迭代算符作用，以及更长链上的误差与初态敏感性训练。资料核查：2026-09-08。</p>
+<p>算法背景见 <a href="https://arxiv.org/html/1008.3477v2">Schollwöck 的 MPS 综述，第 6 节</a>与 <a href="https://tensornetwork.org/mps/algorithms/dmrg/">两站点 DMRG 步骤</a>。本页用独立 NumPy SVD 实现对照逐步轨迹，JavaScript 通过约化密度矩阵提取实块基；它们都使用同一明示的四站 Hamiltonian。下一步才是取消全态存储、实现缓存环境和迭代算符作用，以及更长链上的误差与初态敏感性训练。资料核查：2026-09-13。</p>
 <p>现在可继续<a href="bridge-12-mps-cache.html">真正存储 MPS：正交中心与环境缓存</a>，取消浏览器实验中的完整态存储，并比较逐步重建与缓存的计算量。</p>
 </article>
 <footer class="pager">

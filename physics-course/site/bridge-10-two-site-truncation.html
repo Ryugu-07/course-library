@@ -56,7 +56,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 量子几何与材料</div><ul><li><a href="research-09-quantum-metric.html">量子几何 · 度量、测量与研究边界</a></li><li><a href="research-10-metric-spectroscopy.html">量子几何 · 弱驱动与谱学测量</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-13 20:36</div>
+    <div class="build-time">构建于 2026-09-13 21:13</div>
   </div>
 </nav>
 <main id="content">
@@ -65,12 +65,18 @@ try {
 <ul>
 <li><a href="#1">1. 一个操作里其实有两个优化目标</a></li>
 <li><a href="#2">2. 合并后，中间键可以暂时消失</a></li>
-<li><a href="#3-svd">3. SVD 拆回两个张量，正交中心往哪里放？</a></li>
+<li><a href="#3-svd">3. SVD 拆回两个张量，正交中心往哪里放？</a><ul>
+<li><a href="#_1">先用一个两项例子走完操作</a></li>
+</ul>
+</li>
 <li><a href="#4">4. 丢弃权重到底控制哪一种误差？</a></li>
 <li><a href="#5">5. 四站模型：每个张量都能放回完整态核对</a></li>
-<li><a href="#6">6. 怎样把一次更新接进可靠的扫描？</a></li>
+<li><a href="#6">6. 怎样把一次更新接进可靠的扫描？</a><ul>
+<li><a href="#_2">怎样在表格里区分三种“小”？</a></li>
+</ul>
+</li>
 <li><a href="#7">7. 两道迁移题</a></li>
-<li><a href="#_1">速查与阅读</a></li>
+<li><a href="#_3">速查与阅读</a></li>
 </ul>
 </div>
 </details>
@@ -120,6 +126,9 @@ H_{\rm eff}={}&amp;K_L\otimes I\otimes I\otimes G_R
 <div class="arithmatex">\[\sum_s(\widetilde A^s)^\dagger\widetilde A^s=I,\]</div>
 <p>所以左张量成为左正交张量，奇异值与总归一化留在右张量里，正交中心向右移动。向左移动则把 Σ/√q 吸收到 U，右张量取 V† 的行，从而满足右正交条件。这里选择的是规范位置，并非一次新的物理优化。</p>
 <p><img alt="两站张量合并为四指标中心，重排后做 SVD，保留奇异值并归一化，再比较截断前后能量与残差。" src="assets/img/bridge-10-two-site-truncation.svg" /></p>
+<h3 id="_1">先用一个两项例子走完操作<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>取 <span class="arithmatex">\(M=\operatorname{diag}(\sqrt{0.96},0.2)\)</span>。它的两个 Schmidt 权重是 0.96 和 0.04；保留一项后，未归一化矩阵为 <span class="arithmatex">\(\operatorname{diag}(\sqrt{0.96},0)\)</span>，除以 <span class="arithmatex">\(\sqrt q=\sqrt{0.96}\)</span> 后变成 <span class="arithmatex">\(\operatorname{diag}(1,0)\)</span>。对应物理态就是从 <span class="arithmatex">\(\sqrt{0.96}|00\rangle+0.2|11\rangle\)</span> 变成 <span class="arithmatex">\(|00\rangle\)</span>。这里“保留 96%”指与原态的保真度，不是把剩下的态范数留成 0.96；实际传给下一步的态必须重新归一化。</p>
+<p>把这个算例与图中的箭头对照：合并和重排只改坐标；求解会改变物理态；完整 SVD 只改表示；丢弃会改变物理态；除以 <span class="arithmatex">\(\sqrt q\)</span> 恢复归一化。若某个保留位置跨过相等的奇异值，最佳截断方向可能不唯一，但最小误差与丢弃权重仍由奇异值决定。</p>
 <h2 id="4">4. 丢弃权重到底控制哪一种误差？<a class="headerlink" href="#4" title="Permanent link"></a></h2>
 <p>用 <span class="arithmatex">\(|\psi_*\rangle\)</span> 表示优化后的归一化态，<span class="arithmatex">\(|\widetilde\phi_r\rangle\)</span> 表示直接丢弃后、尚未归一化的态。Schmidt 分量正交，因此</p>
 <div class="arithmatex">\[\|\psi_*-\widetilde\phi_r\|^2=\epsilon,\qquad
@@ -131,6 +140,9 @@ H_{\rm eff}={}&amp;K_L\otimes I\otimes I\otimes G_R
 <div class="arithmatex">\[|\langle O\rangle_{\phi_r}-\langle O\rangle_{\psi_*}|
 \le 2\|O\|\sqrt\epsilon.\]</div>
 <p>这里 ‖O‖ 是算符范数，对 Hermitian 矩阵等于本征值绝对值的最大值。理由是两纯态密度矩阵差的迹范数为 <span class="arithmatex">\(2\sqrt{1-|\langle\psi_*|\phi_r\rangle|^2}\)</span>，再用 <span class="arithmatex">\(|\operatorname{tr}(O\Delta\rho)|\le\|O\|\|\Delta\rho\|_1\)</span>。若 H 的尺度随链长增大，同一个 ε 不能自动解释为同样小的总能量误差。</p>
+<p>这个一般界还可以写成不受能量零点影响的形式。设有限维 Hermitian 的谱位于 <span class="arithmatex">\([o_{\min},o_{\max}]\)</span>；两态都归一化，所以减去同一个常数倍 I 不改变期望值之差。取中点 <span class="arithmatex">\(c=(o_{\max}+o_{\min})/2\)</span>，便有</p>
+<div class="arithmatex">\[|\Delta\langle O\rangle|\le(o_{\max}-o_{\min})\sqrt\epsilon.\]</div>
+<p>它使用谱宽，通常比直接使用 <span class="arithmatex">\(2\|O\|\)</span> 更紧。它仍然按 <span class="arithmatex">\(\sqrt\epsilon\)</span> 缩放；下一条按 ε 缩放的能量界需要额外的基态前提。</p>
 <p>本页四站特例还有更强的界：若 ψ_* <strong>恰好是完整 H 的基态</strong>，能量为 E₀，最高能量为 E_max，则</p>
 <div class="arithmatex">\[0\le E_{\phi_r}-E_0\le(E_{\max}-E_0)\epsilon.\]</div>
 <p>把 φ_r 展成 √q ψ_* 加正交分量，正交分量的范数平方为 ε；本征态使交叉能量项为零，而其余谱在 [E₀,E_max] 内，所以得到该界。一般大链的一次局部优化不一定给出完整基态，不能直接套用这个前提。</p>
@@ -186,6 +198,36 @@ H_{\rm eff}={}&amp;K_L\otimes I\otimes I\otimes G_R
 <h2 id="6">6. 怎样把一次更新接进可靠的扫描？<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p>一次更新应留下三份记录：旧态能量、未截断优化态能量、归一化截断态能量。只保存中间最漂亮的能量，会掩盖截断带来的变化。初态在局部搜索空间内时，精确求解的未截断能量不会升高；截断后要重新计算，不能沿用优化器返回的 E。</p>
 <p>若需要每次接受的步骤都降能，可以比较截断态与旧态、拒绝升能候选；也可以增加保留数后再试。拒绝策略本身不保证摆脱局部极值，代价与收敛标准仍需独立分析。后续完整扫描还要移动中心、更新环境，并检查多轮能量变化、残差及对键维的敏感性。单次 ε 很小只能说明这次压缩损失小，不能证明搜索已经找到全局基态，也不能当作许多次截断的累计误差。</p>
+<h3 id="_2">怎样在表格里区分三种“小”？<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<table>
+<thead>
+<tr>
+<th>看到的数很小</th>
+<th>它直接说明什么</th>
+<th>还不能单独说明什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>本次 ε</td>
+<td>本次未截断态与归一化候选的保真度接近 1</td>
+<td>候选距完整基态多近</td>
+</tr>
+<tr>
+<td>候选与旧态的能量差</td>
+<td>这次更新对能量的影响小</td>
+<td>态已经停止变化</td>
+</tr>
+<tr>
+<td>完整残差 <span class="arithmatex">\(\|(H-E)\phi\|\)</span></td>
+<td>态的能量分布集中；零残差对应本征态</td>
+<td>该本征态一定是基态</td>
+</tr>
+</tbody>
+</table>
+<p>若另已知道非简并基态能量 E₀ 和严格正的能隙 <span class="arithmatex">\(\Delta=E_1-E_0\)</span>，可以从谱分解推出</p>
+<div class="arithmatex">\[1-|\langle\psi_0|\phi\rangle|^2\le\frac{E_\phi-E_0}{\Delta}.\]</div>
+<p>因为每一份落在基态之外的概率都至少贡献 Δ 的能量。基态简并时，把单个向量的重叠换成整个基态子空间的权重；若不知道严格正的隙，就不能把一个小能量误差自动翻译成同样小的态误差。本页给精确 E₀ 是为了核验小模型；实际大链通常没有这份答案。</p>
 <h2 id="7">7. 两道迁移题<a class="headerlink" href="#7" title="Permanent link"></a></h2>
 <p><strong>题一。</strong> 两个 Schmidt 系数为 √0.96 与 0.2，只保留第一个。分别求未归一化误差平方、归一化保真度、归一化误差平方。若原态是谱位于 [−3,5] 的 H 的基态，能量偏差能保证多小？</p>
 <details>
@@ -198,9 +240,9 @@ H_{\rm eff}={}&amp;K_L\otimes I\otimes I\otimes G_R
 <p>左 Gram 矩阵为 diag(1,100)。改用归一化左基后，物理系数矩阵变成 diag(0.8,6)，范数平方为 0.64+36=36.64。物理上该保留第二项。相对归一化原态，保留第二项的保真度为 36/36.64≈0.98253；错误保留第一项只有 0.64/36.64≈0.01747。坐标 Frobenius 范数与物理范数不同，排序当然也可能相反。这正是两站点截断前要求正交环境的原因。</p>
 </details>
 </section>
-<h2 id="_1">速查与阅读<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_3">速查与阅读<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <p>合并 Θ → 解广义或正交化后的本征问题 → 按 (ℓ,s)|(t,ρ) 重排 → SVD → 保留并归一化 → 把奇异值吸收到移动方向一侧 → 重算物理能量和残差。ε 记录态压缩损失；截断并非受秩约束的能量最优化。</p>
-<p>算法背景见 <a href="https://arxiv.org/html/1008.3477v2">Schollwöck，MPS 与 DMRG 综述，第 4.1、4.5、6 节</a>及 <a href="https://tensornetwork.org/mps/algorithms/dmrg/">Tensor Network 的两站点 DMRG 步骤</a>。本页四站数值、升能对照及误差账本由所列 Hamiltonian 独立复算。资料核查：2026-09-08。</p>
+<p>算法背景见 <a href="https://arxiv.org/html/1008.3477v2">Schollwöck，MPS 与 DMRG 综述，第 4.1、4.5、6 节</a>及 <a href="https://tensornetwork.org/mps/algorithms/dmrg/">Tensor Network 的两站点 DMRG 步骤</a>。本页四站数值、升能对照及误差账本由所列 Hamiltonian 独立复算。资料核查：2026-09-13。</p>
 <p>继续训练：<a href="bridge-11-two-site-sweeps.html">两站点完整往返</a>逐步重建当前态的块基，记录候选接受与拒绝，并用非零残差识别能量停滞。</p>
 <p>沿扫描方向传递奇异值并维护有效块环境，见<a href="bridge-12-mps-cache.html">正交中心与环境缓存</a>。</p>
 <p>继续演化：<a href="bridge-16-tebd-errors.html">张量时间演化与误差</a>实际施加复数门、移动正交中心并截断；用三条轨迹区分时间分裂、压缩与浮点检查，给可证明的多步误差界。</p>

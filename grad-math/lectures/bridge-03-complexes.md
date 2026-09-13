@@ -47,6 +47,15 @@ $$H_1=\ker\partial_1/\operatorname{im}\partial_2.$$
 
 默认结果：$\operatorname{rank}\partial_1=2$，闭链空间维数 1，边界空间维数 1，$\dim H_1=0$。错误取向时实验显示链条件失败，并撤下同调维数，绝不把错误矩阵包装成一个拓扑结论。
 
+### 改错一个符号，与合法换基有什么不同？
+
+若真的把第三条基边改成 $e_{20}=-e_{02}$，令 $S=\operatorname{diag}(1,1,-1)$，应同时使用
+
+$$\begin{gathered}\partial'_1=\partial_1S,\\
+\partial'_2=S^{-1}\partial_2=(1,1,1)^T.\end{gathered}$$
+
+于是 $\partial'_1\partial'_2=\partial_1\partial_2=0$，完全合法。实验的“错误”模式却固定原来的端点矩阵 $\partial_1$，只把 $\partial_2$ 最后一项改号，所以得到非零结果。同一个列向量 (1,1,1)，在不同的基约定下含义不同；需要核验的是两个相邻映射的配合。
+
 ## 4. 从三角形走到一般链复形
 
 链复形是一串模及同态 $\cdots\to C_{n+1}\xrightarrow{d_{n+1}}C_n\xrightarrow{d_n}C_{n-1}\to\cdots$，要求 $d_nd_{n+1}=0$。定义 $H_n=\ker d_n/\operatorname{im}d_{n+1}$。链次数向下走；上链复形次数向上走，写作 $d^n:C^n\to C^{n+1}$。计算前先固定约定，不要只看上下标外形。
@@ -54,6 +63,17 @@ $$H_1=\ker\partial_1/\operatorname{im}\partial_2.$$
 同调测量正合性失败的程度：在 $C_n$ 处正合恰好等价于 $H_n=0$。但“所有同调为零”不等于每个空间为零。例如 $0\to\mathbb R\xrightarrow{1}\mathbb R\to0$ 有非零项却同调全零。
 
 再看以次数 1、0 放置的整数复形 $C_1=\mathbb Z\xrightarrow{\times2}C_0=\mathbb Z$。$H_1=0$，$H_0=\mathbb Z/2$。若把系数换成实数，乘二可逆，两个同调都为零。维数直觉看不到整数挠信息；这正是上一讲保留系数环的重要性。
+
+把一阶同调的三个步骤对应到本页例子：
+
+| 对象 | 先问的问题 | 只有边框 | 填入三角面 |
+|---|---|---|---|
+| $C_1$ | 可以写哪些链？ | 三条边的所有实组合 | 相同 |
+| $Z_1=\ker\partial_1$ | 哪些链没有端点？ | 回路的一维空间 | 相同 |
+| $B_1=\operatorname{im}\partial_2$ | 哪些闭链来自面的边界？ | 零空间 | 整个回路空间 |
+| $H_1=Z_1/B_1$ | 把边界认成零后还剩什么？ | 一维 | 零空间 |
+
+填面以后，(1,1,−1) 在 $C_1$ 中仍非零；它的同调类却为零。说“这个回路为零”时，必须注明是在链空间还是在同调商中。
 
 ## 5. 为什么需要分解，而不仅是最终答案
 
@@ -93,7 +113,7 @@ $$\mathbb Z/2\xrightarrow{0}\mathbb Z/2.$$
 
 ## 速查与继续学习
 
-先验条件 $d^2=0$ → 求核得到闭链 → 求像得到边界 → 取商得到同调。下一讲：[层、限制与粘合](bridge-04-sheaves.html)。定义和进一步阅读见 [Stacks Project：Complexes](https://stacks.math.columbia.edu/tag/010V) 与 [Tensor products](https://stacks.math.columbia.edu/tag/00CV)；三角形矩阵和整数复形是本讲明确展开的计算。资料核查：2026-09-08。
+先验条件 $d^2=0$ → 求核得到闭链 → 求像得到边界 → 取商得到同调。下一讲：[层、限制与粘合](bridge-04-sheaves.html)。定义和进一步阅读见 [Stacks Project：Complexes](https://stacks.math.columbia.edu/tag/010V) 与 [Tensor products](https://stacks.math.columbia.edu/tag/00CV)；三角形矩阵和整数复形是本讲明确展开的计算。资料核查：2026-09-13。
 
 后续计算：[张量积、平坦性与 Tor](bridge-05-tensor-tor.html)从自由分解继续，解释为什么换系数要保留整个复形。
 

@@ -30,6 +30,12 @@ $$M/\ker f\longrightarrow\operatorname{im}f,\qquad [m]\longmapsto f(m)$$
 <figcaption>同一条整数轴上，像只占每六步一个的位置。余核记录被像遗漏的剩余类，并不等于实线性代数里的“剩余维数”。</figcaption>
 </figure>
 
+### 同一个集合，换了标量环就会改变“自由”
+
+把 $\mathbb Z/6$ 看成 $\mathbb Z$-模时，[1] 不是自由基，因为整数 6 是非零标量而 $6[1]=0$。把它看成环 $R=\mathbb Z/6$ 自己上的模时，它却是自由的秩一模 R：每个元素唯一写成 $r[1]$，坐标 r 本来就在 R 中。此时 [6]=[0] 是零标量，不构成非平凡关系。判断自由性要同时说清对象和标量环。
+
+对 $T_2:\mathbb Z/6\to\mathbb Z/6$，还可把三个对象放在一起：核是源模里的 $\{0,3\}$，像是目标里的 $\{0,2,4\}$，余核则把整个目标再按这个像取商，得到两个类 $\{0,2,4\}$ 与 $\{1,3,5\}$。核和余核在此都含两个元素，但一个是源中的子模，一个是目标的商模，定义与作用不同。
+
 ## 3. 正合是什么意思，为什么还不能拆开
 
 序列 $A\xrightarrow{u}B\xrightarrow{v}C$ 在 $B$ 处正合，是指 $\operatorname{im}u=\ker v$。先做 $u$ 再做 $v$ 必为零，只给出一个包含关系；正合还要求所有被 $v$ 杀死的元素都来自 $u$。
@@ -55,6 +61,8 @@ $$A=\begin{pmatrix}2&4\\0&6\end{pmatrix},\qquad M=\mathbb Z^2/A\mathbb Z^2.$$
 $$M\cong\mathbb Z/2\mathbb Z\oplus\mathbb Z/6\mathbb Z,$$
 
 共有 12 个元素。不能把第一行除以二来宣布关系变成单位矩阵：除二在整数模中不是可逆换基。一般的 Smith 标准形使用整数可逆行列变换，把整数矩阵化为满足整除关系的对角形式；这里完成了一个实例，未证明一般算法。
+
+这也能直接判定整数方程 $A(x,y)^T=(b_1,b_2)^T$ 是否有解。第二行要求 $6y=b_2$；第一行是 $2x+4y=b_1$。因此恰好在 $6\mid b_2$ 且 $2\mid b_1$ 时可解。例如右端 (2,6) 给 y=1、x=−1，而右端 (1,6) 因第一坐标为奇数而无解。余核的两个坐标，正是在记录这两项同余障碍。
 
 交互中研究 $T_a:[x]\mapsto[ax]$ 在 $\mathbb Z/m\mathbb Z$ 上的作用。先预测“$a$ 非零”是否保证可逆。若 $d=\gcd(a,m)$，写 $a=da'$、$m=dm'$，则 $m\mid ax$ 等价于 $m'\mid x$，所以核有 $d$ 个元素，像有 $m/d$ 个。可逆条件是 $d=1$。
 
@@ -82,6 +90,12 @@ $6x\equiv0\pmod8$ 等价于 $3x\equiv0\pmod4$，故核为 $\{0,4\}$。逐个乘�
 
 </details>
 
+<details markdown="1"><summary>什么时候可以放心使用“选原像来分裂”？</summary>
+
+若短正合列的右端是自由模 $R^n$，可为其标准基 $e_i$ 各选一个原像 $b_i\in B$，再定义 $s(\sum_i r_i e_i)=\sum_i r_i b_i$。自由坐标的唯一性使定义良好，且 $v\circ s=\mathrm{id}$，所以此时确实分裂。前面的 $\mathbb Z/6$ 作为整数模不是自由模，任意选代表元就缺少这一步保证。这是一个足够条件，并非所有可分裂短正合列的必要条件。
+
+</details>
+
 ## 6. 接下来这些工具用在哪里
 
 局部化会允许某些标量可逆，改变哪些信息还能被看见；链复形会把核与像串起来；向量丛和层则会把模随空间位置组织起来。当前只建立模、商与正合性，不等于已经学完交换代数。
@@ -97,6 +111,6 @@ $6x\equiv0\pmod8$ 等价于 $3x\equiv0\pmod4$，故核为 $\{0,4\}$。逐个乘�
 | 自由模 | 坐标唯一，生成元之间无非平凡关系 |
 | 整数换基 | 变换及其逆都保持整数坐标 |
 
-下一讲：[局部化与局部信息](bridge-02-localization.html)。定义与进一步理论见 [Stacks Project：交换代数](https://stacks.math.columbia.edu/tag/00AO) 的 Modules、Quotients、Localization 各节；本讲整数算例均可直接复算。资料核查：2026-09-08。
+下一讲：[局部化与局部信息](bridge-02-localization.html)。定义与进一步理论见 [Stacks Project：交换代数](https://stacks.math.columbia.edu/tag/00AO) 的 Modules、Quotients、Localization 各节；本讲整数算例均可直接复算。资料核查：2026-09-13。
 
 路线验收：[连续作业：从整数分解到导出观点](route-01-derived-readiness.html)。先独立提交中间计算，再用题解定位需要回补的步骤。
