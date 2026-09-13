@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 04:59</div>
+    <div class="build-time">构建于 2026-09-14 00:28</div>
   </div>
 </nav>
 <main id="content">
@@ -65,11 +65,12 @@ try {
 <li><a href="#4">4. 从“算得通”到“真的是群”</a></li>
 <li><a href="#5">5. 扭点把非线性曲线变成线性表示</a><ul>
 <li><a href="#_1">快速倍点与异常分支</a></li>
+<li><a href="#_2">点数一样，群的结构仍然可能不同</a></li>
 </ul>
 </li>
 <li><a href="#6">6. 实验：重复横坐标是否意味着重复点</a></li>
 <li><a href="#7">7. 迁移题</a></li>
-<li><a href="#_2">速查与研究入口</a></li>
+<li><a href="#_3">速查与研究入口</a></li>
 </ul>
 </div>
 </details>
@@ -109,6 +110,12 @@ y_{2P}\equiv13(5-6)-1\equiv3.\]</div>
 <p>若要算 <span class="arithmatex">\(13P\)</span>，逐次加十三次没有利用整数的结构。写 <span class="arithmatex">\(13=8+4+1\)</span>，先算 <span class="arithmatex">\(2P\)</span>、<span class="arithmatex">\(4P\)</span>、<span class="arithmatex">\(8P\)</span>，再合并 <span class="arithmatex">\(8P+4P+P\)</span>。一般整数的二进制展开使倍点次数与二进制位数同量级；这解释了标量乘法为什么可以高效执行，但并没有给出从 <span class="arithmatex">\(P,Q=nP\)</span> 反求 <span class="arithmatex">\(n\)</span> 的同样快速方法。正向运算与逆问题的难度必须分别研究，尤其不能由这个 19 点小群外推出密码系统的安全性。</p>
 <p>实现中最危险的步骤往往是一个分母，而不是一长串乘法。同横坐标的两个曲线点，在特征不为 2 时要么相等，要么互为负点；后者先返回 <span class="arithmatex">\(O\)</span>，前者再进入切线分支。若它们既相等又互为负点，就是 <span class="arithmatex">\(y=0\)</span> 的 2 扭点，仍返回 <span class="arithmatex">\(O\)</span>。把这些情形放在求逆之前，才能避免把数学中不存在的逆元交给小数除法处理。</p>
 <p>还有一个独立核对方法：将获得的每个倍点重新代入曲线方程，确认封闭性，再把整条倍点轨道与第一讲的全点表比较。在本例中，十八个非零点加 <span class="arithmatex">\(O\)</span> 正好覆盖全部点。如果只有横坐标集合覆盖，并不够；两条反射分支可能被程序错误合并。下一讲格子商空间的加法会让结合律更直观，但有限域实例仍应保留这类完整坐标检验。</p>
+<h3 id="_2">点数一样，群的结构仍然可能不同<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>在 <span class="arithmatex">\(\mathbb F_5\)</span> 上比较两条光滑曲线 <span class="arithmatex">\(E_0:y^2=x^3-x\)</span> 与 <span class="arithmatex">\(E_1:y^2=x^3-x+1\)</span>。逐列计数均得 8 个点，含 <span class="arithmatex">\(O\)</span>。但 <span class="arithmatex">\(E_0\)</span> 有三个非零 2 扭点 <span class="arithmatex">\((0,0),(1,0),(4,0)\)</span>；<span class="arithmatex">\(E_1\)</span> 只有 <span class="arithmatex">\((3,0)\)</span> 一个。</p>
+<p>用本讲加法公式可算出：在 <span class="arithmatex">\(E_0\)</span> 中，<span class="arithmatex">\(P=(2,1)\)</span> 满足 <span class="arithmatex">\(2P=(0,0),4P=O\)</span>；取 <span class="arithmatex">\(Q=(1,0)\)</span>，八个 <span class="arithmatex">\(jP+kQ\)</span>（<span class="arithmatex">\(0\le j&lt;4,0\le k&lt;2\)</span>）互不相同，故</p>
+<div class="arithmatex">\[E_0(\mathbb F_5)\cong\mathbb Z/4\mathbb Z\times\mathbb Z/2\mathbb Z.\]</div>
+<p>在 <span class="arithmatex">\(E_1\)</span> 中，<span class="arithmatex">\(R=(0,1)\)</span> 满足 <span class="arithmatex">\(2R=(4,1),4R=(3,0),8R=O\)</span>。由于 <span class="arithmatex">\(4R\ne O\)</span>，其阶为 8，所以 <span class="arithmatex">\(E_1(\mathbb F_5)\)</span> 是循环群。</p>
+<p>两者有相同点数、相同迹 <span class="arithmatex">\(a_5=-2\)</span>，却没有相同群结构。计数本身不能判定是否循环，也不能恢复全部有理扭点。下方实验固定的是原来模 17 的曲线；本段的两条模 5 曲线需手算，或使用第一讲计数器并另行实现加法，不能只改变倍点整数来切换曲线。</p>
 <h2 id="6">6. 实验：重复横坐标是否意味着重复点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p>先预测 <span class="arithmatex">\(m=2,n=3\)</span> 的结果，再改变正负整数。观察 <span class="arithmatex">\(jP\)</span> 的横坐标随 <span class="arithmatex">\(j\)</span> 跳动，并检查 <span class="arithmatex">\(j\)</span> 与 <span class="arithmatex">\(19-j\)</span> 的配对。零元没有仿射坐标，图中不为 <span class="arithmatex">\(19P\)</span> 伪造高度。</p>
 <div class="learning-lab" data-learning-lab="research-math" data-research-topic="nt-group">
@@ -127,7 +134,7 @@ y_{2P}\equiv13(5-6)-1\equiv3.\]</div>
 <p>不必；阶可以是 12 的其他因数。必须找到最小正整数 <span class="arithmatex">\(n\)</span> 使 <span class="arithmatex">\(nP=O\)</span>。横坐标重复可能只是 <span class="arithmatex">\(jP=-kP\)</span>，尚未返回同一个点；应比较完整点并单独处理 <span class="arithmatex">\(O\)</span>。本讲 19 阶结论使用了 19 是素数这一条件。</p>
 </details>
 </section>
-<h2 id="_2">速查与研究入口<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">速查与研究入口<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>

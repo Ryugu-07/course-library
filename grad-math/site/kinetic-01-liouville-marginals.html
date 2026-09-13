@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li class="active"><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 04:59</div>
+    <div class="build-time">构建于 2026-09-14 00:28</div>
   </div>
 </nav>
 <main id="content">
@@ -61,14 +61,17 @@ try {
 <ul>
 <li><a href="#1">1. 确定轨道与随机初值并不矛盾</a></li>
 <li><a href="#2">2. 边缘是积分，不是挑一个典型坐标</a></li>
-<li><a href="#3">3. 一个能算到底的闭合反例</a></li>
+<li><a href="#3">3. 一个能算到底的闭合反例</a><ul>
+<li><a href="#_1">自由飞行时，究竟是哪一种熵会改变？</a></li>
+</ul>
+</li>
 <li><a href="#4-liouville">4. 对 Liouville 积分会出现什么</a></li>
 <li><a href="#5">5. 混沌传播究竟声称什么</a><ul>
-<li><a href="#_1">用相关余项明确“忽略了多少”</a></li>
+<li><a href="#_2">用相关余项明确“忽略了多少”</a></li>
 </ul>
 </li>
 <li><a href="#6">6. 实验与迁移题</a></li>
-<li><a href="#_2">速查与来源</a></li>
+<li><a href="#_3">速查与来源</a></li>
 </ul>
 </div>
 </details>
@@ -100,6 +103,14 @@ try {
 <div class="arithmatex">\[\operatorname{Var}D=2[1+t^2(1-\rho)].\]</div>
 <p>在 <span class="arithmatex">\(t=1,\rho=1/2\)</span> 时，单粒子方差都是 2，位置差方差却是 3；若错误地把两个边缘相乘，会算成 4。位置差在零处的密度分别为 <span class="arithmatex">\(1/\sqrt{6\pi}\approx0.230329\)</span> 与 <span class="arithmatex">\(1/\sqrt{8\pi}\approx0.199471\)</span>。对很小的 <span class="arithmatex">\(h&gt;0\)</span>，事件 <span class="arithmatex">\(|D|&lt;h\)</span> 的概率约为 <span class="arithmatex">\(2h\)</span> 乘这个密度。密度值不是事件概率，连续模型中 <span class="arithmatex">\(D=0\)</span> 的概率本身为零。</p>
 <p>这个例子没有硬球半径，也没有真正碰撞；它只严格反驳“相同一粒子统计必有相同二粒子接近概率”。在碰撞问题中，相遇处的联合结构恰好决定碰撞频率，闭合缺口因此有直接物理后果。</p>
+<h3 id="_1">自由飞行时，究竟是哪一种熵会改变？<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>把一个粒子的完整相点记为 <span class="arithmatex">\(Z_i=(X_i,V_i)\)</span>，并用 <span class="arithmatex">\(h\)</span> 表示微分熵。自由流 <span class="arithmatex">\((X_i,V_i)\mapsto(X_i+tV_i,V_i)\)</span> 的行列式为 1，所以每个 <span class="arithmatex">\(h(Z_i)\)</span> 都不变；对两个粒子的完整四维联合律同样成立。因此粒子间的完整互信息</p>
+<div class="arithmatex">\[\begin{aligned}I(Z_1;Z_2)&amp;=h(Z_1)+h(Z_2)\\&amp;\quad-h(Z_1,Z_2)\\&amp;=-\tfrac12\log(1-\rho^2)\end{aligned}\]</div>
+<p>也保持不变，前提是 <span class="arithmatex">\(|\rho|&lt;1\)</span>。这里的信息没有在自由飞行中被创造或消灭。</p>
+<p>但如果探测器只读取位置，相当于再积分掉速度。此时 <span class="arithmatex">\(h(X_i)=\tfrac12\log[2\pi e(1+t^2)]\)</span> 随时间增加，两位置的相关系数为 <span class="arithmatex">\(r(t)=\rho t^2/(1+t^2)\)</span>，位置互信息为</p>
+<div class="arithmatex">\[I(X_1;X_2)=-\tfrac12\log[1-r(t)^2].\]</div>
+<p>例如 <span class="arithmatex">\(t=1,\rho=1/2\)</span>，完整粒子互信息为 <span class="arithmatex">\(\tfrac12\log(4/3)\approx0.143841\)</span>，只读位置得到 <span class="arithmatex">\(\tfrac12\log(16/15)\approx0.032269\)</span>；初始位置互信息则是零。位置逐渐携带了原先藏在速度中的相关信息，同时始终不超过完整相点互信息。</p>
+<p>所以在本页无相互作用模型中，不能把“位置边缘的熵改变”误写成“每个粒子的完整相空间边缘熵改变”。需要先登记保留了哪些变量，再讨论信息损失或熵增；上述互信息使用自然对数，单位是 nat，原实验并未额外绘制熵曲线。</p>
 <h2 id="4-liouville">4. 对 Liouville 积分会出现什么<a class="headerlink" href="#4-liouville" title="Permanent link"></a></h2>
 <p>为看清代数，先考虑光滑偶势 <span class="arithmatex">\(\Phi\)</span> 的平均场力</p>
 <div class="arithmatex">\[F_i=-\frac1N\sum_{j\ne i}\nabla\Phi(x_i-x_j).\]</div>
@@ -111,7 +122,7 @@ try {
 <h2 id="5">5. 混沌传播究竟声称什么<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p>所谓混沌通常是一个粒子数趋于无穷的统计定义：对每个固定 <span class="arithmatex">\(s\)</span>，<span class="arithmatex">\(f_N^{(s)}\)</span> 在指定拓扑中趋于 <span class="arithmatex">\(f^{\otimes s}\)</span>。它不是说轨道毫无规律，也不是说有限 <span class="arithmatex">\(N\)</span> 的粒子始终独立。碰撞会产生相关；证明要控制这些相关对所需观测的贡献，并允许正确的禁入区域与边界结构。</p>
 <p>2024 年 Deng–Hani–Ma 的硬球推导工作及 2025 年修订控制了长时间的碰撞历史和累积相关。2025 年环面上的进一步结果，在二维或三维、特定随机初始集合、带速度权的界与缩放关系下得到边缘逼近。这里的推进是使统计闭合有误差控制，不是把任意相关初值直接替换成乘积。我们的 Gaussian 反例仍然有效，因为它根本没有满足那种渐近混沌假设。</p>
-<h3 id="_1">用相关余项明确“忽略了多少”<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<h3 id="_2">用相关余项明确“忽略了多少”<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
 <p>可以把二粒子边缘写成 <span class="arithmatex">\(f_N^{(2)}=f_N^{(1)}\otimes f_N^{(1)}+c_N^{(2)}\)</span>，把第二项定义为相关余项。这样代入一粒子方程，乘积部分产生闭合平均力，余项产生误差。目标不是笼统要求一切相关都消失，而是证明它在所需积分、权重和时间范围内足够小。</p>
 <p>弱收敛尤其需要谨慎：对光滑有界观测成立的极限，未必允许直接代入碰撞边界上的奇异观测。硬球接触集合的几何和重碰撞历史，正是比 Gaussian 自由例子困难的部分。研究论文中的拓扑不是可跳读的技术注脚，而是结论允许我们观察什么的说明。</p>
 <p>做数值检验时也应分层：先验证完整自由流的线性变换，再从联合协方差算出边缘和位置差。若程序直接把一粒子边缘相乘，就已预先删除要研究的相关性，之后无论画多少次动画，都不会发现这个闭合错误。</p>
@@ -131,7 +142,7 @@ try {
 <p>取边缘丢掉相关信息，完整联合熵不等于各边缘熵之和，除非有独立性等额外条件。输运或相互作用可改变边缘及相关结构而保持完整熵。还需注意微分熵的有限性，不能随意对发散量作减法。</p>
 </details>
 </section>
-<h2 id="_2">速查与来源<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">速查与来源<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>

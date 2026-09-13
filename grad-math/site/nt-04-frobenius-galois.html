@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-09 04:59</div>
+    <div class="build-time">构建于 2026-09-14 00:28</div>
   </div>
 </nav>
 <main id="content">
@@ -65,10 +65,11 @@ try {
 <li><a href="#4">4. 从一个有限域走到有理数域上的表示</a></li>
 <li><a href="#5">5. 边界与研究窗口</a><ul>
 <li><a href="#_1">把整串点数装进一个有理函数</a></li>
+<li><a href="#_2">扩域点数还要通过“整条轨道”的检查</a></li>
 </ul>
 </li>
 <li><a href="#6">6. 实验与迁移</a></li>
-<li><a href="#_2">速查与来源</a></li>
+<li><a href="#_3">速查与来源</a></li>
 </ul>
 </div>
 </details>
@@ -116,6 +117,12 @@ a_p=p+1-\#E(\mathbb F_p).\]</div>
 =\frac{1-a_pt+pt^2}{(1-t)(1-pt)}.\]</div>
 <p>因此无限多次扩域计数被一个二次分子编码。这个推导清楚区分了两个层次：从几何得到点数公式是深的定理；在公式成立后重排形式级数是本讲可完成的代数。不能因为最后的有理函数很短，就以为其几何前提也很容易。</p>
 <p>验收时可以反过来展开它的对数，检查第一项是否为 <span class="arithmatex">\(N_1\)</span>、第二项是否为 <span class="arithmatex">\(N_2/2\)</span>。若忘掉指数定义中的除以次数，会把计数与系数混淆。这一编码也说明辅助素数 ℓ 没有成为计数变量：扩域次数、所处素数和表示所用的 ℓ 各扮演不同角色，应始终保留名称。</p>
+<h3 id="_2">扩域点数还要通过“整条轨道”的检查<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>Frobenius 在代数闭包点上作置换。若一个点的最小定义域是 <span class="arithmatex">\(\mathbb F_{p^d}\)</span>，它的轨道恰有 <span class="arithmatex">\(d\)</span> 个点；只有 <span class="arithmatex">\(d\mid r\)</span> 时，这条轨道才全部出现在 <span class="arithmatex">\(E(\mathbb F_{p^r})\)</span> 中。记这样的轨道数为 <span class="arithmatex">\(b_d\)</span>，也称次数 <span class="arithmatex">\(d\)</span> 的闭点数，就有</p>
+<div class="arithmatex">\[N_r=\sum_{d\mid r}d\,b_d.\]</div>
+<p>因此本例中 <span class="arithmatex">\(b_1=N_1=9\)</span>，而 <span class="arithmatex">\(b_2=(N_2-N_1)/2=(27-9)/2=9\)</span>，<span class="arithmatex">\(b_3=(108-9)/3=33\)</span>。继续递推得 <span class="arithmatex">\(N_4=675\)</span>，于是 <span class="arithmatex">\(b_4=(N_4-N_2)/4=162\)</span>。注意这里数的是共轭点组成的轨道；一条二点轨道贡献两个扩域坐标点，并不是一个。</p>
+<p>这给出比“点数是整数且落在 Hasse 界内”更强的一致性检查。如果程序报告 <span class="arithmatex">\(N_1=9,N_2=28\)</span>，后者仍在 <span class="arithmatex">\([16,36]\)</span> 的扩域 Hasse 窗口内，却让新出现的 <span class="arithmatex">\(28-9=19\)</span> 个点无法分成二点轨道，必有错误。一般可用 Möbius 反演恢复 <span class="arithmatex">\(b_d\)</span>，但所得值还必须是非负整数。</p>
+<p>可以在前文 <span class="arithmatex">\(\mathbb F_{25}=\mathbb F_5[u]/(u^2-2)\)</span> 的枚举中实际检查：9 个旧点逐个固定，其余18个点两两交换。这项核验只用域运算和坐标 Frobenius，不重复调用迹递推。</p>
 <h2 id="6">6. 实验与迁移<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <div class="learning-lab" data-learning-lab="research-math" data-research-topic="nt-frobenius">
 <p>先预测扩域点数是否为旧点数的平方，再改变素数与次数。后备参数：素数编号 0，<span class="arithmatex">\(p=5\)</span>，<span class="arithmatex">\(r=2\)</span>。</p>
@@ -132,7 +139,7 @@ a_p=p+1-\#E(\mathbb F_p).\]</div>
 <p>两个根同时变为 <span class="arithmatex">\(-\alpha,-\beta\)</span>，故 <span class="arithmatex">\(A_r\)</span> 乘 <span class="arithmatex">\((-1)^r\)</span>。偶数次数的点数相同；奇数次数的迹反号，点数围绕 <span class="arithmatex">\(p^r+1\)</span> 对称。它们在二次扩域变得同构与此吻合。</p>
 </details>
 </section>
-<h2 id="_2">速查与来源<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_3">速查与来源<a class="headerlink" href="#_3" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
