@@ -27,3 +27,7 @@ comfy-course/
 ```
 
 Win 侧对应资产：ComfyUI 在 `E:\AI\ComfyUI_windows_portable`（:8188），工作流包在 `E:\AI\Workflows\course\`。
+
+## 2026-09-21 更新
+
+新增第23讲Qwen-Image 2.1：公开权重后的ComfyUI三件套、固定官方模板、图像编辑与RGBA实验。核心与模板来源记录见`../tools/ecosystem-review-2026-09-21.md`。官方模板结构核验不等于RTX 4060 Ti 16GB推理实测；本次没有升级Win安装或下载模型。

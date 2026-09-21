@@ -68,11 +68,11 @@
       evidence: "FLUX.1-dev 官方模型卡、ComfyUI 当前模板、变体 LICENSE 和本机测试。"
     },
     qwen: {
-      label: "Qwen-Image",
-      encoder: "官方 ComfyUI 示例列出 Qwen 文本编码器；不要用任意 CLIP 替换。",
+      label: "Qwen-Image（2.1见第23讲）",
+      encoder: "2.1（2026-09-21核验）配套 Qwen3-VL 8B；旧变体另查，不能用任意 CLIP 替换。",
       conditioning: "文本编码器与模型专用 conditioning/节点配套；编辑与控制变体需另核对。",
       denoiser: "DiT-style diffusion model；具体实现名、采样和节点以模型卡/模板为准。",
-      latent: "latent shape 和 VAE 通道由 Qwen-Image 变体定义；不要从 SD 1024 账本推断。",
+      latent: "2.1 使用64通道、16倍空间压缩的RGBA VAE；旧变体另查。",
       vae: "官方示例把 VAE 单独放在 vae/；VAE 输出与 diffusion model 必须配套。",
       full: "不要假设存在可互换的通用 checkpoint；先看官方模板是否采用整包。",
       split: "diffusion_models/ + text_encoders/ + vae/；节点和文件名以官方示例为准。",
@@ -142,12 +142,12 @@
       budgets: ["16gb-test", "24gb-test"],
       evidence: ["official-template", "official-card", "license"],
       loader: "diffusion model + Qwen text encoder + VAE；官方示例优先",
-      template: "ComfyUI 官方 Qwen-Image 模板/示例；记录精确变体与缺模型列表",
+      template: "2.1 原生 t2i / image_edit 模板见第23讲；旧变体分别核验",
       model: "diffusion_models、text_encoders、vae 具体文件、版本与哈希",
       precision: "官方示例给出的精度/量化与本机显存测试结果分别记录",
       dependencies: "ComfyUI 核心/模板包；编辑、控制和 LoRA 变体逐项核验",
       source: "ComfyUI 官方 Qwen-Image 示例 + Qwen 模型卡 + 具体许可证",
-      license: "具体 Qwen-Image 变体与 adapter 的 LICENSE/model card 待核对",
+      license: "2.1为Qwen Research License（研究/评估；商用另行许可）；旧变体及adapter另查",
       budgetNote: "加入预算实测队列，不代表已经通过该预算"
     }
   ];

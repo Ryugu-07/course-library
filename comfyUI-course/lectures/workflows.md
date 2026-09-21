@@ -45,6 +45,10 @@ Registry 的“verified”标记与语义化版本能降低风险并帮助锁定
 
 拓展篇实战（第 18/20/21/22 讲）优先从 **ComfyUI 官方 Template Library**（菜单 → Workflow → Browse Templates 的 Video / Audio / 3D 分区）进入：模板由官方库维护，并能提示缺失模型；它通常比课程复制一份静态 JSON 更接近当前支持路径，但仍要记录 ComfyUI、模板和模型版本。H3 尤其应使用 T2V/I2V/R2V 的配套模板，因为 `fl2va` 与 `ref2va` 使用不同权重。各讲内有对应模板名与参数指引。
 
+## Qwen-Image 2.1 官方工作流（第23讲）
+
+[第23讲](23-qwen-image-2-1.html)提供文生图与图像编辑两份固定版本官方UI模板链接。它们不计入wf01–wf07的14个课程JSON，也不受旧SDXL合同检查器的运行保证。导入subgraph需要匹配核心/前端；编辑示例需自行准备两张输入图。先完成课程中的依赖账本和本机冒烟测试，再从自己的画布导出API JSON。三件套文件、透明PNG保存和CFG=1的解释均在新讲中。
+
 ## 排障速记
 
 - 节点红色 → 缺扩展（Manager → Install Missing，第 15 讲）；

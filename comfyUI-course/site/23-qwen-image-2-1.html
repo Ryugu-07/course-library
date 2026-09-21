@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qwen-Image 2.1：生成、编辑与透明图 · 从噪声到图像</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css?v=20260802">
+<link rel="stylesheet" href="assets/pygments.css">
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从噪声到图像</a>
+    <div class="site-subtitle">生图模型原理与 ComfyUI 实战</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 导览：你的机器现状与路线图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · 原理（为什么这样设计）</div><ul><li><a href="01-generative-models.html">01 · 生成模型：学分布与采样</a></li><li><a href="02-ddpm.html">02 · 扩散模型 I：DDPM 全推导</a></li><li><a href="03-samplers-cfg.html">03 · 扩散模型 II：采样器与 CFG</a></li><li><a href="04-architecture.html">04 · 潜空间与整机架构</a></li><li><a href="05-control-math.html">05 · 控制与定制：LoRA / ControlNet / IP-Adapter</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · ComfyUI 实战（E:\AI 实机）</div><ul><li><a href="06-your-machine.html">06 · 你的这台机器与这套安装</a></li><li><a href="07-first-workflow.html">07 · 节点=原理的落地：逐节点拆解</a></li><li><a href="08-parameters.html">08 · 参数手册：钉死变量再调参</a></li><li><a href="09-img2img-inpaint.html">09 · 图生图与局部重绘</a></li><li><a href="10-model-ecosystem.html">10 · 模型生态：选型与下载清单</a></li><li><a href="11-lora-practice.html">11 · LoRA 实战</a></li><li><a href="12-controlnet-practice.html">12 · ControlNet 实战</a></li><li><a href="13-ipadapter-consistency.html">13 · IP-Adapter 与角色一致性</a></li><li><a href="14-upscale-detail.html">14 · 放大与精修流水线</a></li><li><a href="15-engineering.html">15 · 工程化与排障</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">拓展篇 · AIGC 全景</div><ul><li><a href="16-aigc-map.html">16 · AIGC 全景地图与四步框架</a></li><li><a href="17-video-principles.html">17 · 视频生成 I：原理</a></li><li><a href="18-video-practice.html">18 · 视频生成 II：16GB 实机实战</a></li><li><a href="19-speech-generation.html">19 · 语音生成：TTS 与声音克隆</a></li><li><a href="20-music-audio.html">20 · 音乐与音效生成</a></li><li><a href="21-3d-avatar-pipeline.html">21 · 3D、数字人与全本地流水线</a></li><li><a href="22-minimax-h3.html">22 · MiniMax H3：全模态声画工作流</a></li><li class="active"><a href="23-qwen-image-2-1.html">23 · Qwen-Image 2.1：生成、编辑与透明图</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-09-21 21:10</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1">1. 同一个模型，三类任务</a></li>
+<li><a href="#2">2. 三件套与双路参考条件</a></li>
+<li><a href="#3">3. 下载哪些文件，怎样接入</a><ul>
+<li><a href="#31">3.1 直接导入官方模板</a></li>
+</ul>
+</li>
+<li><a href="#4">4. 参数要跟着这份模板解释</a><ul>
+<li><a href="#41-resolution">4.1 resolution 并不等于强制边长</a></li>
+</ul>
+</li>
+<li><a href="#5">5. 三个可复现练习</a><ul>
+<li><a href="#a">A. 中文海报：区分“会画字”和“字完全正确”</a></li>
+<li><a href="#b">B. 双图换衣：把保留项写成验收条件</a></li>
+<li><a href="#c-alpha">C. 透明贴纸：检查 alpha，而非棋盘格</a></li>
+</ul>
+</li>
+<li><a href="#6-16gb">6. 16GB 上机记录与排障</a></li>
+<li><a href="#_1">迁移题</a></li>
+<li><a href="#_2">来源与版本</a></li>
+</ul>
+</div>
+</details>
+<h1 id="23-qwen-image-21">第 23 讲 · Qwen-Image 2.1：统一生成、编辑与透明图<a class="headerlink" href="#23-qwen-image-21" title="Permanent link"></a></h1>
+<blockquote>
+<p>你有一张人物图和一张衣服图，想换衣服、保留脸和姿势，再把人物做成透明素材。为什么不能把旧 Qwen 工作流里的模型文件换掉就运行？因为这次一起改变的是<strong>生成模型、条件编码和 VAE 接口</strong>。本讲先跑通配套模板，再用对照实验检验“保留了什么”。</p>
+</blockquote>
+<p><strong>核验日期：2026-09-21。</strong> 官方于 9 月 20 日公开 Qwen-Image 2.1 权重，并提供 ComfyUI 原生入口。本讲已核对官方模型说明、节点源码和两份模板；尚未在你的 RTX 4060 Ti 16GB 上执行模型推理。第 06 讲的机器记录仍是历史快照。<a href="https://github.com/QwenLM/Qwen-Image-2.1">官方发布与代码</a> · <a href="https://huggingface.co/Comfy-Org/Qwen-Image-2.1">ComfyUI 权重</a></p>
+<p>先修：<a href="04-architecture.html">第 04 讲的三件套</a>、<a href="08-parameters.html">第 08 讲的控制变量</a>、<a href="10-model-ecosystem.html">第 10 讲的兼容矩阵</a>。学完应能解释组件为什么必须配对、编辑参考图怎样进入模型，以及怎样证明输出真的透明。</p>
+<h2 id="1">1. 同一个模型，三类任务<a class="headerlink" href="#1" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>任务</th>
+<th>输入</th>
+<th>成功要检查什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>文生图</td>
+<td>文本；可明确要求 RGBA</td>
+<td>构图、文字内容、尺寸；不能只看缩略图</td>
+</tr>
+<tr>
+<td>指令编辑</td>
+<td>文本 + 第一张目标图；可加其他参考图</td>
+<td>修改对象是否正确，未要求修改的脸、姿势、背景是否保留</td>
+</tr>
+<tr>
+<td>透明素材</td>
+<td>透明生成指令，或带透明通道的编辑输入</td>
+<td>PNG 的 alpha 通道、半透明边缘、深浅背景合成结果</td>
+</tr>
+</tbody>
+</table>
+<p>官方模型说明的 <strong>7B 是视觉生成组件</strong>，不是整个推理系统。文本编码器也有权重，VAE、激活和缓存也占内存。2K 与多参考图是模型能力范围，不是本机显存与速度测量。官方使用说明目前按最多 10 张参考图组织任务；课堂先用 1–2 张，明确每张职责。</p>
+<p>权重采用 <strong>Qwen Research License</strong>：条款限定研究或评估用途，商业使用须另行取得许可。因此这里写“公开权重”，不把它等同于 Apache-2.0 或无限制商用。<a href="https://huggingface.co/Qwen/Qwen-Image-2.1/blob/main/LICENSE">具体许可证</a></p>
+<h2 id="2">2. 三件套与双路参考条件<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<figure>
+<img src="assets/img/qwen21-components.svg" alt="文本与参考图进入Qwen3-VL形成语义条件；参考图还经专用VAE成为参考latent。两路条件进入7B生成模型，采样后由同一VAE解码为RGBA，最后保存PNG。" loading="lazy">
+<figcaption><span class="fig-id">图 23.1</span>参考图同时提供语义信息和潜空间信息；编辑不是给旧 SDXL 图生图节点换一个文件名。</figcaption>
+</figure>
+
+<p>把它理解成两份互补的描述：语言视觉编码器提供“这是什么、要求怎样改”的条件表示；VAE 提供图像的潜空间表示。这个比喻只帮助区分接口，模型并没有人类式的“理解”和编辑保证。</p>
+<p>官方架构说明为 32 层 single-stream DiT、Qwen3-VL 文本视觉编码器及 64 通道、空间压缩 16 倍的 RGBA VAE。ComfyUI 的 <code>TextEncodeQwenImage21</code> 同时返回正向条件、负向条件及画布 latent。1024×1024 的教学形状账本为：</p>
+<div class="arithmatex">\[
+[B,64,H/16,W/16]=[1,64,64,64].
+\]</div>
+<p>这里 <span class="arithmatex">\(B=1\)</span> 是批大小，<span class="arithmatex">\(H,W\)</span> 是输出像素尺寸。它不是 SD 示例的 4 通道、8 倍压缩接口。尺寸相同不代表 VAE 或旧 LoRA 能互换。</p>
+<p>透明参考图还有一个细节：当前节点把 RGB 与白底按 alpha 合成后交给视觉编码器，而 VAE 支路保留四通道。因而“视觉编码器看见白底”不等于“输出必须是白底”。<a href="https://github.com/QwenLM/Qwen-Image-2.1#architecture">架构说明</a> · <a href="https://github.com/Comfy-Org/ComfyUI/blob/b0f4b7b294ce482a2e071d9d762c133d38c7aa07/comfy_extras/nodes_qwen.py">本次核对的节点源码</a></p>
+<h2 id="3">3. 下载哪些文件，怎样接入<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<p>先备份旧 workflow 与用户配置，更新到包含 Qwen Image 2.1 节点的 ComfyUI，并同步其前端和模板依赖。稳定版/桌面端可能晚于源码支持；导入失败时检查实际安装版本，不要随机安装一个同名社区节点包。<a href="https://docs.comfy.org/installation/update_comfyui">官方更新说明</a></p>
+<p>本次官方模板默认选择下面的 INT8 组合；它是复现起点，<strong>不是 16GB 跑通认证</strong>。同仓库也有 BF16 选项，选定一种对应组件即可，不必把所有精度都下载。</p>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>默认文件</th>
+<th>ComfyUI 模型目录</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>生成模型</td>
+<td><code>qwen_image_2.1_int8_convrot.safetensors</code></td>
+<td><code>models/diffusion_models/</code></td>
+</tr>
+<tr>
+<td>文本视觉编码器</td>
+<td><code>qwen3vl_8b_int8_convrot.safetensors</code></td>
+<td><code>models/text_encoders/</code></td>
+</tr>
+<tr>
+<td>专用 VAE</td>
+<td><code>qwen_image_2.1_vae_bf16.safetensors</code></td>
+<td><code>models/vae/</code></td>
+</tr>
+</tbody>
+</table>
+<p>从 <a href="https://huggingface.co/Comfy-Org/Qwen-Image-2.1/tree/main">Comfy-Org 权重目录</a>取文件；已有 BF16 模型可在对应 loader 中选择。<code>w4a8</code> 是另一个编码器选项，不能把不同量化名称当成相同后端要求。若沿用第 06 讲的外置模型目录，先检查模型路径映射，再按分类放置；不要另建一套互相覆盖的目录。</p>
+<h3 id="31">3.1 直接导入官方模板<a class="headerlink" href="#31" title="Permanent link"></a></h3>
+<ul>
+<li><a href="https://raw.githubusercontent.com/Comfy-Org/workflow_templates/371a7b7171bbd11e9cc92ef615ba5ad223d7e5b4/templates/image_qwen_image_2_1_t2i.json">文生图 UI JSON（固定版本下载）</a></li>
+<li><a href="https://raw.githubusercontent.com/Comfy-Org/workflow_templates/371a7b7171bbd11e9cc92ef615ba5ad223d7e5b4/templates/image_qwen_image_2_1_image_edit.json">图像编辑 UI JSON（固定版本下载）</a></li>
+</ul>
+<p>保存 JSON 后拖入画布，或从官方 Templates 查找 Qwen Image 2.1。上面是本讲核对过的版本；更新模板时记录新版本和变化。它们使用 <strong>subgraph</strong>，不是可直接 POST 给 <code>/prompt</code> 的 API JSON；做自动化时应从自己的可运行画布导出 API 格式。</p>
+<p>编辑模板中的两张示例图片需要另取，或用你有权使用的目标图和衣服参考图替换 <code>LoadImage</code>。第一张是编辑目标，后面的图负责提供参考；保留参考顺序并用 <code>&lt;image1&gt;</code>、<code>&lt;image2&gt;</code> 指明职责。进入子图可以看到 <code>UNETLoader</code>、<code>CLIPLoader</code>、<code>VAELoader</code> 与 <code>TextEncodeQwenImage21</code>；<code>CLIPLoader</code> 是节点名，这里装的是配套 Qwen3-VL，并不意味着能换成 SD 的 CLIP。</p>
+<h2 id="4">4. 参数要跟着这份模板解释<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>本次模板基线</th>
+<th>怎样做对照</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>steps</td>
+<td>25</td>
+<td>官方模型示例使用 40；固定其他量再比较 25/40，记录耗时与细节</td>
+</tr>
+<tr>
+<td>sampler / scheduler</td>
+<td><code>euler</code> / <code>simple</code></td>
+<td>先复现基线，再研究其他组合</td>
+</tr>
+<tr>
+<td>CFG</td>
+<td>1</td>
+<td>此时负面提示词不参与 CFG 引导；不要照搬 SDXL 的 5–8</td>
+</tr>
+<tr>
+<td>文生图尺寸</td>
+<td>1 MP，方图约 1024×1024</td>
+<td>2K 方图为 2048×2048，即 4 倍像素；不承诺显存只增加 4 倍</td>
+</tr>
+<tr>
+<td>编辑 resolution</td>
+<td>外层模板为 0</td>
+<td>0 保留各参考图原尺寸并对齐到 32 的倍数，大图输入仍可能占用很多内存</td>
+</tr>
+<tr>
+<td>custom_size</td>
+<td>默认关闭</td>
+<td>输出画布跟第一张参考图；打开后另改宽高可能导致编辑偏移</td>
+</tr>
+<tr>
+<td>seed</td>
+<td>记录并固定</td>
+<td>将运行后的种子策略设为 fixed；只固定数值但仍选 randomize 不能复现</td>
+</tr>
+</tbody>
+</table>
+<p>用常见 CFG 写法说明 <code>CFG=1</code> 的含义：若 <span class="arithmatex">\(v_+\)</span> 和 <span class="arithmatex">\(v_-\)</span> 分别代表正、负条件下的模型预测，</p>
+<div class="arithmatex">\[v_{\mathrm{cfg}}=v_-+s(v_+-v_-).\]</div>
+<p>代入 <span class="arithmatex">\(s=1\)</span> 就得到 <span class="arithmatex">\(v_+\)</span>。所以负面词换来换去而结果不变，不一定是输入框坏了。想研究负面提示词，要把 CFG 作为单独实验变量，并检查画面是否退化；本讲不把提高 CFG 当成质量优化保证。</p>
+<h3 id="41-resolution">4.1 resolution 并不等于强制边长<a class="headerlink" href="#41-resolution" title="Permanent link"></a></h3>
+<p>对于非零 <span class="arithmatex">\(R=\texttt{resolution}\)</span>，参考图宽高比 <span class="arithmatex">\(r=W/H\)</span> 保持近似不变，目标面积约为 <span class="arithmatex">\(R^2\)</span>。联立面积和比例：</p>
+<div class="arithmatex">\[W'\approx R\sqrt r,\qquad H'\approx R/\sqrt r.\]</div>
+<p>当前实现再将两边分别舍入到 32 的倍数。举例：1536×1024 的参考图，<span class="arithmatex">\(R=1024\)</span> 时变为约 <strong>1248×832</strong>，而不是1024×1024。宽高取整后面积不必恰好等于 <span class="arithmatex">\(R^2\)</span>。这与文生图 <code>ResolutionSelector</code> 的 MP 控件是两套单位。</p>
+<p><strong>先预测再操作：</strong>同一张大图分别用 <code>resolution=0</code> 和 <code>1024</code>，记录进入编码器后的宽高、输出画布和显存。只看最终 PNG 是方图还是长图，无法判断过程中有没有缩放。<a href="https://github.com/Comfy-Org/workflow_templates/blob/371a7b7171bbd11e9cc92ef615ba5ad223d7e5b4/templates/image_qwen_image_2_1_image_edit.json">编辑模板与参数注释</a></p>
+<h2 id="5">5. 三个可复现练习<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<h3 id="a">A. 中文海报：区分“会画字”和“字完全正确”<a class="headerlink" href="#a" title="Permanent link"></a></h3>
+<p>提示词自行写为：“生成科学展览海报，浅蓝背景，中央一个简洁的光学棱镜；标题必须是『光与颜色』，下方只写『周六 14:00』，不要增加其他文字。”固定 seed、尺寸和精度，比较25与40步。逐字检查遗漏、错字、标点和排版；至少换三个种子重复，不能用一张漂亮结果证明稳定性。</p>
+<h3 id="b">B. 双图换衣：把保留项写成验收条件<a class="headerlink" href="#b" title="Permanent link"></a></h3>
+<p>选择一张完整人物图接 <code>image_1</code>，一张清楚展示衣服的图接 <code>image_2</code>。提示词自行写为：“将 <image2> 的外套穿到 <image1> 的人物身上。保留 <image1> 的脸、发型、姿势、相机位置和背景；只改变外套，使衣褶与原光照一致。”</p>
+<p>对照原图检查脸、手、衣服纹理、遮挡和背景。指令中的“保留”不是硬约束；局部编辑也不天然等于带遮罩重绘。若只允许袖口区域变动，须另核对是否有匹配的 mask 工作流，不能把旧 SD inpaint 节点强接进来。</p>
+<h3 id="c-alpha">C. 透明贴纸：检查 alpha，而非棋盘格<a class="headerlink" href="#c-alpha" title="Permanent link"></a></h3>
+<p>先描述一个边缘清楚的物体，例如“蓝色玻璃小鲸鱼贴纸，柔和高光”，再在提示词中明确要求 RGBA 格式、alpha 通道和透明背景。输出用模板的 <code>SaveImageAdvanced</code> 保存 <strong>PNG</strong>。与普通 RGB 版本使用相同 seed 对照。</p>
+<p>普通图片也能画出棋盘格；那是像素颜色，不是透明。RGBA 中 <span class="arithmatex">\(\alpha=0\)</span> 透明、<span class="arithmatex">\(\alpha=1\)</span> 不透明，教学用的线性色彩合成为：</p>
+<div class="arithmatex">\[C=\alpha F+(1-\alpha)B.\]</div>
+<p><span class="arithmatex">\(F\)</span> 为前景、<span class="arithmatex">\(B\)</span> 为背景、<span class="arithmatex">\(C\)</span> 为合成颜色，各分量归一化。实际色彩管理需要在线性空间运算；不要把这个式子直接当成所有软件的 sRGB 实现。将 PNG 分别放到深灰、白色和彩色底上，观察发丝、玻璃或软阴影边缘。如果只有白底能掩盖光晕，这个素材还没通过验收。</p>
+<p>在装有 Pillow 的 Python 环境，可检查实际通道：</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
+<span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;output.png&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="n">im</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+<span class="n">has_alpha</span> <span class="o">=</span> <span class="s2">&quot;A&quot;</span> <span class="ow">in</span> <span class="n">im</span><span class="o">.</span><span class="n">getbands</span><span class="p">()</span> <span class="ow">or</span> <span class="s2">&quot;transparency&quot;</span> <span class="ow">in</span> <span class="n">im</span><span class="o">.</span><span class="n">info</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">has_alpha</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;文件没有透明信息&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">alpha</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGBA&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">getchannel</span><span class="p">(</span><span class="s2">&quot;A&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;alpha 范围:&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">.</span><span class="n">getextrema</span><span class="p">())</span>  <span class="c1"># (255, 255) 表示全不透明</span>
+</code></pre></div>
+<p>JPEG 不保留 alpha。不要只把 JPEG 扩展名改成 PNG；也不要把预览软件的底色当成实际图像通道。</p>
+<h2 id="6-16gb">6. 16GB 上机记录与排障<a class="headerlink" href="#6-16gb" title="Permanent link"></a></h2>
+<p>先完成文生图小批次，再增加参考图和输出尺寸。每个实验至少填写：</p>
+<div class="highlight"><pre><span></span><code>日期 / ComfyUI commit / frontend / 模板 commit:
+三个权重的文件名、版本、哈希、精度:
+输入图哈希 / 参考顺序 / 实际缩放后宽高:
+提示词 / seed / seed策略 / steps / CFG / sampler / scheduler:
+batch / offload与cache设置 / 输出尺寸:
+加载峰值 / 采样峰值 / VAE峰值 / 系统内存峰值 / 耗时:
+结果: PASS 或 OOM/报错；PNG通道、文字与保留项检查:
+</code></pre></div>
+<ul>
+<li><strong>缺 <code>TextEncodeQwenImage21</code> 或子图打不开</strong>：先查核心、前端和模板版本。旧工作流的节点类型不同，替换文件名不能补出接口。</li>
+<li><strong>找不到模型</strong>：按 loader 检查路径映射与精确文件名，重扫模型列表；不要靠重命名把旧权重冒充新权重。</li>
+<li><strong>shape 或解码错误</strong>：回到配套三件套，撤掉未经核验的旧 VAE、LoRA 和 ControlNet。</li>
+<li><strong>OOM</strong>：记录失败发生阶段，减少像素预算、参考图数量或 batch，再评估量化和卸载；文件大小不等于峰值显存。</li>
+<li><strong>编辑位置变了</strong>：检查第一张参考图、缩放参数、<code>custom_size</code>，以及提示词是否误指了参考图编号。</li>
+</ul>
+<p>本次仅完成课程、模板结构与来源核验；上机表格没有实测数字，Win 安装没有被自动升级。</p>
+<h2 id="_1">迁移题<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<details><summary>1. 7B 模型是否一定能放进 16GB 显存？</summary>
+<p>不能。7B仅指生成组件，编码器、VAE、激活和缓存仍需内存；量化、卸载和图像尺寸也影响峰值。必须记录具体三件套和完整运行，而不是只算生成权重字节数。</p>
+</details>
+
+<details><summary>2. 两个 PNG 都显示棋盘格，怎样区分透明图和画了棋盘格的图？</summary>
+<p>检查是否存在 alpha 或透明信息，再检查其范围并换底色合成。没有透明信息或 alpha 全为255，说明背景没有透明；有非255值也只证明某些像素透明，仍要检查边缘和主体是否正确。</p>
+</details>
+
+<details><summary>3. 同一 seed 下把负面词换掉没有变化；编辑长图也没有变成1024方图。这两点一定是故障吗？</summary>
+<p>不一定。CFG=1时公式只剩正向预测；非零resolution约束参考图面积并近似保留长宽比。应先核对参数语义，不能把SDXL经验或控件名字当作通用规则。</p>
+</details>
+
+<h2 id="_2">来源与版本<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<p>本讲将教学推导与官方事实分开：CFG代入、面积缩放和alpha合成是解释；能力、节点和文件名按以下来源核验。后续官方更新可能改变模板默认值。</p>
+<ul>
+<li><a href="https://huggingface.co/Qwen/Qwen-Image-2.1">Qwen 官方模型卡</a>与<a href="https://qwen.ai/blog?id=qwen-image-2.1">发布说明</a>。</li>
+<li><a href="https://huggingface.co/Comfy-Org/Qwen-Image-2.1/blob/main/README.md">Comfy-Org 三件套说明</a>。</li>
+<li><a href="https://github.com/Comfy-Org/workflow_templates/blob/371a7b7171bbd11e9cc92ef615ba5ad223d7e5b4/templates/image_qwen_image_2_1_t2i.json">固定文生图模板</a>与本讲前面的固定编辑模板。</li>
+<li><a href="https://github.com/Comfy-Org/ComfyUI/blob/b0f4b7b294ce482a2e071d9d762c133d38c7aa07/comfy_extras/nodes_qwen.py">核心节点源码快照</a>：实现端口数不等于已验证的多图使用上限，课程仍按官方10参考图说明。</li>
+</ul>
+<p>下一步回到<a href="workflows.html">工作流实验室</a>，用同一份五层依赖账本保存你自己的运行证据。</p>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="22-minimax-h3.html"><span class="pager-label">上一讲</span>22 · MiniMax H3：全模态声画工作流</a>
+  <a class="pager-slot next" href="workflows.html"><span class="pager-label">下一讲</span>工作流包使用说明（wf01–wf07）</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/ecosystem-labs.js"></script>
+<script defer src="assets/site.js"></script>
+</body>
+</html>

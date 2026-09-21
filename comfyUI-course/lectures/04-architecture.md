@@ -56,6 +56,8 @@ $$
 
 条件不只有文字：参考图、姿态、边缘、深度、遮罩和多模态输入都可以在编码后汇入 conditioning 或模型专用输入。阅读工作流时先问“条件在哪生成、以什么类型传入”，再问提示词长短。
 
+> **2026-09-21 补充：**Qwen-Image 2.1 使用专用64通道、16倍空间压缩的RGBA VAE，以及Qwen3-VL条件编码器；与上面的SD形状示例不同。三件套与参考图双路条件见[第23讲](23-qwen-image-2-1.html)。
+
 ## 3. 去噪网络：U-Net 与 Diffusion Transformer
 
 <figure class="diagram" markdown="1">

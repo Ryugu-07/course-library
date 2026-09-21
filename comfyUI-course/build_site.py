@@ -55,6 +55,7 @@ COURSE = [
         ("20-music-audio.md", "20 · 音乐与音效生成"),
         ("21-3d-avatar-pipeline.md", "21 · 3D、数字人与全本地流水线"),
         ("22-minimax-h3.md", "22 · MiniMax H3：全模态声画工作流"),
+        ("23-qwen-image-2-1.md", "23 · Qwen-Image 2.1：生成、编辑与透明图"),
     ]),
     ("工作流实验室", [
         ("workflows.md", "工作流包使用说明（wf01–wf07）"),
