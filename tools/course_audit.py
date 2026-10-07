@@ -94,6 +94,8 @@ def lecture_source_files(root: Path) -> list[Path]:
     files: list[Path] = []
     for lecture_dir in sorted(root.glob("*/lectures")):
         files.extend(lecture_dir.rglob("*.md"))
+    if (root / "humanities" / "content").is_dir():
+        files.extend((root / "humanities" / "content").rglob("*.md"))
     return sorted(set(files))
 
 

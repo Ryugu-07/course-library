@@ -60,7 +60,12 @@ start-courses.bat
 
 ### 文史哲分馆
 
+- `humanities/history/`：从史前至当代的35讲历史课程，连接全球脉络、区域经验与材料细读。
+- `humanities/society/`：社会问题与理论原典双入口，28讲贯通理论、案例与研究方法。
+- `humanities/frontier/`：哲学研究现场，6篇深入专题与持续研究追踪；系统哲学课程暂缓。
 - `wxb-course`：王小波作品、思想、文体与精神世界专题阅读
+
+文史社会阅读区提供完整正文、来源与带解析的阅读问题。源稿、栏目注册表和构建说明见 [`humanities/README.md`](humanities/README.md)。
 
 ## 质量检查
 
@@ -74,7 +79,7 @@ python3 tools/learning_coverage.py --remaining
 python3 tools/check_external_links.py med-course/lectures clinic-course/lectures
 ```
 
-不传课程名时，`rebuild_all.py` 会重建全部 20 个站点；若页面除了“构建于”时间外没有变化，它会保留原文件，避免无意义的全站差异。结构审查会检查本地资源、重复 ID、图片替代文本、SVG、ComfyUI 工作流 JSON，以及被错误渲染成普通段落的 Markdown 列表。`learning_coverage.py` 从十二站生成器的 `COURSE` 注册表读取正式讲义，分别统计数学/物理/AI、地球系统、自动控制/电气电子/材料/机械，以及光电/微电子/计算机科学中已达到完整“学习层 + 交互实验”契约的页面；各站导论、实验索引和课程显式排除的非核心页不进入分母。
+不传课程名时，`rebuild_all.py` 会重建全部 20 个课程站点及文史社会阅读区；若页面除了“构建于”时间外没有变化，它会保留原文件，避免无意义的全站差异。结构审查会检查本地资源、重复 ID、图片替代文本、SVG、ComfyUI 工作流 JSON，以及被错误渲染成普通段落的 Markdown 列表。`learning_coverage.py` 从十二站生成器的 `COURSE` 注册表读取正式讲义，分别统计数学/物理/AI、地球系统、自动控制/电气电子/材料/机械，以及光电/微电子/计算机科学中已达到完整“学习层 + 交互实验”契约的页面；各站导论、实验索引和课程显式排除的非核心页不进入分母。
 
 ## Mac 端更新仓库
 

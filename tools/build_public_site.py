@@ -8,6 +8,8 @@ from html.parser import HTMLParser
 from urllib.parse import unquote, urlsplit
 import shutil
 import sys
+import json
+import re
 
 
 COURSES = (
@@ -81,6 +83,22 @@ def check_packaged_images(output: Path) -> tuple[int, list[str]]:
     return checked, missing
 
 
+def hub_files(hub: Path) -> list[Path]:
+    """Publish only catalogued reading pages, even if a stale file remains."""
+    files = [hub / 'index.html']
+    files.extend(p for p in (hub / 'assets').rglob('*') if p.is_file())
+    for section in ('history', 'society', 'frontier'):
+        catalog = json.loads((hub / 'content' / section / 'catalog.json').read_text(encoding='utf-8'))
+        files.append(hub / section / 'index.html')
+        for module in catalog['modules']:
+            for lesson in module['lessons']:
+                if lesson['status'] == 'ready':
+                    if not re.fullmatch(r'[a-z0-9-]+', lesson['slug']):
+                        raise ValueError(f'Invalid lesson slug in {section}')
+                    files.append(hub / section / (lesson['slug'] + '.html'))
+    return files
+
+
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     output = root / "public"
@@ -94,6 +112,12 @@ def main() -> int:
         print(f"ERROR: missing hub(s): {', '.join(missing_hubs)}", file=sys.stderr)
         return 1
 
+    hub_sources = {name: hub_files(root / name) for name in HUBS}
+    missing_pages = [str(p.relative_to(root)) for files in hub_sources.values() for p in files if not p.is_file()]
+    if missing_pages:
+        print(f"ERROR: missing generated hub pages: {', '.join(missing_pages)}", file=sys.stderr)
+        return 1
+
     shutil.rmtree(output, ignore_errors=True)
     output.mkdir()
     shutil.copy2(root / "index.html", output / "index.html")
@@ -104,7 +128,12 @@ def main() -> int:
         shutil.copytree(root / name / "site", destination)
 
     for name in HUBS:
-        shutil.copytree(root / name, output / name)
+        # A hub includes editable sources and research notes; publish only its
+        # generated pages and reader-facing assets.
+        for source in hub_sources[name]:
+            destination = output / name / source.relative_to(root / name)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination)
 
     shutil.copy2(
         root / "agent-lab" / "minimal_swe_agent.py",

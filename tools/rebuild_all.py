@@ -21,6 +21,7 @@ BUILDERS = {
     "earth-course": "earth-course/build_site.py",
     "ee-course": "ee-course/build_site.py",
     "grad-math": "grad-math/build_site.py",
+    "humanities": "tools/build_humanities.py",
     "lang-course": "lang-course/build_site.py",
     "materials-course": "materials-course/build_site.py",
     "math-course": "math-course/build_site.py",
