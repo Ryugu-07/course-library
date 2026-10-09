@@ -13,7 +13,9 @@ from markdown.extensions.toc import slugify_unicode
 ROOT = Path(__file__).resolve().parents[1]
 COURSE = ROOT / 'literature-course'
 SITE = COURSE / 'site'
-SLUGS = ['01-kafka', '02-marti', '03-ibsen', '04-akutagawa', '05-tagore', '06-plaatje']
+CATALOG = json.loads((COURSE / 'content/catalog.json').read_text(encoding='utf-8'))
+SLUGS = [lesson['slug'] for lesson in CATALOG['lessons'] if lesson['status'] == 'ready']
+assert len(SLUGS) == len(set(SLUGS)) and all(re.fullmatch(r'[a-z0-9-]+', slug) for slug in SLUGS)
 
 
 def e(value):

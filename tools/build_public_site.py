@@ -108,9 +108,13 @@ def reading_course_files(course: Path) -> list[Path]:
     files = [site / 'index.html']
     files.extend(p for p in (site / 'assets').rglob('*') if p.is_file())
     if course.name == 'literature-course':
-        # The builder's explicit reading list is also the publication contract.
-        from build_literature_course import SLUGS
-        files.extend(site / (slug + '.html') for slug in SLUGS)
+        # Packaging runs without the optional Markdown build dependencies.
+        catalog = json.loads((course / 'content/catalog.json').read_text(encoding='utf-8'))
+        for lesson in catalog['lessons']:
+            if lesson['status'] == 'ready':
+                if not re.fullmatch(r'[a-z0-9-]+', lesson['slug']):
+                    raise ValueError('Invalid literature lesson slug')
+                files.append(site / (lesson['slug'] + '.html'))
     elif course.name == 'media-course':
         for lane in ('communication', 'journalism', 'platforms', 'methods'):
             catalog = json.loads((course / 'content' / lane / 'catalog.json').read_text(encoding='utf-8'))
