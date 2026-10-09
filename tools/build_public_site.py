@@ -24,10 +24,12 @@ COURSES = (
     "ee-course",
     "grad-math",
     "lang-course",
+    "literature-course",
     "materials-course",
     "math-course",
     "mech-course",
     "med-course",
+    "media-course",
     "micro-course",
     "photo-course",
     "physics-course",
@@ -35,6 +37,7 @@ COURSES = (
     "wxb-course",
 )
 HUBS = ("humanities",)
+READING_COURSES = ("literature-course", "media-course")
 
 MAX_FILES = 20_000
 MAX_FILE_BYTES = 25 * 1024 * 1024
@@ -99,6 +102,29 @@ def hub_files(hub: Path) -> list[Path]:
     return files
 
 
+def reading_course_files(course: Path) -> list[Path]:
+    """Keep unpublished drafts and retired HTML out of new reading courses."""
+    site = course / 'site'
+    files = [site / 'index.html']
+    files.extend(p for p in (site / 'assets').rglob('*') if p.is_file())
+    if course.name == 'literature-course':
+        # The builder's explicit reading list is also the publication contract.
+        from build_literature_course import SLUGS
+        files.extend(site / (slug + '.html') for slug in SLUGS)
+    elif course.name == 'media-course':
+        for lane in ('communication', 'journalism', 'platforms', 'methods'):
+            catalog = json.loads((course / 'content' / lane / 'catalog.json').read_text(encoding='utf-8'))
+            files.append(site / lane / 'index.html')
+            for lesson in catalog['lessons']:
+                if lesson['status'] == 'ready':
+                    if not re.fullmatch(r'[a-z0-9-]+', lesson['slug']):
+                        raise ValueError(f'Invalid lesson slug in {lane}')
+                    files.append(site / lane / (lesson['slug'] + '.html'))
+    else:
+        raise ValueError(f'Unknown reading course: {course.name}')
+    return files
+
+
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     output = root / "public"
@@ -113,7 +139,8 @@ def main() -> int:
         return 1
 
     hub_sources = {name: hub_files(root / name) for name in HUBS}
-    missing_pages = [str(p.relative_to(root)) for files in hub_sources.values() for p in files if not p.is_file()]
+    reading_sources = {name: reading_course_files(root / name) for name in READING_COURSES}
+    missing_pages = [str(p.relative_to(root)) for files in [*hub_sources.values(), *reading_sources.values()] for p in files if not p.is_file()]
     if missing_pages:
         print(f"ERROR: missing generated hub pages: {', '.join(missing_pages)}", file=sys.stderr)
         return 1
@@ -125,7 +152,13 @@ def main() -> int:
     for name in COURSES:
         destination = output / name / "site"
         destination.parent.mkdir(parents=True)
-        shutil.copytree(root / name / "site", destination)
+        if name in reading_sources:
+            for source in reading_sources[name]:
+                target = destination / source.relative_to(root / name / 'site')
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source, target)
+        else:
+            shutil.copytree(root / name / "site", destination)
 
     for name in HUBS:
         # A hub includes editable sources and research notes; publish only its

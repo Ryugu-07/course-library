@@ -60,6 +60,9 @@ start-courses.bat
 
 ### 文史哲分馆
 
+- `literature-course/site/`：世界现代文学首批6篇原文细读，保留语言、版本与教学译文的区别。
+- `media-course/site/`：传播学、新闻学、媒介与平台研究、研究方法四线，首批12讲可读、40讲地图（28讲待建设）。
+
 - `humanities/history/`：从史前至当代的35讲历史课程，连接全球脉络、区域经验与材料细读。
 - `humanities/society/`：社会问题与理论原典双入口，28讲贯通理论、案例与研究方法。
 - `humanities/frontier/`：哲学研究现场，6篇深入专题与持续研究追踪；系统哲学课程暂缓。
@@ -79,7 +82,7 @@ python3 tools/learning_coverage.py --remaining
 python3 tools/check_external_links.py med-course/lectures clinic-course/lectures
 ```
 
-不传课程名时，`rebuild_all.py` 会重建全部 20 个课程站点及文史社会阅读区；若页面除了“构建于”时间外没有变化，它会保留原文件，避免无意义的全站差异。结构审查会检查本地资源、重复 ID、图片替代文本、SVG、ComfyUI 工作流 JSON，以及被错误渲染成普通段落的 Markdown 列表。`learning_coverage.py` 从十二站生成器的 `COURSE` 注册表读取正式讲义，分别统计数学/物理/AI、地球系统、自动控制/电气电子/材料/机械，以及光电/微电子/计算机科学中已达到完整“学习层 + 交互实验”契约的页面；各站导论、实验索引和课程显式排除的非核心页不进入分母。
+不传课程名时，`rebuild_all.py` 会重建全部 22 个课程站点及文史社会阅读区；若页面除了“构建于”时间外没有变化，它会保留原文件，避免无意义的全站差异。结构审查会检查本地资源、重复 ID、图片替代文本、SVG、ComfyUI 工作流 JSON，以及被错误渲染成普通段落的 Markdown 列表。`learning_coverage.py` 从十二站生成器的 `COURSE` 注册表读取正式讲义，分别统计数学/物理/AI、地球系统、自动控制/电气电子/材料/机械，以及光电/微电子/计算机科学中已达到完整“学习层 + 交互实验”契约的页面；各站导论、实验索引和课程显式排除的非核心页不进入分母。
 
 ## Mac 端更新仓库
 
@@ -103,6 +106,6 @@ Build command: python tools/build_public_site.py
 Build output directory: public
 ```
 
-构建器会把 20 个已生成课程站点和文史哲分馆汇总到 `public/`，同时检查 Cloudflare Pages 的文件数量和单文件大小限制。GitHub Actions 会在每次推送和拉取请求时重建、审查并验证这份发布产物。
+构建器会把 22 个已生成课程站点和文史哲分馆汇总到 `public/`，同时检查 Cloudflare Pages 的文件数量和单文件大小限制。GitHub Actions 会在每次推送和拉取请求时重建、审查并验证这份发布产物。
 
 推荐把自定义域名设为 `course.hhzi.eu.cc`，以免影响现有的 `medusa.hhzi.eu.cc`。课程完全是静态内容，阅读进度仍保存在每台设备各自的浏览器中，不会跨设备同步。
