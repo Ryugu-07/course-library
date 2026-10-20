@@ -66,6 +66,9 @@
 <h2 id="2">2. 四种公开切面：不是四份功能清单<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <h3 id="swe-agentagent-computer-interface">SWE-agent：Agent-Computer Interface 是研究变量<a class="headerlink" href="#swe-agentagent-computer-interface" title="Permanent link"></a></h3>
 <p>SWE-agent 以真实 GitHub issue 为任务，把模型放进专门设计的 Agent-Computer Interface；它强调工具界面、历史处理和环境怎样影响软件工程行为。它适合研究“给模型怎样的行动语言”，但公开 benchmark 结果仍属于指定模型、配置、任务和评测环境的联合结果。<a href="https://github.com/SWE-agent/SWE-agent">SWE-agent 官方仓库</a></p>
+<blockquote>
+<p><strong>2026-10-20 补充：</strong>官方 README 写明 mini-swe-agent 已经取代 SWE-agent，后续开发主要在前者；上一句保留为理解 Agent-Computer Interface 的历史入口。当天看到的 main 分支最后一次提交是 2026-07-16。</p>
+</blockquote>
 <h3 id="mini-swe-agent-harness">mini-swe-agent：把 harness 压到可一眼读完<a class="headerlink" href="#mini-swe-agent-harness" title="Permanent link"></a></h3>
 <p>mini-swe-agent v2 刻意走另一端：agent 类约百行 Python，只提供 Bash，历史线性追加，每个动作独立通过 <code>subprocess.run</code> 执行。它的价值是透明、易改和容易替换本地/容器执行环境，而不是证明专用工具永远无用。模型更强时，极简基线可以暴露“收益究竟来自模型还是复杂脚手架”；高风险写操作、长期会话和丰富产品交互仍可能需要额外层。<a href="https://github.com/SWE-agent/mini-swe-agent">mini-swe-agent 官方仓库</a></p>
 <h3 id="deepseek-harness">DeepSeek Harness：把每一层做成插件接缝<a class="headerlink" href="#deepseek-harness" title="Permanent link"></a></h3>
@@ -78,6 +81,9 @@
 <li><strong>持久事实与实时拦截分开。</strong> session events 保存 durable facts；<code>agent/*</code>、<code>tools/*</code> 和 capability events 用于观察或拦截进行中的请求、工具和策略。</li>
 </ol>
 <p>默认 turn flow 仍能还原成本课的骨架：组装 prompt/tool schema，发出模型请求，流式记录 assistant 事件，经 guarded tool pipeline 执行，再由 stopping/validation 接缝决定是否继续。官方仓库可以运行 Web/headless profile，但“开源 harness”不等于 DeepSeek 托管产品全部内部实现，也不证明它参与了某个模型训练或已经稳定适合生产。<a href="https://github.com/deepseek-ai/deepseek-harness">官方 README</a>；<a href="https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/architecture.md">架构文档</a></p>
+<blockquote>
+<p><strong>2026-10-20 补充：</strong>公开标签线已是 v0.2.x，当天最新标签为 <code>dsh-v0.2.1-rc.2</code>（提交日期 2026-10-17）。README 仍标 developer preview、许可证仍是 MIT。架构文档仍以 Cordis、profile/bundle、会话事件日志和 guarded tool 描述这些本课概念；Desktop 一节现在写成 Electron 宿主。标签前进不等于命令行已经稳定。</p>
+</blockquote>
 <h3 id="swe-bench-evaluation-harness">SWE-bench evaluation harness：补丁生成以后才开始<a class="headerlink" href="#swe-bench-evaluation-harness" title="Permanent link"></a></h3>
 <p>SWE-bench 的官方 evaluation harness 用分层 Docker 镜像准备实例，把预测补丁应用到指定仓库，再运行测试并判定是否解决任务。它解决跨平台复现和环境隔离，却不会替 agent 选择工具、管理上下文或生成补丁。读任何 SWE 成绩时，至少同时记录 agent harness、evaluation harness、镜像/仓库版本、预算、超时、重复口径和是否能访问测试。<a href="https://github.com/SWE-bench/SWE-bench/blob/main/docs/reference/harness.md">官方 harness 文档</a></p>
 <h2 id="3-codex-claude-code">3. Codex 与 Claude Code 概念映射表<a class="headerlink" href="#3-codex-claude-code" title="Permanent link"></a></h2>

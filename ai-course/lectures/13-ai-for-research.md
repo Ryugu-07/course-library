@@ -116,6 +116,24 @@ LLM 做推导的特性必须先认清：它是**似然机器**（第 07 讲）�
 - **数值验证**：凡是能算的都让代码算——让它写个脚本对命题做随机数值检验（第 04 讲用数值梯度检查解析推导，就是这个思想）。数值不匹配 = 推导必有错，这是不会谄媚的裁判；
 - **形式化验证**（进阶）：Lean 4 等证明助手是幻觉的终极闸门——编译器不接受"看起来对"的证明。AI 辅助写形式化证明正在成为可用的工作流，数学背景的读者值得关注这个方向。
 
+!!! note "前沿补充（2026-10）：编译通过，证明的是哪一句"
+    上一句的方向没有作废：Lean 仍然不接受“看起来像”的证明。2026 年 10 月的公开材料说明，这道闸门卡住的是**已经写成形式化语句的那一条**，不是自动卡住英文论文里的每一句。读到“已用 Lean 检查”时，先把三个问题分开：
+
+    1. **它能不能通过检查？** 证明助手只接受按规则写完的形式化证明。
+    2. **这条形式化语句是不是论文里的那句英文？** 翻译可以漏掉条件、把假设改强，或只覆盖标题的一部分。
+    3. **英文证明本身对不对？** 检查通过不回答这个问题。英文论证可以是错的，而 Lean 里通过的是另一条更弱或不同的语句。
+
+    下面的数字和范围都来自 2026-10-20 拉取的一手页面。本课没有重跑 Lean，也没有把 300 份形式化逐份打开。
+
+    - OpenAI 于 2026-10-06 说明，一批内部模型写出的数学结果放在 [openai/math](https://github.com/openai/math)。仓库 README 写明，结果主要来自一个**尚未发布的内部模型**；当时的目录有 **719** 篇稿件，分成 **372** 个结果族。2026-10-07 的 [history.md](https://github.com/openai/math/blob/main/history.md) 写：头条结果的形式化比例是 **300/719，约 42%**。仓库让读者用 [leanprover/comparator](https://github.com/leanprover/comparator) 核对，Lean 工具链文件写的是 `leanprover/lean4:v4.34.1`。
+    - 同一天的 history 记录撤回 3 篇：*Algebraicity of Weil classes on split abelian eightfolds* 中的符号错误使一段稳定化迹抵消论证失效，并连带撤回两篇依赖它的稿件（Kuga–Satake 对应，以及 K3 曲面乘积的有理 Hodge 猜想）。另外 14 篇做了证明修补或陈述修正。这三篇标题没有出现在当天拉取的 [`lean/formalization.yaml`](https://github.com/openai/math/blob/main/lean/formalization.yaml) 来源列表里，所以这次撤回不能理解成“Lean 抓住了符号错误”。
+    - 族编号不等于“标题里的定理都已被证明”。范围说明要单独读：[`071`](https://github.com/openai/math/blob/main/lean/docs/071.md) 把可去边界条件下的刚性，和圆域定理，写成同一份 comparator 文件里的两件声明；[`084`](https://github.com/openai/math/blob/main/lean/docs/084.md) 写明证的是 Erdős similarity conjecture 的**二进情形**，不是整个猜想；[`361`](https://github.com/openai/math/blob/main/lean/docs/361.md) 的反例用维数 16、次数 50000 构造，切锥和锥谱结论不在形式化范围内。
+    - 错译的实例见 Bastounis、Circelli 与 Hansen 的 [arXiv:2610.08144](https://arxiv.org/abs/2610.08144)。文中 Example 3.1 对比 OpenAI 所宣布的 Navier–Stokes 证明里 Lemma 8.6 的式 (8.19)：英文稿用 $m+4$ 阶输入导数控制 $m$ 阶输出，所引 Lean 估计写成 $m+5$。作者明确写了：他们**不对英文证明是否正确下判断**，只陈述译进 Lean 时发生了错译。能编译，说明的是 Lean 里那条估计，不是英文式 (8.19) 已被核销。
+    - 作为对得上的对照：Kevin Buzzard 在 2026-09-04 写道，他编译了 Anthropic 对费马大定理的 Lean 形式化并运行 comparator，结果通过；他给出的规模是超过 1340 万行，并说这项工作在 11 天内完成，而且顺着 1995 年 Darmon–Diamond–Taylor 的叙述写。[原文](https://xenaproject.wordpress.com/2026/09/04/flt-anthropic-has-beaten-me-to-it/)。这表示“被检查的形式化语句和它声称跟随的文献对得上”，仍然不是“旁边的每一句英文都自动成立”。
+    - 陶哲轩的博客在 2026-10-07 以客座文章转发了 [Association for Human Mathematics 的声明](https://terrytao.wordpress.com/2026/10/07/ahm-statement-on-openais-october-6-release-of-mathematical-documents/)。页首写明这是客座转载。声明讨论的是发布方式与学科规范，不是一份逐行审稿。不要把这篇客座声明写成陶哲轩本人的审稿结论。
+
+    带到自己的推导里，这句话就变成：数值脚本、独立验算和 Lean 各守一道门。Lean 通过之后，仍要问形式化语句是否就是你要的那句，以及英文论证有没有在翻译时被换掉。
+
 推理模型（第 10 讲）在此场景显著强于即答模型，难推导务必用推理档并给足思考时间。
 
 ## 3. 实验与代码复现

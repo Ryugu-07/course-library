@@ -136,6 +136,21 @@ $$
 
 本讲的 continuous/dynamic batching 是教学抽象，不是某个系统的复刻。Orca（Yu et al., OSDI 2022）把调度粒度从“整个请求”推进到“单次 iteration”，解释了为什么一个 batch 内先完成的序列不必继续绑住整个 batch；可读其 [OSDI 论文](https://www.usenix.org/system/files/osdi22-yu.pdf)。vLLM 的 PagedAttention（Kwon et al., 2023）把 KV-cache 的内存管理作为服务吞吐的重要问题，见 [arXiv:2309.06180](https://arxiv.org/abs/2309.06180)。Sarathi-Serve（Agrawal et al., OSDI 2024）进一步讨论 chunked-prefill 与 decode 互相干扰的 throughput–latency trade-off，见 [USENIX OSDI 2024 页面](https://www.usenix.org/conference/osdi24/presentation/agrawal)。这些论文中的实验数字、硬件与实现都不应替换本讲的固定 toy 容量。
 
+!!! note "前沿补充（2026-10）：DeepSeek DeepInfer 是引擎，不是本讲的玩具调度器"
+    2026-10-20 读取的 [DeepInfer](https://github.com/deepseek-ai/DeepInfer) 是 DeepSeek 用来支撑大规模生产服务的推理框架，这次开源的是**离线推理**，许可证为 Apache-2.0。它和上一节的 continuous batching 玩具回答的不是同一件事：玩具用固定账本比较“请求何时被安排”；DeepInfer 是一套能在指定硬件上跑特定模型的引擎。
+
+    README 写明的范围要连同边界一起记：
+
+    - **模型与硬件**：DeepSeek-V4.1-Flash；NVIDIA SM100 与华为昇腾 950。默认检查点是 `deepseek-ai/DeepSeek-V4.1-Flash-1017`。
+    - **它包装的核与并行**：FlashMLA、DeepGEMM、DeepEP、TileKernels、DeepSelect。注意力用 DP 与均衡的 context parallel；MoE 用专家并行和 EPLB。
+    - **和“连续批处理”相邻、但不是本讲公式的机制**：异步调度默认开启，让 CPU 上的组批和设备执行重叠；DSpark 用草稿 token 加速解码，并用置信度安排校验（环境变量见仓库，本课不把默认草稿长度当成你的部署参数）；SWA 有界回放只重放后缀，用来减少 decoder prefill。
+    - **可复现输出是单独的开关**：batch-invariant 模式（仅 NVIDIA）让不同批的组成不改变模型结果。确定性采样还要求关掉 MTP varlen，并给 `SamplingParams` 固定的 `seq_seed`。相同的输入 token 和采样参数才谈得上相同输出。
+    - **结构化输出**：正则、JSON Schema 或 EBNF。这是采样约束，不是本讲的排队指标。
+    - **这次发布明确没有包含**：KV cache 系统；prefill 与 decode 的分离部署（README 说引擎侧大部分所需功能已经实现）；跨数据并行副本的负载均衡。因此不能把 DeepInfer 读成“第 19 讲的服务栈已经开源”：队列、KV 分页、分离式 prefill/decode 和副本间均衡，仍在仓库的“完整服务还需要”清单里。
+    - **来历与性能图**：README 写它最初主要建立在 vLLM 上，并吸收了 SGLang 与 TensorRT-LLM 的想法。仓库里的 prefill/decode 帕累托图是作者自测（prefill 4 张 SM100，decode 64 张，各在一个 scale-up 域内），附有复现脚本。本讲不把这些图上的点写进 toy ledger，也没有独立复测。
+
+    旁边的 [deepseek-recipe](https://github.com/deepseek-ai/deepseek-recipe)（MIT）是另一层：Rust 库加 Python 绑定，把 Messages、Chat Completions 和 Responses 请求转成 DeepSeek V4 / V4.1 的对话和 prompt，再解析推理文本、工具调用和 JSON。它不做模型推理，也不提供 HTTP 服务。引擎、提示词渲染和服务端的 KV/队列，仍然是三本账。
+
 术语口径也要看定义而不是只看缩写：NVIDIA 的 [NIM metrics 文档](https://docs.nvidia.com/nim/benchmarking/llm/latest/metrics.html)把 TTFT 定义为提交请求到收到首 token 的时间，并将 ITL 称为 TPOT；它还提醒具体工具是否包含 TTFT、网络或空响应会影响可比性。本讲的 TTFT/TPOT 公式是为固定 toy ledger 明确写出的请求级定义，不能直接与任何产品报告的数字横比。
 
 ## 3. 三种调度政策：选择题，而不是品牌排名

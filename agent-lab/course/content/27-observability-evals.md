@@ -83,3 +83,6 @@ combined 对照可以回答“新系统整体是否更好”，却不能单独�
     如果 Agent 见过验收脚本或直接针对固定答案优化，分数会虚高。把验收放在独立位置，保留隐藏任务，并定期加入真实失败案例。
 
 **一手参考：**[SWE-bench evaluation harness](https://github.com/SWE-bench/SWE-bench/blob/main/docs/reference/harness.md)；[SWE-agent](https://github.com/SWE-agent/SWE-agent)；[mini-swe-agent](https://github.com/SWE-agent/mini-swe-agent)。
+
+!!! note "前沿补充（2026-10）：确定性采样不是把温度调到 0"
+    [DeepInfer](https://github.com/deepseek-ai/DeepInfer) 的 README 把可复现输出写成一组同时成立的条件：仅 NVIDIA、打开 batch-invariant、关闭 MTP varlen，并给 `SamplingParams` 固定的 `seq_seed`。这样相同的输入 token 和采样参数才得到相同输出。它不是本课实验脚本里的开关。做可重复评测时，记录这些开关和引擎版本；只写一个温度，复现不了这条路径。

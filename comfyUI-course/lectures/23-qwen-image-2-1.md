@@ -51,6 +51,18 @@ $$
 
 从 [Comfy-Org 权重目录](https://huggingface.co/Comfy-Org/Qwen-Image-2.1/tree/main)取文件；已有 BF16 模型可在对应 loader 中选择。`w4a8` 是另一个编码器选项，不能把不同量化名称当成相同后端要求。若沿用第 06 讲的外置模型目录，先检查模型路径映射，再按分类放置；不要另建一套互相覆盖的目录。
 
+> **前沿补充（2026-10）：Turbo、ControlNet 与若干运行时修复。** 上面的三件套和 9 月 21 日固定下来的 25 步模板仍然是本讲的复现起点。下面只记录此后官方仓库里新增、且 2026-10-20 能核对到的入口。本讲仍没有在 RTX 4060 Ti 上跑这些文件。
+>
+> **Turbo 权重与 API。** Qwen 官方 README 的新闻写明，2026-10-09 发布 [Qwen-Image-2.1-Turbo](https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo)：文生图和编辑都走 **8 步去噪**，示例使用保存下来的 8 步日程，默认 **CFG = 1**；只改 `num_inference_steps` 不会覆盖这份日程。模型卡的许可证名称仍是 `qwen-research`，与 2.1 一样是研究/评估许可，不是 Apache-2.0。同一天的 README 还写明 Pro 与 Turbo 的托管 API 已在阿里云 Model Studio 上线：[Pro](https://modelstudio.console.alibabacloud.com/ap-southeast-1/model/market/detail/qwen-image-2.1-pro?serviceSite=international&ref=list)、[Turbo](https://modelstudio.console.alibabacloud.com/ap-southeast-1/model/market/detail/qwen-image-2.1-turbo?serviceSite=international&ref=list)。
+>
+> **Comfy 模板。** [workflow_templates 提交 0cf483d1dc](https://github.com/Comfy-Org/workflow_templates/commit/0cf483d1dc)（2026-10-13）加入 `image_qwen_image_2_1_turbo_t2i.json` 与 `image_qwen_image_2_1_turbo_image_edit.json`。[Comfy-Org 模型卡](https://huggingface.co/Comfy-Org/Qwen-Image-2.1)写明：可以用完整 Turbo 模型，也可以用从基座抽出的 Turbo LoRA；两种都是 **8 步、cfg 1**。2026-10-20 读取的文生图 Turbo 模板实际指向 `qwen_image_2.1_turbo_int8_convrot.safetensors`、`qwen3vl_8b_int8_convrot.safetensors`、提示词增强编码器 `qwen3.5_9b_qwen_image_2.1_pe_t2i.int8_convrot.safetensors`，VAE 仍是 `qwen_image_2.1_vae_bf16.safetensors`，采样器为 euler，cfg 为 1，并有一个标题为 “Manual Sigmas (Qwen-Image-2.1-Turbo 8-step schedule)” 的节点。按当日 tree API 的字节数除以 $10^9$：Turbo int8 扩散文件 7,256,787,829 字节（7.257 GB），bf16 为 14,230,280,616 字节（14.230 GB）；Turbo LoRA `qwen_image_2.1_turbo_lora_avg_rank_178_bf16.safetensors` 为 913,314,512 字节（0.913 GB）。这些是磁盘体积，不是 16 GB 显存证书。
+>
+> **Union Fun ControlNet。** ComfyUI [v0.38.0](https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.38.0)（2026-09-29）的发布说明包含对 Qwen-Image 2.1 union fun controlnet 的支持，对应拉取请求指向 [alibaba-pai/Qwen-Image-2.1-Fun-Controlnet-Union](https://huggingface.co/alibaba-pai/Qwen-Image-2.1-Fun-Controlnet-Union)。Comfy-Org 仓库同时提供 `qwen_image_2.1_fun_controlnet_union_bf16.safetensors`（7,550,977,992 字节，十进制 7.551 GB）和 `qwen_image_2.1_fun_controlnet_union_int8_convrot.safetensors`（3,779,298,944 字节，十进制 3.779 GB），放在 `models/model_patches/`。2026-10-20 查看的 `templates/` 目录里没有名为 Qwen-Image 2.1 ControlNet 的官方模板 JSON；不要用旧 Qwen-Image 的 ControlNet 模板换个文件名来冒充。
+>
+> **tiny VAE 与缓存选项。** 同一版 v0.38.0 加入 Qwen-Image 2.1 tiny VAE 支持。拉取请求给出的权重是 [taeqi2_1_encoder.pth / taeqi2_1_decoder.pth](https://github.com/madebyollin/taesd/blob/main/taeqi2_1_decoder.pth)，不在 Comfy-Org 三件套的 `vae/` 里，也不能替换上面的 bf16 VAE 文件名。v0.39.0（2026-10-05）的发布说明写有一项修复：在 Qwen Image 2.1 中选择 int8 或 int4 cache 时不再崩溃。本课没有复现该崩溃，也没有测量 tiny VAE 的画质损失。
+>
+> **OpenVINO 与 Apple Silicon。** README 新闻里的 OpenVINO 条目日期是 **2026-09-20**，不是 10 月的新发布：Intel 称 Day-0 支持覆盖 Arc Pro B70 与 Core Ultra Series 3 核显，笔记本在 [openvino_notebooks](https://github.com/openvinotoolkit/openvino_notebooks/tree/latest/notebooks/qwen-image-2.1)。Apple Silicon 则写在 README 的运行说明里：用 [LightX2V-Mac-App](https://github.com/ModelTC/LightX2V-Mac-App) 在本机跑 **Qwen-Image-2.1-Turbo**。两处都是官方 README 的指向，本课没有在这些设备上复跑。
+
 ### 3.1 直接导入官方模板
 
 - [文生图 UI JSON（固定版本下载）](https://raw.githubusercontent.com/Comfy-Org/workflow_templates/371a7b7171bbd11e9cc92ef615ba5ad223d7e5b4/templates/image_qwen_image_2_1_t2i.json)
@@ -170,5 +182,6 @@ batch / offload与cache设置 / 输出尺寸:
 - [Comfy-Org 三件套说明](https://huggingface.co/Comfy-Org/Qwen-Image-2.1/blob/main/README.md)。
 - [固定文生图模板](https://github.com/Comfy-Org/workflow_templates/blob/371a7b7171bbd11e9cc92ef615ba5ad223d7e5b4/templates/image_qwen_image_2_1_t2i.json)与本讲前面的固定编辑模板。
 - [核心节点源码快照](https://github.com/Comfy-Org/ComfyUI/blob/b0f4b7b294ce482a2e071d9d762c133d38c7aa07/comfy_extras/nodes_qwen.py)：实现端口数不等于已验证的多图使用上限，课程仍按官方10参考图说明。
+- 2026-10-20 补充：[Qwen-Image-2.1 README](https://github.com/QwenLM/Qwen-Image-2.1)（Turbo、API、OpenVINO、Apple Silicon）、[Turbo 模型卡](https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo)、[Comfy-Org 模型卡](https://huggingface.co/Comfy-Org/Qwen-Image-2.1)、[Turbo 模板提交](https://github.com/Comfy-Org/workflow_templates/commit/0cf483d1dc)、[ComfyUI v0.38.0](https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.38.0)、[ComfyUI v0.39.0](https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.39.0)。
 
 下一步回到[工作流实验室](workflows.html)，用同一份五层依赖账本保存你自己的运行证据。

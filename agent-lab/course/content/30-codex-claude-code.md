@@ -20,6 +20,8 @@ Codex Cloud 的公开流程是创建容器、检出仓库、运行 setup、应�
 
 SWE-agent 以真实 GitHub issue 为任务，把模型放进专门设计的 Agent-Computer Interface；它强调工具界面、历史处理和环境怎样影响软件工程行为。它适合研究“给模型怎样的行动语言”，但公开 benchmark 结果仍属于指定模型、配置、任务和评测环境的联合结果。[SWE-agent 官方仓库](https://github.com/SWE-agent/SWE-agent)
 
+> **2026-10-20 补充：**官方 README 写明 mini-swe-agent 已经取代 SWE-agent，后续开发主要在前者；上一句保留为理解 Agent-Computer Interface 的历史入口。当天看到的 main 分支最后一次提交是 2026-07-16。
+
 ### mini-swe-agent：把 harness 压到可一眼读完
 
 mini-swe-agent v2 刻意走另一端：agent 类约百行 Python，只提供 Bash，历史线性追加，每个动作独立通过 `subprocess.run` 执行。它的价值是透明、易改和容易替换本地/容器执行环境，而不是证明专用工具永远无用。模型更强时，极简基线可以暴露“收益究竟来自模型还是复杂脚手架”；高风险写操作、长期会话和丰富产品交互仍可能需要额外层。[mini-swe-agent 官方仓库](https://github.com/SWE-agent/mini-swe-agent)
@@ -37,6 +39,8 @@ DeepSeek Harness（`dsh`）是 DeepSeek AI 在 2026 年公开的 MIT 许可 agen
 3. **持久事实与实时拦截分开。** session events 保存 durable facts；`agent/*`、`tools/*` 和 capability events 用于观察或拦截进行中的请求、工具和策略。
 
 默认 turn flow 仍能还原成本课的骨架：组装 prompt/tool schema，发出模型请求，流式记录 assistant 事件，经 guarded tool pipeline 执行，再由 stopping/validation 接缝决定是否继续。官方仓库可以运行 Web/headless profile，但“开源 harness”不等于 DeepSeek 托管产品全部内部实现，也不证明它参与了某个模型训练或已经稳定适合生产。[官方 README](https://github.com/deepseek-ai/deepseek-harness)；[架构文档](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/architecture.md)
+
+> **2026-10-20 补充：**公开标签线已是 v0.2.x，当天最新标签为 `dsh-v0.2.1-rc.2`（提交日期 2026-10-17）。README 仍标 developer preview、许可证仍是 MIT。架构文档仍以 Cordis、profile/bundle、会话事件日志和 guarded tool 描述这些本课概念；Desktop 一节现在写成 Electron 宿主。标签前进不等于命令行已经稳定。
 
 ### SWE-bench evaluation harness：补丁生成以后才开始
 
