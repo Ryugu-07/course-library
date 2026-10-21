@@ -39,7 +39,7 @@
 
 进入[第23讲](23-qwen-image-2-1.html)获取固定版本模板、准确三件套文件名、CFG/尺寸说明和透明通道练习。本节仅更新2.1这一项，其余家族的日期仍见原快照；16GB运行状态待实测。[官方权重说明](https://huggingface.co/Comfy-Org/Qwen-Image-2.1)
 
-> **前沿补充（2026-10）**：2026-10-09 官方仓库增加了 Qwen-Image-2.1-Turbo（8 步、默认 CFG 1，许可证仍是 Qwen Research License），Comfy 模板在 2026-10-13 的提交中加入；union fun ControlNet 与 tiny VAE 的核心支持写在 ComfyUI v0.38.0。文件名、字节和“没有官方 2.1 ControlNet 模板 JSON”的范围见[第23讲补充](23-qwen-image-2-1.html)。上一节的 9 月 21 日三件套描述保持不变。
+> **前沿补充（2026-10）**：Turbo（8 步、CFG 1，研究许可）于 2026-10-09 发布，Comfy 模板为 2026-10-13。见[第23讲](23-qwen-image-2-1.html)。9 月 21 日三件套不变。
 
 ## 3. 互动选择器：先生成核验队列
 

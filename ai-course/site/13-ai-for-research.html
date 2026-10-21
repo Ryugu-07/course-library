@@ -48,7 +48,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 世界模型与具身智能</div><ul><li><a href="research-05-latent-world-model.html">世界模型 I · 潜在动力学</a></li><li><a href="research-06-model-based-planning.html">世界模型 II · 基于模型的规划</a></li><li><a href="research-07-vision-language-action.html">具身 I · 视觉语言动作模型</a></li><li><a href="research-08-embodied-evaluation.html">具身 II · 泛化与任务评估</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-10-20 16:56</div>
+    <div class="build-time">构建于 2026-10-21 01:06</div>
   </div>
 </nav>
 <main id="content">
@@ -183,22 +183,15 @@ try {
 </ul>
 <div class="admonition note">
 <p class="admonition-title">前沿补充（2026-10）：编译通过，证明的是哪一句</p>
-<p>上一句的方向没有作废：Lean 仍然不接受“看起来像”的证明。2026 年 10 月的公开材料说明，这道闸门卡住的是<strong>已经写成形式化语句的那一条</strong>，不是自动卡住英文论文里的每一句。读到“已用 Lean 检查”时，先把三个问题分开：</p>
-<ol>
-<li><strong>它能不能通过检查？</strong> 证明助手只接受按规则写完的形式化证明。</li>
-<li><strong>这条形式化语句是不是论文里的那句英文？</strong> 翻译可以漏掉条件、把假设改强，或只覆盖标题的一部分。</li>
-<li><strong>英文证明本身对不对？</strong> 检查通过不回答这个问题。英文论证可以是错的，而 Lean 里通过的是另一条更弱或不同的语句。</li>
-</ol>
-<p>下面的数字和范围都来自 2026-10-20 拉取的一手页面。本课没有重跑 Lean，也没有把 300 份形式化逐份打开。</p>
+<p>Lean 编译通过 ≠ 语句忠实对应英文 ≠ 英文证明正确。这三问要分开，否则错译会被当成证明。</p>
 <ul>
-<li>OpenAI 于 2026-10-06 说明，一批内部模型写出的数学结果放在 <a href="https://github.com/openai/math">openai/math</a>。仓库 README 写明，结果主要来自一个<strong>尚未发布的内部模型</strong>；当时的目录有 <strong>719</strong> 篇稿件，分成 <strong>372</strong> 个结果族。2026-10-07 的 <a href="https://github.com/openai/math/blob/main/history.md">history.md</a> 写：头条结果的形式化比例是 <strong>300/719，约 42%</strong>。仓库让读者用 <a href="https://github.com/leanprover/comparator">leanprover/comparator</a> 核对，Lean 工具链文件写的是 <code>leanprover/lean4:v4.34.1</code>。</li>
-<li>同一天的 history 记录撤回 3 篇：<em>Algebraicity of Weil classes on split abelian eightfolds</em> 中的符号错误使一段稳定化迹抵消论证失效，并连带撤回两篇依赖它的稿件（Kuga–Satake 对应，以及 K3 曲面乘积的有理 Hodge 猜想）。另外 14 篇做了证明修补或陈述修正。这三篇标题没有出现在当天拉取的 <a href="https://github.com/openai/math/blob/main/lean/formalization.yaml"><code>lean/formalization.yaml</code></a> 来源列表里，所以这次撤回不能理解成“Lean 抓住了符号错误”。</li>
-<li>族编号不等于“标题里的定理都已被证明”。范围说明要单独读：<a href="https://github.com/openai/math/blob/main/lean/docs/071.md"><code>071</code></a> 把可去边界条件下的刚性，和圆域定理，写成同一份 comparator 文件里的两件声明；<a href="https://github.com/openai/math/blob/main/lean/docs/084.md"><code>084</code></a> 写明证的是 Erdős similarity conjecture 的<strong>二进情形</strong>，不是整个猜想；<a href="https://github.com/openai/math/blob/main/lean/docs/361.md"><code>361</code></a> 的反例用维数 16、次数 50000 构造，切锥和锥谱结论不在形式化范围内。</li>
-<li>错译的实例见 Bastounis、Circelli 与 Hansen 的 <a href="https://arxiv.org/abs/2610.08144">arXiv:2610.08144</a>。文中 Example 3.1 对比 OpenAI 所宣布的 Navier–Stokes 证明里 Lemma 8.6 的式 (8.19)：英文稿用 <span class="arithmatex">\(m+4\)</span> 阶输入导数控制 <span class="arithmatex">\(m\)</span> 阶输出，所引 Lean 估计写成 <span class="arithmatex">\(m+5\)</span>。作者明确写了：他们<strong>不对英文证明是否正确下判断</strong>，只陈述译进 Lean 时发生了错译。能编译，说明的是 Lean 里那条估计，不是英文式 (8.19) 已被核销。</li>
-<li>作为对得上的对照：Kevin Buzzard 在 2026-09-04 写道，他编译了 Anthropic 对费马大定理的 Lean 形式化并运行 comparator，结果通过；他给出的规模是超过 1340 万行，并说这项工作在 11 天内完成，而且顺着 1995 年 Darmon–Diamond–Taylor 的叙述写。<a href="https://xenaproject.wordpress.com/2026/09/04/flt-anthropic-has-beaten-me-to-it/">原文</a>。这表示“被检查的形式化语句和它声称跟随的文献对得上”，仍然不是“旁边的每一句英文都自动成立”。</li>
-<li>陶哲轩的博客在 2026-10-07 以客座文章转发了 <a href="https://terrytao.wordpress.com/2026/10/07/ahm-statement-on-openais-october-6-release-of-mathematical-documents/">Association for Human Mathematics 的声明</a>。页首写明这是客座转载。声明讨论的是发布方式与学科规范，不是一份逐行审稿。不要把这篇客座声明写成陶哲轩本人的审稿结论。</li>
+<li>2026-10-06 公开的 <a href="https://github.com/openai/math">openai/math</a>：未发布内部模型，719 篇、372 族。<a href="https://github.com/openai/math/blob/main/history.md">history.md</a>（2026-10-07）为 <strong>300/719，约 42%</strong>。工具链 <code>leanprover/lean4:v4.34.1</code>，用 <a href="https://github.com/leanprover/comparator">comparator</a> 核对。</li>
+<li>同日撤回 3 篇：Weil classes on split abelian eightfolds 的符号错误，连带 Kuga–Satake 与 K3 乘积的有理 Hodge 猜想；另 14 篇修订。三篇都不在 <a href="https://github.com/openai/math/blob/main/lean/formalization.yaml"><code>formalization.yaml</code></a>，不是 Lean 抓住了符号错误。</li>
+<li><a href="https://github.com/openai/math/blob/main/lean/docs/071.md"><code>071</code></a> 同时含可去边界刚性与圆域定理；<a href="https://github.com/openai/math/blob/main/lean/docs/084.md"><code>084</code></a> 只是 Erdős similarity 的二进情形；<a href="https://github.com/openai/math/blob/main/lean/docs/361.md"><code>361</code></a> 为维数 16、次数 50000，不含切锥与锥谱。</li>
+<li><a href="https://arxiv.org/abs/2610.08144">arXiv:2610.08144</a> Example 3.1：式 (8.19) 英文 <span class="arithmatex">\(m+4\)</span>，Lean 为 <span class="arithmatex">\(m+5\)</span>。作者不对英文证明是否正确下判断。</li>
+<li>Buzzard <a href="https://xenaproject.wordpress.com/2026/09/04/flt-anthropic-has-beaten-me-to-it/">2026-09-04</a>：comparator 通过，超 1340 万行、11 天，顺着 Darmon–Diamond–Taylor。只说明形式化语句与所随文献对得上。</li>
+<li>2026-10-07 的 <a href="https://terrytao.wordpress.com/2026/10/07/ahm-statement-on-openais-october-6-release-of-mathematical-documents/">AHM 声明</a> 是陶哲轩博客上的客座文章，不是他本人的逐行审稿。</li>
 </ul>
-<p>带到自己的推导里，这句话就变成：数值脚本、独立验算和 Lean 各守一道门。Lean 通过之后，仍要问形式化语句是否就是你要的那句，以及英文论证有没有在翻译时被换掉。</p>
 </div>
 <p>推理模型（第 10 讲）在此场景显著强于即答模型，难推导务必用推理档并给足思考时间。</p>
 <h2 id="3">3. 实验与代码复现<a class="headerlink" href="#3" title="Permanent link"></a></h2>

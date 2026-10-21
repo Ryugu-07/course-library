@@ -31,11 +31,9 @@
 预算不是死比例。调试任务可能需要更多日志，架构任务需要更多代码地图。Runtime 可以根据任务类型动态调整。
 
 !!! note "前沿补充（2026-10）：稳定前缀为什么更便宜"
-    系统规则和工具定义如果每次请求都原样放在开头，服务端有机会复用已经算过的前缀 KV，不必把这一段重新 prefill。DeepSeek API 把这种命中写成默认开启的磁盘上下文缓存：后一次请求若**完整对上**一个已经落盘的前缀单元，重叠部分按 cache hit 计。[缓存说明](https://api-docs.deepseek.com/guides/kv_cache)同时写明，滑动窗口注意力之下，不是“随便重叠几个 token 都算命中”。只改系统提示词的一个字，或把新内容插进前缀中间，都可能对不上已有单元。
+    前缀每次原样放在开头才能复用 KV、按 cache hit 计；改一个字或插入中间就会未命中。DeepSeek 要**整段对上**已落盘前缀，不是任意重叠。[缓存说明](https://api-docs.deepseek.com/guides/kv_cache)
 
-    价钱差要看价目表，不要背一个永远不变的折扣。2026-10-20 抓取的 [定价页](https://api-docs.deepseek.com/quick_start/pricing) 里，`deepseek-flash`（模型版本 DeepSeek-V4.1-Flash-1017）每百万输入 token 的缓存命中价是淡季 0.003 美元、旺季 0.006 美元；未命中是淡季 0.15 美元、旺季 0.30 美元。用这两行相除，命中价是未命中价的 1/50。输出另计。价格会改，以页面当时的表为准。
-
-    这是托管 API 的行为。开源引擎 [DeepInfer](https://github.com/deepseek-ai/DeepInfer) 的 README 写明，这次发布**不包含** KV cache 系统，所以不能把上面的命中计价记成该仓库已经实现了前缀缓存。AI 课程第 19 讲把这件事和教学用的调度玩具分开说明。
+    2026-10-20 [定价](https://api-docs.deepseek.com/quick_start/pricing)：`deepseek-flash` 命中价为未命中的 1/50（淡季 0.003/0.15 美元，旺季 0.006/0.30 美元），输出另计。[DeepInfer](https://github.com/deepseek-ai/DeepInfer) 没有 KV cache 系统，这不是它的功能。
 
 ## 4. 工具输出是最大噪声源
 
