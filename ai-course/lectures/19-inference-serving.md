@@ -136,8 +136,8 @@ $$
 
 本讲的 continuous/dynamic batching 是教学抽象，不是某个系统的复刻。Orca（Yu et al., OSDI 2022）把调度粒度从“整个请求”推进到“单次 iteration”，解释了为什么一个 batch 内先完成的序列不必继续绑住整个 batch；可读其 [OSDI 论文](https://www.usenix.org/system/files/osdi22-yu.pdf)。vLLM 的 PagedAttention（Kwon et al., 2023）把 KV-cache 的内存管理作为服务吞吐的重要问题，见 [arXiv:2309.06180](https://arxiv.org/abs/2309.06180)。Sarathi-Serve（Agrawal et al., OSDI 2024）进一步讨论 chunked-prefill 与 decode 互相干扰的 throughput–latency trade-off，见 [USENIX OSDI 2024 页面](https://www.usenix.org/conference/osdi24/presentation/agrawal)。这些论文中的实验数字、硬件与实现都不应替换本讲的固定 toy 容量。
 
-!!! note "前沿补充（2026-10）：DeepInfer 是生产引擎，不是本讲的玩具调度器"
-    [DeepInfer](https://github.com/deepseek-ai/DeepInfer)（Apache-2.0）是 DeepSeek-V4.1-Flash 的离线生产引擎（NVIDIA SM100、昇腾 950），在指定硬件上跑模型，不是上一节那个比较排队账本的玩具。这次发布**没有** KV cache 系统，也**没有** prefill/decode 分离部署和跨副本负载均衡，所以不能把它读成本讲服务栈已经开源。仓库里的性能图是作者自测，本讲没有复测。提示词渲染是旁边的 [deepseek-recipe](https://github.com/deepseek-ai/deepseek-recipe)（MIT），它不推理。
+!!! note "前沿補充（2026-10）：DeepInfer 是生產引擎，不是本講的玩具調度器"
+    [DeepInfer](https://github.com/deepseek-ai/DeepInfer)（Apache-2.0）是 DeepSeek-V4.1-Flash 的離線生產引擎（NVIDIA SM100、昇騰 950），在指定硬件上跑模型，不是上一節那個比較排隊賬本的玩具。這次發佈**沒有** KV cache 系統，也**沒有** prefill/decode 分離部署和跨副本負載均衡，所以不能把它讀成本講服務棧已經開源。倉庫裡的性能圖是作者自測，本講沒有複測。提示詞渲染是旁邊的 [deepseek-recipe](https://github.com/deepseek-ai/deepseek-recipe)（MIT），它不推理。
 
 术语口径也要看定义而不是只看缩写：NVIDIA 的 [NIM metrics 文档](https://docs.nvidia.com/nim/benchmarking/llm/latest/metrics.html)把 TTFT 定义为提交请求到收到首 token 的时间，并将 ITL 称为 TPOT；它还提醒具体工具是否包含 TTFT、网络或空响应会影响可比性。本讲的 TTFT/TPOT 公式是为固定 toy ledger 明确写出的请求级定义，不能直接与任何产品报告的数字横比。
 

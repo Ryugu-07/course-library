@@ -84,5 +84,5 @@ combined 对照可以回答“新系统整体是否更好”，却不能单独�
 
 **一手参考：**[SWE-bench evaluation harness](https://github.com/SWE-bench/SWE-bench/blob/main/docs/reference/harness.md)；[SWE-agent](https://github.com/SWE-agent/SWE-agent)；[mini-swe-agent](https://github.com/SWE-agent/mini-swe-agent)。
 
-!!! note "前沿补充（2026-10）：确定性采样不是把温度调到 0"
-    [DeepInfer](https://github.com/deepseek-ai/DeepInfer) 只在 NVIDIA 上，且要打开 batch-invariant、关掉 MTP varlen、固定 `seq_seed`。评测要记下这些开关，只写温度复现不了。
+!!! note "前沿補充（2026-10）：確定性採樣不是把溫度調到 0"
+    [DeepInfer](https://github.com/deepseek-ai/DeepInfer) 只在 NVIDIA 上，且要打開 batch-invariant、關掉 MTP varlen、固定 `seq_seed`。評測要記下這些開關，只寫溫度復現不了。

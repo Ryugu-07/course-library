@@ -20,7 +20,7 @@ Codex Cloud 的公开流程是创建容器、检出仓库、运行 setup、应�
 
 SWE-agent 以真实 GitHub issue 为任务，把模型放进专门设计的 Agent-Computer Interface；它强调工具界面、历史处理和环境怎样影响软件工程行为。它适合研究“给模型怎样的行动语言”，但公开 benchmark 结果仍属于指定模型、配置、任务和评测环境的联合结果。[SWE-agent 官方仓库](https://github.com/SWE-agent/SWE-agent)
 
-> **2026-10-20：**[README](https://github.com/SWE-agent/SWE-agent) 写明 mini-swe-agent 已取代 SWE-agent（main 最后提交 2026-07-16）。上一句留作历史入口。
+> **2026-10-20：**[README](https://github.com/SWE-agent/SWE-agent) 寫明 mini-swe-agent 已取代 SWE-agent（main 最後提交 2026-07-16）。上一句留作歷史入口。
 
 ### mini-swe-agent：把 harness 压到可一眼读完
 
@@ -40,7 +40,7 @@ DeepSeek Harness（`dsh`）是 DeepSeek AI 在 2026 年公开的 MIT 许可 agen
 
 默认 turn flow 仍能还原成本课的骨架：组装 prompt/tool schema，发出模型请求，流式记录 assistant 事件，经 guarded tool pipeline 执行，再由 stopping/validation 接缝决定是否继续。官方仓库可以运行 Web/headless profile，但“开源 harness”不等于 DeepSeek 托管产品全部内部实现，也不证明它参与了某个模型训练或已经稳定适合生产。[官方 README](https://github.com/deepseek-ai/deepseek-harness)；[架构文档](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/architecture.md)
 
-> **2026-10-20：**`dsh-v0.2.1-rc.2`（2026-10-17）仍是 developer preview、MIT，架构概念未变。[README](https://github.com/deepseek-ai/deepseek-harness)
+> **2026-10-20：**`dsh-v0.2.1-rc.2`（2026-10-17）仍是 developer preview、MIT，架構概念未變。[README](https://github.com/deepseek-ai/deepseek-harness)
 
 ### SWE-bench evaluation harness：补丁生成以后才开始
 

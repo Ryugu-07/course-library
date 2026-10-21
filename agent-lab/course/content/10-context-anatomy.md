@@ -30,10 +30,10 @@
 
 预算不是死比例。调试任务可能需要更多日志，架构任务需要更多代码地图。Runtime 可以根据任务类型动态调整。
 
-!!! note "前沿补充（2026-10）：稳定前缀为什么更便宜"
-    前缀每次原样放在开头才能复用 KV、按 cache hit 计；改一个字或插入中间就会未命中。DeepSeek 要**整段对上**已落盘前缀，不是任意重叠。[缓存说明](https://api-docs.deepseek.com/guides/kv_cache)
+!!! note "前沿補充（2026-10）：穩定前綴為什麼更便宜"
+    前綴每次原樣放在開頭才能複用 KV、按 cache hit 計；改一個字或插入中間就會未命中。DeepSeek 要**整段對上**已落盤前綴，不是任意重疊。[緩存說明](https://api-docs.deepseek.com/guides/kv_cache)
 
-    2026-10-20 [定价](https://api-docs.deepseek.com/quick_start/pricing)：`deepseek-flash` 命中价为未命中的 1/50（淡季 0.003/0.15 美元，旺季 0.006/0.30 美元），输出另计。[DeepInfer](https://github.com/deepseek-ai/DeepInfer) 没有 KV cache 系统，这不是它的功能。
+    2026-10-20 [定價](https://api-docs.deepseek.com/quick_start/pricing)：`deepseek-flash` 命中價為未命中的 1/50（淡季 0.003/0.15 美元，旺季 0.006/0.30 美元），輸出另計。[DeepInfer](https://github.com/deepseek-ai/DeepInfer) 沒有 KV cache 系統，這不是它的功能。
 
 ## 4. 工具输出是最大噪声源
 

@@ -120,7 +120,7 @@ $$
 
 **DeepSeek Harness专项复核（2026-09-11）**：官方README仍标为developer preview；插件化、持久session事件与工具执行流程的架构说明仍成立。此处只更新该项目的来源核对记录，不把其他产品的旧快照一并改成新日期。[README](https://github.com/deepseek-ai/deepseek-harness) · [架构](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/architecture.md)
 
-**2026-10-20 再核对：**`dsh-v0.2.1-rc.2`（2026-10-17）仍是 developer preview、MIT，架构结论不变。[README](https://github.com/deepseek-ai/deepseek-harness)
+**2026-10-20 再核對：**`dsh-v0.2.1-rc.2`（2026-10-17）仍是 developer preview、MIT，架構結論不變。[README](https://github.com/deepseek-ai/deepseek-harness)
 
 ## 2. MCP：工具调用的 USB-C
 

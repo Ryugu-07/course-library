@@ -51,11 +51,11 @@ $$
 
 从 [Comfy-Org 权重目录](https://huggingface.co/Comfy-Org/Qwen-Image-2.1/tree/main)取文件；已有 BF16 模型可在对应 loader 中选择。`w4a8` 是另一个编码器选项，不能把不同量化名称当成相同后端要求。若沿用第 06 讲的外置模型目录，先检查模型路径映射，再按分类放置；不要另建一套互相覆盖的目录。
 
-> **前沿补充（2026-10）。** 上面的三件套仍是复现起点。2026-10-09 的 [Qwen-Image-2.1-Turbo](https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo) 把文生图和编辑收成 **8 步、默认 CFG 1**，许可证仍是 `qwen-research`；步数变少，但只改 `num_inference_steps` 不会换上官方保存的 8 步日程。
+> **前沿補充（2026-10）。** 上面的三件套仍是復現起點。2026-10-09 的 [Qwen-Image-2.1-Turbo](https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo) 把文生圖和編輯收成 **8 步、默認 CFG 1**，許可證仍是 `qwen-research`；步數變少，但只改 `num_inference_steps` 不會換上官方保存的 8 步日程。
 >
-> Comfy 模板在 [0cf483d1dc](https://github.com/Comfy-Org/workflow_templates/commit/0cf483d1dc)（2026-10-13）使用 `qwen_image_2.1_turbo_int8_convrot.safetensors`、euler、cfg 1，节点标题为 “Manual Sigmas (Qwen-Image-2.1-Turbo 8-step schedule)”；VAE 仍是 bf16。Turbo int8 为 7,256,787,829 字节（7.257 GB），这是磁盘体积，不是 16 GB 显存证书。[模型卡](https://huggingface.co/Comfy-Org/Qwen-Image-2.1)写完整模型或抽出的 LoRA 都是 8 步、cfg 1。
+> Comfy 模板在 [0cf483d1dc](https://github.com/Comfy-Org/workflow_templates/commit/0cf483d1dc)（2026-10-13）使用 `qwen_image_2.1_turbo_int8_convrot.safetensors`、euler、cfg 1，節點標題為 “Manual Sigmas (Qwen-Image-2.1-Turbo 8-step schedule)”；VAE 仍是 bf16。Turbo int8 為 7,256,787,829 字節（7.257 GB），這是磁盤體積，不是 16 GB 顯存證書。[模型卡](https://huggingface.co/Comfy-Org/Qwen-Image-2.1)寫完整模型或抽出的 LoRA 都是 8 步、cfg 1。
 >
-> [v0.38.0](https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.38.0) 支持 union fun ControlNet 和 tiny VAE；tiny VAE 是 [taeqi2_1 的 .pth](https://github.com/madebyollin/taesd/blob/main/taeqi2_1_decoder.pth)，不是上面的 bf16 VAE。当天 `templates/` 没有 2.1 ControlNet 的官方 JSON。[v0.39.0](https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.39.0) 修复了 int8/int4 cache 崩溃，本课没有复现。OpenVINO 的 README 日期是 **2026-09-20**；Apple Silicon 指向 [LightX2V-Mac-App](https://github.com/ModelTC/LightX2V-Mac-App) 跑 Turbo。两处都没有在本课复跑。[README](https://github.com/QwenLM/Qwen-Image-2.1)
+> [v0.38.0](https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.38.0) 支持 union fun ControlNet 和 tiny VAE；tiny VAE 是 [taeqi2_1 的 .pth](https://github.com/madebyollin/taesd/blob/main/taeqi2_1_decoder.pth)，不是上面的 bf16 VAE。當天 `templates/` 沒有 2.1 ControlNet 的官方 JSON。[v0.39.0](https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.39.0) 修復了 int8/int4 cache 崩潰，本課沒有復現。OpenVINO 的 README 日期是 **2026-09-20**；Apple Silicon 指向 [LightX2V-Mac-App](https://github.com/ModelTC/LightX2V-Mac-App) 跑 Turbo。兩處都沒有在本課復跑。[README](https://github.com/QwenLM/Qwen-Image-2.1)
 
 ### 3.1 直接导入官方模板
 

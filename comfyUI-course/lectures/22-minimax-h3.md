@@ -57,13 +57,13 @@ ComfyUI/
 
 按上述历史文件体积，四个基础文件约占 **42.5 GB 磁盘**（不含Turbo LoRA等新增模板依赖）；若还要保留同量化的 `ref2va`，再加约 21 GB。磁盘占用不是峰值显存，但它已经说明 H3 不是“16GB 卡下载一个 checkpoint 就舒服跑”的级别：扩散主干单文件就超过显存，文本编码器也几乎占满整卡，运行时必然依赖阶段性加载、CPU 内存卸载和较小的时空 latent。
 
-!!! note "前沿补充（2026-10）：模板已改用 int8 视频 VAE"
-    当前官方模板的视频 VAE 已换成 int8，上面的 **42.5 GB** 是 fp16 VAE 那套的历史加总，不能当作现在的下载量。2026-10-20 按 Hugging Face 字节数 / $10^9$ 重算，四件合计 **40,073,842,159 字节（40.07 GB）**。
+!!! note "前沿補充（2026-10）：模板已改用 int8 視頻 VAE"
+    當前官方模板的視頻 VAE 已換成 int8，上面的 **42.5 GB** 是 fp16 VAE 那套的歷史加總，不能當作現在的下載量。2026-10-20 按 Hugging Face 字節數 / $10^9$ 重算，四件合計 **40,073,842,159 字節（40.07 GB）**。
 
-    - int8 VAE `minimax_h3_video_vae_int8_convrot.safetensors`：2,811,065,184 字节（2.81 GB）。模板注释里的 2.62 是同一文件除以 $1024^3$。切换见 [fc427f0009](https://github.com/Comfy-Org/workflow_templates/commit/fc427f0009)（2026-09-22）；[原生说明](https://docs.comfy.org/tutorials/video/minimax/minimax-h3-native)已不列 fp16。旧 fp16 为 5,207,808,496 字节，四件精确 42.47 GB。
-    - 其余三件未改：pruned int8 20,970,379,616；nvfp4 文本编码器 15,687,142,551；音频 fp32 605,254,808。
-    - `minimax_h3_fl2va_pruned_w6a8.safetensors` 为 15,983,746,636 字节（**15.98 GB**），**不是**模板默认；默认仍是 pruned int8。同名 `ref2va` w6a8 字节数相同。
-    - [FastH3](https://github.com/Comfy-Org/workflow_templates/commit/0217ec3ef1)（2026-09-15）是 8-step int8；I2V continuation 最早提交 2026-08-25，9 月 22 日起同样用 int8 VAE。Union 2.0 int8 为 4,531,220,608 字节，加载支持在 [v0.38.0](https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.38.0)；当天的模板 JSON 仍下载旧 union int8（2,296,635,360 字节）。[v0.41.0](https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.41.0) 可加载 [LightVAE](https://huggingface.co/lightx2v/LightVAE)，发布说明没有峰值显存数字。许可仍是 [MiniMax H3 Community License](https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/main/LICENSE)。
+    - int8 VAE `minimax_h3_video_vae_int8_convrot.safetensors`：2,811,065,184 字節（2.81 GB）。模板註釋裡的 2.62 是同一文件除以 $1024^3$。切換見 [fc427f0009](https://github.com/Comfy-Org/workflow_templates/commit/fc427f0009)（2026-09-22）；[原生說明](https://docs.comfy.org/tutorials/video/minimax/minimax-h3-native)已不列 fp16。舊 fp16 為 5,207,808,496 字節，四件精確 42.47 GB。
+    - 其餘三件未改：pruned int8 20,970,379,616；nvfp4 文本編碼器 15,687,142,551；音頻 fp32 605,254,808。
+    - `minimax_h3_fl2va_pruned_w6a8.safetensors` 為 15,983,746,636 字節（**15.98 GB**），**不是**模板默認；默認仍是 pruned int8。同名 `ref2va` w6a8 字節數相同。
+    - [FastH3](https://github.com/Comfy-Org/workflow_templates/commit/0217ec3ef1)（2026-09-15）是 8-step int8；I2V continuation 最早提交 2026-08-25，9 月 22 日起同樣用 int8 VAE。Union 2.0 int8 為 4,531,220,608 字節，加載支持在 [v0.38.0](https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.38.0)；當天的模板 JSON 仍下載舊 union int8（2,296,635,360 字節）。[v0.41.0](https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.41.0) 可加載 [LightVAE](https://huggingface.co/lightx2v/LightVAE)，發佈說明沒有峰值顯存數字。許可仍是 [MiniMax H3 Community License](https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/main/LICENSE)。
 
 仓库的 `nvfp4_awq` 文本编码器并不要求 Blackwell GPU；模型卡建议在可用 PyTorch CUDA 13.0 的环境优先试 `int8_convrot` diffusion model，否则才考虑 `fp8_scaled`。这台 Win 机在 2026-07-10 的快照是 PyTorch 2.11/cu130，格式条件看起来匹配，但当时的 ComfyUI 仍是 0.22.0，低于 H3 教程要求的 0.30.0。**v0.33.1是2026-08-20的课程安装快照，并非2026-09-11的最新版承诺**。现在安装时应从[官方发布页](https://github.com/Comfy-Org/ComfyUI/releases)选择当前稳定版，并让对应模板完成依赖预检。
 

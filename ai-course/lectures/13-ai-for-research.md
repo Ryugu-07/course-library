@@ -116,15 +116,15 @@ LLM 做推导的特性必须先认清：它是**似然机器**（第 07 讲）�
 - **数值验证**：凡是能算的都让代码算——让它写个脚本对命题做随机数值检验（第 04 讲用数值梯度检查解析推导，就是这个思想）。数值不匹配 = 推导必有错，这是不会谄媚的裁判；
 - **形式化验证**（进阶）：Lean 4 等证明助手是幻觉的终极闸门——编译器不接受"看起来对"的证明。AI 辅助写形式化证明正在成为可用的工作流，数学背景的读者值得关注这个方向。
 
-!!! note "前沿补充（2026-10）：编译通过，证明的是哪一句"
-    Lean 编译通过 ≠ 语句忠实对应英文 ≠ 英文证明正确。这三问要分开，否则错译会被当成证明。
+!!! note "前沿補充（2026-10）：編譯通過，證明的是哪一句"
+    Lean 編譯通過 ≠ 語句忠實對應英文 ≠ 英文證明正確。這三問要分開，否則錯譯會被當成證明。
 
-    - 2026-10-06 公开的 [openai/math](https://github.com/openai/math)：未发布内部模型，719 篇、372 族。[history.md](https://github.com/openai/math/blob/main/history.md)（2026-10-07）为 **300/719，约 42%**。工具链 `leanprover/lean4:v4.34.1`，用 [comparator](https://github.com/leanprover/comparator) 核对。
-    - 同日撤回 3 篇：Weil classes on split abelian eightfolds 的符号错误，连带 Kuga–Satake 与 K3 乘积的有理 Hodge 猜想；另 14 篇修订。三篇都不在 [`formalization.yaml`](https://github.com/openai/math/blob/main/lean/formalization.yaml)，不是 Lean 抓住了符号错误。
-    - [`071`](https://github.com/openai/math/blob/main/lean/docs/071.md) 同时含可去边界刚性与圆域定理；[`084`](https://github.com/openai/math/blob/main/lean/docs/084.md) 只是 Erdős similarity 的二进情形；[`361`](https://github.com/openai/math/blob/main/lean/docs/361.md) 为维数 16、次数 50000，不含切锥与锥谱。
-    - [arXiv:2610.08144](https://arxiv.org/abs/2610.08144) Example 3.1：式 (8.19) 英文 $m+4$，Lean 为 $m+5$。作者不对英文证明是否正确下判断。
-    - Buzzard [2026-09-04](https://xenaproject.wordpress.com/2026/09/04/flt-anthropic-has-beaten-me-to-it/)：comparator 通过，超 1340 万行、11 天，顺着 Darmon–Diamond–Taylor。只说明形式化语句与所随文献对得上。
-    - 2026-10-07 的 [AHM 声明](https://terrytao.wordpress.com/2026/10/07/ahm-statement-on-openais-october-6-release-of-mathematical-documents/) 是陶哲轩博客上的客座文章，不是他本人的逐行审稿。
+    - 2026-10-06 公開的 [openai/math](https://github.com/openai/math)：未發佈內部模型，719 篇、372 族。[history.md](https://github.com/openai/math/blob/main/history.md)（2026-10-07）為 **300/719，約 42%**。工具鏈 `leanprover/lean4:v4.34.1`，用 [comparator](https://github.com/leanprover/comparator) 核對。
+    - 同日撤回 3 篇：Weil classes on split abelian eightfolds 的符號錯誤，連帶 Kuga–Satake 與 K3 乘積的有理 Hodge 猜想；另 14 篇修訂。三篇都不在 [`formalization.yaml`](https://github.com/openai/math/blob/main/lean/formalization.yaml)，不是 Lean 抓住了符號錯誤。
+    - [`071`](https://github.com/openai/math/blob/main/lean/docs/071.md) 同時含可去邊界剛性與圓域定理；[`084`](https://github.com/openai/math/blob/main/lean/docs/084.md) 只是 Erdős similarity 的二進情形；[`361`](https://github.com/openai/math/blob/main/lean/docs/361.md) 為維數 16、次數 50000，不含切錐與錐譜。
+    - [arXiv:2610.08144](https://arxiv.org/abs/2610.08144) Example 3.1：式 (8.19) 英文 $m+4$，Lean 為 $m+5$。作者不對英文證明是否正確下判斷。
+    - Buzzard [2026-09-04](https://xenaproject.wordpress.com/2026/09/04/flt-anthropic-has-beaten-me-to-it/)：comparator 通過，超 1340 萬行、11 天，順著 Darmon–Diamond–Taylor。只說明形式化語句與所隨文獻對得上。
+    - 2026-10-07 的 [AHM 聲明](https://terrytao.wordpress.com/2026/10/07/ahm-statement-on-openais-october-6-release-of-mathematical-documents/) 是陶哲軒博客上的客座文章，不是他本人的逐行審稿。
 
 推理模型（第 10 讲）在此场景显著强于即答模型，难推导务必用推理档并给足思考时间。
 
