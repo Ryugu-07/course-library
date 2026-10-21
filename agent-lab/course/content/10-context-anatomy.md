@@ -33,7 +33,7 @@
 !!! note "前沿補充（2026-10）：穩定前綴為什麼更便宜"
     前綴每次原樣放在開頭才能複用 KV、按 cache hit 計；改一個字或插入中間就會未命中。DeepSeek 要**整段對上**已落盤前綴，不是任意重疊。[緩存說明](https://api-docs.deepseek.com/guides/kv_cache)
 
-    2026-10-20 [定價](https://api-docs.deepseek.com/quick_start/pricing)：`deepseek-flash` 命中價為未命中的 1/50（淡季 0.003/0.15 美元，旺季 0.006/0.30 美元），輸出另計。[DeepInfer](https://github.com/deepseek-ai/DeepInfer) 沒有 KV cache 系統，這不是它的功能。
+    2026-10-20 [定價](https://api-docs.deepseek.com/quick_start/pricing)：`deepseek-flash`（模型版本 DeepSeek-V4.1-Flash-1017）命中價為未命中的 1/50（淡季 0.003/0.15 美元，旺季 0.006/0.30 美元），輸出另計。[DeepInfer](https://github.com/deepseek-ai/DeepInfer) 沒有 KV cache 系統，這不是它的功能。
 
 ## 4. 工具输出是最大噪声源
 
