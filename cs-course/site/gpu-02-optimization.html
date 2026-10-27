@@ -45,7 +45,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-27 03:32</div>
+    <div class="build-time">构建于 2026-10-28 02:18</div>
   </div>
 </nav>
 <main id="content">
@@ -64,7 +64,10 @@ try {
 <li><a href="#1-gpu">1. 占用率：先让 GPU 忙起来</a></li>
 <li><a href="#2-tiling">2. 内存优化：合并 + 共享内存 tiling</a></li>
 <li><a href="#3-warp">3. Warp 级原语：更细的协作</a></li>
-<li><a href="#4-attention-kernel-flashattention">4. 玩具 Attention Kernel:摸到 FlashAttention 的直觉</a></li>
+<li><a href="#4-attention-kernel-flashattention">4. 玩具 Attention Kernel:摸到 FlashAttention 的直觉</a><ul>
+<li><a href="#fa4">前沿选读：FA4 为什么还要改变流水线？</a></li>
+</ul>
+</li>
 <li><a href="#5">5. 优化闭环与工具</a></li>
 <li><a href="#6">6. 练习与要点</a></li>
 </ul>
@@ -93,7 +96,7 @@ gpu-01 让 kernel 能跑，这一页让它跑满硬件。GPU 优化是一条清�
 </div>
 <div class="learning-formal">
 <h3 id="_3">形式机制与不变量<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
-<p>矩阵乘每个输出需 \(K\) 次乘加。无 tiling 时全局读取量近似为 \(2MNK\)；理想 \(T\times T\) tile 时，读入量近似为 \(2MNK/T\)，复用因子约为 \(T\)。在线 softmax 对已处理块维护 \(m=\max x_i\)、\(l=\sum_i e^{x_i-m}\)、\(o=\sum_i e^{x_i-m}v_i\)。加入新块最大值 \(m'\) 时：</p>
+<p>矩阵乘每个输出需 \(K\) 次乘加。无 tiling 时全局读取量近似为 \(2MNK\)；理想 \(T\times T\) tile 时，读入量近似为 \(2MNK/T\)，复用因子约为 \(T\)。在线 softmax 对已处理块维护 \(m=\max x_i\)、\(l=\sum_i e^{x_i-m}\)、\(o=\sum_i e^{x_i-m}v_i\)。令更新后的总最大值 \(m'=\max(m,\max_j x_j)\) 时：</p>
 <p class="arithmatex">\(l'=e^{m-m'}l+\sum_j e^{x_j-m'},\qquad o'=e^{m-m'}o+\sum_j e^{x_j-m'}v_j,\qquad y=o'/l'.\)</p>
 <p>不变量是 \(y\) 与一次性 stable softmax 的结果相同，而中间 \(N\times N\) 分数不必写入 global memory。</p>
 </div>
@@ -148,10 +151,10 @@ gpu-01 让 kernel 能跑，这一页让它跑满硬件。GPU 优化是一条清�
 <p>限制占用率的资源：<strong>每线程用的寄存器数</strong>、<strong>每 block 用的共享内存</strong>、block 大小。用太多寄存器/共享内存 → 一个 SM 装不下几个 block → 占用率降。<strong>优化第一步：调 block 大小 + 控制寄存器/共享内存用量，把占用率提上去</strong>（NVIDIA 有占用率计算器）。但注意——<strong>占用率不是越高越好</strong>：够掩盖延迟即可，过度追求会牺牲每线程资源。这是第一个要测量而非猜的旋钮（perf-01 的科学方法在 GPU 上同样适用）。</p>
 <h2 id="2-tiling">2. 内存优化：合并 + 共享内存 tiling<a class="headerlink" href="#2-tiling" title="Permanent link"></a></h2>
 <figure class="diagram">
-<p><img alt="共享内存 tiling：把块搬进共享内存复用，全局访问从 O(1) 提到 O(块边长)。" src="assets/img/gpu-02-tiling.svg" /></p>
-<figcaption><span class="fig-id">图 gpu-02.3</span>共享内存 tiling：把块搬进共享内存复用，全局访问从 O(1) 提到 O(块边长)。</figcaption>
+<p><img alt="共享内存 tiling：把块搬进共享内存复用，每次全局读取的数据复用由常数次提高到约 tile 边长次。" src="assets/img/gpu-02-tiling.svg" /></p>
+<figcaption><span class="fig-id">图 gpu-02.3</span>共享内存 tiling：把块搬进共享内存复用，每次全局读取的数据复用由常数次提高到约 tile 边长次。</figcaption>
 </figure>
-<p><strong>GPU 绝大多数 kernel 是内存受限的</strong>（Roofline 落在带宽屋顶下，perf-01），所以内存优化收益最大：</p>
+<p>先用 Roofline 判断 kernel 是受内存带宽、计算还是其他流水阶段限制；内存受限时，减少访存往往比增加算术吞吐更有效：</p>
 <ul>
 <li><strong>合并访问</strong>（gpu-01 铁律）：确保 warp 内相邻线程读写相邻全局地址。转置、跨步访问要特别小心——常需重排数据布局或用共享内存中转。</li>
 <li><strong>共享内存 tiling【核心手法】</strong>：以矩阵乘 <span class="arithmatex">\(C=AB\)</span> 为例——朴素版每个线程从全局内存反复读 A 的行、B 的列（大量重复慢访问）。<strong>tiling 版</strong>：block 内线程<strong>协作</strong>把 A、B 的一个小块搬进共享内存（每个元素只从全局读一次），然后 block 内所有线程从<strong>快的共享内存</strong>反复复用这个块算局部积，算完换下一块。<strong>数据复用率从 O(1) 提到 O(块边长)</strong>——这正是 csapp-02/perf-02 分块思想的 GPU 化身，也是 GPU 矩阵乘/卷积/attention 的通用骨架。</li>
@@ -170,11 +173,42 @@ gpu-01 让 kernel 能跑，这一页让它跑满硬件。GPU 优化是一条清�
 <p><strong>读法</strong>：GPU 归约优化的阶梯 naive（全局内存原子加，慢）→ 共享内存树形归约 → warp shuffle，是[L08]要亲手走一遍的经典进化，<strong>每一级都在减少慢内存访问、增加片上协作</strong>。</p>
 <h2 id="4-attention-kernel-flashattention">4. 玩具 Attention Kernel:摸到 FlashAttention 的直觉<a class="headerlink" href="#4-attention-kernel-flashattention" title="Permanent link"></a></h2>
 <figure class="diagram">
-<p><img alt="FlashAttention：分块 + 在线 softmax，不落 N×N 中间矩阵，访存 O(N²)→O(N)。" src="assets/img/gpu-02-flash-attention.svg" /></p>
-<figcaption><span class="fig-id">图 gpu-02.1</span>FlashAttention：分块 + 在线 softmax，不落 N×N 中间矩阵，访存 O(N²)→O(N)。</figcaption>
+<p><img alt="FlashAttention 的三种成本：中间存储、算术量与跨 HBM/SRAM 的读写量必须分开。" src="assets/img/gpu-02-flash-attention.svg" /></p>
+<figcaption><span class="fig-id">图 gpu-02.1</span>FlashAttention 的三种成本：中间存储、算术量与跨 HBM/SRAM 的读写量必须分开。</figcaption>
 </figure>
 <p>现代大模型推理的核心算子是 <strong>attention</strong>：<span class="arithmatex">\(\text{softmax}(QK^T/\sqrt d)V\)</span>。朴素实现要<strong>先算出完整的 <span class="arithmatex">\(QK^T\)</span> 矩阵（<span class="arithmatex">\(N\times N\)</span>）存回全局内存、再 softmax、再乘 V</strong>——这个 <span class="arithmatex">\(N\times N\)</span> 中间矩阵是<strong>内存瓶颈</strong>（长序列时爆显存 + 大量慢访问）。</p>
-<p><strong>FlashAttention 的核心洞察</strong>（[实验 L09] 的目标）：<strong>不把 <span class="arithmatex">\(N\times N\)</span> 中间矩阵写回全局内存</strong>——用 tiling 把 Q、K、V 分块搬进共享内存，<strong>在片上流式地</strong>算局部 attention 并用"<strong>在线 softmax</strong>"（增量更新最大值和归一化因子，数值稳定）累积结果。<strong>中间矩阵从不落全局内存 → 内存访问量从 <span class="arithmatex">\(O(N^2)\)</span> 降到 <span class="arithmatex">\(O(N)\)</span></strong>，长序列大幅加速且省显存。</p>
+<p><strong>FlashAttention 的核心洞察</strong>（[实验 L09] 的目标）：<strong>不把 <span class="arithmatex">\(N\times N\)</span> 中间矩阵写回全局内存</strong>——用 tiling 把 Q、K、V 分块搬进共享内存，<strong>在片上流式地</strong>算局部 attention 并用"<strong>在线 softmax</strong>"（增量更新最大值和归一化因子，数值稳定）累积结果。省去完整注意力矩阵的显存存储，但各 tile 仍可能多次读取 Q/K/V；省空间不等于总访存量对序列长度线性。</p>
+<p>令 <span class="arithmatex">\(N\)</span> 为序列长度、<span class="arithmatex">\(d\)</span> 为每头维数，<span class="arithmatex">\(M\)</span> 为片上 SRAM 能容纳的<strong>标量个数</strong>（不是字节）。对稠密精确注意力，应分开三笔成本：</p>
+<table>
+<thead>
+<tr>
+<th>成本</th>
+<th>朴素实现</th>
+<th>FlashAttention 的含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HBM 中的输入、输出和中间状态</td>
+<td><span class="arithmatex">\(\Theta(Nd+N^2)\)</span> 存储</td>
+<td>不保存完整分数矩阵，约 <span class="arithmatex">\(O(Nd)\)</span> 存储，另有片上 tile</td>
+</tr>
+<tr>
+<td>算术工作</td>
+<td><span class="arithmatex">\(\Theta(N^2d)\)</span></td>
+<td>仍为 <span class="arithmatex">\(\Theta(N^2d)\)</span>，未把稠密注意力变成线性算法</td>
+</tr>
+<tr>
+<td>HBM 与 SRAM 之间的访问</td>
+<td>原论文模型为 <span class="arithmatex">\(\Theta(Nd+N^2)\)</span></td>
+<td>在 <span class="arithmatex">\(d\le M\le Nd\)</span> 的模型下为 <span class="arithmatex">\(\Theta(N^2d^2/M)\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>为什么第三行还有平方？一次能留在片上的 K/V 块宽约为 <span class="arithmatex">\(M/d\)</span>，需走过约 <span class="arithmatex">\(Nd/M\)</span> 个块；重复搬运的 <span class="arithmatex">\(Nd\)</span> 规模数据乘上遍历次数，得到 <span class="arithmatex">\(N^2d^2/M\)</span>。固定硬件的 <span class="arithmatex">\(M\)</span> 和 <span class="arithmatex">\(d\)</span>，把 <span class="arithmatex">\(N\)</span> 翻倍，这个访问量仍可能约增四倍。只有改变参数关系，才可能得到不同缩放。这个渐近模型不是 GPU 性能预测器。来源：<a href="https://arxiv.org/html/2205.14135v2#S3.SS2">原论文定理 2 与证明</a>。</p>
+<h3 id="fa4">前沿选读：FA4 为什么还要改变流水线？<a class="headerlink" href="#fa4" title="Permanent link"></a></h3>
+<p>2026-03-05 的 <a href="https://arxiv.org/html/2603.05451v1">FlashAttention-4 预印本</a> 研究 Blackwell 上矩阵运算能力增长快于其他部件的问题。分块仍必要，但指数计算、共享内存搬运等阶段可能成为新的限速环节。TMEM、2-CTA 协作和 CuTe DSL 是具体硬件/实现选择，不能直接移植为 4060 Ti 的加速保证。</p>
+<p><strong>一个不依赖跑卡的判断题：</strong>若某流水阶段原来矩阵运算需 10 单位、归一化需 4 单位，假定两阶段完全重叠，稳态周期至少为 <span class="arithmatex">\(\max(10,4)=10\)</span>。只让矩阵运算快四倍，周期下界变成 <span class="arithmatex">\(\max(2.5,4)=4\)</span>，整体至多快 2.5 倍。答案中的关键是瓶颈转移；实际同步、数据依赖还会增加时间。论文性能为作者测试，本课没有复现其内核。</p>
 <p><strong>这缝合了本站三条线</strong>：GPU tiling（本页）+ 数值稳定的 softmax（🔗 数学站/ai 课的 log-sum-exp 技巧）+ Roofline"减少内存访问"（perf 线）。<strong>[L09] 做一个玩具版</strong>——不追求生产性能，但走通"分块 + 在线 softmax + 不落中间矩阵"的核心思路，你就摸到了 vLLM/FlashAttention 这类引擎（mlsys-02）最关键内核的骨架。</p>
 <h2 id="5">5. 优化闭环与工具<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p>GPU 优化和 CPU 一样是<strong>测量驱动</strong>（perf-01）：</p>

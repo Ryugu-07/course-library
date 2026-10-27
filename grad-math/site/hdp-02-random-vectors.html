@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-10 19:07</div>
+    <div class="build-time">构建于 2026-10-28 02:18</div>
   </div>
 </nav>
 <main id="content">
@@ -92,7 +92,12 @@ try {
 <li><a href="#4_1">题4：看到随机图以后再选点，会发生什么？</a></li>
 </ul>
 </li>
-<li><a href="#_4">原始来源与后续</a></li>
+<li><a href="#7-kls">7. 研究阅读：KLS 怎样把方向尺度推广到函数波动</a><ul>
+<li><a href="#_4">从一个函数的方差开始</a></li>
+<li><a href="#_5">接上刚才的薄壳疑问</a></li>
+</ul>
+</li>
+<li><a href="#_6">原始来源与后续</a></li>
 </ul>
 </div>
 </details>
@@ -476,7 +481,44 @@ Q_{k+1}-1=\frac{k(Q_k-1)+(g_{k+1}^2-1)}{k+1}.
 这与固定点集的高概率定理不矛盾，因为点集现在依赖A。</p>
 <p>有限四阶矩可使固定方向的平方有有限方差，因而可用Chebyshev控制样本均值；但不自动有亚指数MGF。上面固定方向的指数Bernstein界失去前提，把多项式尾乘上指数大小的网无法保留同样样本量结论。可研究截断或稳健估计，但须给出新的估计量与矩条件，不能只把字母K换掉。</p>
 </details>
-<h2 id="_4">原始来源与后续<a class="headerlink" href="#_4" title="Permanent link"></a></h2>
+<h2 id="7-kls">7. 研究阅读：KLS 怎样把方向尺度推广到函数波动<a class="headerlink" href="#7-kls" title="Permanent link"></a></h2>
+<p>前面开关模型 <span class="arithmatex">\(X=SR\)</span> 已经说明：各向同性甚至统一的方向亚高斯界，也不保证 <span class="arithmatex">\(\|X\|^2\)</span> 集中。那还缺什么结构？一个重要答案是<strong>对数凹性</strong>：密度可写为 <span class="arithmatex">\(e^{-V(x)}\)</span>，其中 <span class="arithmatex">\(V\)</span> 是允许取 <span class="arithmatex">\(+\infty\)</span> 的凸函数。Gaussian 和凸体内的均匀分布属于这一类；两个分离半径层的开关分布不属于这里的对数凹密度类。</p>
+<h3 id="_4">从一个函数的方差开始<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>给定分布 <span class="arithmatex">\(\mu\)</span>，寻找最小常数 <span class="arithmatex">\(C_P(\mu)\)</span>，使适当的局部 Lipschitz、平方可积函数满足</p>
+<div class="arithmatex">\[
+\operatorname{Var}_\mu f\le C_P(\mu)\int\|\nabla f\|^2\,d\mu.
+\]</div>
+<p>左侧是函数值在样本间的波动，右侧是函数的局部变化能量。若函数变化很慢，样本值仍能大幅分成两团，就需要很大的 <span class="arithmatex">\(C_P\)</span>。这也是本课程 <a href="pde2-02-sobolev.html">Sobolev 与 Poincaré</a>中“减去均值后由导数控制函数”的概率版本。</p>
+<p>先测线性函数 <span class="arithmatex">\(f(x)=a^\top x\)</span>。其梯度为 <span class="arithmatex">\(a\)</span>，方差为 <span class="arithmatex">\(a^\top\Sigma a\)</span>，于是</p>
+<div class="arithmatex">\[
+a^\top\Sigma a\le C_P\|a\|^2
+\quad\Longrightarrow\quad
+C_P\ge\|\Sigma\|_{\mathrm{op}}.
+\]</div>
+<p>这是任何存在此不等式的分布都必须付出的代价。KLS 的难点是上界：<strong>对数凹分布中，最难控制的非线性函数，是否只比最坏线性方向难一个普适常数？</strong> 白化后 <span class="arithmatex">\(\Sigma=I\)</span>，问题变成能否有与维数无关的 <span class="arithmatex">\(C_P\le C\)</span>。</p>
+<p>Bizeul、Klartag、Lehec 于 <strong>2026-10-04</strong> 发布的 <a href="https://arxiv.org/html/2610.05474v1#S1">预印本 Theorem 1.1</a>给出这一主张：任意维数的各向同性对数凹测度有统一 Poincaré 常数。其证明结合高阶累积量、随机局部化与 tilt-average 导数判据；本课核读了主定理和指定证明环节，<strong>没有独立验算完整证明</strong>。这里把它作为有明确版本的研究阅读，不把预印本状态抹成“本课已经验收”。</p>
+<h3 id="_5">接上刚才的薄壳疑问<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p>接受该定理的条件与结论，再取 <span class="arithmatex">\(f(x)=\|x\|^2\)</span>。对数凹分布有所需矩；用截断逼近可纳入上述不等式。因 <span class="arithmatex">\(\nabla f=2x\)</span>、各向同性给 <span class="arithmatex">\(E\|X\|^2=d\)</span>，逐步得到</p>
+<div class="arithmatex">\[
+\operatorname{Var}(\|X\|^2)
+\le C E\|2X\|^2=4Cd.
+\]</div>
+<p>因此平方半径的相对均方波动至多为 <span class="arithmatex">\(2\sqrt{C/d}\)</span>。Chebyshev 还给出</p>
+<div class="arithmatex">\[
+\Pr\{|\|X\|^2-d|\ge\varepsilon d\}
+\le \frac{4C}{\varepsilon^2d}.
+\]</div>
+<p>这条推导只用了方差界，因此写出来的是多项式尾；不能把它直接改成 Gaussian 尾。更强的集中陈述需要额外论证。这也是研究结果的用途：辨明哪些结构让“线性方向受控”足以控制更广泛的观测量，而非重写 JL 已有的独立 Gaussian 证明。</p>
+<details class="answer">
+<summary>练习1：开关反例的方差是多少？它推翻 KLS 吗？</summary>
+<p><span class="arithmatex">\(\|X\|^2\)</span> 以各一半概率取 <span class="arithmatex">\(0\)</span> 或 <span class="arithmatex">\(2d\)</span>，所以均值为 <span class="arithmatex">\(d\)</span>、方差为 <span class="arithmatex">\(d^2\)</span>。固定普适 <span class="arithmatex">\(C\)</span> 时，它最终超过 <span class="arithmatex">\(4Cd\)</span>。但它不是定理所要求的对数凹分布，因此不能反驳定理。这个例子说明对数凹条件承担了实质工作，不能只保留“各向同性”几个字。</p>
+</details>
+<details class="answer">
+<summary>练习2：把所有坐标放大 10 倍，Poincaré 常数还应相同吗？</summary>
+<p>令 <span class="arithmatex">\(Y=10X\)</span>，对 <span class="arithmatex">\(g(x)=f(10x)\)</span> 有 <span class="arithmatex">\(\nabla g=10\nabla f(10x)\)</span>。因此 <span class="arithmatex">\(C_P(Y)=100C_P(X)\)</span>（反向缩放给另一边），协方差也放大 100 倍。故一般形式须比较 <span class="arithmatex">\(C_P\)</span> 与 <span class="arithmatex">\(\|\Sigma\|_{\mathrm{op}}\)</span>，而不能不经白化就宣称所有分布的常数相同。退化协方差则应先限制到分布的仿射支撑。</p>
+</details>
+<p><strong>版本与核读范围（2026-10-28 更新）：</strong> <a href="https://arxiv.org/abs/2610.05474v1">arXiv:2610.05474v1</a>，首发 2026-10-04，本次按预印本使用；读到引言/Theorem 1.1、§2 起始、§6 末的归纳收束与 §7 的 suspension 论证，没有逐项验算 §3–6 的全部估计。上述线性测试、缩放和开关反例由本课逐步给出，不冒充该论文的新证明。相关先修是概率积分、弱导数和凸性；随机局部化需要另学随机分析。</p>
+<h2 id="_6">原始来源与后续<a class="headerlink" href="#_6" title="Permanent link"></a></h2>
 <ul>
 <li><a href="https://arxiv.org/pdf/1612.06661">Vershynin：Four lectures on probabilistic methods for data science</a>，§1.5–1.6的随机向量/JL与§4.4的协方差。本文网论证、显式Gaussian维数预算、开关反例和二维账本均在正文给出计算，不要求读者凭引用补齐关键步骤。</li>
 <li><a href="https://arxiv.org/abs/1609.02094">Larsen–Nelson：Optimality of the Johnson–Lindenstrauss Lemma</a>，最坏情形非线性嵌入下界及其参数区间；本页引用结论，未展开其完整证明。</li>

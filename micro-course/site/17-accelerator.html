@@ -45,7 +45,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="21-closing.html">收官 · 约束下的设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-27 03:32</div>
+    <div class="build-time">构建于 2026-10-28 02:18</div>
   </div>
 </nav>
 <main id="content">
@@ -67,7 +67,10 @@ try {
 <li><a href="#_9">三、谱系：从通用到专用</a></li>
 <li><a href="#_10">四、设计的中心问题：数据流</a></li>
 <li><a href="#_11">五、超越数字：几条更激进的路线【前沿/未定】</a></li>
-<li><a href="#_12">六、系统视角：加速器不是孤岛</a></li>
+<li><a href="#_12">六、系统视角：加速器不是孤岛</a><ul>
+<li><a href="#maia-300">架构阅读：Maia 300 为什么强调局部性？</a></li>
+</ul>
+</li>
 <li><a href="#_13">七、要点</a></li>
 </ul>
 </div>
@@ -235,6 +238,14 @@ try {
 <li><strong>软件栈</strong>：编译器、算子库、框架支持。<strong>"性能达标但没人会用"是加速器项目最常见的死法</strong>——生态往往比硅片本身更难建立；</li>
 <li><strong>利用率</strong>：峰值算力（TOPS）与实际达成的算力常有巨大差距。<strong>"TOPS 数字"与第九页的"标称位数"、第四页的"节点名称"是同一类营销指标</strong>，看到就要追问实际利用率。</li>
 </ul>
+<h3 id="maia-300">架构阅读：Maia 300 为什么强调局部性？<a class="headerlink" href="#maia-300" title="Permanent link"></a></h3>
+<p>微软 <a href="https://azure.microsoft.com/en-us/blog/deep-dive-into-azure-maia-300-architecture/">2026-10-12 架构说明</a>给出的 Maia 300 配置包括 TSMC N2P、8 组 HBM4、每加速器 288 GB HBM 和 18 TB/s 聚合带宽，并把存储组织描述为跨 chiplet 的 NUMA。<strong>核对日期：2026-10-28；这些是厂商公布的架构参数，本课程没有运行该硬件。</strong></p>
+<p>这正好检验本课的数据流观点。想象一个解码算子反复读取同一组权重：把权重放在计算单元附近，可以减少跨 chiplet 搬运；如果划分不当，每轮都在远端读取，那么本地 HBM 带宽再大，也可能卡在互连或同步上。软件要同时安排“在哪里算”和“数据在哪里”，因此编译映射与硅片设计无法分开。</p>
+<p>用 Roofline 做一个<strong>理想上界算例</strong>：设算子计算强度为 2 op/byte，且真正能利用全部 18 TB/s，则带宽项为 36 TOPS；实际性能还要取峰值算力与该值的较小者，再考虑利用率、局部带宽和通信。不能把这个上界当作实测 tokens/s，也不能把机架内的多颗芯片当成一块无通信代价的大显存。</p>
+<details>
+<summary>迁移题：把机架内的加速器数量翻倍，推理吞吐是否必然翻倍？</summary>
+<p>先分清独立副本与同一模型的分片。独立副本受请求分配和负载不均衡影响；分片还要传激活或做集体通信。固定模型、精度、批量、上下文长度与延迟目标，测量有效吞吐，才能判断扩展收益。机架峰值和单请求延迟的分母不同。</p>
+</details>
 <h2 id="_13">七、要点<a class="headerlink" href="#_13" title="Permanent link"></a></h2>
 <ul>
 <li><strong>专用化的收益可以逐项拆解</strong>：省指令开销、定制数据通路、降低数制位宽、定制存储层次；</li>

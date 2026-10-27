@@ -19,6 +19,8 @@
 
   var NAME = "cs-mlsys-02-inference";
   var TICK = 0.1;
+  var OBSERVATION_TAIL = 1.4;
+  var EPSILON = 1e-9;
   var TRACE = [
     { id: "R01", at: 0.00, prompt: 18, output: 12 },
     { id: "R02", at: 0.10, prompt: 6, output: 2 },
@@ -40,6 +42,36 @@
     return sorted[Math.max(0, Math.ceil(fraction * sorted.length) - 1)];
   }
 
+  function summarize(requests, observationEnd, slo) {
+    var arrived = requests.filter(function (request) { return request.at <= observationEnd + EPSILON; });
+    var completed = arrived.filter(function (request) { return request.complete !== null && request.complete <= observationEnd + EPSILON; });
+    var ledger = arrived.map(function (request) {
+      var finished = request.complete !== null && request.complete <= observationEnd + EPSILON;
+      var firstSeen = request.first !== null && request.first <= observationEnd + EPSILON;
+      var elapsed = observationEnd - request.at;
+      var e2e = finished ? request.complete - request.at : null;
+      return {
+        id: request.id, at: request.at, completed: finished,
+        ttft: firstSeen ? request.first - request.at : null,
+        tpot: finished && request.output > 1 ? (request.complete - request.first) / (request.output - 1) : null,
+        e2e: e2e, elapsed: elapsed,
+        good: finished && e2e <= slo + EPSILON,
+        overdue: !finished && elapsed > slo + EPSILON
+      };
+    });
+    var metrics = ledger.filter(function (item) { return item.completed; });
+    var goodCount = metrics.filter(function (item) { return item.good; }).length;
+    return {
+      completed: completed, metrics: metrics, ledger: ledger,
+      arrivedCount: arrived.length, goodCount: goodCount,
+      backlog: arrived.length - completed.length,
+      p50: percentile(metrics.map(function (item) { return item.e2e; }), 0.5),
+      p95: percentile(metrics.map(function (item) { return item.e2e; }), 0.95),
+      goodput: goodCount / observationEnd,
+      qualifiedFraction: arrived.length ? goodCount / arrived.length : null
+    };
+  }
+
   function simulate(strategy, rate, batchSize, slo) {
     var factor = Math.max(0.25, Number(rate));
     var requests = TRACE.map(function (item) {
@@ -52,8 +84,10 @@
     var events = [];
     var kvPeak = 0;
     var lastArrival = requests[requests.length - 1].at;
+    // Continue the trace after this cutoff, but never count later work in window metrics.
+    var observationEnd = lastArrival + OBSERVATION_TAIL;
     var maxTicks = 220;
-    function addEvent(tick, message) { if (events.length < 80) events.push({ tick: tick, time: tick * TICK, message: message }); }
+    function addEvent(tick, message) { events.push({ tick: tick, time: tick * TICK, message: message }); }
     for (var tick = 0; tick < maxTicks; tick += 1) {
       var now = tick * TICK;
       while (arrivals < requests.length && requests[arrivals].at <= now + 1e-9) {
@@ -97,27 +131,26 @@
       }
       var kv = active.reduce(function (sum, request) { return sum + request.prompt + (request.output - request.remaining); }, 0);
       if (prefill) kv += prefill.requests.reduce(function (sum, request) { return sum + request.prompt; }, 0);
-      kvPeak = Math.max(kvPeak, kv);
+      if (now <= observationEnd + EPSILON) kvPeak = Math.max(kvPeak, kv);
       if (arrivals === requests.length && !queue.length && !active.length && !prefill) break;
     }
-    var completed = requests.filter(function (request) { return request.complete !== null; });
-    var metrics = completed.map(function (request) {
-      var ttft = request.first - request.at;
-      var tpot = request.output > 1 ? (request.complete - request.first) / (request.output - 1) : 0;
-      var e2e = request.complete - request.at;
-      return { id: request.id, at: request.at, ttft: ttft, tpot: tpot, e2e: e2e, good: e2e <= Number(slo) };
-    });
+    var summary = summarize(requests, observationEnd, Number(slo));
     return {
       strategy: strategy,
       requests: requests,
-      completed: completed,
-      metrics: metrics,
+      completed: summary.completed,
+      metrics: summary.metrics,
+      ledger: summary.ledger,
       events: events,
       kvPeak: kvPeak,
-      backlog: requests.length - completed.length,
-      p50: percentile(metrics.map(function (item) { return item.e2e; }), 0.5),
-      p95: percentile(metrics.map(function (item) { return item.e2e; }), 0.95),
-      goodput: metrics.filter(function (item) { return item.good; }).length / Math.max(lastArrival + 1.4, TICK),
+      observationEnd: observationEnd,
+      arrivedCount: summary.arrivedCount,
+      goodCount: summary.goodCount,
+      backlog: summary.backlog,
+      p50: summary.p50,
+      p95: summary.p95,
+      goodput: summary.goodput,
+      qualifiedFraction: summary.qualifiedFraction,
       slo: Number(slo)
     };
   }
@@ -150,9 +183,9 @@
       '[data-learning-lab="' + NAME + '"] .cmi-choices,[data-learning-lab="' + NAME + '"] .cmi-actions{display:flex;flex-wrap:wrap;gap:8px}[data-learning-lab="' + NAME + '"] .cmi-actions{margin-top:11px}' +
       '[data-learning-lab="' + NAME + '"] .cmi-feedback{min-height:2em;color:var(--fg-soft);font-size:13px}[data-learning-lab="' + NAME + '"] .cmi-revealed[hidden]{display:none}' +
       '[data-learning-lab="' + NAME + '"] .cmi-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:11px;border:1px solid var(--border);border-radius:7px;margin-top:14px}[data-learning-lab="' + NAME + '"] .cmi-control{display:grid;gap:4px;font-size:13px;font-weight:700}' +
-      '[data-learning-lab="' + NAME + '"] input[type=range]{width:100%;accent-color:var(--cmi-blue)}[data-learning-lab="' + NAME + '"] .cmi-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:12px 0}[data-learning-lab="' + NAME + '"] .cmi-metric{padding:7px;border-top:3px solid var(--cmi-blue);min-width:0}[data-learning-lab="' + NAME + '"] .cmi-metric span{display:block;color:var(--fg-soft);font-size:11px}[data-learning-lab="' + NAME + '"] .cmi-metric strong{display:block;overflow-wrap:anywhere}' +
+      '[data-learning-lab="' + NAME + '"] input[type=range]{width:100%;accent-color:var(--cmi-blue)}[data-learning-lab="' + NAME + '"] .cmi-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}[data-learning-lab="' + NAME + '"] .cmi-metric{padding:7px;border-top:3px solid var(--cmi-blue);min-width:0}[data-learning-lab="' + NAME + '"] .cmi-metric span{display:block;color:var(--fg-soft);font-size:11px}[data-learning-lab="' + NAME + '"] .cmi-metric strong{display:block;overflow-wrap:anywhere}' +
       '[data-learning-lab="' + NAME + '"] .cmi-table-wrap{overflow-x:auto;max-width:100%}[data-learning-lab="' + NAME + '"] table{border-collapse:collapse;width:100%;min-width:560px;font-size:12px;font-variant-numeric:tabular-nums;margin-top:12px}[data-learning-lab="' + NAME + '"] th,[data-learning-lab="' + NAME + '"] td{padding:6px 7px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}' +
-      '@media(max-width:760px){[data-learning-lab="' + NAME + '"] .cmi-controls{grid-template-columns:repeat(2,minmax(0,1fr)}[data-learning-lab="' + NAME + '"] .cmi-metrics{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:500px){[data-learning-lab="' + NAME + '"] .cmi-choices,[data-learning-lab="' + NAME + '"] .cmi-actions,[data-learning-lab="' + NAME + '"] .cmi-controls{display:grid;grid-template-columns:1fr}[data-learning-lab="' + NAME + '"] button{width:100%}[data-learning-lab="' + NAME + '"] .cmi-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}';
+      '@media(max-width:760px){[data-learning-lab="' + NAME + '"] .cmi-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:500px){[data-learning-lab="' + NAME + '"] .cmi-choices,[data-learning-lab="' + NAME + '"] .cmi-actions,[data-learning-lab="' + NAME + '"] .cmi-controls{display:grid;grid-template-columns:1fr}[data-learning-lab="' + NAME + '"] button{width:100%}[data-learning-lab="' + NAME + '"] .cmi-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}';
     doc.head.appendChild(style);
   }
 
@@ -204,19 +237,24 @@
     controls.appendChild(element(doc, "label", { className: "cmi-control" }, ["最大 batch = ", batchOut, batch]));
     controls.appendChild(element(doc, "label", { className: "cmi-control" }, ["E2E SLO = ", sloOut, " s", slo]));
     revealed.appendChild(controls);
+    var windowNote = element(doc, "p", { className: "cmi-note" });
+    revealed.appendChild(windowNote);
     var metrics = element(doc, "div", { className: "cmi-metrics" });
     var metricP50 = element(doc, "div", { className: "cmi-metric" });
     var metricP95 = element(doc, "div", { className: "cmi-metric" });
     var metricGood = element(doc, "div", { className: "cmi-metric" });
+    var metricQualified = element(doc, "div", { className: "cmi-metric" });
     var metricBacklog = element(doc, "div", { className: "cmi-metric" });
     var metricKV = element(doc, "div", { className: "cmi-metric" });
-    [metricP50, metricP95, metricGood, metricBacklog, metricKV].forEach(function (node) { metrics.appendChild(node); });
+    [metricP50, metricP95, metricGood, metricQualified, metricBacklog, metricKV].forEach(function (node) { metrics.appendChild(node); });
     revealed.appendChild(metrics);
+    revealed.appendChild(element(doc, "p", { className: "cmi-note", text: "† p50/p95 只描述窗内完成样本；有未完成请求时，不能当作全部到达请求的延迟分布。合格完成占比 = 窗内完成且 E2E 达标 / 窗内全部到达；未完成仍留在分母，这不是无限等待后的最终 SLO 通过率。" }));
     var table = element(doc, "table", { "aria-label": "请求级推理指标" });
-    table.innerHTML = "<thead><tr><th>请求</th><th>TTFT</th><th>TPOT</th><th>E2E</th><th>SLO</th></tr></thead><tbody></tbody>";
+    table.innerHTML = "<thead><tr><th>请求</th><th>TTFT / s</th><th>TPOT / s</th><th>E2E / s</th><th>SLO</th></tr></thead><tbody></tbody>";
     var eventTable = element(doc, "table", { "aria-label": "scheduler 事件 trace" });
-    eventTable.innerHTML = "<thead><tr><th>tick</th><th>时间</th><th>事件</th></tr></thead><tbody></tbody>";
+    eventTable.innerHTML = "<thead><tr><th>tick</th><th>时间 / s</th><th>事件</th><th>统计范围</th></tr></thead><tbody></tbody>";
     revealed.appendChild(element(doc, "div", { className: "cmi-table-wrap" }, table));
+    revealed.appendChild(element(doc, "p", { className: "cmi-note", text: "下方保留完整事件顺序；观察窗后的执行只用于追踪等待与完成，不计入上方统计。" }));
     revealed.appendChild(element(doc, "div", { className: "cmi-table-wrap" }, eventTable));
     shell.appendChild(revealed);
     root.appendChild(shell);
@@ -225,17 +263,28 @@
       rateOut.textContent = rate.value;
       batchOut.textContent = batch.value;
       sloOut.textContent = slo.value;
-      metricP50.innerHTML = "<span>完成 E2E p50</span><strong>" + (data.p50 === null ? "—" : data.p50.toFixed(2) + " s") + "</strong>";
-      metricP95.innerHTML = "<span>完成 E2E p95†</span><strong>" + (data.p95 === null ? "—" : data.p95.toFixed(2) + " s") + "</strong>";
-      metricGood.innerHTML = "<span>goodput</span><strong>" + data.goodput.toFixed(2) + " req/s</strong>";
-      metricBacklog.innerHTML = "<span>未完成</span><strong>" + data.backlog + "</strong>";
-      metricKV.innerHTML = "<span>KV 峰值</span><strong>" + data.kvPeak + " token</strong>";
-      table.querySelector("tbody").innerHTML = data.metrics.map(function (item) {
-        return "<tr><th>" + item.id + "</th><td>" + item.ttft.toFixed(2) + "</td><td>" + item.tpot.toFixed(2) + "</td><td>" + item.e2e.toFixed(2) + "</td><td>" + (item.good ? "通过" : "超时") + "</td></tr>";
-      }).join("") || "<tr><td colspan=\"5\">观察窗内没有完成请求。</td></tr>";
-      eventTable.querySelector("tbody").innerHTML = data.events.map(function (item) {
-        return "<tr><th>" + item.tick + "</th><td>" + item.time.toFixed(1) + "</td><td>" + item.message + "</td></tr>";
+      windowNote.textContent = "观察窗 [0, " + data.observationEnd.toFixed(2) + "] s：最后到达时刻 + 1.40 s；改变到达倍率会改变本次 trace 和终点，比较策略时保持倍率相同。窗内到达 " + data.arrivedCount + "，完成 " + data.completed.length + "，达标完成 " + data.goodCount + "。";
+      metricP50.innerHTML = "<span>窗内完成 E2E p50†</span><strong>" + (data.p50 === null ? "—" : data.p50.toFixed(2) + " s") + "</strong>";
+      metricP95.innerHTML = "<span>窗内完成 E2E p95†</span><strong>" + (data.p95 === null ? "—" : data.p95.toFixed(2) + " s") + "</strong>";
+      metricGood.innerHTML = "<span>达标完成 / 观察时长</span><strong>" + data.goodput.toFixed(2) + " req/s</strong>";
+      metricQualified.innerHTML = "<span>合格完成占比</span><strong>" + data.goodCount + " / " + data.arrivedCount + "</strong>";
+      metricBacklog.innerHTML = "<span>窗末未完成</span><strong>" + data.backlog + "</strong>";
+      metricKV.innerHTML = "<span>窗内 KV 峰值</span><strong>" + data.kvPeak + " token</strong>";
+      table.querySelector("tbody").innerHTML = data.ledger.map(function (item) {
+        var ttft = item.ttft === null ? "> " + item.elapsed.toFixed(2) + "（未见首 token）" : item.ttft.toFixed(2);
+        var tpot = item.tpot === null ? "—" : item.tpot.toFixed(2);
+        var e2e = item.completed ? item.e2e.toFixed(2) : "> " + item.elapsed.toFixed(2) + "（截尾）";
+        var status = item.completed ? (item.good ? "达标完成" : "完成但超时") : (item.overdue ? "未完成；已超时" : "未完成；最终 SLO 尚未判定");
+        return "<tr><th>" + item.id + "</th><td>" + ttft + "</td><td>" + tpot + "</td><td>" + e2e + "</td><td>" + status + "</td></tr>";
       }).join("");
+      var windowMarked = false;
+      var marker = "<tr><th>—</th><td>" + data.observationEnd.toFixed(2) + "</td><td>观察窗结束</td><td>统计截止</td></tr>";
+      eventTable.querySelector("tbody").innerHTML = data.events.map(function (item) {
+        var inside = item.time <= data.observationEnd + EPSILON;
+        var prefix = !inside && !windowMarked ? marker : "";
+        if (!inside) windowMarked = true;
+        return prefix + "<tr><th>" + item.tick + "</th><td>" + item.time.toFixed(1) + "</td><td>" + item.message + "</td><td>" + (inside ? "窗内" : "窗后；不计统计") + "</td></tr>";
+      }).join("") + (windowMarked ? "" : marker);
     }
     form.addEventListener("submit", function (event) {
       event.preventDefault();
@@ -263,6 +312,26 @@
     check(immediate.kvPeak >= 18 && continuous.kvPeak >= 18, "KV accounting has prompt tokens");
     check(immediate.events.length > 0 && immediate.events[0].message.indexOf("到达") === 0, "event trace starts with arrival");
     check(continuous.metrics.every(function (item) { return item.e2e >= item.ttft; }), "E2E includes TTFT");
+    var compressedImmediate = simulate("immediate", 2, 2, 4);
+    var compressedStatic = simulate("static", 2, 2, 4);
+    var compressedContinuous = simulate("continuous", 2, 2, 4);
+    check(Math.abs(compressedImmediate.observationEnd - 2.45) < EPSILON && compressedImmediate.observationEnd === compressedContinuous.observationEnd, "strategy comparison fixes the observation window");
+    check(compressedImmediate.completed.length === 4 && compressedImmediate.backlog === 4 && compressedStatic.completed.length === 5 && compressedStatic.backlog === 3, "late completions remain backlog at the cutoff");
+    check(Math.abs(compressedImmediate.goodput - 4 / 2.45) < EPSILON && Math.abs(compressedContinuous.goodput - 8 / 2.45) < EPSILON, "goodput counts only qualified window completions");
+    check(compressedImmediate.goodCount === 4 && compressedImmediate.arrivedCount === 8 && compressedImmediate.qualifiedFraction === 0.5, "unfinished arrivals stay in the qualified-completion denominator");
+    check(Math.abs(compressedImmediate.p95 - 2.11) < EPSILON, "completed-sample percentile excludes window-late completions");
+    check(compressedImmediate.ledger.length === 8 && compressedImmediate.ledger[7].ttft === null && compressedImmediate.ledger[7].e2e === null, "unfinished rows do not leak future metrics");
+    check(compressedImmediate.requests[7].complete > compressedImmediate.observationEnd && compressedImmediate.events.some(function (event) { return event.message === "完成 R08"; }), "full post-window trace remains available");
+    var boundary = summarize([
+      { id: "on", at: 0, first: 0.1, complete: 0.3, output: 3 },
+      { id: "after", at: 0, first: 0.1, complete: 0.3001, output: 3 },
+      { id: "not-arrived", at: 0.4, first: null, complete: null, output: 1 }
+    ], 0.3, 0.3);
+    check(boundary.completed.length === 1 && boundary.goodCount === 1 && boundary.arrivedCount === 2 && boundary.backlog === 1, "cutoff is inclusive; later completion and later arrival are distinct");
+    var empty = summarize([{ id: "waiting", at: 0, first: null, complete: null, output: 1 }], 0.3, 0.2);
+    check(empty.p50 === null && empty.p95 === null && empty.goodput === 0 && empty.backlog === 1 && empty.ledger[0].overdue, "no completion yields no percentile and retains the overdue request");
+    var singleToken = summarize([{ id: "one", at: 0, first: 0.2, complete: 0.2, output: 1 }], 0.3, 0.3);
+    check(singleToken.metrics[0].tpot === null, "one-token output has no inter-token interval");
     return { checks: checks };
   }
 

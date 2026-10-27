@@ -1,5 +1,7 @@
 # 2026-10-21 前沿批次的來源核驗
 
+> 這是原批次的歷史記錄。2026-10-28 整合時修正下文 DeepInfer 的範圍誤讀，並重核 H3/Qwen/Lean 及兩項材料來源；目前實施、版本與驗收以 [10 月 28 日記錄](frontier-maintenance-2026-10-28.json)為準，原批次測試不當作本輪測試。
+
 抓取發生在 2026-10-20 UTC（北京時間已是 2026-10-21）。賬本裡本次改過的 `verified_on` 寫 2026-10-20，與 HTTP 響應日期一致。沒有下載模型，沒有在 4060 Ti 上推理，沒有重跑 Lean 或 DeepInfer 的性能圖。
 
 ## 寫入課程的核對
@@ -10,7 +12,7 @@
 - AHM 聲明是陶哲軒博客上的客座轉載。正文沒有寫成“陶哲軒本人批評”。
 - MiniMax H3：模板提交 `fc427f0009`（2026-09-22）把視頻 VAE 換成 int8。四件套字節來自 Hugging Face tree API，十進制合計 40,073,842,159（約 40.1 GB）。舊 42.5 GB 保留，並註明精確字節合計 42.47 GB。模板註釋裡的 2.62 GB 是同一 int8 文件的 GiB。`pruned_w6a8` 為 15,983,746,636 字節，但不是當前 T2V 模板默認文件。Union 2.0 權重在模型倉庫，當前 fun-controlnet 模板仍指向較早的 union int8 文件。LightVAE 只記 v0.41.0 的加載支持，沒有峰值顯存數字。許可鏈接仍是 MiniMax H3 Community License。
 - Qwen-Image-2.1-Turbo：官方 README 新聞日期 2026-10-09，8 步，默認 CFG 1，許可證名 `qwen-research`。Comfy 模板提交是 2026-10-13，不是研究筆記裡的 10-14。union fun ControlNet 與 tiny VAE 的核心支持在 ComfyUI v0.38.0；tiny VAE 權重是 taesd 的 `.pth`，不在三件套目錄。int8/int4 cache 崩潰修復寫在 v0.39.0 發佈說明，沒有復現。OpenVINO 條目在 README 中標為 2026-09-20。`templates/` 下沒有 2.1 ControlNet 模板 JSON。
-- DeepInfer 與 deepseek-recipe：範圍、缺省的 KV cache / 分離式 prefill-decode / 副本均衡、Apache-2.0 與 MIT，均按兩個倉庫 README 與 LICENSE。性能圖標為作者自測。前綴命中規則與 `deepseek-flash` 的命中/未命中價格來自 DeepSeek API 文檔當天頁面；1/50 是用價目表兩行相除，並寫明價格會變。DeepInfer 不包含 KV cache，因此沒有把命中計價算進該倉庫。
+- DeepInfer 與 deepseek-recipe：原批次依 README 與 LICENSE 核對 Apache-2.0 與 MIT，性能圖標為作者自測。**2026-10-28 更正：**原記錄將「未公開完整 KV cache 服務系統」誤讀成「不包含 KV cache」；公開引擎仍有 KV 狀態管理，未公開的完整緩存服務、分離式 prefill-decode 與副本均衡須另看範圍。前綴命中規則與 `deepseek-flash` 的命中/未命中價格來自托管 API 文檔；1/50 是當天價目表兩行相除，不能由離線引擎推出托管計費。10 月 28 日課程並補完整持久化前綴單元的匹配條件。
 - DeepSeek Harness：README 仍為 developer preview、MIT。最新標籤 `dsh-v0.2.1-rc.2`，對應提交 2026-10-17。架構文檔仍有 Cordis、profile/bundle、會話日誌、guarded tool；Desktop 寫成 Electron 宿主。webhook 行仍在“新行為放哪裡”的表裡，所以沒有寫成“webhook 已刪除”。
 - SWE-agent：README 警告寫明 mini-swe-agent 已取代它。main 上能看到的最近提交是 2026-07-16。mini-swe-agent 最新 release 仍是 v2.4.6（2026-07-23），README 仍描述約百行、僅 Bash、線性歷史、`subprocess.run`。沒有核實“橫幅從 2026 年 2 月就在”這一句。
 - Qwen3.8-27B：GitHub 最近提交 2026-08-17；模型卡仍是 Apache-2.0、image-text-to-text，並寫明兼容 Transformers、vLLM、SGLang。AI 第 10/19 講正文未改。

@@ -96,7 +96,13 @@
         if (xmin === xmax) { xmin -= 0.5; xmax += 0.5; }
         const ymin = Math.min(0, ...points.map(p => p[1])), ymax = Math.max(0, ...points.map(p => p[1]));
         const pad = Math.max((ymax - ymin) * 0.07, 1e-10);
-        const lo = ymin - pad, hi = ymax + pad;
+        let lo = ymin - pad, hi = ymax + pad;
+        if (chart.equalScale) {
+          const unit = Math.max((xmax-xmin)/(W-left-right), (hi-lo)/(H-top-bottom));
+          const cx = (xmin+xmax)/2, cy = (lo+hi)/2;
+          xmin = cx-unit*(W-left-right)/2; xmax = cx+unit*(W-left-right)/2;
+          lo = cy-unit*(H-top-bottom)/2; hi = cy+unit*(H-top-bottom)/2;
+        }
         const X = x => left + (x - xmin) / (xmax - xmin) * (W - left - right);
         const Y = y => top + (hi - y) / (hi - lo) * (H - top - bottom);
         const g = svg("svg", { className: "rs-chart", viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": chart.title + "；横轴：" + chart.xlabel + "；纵轴：" + chart.ylabel }, [
@@ -114,13 +120,15 @@
         const palette = ["#497ec5", "#c65c3d", "#20876c", "#9868b4"];
         const patterns = ["none", "8 4", "2 5", "10 3 2 3"];
         chart.series.forEach(function (s, i) {
-          g.appendChild(svg("polyline", { points: s.points.map(p => `${X(p[0])},${Y(p[1])}`).join(" "), fill: "none", stroke: s.color || palette[i % 4], "stroke-width": 3, "stroke-dasharray": s.dash || patterns[i % 4] }));
+          if (s.dots) {
+            s.points.forEach(p => g.appendChild(svg("circle", { cx: X(p[0]), cy: Y(p[1]), r: 6, fill: s.color || palette[i % 4], className: "rs-data-point" })));
+          } else g.appendChild(svg("polyline", { points: s.points.map(p => `${X(p[0])},${Y(p[1])}`).join(" "), fill: "none", stroke: s.color || palette[i % 4], "stroke-width": 3, "stroke-dasharray": s.dash || patterns[i % 4] }));
         });
         if (chart.marker && chart.marker.every(Number.isFinite)) g.appendChild(svg("circle", { cx: X(chart.marker[0]), cy: Y(chart.marker[1]), r: 6, fill: "none", stroke: "currentColor", "stroke-width": 2 }));
         const legend = el("figcaption", {}, chart.series.map(function (s, i) {
-          return el("div", {}, [svg("svg", { viewBox: "0 0 44 20", "aria-hidden": "true" }, svg("path", { d: "M1,10H43", stroke: s.color || palette[i % 4], "stroke-width": 3, "stroke-dasharray": s.dash || patterns[i % 4] })), s.label]);
+          return el("div", {}, [svg("svg", { viewBox: "0 0 44 20", "aria-hidden": "true" }, s.dots ? svg("circle", { cx: 22, cy: 10, r: 6, fill: s.color || palette[i % 4] }) : svg("path", { d: "M1,10H43", stroke: s.color || palette[i % 4], "stroke-width": 3, "stroke-dasharray": s.dash || patterns[i % 4] })), s.label]);
         }));
-        legend.appendChild(el("p", {}, "纵轴：" + chart.ylabel + "。坐标范围随数据缩放；离散数据之间的连线仅便于阅读。"));
+        legend.appendChild(el("p", {}, "纵轴：" + chart.ylabel + "。" + (chart.equalScale ? "横纵坐标采用相同单位长度。" : "坐标范围随数据缩放；") + "离散数据之间的连线仅便于阅读。"));
         return el("figure", {}, [g, legend]);
       }
       function render() {

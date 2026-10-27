@@ -103,6 +103,12 @@ $$
 
 一手入口：[Qwen3.8 官方仓库](https://github.com/QwenLM/Qwen3.8)；[Qwen3.8-27B 官方模型卡](https://huggingface.co/Qwen/Qwen3.8-27B)。
 
+### 2026-10-28 选型卡：GPT-6.1 Terra
+
+[官方模型文档](https://developers.openai.com/api/docs/models/gpt-6.1-terra)将 `gpt-6.1-terra` 定位在快速视觉推理、computer use 和写作；输入为文本/图像，输出为文本，工具调用要求 Responses API。它可进入“看截图、选操作、复核结果”这类工作流的候选集，但模型能够提出动作不等于宿主已经授权执行，也不能由 computer use 推断真实机器人能力。
+
+把这一发布放进本讲的选型协议：固定同一组截图/任务、工具和权限，记录任务成功率、误操作、重试、人工修订量与总费用，再与已有候选比较。厂商自己的基准只是筛选线索，本课没有进行这组模型实测。实际价格与上下文分档以[官方定价](https://developers.openai.com/api/docs/pricing)为准；不要用一个无日期的单价覆盖所有服务档位。
+
 ## 2. 选型的六个维度
 
 1. **能力匹配**：先写任务的瓶颈和失败代价，再选候选，不要从模型名倒推用途；

@@ -106,16 +106,17 @@
 
 TTFT 里包含排队与 prefill；TPOT 主要暴露 decode 阶段；E2E 则是两者的总账。一个长回答可以 TTFT 很好但 E2E 很差，一个短回答可以 TPOT 很好却因为排队而完全错过 SLO。报告时至少把这三列一起报出，而不是用一个平均 latency 代替。
 
-### 边界框：推理服务不是 Agent harness
+### 边界框：引擎、服务控制与 Agent harness
 
-本讲的 serving engine 接收 token/多模态输入，管理 batch、prefill、decode、KV-cache 和流式返回；它回答“怎样把一次模型请求高效执行”。Agent harness 位于外层，负责选择何时请求模型、给哪些工具、怎样保存会话、哪些动作需要审批、如何验证任务，以及失败后是否继续。两层通过 API 相连，却不能互相冒充：
+本讲的 serving engine 接收 token/多模态输入，管理 batch、prefill、decode、KV-cache 和流式返回；它回答“怎样执行模型请求”。当引擎有多个副本，还需要服务控制层决定请求去哪里、哪些租户先得到资源、升级时哪些实例能配对。Agent harness 位于外层，负责选择何时请求模型、给哪些工具、怎样保存任务、哪些动作需要审批、如何验证结果，以及失败后是否继续。三层的状态和责任不同：
 
 | 层 | 典型状态 | 典型指标 |
 |---|---|---|
-| 推理服务 | 请求队列、KV 页、batch、token stream | TTFT、TPOT、吞吐、峰值显存、错误率 |
+| 推理引擎 | 本地请求队列、KV 页、batch、token stream | 计算阶段延迟、吞吐、峰值显存 |
+| 服务控制 | 副本负载、租户队列、缓存位置、版本与健康状态 | 请求端到端延迟、各租户 goodput、拒绝率、升级故障 |
 | Agent harness | 任务、工具结果、权限、补丁、验证与轨迹 | 任务成功率、错误完成、安全事件、总 token/时间、可恢复性 |
 
-例如 Qwen3.8-27B 可以由 Transformers、SGLang 或 vLLM 暴露成兼容 API，再接入某个 coding harness；换 serving engine 可能改变延迟、吞吐和支持的工具调用解析，换 harness 可能改变上下文、工具、验证和任务结果。任何端到端对比都要同时记录两层版本。一次任务的总时间还应写成近似分解：
+例如模型可以通过兼容的 SGLang 或 vLLM 服务接入 coding harness；换引擎可能改变计算效率和工具调用解析，换路由政策可能改变排队和缓存复用，换 harness 可能改变上下文、工具与验证。端到端对比要同时记录这三层的版本和配置。一次任务的总时间还应写成近似分解：
 
 $$
 T_{task}=\sum_{j=1}^{N_{model}}T_{serve,j}+T_{tools}+T_{verification}+T_{queue/approval},
@@ -136,8 +137,22 @@ $$
 
 本讲的 continuous/dynamic batching 是教学抽象，不是某个系统的复刻。Orca（Yu et al., OSDI 2022）把调度粒度从“整个请求”推进到“单次 iteration”，解释了为什么一个 batch 内先完成的序列不必继续绑住整个 batch；可读其 [OSDI 论文](https://www.usenix.org/system/files/osdi22-yu.pdf)。vLLM 的 PagedAttention（Kwon et al., 2023）把 KV-cache 的内存管理作为服务吞吐的重要问题，见 [arXiv:2309.06180](https://arxiv.org/abs/2309.06180)。Sarathi-Serve（Agrawal et al., OSDI 2024）进一步讨论 chunked-prefill 与 decode 互相干扰的 throughput–latency trade-off，见 [USENIX OSDI 2024 页面](https://www.usenix.org/conference/osdi24/presentation/agrawal)。这些论文中的实验数字、硬件与实现都不应替换本讲的固定 toy 容量。
 
-!!! note "前沿補充（2026-10）：DeepInfer 是生產引擎，不是本講的玩具調度器"
-    [DeepInfer](https://github.com/deepseek-ai/DeepInfer)（Apache-2.0）是 DeepSeek-V4.1-Flash 的離線生產引擎（NVIDIA SM100、昇騰 950），在指定硬件上跑模型，不是上一節那個比較排隊賬本的玩具。這次發佈**沒有** KV cache 系統，也**沒有** prefill/decode 分離部署和跨副本負載均衡，所以不能把它讀成本講服務棧已經開源。倉庫裡的性能圖是作者自測，本講沒有複測。提示詞渲染是旁邊的 [deepseek-recipe](https://github.com/deepseek-ai/deepseek-recipe)（MIT），它不推理。
+### 从引擎到持续服务：2026-10 的两个案例
+
+[DeepInfer 的公开 README](https://github.com/deepseek-ai/DeepInfer)说明它源自 DeepSeek 的生产推理框架，但本次公开范围是**离线推理与核心引擎功能**，支持列表列出 DeepSeek-V4.1-Flash、NVIDIA SM100 与昇腾 950，代码为 Apache-2.0。完整服务所需的 KV 缓存系统、VE/Prefill/Decode 分离部署、跨数据并行副本的负载均衡未随这次发布完整提供。**这不等于引擎没有 KV 缓存**：[缓存源码](https://github.com/deepseek-ai/DeepInfer/blob/main/deepinfer/worker/cache_engine.py)已有 `KVCache`、`StateBlock`、`KVCacheManager` 等内部结构。单个工作进程知道怎样保存缓存，与完整服务知道缓存在哪里、请求如何去利用它，是不同问题。其性能图是指定硬件的作者测量，本课没有复跑。
+
+[llm-d 1.0 发布说明，2026-10-20](https://llm-d.ai/blog/llm-d-v1.0-state-of-the-art-inference-ready-for-day-2)则把重点放在持续运营：在既有缓存感知路由和 prefill/decode 分离之上，增加按租户与优先级组织的流控，并在升级时按版本和就绪状态选择兼容的 prefill/decode 实例。多租户策略需要启用；默认行为仍近似先到先服务。它与 DeepInfer 在这里构成**层次对照**，不是已经验证的直接集成方案。Prefill/decode 分离的收益还要扣除 KV 传输和资源不均衡，不能只数多了几台机器。
+
+用一个教学情境看清这种区分：甲租户提交一百个长摘要，乙租户只提交一次交互查询。即使两者共享的引擎单请求速度没有变化，FIFO 下乙仍可能等很久。分租户调度能改变等待的分配，却不会凭空增大硬件容量；保护乙的时限，可能让甲的批任务更晚完成。应分别报告甲、乙的 goodput 和拒绝率，而不只报告总体 token/s。
+
+缓存亲和性也有相同取舍。若副本 A 保留会话前缀，却已经拥堵，继续把所有后续轮次送往 A 可能抵消省下的 prefill 时间。比较的量应包含“排队 + 复用或重算 + 必要传输”，而不是单独最大化缓存命中率。llm-d 的会话路由会在饱和时重新分配，正是在处理这一类取舍；它仍不负责决定 Agent 应该运行什么工具或是否完成任务。
+
+<details markdown="1"><summary>思考：缓存命中率上升、总体吞吐不变，能否宣布升级成功？</summary>
+
+不能直接宣布。先固定请求分布、统计窗口和 SLO，再检查各租户 TTFT、E2E、goodput、超时与拒绝。如果命中率提高却把交互流量集中到拥堵副本，用户可能更慢；如果增加拒绝使已完成样本变短，漂亮的延迟也可能来自分母变化。还应检查升级时旧 prefill 和新 decode 是否兼容。引擎基准没有覆盖这些运营问题。
+</details>
+
+上述两项目正文及缓存结构核对于 **2026-10-28**；本课未部署服务、未验证生产收益。
 
 术语口径也要看定义而不是只看缩写：NVIDIA 的 [NIM metrics 文档](https://docs.nvidia.com/nim/benchmarking/llm/latest/metrics.html)把 TTFT 定义为提交请求到收到首 token 的时间，并将 ITL 称为 TPOT；它还提醒具体工具是否包含 TTFT、网络或空响应会影响可比性。本讲的 TTFT/TPOT 公式是为固定 toy ledger 明确写出的请求级定义，不能直接与任何产品报告的数字横比。
 

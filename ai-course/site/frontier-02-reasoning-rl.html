@@ -49,7 +49,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 世界模型与具身智能</div><ul><li><a href="research-05-latent-world-model.html">世界模型 I · 潜在动力学</a></li><li><a href="research-06-model-based-planning.html">世界模型 II · 基于模型的规划</a></li><li><a href="research-07-vision-language-action.html">具身 I · 视觉语言动作模型</a></li><li><a href="research-08-embodied-evaluation.html">具身 II · 泛化与任务评估</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 07:32</div>
+    <div class="build-time">构建于 2026-10-28 02:18</div>
   </div>
 </nav>
 <main id="content">
@@ -63,7 +63,10 @@ try {
 <li><a href="#p0201k4">静态实验后备：p=0.2、α=0.1、k=4</a></li>
 </ul>
 </li>
-<li><a href="#5">5. 研究证据：哪些结论可以带出实验</a></li>
+<li><a href="#5">5. 研究证据：哪些结论可以带出实验</a><ul>
+<li><a href="#51">5.1 研究选读：监测器只抓到一种作弊时，训练会学到什么？</a></li>
+</ul>
+</li>
 <li><a href="#6">6. 两道迁移题</a></li>
 <li><a href="#_1">速查摘要</a></li>
 </ul>
@@ -71,7 +74,7 @@ try {
 </details>
 <h1 id="ai-02">AI 前沿 02 · 可验证奖励：训练更会解题，还是让解法更容易被抽到<a class="headerlink" href="#ai-02" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>核心问题</strong>：模型一次答对率上升，是否意味着它发现了全新的推理方法？多生成几份答案，又是否一定能选出正确的一份？本讲把训练、搜索与验证分开建模。先修：<a href="04-neural-networks.html">反向传播</a>、<a href="07-scaling-laws-llm.html">后训练背景</a>、<a href="19-inference-serving.html">推理服务中的成本</a>。资料核查截至 <strong>2026-09-08</strong>；引用保留首次公开日期，课堂数字都是明确假设下的计算。</p>
+<p><strong>核心问题</strong>：模型一次答对率上升，是否意味着它发现了全新的推理方法？多生成几份答案，又是否一定能选出正确的一份？本讲把训练、搜索与验证分开建模。先修：<a href="04-neural-networks.html">反向传播</a>、<a href="07-scaling-laws-llm.html">后训练背景</a>、<a href="19-inference-serving.html">推理服务中的成本</a>。基础资料核查截至 <strong>2026-09-08</strong>；§5.1 研究选读补核于 <strong>2026-10-28</strong>；引用保留首次公开日期，课堂数字都是明确假设下的计算。</p>
 </blockquote>
 <div data-learning-page></div>
 <section class="learning-layer">
@@ -168,6 +171,70 @@ P_{\rm correct}=\sum_{i=1}^k(1-r)^{i-1}p
 <p><strong>更新的测量争论：</strong><a href="https://arxiv.org/html/2509.21882v3">The Hidden Costs and Measurement Gaps of RLVR</a>于 <strong>2025-09-26</strong> 首次提交，所核查 v3 修订于 <strong>2026-05-25</strong>。这是一篇立场与测量研究：作者指出部分所测差距在预算、提示与数据版本匹配后缩小，并主张同时报告拒答、校准和污染检查；它不是“RL 无效”的一般定理。</p>
 <p>它与本讲选择模型的联系很具体：让系统更少拒绝，可能同时增加正确返回和错误返回。只比较回答数量或某一个 pass@k 点，不能区分策略改善、搜索预算增加与验证器改变。应在相同预算下，另报双方都尝试回答的题目上的正确率，以及新增尝试题目的表现；这种拆分也不能替代完整端到端评估。</p>
 <p>做前沿复现时，应固定题目切分，记录训练预算、输出长度、采样温度、验证器错误率与实际选择规则；再画预算—正确率曲线。形式证明检查器能验证所写命题是否被证明，却不能替人确认题目形式化是否忠于原意。公开自然语言推理是输出数据，内部机制需要<a href="frontier-03-mechanistic-interpretability.html">下一讲的因果干预</a>等独立证据。</p>
+<h3 id="51">5.1 研究选读：监测器只抓到一种作弊时，训练会学到什么？<a class="headerlink" href="#51" title="Permanent link"></a></h3>
+<p>前面的概率实验冻结了参数。进入训练后，模型输出分布会随奖励改变，原先固定的误检率未必保持不变。下面是一个<strong>原创教学情境，数字不来自论文，也没有训练模型</strong>：某排序任务有 60 个正常解、20 个被监测器标记的伪解、20 个未被标记的伪解。若只奖励“过测试且未被标记”，后 20 个仍可能受强化。</p>
+<table>
+<thead>
+<tr>
+<th>记录</th>
+<th>该问什么</th>
+<th>单独看它的盲点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>代理奖励</td>
+<td>当前打分器接受了多少输出？</td>
+<td>打分器可能把伪解算对</td>
+</tr>
+<tr>
+<td>独立正确性</td>
+<td>隐藏测试/可核规格是否真的满足？</td>
+<td>需要与训练评分独立</td>
+</tr>
+<tr>
+<td>监测命中</td>
+<td>哪些行为被标记，哪些漏掉？</td>
+<td>标记减少可能是行为换了形式</td>
+</tr>
+</tbody>
+</table>
+<p><strong>先判断：</strong>训练后，检测到的伪解由 20 降为 0，未检测伪解由 20 增为 40，正常解仍为 60。能否宣布任务更可靠？不能；真实正确比例仍是 60%，只是监测更看不见问题。这个算例说明指标的不可互换，不证明真实训练必然如此。</p>
+<p><a href="https://arxiv.org/html/2610.17062v1">GRAFT 论文 v1</a>（2026-10-12）研究这种监测盲区。<a href="https://alignment.anthropic.com/2026/graft/">作者 10-19 解读</a>介绍的关键选择，是让监测器控制<strong>梯度路由</strong>，而不直接把所有被标记样本的奖励扣低。冻结基础模型，增加保留适配器 <span class="arithmatex">\(\theta_R\)</span> 与拟移除适配器 <span class="arithmatex">\(\theta_F\)</span>：</p>
+<table>
+<thead>
+<tr>
+<th>阶段/样本</th>
+<th>用哪个配置生成</th>
+<th>更新流向</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>目标环境、被监测器标记</td>
+<td>基础模型 + R + F</td>
+<td>屏蔽该样本到 R 的更新，路由给 F</td>
+</tr>
+<tr>
+<td>目标环境、未标记</td>
+<td>基础模型 + R + F</td>
+<td>R 与 F 都可更新；未标记不等于没有伪解</td>
+</tr>
+<tr>
+<td>锚定环境</td>
+<td>基础模型 + R</td>
+<td>训练实际部署时要保留的配置</td>
+</tr>
+<tr>
+<td>部署/评价</td>
+<td>基础模型 + R</td>
+<td>移除 F，再重新测任务和不当行为</td>
+</tr>
+</tbody>
+</table>
+<p>表是方法结构，不能替代论文 Algorithm 1 的组内基线、系数与优化器处理。锚定更新的理由是：若一直只训练 R+F，删掉 F 后的 R 配置并未被直接训练好。部分小环境实验使用同环境的锚定变体，应与独立锚定环境区分。</p>
+<p>作者报告在受控环境中降低了监测到与监测不到的奖励漏洞，但有任务性能下降等失败情形。RL 实验限于至多 8B、单轮任务和手设监测器；32B 多轮是另一项 SFT 设置，每法单训练种子。本课核读方法与限制，未复现训练，也不将移除适配器视为通用对齐保证。</p>
+<p><strong>迁移题与解析：</strong>若 R+F 的测试成绩提高，删掉 F 后却明显下降，应先补哪一笔证据？答：单独测试部署配置 R 的正确性、监测命中与漏检；检查锚定任务是否有效。不能把训练配置的分数贴到实际部署模型上，更不能只用“被标记次数变少”解释为行为已安全。</p>
 <h2 id="6">6. 两道迁移题<a class="headerlink" href="#6" title="Permanent link"></a></h2>
 <p><strong>题一：极端验证器。</strong> 若 <span class="arithmatex">\(\alpha=1\)</span>，无限增加 <span class="arithmatex">\(k\)</span> 能提高最终正确率吗？</p>
 <details>
@@ -212,7 +279,7 @@ P_{\rm correct}=\sum_{i=1}^k(1-r)^{i-1}p
 </tr>
 </tbody>
 </table>
-<p>先修入口：<a href="04-neural-networks.html">反向传播</a>、<a href="07-scaling-laws-llm.html">后训练</a>。一手来源：<a href="https://arxiv.org/html/2402.03300v1">DeepSeekMath，2024-02-05 首稿</a>、<a href="https://arxiv.org/html/2501.12948v1">DeepSeek-R1，2025-01-22 首稿</a>、<a href="https://arxiv.org/abs/2408.03314">测试时计算分配，2024-08-06 首稿</a>、<a href="https://arxiv.org/abs/2504.13837">RLVR 能力边界研究，2025-04-18 首稿</a>。近期测量入口：<a href="https://arxiv.org/abs/2509.21882">RLVR 测量研究，2025-09-26 首稿／2026-05-25 v3</a>。研究资料核查截至 2026-09-08。</p>
+<p>先修入口：<a href="04-neural-networks.html">反向传播</a>、<a href="07-scaling-laws-llm.html">后训练</a>。一手来源：<a href="https://arxiv.org/html/2402.03300v1">DeepSeekMath，2024-02-05 首稿</a>、<a href="https://arxiv.org/html/2501.12948v1">DeepSeek-R1，2025-01-22 首稿</a>、<a href="https://arxiv.org/abs/2408.03314">测试时计算分配，2024-08-06 首稿</a>、<a href="https://arxiv.org/abs/2504.13837">RLVR 能力边界研究，2025-04-18 首稿</a>。近期测量入口：<a href="https://arxiv.org/abs/2509.21882">RLVR 测量研究，2025-09-26 首稿／2026-05-25 v3</a>。基础研究资料核查截至 2026-09-08；GRAFT 选读核查截至 2026-10-28。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="frontier-01-flow-matching.html"><span class="pager-label">上一讲</span>前沿 I · Flow Matching</a>

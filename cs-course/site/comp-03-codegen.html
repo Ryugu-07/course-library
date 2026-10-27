@@ -45,7 +45,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-27 03:32</div>
+    <div class="build-time">构建于 2026-10-28 02:18</div>
   </div>
 </nav>
 <main id="content">
@@ -64,7 +64,10 @@ try {
 <li><a href="#1-ir">1. 中间表示（IR）：优化的舞台</a></li>
 <li><a href="#2-o2">2. 经典优化：-O2 在做什么</a></li>
 <li><a href="#3">3. 寄存器分配：图着色的漂亮应用</a></li>
-<li><a href="#4">4. 代码生成与现代编译器架构</a></li>
+<li><a href="#4">4. 代码生成与现代编译器架构</a><ul>
+<li><a href="#webassembly">可选目标：WebAssembly 把代码生成接到受控运行时</a></li>
+</ul>
+</li>
 <li><a href="#5">5. 练习与要点</a><ul>
 <li><a href="#project-p04">📋 大 Project P04 · 编译器后端</a></li>
 </ul>
@@ -172,6 +175,27 @@ try {
 <li><strong>这正是 comp-01 "IR 解耦 <span class="arithmatex">\(m+n\)</span>" 的终极实现</strong>——一个共享 IR + 可插拔的优化 pass + 多后端，是过去二十年编译器工程最成功的架构。</li>
 </ul>
 <p><strong>为什么你要懂后端</strong>：① 写<strong>对优化友好</strong>的代码（别手动做编译器能做的、但要帮编译器看清意图——如避免指针别名让它敢优化）；② 读懂 <code>-O2 -S</code> 的汇编做性能分析（perf 线）；③ 理解"为什么 debug 版慢、release 版快"。</p>
+<h3 id="webassembly">可选目标：WebAssembly 把代码生成接到受控运行时<a class="headerlink" href="#webassembly" title="Permanent link"></a></h3>
+<p>Wasm 模块声明函数类型、导入和导出。运行时先验证模块，再执行；模块若想读文件或访问网络，通常要通过宿主提供的接口。验证类型正确不等于业务正确，宿主给出过宽能力也不会被“沙箱”这个名字自动抵消。</p>
+<p>下面的 WAT 是文本表示：两个 <code>i32</code> 参数进栈，相加后导出。它只演示最小模块，不依赖 Wasm 3.0 新特性。</p>
+<div class="highlight"><pre><span></span><code><span class="p">(</span><span class="k">module</span>
+  <span class="p">(</span><span class="k">func</span> <span class="p">(</span><span class="k">export</span> <span class="s2">&quot;add&quot;</span><span class="p">)</span> <span class="p">(</span><span class="k">param</span> <span class="kt">i32</span> <span class="kt">i32</span><span class="p">)</span> <span class="p">(</span><span class="k">result</span> <span class="kt">i32</span><span class="p">)</span>
+    <span class="nb">local.get</span> <span class="mi">0</span>
+    <span class="nb">local.get</span> <span class="mi">1</span>
+    <span class="nb">i32.add</span><span class="p">))</span>
+</code></pre></div>
+<p>可在支持 WebAssembly 的浏览器控制台或 Node 运行等价二进制：</p>
+<div class="highlight"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">bytes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Uint8Array</span><span class="p">.</span><span class="kr">from</span><span class="p">([</span>
+<span class="w">  </span><span class="mf">0</span><span class="p">,</span><span class="mf">97</span><span class="p">,</span><span class="mf">115</span><span class="p">,</span><span class="mf">109</span><span class="p">,</span><span class="mf">1</span><span class="p">,</span><span class="mf">0</span><span class="p">,</span><span class="mf">0</span><span class="p">,</span><span class="mf">0</span><span class="p">,</span>
+<span class="w">  </span><span class="mf">1</span><span class="p">,</span><span class="mf">7</span><span class="p">,</span><span class="mf">1</span><span class="p">,</span><span class="mf">96</span><span class="p">,</span><span class="mf">2</span><span class="p">,</span><span class="mf">127</span><span class="p">,</span><span class="mf">127</span><span class="p">,</span><span class="mf">1</span><span class="p">,</span><span class="mf">127</span><span class="p">,</span>
+<span class="w">  </span><span class="mf">3</span><span class="p">,</span><span class="mf">2</span><span class="p">,</span><span class="mf">1</span><span class="p">,</span><span class="mf">0</span><span class="p">,</span><span class="mf">7</span><span class="p">,</span><span class="mf">7</span><span class="p">,</span><span class="mf">1</span><span class="p">,</span><span class="mf">3</span><span class="p">,</span><span class="mf">97</span><span class="p">,</span><span class="mf">100</span><span class="p">,</span><span class="mf">100</span><span class="p">,</span><span class="mf">0</span><span class="p">,</span><span class="mf">0</span><span class="p">,</span>
+<span class="w">  </span><span class="mf">10</span><span class="p">,</span><span class="mf">9</span><span class="p">,</span><span class="mf">1</span><span class="p">,</span><span class="mf">7</span><span class="p">,</span><span class="mf">0</span><span class="p">,</span><span class="mf">32</span><span class="p">,</span><span class="mf">0</span><span class="p">,</span><span class="mf">32</span><span class="p">,</span><span class="mf">1</span><span class="p">,</span><span class="mf">106</span><span class="p">,</span><span class="mf">11</span>
+<span class="p">]);</span>
+<span class="kd">const</span><span class="w"> </span><span class="nx">instance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">WebAssembly</span><span class="p">.</span><span class="nx">Instance</span><span class="p">(</span><span class="ow">new</span><span class="w"> </span><span class="nx">WebAssembly</span><span class="p">.</span><span class="nx">Module</span><span class="p">(</span><span class="nx">bytes</span><span class="p">));</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">instance</span><span class="p">.</span><span class="nx">exports</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="mf">3</span><span class="p">,</span><span class="w"> </span><span class="mf">4</span><span class="p">));</span><span class="w"> </span><span class="c1">// 7</span>
+</code></pre></div>
+<p><strong>迁移题：</strong>模块内没有网络指令，是否能断定整个应用不会联网？不能；宿主可能通过导入函数或其他进程提供网络。检查导入列表、宿主实现和权限，比只看模块验证通过更完整。</p>
+<p><a href="https://webassembly.org/news/2025-09-17-wasm-3.0/">Wasm 3.0 官方公告</a>发布于 <strong>2025-09-17</strong>，包括 Memory64、GC 和尾调用等扩展。GC 提供可供语言使用的低层结构/数组基础，并非把任意语言的运行时完整搬进核心规范。<strong>核心 Wasm、WASI 系统接口、组件模型</strong>分属不同层；上面的加法运行成功，也不证明运行时支持所有新扩展。</p>
 <h2 id="5">5. 练习与要点<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><strong>例 1（转 SSA）</strong> 把一段有重复赋值和一个 if 汇合的代码转成 SSA（重命名 + 在汇合处放 φ）——<strong>理解 φ 函数"按来路选值"的作用</strong>，SSA 的核心一次看懂。</p>
 <p><strong>例 2（看 -O2 的威力）</strong> 写一个含循环不变量 + 死代码 + 常量表达式的 C 函数，对比 <code>-O0</code> 和 <code>-O2</code> 的汇编（<code>gcc -S</code>）——<strong>亲眼看编译器删了什么、外提了什么</strong>，<code>-O2</code> 不再是黑魔法。</p>

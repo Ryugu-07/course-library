@@ -105,7 +105,7 @@ site=(ROOT/'grad-math/site/hdp-02-random-vectors.html').read_text()
 formulas=[(a or b).strip()for a,b in re.findall(r'\$\$(.*?)\$\$|(?<!\\)\$(?!\$)(.*?)(?<!\\)\$(?!\$)',src,re.S)]
 actual=[html.unescape(a or b).strip()for a,b in re.findall(r'<(?:span|div) class="arithmatex">(?:\\\((.*?)\\\)|\\\[(.*?)\\\])</(?:span|div)>',site,re.S)]
 ck(formulas==actual,'every source and published formula')
-ck(src.count('<details')==4,'four answers')
+ck(src.count('<details')==6,'four core and two research answers')
 for path in ROOT.glob('*/site/assets/learning/labs/jl-projection.js'):ck(path.read_bytes()==JS.read_bytes(),'JS mirror '+str(path))
 ck((ROOT/'grad-math/images/hdp-02-concentration.svg').read_bytes()==(ROOT/'grad-math/site/assets/img/hdp-02-concentration.svg').read_bytes(),'SVG mirror')
 # Static coordinates checked from the independently validated snapshot, not generator imports.

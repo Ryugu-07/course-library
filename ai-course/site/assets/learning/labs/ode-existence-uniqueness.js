@@ -132,7 +132,7 @@
       '[data-learning-lab="ode-existence-uniqueness"] .oeu-primary{background:var(--lab-accent);border-color:var(--lab-accent);color:white}' +
       '[data-learning-lab="ode-existence-uniqueness"] .oeu-result[hidden]{display:none}' +
       '[data-learning-lab="ode-existence-uniqueness"] .oeu-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(230px,.8fr);gap:16px;align-items:start}' +
-      '[data-learning-lab="ode-existence-uniqueness"] svg{display:block;width:100%;height:auto;aspect-ratio:16/9;border:1px solid color-mix(in srgb,currentColor 22%,transparent);background:color-mix(in srgb,Canvas 94%,var(--lab-accent) 6%)}' +
+      '[data-learning-lab="ode-existence-uniqueness"] svg{display:block;width:100%;height:auto;border:1px solid color-mix(in srgb,currentColor 22%,transparent);background:var(--bg,#fff)}' +
       '[data-learning-lab="ode-existence-uniqueness"] .oeu-table-wrap{overflow-x:auto}' +
       '[data-learning-lab="ode-existence-uniqueness"] table{width:100%;border-collapse:collapse}' +
       '[data-learning-lab="ode-existence-uniqueness"] th,[data-learning-lab="ode-existence-uniqueness"] td{padding:8px;border-bottom:1px solid color-mix(in srgb,currentColor 20%,transparent);text-align:left;vertical-align:top}' +
@@ -141,43 +141,50 @@
     host.document.head.appendChild(style);
   }
 
+  function chartData(kind, horizon, steps) {
+    var observationTime = kind === "blowup" ? Math.min(horizon, 0.98) : horizon;
+    var branches = (kind === "sqrt" ? [0, 1, 2] : [0]).map(function (delay) {
+      return { delay: delay, points: sampleExact(kind, observationTime, delay, 100) };
+    });
+    var euler = eulerTrace(kind, observationTime, steps);
+    var values = euler.map(function (point) { return point.y; });
+    branches.forEach(function (branch) { branch.points.forEach(function (point) { values.push(point.y); }); });
+    return { branches: branches, euler: euler, observationTime: observationTime,
+      xMax: kind === "blowup" ? Math.max(1, horizon) : horizon,
+      yMax: Math.max(1, Math.max.apply(null, values.filter(isFinite)) * 1.08) };
+  }
+
   function pathFor(points, xMax, yMax) {
     return points.map(function (point, index) {
       var x = 44 + 532 * point.t / xMax;
-      var clipped = Math.min(yMax, Math.max(0, point.y));
-      var y = 282 - 238 * clipped / yMax;
+      var y = 282 - 238 * point.y / yMax;
       return (index ? "L" : "M") + x.toFixed(2) + " " + y.toFixed(2);
     }).join(" ");
   }
 
   function renderSvg(kind, horizon, delay, steps) {
-    var exact = sampleExact(kind, horizon, delay, 100);
-    var numericHorizon = kind === "blowup" ? Math.min(horizon, 0.98) : horizon;
-    var euler = eulerTrace(kind, numericHorizon, steps);
-    var values = exact.concat(euler).map(function (point) { return point.y; }).filter(isFinite);
-    var yMax = Math.max(1, Math.min(20, Math.max.apply(null, values) * 1.08));
-    var xMax = kind === "blowup" ? Math.max(1, horizon) : horizon;
-    var marker = kind === "blowup" && horizon >= 1
-      ? '<line x1="' + (44 + 532 / xMax).toFixed(2) + '" x2="' + (44 + 532 / xMax).toFixed(2) + '" y1="36" y2="282" stroke="#b45309" stroke-dasharray="6 5"/><text x="' + (50 + 532 / xMax).toFixed(2) + '" y="54" fill="#b45309">t=1 爆破边界</text>'
-      : "";
-    var extra = "";
-    if (kind === "sqrt") {
-      [0, 1, 2].forEach(function (a, index) {
-        if (a > horizon) return;
-        var trace = sampleExact(kind, horizon, a, 100);
-        extra += '<path d="' + pathFor(trace, xMax, yMax) + '" fill="none" stroke="' + ["#0f766e", "#2563eb", "#b45309"][index] + '" stroke-width="3"/>';
-      });
-    } else {
-      extra = '<path d="' + pathFor(exact, xMax, yMax) + '" fill="none" stroke="#0f766e" stroke-width="4"/>';
+    var data = chartData(kind, horizon, steps), xMax = data.xMax, yMax = data.yMax;
+    var colors = ["var(--cl-green,#0f766e)", "var(--cl-blue,#2563eb)", "var(--cl-gold,#b45309)"], extra = "", labels = "";
+    data.branches.forEach(function (branch, index) {
+      extra += '<path d="' + pathFor(branch.points, xMax, yMax) + '" fill="none" stroke="' + colors[index] + '" stroke-width="3"/>';
+      labels += '<text x="' + (54 + index * 90) + '" y="328" fill="' + colors[index] + '">' + (kind === "sqrt" ? 'a=' + branch.delay : '解析解') + '</text>';
+    });
+    var ticks = "";
+    [0, 0.5, 1].forEach(function (fraction) {
+      var x = 44 + 532 * fraction, y = 282 - 238 * fraction;
+      ticks += '<text x="' + x + '" y="301" text-anchor="middle">' + format(xMax * fraction) + '</text>';
+      ticks += '<text x="37" y="' + (y + 4) + '" text-anchor="end">' + format(yMax * fraction) + '</text>';
+    });
+    var marker = "";
+    if (kind === "blowup" && horizon >= 1) {
+      var mx = 44 + 532 / xMax, anchor = mx > 430 ? "end" : "start", tx = mx + (mx > 430 ? -6 : 6);
+      marker = '<line x1="' + mx + '" x2="' + mx + '" y1="36" y2="282" stroke="var(--cl-gold,#b45309)" stroke-dasharray="6 5"/><text x="' + tx + '" y="25" text-anchor="' + anchor + '" fill="var(--cl-gold,#b45309)">t=1 爆破边界</text>';
     }
-    return '<svg viewBox="0 0 620 320" role="img" aria-label="解析解与 Euler 轨迹">' +
+    return '<svg viewBox="0 0 620 350" role="img" aria-label="解析解与 Euler 轨迹，坐标不截平" style="font-size:12px;fill:currentColor">' +
       '<line x1="44" y1="282" x2="588" y2="282" stroke="currentColor"/><line x1="44" y1="36" x2="44" y2="282" stroke="currentColor"/>' +
-      '<text x="574" y="306">t</text><text x="16" y="44">y</text>' +
-      extra +
-      '<path d="' + pathFor(euler, xMax, yMax) + '" fill="none" stroke="#7c3aed" stroke-width="2" stroke-dasharray="5 5"/>' +
-      marker +
-      '<text x="54" y="306" fill="#0f766e">实线：解析分支</text><text x="218" y="306" fill="#7c3aed">虚线：有限步 Euler</text>' +
-      '</svg>';
+      '<text x="598" y="301">t</text><text x="16" y="23">y</text>' + ticks + extra +
+      '<path d="' + pathFor(data.euler, xMax, yMax) + '" fill="none" stroke="var(--cl-purple,#8b5cf6)" stroke-width="2" stroke-dasharray="5 5"/>' + marker + labels +
+      '<text x="348" y="328" fill="var(--cl-purple,#8b5cf6)">虚线：有限步 Euler</text></svg>';
   }
 
   function mount(root) {
@@ -213,7 +220,8 @@
       var predictionText = prediction.value
         ? (prediction.value === expected(kind) ? "预测命中" : "预测需修正")
         : "未提交预测";
-      var endpoint = exactSolution(kind, Math.min(h, kind === "blowup" ? 0.95 : h), 1);
+      var observationTime = chartData(kind, h, n).observationTime;
+      var endpoint = kind === "sqrt" ? [0, 1, 2].map(function (a) { return "a=" + a + ": " + format(exactSolution(kind, observationTime, a)); }).join("；") : format(exactSolution(kind, observationTime, 0));
       result.innerHTML =
         '<div class="oeu-grid"><div>' + renderSvg(kind, h, 1, n) + '</div>' +
         '<div><h4>' + escapeHtml(MODELS[kind].label) + '</h4>' +
@@ -222,7 +230,7 @@
         '<tr><th>连续</th><td>' + (cert.continuous ? "是" : "否") + '</td></tr>' +
         '<tr><th>局部 Lipschitz</th><td>' + (cert.locallyLipschitz ? "是" : "否") + '</td></tr>' +
         '<tr><th>定理证书</th><td>' + escapeHtml(cert.verdict) + '</td></tr>' +
-        '<tr><th>观察点解析值</th><td>' + format(endpoint) + '</td></tr>' +
+        '<tr><th>绘图终点 t=' + format(observationTime) + '</th><td>' + endpoint + '</td></tr>' +
         '</tbody></table></div><p class="oeu-note">' + escapeHtml(cert.boundary) + '</p></div></div>';
     }
 
@@ -244,8 +252,9 @@
       render();
     });
     [model, horizon, steps].forEach(function (control) {
-      control.addEventListener("input", render);
-      control.addEventListener("change", render);
+      function resetPrediction() { prediction.value = ""; result.hidden = true; render(); }
+      control.addEventListener("input", resetPrediction);
+      control.addEventListener("change", resetPrediction);
     });
     render();
   }
@@ -279,6 +288,7 @@
     eulerTrace: eulerTrace,
     certificate: certificate,
     sampleExact: sampleExact,
+    chartData: chartData,
     mount: mount,
     selfTest: selfTest
   };

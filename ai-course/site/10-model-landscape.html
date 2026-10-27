@@ -49,7 +49,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 世界模型与具身智能</div><ul><li><a href="research-05-latent-world-model.html">世界模型 I · 潜在动力学</a></li><li><a href="research-06-model-based-planning.html">世界模型 II · 基于模型的规划</a></li><li><a href="research-07-vision-language-action.html">具身 I · 视觉语言动作模型</a></li><li><a href="research-08-embodied-evaluation.html">具身 II · 泛化与任务评估</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 07:32</div>
+    <div class="build-time">构建于 2026-10-28 02:18</div>
   </div>
 </nav>
 <main id="content">
@@ -58,6 +58,7 @@ try {
 <ul>
 <li><a href="#1">1. 地图：用任务维度代替易过时的型号排名</a><ul>
 <li><a href="#11-2026-08-20-qwen38-27b-agent">1.1 2026-08-20 快照：怎样读 Qwen3.8-27B 的“开放、本地与 Agent”</a></li>
+<li><a href="#2026-10-28-gpt-61-terra">2026-10-28 选型卡：GPT-6.1 Terra</a></li>
 </ul>
 </li>
 <li><a href="#2">2. 选型的六个维度</a></li>
@@ -218,6 +219,9 @@ p_i^{obs}=\mathrm{clip}\bigl(p_i^{clean}+g_{direct}d_i+g_{near}n_i,0,1\bigr).
 <p>理想 4-bit 原始权重约 13.5 GB，但量化元数据、运行时工作区、激活、视觉编码器和随上下文增长的 KV 状态还要占空间。于是 16 GB 机器可能需要更激进量化、CPU/RAM offload、缩短上下文或改用更小的 Qwen3.5-9B；真正结论只能来自目标运行时的峰值显存、首 token 延迟、生成吞吐和任务成功率实测。<strong>开放权重、本地可启动、全 GPU 驻留和适合生产是四个不同命题。</strong></p>
 <p>这个案例还揭示 harness 混杂：官方表格的多个软件工程分数明确绑定 Claude Code harness、上下文、采样参数、超时或重复口径。它们可以作为候选证据，却不能把整套系统分数全部归因于模型参数。课程保留这一日期快照，并在后续更新时新增记录，不静默改写旧协议。</p>
 <p>一手入口：<a href="https://github.com/QwenLM/Qwen3.8">Qwen3.8 官方仓库</a>；<a href="https://huggingface.co/Qwen/Qwen3.8-27B">Qwen3.8-27B 官方模型卡</a>。</p>
+<h3 id="2026-10-28-gpt-61-terra">2026-10-28 选型卡：GPT-6.1 Terra<a class="headerlink" href="#2026-10-28-gpt-61-terra" title="Permanent link"></a></h3>
+<p><a href="https://developers.openai.com/api/docs/models/gpt-6.1-terra">官方模型文档</a>将 <code>gpt-6.1-terra</code> 定位在快速视觉推理、computer use 和写作；输入为文本/图像，输出为文本，工具调用要求 Responses API。它可进入“看截图、选操作、复核结果”这类工作流的候选集，但模型能够提出动作不等于宿主已经授权执行，也不能由 computer use 推断真实机器人能力。</p>
+<p>把这一发布放进本讲的选型协议：固定同一组截图/任务、工具和权限，记录任务成功率、误操作、重试、人工修订量与总费用，再与已有候选比较。厂商自己的基准只是筛选线索，本课没有进行这组模型实测。实际价格与上下文分档以<a href="https://developers.openai.com/api/docs/pricing">官方定价</a>为准；不要用一个无日期的单价覆盖所有服务档位。</p>
 <h2 id="2">2. 选型的六个维度<a class="headerlink" href="#2" title="Permanent link"></a></h2>
 <ol>
 <li><strong>能力匹配</strong>：先写任务的瓶颈和失败代价，再选候选，不要从模型名倒推用途；</li>

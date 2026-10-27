@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-11 03:32</div>
+    <div class="build-time">构建于 2026-10-28 02:18</div>
   </div>
 </nav>
 <main id="content">
@@ -78,6 +78,11 @@ try {
 </ul>
 </li>
 <li><a href="#9">9 · 实验如何复算，下一页会用到什么</a></li>
+<li><a href="#10-kakeya">10 · 研究阅读：从缩放到四维 Kakeya 的细管重叠</a><ul>
+<li><a href="#_2">为什么会出现细管</a></li>
+<li><a href="#_3">一个可定位的指数推进</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </details>
@@ -530,6 +535,41 @@ I_k(h)=\int_0^h v^ke^{-nv}\,dv
 <p>后一式可展开 <span class="arithmatex">\(e^{n(h-v)}\)</span> 再逐项积分得到。它全为正项，避免两个接近的不完全 Gamma 值相减。实验限 <span class="arithmatex">\(2\le n\le6\)</span>、<span class="arithmatex">\(1\le L\le40\)</span>，壳宽至多0.2；级数按相对项阈值终止并检查迭代上限。账本保留各壳层、二项式项、矩值、项数与总和差。这是可复算的数值诊断，不是浮点误差的严格上界。</p>
 <p>帽函数实验另限 <span class="arithmatex">\(1\le p\le n-0.1\)</span>、<span class="arithmatex">\(10^{-6}\le\varepsilon\le1\)</span>，手动 <span class="arithmatex">\(1\le q\le1000\)</span>。这些是界面范围；数学结论的极限与适用域在正文单独给出。区间长度范围0.2–10，正弦振幅与偏置范围−2–2，边界层相对宽度0.01–1。</p>
 <p>下一页的弱椭圆方程会把 <span class="arithmatex">\(\int\nabla u\cdot\nabla v\)</span> 作为能量配对。选择 <span class="arithmatex">\(H_0^1\)</span> 并使用 Poincaré，才能让这份导数能量控制完整范数；紧嵌入则帮助极小化序列保留一个极限。进一步可读 <a href="bridge-18-heat-distributions.html">热核正则化与随机分布</a>，看频率壳层怎样重新表达同一类正则性预算。</p>
+<h2 id="10-kakeya">10 · 研究阅读：从缩放到四维 Kakeya 的细管重叠<a class="headerlink" href="#10-kakeya" title="Permanent link"></a></h2>
+<p>Sobolev 缩放告诉我们哪些指数不可能成立，却没有自动给出可行指数的证明。Fourier 分析有一个类似问题：不同方向的波，能否长期挤在一小块空间里？<strong>Kakeya 集</strong>要求每个方向都容纳一条单位线段；问题是这样的集合能有多小。这里的“小”涉及维数，不能和体积是否为零混为一谈。</p>
+<h3 id="_2">为什么会出现细管<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>考虑曲面 <span class="arithmatex">\(S=\{(\xi,h(\xi)): \xi\in B^3(0,1)\}\subset\mathbb R^4\)</span>，其中 <span class="arithmatex">\(h\)</span> 为 <span class="arithmatex">\(C^2\)</span>，第二基本形式正定。频率数据 <span class="arithmatex">\(f\)</span> 的延拓算子为</p>
+<div class="arithmatex">\[
+E_Sf(x,t)=\int_{B^3(0,1)}e^{2\pi i(x\cdot\xi+t h(\xi))}f(\xi)\,d\xi,
+\qquad x\in\mathbb R^3.
+\]</div>
+<p>积分叠加不同频率的振荡。把频率分成小块后，相位的一阶展开决定波包传播方向，二阶余项限制能保持相干的距离；相应波包主要集中在长细管附近。这里的 <span class="arithmatex">\(t\)</span> 是第四个坐标，具体问题中也可扮演时间。要把这幅图变成证明，还需要波包分解、误差和尺度控制。</p>
+<p>先做一个完全可检验的小推导。对有限管族 <span class="arithmatex">\(\mathcal T\)</span>，令重叠次数 <span class="arithmatex">\(F=\sum_{T\in\mathcal T}1_T\)</span>，并集为 <span class="arithmatex">\(U\)</span>。Cauchy–Schwarz 给出</p>
+<div class="arithmatex">\[
+\left(\sum_T|T|\right)^2
+=\left(\int_U F\right)^2
+\le |U|\int F^2,
+\qquad
+|U|\ge\frac{(\sum_T|T|)^2}{\int F^2}.
+\]</div>
+<p>分子记录总管体积，分母惩罚重叠。<span class="arithmatex">\(M\)</span> 根等体积为 <span class="arithmatex">\(v\)</span> 的不相交管给 <span class="arithmatex">\(|U|=Mv\)</span>；完全重合则只给 <span class="arithmatex">\(|U|=v\)</span>。真正的 Kakeya 管族要求方向分离，不能把所有管完全重合；研究的困难恰在于利用这条几何约束，排除过度集中的构形。这个平方积分演示揭示机制，不是最新研究估计的证明。</p>
+<h3 id="_3">一个可定位的指数推进<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>Moreira 的 <strong>2026-10-05 预印本</strong> <a href="https://arxiv.org/html/2610.06181v1#S1">Theorem 1</a>在上述四维正曲率设定给出</p>
+<div class="arithmatex">\[
+\|E_Sf\|_{L^p(\mathbb R^4)}\le C_{p,S}\|f\|_{L^p(B^3)},
+\qquad p&gt;2+\frac{176}{221}\approx2.79638.
+\]</div>
+<p>与文中比较的阈值 <span class="arithmatex">\(2+200/251\approx2.79681\)</span> 相比，新门槛略小，覆盖的 <span class="arithmatex">\(p\)</span> 范围略大。其推进来自保留管重叠估计中的参数，组合平面聚集结构、插值与 decoupling；没有改变基础的缩放规则。同文 Theorem 2 的 Kakeya 最大估计维数参数为 <span class="arithmatex">\(386453/125988\approx3.06738\)</span>，Corollary 2 的 Hausdorff 维数下界为 <span class="arithmatex">\(26343/8588\approx3.06742\)</span>。两者定义和数值都不同，不能拼成一个“精确维数”，更不能写成四维完整猜想已由这篇论文解决。</p>
+<p><strong>状态边界：</strong> 这段是对固定论文的阅读。10 月 26 日另有 <a href="https://github.com/openai/math/blob/7ef5c0cc5ca4b0e072b7a050fca09ab24bc6fa3a/history.md">OpenAI 发布记录</a>声称通过局部平滑得到更广的 Kakeya/限制结论；本课只核到发布记录，未审读其完整证明。因此不把本文阈值称为“截至今天已验定的最佳界”，也不把后来的宣告视为已由本课确认。</p>
+<details class="answer">
+<summary>练习1：新阈值更小，为什么反而是更强结果？它包含端点吗？</summary>
+<p>旧结论要求 <span class="arithmatex">\(p&gt;2.79681\ldots\)</span>，新结论还覆盖两阈值之间的指数。取 <span class="arithmatex">\(p=2.7965\)</span> 就看出差别。定理写严格大于，故不包含 <span class="arithmatex">\(p=2+176/221\)</span>。四维猜想目标阈值是 <span class="arithmatex">\(2n/(n-1)=8/3\)</span>；这篇论文的阈值仍较大，不能把小幅推进读成全部范围。</p>
+</details>
+<details class="answer">
+<summary>练习2：管并集在一个尺度很大，是否已证明 Hausdorff 维数为 4？</summary>
+<p>没有。Hausdorff 维数涉及任意细尺度的覆盖；一个固定厚度的体积数值不够。还要处理多尺度估计、覆盖与常数的量词。我们的 Cauchy–Schwarz 式对任意有限管族成立，却没有提供所需的尖锐方向重叠控制，因此不能单靠它补完猜想。</p>
+</details>
+<p><strong>核读范围（2026-10-28）：</strong> <a href="https://arxiv.org/abs/2610.06181v1">arXiv:2610.06181v1</a>，首发 2026-10-05，按预印本使用。核对引言中的 Theorems 1–2、Corollary 2、证明路线和 §2 定义，未逐项验算后续插值/迭代证明。进入这一方向前，可先读 <a href="bridge-18-heat-distributions.html">热核正则化与频率壳层</a>；本页的 Sobolev、Poincaré 与临界集中仍是稳定先修，不能用新论文标题跳过。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="pde2-01-distributions.html"><span class="pager-label">上一页</span>现代 PDE I · 分布与弱导数</a>

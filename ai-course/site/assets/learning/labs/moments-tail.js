@@ -38,8 +38,8 @@
     ".mt-lab button,.mt-lab input,.mt-lab select{font:inherit;}.mt-lab button,.mt-lab select{min-height:44px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);}.mt-lab button{min-width:0;padding:8px 11px;cursor:pointer;line-height:1.35;overflow-wrap:anywhere;}.mt-lab button:hover{border-color:var(--accent);}.mt-lab button:disabled{cursor:not-allowed;opacity:.55;}.mt-lab button[aria-pressed=true],.mt-lab .mt-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750;}",
     ".mt-lab input[type=range]{display:block;width:100%;min-height:44px;margin:0;accent-color:var(--accent);}.mt-lab button:focus-visible,.mt-lab input:focus-visible,.mt-lab select:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px;}",
     ".mt-lab .mt-intro,.mt-lab .mt-note,.mt-lab .mt-feedback,.mt-lab .mt-chart-note{color:var(--mt-muted);font-size:13px;line-height:1.65;overflow-wrap:anywhere;}.mt-lab .mt-prompt{margin:14px 0;padding:12px 14px;border-left:3px solid var(--mt-gold);background:var(--block-bg,var(--bg));}.mt-lab fieldset{min-width:0;margin:0;padding:0;border:0;}.mt-lab legend{max-width:100%;padding:0;font-weight:750;line-height:1.45;overflow-wrap:anywhere;}.mt-lab .mt-question-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}.mt-lab .mt-question{min-width:0;padding:9px;border:1px solid var(--border);border-radius:6px;background:var(--bg);}.mt-lab .mt-choice-list{display:grid;gap:6px;margin-top:8px;}.mt-lab .mt-choice-list button{width:100%;min-height:44px;text-align:left;font-size:12.5px;}.mt-lab .mt-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px;}.mt-lab .mt-actions>*{flex:1 1 160px;}.mt-lab .mt-feedback{min-height:2em;margin:8px 0 0;font-weight:700;}.mt-lab .mt-pass{color:var(--mt-green);}.mt-lab .mt-warn{color:var(--mt-red);}",
-    ".mt-lab .mt-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.mt-lab .mt-layout{display:grid;grid-template-columns:minmax(210px,.48fr) minmax(0,1.52fr);gap:15px;align-items:start;min-width:0;}.mt-lab .mt-controls,.mt-lab .mt-stage{min-width:0;}.mt-lab .mt-controls{display:grid;gap:11px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}.mt-lab .mt-control{display:grid;gap:5px;min-width:0;}.mt-lab .mt-control label,.mt-lab .mt-control-title{color:var(--mt-muted);font-size:13px;font-weight:700;}.mt-lab .mt-control output{color:var(--accent);font-variant-numeric:tabular-nums;}.mt-lab .mt-preset-grid,.mt-lab .mt-variant-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}.mt-lab .mt-preset-grid button,.mt-lab .mt-variant-grid button{font-size:12px;}.mt-lab .mt-scale{display:flex;justify-content:space-between;color:var(--mt-muted);font-size:11px;}",
-    ".mt-lab .mt-stage-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden;}.mt-lab .mt-stage-title{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin:0 0 8px;color:var(--mt-muted);font-size:13px;}.mt-lab .mt-svg{display:block;width:100%;max-width:100%;height:auto;color:var(--fg);}.mt-lab .mt-svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.mt-lab .mt-grid{stroke:currentColor;stroke-opacity:.14;stroke-width:1;}.mt-lab .mt-axis{stroke:currentColor;stroke-opacity:.62;stroke-width:1.2;}.mt-lab .mt-exact{fill:none;stroke:var(--mt-blue);stroke-width:2.7;stroke-linecap:round;stroke-linejoin:round;}.mt-lab .mt-bound{fill:none;stroke:var(--mt-red);stroke-width:2.2;stroke-dasharray:6 4;stroke-linecap:round;}.mt-lab .mt-marker{fill:var(--mt-green);stroke:var(--bg);stroke-width:2;}.mt-lab .mt-divider{stroke:var(--border);stroke-width:1;}.mt-lab .mt-label{font-size:11px;fill:var(--mt-muted)!important;}.mt-lab .mt-title{font-size:13px;font-weight:750;}",
+    ".mt-lab .mt-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}.mt-lab .mt-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:15px;align-items:start;min-width:0;}.mt-lab .mt-controls,.mt-lab .mt-stage{min-width:0;}.mt-lab .mt-controls{display:grid;gap:11px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg);}.mt-lab .mt-control{display:grid;gap:5px;min-width:0;}.mt-lab .mt-control label,.mt-lab .mt-control-title{color:var(--mt-muted);font-size:13px;font-weight:700;}.mt-lab .mt-control output{color:var(--accent);font-variant-numeric:tabular-nums;}.mt-lab .mt-preset-grid,.mt-lab .mt-variant-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}.mt-lab .mt-preset-grid button,.mt-lab .mt-variant-grid button{font-size:12px;}.mt-lab .mt-scale{display:flex;justify-content:space-between;color:var(--mt-muted);font-size:11px;}",
+    ".mt-lab .mt-stage-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow-x:auto;}.mt-lab .mt-stage-title{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin:0 0 8px;color:var(--mt-muted);font-size:13px;}.mt-lab .mt-svg{min-width:560px;display:block;width:100%;max-width:100%;height:auto;color:var(--fg);}.mt-lab .mt-svg text{fill:currentColor;font-family:inherit;letter-spacing:0;}.mt-lab .mt-grid{stroke:currentColor;stroke-opacity:.14;stroke-width:1;}.mt-lab .mt-axis{stroke:currentColor;stroke-opacity:.62;stroke-width:1.2;}.mt-lab .mt-exact{fill:none;stroke:var(--mt-blue);stroke-width:2.7;stroke-linecap:round;stroke-linejoin:round;}.mt-lab .mt-bound{fill:none;stroke:var(--mt-red);stroke-width:2.2;stroke-dasharray:6 4;stroke-linecap:round;}.mt-lab .mt-marker{fill:var(--mt-green);stroke:var(--bg);stroke-width:2;}.mt-lab .mt-divider{stroke:var(--border);stroke-width:1;}.mt-lab .mt-label{font-size:11px;fill:var(--mt-muted)!important;}.mt-lab .mt-title{font-size:13px;font-weight:750;}",
     ".mt-lab .mt-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 12px;}.mt-lab .mt-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg);}.mt-lab .mt-metric:nth-child(4n+1){border-color:var(--mt-blue);}.mt-lab .mt-metric:nth-child(4n+2){border-color:var(--mt-gold);}.mt-lab .mt-metric:nth-child(4n+3){border-color:var(--mt-green);}.mt-lab .mt-metric:nth-child(4n){border-color:var(--mt-red);}.mt-lab .mt-metric span{display:block;color:var(--mt-muted);font-size:11px;line-height:1.4;}.mt-lab .mt-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;}.mt-lab .mt-table-wrap{max-width:100%;margin-top:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;}.mt-lab table{width:100%;min-width:760px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums;}.mt-lab caption{padding:0 0 7px;text-align:left;color:var(--mt-muted);font-size:12px;}.mt-lab th,.mt-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top;overflow-wrap:anywhere;}.mt-lab th{color:var(--mt-muted);font-size:11.5px;font-weight:750;}.mt-lab .mt-interpretation{margin:12px 0 0;padding:11px 13px;border-left:3px solid var(--mt-green);background:var(--bg);font-size:13px;line-height:1.7;overflow-wrap:anywhere;}.mt-lab .mt-caution{margin:10px 0 0;color:var(--mt-muted);font-size:12px;line-height:1.65;}",
     "@media(max-width:900px){.mt-lab .mt-layout{grid-template-columns:minmax(0,1fr);}}@media(max-width:720px){.mt-lab .mt-question-grid{grid-template-columns:minmax(0,1fr);}.mt-lab .mt-preset-grid,.mt-lab .mt-variant-grid{grid-template-columns:minmax(0,1fr);}.mt-lab .mt-metrics{grid-template-columns:repeat(2,minmax(0,1fr));}}@media(max-width:430px){.mt-lab .mt-stage-frame{padding:5px;}.mt-lab table{font-size:11.5px;}.mt-lab th,.mt-lab td{padding-left:5px;padding-right:5px;}}@media(prefers-reduced-motion:reduce){.mt-lab *{animation:none!important;transition:none!important;scroll-behavior:auto!important;}}"
   ].join("\n");
@@ -137,7 +137,7 @@
     if (modelId === "exponential") return Math.exp(-a);
     if (modelId === "pareto") return a < 1 ? 1 : Math.pow(a, -ALPHA);
     var level = normalizeVariant(variant) === "spike" ? Math.sqrt(5) : 1;
-    return a <= level ? 1 : 0;
+    return a <= level ? (normalizeVariant(variant) === "spike" ? 0.2 : 1) : 0;
   }
 
   function centralTail(modelId, threshold, variant) {
@@ -197,6 +197,7 @@
       if (value === undefined || value === null || value === false) return;
       if (key === "className") node.setAttribute("class", String(value));
       else if (key === "htmlFor") node.setAttribute("for", String(value));
+      else if (key === "text") node.textContent = String(value);
       else if (key.slice(0, 2) === "on" && typeof value === "function") node.addEventListener(key.slice(2).toLowerCase(), value);
       else if (value === true) node.setAttribute(key, "");
       else node.setAttribute(key, String(value));
@@ -224,11 +225,11 @@
   function drawSvg(doc, data, uid) {
     var width = 620;
     var height = 360;
-    var top = 52;
-    var bottom = 38;
-    var gap = 30;
+    var top = 80;
+    var bottom = 52;
+    var gap = 48;
     var plotHeight = height - top - bottom;
-    var plotWidth = (width - 54 - gap) / 2;
+    var plotWidth = (width - 68 - gap) / 2;
     var leftA = 42;
     var leftB = leftA + plotWidth + gap;
     var xMin = 0.2;
@@ -238,14 +239,18 @@
     svg.appendChild(svgElement(doc, "text", { class: "mt-title", x: 10, y: 18, "text-anchor": "start" }, ["k=" + data.order + " · t=" + format(data.t, 2) + " · M(t)=" + format(data.mgf, 3)]));
     svg.appendChild(svgElement(doc, "text", { class: "mt-label", x: 10, y: 36, "text-anchor": "start" }, [data.model.label + "；上界会截到 1"]));
     function drawPanel(left, title, exact, bound, exactLabel, boundLabel) {
-      [0.25, 0.5, 0.75].forEach(function (fraction) {
+      [0, 0.25, 0.5, 0.75, 1].forEach(function (fraction) {
         var y = top + plotHeight * fraction;
+        svg.appendChild(svgElement(doc, "text", { class: "mt-label", x: left - 5, y: y + 4, "text-anchor": "end" }, [format(1 - fraction, 2)]));
         svg.appendChild(svgElement(doc, "line", { class: "mt-grid", x1: left, x2: left + plotWidth, y1: y, y2: y }));
       });
       svg.appendChild(svgElement(doc, "line", { class: "mt-axis", x1: left, x2: left + plotWidth, y1: top + plotHeight, y2: top + plotHeight }));
       svg.appendChild(svgElement(doc, "line", { class: "mt-axis", x1: left, x2: left, y1: top, y2: top + plotHeight }));
       svg.appendChild(svgElement(doc, "text", { class: "mt-title", x: left + 5, y: top - 14, "text-anchor": "start" }, [title]));
       svg.appendChild(svgElement(doc, "text", { class: "mt-label", x: left + plotWidth / 2, y: height - 10, "text-anchor": "middle" }, ["阈值 a"]));
+      [0.2, 1, 2, 3, 4, 5].forEach(function (a) {
+        svg.appendChild(svgElement(doc, "text", { class: "mt-label", x: px(a, xMin, xMax, left, plotWidth), y: top + plotHeight + 16, "text-anchor": "middle" }, [format(a, 1)]));
+      });
       var exactPoints = [];
       var boundPoints = [];
       for (var i = 0; i <= 80; i += 1) {
@@ -253,13 +258,21 @@
         exactPoints.push([px(a, xMin, xMax, left, plotWidth), py(exact(a), top, plotHeight)]);
         boundPoints.push([px(a, xMin, xMax, left, plotWidth), py(bound(a), top, plotHeight)]);
       }
+      if (data.modelId === "matched") {
+        var jump = data.variant === "spike" ? Math.sqrt(5) : 1;
+        var jumpX = px(jump, xMin, xMax, left, plotWidth);
+        exactPoints = [[left, py(exact(xMin), top, plotHeight)], [jumpX, py(exact(jump), top, plotHeight)]];
+        svg.appendChild(svgElement(doc, "path", { class: "mt-exact", d: linePath([[jumpX, py(0, top, plotHeight)], [left + plotWidth, py(0, top, plotHeight)]]) }));
+        svg.appendChild(svgElement(doc, "circle", { cx: jumpX, cy: py(0, top, plotHeight), r: 3.5, fill: "var(--bg)", stroke: "var(--mt-blue)", "stroke-width": 2 }));
+        svg.appendChild(svgElement(doc, "circle", { cx: jumpX, cy: py(exact(jump), top, plotHeight), r: 3.5, fill: "var(--mt-blue)" }));
+      }
       svg.appendChild(svgElement(doc, "path", { class: "mt-exact", d: linePath(exactPoints) }));
       svg.appendChild(svgElement(doc, "path", { class: "mt-bound", d: linePath(boundPoints) }));
       var markerX = px(data.threshold, xMin, xMax, left, plotWidth);
       svg.appendChild(svgElement(doc, "line", { class: "mt-divider", x1: markerX, x2: markerX, y1: top, y2: top + plotHeight, "stroke-dasharray": "2 4" }));
       svg.appendChild(svgElement(doc, "circle", { class: "mt-marker", cx: markerX, cy: py(exact(data.threshold), top, plotHeight), r: 5 }));
-      svg.appendChild(svgElement(doc, "text", { class: "mt-label", x: left + 5, y: top + plotHeight - 8, "text-anchor": "start" }, [exactLabel]));
-      svg.appendChild(svgElement(doc, "text", { class: "mt-label", x: left + plotWidth - 5, y: top + 15, "text-anchor": "end" }, [boundLabel]));
+      svg.appendChild(svgElement(doc, "text", { class: "mt-label", x: left + 5, y: 56, "text-anchor": "start" }, [exactLabel]));
+      svg.appendChild(svgElement(doc, "text", { class: "mt-label", x: left + plotWidth - 5, y: 71, "text-anchor": "end" }, [boundLabel]));
     }
     drawPanel(leftA, "Markov：P(W≥a)", function (a) { return markovTail(data.modelId, a, data.variant); }, function (a) { return markovBound(data.modelId, a, data.variant); }, "蓝：精确事件", "红虚线：上界");
     drawPanel(leftB, "Chebyshev：P(|X-μ|≥a)", function (a) { return centralTail(data.modelId, a, data.variant); }, function (a) { return chebyshevBound(data.modelId, a); }, "蓝：中心尾部", "红虚线：上界");
@@ -347,7 +360,7 @@
       variantGrid.appendChild(button);
     });
     controls.appendChild(variantGrid);
-    controls.appendChild(element(doc, "p", { className: "mt-note", text: "W=X 用于非负预设；同矩离散变体的 Markov 事件改为 W=|X|。" }));
+    controls.appendChild(element(doc, "p", { className: "mt-note", text: "W=X 用于非负预设；同矩离散变体的 Markov 事件改为 W=|X|。窄屏可在图内横向滚动读坐标。" }));
 
     function addRange(label, id, min, max, step, value, onInput, lowText, highText) {
       var output = element(doc, "output", { for: id, text: "" });
@@ -397,7 +410,7 @@
       clear(stage);
       var cards = [metric(doc, "原点 m_k", format(data.rawMoment, 4)), metric(doc, "中心 μ_k", format(data.centralMoment, 4)), metric(doc, "M(t)", format(data.mgf, 4)), metric(doc, "Cheb 上界", format(data.chebyshevBound, 4))];
       stage.appendChild(element(doc, "div", { className: "mt-metrics", "aria-label": "矩与上界读数" }, cards.map(function (card) { return card.node; })));
-      var frame = element(doc, "div", { className: "mt-stage-frame" }, [element(doc, "div", { className: "mt-stage-title" }, [element(doc, "strong", { text: data.model.label }), element(doc, "span", { text: "a=" + format(data.threshold, 2) })])]);
+      var frame = element(doc, "div", { className: "mt-stage-frame", tabindex: "0", role: "region", "aria-label": "尾概率图，窄屏可横向滚动" }, [element(doc, "div", { className: "mt-stage-title" }, [element(doc, "strong", { text: data.model.label }), element(doc, "span", { text: "a=" + format(data.threshold, 2) })])]);
       frame.appendChild(drawSvg(doc, data, uid));
       frame.appendChild(element(doc, "p", { className: "mt-chart-note", text: "蓝线是相应事件的精确概率，红虚线是只由均值或方差推出的上界；绿色点标出当前阈值。" }));
       stage.appendChild(frame);

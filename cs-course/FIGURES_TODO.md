@@ -208,7 +208,7 @@
 
 **gpu-02 核函数优化阶梯**
 - ★ `gpu-02-tiling.svg` [diagram] — 共享内存 tiling：把块搬进共享内存复用，全局访问从 O(1) 提到 O(块边长)。锚点：§2。
-- ★ `gpu-02-flash-attention.svg` [diagram] — FlashAttention：分块 + 在线 softmax，不落 N×N 中间矩阵，访存 O(N²)→O(N)。锚点：§4。
+- ★ `gpu-02-flash-attention.svg` [diagram] — FlashAttention：分块 + 在线 softmax，不落 N×N 中间矩阵，存储、算术与HBM访问分开计数。锚点：§4。
 - ○ `gpu-02-reduce-ladder.svg` [diagram] — 归约优化阶梯 naive 原子加→共享内存树形→warp shuffle。锚点：§3。
 
 **mlsys-01 训练系统与并行策略**
@@ -218,7 +218,7 @@
 
 **mlsys-02 推理系统与算子优化**
 - ★ `mlsys-02-prefill-decode.svg` [diagram] — Prefill(并行,算力受限) vs Decode(逐token,内存受限) 两阶段。锚点：§1。
-- ★ `mlsys-02-kv-cache.svg` [diagram] — KV Cache：缓存历史 K/V，新 token 只算自己，attention O(N²)→O(N)。锚点：§2。
+- ★ `mlsys-02-kv-cache.svg` [diagram] — KV Cache：历史K/V复用，新查询仍访问历史；单步与整段复杂度分开。锚点：§2。
 - ★ `mlsys-02-paged-attention.svg` [diagram] — PagedAttention 借 OS 分页管理 KV Cache（呼应 csapp-04）+ 连续批处理。锚点：§2。
 
 ### 语言线
@@ -238,7 +238,7 @@
 - ○ `py-01-generator.svg` [diagram] — 生成器惰性：yield 逐条产出，内存恒定 vs list 全载。锚点：§4。
 
 **py-02 运行时、GIL 与性能生态**
-- ★ `py-02-gil.svg` [diagram] — GIL：多线程轮流拿锁，CPU 密集只用一核（多进程才并行 / I/O 等待时释放 GIL）。锚点：§2。
+- ★ `py-02-gil.svg` [diagram] — 启用GIL与自由线程的CPU时间线；标明运行时前提。锚点：§2。
 - ○ `py-02-cpython.svg` [diagram] — CPython 执行：.py→字节码→解释器循环（慢在解释+装箱+动态）。锚点：§1。
 - ○ `py-02-numpy-sink.svg` [diagram] — 下沉热点：Python 胶水层 + numpy/C/CUDA 底座。锚点：§4。
 

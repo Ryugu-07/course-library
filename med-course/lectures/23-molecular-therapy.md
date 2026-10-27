@@ -1,6 +1,6 @@
 # 前沿 I · 分子医学：单抗、CAR-T、基因治疗
 
-> **⚠️ 保质期声明：本页与下一页核对于 2026-08-02。** 具体药名、试验结果与批准状态以年为单位变动，**但下面的机制分类与判断框架长期有效**。读任何一条时，先问第 00 页那四问，再问"这是替代终点还是硬终点"（🔗 从症状到决策站第 09 页）。
+> **前沿证据更新：2026-10-28；本轮核对范围见页末。** 具体药名、试验结果与批准状态以年为单位变动，**但下面的机制分类与判断框架长期有效**。读任何一条时，先问第 00 页那四问，再问"这是替代终点还是硬终点"（🔗 从症状到决策站第 09 页）。
 
 ## 1. 从小分子到生物药：一次范式转移
 
@@ -17,7 +17,7 @@
 | 核酸疗法 | **可靶向"不可成药"的靶点**（在 RNA 层面拦截） | 递送是核心难题 |
 | 基因编辑 | **潜在一次性根治** | 不可逆、脱靶、伦理 |
 
-**记住这条主线**：**药物开发的历史是不断把干预点上移**——从蛋白功能（小分子）→ 蛋白丰度（抗体、PROTAC）→ mRNA（siRNA、ASO）→ **DNA（基因编辑）**。**越上游，效果越持久，风险也越不可逆。**
+**记住这条主线**：**药物开发的历史是不断把干预点上移**——从蛋白功能（小分子）→ 蛋白丰度（抗体、PROTAC）→ mRNA（siRNA、ASO）→ **DNA（基因编辑）**。干预位置本身不是持久性的刻度：RNA、蛋白和细胞的更新会影响持续时间；改变 DNA 的风险则尤其需要长期观察，不能简单撤回。
 
 ## 2. 单克隆抗体与其衍生物
 
@@ -35,34 +35,61 @@
 
 **已获批适应证集中在 B 细胞恶性肿瘤**：CD19（ALL、大 B 细胞淋巴瘤、滤泡性、套细胞）与 **BCMA（多发性骨髓瘤）**。**在这些适应证中，部分难治复发患者获得长期缓解——这是真正的突破。**
 
-**两大毒性必须知道**：**细胞因子释放综合征 CRS**（发热、低血压、缺氧；**IL-6 是核心介质 → 托珠单抗为特效解毒**）与 **ICANS（免疫效应细胞相关神经毒性）**（谵妄、失语、癫痫、脑水肿）。另有 B 细胞发育不全致长期低丙种球蛋白血症。
+**两大毒性必须知道**：**细胞因子释放综合征 CRS**（发热、低血压、缺氧；**IL-6 等炎症介质参与；托珠单抗阻断 IL-6 受体，用于符合适应证的严重 CRS，但并非保证奏效的“解毒剂”**）与 **ICANS（免疫效应细胞相关神经毒性）**（谵妄、失语、癫痫、脑水肿）。另有 B 细胞发育不全致长期低丙种球蛋白血症。
 
-**实体瘤仍是未攻克的前线（核对于 2026-08-02）**：实体瘤 CAR-T 仍处于研究和临床试验推进阶段；截至本次复审，我未在 FDA 相关产品/安全信息页核验到实体瘤 CAR-T 的常规批准。三大障碍：① **缺乏真正肿瘤特异的表面抗原**（脱靶即"on-target/off-tumor"毒性）；② **免疫抑制性微环境**（TGF-β、Treg、髓源抑制细胞、代谢竞争）；③ **实体瘤的物理浸润困难**。当前策略包括装甲型 CAR、TCR-T、肿瘤浸润淋巴细胞疗法等；claudin-18.2 等靶点正在研究，不能把“推进快”或试验结果写成已获批标准治疗。
+**实体瘤仍是未攻克的前线（核对于 2026-08-02）**：实体瘤 CAR-T 仍处于研究和临床试验推进阶段；截至 2026-08-02 的上轮复审，未在所核 FDA 产品/安全信息页确认实体瘤 CAR-T 的常规批准；这一表述不代替当前标签查询。三大障碍：① **缺乏真正肿瘤特异的表面抗原**（正常组织也表达同一靶点，可导致 "on-target/off-tumor" 毒性；它不同于识别错误靶点）；② **免疫抑制性微环境**（TGF-β、Treg、髓源抑制细胞、代谢竞争）；③ **实体瘤的物理浸润困难**。当前策略包括装甲型 CAR、TCR-T、肿瘤浸润淋巴细胞疗法等；claudin-18.2 等靶点正在研究，不能把“推进快”或试验结果写成已获批标准治疗。
 
 **成本与可及性是这一类的结构性问题**：单次治疗价格在数十万美元量级，且需要有资质的中心、桥接治疗与长期随访。**"技术可行"与"卫生系统可负担"是两个问题**——🔗 从症状到决策站第 23 页从成本效果角度算这笔账。
+
+### 细胞也可以承担调节与重建
+
+细胞治疗的目标不总是增强杀伤。[FDA 于 2026-06-30 批准 Tregzi](https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-allogeneic-regulatory-t-cell-based-immunotherapy-hspc-and-t-cells-vldq-use-matched)，用于接受清髓性预处理、匹配供者造血干细胞移植的成人血液恶性肿瘤患者，帮助造血与免疫重建并改善慢性移植物抗宿主病无事件生存。它组合造血干/祖细胞、调节性 T 细胞和常规 T 细胞，**不是 CAR-T，也不是自身免疫病批准适应证**。
+
+其 187 人随机试验比较的是整套移植与预防方案；主要终点包括死亡或中重度慢性移植物抗宿主病，不能把改善这一终点改写成“更强的肿瘤杀伤”或“癌症治愈率提高”。
+
+| 设计目标 | 主要问题 | 不能跳过的验证 |
+|---|---|---|
+| 定向识别与杀伤，如 CAR-T | 怎样消灭目标而少伤正常组织？ | 抗肿瘤作用、误伤、过度炎症 |
+| 调节与重建，如上述移植产品 | 怎样重建免疫又减少对受者的攻击？ | 移植物功能、GVHD、感染及长期风险 |
+
+<details markdown="1">
+<summary>练习：Tregzi 方案比对照方案好，是否说明单独多输一些 Treg 就会更好？</summary>
+
+不能。试验比较了包含多种细胞与配套药物的方案；干预组和对照组的移植物处理及预防用药也不同。随机分配支持方案之间的比较，不自动拆出其中一个细胞成分的独立贡献，更不能推出“越多越好”的剂量关系。要回答后者，需要相应的成分或剂量比较设计。
+
+</details>
 
 ## 4. 核酸疗法
 
 | 类型 | 机制 | 已上市代表 |
 |---|---|---|
 | **反义寡核苷酸 ASO** | 与 mRNA 杂交 → RNase H 降解，或**调控剪接** | **诺西那生（脊髓性肌萎缩，改变 SMN2 剪接）**、依特普生 |
-| **siRNA** | RISC 复合体降解靶 mRNA | **帕西兰（急性肝卟啉症）**、**英克司兰（PCSK9，一年两次给药降 LDL）** |
+| **siRNA** | RISC 复合体降解靶 mRNA | **patisiran/Onpattro：成人遗传性转甲状腺素蛋白介导淀粉样变性（hATTR）的多发性神经病**；**givosiran/Givlaari：成人急性肝卟啉症**；另有靶向 PCSK9 的英克司兰 |
 | **mRNA** | 让宿主细胞自己表达抗原/蛋白 | **COVID-19 疫苗**（第 12 页）；肿瘤个体化新抗原疫苗在试验中 |
-| **反义/AAV 基因替代** | 递送功能拷贝 | **onasemnogene（SMA）**、**voretigene（RPE65 视网膜病变）** |
+| **AAV 载体基因替代** | 递送功能基因拷贝，与调节 RNA 的反义疗法不同 | **onasemnogene（SMA）**、**voretigene（RPE65 视网膜病变）** |
+
+**同一种技术平台，为什么会治疗不同疾病？** 要沿着靶点往下走，不能只记药名后缀：
+
+- **patisiran → 降低 TTR mRNA → 减少 TTR 蛋白生成**；其美国标签在这里对应的是成人 hATTR 多发性神经病。
+- **givosiran → 降低肝脏 ALAS1 mRNA → 减少卟啉合成途径中有害前体的积累**；对应成人急性肝卟啉症。
+
+两者都使用 RNA 干扰，疾病却由不同靶点和病理链决定。上述对应关系依据 [Onpattro 标签](https://www.accessdata.fda.gov/drugsatfda_docs/label/2022/210922s013lbl.pdf)与 [Givlaari 标签](https://www.accessdata.fda.gov/drugsatfda_docs/label/2024/212194s007lbl.pdf)核对；药物类别不是可互换用药的依据。
 
 **递送是核酸疗法的中心难题**，也是理解其适应证分布的钥匙：**目前最成熟的靶器官是肝**（GalNAc 偶联物被肝细胞上的去唾液酸糖蛋白受体高效摄取）——**所以已上市的 siRNA 药物大多针对肝内表达的靶点**。**眼、中枢（鞘内注射）、肌肉是其他相对可及的部位**。**"能治什么病，很大程度上由能送到哪里决定"**，这是本页最实用的一句判断。
 
-## 5. 基因编辑（核对于 2026-08-02）
+## 5. 基因编辑
 
-**技术阶梯**（精度依次提高、成熟度依次降低）：
+**三种机制**（可实现的改动不同，不是精度必然逐级提高）：
 
 1. **CRISPR-Cas9 切割 + 修复**：造成双链断裂，依赖 NHEJ（致基因敲除）或 HDR（精确替换，效率低）。**风险**：脱靶、大片段缺失、染色体重排、p53 通路激活；
 2. **碱基编辑（base editing）**：Cas 切口酶融合脱氨酶，**不产生双链断裂**即可实现 C→T 或 A→G 单碱基改变；
-3. **先导编辑（prime editing）**：融合逆转录酶 + pegRNA，**可实现任意小片段插入、缺失与替换**，理论上覆盖绝大多数致病点突变。
+3. **先导编辑（prime editing）**：融合逆转录酶 + pegRNA，**扩展到多类小片段插入、缺失与碱基替换**，但具体效率、准确性和递送可行性依赖目标位点及细胞类型。
 
-**临床现状**：FDA 于 **2023 年**批准 **Casgevy（exagamglogene autotemcel）**，它是首个获 FDA 批准的 CRISPR/Cas9 细胞疗法；其通过编辑 **BCL11A 红系增强子**重启**胎儿血红蛋白 HbF**，用于符合条件的镰状细胞病和输血依赖性 β 地中海贫血患者。**注意它的巧妙之处：不修复致病基因本身，而是重新打开一个代偿基因**——**"绕过去"往往比"修好它"更可行**。适应证、年龄范围和标签应以最新 FDA 文件为准。
+**临床现状**：FDA 于 **2023 年 12 月**首次批准 **Casgevy（exagamglogene autotemcel）**用于符合条件的镰状细胞病患者，**2024 年 1 月**批准输血依赖性 β 地中海贫血适应证。它是首个获 FDA 批准的 CRISPR/Cas9 细胞疗法，通过编辑 **BCL11A 红系增强子**重启**胎儿血红蛋白 HbF**。**注意它的巧妙之处：不修复致病基因本身，而是重新打开一个代偿基因**——**"绕过去"往往比"修好它"更可行**。适应证、年龄范围和标签应以最新 FDA 文件为准。
 
 **碱基编辑与先导编辑已进入早期临床探索**：个案或小样本报告可以提示可行性和短期信号，但不足以支持常规疗效与长期安全性结论。相关试验数量随注册库更新且定义不同，**本页不保留未经逐条核对的固定总数**。
+
+**体内编辑要区分“试验结果”与“申报事件”。** Lonvo-z 已有 HAELO 随机试验的正式论文，考察特定 HAE 人群在规定随访期内的发作率；Intellia 另于 2026-09-08 公告其申请获 FDA 受理并优先审评，目标行动日期为 2027-03-10。这是公司披露的审评进度，不是批准。PM577a 则于 2026-10-05 由发起方公告已有首例给药，尚不能据此推断人体获益。完整人群、时间窗与来源身份见[生物学第 28 页](../../bio-course/site/28-editing.html)。
 
 **必须同时讲的三条限制**：① **绝大多数为体细胞编辑**（不遗传给后代）——**生殖系编辑在国际上普遍受禁**（2018 年"基因编辑婴儿"事件后共识进一步收紧）；② **一次性、不可逆** → 长期安全性数据本质上需要数十年；③ **单基因病是低垂果实，多基因常见病远未可及**。
 
@@ -75,7 +102,22 @@
 - **有效但仅在部分患者**：黑色素瘤、非小细胞肺癌、肾癌、**MSI-H/dMMR 跨癌种**、霍奇金淋巴瘤等应答较好；**胰腺癌、前列腺癌、多数 MSS 结直肠癌应答很差**；
 - **预测标志物不完美**：PD-L1 表达、肿瘤突变负荷、MSI 状态**各自都只是部分预测**；
 - **独特的毒性谱**：**免疫相关不良事件**（结肠炎、肝炎、肺炎、垂体炎、甲状腺炎、心肌炎）——**处理逻辑与化疗毒性完全不同（用糖皮质激素与免疫抑制剂）**；
-- **应答者中有一部分获得长期生存平台期**——**这是与化疗最本质的差别**，也是生存曲线"长尾"的来源。**注意：这使得用中位生存期评价免疫治疗会系统性低估其价值**，🔗 姊妹站第 06 页讲这个统计学问题。
+- **应答者中有一部分获得长期生存平台期**——**这是与化疗最本质的差别**，也是生存曲线"长尾"的来源。**注意：中位生存期只描述生存曲线的一个位置，不能独自呈现长尾获益、早期风险或全部患者的体验**，🔗 姊妹站第 06 页讲这个统计学问题。
+
+### 新抗原治疗：先让免疫系统看见，再减少抑制
+
+Intismeran autogene 是个体化 mRNA 新抗原治疗：根据患者肿瘤变异选择抗原，使机体表达并呈递这些片段，期望引出针对肿瘤的 T 细胞反应；pembrolizumab 则阻断 PD-1 相关抑制。两者的机制互补是组合试验的理由，但合理机制必须接受随机比较。
+
+**证据身份先说清楚。** [Merck 与 Moderna 2026-10-22 的披露](https://www.merck.com/news/merck-and-moderna-will-present-results-from-landmark-phase-3-interpath-001-trial-for-intismeran-autogene-plus-keytruda-pembrolizumab-at-esmo-2026-presidential-symposium/)及 [10 月 24 日会议回顾](https://www.modernatx.com/recapping-the-phase-three-interpath-results)报告 INTerpath-001 三期结果。公司称论文已获 NEJM 接受；本轮未核到对应原刊全文，因此下列数字按公司披露和会议报告身份使用，不写成已独立细读的正式论文，也不据此宣称已经获批。
+
+试验纳入 1,137 名完全切除后、分期 IIB–IV 的高风险皮肤黑色素瘤患者，比较 intismeran + pembrolizumab 与安慰剂 + pembrolizumab。中位随访 24.6 个月时，主要终点无复发生存（RFS，事件含复发或死亡）的 HR 为 0.58（95% CI 0.45–0.75）；两年 RFS 估计为 82.2% 对 70.0%，**绝对差为 12.2 个百分点**。总生存数据尚不成熟。这是术后辅助治疗研究，不是给健康人预防所有癌症的疫苗。
+
+<details markdown="1">
+<summary>练习：“HR 为 0.58”可以翻译成“每 100 人多治愈 42 人”吗？</summary>
+
+不能。$1-0.58=42\%$ 来自风险比（hazard ratio），描述随访过程中的事件发生速率比较，不是固定时点的治愈人数差。若看本研究披露的两年 RFS，应计算 $82.2\%-70.0\%=12.2$ 个百分点；这是生存分析估计的绝对差，也不是把原始人数简单相减。它仍不能等同终身治愈或总生存改善。比较获益时还需纳入不良事件、随访和原刊方法细节，而不是只挑较大的百分数。
+
+</details>
 
 ## 7. 判断一条"突破"新闻的五问
 
@@ -89,11 +131,18 @@
 
 ## 参考与更新
 
-- **最后审查：2026-08-02。** 本节来源用于核验基因编辑、CAR-T 的监管边界和临床风险；具体适应证、年龄、地区批准状态与长期随访以最新监管文件为准。
+- **本轮定点审查：2026-10-28。** 更新 siRNA 靶点与适应证、Tregzi、体内编辑进展及 intismeran；未将所有既有药物标签重新完整审核。具体用药以当地最新标签与专业评估为准。
 - [FDA approves first gene therapies to treat patients with sickle cell disease](https://www.fda.gov/news-events/press-announcements/fda-approves-first-gene-therapies-treat-patients-sickle-cell-disease) — FDA，2023：Casgevy 的首个美国批准及基因编辑疗法背景。
 - [WHO recommendations on human genome editing](https://www.who.int/publications/i/item/9789240030381) — WHO，2021：人类基因编辑的治理、伦理与监管建议。
 - [FDA boxed warning for T-cell malignancies after CAR-T](https://www.fda.gov/vaccines-blood-biologics/safety-availability-biologics/fda-requires-boxed-warning-t-cell-malignancies-following-treatment-bcma-directed-or-cd19-directed) — FDA，2024：BCMA/CD19 CAR-T 后 T 细胞恶性肿瘤的安全性警示。
 - [Considerations for the Development of Chimeric Antigen Receptor T Cell Products](https://www.fda.gov/regulatory-information/search-fda-guidance-documents/considerations-development-chimeric-antigen-receptor-car-t-cell-products) — FDA：CAR-T 产品开发与监管考虑。
+
+- [Onpattro FDA 标签](https://www.accessdata.fda.gov/drugsatfda_docs/label/2022/210922s013lbl.pdf)，2022 年版本；[Givlaari FDA 标签](https://www.accessdata.fda.gov/drugsatfda_docs/label/2024/212194s007lbl.pdf)，2024 年版本。核读首页、适应证及机制相关段落；用于纠正药物—靶点—疾病对应，不声称这两个文件是最新完整安全标签。
+- [Tregzi 批准通知](https://www.fda.gov/drugs/resources-information-approved-drugs/fda-approves-allogeneic-regulatory-t-cell-based-immunotherapy-hspc-and-t-cells-vldq-use-matched)，FDA，2026-06-30。核读适应证、Precision-T 比较方案、主要终点与风险，未通读该试验的所有原始数据。
+- [CASGEVY 产品页及批准索引](https://www.fda.gov/vaccines-blood-biologics/casgevy)，FDA。核读适应证与 2023/2024 批准日期，避免把两个适应证写成同日获批。
+- [FDA 对 CAR-T 炎症毒性机制的说明](https://www.fda.gov/vaccines-blood-biologics/science-research-biologics/assessing-immunogenicity-products-gene-therapy-and-t-cell-therapy)。核读 IL-6/IL-1、托珠单抗及难治性 CRS 的段落，纠正“特效解毒”的绝对措辞。
+- [INTerpath-001 详细数据公告](https://www.merck.com/news/merck-and-moderna-will-present-results-from-landmark-phase-3-interpath-001-trial-for-intismeran-autogene-plus-keytruda-pembrolizumab-at-esmo-2026-presidential-symposium/)，Merck/Moderna，2026-10-22；[Moderna 会议回顾](https://www.modernatx.com/recapping-the-phase-three-interpath-results)，2026-10-24。核读试验设计、ITT 结果、RFS 绝对值、OS 未成熟及“接受发表”措辞；两家是合作方，不是相互独立的疗效验证。对应原刊全文未核到；10 月 28 日尝试会议幻灯 PDF 亦未能读取。
+- Lonvo-z 正式试验摘要、申报公告与 PM577a 给药/登记来源及各自实读范围，见[生物学第 28 页参考](../../bio-course/site/28-editing.html)。
 
 ---
 

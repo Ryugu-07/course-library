@@ -45,7 +45,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-27 03:32</div>
+    <div class="build-time">构建于 2026-10-28 02:18</div>
   </div>
 </nav>
 <main id="content">
@@ -62,7 +62,10 @@ try {
 </ul>
 </li>
 <li><a href="#2">2. 模板:零成本泛型（及其代价）</a></li>
-<li><a href="#3-c">3. 现代 C++:让语言好用起来</a></li>
+<li><a href="#3-c">3. 现代 C++:让语言好用起来</a><ul>
+<li><a href="#_7">前沿选读：编译期程序也能检查程序结构</a></li>
+</ul>
+</li>
 <li><a href="#4-c">4. C++ 并发:工具与深水陷阱</a></li>
 <li><a href="#5-c-vs-rust-vs-python">5. C++ vs Rust vs Python:一张收束图</a></li>
 <li><a href="#6">6. 练习与要点</a></li>
@@ -151,6 +154,10 @@ cpp-01 讲 C++ 的内存与生命周期模型，这一页讲你实际写 C++ 时
 <li><strong><code>std::optional</code>/<code>std::variant</code>/<code>std::expected</code></strong>：类型安全地表达"可能没值/多种类型/可能出错"（🔗 pl-02 的 ADT、rust 的 Option/Result——现代 C++ 也在往这个方向走）。</li>
 </ul>
 <p><strong>方法论</strong>：<strong>写现代 C++（C++17/20），别写"带类的 C"</strong>——用 RAII + 智能指针 + STL + auto + lambda，代码会安全清晰得多。老式手动内存管理的 C++ 是 bug 温床。</p>
+<h3 id="_7">前沿选读：编译期程序也能检查程序结构<a class="headerlink" href="#_7" title="Permanent link"></a></h3>
+<p><code>constexpr</code> 计算值，concepts 检查一个类型满足哪些约束；静态反射再允许程序在编译期取得类型/成员等结构信息，并据此生成有类型检查的代码。它不是运行时遍历对象内存，也不会自动获得读写任意私有成员的权限。</p>
+<p>设 <code>Point</code> 有 <code>x</code>、<code>y</code> 两个字段，你要生成格式化器：原来手写字段名与访问代码；反射路线先获得成员描述，再生成对应访问。<strong>结构变化能自动进入代码生成，不代表语义选择也自动正确</strong>：若结构增加了秘密字段 <code>token</code>，通用序列化器是否应输出它？答案仍须由白名单/注解/访问策略决定。</p>
+<p>截至 2026-10-28，<a href="https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p2996r13.html">P2996R13</a> 是本段所依设计版本；<a href="https://gcc.gnu.org/projects/cxx-status.html">GCC 支持表</a>列出 GCC 16 的反射支持与 <code>-freflection</code>，并另列后续修订的部分支持。这里提供结构推理选读；没有在本课编译环境中运行 C++26 反射例程，也不把某编译器支持写成所有编译器完整支持。</p>
 <h2 id="4-c">4. C++ 并发:工具与深水陷阱<a class="headerlink" href="#4-c" title="Permanent link"></a></h2>
 <p>C++11 起有了标准并发库（🔗 par 线、os-02）：</p>
 <ul>
@@ -201,7 +208,7 @@ cpp-01 讲 C++ 的内存与生命周期模型，这一页讲你实际写 C++ 时
 </tr>
 <tr>
 <td>并发</td>
-<td>GIL 限制（多进程/async 绕）</td>
+<td>取决于构建/GIL 状态；也可用进程/async</td>
 <td>全能但危险</td>
 <td>无畏（编译期防竞争）</td>
 </tr>

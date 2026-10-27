@@ -3,7 +3,7 @@
 
   /*
    * Teaching cards for one question: a Lean success report is three separate
-   * answers plus an exploit label. Cards are invented ledgers. They are not
+   * answers plus a risk/trust-boundary label. Cards are invented ledgers. They are not
    * excerpts from any repository.
    *
    * q1: kernel accepted a finished proof with no sorryAx, no custom axiom,
@@ -15,7 +15,7 @@
   var QUESTIONS = [
     {
       id: "q1",
-      prompt: "核心是否接受一份完成的證明，而且依賴裡沒有 sorryAx、沒有自訂 axiom、也沒有編譯器公理？"
+      prompt: "依本課公理規則，核心是否接受證明，且只依賴 propext、Classical.choice、Quot.sound 的子集？"
     },
     {
       id: "q2",
@@ -27,7 +27,7 @@
     },
     {
       id: "q4",
-      prompt: "這張卡片的空子屬於哪一類？"
+      prompt: "這張卡片呈現哪一類問題或信任變化？"
     }
   ];
 
@@ -46,11 +46,11 @@
       { id: "na", label: "不適用" }
     ],
     q4: [
-      { id: "none", label: "沒有這類空子" },
+      { id: "none", label: "沒有這類問題" },
       { id: "sorry", label: "sorry 或自訂 axiom" },
       { id: "weaken", label: "改弱或換掉語句" },
       { id: "redefine", label: "改掉定義" },
-      { id: "native", label: "核心之外的編譯器捷徑" },
+      { id: "native", label: "額外信任原生編譯器" },
       { id: "ci", label: "改檢查腳本或環境" }
     ]
   };
@@ -73,30 +73,30 @@
     {
       id: "weakened",
       title: "丙 · 英文是 n+1 > n，Lean 證了 n+0 = n",
-      body: "英文目標是「每個自然數 n 都滿足 n+1 > n」，英文論證也在談這一句。Lean 檔案證明的是「每個自然數 n 都滿足 n+0 = n」，證明項本身完整，沒有 sorry。",
+      body: "英文目標是「每個自然數 n 都滿足 n+1 > n」，英文論證也在談這一句。Lean 檔案證明的是「每個自然數 n 都滿足 n+0 = n」，證明項已由核心檢查，公理符合本課限制。",
       key: { q1: "yes", q2: "no", q3: "no", q4: "weaken" },
       why: "核心誠實地接受了另一句真命題。它沒有檢查英文那一句，也沒有檢查英文論證。"
     },
     {
       id: "redefined",
-      title: "丁 · 把公理 B 改成恆真的 def",
-      body: "原本 B 是一條幾何關係的 axiom。檔案把它改成 def B := 恆為 True，再用幾行證明目標。型別看起來還在，#print axioms 不再列出 B。英文幾何論證沒有被重讀。",
+      title: "丁 · 把目標關係 B 改成恆真定義",
+      body: "教學假設：原本 B 的定義是一個待研究的關係。檔案把它改成恆為 True，再以 True.intro 證明新目標；核心接受且不依賴額外公理。型別看起來還在，原英文論證沒有被核對。",
       key: { q1: "yes", q2: "no", q3: "no", q4: "redefine" },
       why: "核心接受的是新定義下的定理。定義變了，語句就不是原來的目標。"
     },
     {
       id: "native",
       title: "戊 · 用 native_decide 證明一個可計算等式",
-      body: "目標句就是卡片上的等式，沒有英文論文。證明策略是 native_decide。在本講實測的 Lean 4.26.0 上，公理清單會出現 Lean.ofReduceBool 與 Lean.trustCompiler。",
+      body: "目標句就是卡片上的等式，沒有英文論文。證明策略是 native_decide。本課用 Lean 4.31.0 實測，公理清單出現該次原生計算的 _native.native_decide.ax_1_1 公理。",
       key: { q1: "no", q2: "yes", q3: "na", q4: "native" },
-      why: "語句沒變，但這份接受多信了編譯器。它不是「只有小核心」的通過。"
+      why: "語句沒變，也有證明項，但它額外信任原生計算。本課第一問排除這類公理，所以選否；不表示等式為假或 native_decide 天然無效。"
     },
     {
       id: "ci-forge",
       title: "己 · 證明仍是 sorry，腳本卻寫下通過",
       body: "目標句沒改，證明仍是 sorry。評分程式以 root 跑這份 Lean，檔案裡的 #eval 在闡述階段改寫了 reward 檔。報告寫通過。沒有英文論文。",
       key: { q1: "no", q2: "yes", q3: "na", q4: "ci" },
-      why: "核心並沒有接受一份完成的證明。通過二字是環境被改寫之後的報告。"
+      why: "證明仍依賴 sorryAx，不合本課完成規則。報告上的通過又由被測程式改寫，不能當作核心檢查結論。"
     }
   ];
 
@@ -197,7 +197,7 @@
       var width = 640;
       var height = 168;
       var boxes = [
-        { id: "q1", name: "完成的證明項" },
+        { id: "q1", name: "依本課公理規則通過" },
         { id: "q2", name: "語句就是目標" },
         { id: "q3", name: "英文被核對" }
       ];
@@ -244,7 +244,7 @@
         api.el("article", { className: "lean-card" }, [
           api.el("h3", { text: current.title }),
           api.el("p", { text: current.body }),
-          api.el("p", { text: "這是教學卡片，不是任何倉庫裡的檔案。先選四個答案，再對答案。" })
+          api.el("p", { text: "教學卡片：本課只接受標準邏輯公理，不接受 sorryAx、自訂公理或原生計算公理。先選四個答案；「不合本課規則」不等於數學命題為假。" })
         ]),
         drawGates(result)
       ];

@@ -55,9 +55,9 @@
     ".rd-lab .rd-gate{margin:14px 0;padding:12px 14px;border-left:3px solid var(--rd-gold);background:var(--bg)}",
     ".rd-lab fieldset{min-width:0;margin:0;padding:0;border:0}.rd-lab legend{margin-bottom:8px;color:var(--fg);font-weight:750;line-height:1.5}.rd-lab .rd-question{min-width:0;margin:11px 0;padding:10px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg)}.rd-lab .rd-question legend{color:var(--rd-soft);font-size:13px;font-weight:650}",
     ".rd-lab .rd-choice-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.rd-lab button{min-width:0;min-height:44px;padding:8px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--fg);font:inherit;line-height:1.35;cursor:pointer;overflow-wrap:anywhere}.rd-lab button:hover{border-color:var(--accent)}.rd-lab button[aria-pressed=true],.rd-lab button.rd-primary{border-color:var(--accent);background:var(--accent);color:var(--bg);font-weight:750}.rd-lab button:focus-visible,.rd-lab input:focus-visible,.rd-lab select:focus-visible{outline:3px solid var(--cl-focus,#1769aa);outline-offset:2px}.rd-lab .rd-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.rd-lab .rd-actions>*{flex:1 1 180px}.rd-lab .rd-feedback{min-height:2em;margin:8px 0;font-weight:700}.rd-lab .rd-pass{color:var(--rd-green)}.rd-lab .rd-warn{color:var(--rd-red)}",
-    ".rd-lab .rd-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}.rd-lab .rd-layout{display:grid;grid-template-columns:minmax(205px,.62fr) minmax(0,1.38fr);gap:16px;align-items:start;min-width:0}.rd-lab .rd-controls,.rd-lab .rd-stage{min-width:0}",
+    ".rd-lab .rd-revealed{margin-top:18px;padding-top:16px;border-top:1px solid var(--border)}.rd-lab .rd-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start;min-width:0}.rd-lab .rd-controls,.rd-lab .rd-stage{min-width:0}",
     ".rd-lab .rd-controls{display:grid;gap:11px;padding:12px;border:1px solid var(--border);border-radius:7px;background:var(--bg)}.rd-lab .rd-controls h4{margin:0}.rd-lab .rd-control{display:grid;gap:5px;min-width:0}.rd-lab .rd-control label{color:var(--rd-soft);font-size:13px;font-weight:700}.rd-lab .rd-control output{color:var(--accent);font-variant-numeric:tabular-nums}.rd-lab input[type=range]{display:block;width:100%;min-height:44px;height:44px;margin:0;accent-color:var(--accent)}.rd-lab select{width:100%;min-height:44px;padding:7px 8px;border:1px solid var(--border);border-radius:5px;background:var(--bg);color:var(--fg);font:inherit}",
-    ".rd-lab .rd-stage-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden}.rd-lab .rd-chart{display:block;width:100%;max-width:100%;height:auto;color:var(--fg)}.rd-lab .rd-chart text{fill:currentColor;font-family:inherit;letter-spacing:0}.rd-lab .rd-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.65}.rd-lab .rd-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.72}.rd-lab .rd-fit{stroke:var(--rd-blue);stroke-width:2.5}.rd-lab .rd-residual{stroke:var(--rd-red);stroke-width:1.4;stroke-dasharray:3 3;opacity:.72}.rd-lab .rd-point{fill:var(--rd-blue);stroke:var(--bg);stroke-width:1.3}.rd-lab .rd-high{fill:var(--rd-gold)}.rd-lab .rd-influential{fill:var(--rd-red)}.rd-lab .rd-zero{stroke:var(--rd-gold);stroke-width:1.6;stroke-dasharray:5 4}.rd-lab .rd-label{font-size:11px}.rd-lab .rd-axis-label{font-size:12px}.rd-lab .rd-tick{font-size:11px;fill:var(--rd-soft)!important}.rd-lab .rd-chart-note{font-size:11px;fill:var(--rd-soft)!important}",
+    ".rd-lab .rd-stage-frame{min-width:0;padding:8px;border:1px solid var(--border);border-radius:7px;background:var(--bg);overflow:hidden}.rd-lab .rd-chart{min-width:680px;display:block;width:100%;max-width:100%;height:auto;color:var(--fg)}.rd-lab .rd-chart text{fill:currentColor;font-family:inherit;letter-spacing:0}.rd-lab .rd-grid{stroke:var(--border);stroke-width:1;stroke-opacity:.65}.rd-lab .rd-axis{stroke:currentColor;stroke-width:1.1;stroke-opacity:.72}.rd-lab .rd-fit{stroke:var(--rd-blue);stroke-width:2.5}.rd-lab .rd-residual{stroke:var(--rd-red);stroke-width:1.4;stroke-dasharray:3 3;opacity:.72}.rd-lab .rd-point{fill:var(--rd-blue);stroke:var(--bg);stroke-width:1.3}.rd-lab .rd-high{fill:var(--rd-gold)}.rd-lab .rd-influential{fill:var(--rd-red)}.rd-lab .rd-zero{stroke:var(--rd-gold);stroke-width:1.6;stroke-dasharray:5 4}.rd-lab .rd-label{font-size:11px}.rd-lab .rd-axis-label{font-size:12px}.rd-lab .rd-tick{font-size:11px;fill:var(--rd-soft)!important}.rd-lab .rd-chart-note{font-size:11px;fill:var(--rd-soft)!important}",
     ".rd-lab .rd-metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:10px 0 12px}.rd-lab .rd-metric{min-width:0;padding:9px;border-top:2px solid var(--border);background:var(--bg)}.rd-lab .rd-metric:nth-child(1){border-top-color:var(--rd-blue)}.rd-lab .rd-metric:nth-child(2){border-top-color:var(--rd-green)}.rd-lab .rd-metric:nth-child(3){border-top-color:var(--rd-gold)}.rd-lab .rd-metric:nth-child(4){border-top-color:var(--rd-red)}.rd-lab .rd-metric:nth-child(5){border-top-color:var(--rd-blue)}.rd-lab .rd-metric span{display:block;color:var(--rd-soft);font-size:11.5px;line-height:1.4}.rd-lab .rd-metric strong{display:block;margin-top:3px;font-size:15px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}",
     ".rd-lab .rd-ledger{max-width:100%;margin-top:14px;overflow-x:auto;-webkit-overflow-scrolling:touch}.rd-lab table{width:100%;min-width:680px;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.rd-lab caption{padding:0 0 7px;text-align:left;color:var(--rd-soft);font-size:12px;line-height:1.55}.rd-lab th,.rd-lab td{padding:7px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}.rd-lab th{color:var(--rd-soft);font-size:11.5px;font-weight:750}.rd-lab td:nth-child(n+2){white-space:nowrap}.rd-lab .rd-caution{margin:12px 0 0;padding:10px 12px;border-left:3px solid var(--rd-gold);background:var(--bg);color:var(--rd-soft);font-size:12.5px;line-height:1.7}",
     "@media(max-width:900px){.rd-lab .rd-layout{grid-template-columns:minmax(0,1fr)}}@media(max-width:700px){.rd-lab .rd-choice-row{grid-template-columns:minmax(0,1fr)}.rd-lab .rd-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:430px){.rd-lab .rd-stage-frame{padding:6px}.rd-lab table{font-size:11.5px}.rd-lab th,.rd-lab td{padding-left:5px;padding-right:5px}}@media(prefers-reduced-motion:reduce){.rd-lab *{animation:none!important;transition:none!important}}"
@@ -101,6 +101,7 @@
     if (!points.every(function (point) { return point && finite(Number(point.x)) && finite(Number(point.y)); })) {
       throw new RangeError("回归点的 x 与 y 必须是有限数。 ");
     }
+    points = points.map(function (point) { return { id: point.id, x: Number(point.x), y: Number(point.y) }; });
     var xBar = sum(points.map(function (point) { return point.x; })) / points.length;
     var yBar = sum(points.map(function (point) { return point.y; })) / points.length;
     var sxx = sum(points.map(function (point) { return Math.pow(point.x - xBar, 2); }));
@@ -118,10 +119,10 @@
     var sst = sum(points.map(function (point) { return Math.pow(point.y - yBar, 2); }));
     var mse = sse / (points.length - 2);
     rows.forEach(function (row) {
-      row.cooks = mse > 1e-12 && row.leverage < 1 ? (row.residual * row.residual / (2 * mse)) * row.leverage / Math.pow(1 - row.leverage, 2) : 0;
+      row.cooks = mse > 0 && row.leverage < 1 ? (row.residual * row.residual / (2 * mse)) * row.leverage / Math.pow(1 - row.leverage, 2) : null;
     });
     var maxLeverage = rows.reduce(function (best, row) { return row.leverage > best.leverage ? row : best; }, rows[0]);
-    var maxInfluence = rows.reduce(function (best, row) { return row.cooks > best.cooks ? row : best; }, rows[0]);
+    var maxInfluence = rows.reduce(function (best, row) { return finite(row.cooks) && (!best || row.cooks > best.cooks) ? row : best; }, null);
     return {
       n: points.length,
       xBar: xBar,
@@ -133,7 +134,7 @@
       sse: sse,
       sst: sst,
       mse: mse,
-      r2: sst > 1e-12 ? 1 - sse / sst : NaN,
+      r2: sst > 0 ? 1 - sse / sst : NaN,
       maxLeverage: maxLeverage,
       maxInfluence: maxInfluence
     };
@@ -189,7 +190,7 @@
   function format(value, digits) {
     if (value === null || value === undefined || !finite(value)) return "—";
     var text = value.toFixed(digits === undefined ? 3 : digits);
-    return text.replace(/0+$/, "").replace(/\.$/, "").replace(/^-0$/, "0");
+    return text.indexOf(".") < 0 ? text : text.replace(/0+$/, "").replace(/\.$/, "").replace(/^-0$/, "0");
   }
 
   function announce(api, root, message) {
@@ -214,6 +215,9 @@
     var yPad = Math.max(.5, (yMax - yMin) * .12);
     xMin -= xPad;
     xMax += xPad;
+    var endpointY = [result.intercept + result.slope * xMin, result.intercept + result.slope * xMax];
+    yMin = Math.min(yMin, endpointY[0], endpointY[1]);
+    yMax = Math.max(yMax, endpointY[0], endpointY[1]);
     yMin -= yPad;
     yMax += yPad;
     var residualMax = Math.max.apply(Math, points.map(function (row) { return Math.abs(row.residual); }).concat([1])) * 1.25;
@@ -235,6 +239,9 @@
     [0, .5, 1].forEach(function (fraction) {
       var x = left + fraction * width;
       var value = xMin + fraction * (xMax - xMin);
+      var yValue = yMax - fraction * (yMax - yMin);
+      children.push(svgElement(api, doc, "text", { className: "rd-tick", x: left - 7, y: top + fraction * plotHeight + 4, "text-anchor": "end" }, format(yValue, 1)));
+      children.push(svgElement(api, doc, "text", { className: "rd-tick", x: left - 7, y: residualTop + fraction * residualHeight + 4, "text-anchor": "end" }, format(residualMax * (1 - 2 * fraction), 1)));
       children.push(svgElement(api, doc, "line", { className: "rd-grid", x1: x, y1: top, x2: x, y2: top + plotHeight }));
       children.push(svgElement(api, doc, "text", { className: "rd-tick", x: x, y: top + plotHeight + 17, "text-anchor": "middle" }, format(value, 1)));
     });
@@ -242,7 +249,7 @@
     children.push(svgElement(api, doc, "path", { className: "rd-fit", d: fitPath }));
     points.forEach(function (row) {
       var highLeverage = row.id === result.maxLeverage.id;
-      var influential = row.id === result.maxInfluence.id;
+      var influential = result.maxInfluence && row.id === result.maxInfluence.id;
       var pointClass = influential ? "rd-point rd-influential" : highLeverage ? "rd-point rd-high" : "rd-point";
       var radius = 3.5 + 11 * Math.min(.45, row.leverage);
       children.push(svgElement(api, doc, "line", { className: "rd-residual", x1: xMap(row.x), y1: yMap(row.y), x2: xMap(row.x), y2: yMap(row.fitted) }));
@@ -251,7 +258,7 @@
       children.push(svgElement(api, doc, "circle", { className: pointClass, cx: xMap(row.x), cy: residualMap(row.residual), r: Math.max(3, radius * .62) }));
       children.push(svgElement(api, doc, "line", { className: "rd-residual", x1: xMap(row.x), y1: residualMap(0), x2: xMap(row.x), y2: residualMap(row.residual) }));
     });
-    children.push(svgElement(api, doc, "text", { className: "rd-chart-note", x: left + width, y: top + 14, "text-anchor": "end" }, "点大小 ∝ 杠杆；红色点 = 最大 Cook 影响度"));
+    children.push(svgElement(api, doc, "text", { className: "rd-chart-note", x: left + width, y: top + 14, "text-anchor": "end" }, "点随杠杆增大（大小封顶）；红点 = 最大 Cook D"));
     return svgElement(api, doc, "svg", { className: "rd-chart", viewBox: "0 0 760 445", role: "img", "aria-labelledby": prefix + "-chart-title " + prefix + "-chart-desc" }, children);
   }
 
@@ -367,7 +374,7 @@
     layout.appendChild(controls);
 
     var stageFrame = element(api, doc, "div", { className: "rd-stage-frame" });
-    var chartHost = element(api, doc, "div", {});
+    var chartHost = element(api, doc, "div", {style:"max-width:100%;overflow-x:auto", tabindex:"0", role:"region", "aria-label":"回归诊断图，窄屏可横向滚动"});
     var metrics = element(api, doc, "div", { className: "rd-metrics", "aria-label": "回归指标" });
     var ledger = element(api, doc, "div", { className: "rd-ledger" });
     stageFrame.appendChild(chartHost);
@@ -375,7 +382,7 @@
     stageFrame.appendChild(ledger);
     layout.appendChild(stageFrame);
     stage.appendChild(layout);
-    stage.appendChild(element(api, doc, "p", { className: "rd-caution" }, "边界读法：R² 只记录样本内平方变差分解，不能代表质量、外推能力或因果性；同方差、独立性、线性关系和合理设计决定推断是否可信，正态性主要服务于小样本精确 t 推断。"));
+    stage.appendChild(element(api, doc, "p", { className: "rd-caution" }, "窄屏可在图内横向滚动读坐标。边界读法：R² 只记录样本内平方变差分解，不能代表质量、外推能力或因果性；同方差、独立性、线性关系和合理设计决定推断是否可信，正态性主要服务于小样本精确 t 推断。"));
     root.replaceChildren(gate, stage);
     if (root.classList) root.classList.add("rd-lab");
 
@@ -407,7 +414,7 @@
         metric(api, doc, "R²", format(result.r2, 3)),
         metric(api, doc, "SSE", format(result.sse, 3)),
         metric(api, doc, "最大杠杆", result.maxLeverage.id + "：" + format(result.maxLeverage.leverage, 3)),
-        metric(api, doc, "最大 Cook D", result.maxInfluence.id + "：" + format(result.maxInfluence.cooks, 3))
+        metric(api, doc, "最大 Cook D", result.maxInfluence ? result.maxInfluence.id + "：" + format(result.maxInfluence.cooks, 3) : "未定义")
       ]);
       var table = element(api, doc, "table", {});
       table.appendChild(element(api, doc, "caption", {}, PRESETS[settings.scenario].label + "；按 Cook 影响度从高到低列出诊断行。"));
