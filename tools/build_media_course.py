@@ -64,7 +64,7 @@ def shell(title, description, body, lane='', depth=0):
 <script defer src="{prefix}assets/reading.js"></script><script defer src="{prefix}assets/media.js"></script></head>
 <body data-section="{esc(lane)}"><a class="skip" href="#main">跳到正文</a>
 <header class="masthead"><a class="brand" href="{prefix}index.html"><span class="brand-mark" aria-hidden="true">传</span><span>传播与新闻<small>COURSE LIBRARY</small></span></a><nav aria-label="课程导航">{nav}</nav></header>
-{body}<footer class="site-footer"><span>传播与新闻 · 首批课程</span><a href="{prefix}../../humanities/">文史与社会 ↗</a><span>2026 年 10 月版</span><a href="#main">回到正文 ↑</a></footer></body></html>'''
+{body}<footer class="site-footer"><span>传播与新闻 · 四条阅读路线</span><a href="{prefix}../../humanities/">文史与社会 ↗</a><span>2026 年 10 月版</span><a href="#main">回到正文 ↑</a></footer></body></html>'''
 
 
 def ready(catalog):
@@ -100,9 +100,9 @@ def home(catalogs):
 <section class="media-hero"><div><p class="eyebrow">COMMUNICATION · JOURNALISM · MEDIA STUDIES</p><h1>我们如何<br>知道彼此，<br>理解世界<span class="title-dot">。</span></h1><p class="lead">一句话为何被听成另一种意思？<br>一个事实怎样走进公共生活？</p><a class="primary-link" href="#paths">从一个问题进入 ↓</a></div><aside class="field-map" aria-label="学科关系示意"><p class="eyebrow">四种相互补充的追问</p><div class="map-cell"><b>人 ↔ 人</b><span>意义、关系、理解</span><small>传播学</small></div><div class="map-cell"><b>材料 → 报道</b><span>发现、核实、表达</span><small>新闻学</small></div><div class="map-cell"><b>内容 ⇄ 平台 ⇄ 受众</b><span>可见性、规则、利益</span><small>媒介与平台研究</small></div><div class="map-base"><strong>研究方法</strong><span>概念 → 材料 → 比较 → 有边界的结论</span></div><p class="map-caption">这是研究问题的分工；现实中的一次传播，往往同时涉及几条线。</p></aside></section>
 <div class="edition-strip"><span><strong>{count}</strong> 讲正文可读</span><span><strong>{total}</strong> 讲课程地图</span><span>案例 · 原始资料 · 带解析练习</span></div>
 <section id="paths" class="entry-paths">{''.join(paths)}</section>
-<section class="start-route"><p class="eyebrow">第一次读，可以这样走</p><h2>先学会拆开问题，再判断证据。</h2><p>依次读传播学第一讲、研究方法第一讲，再进入新闻学的三讲材料练习。对信息流和创作者经济更感兴趣，可以从媒介与平台研究开始，遇到抽样和因果问题时回到方法线。</p><p>本版完成四条线的起始单元。后续采访、田野与采编课程还需要真实实践和反馈；阅读正文不能替代这部分训练。</p></section>
+<section class="start-route"><p class="eyebrow">第一次读，可以这样走</p><h2>先学会拆开问题，再判断证据。</h2><p>依次读传播学第一讲、研究方法第一讲，再进入新闻学的三讲材料练习。对信息流和创作者经济更感兴趣，可以从媒介与平台研究开始，遇到抽样和因果问题时回到方法线。</p><p>本版四条线共 {count} 讲可读。采访、田野与采编还需要真实实践和反馈；阅读正文不能替代这部分训练。</p></section>
 <section id="reading" class="reading-section"><div class="section-heading"><div><p class="eyebrow">本版正文</p><h2>找到你想弄清的问题</h2></div><div class="search-box enhanced" hidden><label for="reading-search">检索可读课程</label><input id="reading-search" type="search" placeholder="例如：采访、信源、抽样" autocomplete="off"></div></div><p id="search-count" class="search-count" role="status"></p><div class="course-directory">{''.join(rows)}</div></section>
-<section class="course-map" id="course-map"><p class="eyebrow">完整课程地图</p><h2>从基础走向研究与实践</h2><p class="scope">四条线各 10 讲。“正文可读”可以直接进入；“待建设”说明后续范围。本路线是本课程的编排，不是任何院校培养方案的复刻。</p>{maps}</section>
+<section class="course-map" id="course-map"><p class="eyebrow">完整课程地图</p><h2>从基础走向研究与实践</h2><p class="scope">四条线各 10 讲，可依序学习，也可按问题选读。本路线是本课程的编排，不是任何院校培养方案的复刻。</p>{maps}</section>
 <details class="course-sources"><summary>这套课程参照了哪些专业培养内容？</summary><p>范围编排参考中国传媒大学的新闻学与传播学专业介绍、USC 的传播学课程和 Medill 的新闻学课程，保留理论、文化与制度、采编实践、研究方法几种不同训练。以下是课程范围参照；具体知识与证据在每讲末尾列出。</p><ul><li><a href="https://xinwenxueyuan.cuc.edu.cn/rcpy/list.htm">中国传媒大学新闻学院：本科专业介绍</a></li><li><a href="https://annenberg.usc.edu/academics/undergraduate-communication/curriculum">USC Annenberg：Communication Curriculum</a></li><li><a href="https://www.medill.northwestern.edu/journalism/undergraduate-journalism/curriculum/">Northwestern Medill：Journalism Curriculum</a></li></ul></details>
 </main>'''
     write(SITE / 'index.html', shell('我们如何知道彼此，理解世界', '传播学、新闻学、媒介与平台研究及研究方法的独立课程。', content))
@@ -128,7 +128,7 @@ def article(lane, catalog, lesson):
     for delta, label in ((-1, '上一篇'), (1, '下一篇')):
         i = index + delta
         pager.append(f'<a href="{lessons[i]["slug"]}.html"><small>{label}</small>{esc(lessons[i]["title"])}</a>' if 0 <= i < len(lessons) else '<a href="index.html"><small>阅读路线</small>返回本线目录</a>')
-    body = f'''<main id="main" class="article-page" data-reading-id="{lane}/{lesson['slug']}"><a class="breadcrumb" href="index.html">← {esc(catalog['title'])}</a><header class="article-header"><p class="eyebrow">{esc(catalog['title'])} / {index+1:02d}</p><h1>{esc(lesson['title'])}</h1><p class="dek">{esc(lesson['summary'])}</p><div class="article-meta"><span>约 {lesson['minutes']} 分钟 · 可分段阅读</span><span>2026 年 10 月首批课程</span></div></header><div class="article-layout"><aside class="reading-sidebar"><details class="contents" open><summary>本篇目录</summary>{md.toc}</details><div class="reading-tools enhanced" hidden><span>阅读字号</span><div><button id="font-smaller" type="button" aria-label="缩小正文字号">A−</button><button id="font-larger" type="button" aria-label="放大正文字号">A＋</button></div><button id="mark-read" type="button" aria-pressed="false">标记读完</button><small>阅读状态仅保存在本机浏览器</small><p id="reading-feedback" role="status"></p></div></aside><div class="article-column"><article class="prose">{prose}</article><nav class="article-pager" aria-label="上下篇">{''.join(pager)}</nav></div></div></main>'''
+    body = f'''<main id="main" class="article-page" data-reading-id="{lane}/{lesson['slug']}"><a class="breadcrumb" href="index.html">← {esc(catalog['title'])}</a><header class="article-header"><p class="eyebrow">{esc(catalog['title'])} / {index+1:02d}</p><h1>{esc(lesson['title'])}</h1><p class="dek">{esc(lesson['summary'])}</p><div class="article-meta"><span>约 {lesson['minutes']} 分钟 · 可分段阅读</span><span>2026 年 10 月版</span></div></header><div class="article-layout"><aside class="reading-sidebar"><details class="contents" open><summary>本篇目录</summary>{md.toc}</details><div class="reading-tools enhanced" hidden><span>阅读字号</span><div><button id="font-smaller" type="button" aria-label="缩小正文字号">A−</button><button id="font-larger" type="button" aria-label="放大正文字号">A＋</button></div><button id="mark-read" type="button" aria-pressed="false">标记读完</button><small>阅读状态仅保存在本机浏览器</small><p id="reading-feedback" role="status"></p></div></aside><div class="article-column"><article class="prose">{prose}</article><nav class="article-pager" aria-label="上下篇">{''.join(pager)}</nav></div></div></main>'''
     write(SITE / lane / f'{lesson["slug"]}.html', shell(lesson['title'], lesson['summary'], body, lane, 1))
 
 
@@ -144,7 +144,7 @@ def main():
     # Reuse the established reading interface; separate storage prevents cross-course collisions.
     write(SITE / 'assets/reading.css', (ROOT / 'humanities/assets/reading.css').read_text(encoding='utf-8'))
     write(SITE / 'assets/reading.js', (ROOT / 'humanities/assets/reading.js').read_text(encoding='utf-8').replace('course-library-humanities-reading-v1', 'course-library-media-reading-v1'))
-    for name in ('media.css', 'media.js'):
+    for name in ('media.css', 'media.js', 'research-project.csv'):
         write(SITE / 'assets' / name, (COURSE / 'assets' / name).read_text(encoding='utf-8'))
     home(catalogs)
     for lane, catalog in catalogs.items():
