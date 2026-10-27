@@ -29,7 +29,7 @@
 <div class="nav-part"><div class="nav-part-title">工作流实验室</div><ul><li><a href="workflows.html">工作流包使用说明（wf01–wf07）</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-21 21:10</div>
+    <div class="build-time">构建于 2026-10-21 03:33</div>
   </div>
 </nav>
 <main id="content">
@@ -136,6 +136,11 @@
 </tbody>
 </table>
 <p>从 <a href="https://huggingface.co/Comfy-Org/Qwen-Image-2.1/tree/main">Comfy-Org 权重目录</a>取文件；已有 BF16 模型可在对应 loader 中选择。<code>w4a8</code> 是另一个编码器选项，不能把不同量化名称当成相同后端要求。若沿用第 06 讲的外置模型目录，先检查模型路径映射，再按分类放置；不要另建一套互相覆盖的目录。</p>
+<blockquote>
+<p><strong>前沿補充（2026-10）。</strong> 上面的三件套仍是復現起點。2026-10-09 的 <a href="https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo">Qwen-Image-2.1-Turbo</a> 把文生圖和編輯收成 <strong>8 步、默認 CFG 1</strong>，許可證仍是 <code>qwen-research</code>；步數變少，但只改 <code>num_inference_steps</code> 不會換上官方保存的 8 步日程。</p>
+<p>Comfy 模板文件 <code>image_qwen_image_2_1_turbo_t2i.json</code> 與 <code>image_qwen_image_2_1_turbo_image_edit.json</code> 在 <a href="https://github.com/Comfy-Org/workflow_templates/commit/0cf483d1dc">0cf483d1dc</a>（2026-10-13）使用 <code>qwen_image_2.1_turbo_int8_convrot.safetensors</code>、euler、cfg 1，節點標題為 “Manual Sigmas (Qwen-Image-2.1-Turbo 8-step schedule)”；VAE 仍是 bf16。文生圖的提示詞增強編碼器是 <code>qwen3.5_9b_qwen_image_2.1_pe_t2i.int8_convrot.safetensors</code>；編輯模板用 <code>qwen3.5_9b_qwen_image_2.1_pe_i2i.int8_convrot.safetensors</code>。Turbo int8 為 7,256,787,829 字節（7.257 GB），這是磁盤體積，不是 16 GB 顯存證書。<a href="https://huggingface.co/Comfy-Org/Qwen-Image-2.1">模型卡</a>寫完整模型或抽出的 LoRA 都是 8 步、cfg 1。</p>
+<p><a href="https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.38.0">v0.38.0</a> 支持 union fun ControlNet 和 tiny VAE。ControlNet 權重放在 <code>models/model_patches/</code>。tiny VAE 放在 <code>models/vae_approx/</code>，文件名是 <code>taeqi2_1_encoder.pth</code> 與 <code>taeqi2_1_decoder.pth</code>（<a href="https://github.com/madebyollin/taesd/blob/main/taeqi2_1_decoder.pth">來源</a>），不是上面的 bf16 VAE。當天 <code>templates/</code> 沒有 2.1 ControlNet 的官方 JSON。<a href="https://github.com/Comfy-Org/ComfyUI/releases/tag/v0.39.0">v0.39.0</a> 修復了 int8/int4 cache 崩潰，本課沒有復現。OpenVINO 的 README 日期是 <strong>2026-09-20</strong>；Apple Silicon 指向 <a href="https://github.com/ModelTC/LightX2V-Mac-App">LightX2V-Mac-App</a> 跑 Turbo。兩處都沒有在本課復跑。<a href="https://github.com/QwenLM/Qwen-Image-2.1">README</a></p>
+</blockquote>
 <h3 id="31">3.1 直接导入官方模板<a class="headerlink" href="#31" title="Permanent link"></a></h3>
 <ul>
 <li><a href="https://raw.githubusercontent.com/Comfy-Org/workflow_templates/371a7b7171bbd11e9cc92ef615ba5ad223d7e5b4/templates/image_qwen_image_2_1_t2i.json">文生图 UI JSON（固定版本下载）</a></li>
