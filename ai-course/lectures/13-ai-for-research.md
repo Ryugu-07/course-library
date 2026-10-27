@@ -126,6 +126,8 @@ LLM 做推导的特性必须先认清：它是**似然机器**（第 07 讲）�
     - Buzzard [2026-09-04](https://xenaproject.wordpress.com/2026/09/04/flt-anthropic-has-beaten-me-to-it/)：comparator 通過，超 1340 萬行、11 天，順著 Darmon–Diamond–Taylor。只說明形式化語句與所隨文獻對得上。
     - 2026-10-07 的 [AHM 聲明](https://terrytao.wordpress.com/2026/10/07/ahm-statement-on-openais-october-6-release-of-mathematical-documents/) 是陶哲軒博客上的客座文章，不是他本人的逐行審稿。
 
+Lean 編譯通過之後，還要分開問形式化語句是否忠實、英文證明是否正確；拆法見第 20 講[〈Lean 證明了什麼〉](20-lean-proves.html)。
+
 推理模型（第 10 讲）在此场景显著强于即答模型，难推导务必用推理档并给足思考时间。
 
 ## 3. 实验与代码复现
