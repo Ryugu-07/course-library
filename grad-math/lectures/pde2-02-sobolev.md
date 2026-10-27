@@ -536,7 +536,7 @@ $$
 
 与文中比较的阈值 $2+200/251\approx2.79681$ 相比，新门槛略小，覆盖的 $p$ 范围略大。其推进来自保留管重叠估计中的参数，组合平面聚集结构、插值与 decoupling；没有改变基础的缩放规则。同文 Theorem 2 的 Kakeya 最大估计维数参数为 $386453/125988\approx3.06738$，Corollary 2 的 Hausdorff 维数下界为 $26343/8588\approx3.06742$。两者定义和数值都不同，不能拼成一个“精确维数”，更不能写成四维完整猜想已由这篇论文解决。
 
-**状态边界：** 这段是对固定论文的阅读。10 月 26 日另有 [OpenAI 发布记录](https://github.com/openai/math/blob/7ef5c0cc5ca4b0e072b7a050fca09ab24bc6fa3a/history.md)声称通过局部平滑得到更广的 Kakeya/限制结论；本课只核到发布记录，未审读其完整证明。因此不把本文阈值称为“截至今天已验定的最佳界”，也不把后来的宣告视为已由本课确认。
+**状态边界：** 这段是对固定论文的阅读，不把本文阈值称为“截至今天已验定的最佳界”。10 月 26 日另有通过局部平滑解决全维 Kakeya 的发布，下一节单独解释其公开陈述、阅读范围和待核问题；它不能倒过来改变 Moreira 这篇论文实际证明了什么。
 
 <details class="answer" markdown="1">
 <summary>练习1：新阈值更小，为什么反而是更强结果？它包含端点吗？</summary>
@@ -553,3 +553,47 @@ $$
 </details>
 
 **核读范围（2026-10-28）：** [arXiv:2610.06181v1](https://arxiv.org/abs/2610.06181v1)，首发 2026-10-05，按预印本使用。核对引言中的 Theorems 1–2、Corollary 2、证明路线和 §2 定义，未逐项验算后续插值/迭代证明。进入这一方向前，可先读 [热核正则化与频率壳层](bridge-18-heat-distributions.html)；本页的 Sobolev、Poincaré 与临界集中仍是稳定先修，不能用新论文标题跳过。
+
+<a id="frontier-kakeya-2026-10"></a>
+## 11 · 2026-10-28 研究窗口：任意维挂谷，为什么从波动方程出发？
+
+**最新主张：** OpenAI 于 **10 月 26 日**发布 *Local smoothing for the Euclidean wave equation*，声称证明每个空间维数 $n\ge2$ 的欧氏波动局部平滑，并推出全维 Kakeya 最大估计与满 Hausdorff 维数等结论。自然语言原稿与 Lean 材料已公开。本课已从仅核发布记录推进到核读定理与推论，但没有完成全部证明或形式化工程的独立验证。
+
+设一簇波从不同方向朝同一点传播。它们可以在某个时刻集中，随后又散开。单看最强聚焦的一帧，与把整个时间段的强度积分，是两个不同问题。**局部平滑估计量化的是时间平均能节省多少初始正则性**，并不声称无耗散的波动方程像热方程那样把每一时刻的解自动抹平。
+
+原稿 Theorem 1.1 用半波传播 $U(t)=e^{-it|D|}$，其中 $|D|=\sqrt{-\Delta}$。令 $I=[1,2]$。对 Schwartz 初值、$2\le p<\infty$ 和每个 $\varepsilon>0$，给出的陈述是
+
+$$
+s_+(p)=\max\left\{0,\frac{n-1}{2}-\frac np\right\},
+$$
+
+$$
+\|U(t)f\|_{L^p(\mathbb R^n\times I)}
+\le C_{n,p,\varepsilon}\|f\|_{W^{s_+(p)+\varepsilon,p}}.
+$$
+
+这里 $W^{s,p}$ 采用 Bessel 势范数 $\|(1-\Delta)^{s/2}f\|_p$，以容纳非整数阶；$p=2$ 时另允许 $\varepsilon=0$。例如 $n=3,p=3$ 时 $s_+=0$：陈述允许任意小的正 Sobolev 损失，不能擅自删掉 $\varepsilon$，宣称得到零损失端点。临界指数 $p_c=2n/(n-1)$ 以上，固定时间需要的阶数与 $s_+$ 相差 $1/p$，因此可以把改进理解为时间平均带来的收益。
+
+### 从波包到挂谷集，还要跨过哪些步骤？
+
+原稿的路线不是只画许多相交线段。§1.4 提出从波构造守恒流和辅助椭圆方程的方案，以能量估计控制临界频率壳层；§9 再把球面延拓、频率小帽与空间细管联系起来。证明这些估计是主体难点，本课只重建其用途。
+
+令 $K_\delta f(\omega)$ 为方向 $\omega$ 的所有单位长、半径 $\delta$ 细管上 $|f|$ 平均值的上确界。公开的 [Lean 范围说明 079](https://github.com/openai/math/blob/7ef5c0cc5ca4b0e072b7a050fca09ab24bc6fa3a/lean/docs/079.md)包括：对每个 $\varepsilon>0$，
+
+$$
+\|K_\delta f\|_{L^n(S^{n-1})}
+\le C_{n,\varepsilon}\delta^{-\varepsilon}\|f\|_{L^n(\mathbb R^n)},
+\qquad 0<\delta\le1.
+$$
+
+用它可以做一段短推导。若有界 Kakeya 集 $F$ 在每个方向包含单位线段，其 $\delta$ 邻域 $F_\delta$ 包含相应细管，因此 $K_\delta1_{F_\delta}\ge1$。代入上式得到
+
+$$
+|F_\delta|\ge c_{n,\varepsilon}\delta^{n\varepsilon}.
+$$
+
+它排除了邻域体积以某个固定正幂过快消失，给出满 Minkowski 维数。但 **Hausdorff 维数允许覆盖球具有不同半径**，还须处理混合尺度覆盖；原稿 §9.3 专门给出这一环节。原稿与形式化范围说明均声称每个欧氏 Kakeya 集的 Hausdorff 维数为 $n$，包括不可测集合的陈述。这也不意味着集合具有正 Lebesgue 体积。
+
+**自检与解析：** 对每个 $\varepsilon>0$ 都有上面的下界，能否直接令 $\varepsilon=0$ 得到统一正体积？不能，常数可依赖 $\varepsilon$，也未保证它在 $\varepsilon\downarrow0$ 时有正下界；“对每个正损失成立”和“零损失成立”是不同量词。
+
+**原始来源与核读范围：** [10 月 26 日公告](https://openai.com/index/building-scientific-understanding-with-academic-communities/)；[10 月 25 日原稿](https://github.com/openai/math/blob/7ef5c0cc5ca4b0e072b7a050fca09ab24bc6fa3a/preprints/Local-smoothing-for-the-Euclidean-wave-equation-October-25-2026/paper.pdf)第 1–5 页和 §9.3（第 30–31 页）；范围说明 079、Comparator 的目标、配置及实际 solution 入口。没有逐项验算 §2–7 的辅助方程、能量和边界估计，也没有重放 Lean 工程。本节的短推导是在所述最大估计成立的条件下解释其后果，不构成对整篇新证明的认证。
