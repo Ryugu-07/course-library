@@ -47,7 +47,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">收官</div><ul><li><a href="22-selection-closing.html">收官 · 材料选择与设计</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-25 04:49</div>
+    <div class="build-time">构建于 2026-10-28 02:20</div>
   </div>
 </nav>
 <main id="content">
@@ -64,7 +64,10 @@ try {
 </ul>
 </li>
 <li><a href="#1_1">1. 多尺度计算谱系（选工具的地图）</a></li>
-<li><a href="#2-ai">2. AI 的三种用法（按成熟度排序）</a></li>
+<li><a href="#2-ai">2. AI 的三种用法（按成熟度排序）</a><ul>
+<li><a href="#21">2.1 从一个预测出发，怎样得到一族超导材料？</a></li>
+</ul>
+</li>
 <li><a href="#3">3. 一次值得记住的教训（本页最重要的一段）</a></li>
 <li><a href="#4_1">4. 数据基础设施（低调但决定上限）</a></li>
 <li><a href="#5-ai-for-materials">5. 判断框架（读 AI-for-materials 新闻的五问）</a></li>
@@ -165,7 +168,7 @@ w_j=\frac{1}{d_j+10^{-6}}.
 <td>电子（Å, fs）</td>
 <td><strong>DFT</strong> 第一性原理</td>
 <td>能带、形成能、弹性常数、缺陷能、反应路径</td>
-<td>数百原子上限；带隙系统性低估；泛函依赖</td>
+<td>高精度大体系成本高，规模随算法而变；常用半局域泛函可能低估带隙；泛函依赖</td>
 </tr>
 <tr>
 <td>原子（nm, ns）</td>
@@ -192,10 +195,48 @@ w_j=\frac{1}{d_j+10^{-6}}.
 <h2 id="2-ai">2. AI 的三种用法（按成熟度排序）<a class="headerlink" href="#2-ai" title="Permanent link"></a></h2>
 <ol>
 <li><strong>代理模型/性能预测</strong>：用已有数据训练"成分工艺 → 性能"的回归器，替代部分昂贵计算或实验；关键不在模型复杂度而在<strong>数据质量、独立验证与外推边界</strong>（🔗 数学站统计 V 的"外推危险"、SLT 线的泛化理论——<strong>材料数据集小、偏、缺负样本</strong>，这是本领域 ML 的根本约束）；</li>
-<li><strong>高通量筛选</strong>：DFT + ML 可以在候选空间中排序稳定性或性能。GNoME 的公开记录应拆开读为约 <strong>2.2M predicted stable</strong> candidates，以及更新后的约 <strong>381k updated convex hull</strong> structures；这些是模型预测/数据库筛选与 hull 更新记录，不是 2.2M 个已经实验验证的材料，也不能直接读成已合成、已表征或已商业化的数量；定义和计数仍应回到原始论文/项目记录核对；</li>
+<li><strong>高通量筛选</strong>：DFT + ML 可以在候选空间中排序稳定性或性能。GNoME 的公开记录应拆开读为约 <strong>2.2M 相对既有凸包计算稳定</strong>的结构，以及把这些候选之间的竞争也计入后，更新凸包上的约 <strong>381k 新结构</strong>；这些是模型预测/数据库筛选与 hull 更新记录，不是 2.2M 个已经实验验证的材料，也不能直接读成已合成、已表征或已商业化的数量；定义和计数仍应回到原始论文/项目记录核对；</li>
 <li><strong>生成式/逆向设计</strong>：给定目标性能生成候选结构。MatterGen 等工作展示了研究原型路线（🔗 你的 comfy 站第 02 讲的扩散数学），但候选结构仍需稳定性、合成路径、表征和性能实验验证。</li>
 </ol>
 <p><strong>自主实验室（self-driving lab）</strong>：把"生成假设 → 合成 → 表征 → 更新模型"闭环自动化。不同平台的设备、目标函数、失败率和吞吐量差别很大，不能用一个机构的候选数或周期替代跨平台证据。</p>
+<h3 id="21">2.1 从一个预测出发，怎样得到一族超导材料？<a class="headerlink" href="#21" title="Permanent link"></a></h3>
+<p><strong>案例核对：2026-10-28。</strong> Cornell AI-MI 的 <a href="https://aimi.cornell.edu/as4552cornell-edu-22/">8 月 24 日研究介绍</a>指向 8 月 19 日发表于 <em>Chemistry of Materials</em> 的<a href="https://doi.org/10.1021/acs.chemmater.6c01826">原始研究</a>。AI 预测的线索是 <span class="arithmatex">\(\mathrm{PtPb_3Bi}\)</span>；研究者随后合成和表征了 <span class="arithmatex">\(\mathrm{MPb_{4-x}Bi_x}\)</span>（<span class="arithmatex">\(M=\mathrm{Au,Pd,Rh}\)</span>）家族。机构报告的转变温度依次为 4.9、4.2、3.4 K，并以电阻率、磁化和比热共同支持体超导。本次可读范围是机构介绍，未取得论文完整实验方法，不能据此复算样品统计或测量误差。</p>
+<p>这条链上，每一步回答的问题不同：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>回答的问题</th>
+<th>还不能推出什么</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>模型提出母体线索</td>
+<td>哪类结构值得优先寻找？</td>
+<td>不保证每种元素替换都能合成</td>
+</tr>
+<tr>
+<td>合成与结构表征</td>
+<td>制得了什么相、什么结构？</td>
+<td>结构相似不保证超导</td>
+</tr>
+<tr>
+<td>电阻率随温度变化</td>
+<td>电输运是否出现超导特征？</td>
+<td>一条细小导电通路也可能影响电阻，不能单独说明整个样品超导</td>
+</tr>
+<tr>
+<td>磁化与比热</td>
+<td>磁响应和体相热力学证据是否一致？</td>
+<td>低温实验结果不能外推成室温材料或成熟器件</td>
+</tr>
+</tbody>
+</table>
+<details>
+<summary>阅读题：为什么“AI 发现了三个超导体”会漏掉关键工作？</summary>
+<p>它把模型给出母体线索、研究者选择家族成员、实际合成和多种测量压成了一个动作。较准确的表达是“以 AI 预测结构为线索，实验研究确认了相关家族的超导性质”。还应查看不成功的替换：机构介绍中的 Ni 替换产生了不同结构，说明“同一列元素换一换”也不是可靠的生成规则。</p>
+</details>
 <h2 id="3">3. 一次值得记住的教训（本页最重要的一段）<a class="headerlink" href="#3" title="Permanent link"></a></h2>
 <p>2023 年伯克利 <strong>A-Lab</strong> 论文评估了 57 个目标材料。2026 年作者更正后的记录为 <strong>36 个成功、4 个仅凭 XRD 仍属 inconclusive、17 个未获得</strong>；那 4 个原先被计入 40 个成功条目，不能继续写成已确认。成功也不等于高纯、全新结构原型或独立复现，仍要回到精修谱图、相含量与后续验证。</p>
 <p><strong>这件事的三条启示</strong>（不是要否定方向，而是校准判断）：</p>
@@ -211,7 +252,7 @@ w_j=\frac{1}{d_j+10^{-6}}.
 <p><strong>总纲</strong>：AI 可能加速某些材料科学的<strong>筛选</strong>工作，但加速幅度依数据、工具和验证协议而变；<strong>合成、表征、放大、认证</strong>仍是独立关卡。更稳妥的说法是：模型可以缩短候选排序的部分时间，不能替代全程证据。</p>
 <hr />
 <p><em>前沿了望结束。最后一页收官：把全站的知识收成一件可用的工具——材料选择的方法论。</em></p>
-<p><strong>Primary sources（访问快照：2026-08-25）</strong>：<a href="https://www.nature.com/articles/s41586-023-06735-9">GNoME 论文</a> · <a href="https://www.nature.com/articles/s41586-023-06734-w">A-Lab 论文与 2026 correction 入口</a> · <a href="https://doi.org/10.1038/s41586-025-09992-y">A-Lab Author Correction</a></p>
+<p><strong>Primary sources（基础快照：2026-08-25；2026-10-28 定点复核 GNoME、A-Lab 更正与超导案例）</strong>：<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10700131/">GNoME 论文全文镜像</a> · <a href="https://www.nature.com/articles/s41586-023-06734-w">A-Lab 论文与 2026 correction 入口</a> · <a href="https://doi.org/10.1038/s41586-025-09992-y">A-Lab Author Correction</a>。更正此次通过出版方可检索的更正正文核对；未重做衍射分析。</p>
 </article>
 <footer class="pager">
   <a class="pager-slot prev" href="20-energy-materials.html"><span class="pager-label">上一页</span>前沿 II · 能源材料</a>

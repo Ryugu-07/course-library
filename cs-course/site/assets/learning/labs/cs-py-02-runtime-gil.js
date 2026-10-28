@@ -32,10 +32,13 @@
     var wall;
     var concurrent;
     if (kind === "cpu-threads") {
-      wall = n * c + n * w + overhead;
+      wall = n * c + Math.ceil(n / p) * w + overhead;
       concurrent = 1;
+    } else if (kind === "free-threads") {
+      wall = Math.ceil(n / p) * (c + w) + overhead;
+      concurrent = Math.min(n, p);
     } else if (kind === "processes") {
-      wall = Math.ceil(n / p) * c + w + p * 2;
+      wall = Math.ceil(n / p) * (c + w) + p * 2;
       concurrent = Math.min(n, p);
     } else if (kind === "async-io") {
       wall = Math.ceil(n / p) * w + n * c;
@@ -53,7 +56,7 @@
     var n = Math.max(1, Math.floor(Number(tasks)));
     var p = Math.max(1, Math.floor(Number(workers)));
     for (var i = 0; i < n; i += 1) {
-      var lane = kind === "cpu-threads" ? i % 2 : i % p;
+      var lane = ["cpu-threads", "async-io", "serial"].indexOf(kind) >= 0 ? 0 : i % p;
       rows.push({ task: "T" + (i + 1), lane: lane, phase: kind === "async-io" ? "await I/O" : "CPU / interpreter" });
     }
     return rows;
@@ -90,7 +93,7 @@
       '[data-learning-lab="' + NAME + '"] input[type=range]{width:100%;accent-color:var(--cpg-blue)}[data-learning-lab="' + NAME + '"] .cpg-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}' +
       '[data-learning-lab="' + NAME + '"] .cpg-metric{padding:7px;border-top:3px solid var(--cpg-blue);min-width:0}[data-learning-lab="' + NAME + '"] .cpg-metric span{display:block;color:var(--fg-soft);font-size:11px}[data-learning-lab="' + NAME + '"] .cpg-metric strong{display:block;overflow-wrap:anywhere}' +
       '[data-learning-lab="' + NAME + '"] table{border-collapse:collapse;width:100%;font-size:12px;font-variant-numeric:tabular-nums;margin-top:12px}[data-learning-lab="' + NAME + '"] th,[data-learning-lab="' + NAME + '"] td{padding:6px 7px;text-align:left;border-bottom:1px solid var(--border)}' +
-      '@media(max-width:760px){[data-learning-lab="' + NAME + '"] .cpg-controls{grid-template-columns:repeat(2,minmax(0,1fr)}[data-learning-lab="' + NAME + '"] .cpg-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:500px){[data-learning-lab="' + NAME + '"] .cpg-choices,[data-learning-lab="' + NAME + '"] .cpg-actions,[data-learning-lab="' + NAME + '"] .cpg-controls{display:grid;grid-template-columns:1fr}[data-learning-lab="' + NAME + '"] button{width:100%}}';
+      '@media(max-width:760px){[data-learning-lab="' + NAME + '"] .cpg-controls{grid-template-columns:repeat(2,minmax(0,1fr))}[data-learning-lab="' + NAME + '"] .cpg-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:500px){[data-learning-lab="' + NAME + '"] .cpg-choices,[data-learning-lab="' + NAME + '"] .cpg-actions,[data-learning-lab="' + NAME + '"] .cpg-controls{display:grid;grid-template-columns:1fr}[data-learning-lab="' + NAME + '"] button{width:100%}}';
     doc.head.appendChild(style);
   }
 
@@ -100,7 +103,7 @@
     root.replaceChildren();
     var shell = element(doc, "div", {});
     shell.appendChild(element(doc, "h3", { text: "CPython 并发账本：GIL、I/O 与进程" }));
-    shell.appendChild(element(doc, "p", { className: "cpg-note", text: "先预测哪部分能重叠，再调工作类型、任务数和 worker 数。" }));
+    shell.appendChild(element(doc, "p", { className: "cpg-note", text: "教学分波模型：每波至多 workers 个任务，GIL/async 的 CPU 段串行、等待重叠；自由线程与进程假定核心足够且无数据争用。固定开销仅为演示，数值不是实机预测。" }));
     var form = element(doc, "form", {});
     var fieldset = element(doc, "fieldset");
     fieldset.appendChild(element(doc, "legend", { text: "预测门" }));
@@ -120,7 +123,7 @@
       });
       fieldset.appendChild(row);
     }
-    question("cpu", "CPU 密集 Python 两线程会接近？", [["one", "1×附近"], ["two", "2×"]]);
+    question("cpu", "开启 GIL，纯 Python CPU 两线程会接近？", [["one", "1×附近"], ["two", "2×"]]);
     question("io", "I/O 等待可以被线程/async？", [["overlap", "重叠"], ["block", "完全串行"]]);
     form.appendChild(fieldset);
     var feedback = element(doc, "p", { className: "cpg-feedback", role: "status", "aria-live": "polite", text: "请完成两项预测。" });
@@ -130,7 +133,7 @@
     var revealed = element(doc, "section", { className: "cpg-revealed", hidden: "hidden" });
     var controls = element(doc, "div", { className: "cpg-controls" });
     var kind = element(doc, "select", { "aria-label": "并发方式" });
-    [["serial", "单线程"], ["cpu-threads", "Python threads / CPU"], ["processes", "multiprocessing"], ["async-io", "async I/O"]].forEach(function (option) { kind.appendChild(element(doc, "option", { value: option[0], text: option[1] })); });
+    [["serial", "单线程"], ["cpu-threads", "线程 / GIL 开启"], ["free-threads", "自由线程 / GIL 关闭"], ["processes", "multiprocessing"], ["async-io", "async I/O"]].forEach(function (option) { kind.appendChild(element(doc, "option", { value: option[0], text: option[1] })); });
     var tasks = element(doc, "input", { type: "range", min: "2", max: "12", value: "4", step: "1" });
     var tasksOut = element(doc, "output", { text: "4" });
     var cpu = element(doc, "input", { type: "range", min: "0", max: "100", value: "100", step: "5" });
@@ -166,10 +169,10 @@
       workersOut.textContent = workers.value;
       metricWall.innerHTML = "<span>估计墙钟</span><strong>" + data.wall.toFixed(1) + "</strong>";
       metricSpeed.innerHTML = "<span>相对串行</span><strong>" + data.speedup.toFixed(2) + "×</strong>";
-      metricConc.innerHTML = "<span>并发 lane</span><strong>" + data.concurrent + "</strong>";
-      metricGIL.innerHTML = "<span>GIL 诊断</span><strong>" + (selected === "cpu-threads" ? "Python bytecode 受限" : selected === "processes" ? "独立解释器" : selected === "async-io" ? "等待可交错" : "基线") + "</strong>";
+      metricConc.innerHTML = "<span>可并行 CPU 槽</span><strong>" + (selected === "async-io" ? 1 : data.concurrent) + "</strong>";
+      metricGIL.innerHTML = "<span>GIL 诊断</span><strong>" + (selected === "cpu-threads" ? "字节码串行" : selected === "free-threads" ? "无 GIL；仍需同步" : selected === "processes" ? "独立解释器" : selected === "async-io" ? "等待可交错" : "基线") + "</strong>";
       table.querySelector("tbody").innerHTML = timeline(selected, Number(tasks.value), Number(workers.value)).map(function (row) {
-        return "<tr><th>" + row.task + "</th><td>" + row.lane + "</td><td>" + row.phase + "</td><td>" + (selected === "cpu-threads" ? "共享 GIL 时间片" : selected === "processes" ? "进程隔离地址空间" : selected === "async-io" ? "await 时让出 event loop" : "单一执行流") + "</td></tr>";
+        return "<tr><th>" + row.task + "</th><td>" + row.lane + "</td><td>" + row.phase + "</td><td>" + (selected === "cpu-threads" ? "共享 GIL 时间片" : selected === "free-threads" ? "多个核心，共享地址空间" : selected === "processes" ? "进程隔离地址空间" : selected === "async-io" ? "await 时让出 event loop" : "单一执行流") + "</td></tr>";
       }).join("");
     }
     form.addEventListener("submit", function (event) {
@@ -199,6 +202,12 @@
     check(processes.wall < serial.wall, "processes parallelize CPU work");
     check(async.wall < serial.wall, "async overlaps I/O wait");
     check(timeline("cpu-threads", 4, 2).length === 4, "timeline shape");
+    var free = estimate("free-threads", 2, 100, 0, 2);
+    check(free.wall < threaded.wall && free.speedup > 1.9, "independent free-thread CPU tasks can overlap");
+    check(estimate("free-threads", 2, 100, 0, 1).wall >= serial.wall, "one worker cannot create CPU parallelism");
+    check(estimate("cpu-threads", 2, 5, 95, 2).wall < estimate("serial", 2, 5, 95, 2).wall, "GIL threads overlap blocking I/O");
+    check(estimate("processes", 4, 0, 95, 2).wall >= 190, "more tasks than workers require multiple waiting waves");
+    check(timeline("cpu-threads", 4, 2).every(function (x) { return x.lane === 0; }), "GIL CPU timeline has one active lane");
     return { checks: checks };
   }
 

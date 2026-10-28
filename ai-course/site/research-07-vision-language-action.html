@@ -41,6 +41,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
 <div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
 <div class="nav-part"><div class="nav-part-title">专题 · AI 系统工程</div><ul><li><a href="19-inference-serving.html">19 · 推理服务：延迟、吞吐与排队</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">專題 · 形式化驗證</div><ul><li><a href="20-lean-proves.html">20 · Lean 證明了什麼</a></li></ul></div>
 <div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
 <div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
 <div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-flow-matching.html">前沿 I · Flow Matching</a></li><li><a href="frontier-02-reasoning-rl.html">前沿 II · 推理强化学习</a></li><li><a href="frontier-03-mechanistic-interpretability.html">前沿 III · 机制可解释性</a></li></ul></div>
@@ -48,7 +49,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 世界模型与具身智能</div><ul><li><a href="research-05-latent-world-model.html">世界模型 I · 潜在动力学</a></li><li><a href="research-06-model-based-planning.html">世界模型 II · 基于模型的规划</a></li><li class="active"><a href="research-07-vision-language-action.html">具身 I · 视觉语言动作模型</a></li><li><a href="research-08-embodied-evaluation.html">具身 II · 泛化与任务评估</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-08 07:40</div>
+    <div class="build-time">构建于 2026-10-28 02:18</div>
   </div>
 </nav>
 <main id="content">
@@ -59,15 +60,18 @@ try {
 <li><a href="#2">2. 一百毫秒究竟意味着什么</a></li>
 <li><a href="#3">3. 外推能补偿什么，不能补偿什么</a></li>
 <li><a href="#4">4. 动作块不是把延迟藏起来</a></li>
-<li><a href="#5">5. 前沿的泛化声称要落到哪些条件</a></li>
+<li><a href="#5">5. 前沿的泛化声称要落到哪些条件</a><ul>
+<li><a href="#_1">谁在“控制机器人”：先画出决策与执行接口</a></li>
+</ul>
+</li>
 <li><a href="#6">6. 迁移练习</a></li>
-<li><a href="#_1">速查摘要</a></li>
+<li><a href="#_2">速查摘要</a></li>
 </ul>
 </div>
 </details>
 <h1 id="ai-07">AI 研究 07 · 视觉语言动作模型：从看懂指令到按时执行<a class="headerlink" href="#ai-07" title="Permanent link"></a></h1>
 <blockquote>
-<p><strong>问题</strong>：模型理解“把杯子放到移动托盘上”，为何仍会在动作落下时错过目标？先修：<a href="research-06-model-based-planning.html">模型预测规划</a>、<a href="frontier-01-flow-matching.html">Flow Matching</a>。资料核查截至 <strong>2026-09-08</strong>；实验只解析观测时序，不能据此声称机器人任务已被验证。</p>
+<p><strong>问题</strong>：模型理解“把杯子放到移动托盘上”，为何仍会在动作落下时错过目标？先修：<a href="research-06-model-based-planning.html">模型预测规划</a>、<a href="frontier-01-flow-matching.html">Flow Matching</a>。基础来源核查于 <strong>2026-09-08</strong>，第 5 节的分层控制案例补核于 <strong>2026-10-28</strong>；实验只解析观测时序，不能据此声称机器人任务已被验证。</p>
 </blockquote>
 <div data-learning-page></div>
 <section class="learning-layer">
@@ -101,6 +105,38 @@ s(t)=\Delta\left\lfloor\frac{t-\tau}{\Delta}\right\rfloor,
 <h2 id="5">5. 前沿的泛化声称要落到哪些条件<a class="headerlink" href="#5" title="Permanent link"></a></h2>
 <p><a href="https://www.pi.website/blog/pi07">π0.7 官方研究，2026-04-16</a>讨论可引导性与组合能力等方向。阅读公司研究报告时，应核对训练数据、指令修改方式、允许的人工反馈、机器人平台与测试任务，再判断它支持哪种泛化；某些新任务成功不等于任意物体、任意家居或任意延迟下都可用。</p>
 <p>VLA 还会面对视觉混淆与行动代价不对称。识别错一个杯子可能只是分类误差，执行抓取却可能使后续状态完全不同。因此应分开测语言条件是否改变目标选择、动作是否满足接口约定、整段任务是否成功；不能只用离线动作均方误差替代闭环实验。</p>
+<h3 id="_1">谁在“控制机器人”：先画出决策与执行接口<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
+<p>通用语言模型能调用机器人接口，并不自动意味着它以电机控制频率输出力矩。<a href="https://arxiv.org/html/2610.22471v2#S3.SS1">《Has GPT-6-Astra Achieved Embodied Intelligence?》v2，第 3.1 节</a>的 RoboDojo 消融把高层推理器与微调的 π0.5 配合：后者提出动作，前者通过末端执行器运动表示审查。这是指定基准上的架构比较，不能推广成论文所有真机都采用同一 VLA。</p>
+<p>用“把杯子放上移动托盘”的教学例子拆开三层：</p>
+<table>
+<thead>
+<tr>
+<th>层次</th>
+<th>需要决定什么</th>
+<th>不能用什么替代验收</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>任务推理与验证</td>
+<td>哪个杯子、是否已抓稳、失败后如何修正</td>
+<td>一句“任务完成”不能代替物理结果</td>
+</tr>
+<tr>
+<td>动作策略与动作块</td>
+<td>下一段末端运动、夹爪动作、何时重新观测</td>
+<td>语言指令合理不能证明轨迹可行</td>
+</tr>
+<tr>
+<td>底层控制</td>
+<td>按接口跟踪目标、满足速度与执行器限制</td>
+<td>上层低频成功不能证明高频稳定性</td>
+</tr>
+</tbody>
+</table>
+<p>这些是功能划分，不要求每层各用一个神经网络，也不表示底层都能处理任何危险。推理器发出一个目标之后，实际机器人可能由既有控制器反复校正；若删掉这一层，整个系统的含义就改变了。记录模型名还不够，还应记录动作单位、控制器、调用频率和人工帮助。</p>
+<p>为什么多审查一次有时更好，有时更糟？审查可能阻止一次错误抓取，却也使观测在等待期间变旧。若原本的目标在继续运动，上层必须把审查耗时纳入第 2 节的观测年龄。可以在相同初始化下比较成功与总耗时，但不能把“模型思考更充分”当作实时系统无条件获益。把动作块加长能减少调用，也会延后纠错机会；应按任务速度和接触风险判断，而非固定选择最长块。</p>
+<p>这篇报告是预印本研究，课程核读了方法与相关消融，未复现机器人实验。其模拟的动作步数预算与真机的时间、人工条件并不相同；具体读法见<a href="research-08-embodied-evaluation.html">下一讲的协议对照</a>。</p>
 <div class="learning-lab" data-learning-lab="research-ai" data-research-topic="vla">改变目标速度、观测到动作延迟和更新周期，比较旧位置命令与只补偿延迟的命令。</div>
 <p>先把速度设为零，检查本模型的时序误差归零；再保持速度与延迟不变，仅提高更新频率。你会看到周期误差下降，却仍有固定延迟项。若把模型换成加速目标，应重新推导，不应继续沿用匀速公式。</p>
 <h2 id="6">6. 迁移练习<a class="headerlink" href="#6" title="Permanent link"></a></h2>
@@ -114,8 +150,13 @@ s(t)=\Delta\left\lfloor\frac{t-\tau}{\Delta}\right\rfloor,
 <summary>展开答案</summary>
 <p>不能。平滑会改变轨迹和接触时机，可能违反几何约束。需要在相同任务初始化下测量成功、碰撞、执行时间及人工干预，并检查控制接口的速度和加速度限制。</p>
 </details>
+<p><strong>题三</strong>：某演示中，语言模型每隔几秒发一次目标，机器人却持续平稳运动。这是否证明语言模型能直接实时控制电机？</p>
+<details>
+<summary>展开答案</summary>
+<p>不能。先查目标之后是否存在轨迹生成器、动作策略和底层控制器，持续运动可能由这些组件完成。还需观察模型思考期间世界是否继续变化、过期目标怎样处理。公平比较应固定底层接口与控制器，再改变上层推理策略；若同时换了整个控制栈，只能比较系统整体表现。</p>
+</details>
 </section>
-<h2 id="_1">速查摘要<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<h2 id="_2">速查摘要<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
@@ -149,7 +190,7 @@ s(t)=\Delta\left\lfloor\frac{t-\tau}{\Delta}\right\rfloor,
 <script defer src="assets/katex/auto-render.min.js"></script>
 <script defer src="assets/site.js"></script>
 <script defer src="assets/learning/learning.js"></script>
-<script defer src="assets/learning/research-renderer.js?v=a339963d63df"></script>
+<script defer src="assets/learning/research-renderer.js?v=b69c61f59cae"></script>
 <script defer src="assets/learning/labs/research-ai.js?v=7bbc3b8ccf63"></script>
 </body>
 </html>

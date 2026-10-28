@@ -1,33 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 650" role="img" aria-label="GIL">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/>
-    </marker>
-    <style>
-      .title { font: 700 26px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #222; }
-      .label { font: 600 17px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #222; }
-      .small { font: 500 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #444; }
-      .tiny { font: 500 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #555; }
-      .box { fill: #fff; stroke: #c8d1dc; stroke-width: 2; rx: 8; }
-      .soft { fill: #f8fafc; stroke: #d8e0e8; stroke-width: 2; rx: 8; }
-      .accent { fill: #2f6395; stroke: #2f6395; }
-      .line { stroke: #555; stroke-width: 2; fill: none; marker-end: url(#arrow); }
-      .thin { stroke: #777; stroke-width: 1.6; fill: none; }
-    </style>
-  </defs>
-  <rect x="0" y="0" width="1100" height="650" fill="#ffffff"/>
-  <text x="48" y="52" class="title">GIL</text>
-<rect x="48" y="90" width="1004" height="470" fill="#e5eff8" opacity="0.45" rx="18"/>
-  <rect x="178.0" y="265.0" width="150.0" height="88.0" class="box"/>
-  <text x="253.0" y="309.0" class="label" text-anchor="middle" dominant-baseline="middle">PY</text>
-  <path d="M 336.0 309.0 L 368.0 309.0" stroke="#555" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
-  <rect x="376.0" y="265.0" width="150.0" height="88.0" class="box"/>
-  <text x="451.0" y="309.0" class="label" text-anchor="middle" dominant-baseline="middle">GIL</text>
-  <path d="M 534.0 309.0 L 566.0 309.0" stroke="#555" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
-  <rect x="574.0" y="265.0" width="150.0" height="88.0" class="box"/>
-  <text x="649.0" y="309.0" class="label" text-anchor="middle" dominant-baseline="middle">Input</text>
-  <path d="M 732.0 309.0 L 764.0 309.0" stroke="#555" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
-  <rect x="772.0" y="265.0" width="150.0" height="88.0" class="box"/>
-  <text x="847.0" y="309.0" class="label" text-anchor="middle" dominant-baseline="middle">Process</text>
-  <text x="550.0" y="440.0" class="small" text-anchor="middle" dominant-baseline="middle">data and control move left to right</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 570" role="img" aria-labelledby="title desc"><title id="title">并行之前，先检查 GIL 状态</title><desc id="desc">上图同一解释器开启GIL，两项字节码任务串行；下图关闭GIL且有两核时并行。业务锁仍可使其串行。</desc><style>text{font-family:system-ui,"PingFang SC",sans-serif;fill:#203638}.t{font-size:28px;font-weight:700}.h{font-size:20px;font-weight:650}.s{font-size:17px}.m{font-size:16px;fill:#53686a}rect{rx:8}</style><rect width="1000" height="570" fill="#f7f6f0"/><text x="36" y="48" class="t">并行之前，先检查 GIL 状态</text><text x="36" y="84" class="m">两项独立 CPU 工作，各需 100 单位；下面忽略调度成本</text>
+<text x="36" y="140" class="h">GIL 开启</text><text x="36" y="175" class="s">CPU 槽</text>
+<rect x="190" y="145" width="330" height="55" fill="#bdd9e8"/><rect x="520" y="145" width="330" height="55" fill="#efd4a9"/><text x="315" y="180" class="s">任务 A</text><text x="645" y="180" class="s">任务 B</text>
+<text x="190" y="225" class="m">0</text><text x="505" y="225" class="m">100</text><text x="830" y="225" class="m">200 时间单位</text>
+<text x="36" y="285" class="h">GIL 关闭</text><text x="36" y="323" class="s">核心 1</text><text x="36" y="393" class="s">核心 2</text>
+<rect x="190" y="290" width="330" height="55" fill="#bdd9e8"/><rect x="190" y="360" width="330" height="55" fill="#efd4a9"/><text x="315" y="325" class="s">任务 A</text><text x="315" y="395" class="s">任务 B</text><text x="190" y="445" class="m">0</text><text x="505" y="445" class="m">100 时间单位</text>
+<text x="36" y="497" class="s">前提：自由线程构建、运行时确实关闭 GIL、足够核心、无共享锁争用。</text><text x="36" y="532" class="s">若 A、B 全程争用同一业务锁，下图仍会退回串行；构建支持 ≠ 当前状态。</text></svg>

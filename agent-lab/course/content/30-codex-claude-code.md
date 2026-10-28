@@ -1,6 +1,6 @@
 # 第 30 章 · Coding Agent Harness 架构对照
 
-> 本章是 2026-08-20 的公开资料快照。目标不是评判谁更强，而是把前 29 章的概念映射到成熟产品、开放源码和可复现评测。未公开的系统提示词、模型路由和私有调度算法会明确标为未知；developer preview 的接口也不会写成稳定承诺。
+> 本章基础架构整理于 2026-08-20；后续增补逐项标日期，最近定点核查 2026-10-28。目标不是评判谁更强，而是把前 29 章的概念映射到成熟产品、开放源码和可复现评测。未公开的系统提示词、模型路由和私有调度算法会明确标为未知；developer preview 的接口也不会写成稳定承诺。
 
 ## 1. 共同的底层形态
 
@@ -20,6 +20,8 @@ Codex Cloud 的公开流程是创建容器、检出仓库、运行 setup、应�
 
 SWE-agent 以真实 GitHub issue 为任务，把模型放进专门设计的 Agent-Computer Interface；它强调工具界面、历史处理和环境怎样影响软件工程行为。它适合研究“给模型怎样的行动语言”，但公开 benchmark 结果仍属于指定模型、配置、任务和评测环境的联合结果。[SWE-agent 官方仓库](https://github.com/SWE-agent/SWE-agent)
 
+> **2026-10-20：**[README](https://github.com/SWE-agent/SWE-agent) 寫明 mini-swe-agent 已取代 SWE-agent（main 最後提交 2026-07-16）。上一句留作歷史入口。
+
 ### mini-swe-agent：把 harness 压到可一眼读完
 
 mini-swe-agent v2 刻意走另一端：agent 类约百行 Python，只提供 Bash，历史线性追加，每个动作独立通过 `subprocess.run` 执行。它的价值是透明、易改和容易替换本地/容器执行环境，而不是证明专用工具永远无用。模型更强时，极简基线可以暴露“收益究竟来自模型还是复杂脚手架”；高风险写操作、长期会话和丰富产品交互仍可能需要额外层。[mini-swe-agent 官方仓库](https://github.com/SWE-agent/mini-swe-agent)
@@ -37,6 +39,8 @@ DeepSeek Harness（`dsh`）是 DeepSeek AI 在 2026 年公开的 MIT 许可 agen
 3. **持久事实与实时拦截分开。** session events 保存 durable facts；`agent/*`、`tools/*` 和 capability events 用于观察或拦截进行中的请求、工具和策略。
 
 默认 turn flow 仍能还原成本课的骨架：组装 prompt/tool schema，发出模型请求，流式记录 assistant 事件，经 guarded tool pipeline 执行，再由 stopping/validation 接缝决定是否继续。官方仓库可以运行 Web/headless profile，但“开源 harness”不等于 DeepSeek 托管产品全部内部实现，也不证明它参与了某个模型训练或已经稳定适合生产。[官方 README](https://github.com/deepseek-ai/deepseek-harness)；[架构文档](https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/architecture.md)
+
+> **2026-10-20：**`dsh-v0.2.1-rc.2`（2026-10-17）仍是 developer preview、MIT，架構概念未變。[README](https://github.com/deepseek-ai/deepseek-harness)
 
 ### SWE-bench evaluation harness：补丁生成以后才开始
 
@@ -65,7 +69,9 @@ Codex 的定制层公开包括 AGENTS.md、Memories、Skills、MCP 和 Subagents
 
 Codex App Server 对客户端暴露 thread/start、thread/resume、thread/fork、turn/start、turn/steer、turn/interrupt、review、approval、skills、hooks、MCP、文件和后台终端等事件接口。这说明成熟桌面或 IDE 客户端不是简单调用一次模型，而是在消费一个持续状态协议。[Codex App Server](https://learn.chatgpt.com/docs/app-server)
 
-安全层公开区分 sandbox mode 与 approval policy。本地默认限制写入范围与网络，云端使用隔离容器，并把 setup 与 Agent 阶段的网络和秘密分开。[Codex approvals and security](https://learn.chatgpt.com/docs/agent-approvals-security)
+安全层公开区分 sandbox mode 与 approval policy。本地命令沙箱限制文件和命令网络；MCP、连接器、浏览器及云任务有各自控制。云端把 setup 与 Agent 阶段策略分开，不能由命令探针推断所有工具出口。[Codex approvals and security](https://learn.chatgpt.com/docs/agent-approvals-security)
+
+**版本案例（2026-10-23）：**[Codex CLI 0.164 发布说明](https://github.com/openai/codex/releases/tag/rust-v0.164.0)新增企业 MCP 认证支持，包括适用的 Codex 账号授权、独立登录和需要 client secret 的 OAuth client。它解决“怎样建立身份”，并不自动授予每个工具的读写权限，也不会把 MCP 网络纳入 Shell 的域名规则。实际账号可用范围另查产品配置，本课未运行企业登录流程。
 
 ## 5. Claude Code 的公开架构重点
 
@@ -76,6 +82,10 @@ Claude Code 的权限规则覆盖 Bash、Read、Edit、WebFetch、MCP 和 Agent�
 自定义 Subagent 可以拥有独立 prompt、tools、model、permissionMode、MCP、Hooks、Skills、memory、maxTurns 与 isolation。每个子 Agent 从新上下文开始，完成后向主线程返回摘要。[Claude Code subagents](https://code.claude.com/docs/en/sub-agents)
 
 记忆方面，CLAUDE.md 属于每次加载的规则，auto memory 使用短索引与按需主题文件，强调机器本地与可编辑。[Claude Code memory](https://code.claude.com/docs/en/memory)
+
+**版本案例（自 v2.1.295，2026-10-08）：**[hook 失败处理](https://code.claude.com/docs/en/hooks#block-the-action-when-a-hook-fails)允许 command/HTTP hooks 设置 `onFailure: "block"`，在守护检查启动失败、超时或返回无效结构化输出等情况下阻止相应动作。通常默认继续，但有事件、异步及 Windows shell 等例外；`Stop`、`SubagentStop`、`TaskCompleted`、`TeammateIdle` 与后台异步 hook 不能按这一参数理解成通用拦截器。
+
+思考：守护写操作的检查器超时，是“检查通过”还是“没有取得检查结果”？应是后者。选阻断能避免失效放行，也会增加可用性成本；测试应在本地假动作上验证成功、明确拒绝、超时三条路径，而不是只确认 hook 文件存在。
 
 ## 6. 差异应该怎样学习
 

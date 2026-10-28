@@ -45,7 +45,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">工程与全栈线</div><ul><li><a href="web-01-anatomy.html">全栈 I · 请求的一生（Medusa 解剖）</a></li><li><a href="web-02-backend.html">全栈 II · 后端工程</a></li><li><a href="web-03-frontend.html">全栈 III · 浏览器与前端工程</a></li><li><a href="se-01-git-testing.html">软工 I · Git 内部原理与测试</a></li><li><a href="se-02-cicd-quality.html">软工 II · CI/CD 与代码质量</a></li><li><a href="cloud-01-containers.html">云 I · 容器与 Docker 原理</a></li><li><a href="cloud-02-orchestration.html">云 II · 编排、K8s 与可观测性</a></li><li><a href="sec-01-attacks.html">安全 I · 系统与 Web 攻防</a></li><li><a href="sec-02-engineering.html">安全 II · 密钥、供应链与安全工程</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-08-27 03:32</div>
+    <div class="build-time">构建于 2026-10-28 02:18</div>
   </div>
 </nav>
 <main id="content">
@@ -61,8 +61,12 @@ try {
 <li><a href="#medusa">迁移任务：给 Medusa 任务选运行时</a></li>
 </ul>
 </li>
+<li><a href="#1-cpython">1. CPython 怎么跑你的代码</a></li>
 <li><a href="#2-gil">2. GIL：多线程并行的墙</a></li>
-<li><a href="#3-gil">3. 三条绕开 GIL / 提速的路</a></li>
+<li><a href="#3-gil">3. 三条绕开 GIL / 提速的路</a><ul>
+<li><a href="#_5">自由线程已经是可选运行方式</a></li>
+</ul>
+</li>
 <li><a href="#4-python-c">4. 生态：Python 慢，但它的 C 底座不慢</a></li>
 <li><a href="#5-python">5. 打包与依赖：Python 的另一个痛点</a></li>
 <li><a href="#6">6. 练习与要点</a></li>
@@ -72,7 +76,7 @@ try {
 <h1 id="python-ii-gil">Python II · 运行时、GIL 与性能生态<a class="headerlink" href="#python-ii-gil" title="Permanent link"></a></h1>
 <blockquote>
 <p><strong>对标</strong>：CPython 内部 / <em>Fluent Python</em> 并发章 / High Performance Python ｜ <strong>前置</strong>：py-01、comp-02（字节码/解释器）、par 线（并发）、mlsys 线
-py-01 讲 Python 的抽象，这一页讲它的<strong>运行时真相</strong>：CPython 怎么执行你的代码、为什么 Python"慢"、<strong>GIL 如何限制多线程并行</strong>（每个 Python 程序员迟早撞上的墙）、以及生态怎么补救（numpy 把热点降到 C、async 处理 I/O 并发、多进程绕开 GIL）。这决定了你在 Medusa 里该怎么选并发模型、什么时候 Python 够用、什么时候要下沉到 C/换语言。</p>
+py-01 讲 Python 的抽象，这一页讲它的<strong>运行时真相</strong>：CPython 怎么执行你的代码、为什么 Python"慢"、<strong>启用 GIL 的构建如何限制字节码并行，自由线程构建又改变了什么</strong>、以及生态怎么补救（numpy 把热点降到 C、async 处理 I/O 并发、多进程绕开 GIL）。这决定了你在 Medusa 里该怎么选并发模型、什么时候 Python 够用、什么时候要下沉到 C/换语言。</p>
 </blockquote>
 <div data-learning-page></div>
 
@@ -80,19 +84,19 @@ py-01 讲 Python 的抽象，这一页讲它的<strong>运行时真相</strong>�
 <h2 id="python-cpu">学习层：两个 Python 线程为什么没有把 CPU 密集循环做成两倍快？<a class="headerlink" href="#python-cpu" title="Permanent link"></a></h2>
 <div class="learning-puzzle">
 <h3 id="_1">具体谜题：同一段工作，线程、进程还是异步？<a class="headerlink" href="#_1" title="Permanent link"></a></h3>
-<p>有 2 个 CPU 密集任务，各需 100 个时间单位；有 2 个网络等待任务，各只用 5 个 CPU 单位但等待 95。CPython 的 GIL 在字节码执行期间允许哪个粒度的并发？线程、进程、<code>asyncio</code> 分别会怎样影响完成时间与开销？</p>
+<p>有 2 个 CPU 密集任务，各需 100 个时间单位；有 2 个网络等待任务，各只用 5 个 CPU 单位但等待 95。先约定使用启用 GIL 的 CPython：它在字节码执行期间允许哪个粒度的并发？再切到已关闭 GIL 的自由线程构建，哪个预测需要重做？线程、进程、<code>asyncio</code> 分别会怎样影响完成时间与开销？</p>
 </div>
 <div class="learning-prediction">
 <h3 id="_2">先预测三条曲线<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
-<p>预测：<strong>①</strong> 纯 Python CPU 循环用两个线程不会接近 2 倍加速，可能因切换和锁竞争更慢；<strong>②</strong> I/O 线程可在一个任务等待时运行另一个，吞吐改善不等于 CPU 并行；<strong>③</strong> 多进程能利用多个核心，但要付进程启动、序列化和内存复制代价，NumPy/C 扩展下沉后则可能绕开 Python 字节码瓶颈。</p>
+<p>预测：<strong>①</strong> 在 GIL 开启时，纯 Python CPU 循环用两个线程不会接近 2 倍加速，可能因切换和锁竞争更慢；<strong>②</strong> I/O 线程可在一个任务等待时运行另一个，吞吐改善不等于 CPU 并行；<strong>③</strong> 多进程能利用多个核心，但要付进程启动、序列化和内存复制代价，NumPy/C 扩展下沉后则可能绕开 Python 字节码瓶颈。</p>
 </div>
 <div class="learning-model">
 <h3 id="gil">最小心智模型：字节码解释、GIL 时间片、外部并发<a class="headerlink" href="#gil" title="Permanent link"></a></h3>
-<p>CPython 以解释器循环执行字节码，Python 对象操作还包含引用计数和动态分派。GIL 把同一解释器内的 Python 字节码执行串成可切换的片段；I/O 或释放 GIL 的原生代码能让其他线程前进，进程则拥有独立解释器和地址空间。</p>
+<p>CPython 以解释器循环执行字节码，Python 对象操作还包含引用计数和动态分派。启用 GIL 时，同一解释器内的 Python 字节码执行被串成可切换的片段；I/O 或释放 GIL 的原生代码能让其他线程前进，进程则拥有独立解释器和地址空间。</p>
 </div>
 <div class="learning-formal">
 <h3 id="_3">形式机制与不变量<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
-<p>把单个任务分成 CPU 时间 \(C\) 与等待时间 \(W\)。单线程两个独立任务的工作量是 \(\sum(C_i+W_i)\)；理想 I/O 交错的墙钟时间接近 \(\max C\) 加等待的覆盖部分，而 CPU 密集 Python 线程受共享解释器约束，\(T_{threads}\gtrsim\sum C_i\) 加调度开销。进程池的理想计算项约为 \(\max_i C_i/N\)，但还要加序列化、启动、通信和内存成本。</p>
+<p>每个任务需要 CPU 时间 \(C\) 和等待时间 \(W\)，共有 \(n\) 个相同任务、\(p\) 个 worker。串行时间为 \(n(C+W)\)。本页交互采用分波教学模型：每波最多 \(p\) 个任务，GIL 线程/单事件循环先串行执行 CPU 段，再等这一波 I/O 完成，得 \(nC+\lceil n/p\rceil W\)；自由线程或进程在有足够核心且任务互不争用时，理想值为 \(\lceil n/p\rceil(C+W)\)，另计调度/进程开销。真实事件循环不必按波等待，这些数值不是性能预测。</p>
 <p>运行时不变量是引用计数/对象状态的内部一致性；应用层的正确性不变量仍需显式锁、队列或不可变消息，GIL 不是业务数据的事务协议。</p>
 </div>
 <div class="learning-boundary">
@@ -108,12 +112,40 @@ py-01 讲 Python 的抽象，这一页讲它的<strong>运行时真相</strong>�
 <p>把一个 CPU 预处理、HTTP 批量请求和 NumPy 矩阵运算分别标注为线程/进程/async/原生扩展候选。记录 wall time、CPU 利用率、上下文切换、序列化字节数和结果顺序，连接 par-01 的任务并行与 perf-01 的测量闭环。</p>
 </div>
 <div class="learning-lab" data-learning-lab="cs-py-02-runtime-gil">
-<p><strong>无 JavaScript 时的静态读法：</strong>两个 CPU 密集 Python 任务各需 100 CPU 单位时，单解释器线程的 Python 字节码总 CPU 工作仍是 200，第二线程主要交错而非同时执行；两个 I/O 任务各用 5 CPU、等待 95 时，线程可把等待重叠，墙钟时间接近一次等待窗口而非简单相加。交互版可切换 CPU/I/O 比例、线程/进程/async，并显示计算、等待、调度和通信账本。</p>
-<p>\n+<table><thead><tr><th>工作类型</th><th>首选模型</th><th>可重叠部分</th><th>主要成本</th></tr></thead><tbody><tr><td>纯 Python CPU</td><td>进程/原生扩展</td><td>不同进程的 CPU</td><td>启动与 IPC</td></tr><tr><td>网络 I/O</td><td>线程/async</td><td>等待时间</td><td>阻塞库/切换</td></tr><tr><td>NumPy 热点</td><td>向量化/扩展</td><td>C 内核与 Python</td><td>数据搬运</td></tr></tbody></table>\n+</p>
+<p><strong>无 JavaScript 时的静态读法：</strong>两个 CPU 密集 Python 任务各需 100 CPU 单位时，GIL 开启时，单解释器线程的 Python 字节码总 CPU 工作仍是 200，第二线程主要交错而非同时执行；两个 I/O 任务各用 5 CPU、等待 95 时，线程可把等待重叠，墙钟时间接近一次等待窗口而非简单相加。交互版可切换 CPU/I/O 比例、GIL 线程/自由线程/进程/async，并显示计算、等待、调度和通信账本。</p>
+<table>
+<thead>
+<tr>
+<th>工作类型</th>
+<th>首选模型</th>
+<th>可重叠部分</th>
+<th>主要成本</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>纯 Python CPU</td>
+<td>进程/原生扩展</td>
+<td>不同进程的 CPU</td>
+<td>启动与 IPC</td>
+</tr>
+<tr>
+<td>网络 I/O</td>
+<td>线程/async</td>
+<td>等待时间</td>
+<td>阻塞库/切换</td>
+</tr>
+<tr>
+<td>NumPy 热点</td>
+<td>向量化/扩展</td>
+<td>C 内核与 Python</td>
+<td>数据搬运</td>
+</tr>
+</tbody>
+</table>
 </div>
-<p>\n+</p>
 </section>
-<p>\n+\n+## 1. CPython 怎么跑你的代码</p>
+<h2 id="1-cpython">1. CPython 怎么跑你的代码<a class="headerlink" href="#1-cpython" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="CPython 执行：.py→字节码→解释器循环（慢在解释+装箱+动态）。" src="assets/img/py-02-cpython.svg" /></p>
 <figcaption><span class="fig-id">图 py-02.3</span>CPython 执行：.py→字节码→解释器循环（慢在解释+装箱+动态）。</figcaption>
@@ -127,10 +159,10 @@ py-01 讲 Python 的抽象，这一页讲它的<strong>运行时真相</strong>�
 <p><strong>内存管理</strong>：CPython 用<strong>引用计数为主 + 分代 GC 补充</strong>（🔗 pl-02）——对象引用归零立即回收（及时、可预测），循环引用靠周期性 GC 清。所以 Python 里"什么时候释放内存"比追踪式 GC 更可预测，但引用计数的更新有开销、且是 GIL 的一个原因。</p>
 <h2 id="2-gil">2. GIL：多线程并行的墙<a class="headerlink" href="#2-gil" title="Permanent link"></a></h2>
 <figure class="diagram">
-<p><img alt="GIL：多线程轮流拿锁，CPU 密集只用一核（多进程才并行 / I/O 等待时释放 GIL）。" src="assets/img/py-02-gil.svg" /></p>
-<figcaption><span class="fig-id">图 py-02.2</span>GIL：多线程轮流拿锁，CPU 密集只用一核（多进程才并行 / I/O 等待时释放 GIL）。</figcaption>
+<p><img alt="启用 GIL 与自由线程的 CPU 时间线；并行能力取决于构建、运行状态和共享数据。" src="assets/img/py-02-gil.svg" /></p>
+<figcaption><span class="fig-id">图 py-02.2</span>启用 GIL 与自由线程的 CPU 时间线；并行能力取决于构建、运行状态和共享数据。</figcaption>
 </figure>
-<p><strong>全局解释器锁（GIL）</strong>是每个 Python 程序员的必修痛点——<strong>CPython 同一时刻只允许一个线程执行 Python 字节码</strong>。即使你开 8 个线程、机器有 8 核，<strong>CPU 密集的 Python 多线程也只用得上一个核</strong>（线程们轮流拿 GIL）。</p>
+<p><strong>全局解释器锁（GIL）</strong>是每个 Python 程序员的必修痛点——<strong>在同一解释器启用 GIL 时，同一时刻只允许一个线程执行 Python 字节码</strong>。即使你开 8 个线程、机器有 8 核，<strong>CPU 密集的 Python 多线程也只用得上一个核</strong>（线程们轮流拿 GIL）。</p>
 <ul>
 <li><strong>为什么有 GIL</strong>：简化 CPython 实现 + 保护引用计数不被并发破坏（否则每个对象都要加锁，更慢）。它是历史 + 实现权衡的产物。</li>
 <li><strong>后果</strong>：</li>
@@ -140,15 +172,26 @@ py-01 讲 Python 的抽象，这一页讲它的<strong>运行时真相</strong>�
 <p><strong>这直接决定 Medusa 的并发选择</strong>：</p>
 <ul>
 <li>等数据库、等 DeepSeek API = <strong>I/O 密集</strong> → <strong>async 或多线程都行</strong>（GIL 不碍事，等待时释放）。</li>
-<li>本地跑 embedding、大量数值计算 = <strong>CPU 密集</strong> → 多线程没用，要<strong>多进程</strong>或<strong>下沉到 C/numpy</strong>（下节）。</li>
+<li>本地纯 Python 数值循环：先查 GIL 是否开启；再比较自由线程、多进程或原生扩展。embedding 通常还调用 Torch/CUDA，不能仅凭“CPU 密集”断定线程无用。</li>
 </ul>
 <h2 id="3-gil">3. 三条绕开 GIL / 提速的路<a class="headerlink" href="#3-gil" title="Permanent link"></a></h2>
 <ul>
 <li><strong>多进程（multiprocessing）</strong>：每个进程有自己的解释器 + GIL——<strong>真正并行用满多核</strong>，代价是进程间通信要序列化（pickle）+ 内存不共享（🔗 os-01 进程 vs 线程、par-01 消息传递）。CPU 密集的 Python 并行正道。</li>
 <li><strong>异步（asyncio）</strong>：单线程事件循环处理海量 I/O 并发（🔗 web-02 的 async 深入）——<code>async def</code> / <code>await</code>，遇 I/O 挂起去干别的。<strong>高并发 I/O 的首选</strong>，比多线程更省资源。FastAPI（Medusa 后端）就是它。</li>
-<li><strong>下沉到 C（最重要）</strong>：把热点交给 C 扩展——<strong>这些库在 C 层释放 GIL、直接操作连续内存</strong>：numpy（向量化数值）、pandas、以及你的 pipeline 里的 sentence-transformers/torch。<strong>"用 Python 写胶水、用 C 库做重活"是 Python 高性能的标准姿势</strong>（下节展开）。</li>
+<li><strong>下沉到 C（最重要）</strong>：把热点交给 C 扩展——<strong>其中许多数值内核能释放 GIL、操作连续内存，是否释放要看具体操作</strong>：numpy（向量化数值）、pandas、以及你的 pipeline 里的 sentence-transformers/torch。<strong>"用 Python 写胶水、用 C 库做重活"是 Python 高性能的标准姿势</strong>（下节展开）。</li>
 </ul>
-<p><strong>近况一提</strong>：Python 3.13 开始有<strong>实验性无 GIL 构建（free-threading）</strong>——长期可能移除 GIL 限制，但生态适配需时间。了解趋势即可，当下仍按上述三路走。</p>
+<h3 id="_5">自由线程已经是可选运行方式<a class="headerlink" href="#_5" title="Permanent link"></a></h3>
+<p><strong>截至 2026-10-28：</strong>3.13 引入实验构建；3.14 按 <a href="https://peps.python.org/pep-0779/">PEP 779</a> 进入正式支持、仍然可选的阶段。3.15 提供面向自由线程的稳定 ABI <code>abi3t</code>，需要扩展主动适配，并非旧 <code>abi3</code> wheel 自动通用。默认 GIL 构建仍存在。</p>
+<p>运行下面的探针，然后在导入实际依赖后再查一次：</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span><span class="o">,</span><span class="w"> </span><span class="nn">sysconfig</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">version</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;支持自由线程构建：&quot;</span><span class="p">,</span> <span class="n">sysconfig</span><span class="o">.</span><span class="n">get_config_var</span><span class="p">(</span><span class="s2">&quot;Py_GIL_DISABLED&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">probe</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sys</span><span class="p">,</span> <span class="s2">&quot;_is_gil_enabled&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;当前 GIL 状态：&quot;</span><span class="p">,</span> <span class="n">probe</span><span class="p">()</span> <span class="k">if</span> <span class="n">probe</span> <span class="k">else</span> <span class="s2">&quot;此版本无探针，请查构建信息&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>“支持关闭”与“现在已关闭”是两件事：运行选项或尚未适配的扩展可能启用 GIL。关闭后，多个线程可以并行执行 Python 代码，但 <code>if key not in cache: cache[key] = compute()</code> 仍是多步协议；字典内部锁不把整个判断与写入变成事务。应显式加锁、传消息或避免共享可变状态。</p>
+<p><strong>先预测再测：</strong>两个独立 CPU 任务各需 100 单位、两核且无争用，自由线程的理想计算时间接近 100；若二者全程持同一把业务锁，仍接近 200。去掉解释器锁不能去掉程序自身的串行依赖。</p>
+<p>来源：<a href="https://docs.python.org/3.15/howto/free-threading-python.html">自由线程使用说明</a>、<a href="https://docs.python.org/3.15/whatsnew/3.15.html#pep-803-stable-abi-for-free-threaded-builds">Python 3.15 的 abi3t</a>。页面交互是教学模型，本课未在自由线程解释器上实测上述加速。</p>
 <h2 id="4-python-c">4. 生态：Python 慢，但它的 C 底座不慢<a class="headerlink" href="#4-python-c" title="Permanent link"></a></h2>
 <figure class="diagram">
 <p><img alt="下沉热点：Python 胶水层 + numpy/C/CUDA 底座。" src="assets/img/py-02-numpy-sink.svg" /></p>
@@ -171,9 +214,9 @@ py-01 讲 Python 的抽象，这一页讲它的<strong>运行时真相</strong>�
 <li><strong>容器化终极方案</strong>：把 Python + 依赖打进 Docker（🔗 cloud-01）——彻底消除"环境不一致"，Medusa 的 Postgres 已容器化，应用层同理可控。</li>
 </ul>
 <h2 id="6">6. 练习与要点<a class="headerlink" href="#6" title="Permanent link"></a></h2>
-<p><strong>例 1（GIL 实证）</strong> 写一个 CPU 密集函数（如大量纯 Python 求和），分别用单线程、多线程（4 线程）、多进程（4 进程）跑，测时间——<strong>多线程不加速甚至更慢、多进程才快</strong>，GIL 的墙亲眼可见。再换成 I/O 密集（sleep 模拟），多线程就有效了。</p>
-<p><strong>例 2（numpy 下沉）</strong> 同一个数组运算用 Python 循环 vs numpy 向量化，测加速比（几十倍起）——<strong>理解"把循环下沉到 C"为什么是 Python 性能的正道</strong>。Medusa 数据处理直接可用。</p>
-<p><strong>例 3（选并发模型）</strong> 给 Medusa 三个任务（并发调 100 个 DeepSeek API、本地算 1 万条 embedding、并发查数据库）各选 async / 多进程 / 多线程——<strong>把"I/O 密集用 async、CPU 密集用多进程"的判断用到真实系统</strong>。<span class="arithmatex">\(\blacksquare\)</span></p>
+<p><strong>例 1（GIL 实证）</strong> 写一个 CPU 密集函数（如大量纯 Python 求和），分别用单线程、多线程（4 线程）、多进程（4 进程）跑，测时间，并先记录构建及运行时 GIL 状态。启用 GIL 的线程预计难以获得字节码并行；关闭 GIL 后重新检验，不能预先写死结果。进程也可能被启动和通信开销拖慢。再换成 I/O 密集（sleep 模拟），多线程就有效了。</p>
+<p><strong>例 2（numpy 下沉）</strong> 同一个数组运算用 Python 循环 vs numpy 向量化，测加速比（随数组规模、操作和内存布局变化）——<strong>理解"把循环下沉到 C"为什么是 Python 性能的正道</strong>。Medusa 数据处理直接可用。</p>
+<p><strong>例 3（选并发模型）</strong> 给 Medusa 三个任务（并发调 100 个 DeepSeek API、本地算 1 万条 embedding、并发查数据库）各选 async / 多进程 / 多线程——说明瓶颈、GIL 状态、库是否释放 GIL、数据共享和启动成本，再用测量选择方案。<span class="arithmatex">\(\blacksquare\)</span></p>
 <hr />
 <p><em>下一页：C++ I——抽象、RAII 与值/移动语义：一门"零成本抽象"的系统语言，如何在贴近硬件的同时提供高级抽象。</em></p>
 </article>

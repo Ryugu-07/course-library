@@ -321,7 +321,7 @@
     var angle1 = result.config.direction === "ccw" ? -0.25 : 0.25;
     var angle2 = result.config.direction === "ccw" ? 0.25 : -0.25;
     svg.appendChild(svgElement(doc, "path", {
-      d: "M " + mapX(center.x + radius * Math.cos(angle1)) + " " + mapY(center.y + radius * Math.sin(angle1)) + " A " + (radius * scale) + " " + (radius * scale) + " 0 0 " + (result.config.direction === "ccw" ? "1" : "0") + " " + mapX(center.x + radius * Math.cos(angle2)) + " " + mapY(center.y + radius * Math.sin(angle2)),
+      d: "M " + mapX(center.x + radius * Math.cos(angle1)) + " " + mapY(center.y + radius * Math.sin(angle1)) + " A " + (radius * scale) + " " + (radius * scale) + " 0 0 " + (result.config.direction === "ccw" ? "0" : "1") + " " + mapX(center.x + radius * Math.cos(angle2)) + " " + mapY(center.y + radius * Math.sin(angle2)),
       class: "rl-orientation", "marker-end": "url(#" + uid + "-arrow)"
     }));
     svg.appendChild(svgElement(doc, "text", { x: "48", y: "31", class: "rl-small" }, "方向：" + (result.config.direction === "ccw" ? "CCW ↺" : "CW ↻") + "；绕行 " + result.config.turns + " 圈"));
@@ -329,7 +329,9 @@
       var x = mapX(entry.x), y = mapY(entry.y);
       var className = entry.location === "inside" ? "rl-inside" : entry.location === "outside" ? "rl-outside" : "rl-on";
       svg.appendChild(svgElement(doc, "circle", { cx: x, cy: y, r: String(6 + Math.min(entry.order, 5)), class: className }));
-      svg.appendChild(svgElement(doc, "text", { x: x + 9, y: y - 9 - index * 2, class: "rl-pole-label" }, entry.label + " · " + entry.order + " 阶"));
+      svg.appendChild(svgElement(doc, "text", { x: x, y: y - 16, "text-anchor": "middle", class: "rl-pole-label" }, String(index + 1)));
+      svg.appendChild(svgElement(doc, "circle", { cx: 50, cy: 57 + index * 23, r: 4, class: className }));
+      svg.appendChild(svgElement(doc, "text", { x: 61, y: 61 + index * 23, class: "rl-pole-label" }, (index + 1) + ": " + entry.label + " · " + entry.order + " 阶"));
     });
     svg.appendChild(svgElement(doc, "text", { x: "570", y: "173", class: "rl-small" }, "Re z"));
     svg.appendChild(svgElement(doc, "text", { x: "327", y: "45", class: "rl-small" }, "Im z"));

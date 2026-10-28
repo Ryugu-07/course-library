@@ -1,38 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 650" role="img" aria-label="Flash Attention">
-  <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/>
-    </marker>
-    <style>
-      .title { font: 700 26px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #222; }
-      .label { font: 600 17px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #222; }
-      .small { font: 500 14px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #444; }
-      .tiny { font: 500 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #555; }
-      .box { fill: #fff; stroke: #c8d1dc; stroke-width: 2; rx: 8; }
-      .soft { fill: #f8fafc; stroke: #d8e0e8; stroke-width: 2; rx: 8; }
-      .accent { fill: #2f6395; stroke: #2f6395; }
-      .line { stroke: #555; stroke-width: 2; fill: none; marker-end: url(#arrow); }
-      .thin { stroke: #777; stroke-width: 1.6; fill: none; }
-    </style>
-  </defs>
-  <rect x="0" y="0" width="1100" height="650" fill="#ffffff"/>
-  <text x="48" y="52" class="title">Flash Attention</text>
-<rect x="48" y="88" width="1004" height="486" fill="#e5eff8" opacity="0.42" rx="18"/>
-  <rect x="180.0" y="275.0" width="125.0" height="70.0" class="box"/>
-  <text x="242.5" y="310.0" class="label" text-anchor="middle" dominant-baseline="middle">Q block</text>
-  <path d="M 310.0 310.0 L 320.0 310.0" stroke="#555" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
-  <rect x="330.0" y="275.0" width="125.0" height="70.0" class="box"/>
-  <text x="392.5" y="310.0" class="label" text-anchor="middle" dominant-baseline="middle">K/V tile</text>
-  <path d="M 460.0 310.0 L 470.0 310.0" stroke="#555" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
-  <rect x="480.0" y="275.0" width="125.0" height="70.0" class="box"/>
-  <text x="542.5" y="310.0" class="label" text-anchor="middle" dominant-baseline="middle">online softmax</text>
-  <path d="M 610.0 310.0 L 620.0 310.0" stroke="#555" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
-  <rect x="630.0" y="275.0" width="125.0" height="70.0" class="box"/>
-  <text x="692.5" y="310.0" class="label" text-anchor="middle" dominant-baseline="middle">accumulator</text>
-  <path d="M 760.0 310.0 L 770.0 310.0" stroke="#555" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
-  <rect x="780.0" y="275.0" width="125.0" height="70.0" class="box"/>
-  <text x="842.5" y="310.0" class="label" text-anchor="middle" dominant-baseline="middle">output</text>
-  <path d="M 392 353 C 447 420, 517 420, 572 353" stroke="#2f6395" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
-  <path d="M 692 353 C 747 420, 817 420, 872 353" stroke="#2f6395" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
-  <text x="550.0" y="465.0" class="small" text-anchor="middle" dominant-baseline="middle">residual paths keep signal and gradients moving</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 570" role="img" aria-labelledby="title desc"><title id="title">FlashAttention：分开记三种成本</title><desc id="desc">朴素路径保存NxN分数矩阵；分块路径在片上累积m,l,o。显存存储、算术和访存复杂度分别列出。</desc><style>text{font-family:system-ui,"PingFang SC",sans-serif;fill:#203638}.t{font-size:28px;font-weight:700}.h{font-size:20px;font-weight:650}.s{font-size:17px}.m{font-size:16px;fill:#53686a}rect{rx:8}</style><rect width="1000" height="570" fill="#f7f6f0"/><text x="36" y="48" class="t">FlashAttention：分开记三种成本</text><text x="36" y="86" class="m">N：序列长度　d：每头维数　M：SRAM 可容纳的标量数</text>
+<rect x="36" y="115" width="450" height="230" fill="#fff" stroke="#cad7d2"/><rect x="514" y="115" width="450" height="230" fill="#fff" stroke="#cad7d2"/>
+<text x="62" y="154" class="h">朴素：完整分数矩阵进入 HBM</text><rect x="70" y="175" width="140" height="140" fill="#efd4a9"/>
+<text x="94" y="250" class="h">N × N</text><text x="235" y="215" class="s">分数 → softmax → 加权</text><text x="235" y="250" class="s">跨显存多次读写</text><text x="235" y="285" class="s">存储含 N² 项</text>
+<text x="540" y="154" class="h">分块：片上累积后只写结果</text><rect x="550" y="185" width="100" height="70" fill="#bdd9e8"/><text x="568" y="228" class="s">Q/K/V 块</text><text x="665" y="228" class="s">→</text><rect x="705" y="185" width="220" height="70" fill="#cce1d0"/><text x="723" y="215" class="s">最大值 m、归一化 l</text><text x="723" y="241" class="s">加权累积 o</text><text x="550" y="305" class="s">各块反复更新状态；不保存完整分数矩阵</text>
+<text x="36" y="389" class="h">省掉的是中间矩阵，不是所有平方增长</text><text x="36" y="429" class="s">存储约 O(Nd)；稠密算术仍 Θ(N²d)。</text><text x="36" y="467" class="s">原论文模型的 HBM 访问：Θ(N²d² / M)，条件 d ≤ M ≤ Nd。</text><text x="36" y="515" class="m">固定 d、M，N 翻倍时访问量仍可能约增四倍；渐近计数不是实测加速比。</text></svg>

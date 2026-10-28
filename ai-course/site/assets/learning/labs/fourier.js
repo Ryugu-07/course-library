@@ -1,14 +1,6 @@
 (function () {
   "use strict";
 
-  if (
-    typeof window === "undefined" ||
-    !window.CourseLearning ||
-    typeof window.CourseLearning.register !== "function"
-  ) {
-    return;
-  }
-
   var SVG_NS = "http://www.w3.org/2000/svg";
   var PI = Math.PI;
   var X_MIN = -PI;
@@ -598,7 +590,7 @@
     ]);
   }
 
-  window.CourseLearning.register("fourier", function (root, api) {
+  function mount(root, api) {
     if (!root || typeof document === "undefined") {
       return;
     }
@@ -899,5 +891,11 @@
 
     update();
     announce(api, root, "Fourier 实验已加载：当前为方波、N=5、观察点 x₀=π/2。");
-  });
+  }
+
+  var exported = { FUNCTIONS: FUNCTIONS, partialSum: partialSum, limitValue: limitValue, mount: mount };
+  if (typeof module === "object" && module.exports) module.exports = exported;
+  if (typeof window !== "undefined" && window.CourseLearning && typeof window.CourseLearning.register === "function") {
+    window.CourseLearning.register("fourier", mount);
+  }
 })();

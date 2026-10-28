@@ -207,14 +207,26 @@
       return numerical.valid && exact ? Math.hypot(numerical.real - exact[0], numerical.imaginary - exact[1]) : null;
     }
 
+    // For this positive radial family, inside/outside is analytic and independent of N.
+    function radialWinding(config, shape) {
+      var rho = magnitude(config.pole);
+      var theta = Math.atan2(config.pole[1], config.pole[0]);
+      var boundary = config.radius * (1 + shape * Math.cos(3 * theta));
+      var delta = rho - boundary;
+      if (Math.abs(delta) <= EPS * Math.max(1, rho, boundary)) return null;
+      return delta < 0 ? config.orientation : 0;
+    }
+
     function evaluate(input) {
       var config = normalizeConfig(input);
       var currentPoints = sampleContour(config, config.shape, config.subdivisions);
       var basePoints = sampleContour(config, 0, config.subdivisions);
-      var currentWinding = roundedWinding(currentPoints, config.pole);
-      var baseWinding = roundedWinding(basePoints, config.pole);
+      var currentWinding = radialWinding(config, config.shape);
+      var baseWinding = radialWinding(config, 0);
       var currentNumerical = integrate(currentPoints, config.pole);
       var baseNumerical = integrate(basePoints, config.pole);
+      if (currentWinding === null) currentNumerical = { valid: false, singularOnPath: true, real: null, imaginary: null, magnitude: null };
+      if (baseWinding === null) baseNumerical = { valid: false, singularOnPath: true, real: null, imaginary: null, magnitude: null };
       var currentExact = exactIntegral(currentWinding);
       var baseExact = exactIntegral(baseWinding);
       var deformationDifference = currentNumerical.valid && baseNumerical.valid
@@ -225,6 +237,7 @@
         config: config,
         current: {
           points: currentPoints,
+          sampledWinding: roundedWinding(currentPoints, config.pole),
           winding: currentWinding,
           numerical: currentNumerical,
           exact: currentExact,
@@ -232,6 +245,7 @@
         },
         base: {
           points: basePoints,
+          sampledWinding: roundedWinding(basePoints, config.pole),
           winding: baseWinding,
           numerical: baseNumerical,
           exact: baseExact,
@@ -458,7 +472,7 @@
           role: "img",
           "aria-label": "当前围道、基准圆、奇点和 winding number"
         });
-        var plot = { left: 42, top: 22, width: 340, height: 280, min: -1.35, max: 1.35 };
+        var plot = { left: 72, top: 22, width: 280, height: 280, min: -1.6, max: 1.6 };
         var mapX = function (x) { return plot.left + ((x - plot.min) / (plot.max - plot.min)) * plot.width; };
         var mapY = function (y) { return plot.top + plot.height - ((y - plot.min) / (plot.max - plot.min)) * plot.height; };
         var zeroX = mapX(0);
@@ -485,7 +499,7 @@
         svg.appendChild(svgElement(doc, "line", { className: "cw-pole-cross", x1: poleX - 10, y1: poleY - 10, x2: poleX + 10, y2: poleY + 10 }));
         svg.appendChild(svgElement(doc, "line", { className: "cw-pole-cross", x1: poleX - 10, y1: poleY + 10, x2: poleX + 10, y2: poleY - 10 }));
         svg.appendChild(svgElement(doc, "text", { className: "cw-text", x: poleX + 9, y: poleY - 8 }, "a（奇点）"));
-        svg.appendChild(svgElement(doc, "text", { className: "cw-small", x: 212, y: 319, "text-anchor": "middle" }, "Re z"));
+        svg.appendChild(svgElement(doc, "text", { className: "cw-small", x: 369, y: 319, "text-anchor": "middle" }, "Re z"));
         svg.appendChild(svgElement(doc, "text", { className: "cw-small", x: 12, y: 166, transform: "rotate(-90 12 166)", "text-anchor": "middle" }, "Im z"));
         svg.appendChild(svgElement(doc, "text", { className: "cw-text", x: 438, y: 45 }, "当前围道"));
         svg.appendChild(svgElement(doc, "text", { className: "cw-small", x: 438, y: 65 }, "orientation=" + (result.config.orientation > 0 ? "CCW" : "CW") + "；形变=" + formatNumber(result.config.shape, 2)));
@@ -510,6 +524,7 @@
         var body = element(doc, "tbody");
         addRow(body, ["参数化方向", result.config.orientation > 0 ? "逆时针；dz 随 t 正向" : "顺时针；积分与 winding 变号"]);
         addRow(body, ["winding number", result.current.winding === null ? "未定义：路径含奇点" : String(result.current.winding)]);
+        addRow(body, ["有限多边形绕数（诊断）", result.current.sampledWinding === null ? "采样顶点命中" : String(result.current.sampledWinding)]);
         addRow(body, ["解析基准", result.current.exact ? formatComplex({ real: result.current.exact[0], imaginary: result.current.exact[1] }) : "不适用"]);
         addRow(body, ["N 段闭合梯形", formatComplex(result.current.numerical)]);
         addRow(body, ["数值求积误差", result.current.numericalError === null ? "不计算：先报告奇点" : formatNumber(result.current.numericalError, 8)]);
@@ -522,7 +537,7 @@
 
       var shell = element(doc, "div", { className: "cw-shell" });
       shell.appendChild(element(doc, "h3", {}, "复积分账本：方向、winding、形变与求积"));
-      shell.appendChild(element(doc, "p", { className: "cw-note" }, "被积函数固定为 f(z)=1/(z−a)。脚本只用确定性参数化和闭合复合梯形；解析值由 winding number 单独给出。"));
+      shell.appendChild(element(doc, "p", { className: "cw-note" }, "被积函数固定为 f(z)=1/(z−a)。脚本只用确定性参数化和闭合复合梯形；解析绕数由本族正半径星形曲线的内外判据给出；采样多边形绕数另列为诊断。"));
 
       var presetSection = element(doc, "section", { className: "cw-control-section" }, [element(doc, "h4", {}, "围道与奇点预设")]);
       var presetGrid = element(doc, "div", { className: "cw-presets", role: "group", "aria-label": "围道预设" });

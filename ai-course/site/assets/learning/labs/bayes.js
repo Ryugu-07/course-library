@@ -1,14 +1,6 @@
 (function () {
   "use strict";
 
-  if (
-    typeof window === "undefined" ||
-    !window.CourseLearning ||
-    typeof window.CourseLearning.register !== "function"
-  ) {
-    return;
-  }
-
   var SVG_NS = "http://www.w3.org/2000/svg";
   var COHORT = 10000;
   var serial = 0;
@@ -151,8 +143,8 @@
     var negative = tn + fn;
     var ppv = positive > 0 ? tp / positive : NaN;
     var npv = negative > 0 ? tn / negative : NaN;
-    var priorOdds = pi > 0 && pi < 1 ? pi / (1 - pi) : NaN;
-    var lrPlus = specificity < 1 ? sensitivity / (1 - specificity) : Infinity;
+    var priorOdds = pi < 1 ? pi / (1 - pi) : Infinity;
+    var lrPlus = specificity < 1 ? sensitivity / (1 - specificity) : (sensitivity > 0 ? Infinity : NaN);
     var posteriorOdds = ppv >= 1 ? Infinity : ppv / (1 - ppv);
 
     return {
@@ -183,6 +175,9 @@
     style.id = "cl-bayes-styles";
     style.textContent = [
       ".cl-bayes { min-width: 0; }",
+      ".cl-bayes .cl-bayes-grid { grid-template-columns: minmax(0,1fr); }",
+      ".cl-bayes .cl-bayes-figure { max-width:100%; overflow-x:auto; }",
+      ".cl-bayes .cl-bayes-svg { min-width:640px; }",
       ".cl-bayes fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }",
       ".cl-bayes legend { padding: 0; color: var(--fg-soft); font-size: 13px; font-weight: 650; }",
       ".cl-bayes .cl-bayes-presets { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-top: 6px; }",
@@ -665,12 +660,13 @@
     );
   }
 
-  window.CourseLearning.register("bayes", function (root, api) {
+  function mount(root, api) {
     if (!root || typeof document === "undefined") {
       return;
     }
 
     injectStyles();
+    root.classList.add("cl-bayes");
     serial += 1;
     var prefix = "cl-bayes-" + serial;
     var ids = {
@@ -810,9 +806,9 @@
           makeElement(api, "strong", { id: ids.stage }, [
             "人口 → 真实状态 → 检测结果"
           ]),
-          makeElement(api, "span", {}, ["线宽示意，计数精确"])
+          makeElement(api, "span", {}, ["线宽示意，计数精确；窄屏图内横向滚动"])
         ]),
-        svg
+        makeElement(api, "div", {className:"cl-bayes-figure", tabindex:"0", role:"region", "aria-label":"概率树，窄屏可横向滚动"}, [svg])
       ])
     ]);
 
@@ -914,5 +910,7 @@
 
     root.replaceChildren(heading, intro, apiRoot);
     render();
-  });
+  }
+  if (typeof module === "object" && module.exports) module.exports = { calculate: calculate, presets: PRESETS, cohort: COHORT, mount: mount };
+  if (typeof window !== "undefined" && window.CourseLearning && typeof window.CourseLearning.register === "function") window.CourseLearning.register("bayes", mount);
 })();

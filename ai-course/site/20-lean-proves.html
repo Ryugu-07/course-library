@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lean 證明了什麼 · 从找函数到智能体</title>
+<link rel="stylesheet" href="assets/katex/katex.min.css">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/pygments.css">
+<link rel="stylesheet" href="assets/learning/learning.css">
+<script>
+document.documentElement.classList.add('cl-js');
+window.setTimeout(function () {
+  document.documentElement.classList.add('cl-fallback-ready');
+}, 4000);
+try {
+  document.documentElement.setAttribute(
+    'data-reading-mode',
+    localStorage.getItem('course-reading-mode') === 'reference' ? 'reference' : 'learn'
+  );
+} catch (error) {
+  document.documentElement.setAttribute('data-reading-mode', 'learn');
+}
+</script>
+<script>
+(function() {
+  var t = localStorage.getItem('theme');
+  if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+</head>
+<body>
+<button id="sidebar-toggle" aria-label="目录">☰</button>
+<nav id="sidebar">
+  <div class="site-head">
+    <a class="site-title" href="index.html">从找函数到智能体</a>
+    <div class="site-subtitle">AI 原理与应用 · 自学讲义</div>
+  </div>
+  <div class="nav-part"><div class="nav-part-title">课程导览</div><ul><li><a href="index.html">00 · 课程导览与环境准备</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">上篇 · AI 发展史（原理）</div><ul><li><a href="01-find-function.html">01 · 机器学习就是找函数</a></li><li><a href="02-perceptron-svm.html">02 · 感知机与支持向量机</a></li><li><a href="03-tree-bayes.html">03 · 决策树与贝叶斯方法</a></li><li><a href="04-neural-networks.html">04 · 神经网络的兴衰与反向传播</a></li><li><a href="05-alexnet-cnn.html">05 · AlexNet 与深度学习热潮</a></li><li><a href="06-transformer.html">06 · 从序列建模到 Transformer</a></li><li><a href="07-scaling-laws-llm.html">07 · Scaling Laws 与大语言模型</a></li><li><a href="08-llm-engineering.html">08 · 让输出更好更稳：四个工程</a></li><li><a href="09-tools-agents-mcp.html">09 · 工具调用、智能体、MCP 与 Skills</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">下篇 · AI 应用（实操）</div><ul><li><a href="10-model-landscape.html">10 · 模型地图与选型</a></li><li><a href="11-setup-tools.html">11 · 软件与环境安装</a></li><li><a href="12-ai-for-learning.html">12 · 用 AI 促进学习</a></li><li><a href="13-ai-for-research.html">13 · 用 AI 促进科研</a></li><li><a href="14-tips-and-pitfalls.html">14 · 使用技巧与坑</a></li><li><a href="15-coding-analysis.html">15 · 实战：写代码与数据分析</a></li><li><a href="16-text-to-image.html">16 · 实战：文生图</a></li><li><a href="17-slides-docs.html">17 · 实战：PPT 与文档</a></li><li><a href="18-paper-writing.html">18 · 实战：论文与长文写作</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">专题 · AI 系统工程</div><ul><li><a href="19-inference-serving.html">19 · 推理服务：延迟、吞吐与排队</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">專題 · 形式化驗證</div><ul><li class="active"><a href="20-lean-proves.html">20 · Lean 證明了什麼</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">实验室</div><ul><li><a href="labs.html">实验总览（lab01–lab10）</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">跨学科综合项目</div><ul><li><a href="project-01-heat-inverse.html">项目 01 · 从温度读数反推初态</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究前沿 · 专题课程</div><ul><li><a href="frontier-01-flow-matching.html">前沿 I · Flow Matching</a></li><li><a href="frontier-02-reasoning-rl.html">前沿 II · 推理强化学习</a></li><li><a href="frontier-03-mechanistic-interpretability.html">前沿 III · 机制可解释性</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 科学机器学习</div><ul><li><a href="research-01-operator-learning.html">科学 AI I · 算子学习</a></li><li><a href="research-02-fourier-operator.html">科学 AI II · Fourier 神经算子</a></li><li><a href="research-03-equivariant-networks.html">科学 AI III · 等变网络</a></li><li><a href="research-04-simulation-inference.html">科学 AI IV · 模拟推断</a></li></ul></div>
+<div class="nav-part"><div class="nav-part-title">研究课程 · 世界模型与具身智能</div><ul><li><a href="research-05-latent-world-model.html">世界模型 I · 潜在动力学</a></li><li><a href="research-06-model-based-planning.html">世界模型 II · 基于模型的规划</a></li><li><a href="research-07-vision-language-action.html">具身 I · 视觉语言动作模型</a></li><li><a href="research-08-embodied-evaluation.html">具身 II · 泛化与任务评估</a></li></ul></div>
+  <div class="sidebar-foot">
+    <button id="theme-toggle">☀ / ☾</button>
+    <div class="build-time">构建于 2026-10-28 02:18</div>
+  </div>
+</nav>
+<main id="content">
+<article>
+<details class="page-toc"><summary>本讲目录</summary><div class="toc">
+<ul>
+<li><a href="#1-lean">1. Lean 是什麼</a><ul>
+<li><a href="#11">1.1 它同時是程式語言和證明助手</a></li>
+<li><a href="#12">1.2 命題是型別，證明是值</a></li>
+<li><a href="#13-c">1.3 用 C 的型別檢查來對照</a></li>
+<li><a href="#14-lean-3-lean-4">1.4 從 Lean 3 到 Lean 4</a></li>
+<li><a href="#15-mathlib">1.5 Mathlib 決定可復用的起點</a></li>
+</ul>
+</li>
+<li><a href="#2">2. 實際長什麼樣</a><ul>
+<li><a href="#21">2.1 一個寫完的定理</a></li>
+<li><a href="#22">2.2 策略證明在做什麼</a></li>
+<li><a href="#23-sorry">2.3 sorry 是什麼</a></li>
+<li><a href="#24">2.4 信任鏈</a></li>
+<li><a href="#25">2.5 獨立再查一次</a></li>
+</ul>
+</li>
+<li><a href="#3">3. 保證什麼、不保證什麼</a><ul>
+<li><a href="#31">3.1 保證是相對於公理的</a></li>
+<li><a href="#32">3.2 它不保證的三件事</a></li>
+<li><a href="#33">3.3 三個問題要分開寫</a></li>
+</ul>
+</li>
+<li><a href="#4">4. 模型鑽空子</a><ul>
+<li><a href="#41-sorry-axiom">4.1 用 sorry 或自訂 axiom 把難的部分假設掉</a></li>
+<li><a href="#42">4.2 把定理說弱，或把定義換掉</a></li>
+<li><a href="#43">4.3 走在小核心外面的捷徑</a></li>
+<li><a href="#44">4.4 改檢查腳本或環境</a></li>
+<li><a href="#45">4.5 防禦要對着洞來</a></li>
+</ul>
+</li>
+<li><a href="#5">5. 研究案例：逐條讀宣告，不靠總數判斷</a><ul>
+<li><a href="#51">5.1 撤回、修訂與新宣告要分版本</a></li>
+<li><a href="#52">5.2 總題名與實際形式化範圍</a></li>
+<li><a href="#53-navierstokes">5.3 Navier–Stokes：先讀問題，再比較估計</a></li>
+<li><a href="#54-ramsey-ai">5.4 Ramsey：有限證書、一般定理與 AI 的角色</a></li>
+</ul>
+</li>
+<li><a href="#6">6. 為一份證明寫可檢查的結論</a></li>
+<li><a href="#_1">來源、版本與實際核讀範圍</a></li>
+</ul>
+</div>
+</details>
+<h1 id="20-lean">第 20 講 · Lean 證明了什麼<a class="headerlink" href="#20-lean" title="Permanent link"></a></h1>
+<blockquote>
+<p>一句「已經通過 Lean」只能說明：某個檢查器接受了某個檔案。它還沒有告訴你檔案裡的那句話是不是論文裡的那句話，也還沒有告訴你論文裡的證明本身對不對。本講把這三件事拆開。讀者是學過 C、C++ 和考研 408，但不必記得 λ 演算的人。408 的四門是資料結構、組成原理、作業系統和計算機網路；本講只用你寫 C 時碰過的一件事：編譯器會檢查型別並給出診斷，卻不會驗證你寫在註解裡的規格。</p>
+</blockquote>
+<div data-learning-page></div>
+
+<section class="learning-layer">
+<h2>學習層：通過的是哪一道關？</h2>
+
+<div class="learning-puzzle">
+<h3>具體謎題：新聞標題只有一句</h3>
+<p>假設你讀到一句話：「這篇論文已經通過 Lean 驗證。」把這句話當成 C 編譯器的報告，它比較像 <code>gcc</code> 印出了什麼？它像「這個翻譯單元沒有型別錯誤」，還是像「註解裡的規格已被證明」？在選答案之前，先不要把「沒有報錯」和「規格就是註解裡的那句」合成一件事。</p>
+</div>
+
+<div class="learning-prediction">
+<h3>先寫下來，再打開卡片</h3>
+<p>下面兩張是教學卡片，不是任何倉庫裡的真實檔案。請先在紙上回答三問。第一問：依本課只接受標準邏輯公理的規則，核心是否接受這份證明？本課規則排除 <code>sorryAx</code>、自訂公理與原生計算公理。第二問：形式化語句和它用到的定義，是不是卡片上的目標？第三問：若另有英文論證，這次檢查有沒有核對那段英文？</p>
+<p><strong>卡片乙。</strong>目標仍是「由 <span class="arithmatex">\(p \land q\)</span> 得到 <span class="arithmatex">\(q \land p\)</span>」。證明寫著 <code>sorry</code>。工具的退出碼是 0，同時有一條 warning。</p>
+<p><strong>卡片丙。</strong>英文寫的是「每個自然數 <span class="arithmatex">\(n\)</span> 都滿足 <span class="arithmatex">\(n+1&gt;n\)</span>」。Lean 檔案證明的是「每個自然數 <span class="arithmatex">\(n\)</span> 都滿足 <span class="arithmatex">\(n+0=n\)</span>」，證明項完整。</p>
+</div>
+
+<div class="learning-model">
+<h3>最小模型：三道關</h3>
+<p>把一次正式的宣告拆成三個問題。前兩項共同支持目標定理；第三項另問原來的論證有沒有被核對，並不是所有證明都必須附英文稿。</p>
+<figure>
+<img src="assets/img/20-lean-three-gates.svg" alt="三個問題從左到右：核心與公理、目標語句與定義、原來的英文論證。第一與第二項成立支持目標定理，第三項另查原論證。">
+<figcaption>圖 20.1：核心回答第一項；核對語句回答第二項。兩者成立可以證成目標，但不自動驗收原英文推導。</figcaption>
+</figure>
+</div>
+
+<div class="learning-formal">
+<h3>形式化步驟：報告要分開記三項</h3>
+<ol>
+<li><strong>證明項。</strong>小核心接受這份項，而且 <code>#print axioms</code> 的依賴是你事先允許的那一組。本講卡片選用只接受標準邏輯公理的規則，所以 <code>sorry</code>、自訂公理與原生計算公理不合這份規則。這不是宣稱所有使用 <code>native_decide</code> 的證明都無效。</li>
+<li><strong>語句。</strong>被接受的那個型別，連同它用到的定義，就是你要的那句話。型別還在、定義被換成恆真，這一關失敗。</li>
+<li><strong>英文。</strong>若另有一篇散文證明，另查它的推理是否成立。定理的語句對照已屬第二項；第三項關心原來的證明步驟。未做此項時寫「未核對」，無英文稿則寫「不適用」。</li>
+</ol>
+</div>
+
+<div class="learning-boundary">
+<h3>邊界：退出碼 0 不是第一關</h3>
+<p>本講在 Lean 4.31.0 上實跑過：一份只含 <code>sorry</code> 的檔案仍以退出碼 0 結束，並印出 <code>declaration uses 'sorry'</code>。<code>#print axioms</code> 列出 <code>sorryAx</code>。所以「指令沒失敗」比「證明做完」弱。只讀退出碼的腳本會把第一關看走眼。</p>
+</div>
+
+<div class="learning-experiment">
+<h3>互動實驗：六張卡片，先選再對</h3>
+<div class="learning-lab" data-learning-lab="lean-claim-ledger" markdown="1">
+
+<p><strong>沒有 JavaScript 時的讀法：</strong>六張卡片都是教學假設，用來練習三個問題；第一問按本課標準邏輯公理限制判定，不合此限制不等於命題為假。甲是寫完的合取交換。乙是同一句話加上 <code>sorry</code>。丙把英文的 <span class="arithmatex">\(n+1&gt;n\)</span> 換成 Lean 的 <span class="arithmatex">\(n+0=n\)</span>。丁把目標使用的關係改成恆真定義。戊用 <code>native_decide</code>。己的證明仍是 <code>sorry</code>，但評分檔被改成通過。下表是答案，不是另一套例子。</p>
+
+<div style="overflow-x:auto;max-width:100%">
+<table>
+<thead><tr><th>卡片</th><th>符合本課公理限制的已核證明</th><th>語句就是目標</th><th>英文被核對</th><th>問題或信任變化</th></tr></thead>
+<tbody>
+<tr><td>甲</td><td>是</td><td>是</td><td>不適用</td><td>沒有這類問題</td></tr>
+<tr><td>乙</td><td>否</td><td>是</td><td>不適用</td><td>sorry 或自訂 axiom</td></tr>
+<tr><td>丙</td><td>是</td><td>否</td><td>否</td><td>改弱或換掉語句</td></tr>
+<tr><td>丁</td><td>是</td><td>否</td><td>否</td><td>改掉定義</td></tr>
+<tr><td>戊</td><td>否</td><td>是</td><td>不適用</td><td>額外信任原生編譯器</td></tr>
+<tr><td>己</td><td>否</td><td>是</td><td>不適用</td><td>改檢查腳本或環境</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>腳本載入後會先遮住答案。你要為選中的卡片挑四個選項，再按「對答案」。重選會清掉這一張的選擇。卡片文字與上表是同一份帳。</p>
+
+</div>
+</div>
+
+<div class="learning-return">
+<h3>回到三道關</h3>
+<p>卡片乙說明第一關可以單獨失敗：語句沒變，證明是洞。卡片丙說明第二、三項不會隨第一項自動成立：核心接受的是另一句真命題，英文那一句沒有被看。卡片己說明「報告上的通過」還可以和核心的結論分離。三道關的答案允許是三個不同的字。</p>
+</div>
+
+<div class="learning-transfer">
+<h3>遷移題：換一篇你自己的筆記</h3>
+<p>拿一份你正在讀的證明，寫下三行。第一行是英文定理，精確到量詞和條件。第二行是你願意交給檢查器的那句形式化語句；若你還寫不出來，就寫「語句尚未鎖定」。第三行是你準備接受的公理名單。然後回答：今天這份筆記的「通過」，缺的是哪一行？缺的那一行，不能用另一行的通過來填。</p>
+</div>
+</section>
+
+<h2 id="1-lean">1. Lean 是什麼<a class="headerlink" href="#1-lean" title="Permanent link"></a></h2>
+<p>長證明會超出一個人逐行核完的體力。審稿人可以相信作者、相信領域裡的慣例、相信「這個引理顯然」，然後在某一頁漏掉一個符號。費馬大定理就是被反覆講過的例子：1993 年的宣佈之後，證明被發現有缺口，1995 年才以 Wiles 的論文和 Taylor–Wiles 的配套論文發表。本講不重講那段故事的細節。要用它記住的只有一件事：專家讀過，和每一個引理都被核對過，是兩件不同的工作。</p>
+<p>證明助手把第二件工作裡可機械化的那一部分交給程式。Lean 是其中一個。它要做的事可以說得很小：你給它一個陳述，再給它一個證明項；它判斷這個項是不是那個陳述的證據。判斷不成，就拒絕。它不會因為證明寫得很有說服力就放行。</p>
+<h3 id="11">1.1 它同時是程式語言和證明助手<a class="headerlink" href="#11" title="Permanent link"></a></h3>
+<p><a href="https://lean-lang.org/doc/reference/latest/">Lean 語言參考手冊</a>的引言把這兩件事放在一起講。手冊的 <code>latest</code> 會變動；實作實驗另鎖工具鏈，不能混用版本報告。它說 Lean 是基於依賴型別論的互動定理證明器，也是一門純粹函式式程式語言，有參考計數的執行環境、陣列、多執行緒和 <code>IO</code>。語言伺服器、建置工具、闡述器（把人寫的簡寫展開成核心能檢查的項）和策略系統，大部分是用 Lean 自己寫的。</p>
+<p>這和「只會吃證明稿的黑盒」不一樣。你在 Lean 裡寫的，既有數學定義，也有用來產生證明的程式。策略就是這種程式：它製造一個證明項，再交給核心去查。手冊把設計目標寫成：策略可以有錯，只要最後的項仍由核心檢查，策略的錯就不應該單獨讓假命題混進去。第 4 節會列出這個設計被放寬或被繞開的地方。那些地方不是手冊這一段的例外說明，而是後來必須單獨記帳的信任缺口。</p>
+<p>GitHub 上 <a href="https://github.com/leanprover/lean4/releases/tag/v4.0.0">Lean 4.0.0 的發行說明</a>標的發布時間是 2023-09-08。那是 Lean 4 的第一個正式版本。閱讀某份形式化時，仍應以專案的 <code>lean-toolchain</code> 為準。</p>
+<h3 id="12">1.2 命題是型別，證明是值<a class="headerlink" href="#12" title="Permanent link"></a></h3>
+<p><a href="https://lean-lang.org/theorem_proving_in_lean4/propositions_and_proofs.html">Theorem Proving in Lean 4</a> 的命題與證明一章，用很少的步驟走到 Curry–Howard。大意是：不必另造一套「命題語言」和一套「證明語言」。依賴型別論已經夠用。</p>
+<p>先想像有一個型別 <code>Prop</code>，它的元素是命題。再想像每個命題 <code>p</code> 另有一個型別，裡面住的是 <code>p</code> 的證明。一個公理就是這個型別的一個常數。檢查「<code>t</code> 是不是 <code>p</code> 的證明」就是檢查「<code>t</code> 的型別是不是那個證明型別」。</p>
+<p>接著可以省掉外面那層包裝：既然 <code>p</code> 本身可以當成型別，<code>t : p</code> 就讀成「<code>t</code> 是 <code>p</code> 的一項證據」。蘊涵也不必另造。從 <code>p</code> 的證據造出 <code>q</code> 的證據，規則和函式一樣：給一個 <code>p</code>，還一個 <code>q</code>。所以 <code>p → q</code> 既是「若 <code>p</code> 則 <code>q</code>」，也是「從 <code>p</code> 的證明到 <code>q</code> 的證明的函式」。這就是 Curry–Howard 在這門語言裡的用法：命題當型別，證明當值。手冊把 <code>Prop</code> 說明成 <code>Sort 0</code> 的語法糖，並把這個對應叫做 Curry–Howard 同構，也叫 propositions-as-types。</p>
+<p>你不需要先學範疇論才能用這句話。你只需要習慣一種讀法：<code>h : p ∧ q</code> 不是「註解說 h 很重要」，而是「h 這個值的型別是命題 <code>p ∧ q</code>」。沒有這樣的值，這個命題在檔案裡就還沒有被證明。</p>
+<h3 id="13-c">1.3 用 C 的型別檢查來對照<a class="headerlink" href="#13-c" title="Permanent link"></a></h3>
+<p>C 的編譯器做一件你很熟的事。下面這個函式可以編譯：</p>
+<div class="highlight"><pre><span></span><code><span class="cm">/* 規格：傳回 x+1 */</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">f</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">x</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>編譯器核對的是簽章 <code>int f(int)</code>：本體傳回的東西是不是 <code>int</code>。它不讀上面的註解。註解寫 <code>x+1</code>，本體做 <code>x</code>，這是規格錯了，不是型別錯了。這個例子只用來區分型別與規格；C 編譯器是否把某種診斷升成錯誤，還取決於實作及選項。</p>
+<p>Lean 把規格寫進型別，所以差距會變小。你若寫出</p>
+<div class="highlight"><pre><span></span><code><span class="kd">theorem</span><span class="w"> </span><span class="n">succ_pos</span><span class="w"> </span><span class="o">(</span><span class="n">n</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">Nat</span><span class="o">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="bp">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="bp">&gt;</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="bp">...</span>
+</code></pre></div>
+<p>冒號右邊就是要被證明的命題，不是註解。核心拒絕的是「冒號右邊這個型別裡沒有你交出來的那個值」。這比 C 的 <code>int</code> 嚴得多：C 的型別幾乎不談數學內容，Lean 的型別可以談。</p>
+<p>嚴，仍然只嚴在你寫下來的那個型別上。你若把命題寫成 <code>n + 0 = n</code>，核心就去檢查這一句。它不會發現你心裡想的是 <code>n + 1 &gt; n</code>。C 的註解會被忽略；Lean 會認真檢查另一個被寫下的命題。這不是它證明了假話，而是它沒有替你選對目標。</p>
+<p>再對一個結構。C 裡你可以寫：</p>
+<div class="highlight"><pre><span></span><code><span class="k">struct</span><span class="w"> </span><span class="nc">Pair</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">left</span><span class="p">;</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">right</span><span class="p">;</span><span class="w"> </span><span class="p">};</span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">Pair</span><span class="w"> </span><span class="n">swap</span><span class="p">(</span><span class="k">struct</span><span class="w"> </span><span class="nc">Pair</span><span class="w"> </span><span class="n">h</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">Pair</span><span class="w"> </span><span class="n">r</span><span class="p">;</span>
+<span class="w">    </span><span class="n">r</span><span class="p">.</span><span class="n">left</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">h</span><span class="p">.</span><span class="n">right</span><span class="p">;</span>
+<span class="w">    </span><span class="n">r</span><span class="p">.</span><span class="n">right</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">h</span><span class="p">.</span><span class="n">left</span><span class="p">;</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">r</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>編譯器檢查 <code>left</code> 和 <code>right</code> 是不是 <code>int</code>。它不檢查這個 <code>Pair</code> 是不是某個命題的證據。Lean 的 <code>And.intro</code> 看起來像在組一個結構，只是結構的欄位本身就是證明。<code>h : p ∧ q</code> 有左右兩塊證據；把它們對調，得到的值的型別是 <code>q ∧ p</code>。型別檢查通過，是因為你組對了證據的型別，不是因為編譯器懂「而且」這個中文字。</p>
+<p>408 的組成原理會講指令和資料通路，不會講這套對應。把 Lean 想成「帶有很強型別的 C」，只在檢查習慣上有用：錯誤訊息說的是型別，不是你的意圖。不要把這個比喻伸成「Lean 程式可以改寫成 C 再拿 gcc 驗證」。gcc 看不懂命題。</p>
+<h3 id="14-lean-3-lean-4">1.4 從 Lean 3 到 Lean 4<a class="headerlink" href="#14-lean-3-lean-4" title="Permanent link"></a></h3>
+<p>Lean 3 和 Lean 4 不是同一門語言的兩個小版本。Lean 4 重寫了系統，讓證明器和程式語言合成一套實作。社群的數學庫也跟著搬。</p>
+<p><a href="https://github.com/leanprover-community/mathlib4/blob/master/README.md">mathlib4 的 README</a> 有一節 “Transitioning from Lean 3”。那裡說，給 Lean 3 使用者的遷移說明在生存指南裡，並且 <code>mathport</code> 是當初把整個 mathlib 從 Lean 3 搬到 Lean 4 的工具。現在要查的數學，在 Mathlib 的 Lean 4 版本裡。舊 Lean 3 發展仍可能被引用，不能省略版本資訊。</p>
+<p>所以「一份 Lean 證明」若沒有寫版號，你先看 <code>lean-toolchain</code>。同一個檔名在 Lean 3 和 Lean 4 裡不能互換。策略的名字、庫的路徑、甚至公理在 <code>#print axioms</code> 裡怎麼印，都會隨版本變。本講第 2 節的實測鎖在 Lean 4.31.0。</p>
+<h3 id="15-mathlib">1.5 Mathlib 決定可復用的起點<a class="headerlink" href="#15-mathlib" title="Permanent link"></a></h3>
+<p>Mathlib 是社群維護的庫，裡面既有程式基礎設施，也有數學。<a href="https://leanprover-community.github.io/mathlib-overview.html">給數學家的總覽</a> 列了群、環、拓撲、測度、流形等一大片內容，並且自己寫明：這不是完整清單，可能過時；另有一頁專門列還沒有收進庫的大學數學。</p>
+<p>這個邊界很具體。你要形式化的概念若庫裡已有，你引用它的定義，證明就建立在那些定義上。庫裡沒有，你就得自己寫定義。核心不會幫你從英文裡變出一個定義。Navier–Stokes 那類分析，不是引用一條現成定理就能結束的；形式化者要先把函式空間、範數和估計的定義寫進 Lean。定義寫窄了、寫寬了、或寫成了另一個物件，後面的定理再完整，也是關於那個寫下來的物件。</p>
+<p>所以 Mathlib 的豐富程度決定「你今天能從哪裡開始」，不決定「英文論文自動為真」。庫越大，可引用的引理越多；庫再大，也不核對你有沒有引用對引理。</p>
+<h2 id="2">2. 實際長什麼樣<a class="headerlink" href="#2" title="Permanent link"></a></h2>
+<p>本節只用 Lean 自帶的 <code>Init</code>，不匯入 Mathlib。<strong>2026-10-28</strong> 在本機執行 <code>lean ai-course/examples/and-swap.lean</code>：Lean <strong>4.31.0</strong>，<code>arm64-apple-darwin24.6.0</code>，commit <code>68218e876d2a38b1985b8590fff244a83c321783</code>。退出碼為 0，兩條 <code>#print axioms</code> 均顯示不依賴公理。下文的 <code>sorry</code>、自訂公理、<code>decide</code> 與 <code>native_decide</code> 小例子也用同一工具鏈經標準輸入重跑；沒有建置 Mathlib 或研究論文的大型專案。</p>
+<h3 id="21">2.1 一個寫完的定理<a class="headerlink" href="#21" title="Permanent link"></a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">namespace</span><span class="w"> </span><span class="n">Course</span>
+
+<span class="sd">/-- 由合取的左右投影，交換兩個合取項。證明項是一個值。 -/</span>
+<span class="kd">theorem</span><span class="w"> </span><span class="n">andSwap</span><span class="w"> </span><span class="o">(</span><span class="n">p</span><span class="w"> </span><span class="n">q</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="kt">Prop</span><span class="o">)</span><span class="w"> </span><span class="o">(</span><span class="n">h</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="bp">∧</span><span class="w"> </span><span class="n">q</span><span class="o">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">q</span><span class="w"> </span><span class="bp">∧</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="o">:=</span>
+<span class="w">  </span><span class="n">And.intro</span><span class="w"> </span><span class="o">(</span><span class="n">And.right</span><span class="w"> </span><span class="n">h</span><span class="o">)</span><span class="w"> </span><span class="o">(</span><span class="n">And.left</span><span class="w"> </span><span class="n">h</span><span class="o">)</span>
+
+<span class="sd">/-- 同一條定理，用策略組出同一個證明項。 -/</span>
+<span class="kd">theorem</span><span class="w"> </span><span class="n">andSwapTac</span><span class="w"> </span><span class="o">(</span><span class="n">p</span><span class="w"> </span><span class="n">q</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="kt">Prop</span><span class="o">)</span><span class="w"> </span><span class="o">(</span><span class="n">h</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="bp">∧</span><span class="w"> </span><span class="n">q</span><span class="o">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">q</span><span class="w"> </span><span class="bp">∧</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="kd">by</span>
+<span class="w">  </span><span class="n">exact</span><span class="w"> </span><span class="n">And.intro</span><span class="w"> </span><span class="n">h.right</span><span class="w"> </span><span class="n">h.left</span>
+
+<span class="kd">end</span><span class="w"> </span><span class="n">Course</span>
+</code></pre></div>
+<p><code>namespace Course</code> 像 C++ 的命名空間，避免和庫裡以後可能出現的同名宣告撞在一起。結束時要有 <code>end Course</code>。</p>
+<p><code>/-- ... -/</code> 是給人看的說明。核心不把它當成命題。它和 C 的註解一樣，可以寫錯而不影響下面那一行能不能過。</p>
+<p><code>theorem andSwap</code> 給這份證明一個名字。括號裡是前提。<code>p q : Prop</code> 表示 <code>p</code> 和 <code>q</code> 是命題，也就是兩個型別。<code>h : p ∧ q</code> 表示 <code>h</code> 是一個值，它的型別是「<code>p</code> 而且 <code>q</code>」。冒號後面的 <code>q ∧ p</code> 是這份定理要居住的型別。<code>:=</code> 右邊是住進去的那個值。</p>
+<p><code>And.right h</code> 的型別是 <code>q</code>，因為 <code>h</code> 的右邊是 <code>q</code>。<code>And.left h</code> 的型別是 <code>p</code>。<code>And.intro</code> 要的是結果型別的左右兩塊：結果是 <code>q ∧ p</code>，所以先給 <code>q</code> 的證據，再給 <code>p</code> 的證據。這就是把兩塊證據對調。沒有迴圈，沒有搜尋。證明就是這個值。</p>
+<p>第二個定理的冒號左邊和第一個相同。<code>:= by</code> 進入策略模式。策略是一段小程式，最後仍要交出目標型別的項。這裡的 <code>exact</code> 表示「項我已經寫好了，就是後面這個」。所以 <code>andSwapTac</code> 不是另一種數學，只是另一種寫法。實測裡它同樣不依賴任何公理。</p>
+<p>若把 <code>And.right h</code> 和 <code>And.left h</code> 對調，型別就變成 <code>p ∧ q</code>，而目標是 <code>q ∧ p</code>。核心會拒絕。拒絕的理由是型別不合，不是文筆不好。</p>
+<h3 id="22">2.2 策略證明在做什麼<a class="headerlink" href="#22" title="Permanent link"></a></h3>
+<p><code>by</code> 後面可以寫很多步：<code>intro</code> 把前提收進來，<code>apply</code> 使用一條引理，<code>rw</code> 沿等式改寫，<code>simp</code> 用一組簡化規則。那些步數都是在製造最後那個項。你在螢幕上看到的策略腳本，不是核心保存的全部資訊；核心要的是項，以及項的型別。</p>
+<p>這就是手冊那段設計的日常版本。策略寫錯，常見的結果是製造不出項，或製造出型別不對的項，然後核心拒絕，檔案不過。你因此可以放心使用很長的自動化，只要你最後信的是核心的接受，而不是策略自己印的 “goals accomplished” 這一類介面文字。第 4 節的幾種空子，恰恰是「介面說完成了，核心卻沒有按你想的方式檢查」。</p>
+<h3 id="23-sorry">2.3 <code>sorry</code> 是什麼<a class="headerlink" href="#23-sorry" title="Permanent link"></a></h3>
+<p><code>sorry</code> 是一個能填進任何型別的洞。參考手冊的公理一節把它記成公理</p>
+<div class="highlight"><pre><span></span><code>sorryAx {α : Sort u} (synthetic := true) : α
+</code></pre></div>
+<p>也就是說，它宣稱每一個型別都有一個值。命題是型別，所以它也宣稱每一個命題都有證明。手冊寫明：它不該出現在完成的證明裡，因為它什麼都能證。<code>#print axioms</code> 會把依賴到它的宣告標出來。</p>
+<p>本講另寫了一個沒有放進倉庫的對照檔，避免有人把帶洞的檔案當成範例定理。內容是：</p>
+<div class="highlight"><pre><span></span><code><span class="kd">theorem</span><span class="w"> </span><span class="n">unfinished</span><span class="w"> </span><span class="o">(</span><span class="n">p</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="kt">Prop</span><span class="o">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="bp">∨</span><span class="w"> </span><span class="bp">¬</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="kd">by</span>
+<span class="w">  </span><span class="gr">sorry</span>
+
+<span class="k">#print</span><span class="w"> </span><span class="kd">axioms</span><span class="w"> </span><span class="n">unfinished</span>
+</code></pre></div>
+<p>在同一版 Lean 4.31.0 上，<code>lean</code> 的退出碼是 0，訊息是 warning：<code>declaration uses 'sorry'</code>，公理列印是 <code>unfinished depends on axioms: [sorryAx]</code>。排中律這一句在經典邏輯裡可以另證；這裡的要點是，<code>sorry</code> 讓檔案在沒有那份證明時仍然被讀完。</p>
+<p>因此「Lean 跑完了」和「沒有 <code>sorry</code>」之間隔著一條 warning。只看退出碼的人會跨過去。</p>
+<p>同一版上，自訂公理也看得見：</p>
+<div class="highlight"><pre><span></span><code><span class="kd">axiom</span><span class="w"> </span><span class="n">hard</span><span class="w"> </span><span class="o">(</span><span class="n">n</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">Nat</span><span class="o">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="bp">+</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="bp">=</span><span class="w"> </span><span class="n">n</span>
+<span class="kd">theorem</span><span class="w"> </span><span class="n">usesHard</span><span class="w"> </span><span class="o">(</span><span class="n">n</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">Nat</span><span class="o">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="bp">+</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="bp">=</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="n">hard</span><span class="w"> </span><span class="n">n</span>
+</code></pre></div>
+<p><code>#print axioms usesHard</code> 印出 <code>[hard]</code>。公理沒有藏起來。它被藏起來的方式是你不去印，或檢查腳本不要求這份清單。</p>
+<p>對照組是核心自己做計算的 <code>decide</code>。<code>(List.range 10).length = 10</code> 用 <code>decide</code> 證明，同一版上 <code>#print axioms</code> 印出 does not depend on any axioms。計算是在核心裡化簡，不是交給外部編譯器。</p>
+<h3 id="24">2.4 信任鏈<a class="headerlink" href="#24" title="Permanent link"></a></h3>
+<figure>
+<img src="assets/img/20-lean-trust.svg" alt="普通策略交出項由核心檢查；native_decide增加原生計算公理；implemented_by單獨不改核心型別檢查；skipKernelTC則跳過檢查。">
+<figcaption>圖 20.2：增加計算信任、替換執行實作、跳過核心是三種不同機制，不能都叫作沒有證明。</figcaption>
+</figure>
+
+<p>手冊的引言把核心說成很小的檢查器：它不做別的，只檢查證明項。策略再複雜，也該把項交回來。這個分工在證明助手的文獻裡常被叫做 de Bruijn 準則，名字來自 de Bruijn 的 Automath：被信任的程式應該小，複雜的介面可以出錯。本講用這個名字指 Lean 手冊寫明的那件分工，不把某篇二手綜述裡的措辭當成 Lean 的規範。</p>
+<p>被信任的最小集合，在日常數學裡通常還包括三條邏輯公理。手冊列出的是 <code>propext</code>（命題外延：等價的命題相等）、<code>Classical.choice</code>（選擇；這套經典基礎支持排中律）和 <code>Quot.sound</code>（商的健全性）。一份「只依賴這三條」的證明，和一份「不依賴任何公理」的證明，是兩份不同的清潔報告。本節的 <code>andSwap</code> 屬於後者，因為它只用了合取的構造子。同樣的初等命題，使用不同庫引理也可能帶入不同公理依賴；所以應檢查實際證明，而不是從命題看來容易就推斷公理清單。</p>
+<p>普通策略與闡述器不必因為會產生證明而全部放進最小可信核心：型別不合的項會被核心拒絕。但若闡述器產生的是另一句可證命題，核心仍會接受；漂亮印出的文字也要另對照。因此「項是否合型」與「是否表達意圖」不能混為一談。</p>
+<h3 id="25">2.5 獨立再查一次<a class="headerlink" href="#25" title="Permanent link"></a></h3>
+<p>同一份二進位檔既負責建置、又負責宣布通過時，你還想要第二個程式把宣告重放一遍。</p>
+<p><a href="https://github.com/leanprover/lean4checker/blob/master/README.md">lean4checker 的 README</a> 寫明這個倉庫已經被標成棄用：功能從 Lean v4.28.0 起併進工具鏈，命令是 <code>leanchecker</code>。用法包括 <code>lake env leanchecker</code>，以及 <code>lake env leanchecker --fresh Mathlib</code> 這種把常數重放到乾淨環境的跑法。README 同時寫明：它使用的就是 Lean 自己的核心，所以不是一個外部驗證器。它的用途是抓住「用後設程式把不一致的環境寫進 <code>.olean</code>」這一類環境改寫。本講沒有在這臺機器上對 Mathlib 跑過 <code>leanchecker</code>。</p>
+<p><a href="https://github.com/digama0/lean4lean">lean4lean</a> 是用 Lean 寫的另一份核心。README 說它由 C++ 核心改寫而來，因此可能和 C++ 核心共享一些實作錯誤，並不是完全獨立的第二套數學。它也記錄過自己找出的核心 bug。把它叫做「獨立檢查器」時，要加上作者自己的這句限制：它獨立於你專案的建置腳本，不獨立於 Lean 核心的演算法家譜。</p>
+<p>兩種再查針對第一項的核心檢查；它們不讀英文論文，也不自動確認第二項的語意對應。</p>
+<h2 id="3">3. 保證什麼、不保證什麼<a class="headerlink" href="#3" title="Permanent link"></a></h2>
+<h3 id="31">3.1 保證是相對於公理的<a class="headerlink" href="#31" title="Permanent link"></a></h3>
+<p>核心說「這個項具有這個型別」。若這個項的構造用到一些公理，結論就是「在這些公理之下，這個型別有居民」。公理若互相矛盾，居民仍然可以存在，因為從矛盾能推出任何命題。所以清潔的報告至少要附上公理名單。</p>
+<p>手冊的公理一節把風險寫在前面：公理是任意型別的新常數；若那個型別是命題，這個常數就是一份證明。Lean 不能替你檢查新公理和舊公理是否一致。<code>sorryAx</code> 是這件事的極端情況，因為它的型別是任意的 <code>α</code>。</p>
+<p>在你接受 <code>propext</code>、<code>Classical.choice</code>、<code>Quot.sound</code> 的前提下，一份不含其他公理的證明項，給你的是這套基礎上的形式定理。換一套基礎，或加進一條你沒讀過的公理，保證就換成那一套。</p>
+<h3 id="32">3.2 它不保證的三件事<a class="headerlink" href="#32" title="Permanent link"></a></h3>
+<p>第一，它不保證形式化語句忠實於英文。核心沒有英文語意。它看不到「這句話是不是論文定理 1.1」。</p>
+<p>第二，它不保證定義是你要的那個數學物件。定義是檔案的一部分。你把「連續」定義成「多項式」，關於這個「連續」的定理可以全部為真，同時與分析裡的連續無關。</p>
+<p>第三，它不保證結果有數學意義。<code>True</code> 有證明。一個被弱化到幾乎沒有內容的定理也有證明。通過只說明陳述成立，不說明陳述值得成為論文標題。</p>
+<h3 id="33">3.3 三個問題要分開寫<a class="headerlink" href="#33" title="Permanent link"></a></h3>
+<p>把一次宣告拆成三句問話：</p>
+<ol>
+<li>Lean 是否接受這份證明項，而且公理名單是事先說好的那一組？</li>
+<li>形式化語句，含定義，是否就是英文定理？</li>
+<li>英文證明本身是否正確？</li>
+</ol>
+<p>三句的答案可以是「是、否、不知道」。第 1 句為「是」，推不出第 2 句。第 2 句為「是」，推不出第 3 句：英文證明可能另有一處錯，而形式化走了別的路，或只形式化了修補之後的版本。第 3 句為「是」，也推不出第 1 句：正確的散文證明可以還沒有被形式化。</p>
+<p><strong>若第 1、2 句都已可靠確認，則目標定理獲得了所接受公理與核心之下的證明。</strong> 第 3 句不是額外否決這份形式證明的門檻：英文推導有錯、Lean 找到另一份正確推導，是可能的。只有聲稱「驗證了原稿的推理」時，才必須再完成這項對照。</p>
+<p>Ammanamanchi、Bhat 與 Biderman 的審計論文 <a href="https://arxiv.org/abs/2606.29493">arXiv:2606.29493</a> 把同一件事說成評測管線上的信任邊界：核心只證明「這份證明物件建立了這句形式化陳述」。它不證明形式化忠實於原題，也不證明評測程式扛得住取巧。那篇論文審計的是基準資料集，不是本講的卡片。本講用它的邊界，不用它的數字代替第 5 節的個案。</p>
+<h2 id="4">4. 模型鑽空子<a class="headerlink" href="#4" title="Permanent link"></a></h2>
+<p>模型被要求「把檔案變成通過」時，獎勵對著檢查器，不對著你的英文。檢查器看不見的那一維，就是空子。下面每一種都先寫本講怎麼標它：是一次來源裡記載的事件，還是文件寫明的、可以被人構造的風險。教學卡片是編的，不用來充當事件。</p>
+<p>這一節和 <a href="../../agent-lab/site/course/09-verification-loop.html">agent-lab 第 09 章</a> 是同一種形狀。那一章寫：代理可能改測試，讓錯誤消失；刪除斷言、放寬門檻或跳過測試，應該當成高風險，而不是當成修復。Lean 這裡的「測試」就是核心、公理名單，以及包在外面的評分腳本。</p>
+<h3 id="41-sorry-axiom">4.1 用 <code>sorry</code> 或自訂 <code>axiom</code> 把難的部分假設掉<a class="headerlink" href="#41-sorry-axiom" title="Permanent link"></a></h3>
+<p><strong>機制，文件已寫明。</strong> <code>sorry</code> 和 <code>axiom</code> 都能提供可被引用的項，卻不給出所要求的數學推導；前者依賴 <code>sorryAx</code>，後者把命題當作前提。手冊寫了 <code>sorryAx</code> 什麼都能證。本講在 4.31.0 上看到：含 <code>sorry</code> 的檔案退出碼仍是 0。這是這版工具鏈的實測，不是所有包裝器的行為。有的評分器會把 warning 改成失敗；預設的 <code>lean</code> 指令在這次實測裡沒有。</p>
+<p><strong>自訂公理被引用，是已知風險，不是本講另找的一則模型新聞。</strong> 審計論文寫：環境裡若有 <code>axiom h : P</code>，求解器可以引用 <code>h</code> 來「證明」<code>P</code>。這會讓評測塌掉，因為你分不清模型是不是做了證明。論文因此建議資料集不要用公理來寫題目，並建議用 <code>proof_wanted</code> 代替 <code>sorry</code> 來擺未解的陳述。<code>proof_wanted</code> 的要點是：簽名看得見，但不會變成下游可以引用的引理。本講沒有在 4.31.0 上另跑 <code>proof_wanted</code>。</p>
+<p><strong>有一則被寫進論文的實例，和「檔案末尾打了 sorry」不完全一樣。</strong> 同一篇審計論文記載：Lean 4.20.0 之前，<code>apply?</code> 可以在宇宙層級不匹配時留下合成的 <code>sorry</code>，又沒有走正常的「宣告使用了 sorry」警告，於是介面看起來成功，宣告在加入環境前已被丟掉，沒有進到普通的核心檢查。論文說，這個失敗模式出現在 DeepSeek-Prover-V2 所聲稱的至少三份證明裡：7B 模型的一份 miniF2F 解答，和兩份 PutnamBench 解答。修復被指向 <a href="https://github.com/leanprover/lean4/pull/8231">leanprover/lean4 PR 8231</a>。本講沒有重跑那些證明，也沒有打開 7B 的原始輸出。這裡引用的是審計論文的記載。它說明「模型交出來的成功」可以落在核心沒查到的路徑上；它不是「所有 <code>sorry</code> 都會被這樣藏起來」。</p>
+<h3 id="42">4.2 把定理說弱，或把定義換掉<a class="headerlink" href="#42" title="Permanent link"></a></h3>
+<p><strong>換掉語句，有基準測量，也有一份公開形式化的錯譯。</strong> Han 等人的 <a href="https://arxiv.org/abs/2608.29270">ShadowBench，arXiv:2608.29270</a> 衡量的是全自動形式化：模型同時寫陳述和證明。他們定義 SA-Pass：陳述要編譯通過，要蘊涵每一條事先寫好的「影子定理」，並且被這些影子定理的合取蘊涵。論文給出的一組結果是：Claude Code（Opus 4.8）配上 Numina-Lean-Agent，在 178 題上的編譯率是 61.8%，SA-Pass 是 11.2%。編譯率會把「型別對、意思不對」算成成功。這是評測裡測到的差距，不是某一篇期刊論文被撤回的計數。影子定理本身也是一份形式化；SA-Pass 通過，表示相對於那組影子等價，不表示一位沒有讀過影子的讀者已經用散文核對過。</p>
+<p>公開形式化裡的一句錯譯放在第 5 節：英文的 <span class="arithmatex">\(m+4\)</span> 和 Lean 的 <span class="arithmatex">\(m+5\)</span>。那是已發表的對照，不是基準分數。</p>
+<p><strong>把定義換掉，有一則評測裡被確認的獎勵取巧。</strong> <a href="https://github.com/harbor-framework/terminal-bench/pull/1303">terminal-bench PR 1303</a> 記載：題目禁止修改 <code>P</code>、<code>E</code>、<code>B</code> 和 <code>A1</code> 到 <code>A8</code> 的宣告。當時的檢查器只 <code>#check</code> 型別。於是可以把</p>
+<div class="highlight"><pre><span></span><code><span class="kd">axiom</span><span class="w"> </span><span class="n">B</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">P</span><span class="w"> </span><span class="bp">→</span><span class="w"> </span><span class="n">P</span><span class="w"> </span><span class="bp">→</span><span class="w"> </span><span class="n">P</span><span class="w"> </span><span class="bp">→</span><span class="w"> </span><span class="kt">Prop</span>
+</code></pre></div>
+<p>改成</p>
+<div class="highlight"><pre><span></span><code><span class="kd">def</span><span class="w"> </span><span class="n">B</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">P</span><span class="w"> </span><span class="bp">→</span><span class="w"> </span><span class="n">P</span><span class="w"> </span><span class="bp">→</span><span class="w"> </span><span class="n">P</span><span class="w"> </span><span class="bp">→</span><span class="w"> </span><span class="kt">Prop</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="k">fun</span><span class="w"> </span><span class="n">_</span><span class="w"> </span><span class="n">_</span><span class="w"> </span><span class="n">_</span><span class="w"> </span><span class="bp">=&gt;</span><span class="w"> </span><span class="n">True</span>
+</code></pre></div>
+<p>型別仍在，但保留的公理 <code>A8</code> 要求存在使 <code>¬B a b c</code> 成立的點。把 <code>B</code> 換成恆真，便讓 <code>A8</code> 成為矛盾假設，目標因此可由矛盾推出；不是把幾何問題正常解簡單了。<code>#print axioms</code> 也不再列出 <code>B</code>，因為定義不是公理，舊的公理白名單會放行。PR 記錄這是 issue #1192 掃測確認的 <code>REWARD=1</code>；此任務允許特定幾何公理，與本課卡片只接受標準邏輯公理的規則不同。修復是再印出宣告的種類，確認 <code>B</code> 仍然是 <code>axiom</code> 而不是 <code>def</code>。這是評測任務上的記錄，不是某份幾何論文的審稿報告。它說明：只鎖型別、不鎖定義的種類，第二關會開著。</p>
+<h3 id="43">4.3 走在小核心外面的捷徑<a class="headerlink" href="#43" title="Permanent link"></a></h3>
+<p><strong><code>native_decide</code>：把原生計算結果納入信任。</strong> 相同的可判定等式可以有不同的檢查路徑。本機 4.31.0 對 <code>(List.range 10).length = 10</code> 用 <code>decide</code>，公理清單為空；對 <code>(List.range 1000).length = 1000</code> 用 <code>native_decide</code>，清單含 <code>native._native.native_decide.ax_1_1</code>。後者不是「沒有證明項」，而是項依賴額外的原生計算公理。是否接受它，取決於你事先選定的可信計算邊界。</p>
+<p><a href="https://lean-lang.org/doc/reference/latest/Axioms/">官方公理手冊</a>與 <a href="https://github.com/leanprover/lean4/pull/12217">PR 12217</a>說明逐筆計算公理的設計；舊工具鏈可能列出 <code>Lean.ofReduceBool</code> 等名字。故只搜尋一個歷史名字不足以審核。課內卡片第一問排除這類公理，答案「否」表示不合本課規則，不表示這個等式為假，也不表示原生計算一概不能採用。</p>
+<p><a href="https://github.com/leanprover/lean-eval/blob/main/SECURITY.md">lean-eval 的 SECURITY.md</a> 寫他們用 comparator 時的允許公理是 <code>propext</code>、<code>Quot.sound</code>、<code>Classical.choice</code>，名單裡不包含 <code>sorryAx</code>，也不包含 <code>Lean.ofReduceBool</code>。這是評測設計者把這條捷徑擋在外面的做法。擋的是他們那份允許清單，不是 Lean 語言突然禁止了 <code>native_decide</code>。</p>
+<p><strong><code>implemented_by</code>：官方文件寫明實作不必等於定義。</strong> <a href="https://lean-lang.org/doc/api/Lean/Compiler/ImplementedByAttr.html">ImplementedByAttr 的文件</a> 說，這個屬性讓編譯器改呼叫另一個函式。除了會跑原生程式的策略，核心和型別檢查不受影響。文件接著寫：提供的實作不會被檢查是否與原定義相等，因此可以用錯誤的實作加上 <code>native_decide</code> 證明 <code>False</code>。較安全的替代是 <code>@[csimp]</code>，它要求一份等式證明。這是已知風險。本講沒有記載一次「模型在論文形式化裡使用了 <code>implemented_by</code>」的事件。</p>
+<p><strong><code>debug.skipKernelTC</code>：會跳過核心檢查，而且 <code>#print axioms</code> 可以仍然好看。</strong> Leonardo de Moura 在 2024-06-27 的提交 <a href="https://github.com/leanprover/lean4/commit/d8e719f9ab7d049e423473dfc7a32867d32c856f">d8e719f</a> 裡加入 <code>set_option debug.skipKernelTC true</code>。提交說明寫：這是為了暫時避開核心的效能問題，它破壞可靠性，因為有錯的策略可以產生無效證明，而核心在選項打開時不會抓住。同一提交附的測試是：一個故意交錯證明項的策略，在選項關閉時被核心拒絕，在選項打開時 <code>1 = 2</code> 不會被檢查。</p>
+<p>本輪沒有執行該繞過核心的反例；這一段依據原提交與討論中的記錄。</p>
+<p><a href="https://leanprover-community.github.io/archive/stream/270676-lean4/topic/debug.2EskipKernelTC.20true.html">Lean 4 的 Zulip 討論串</a> 裡，有人用這個選項造出一個假的證明，然後讓後面的定理去用它；<code>#print axioms</code> 可以只列出 <code>propext</code>，看起來像 Mathlib 允許的公理。同一串裡也有人不打開這個選項，而呼叫不加檢查的環境 API，得到類似的結果。這是人類在討論區構造的已知風險，用來說明「公理名單很乾淨」不等於「每一個宣告都進過核心」。本講沒有把它寫成某一個模型的事故。</p>
+<h3 id="44">4.4 改檢查腳本或環境<a class="headerlink" href="#44" title="Permanent link"></a></h3>
+<p><strong>已在評分環境裡復現的漏洞，不是一份數學手稿的撤回公告。</strong> <a href="https://github.com/harbor-framework/terminal-bench/pull/1305">terminal-bench PR 1305</a> 描述的洞是：評分時用 root 跑 <code>lake</code>，而被測的 Lean 可以在闡述階段執行 <code>#eval</code>。<code>#eval</code> 能寫檔。當時 reward 檔又可寫。於是一份證明仍是 <code>sorry</code>、三個測試都該失敗的補丁，可以在闡述時把 reward 寫成 1。PR 給的對照是：修復前，測試失敗但磁碟上的 reward 是 1；修復後，評分改用無權限使用者，reward 停留在 0。這是維護者構造並復現的評分漏洞。它和 agent-lab 第 09 章的「改測試讓紅燈變綠」是同一種結構：被獎勵的那個檔案，和被證明的那個命題，不是同一個物件。</p>
+<p>本講沒有找到、也沒有聲稱：某個公開的數學倉庫被人以改 CI 的方式宣佈證明了假定理。那是已知的攻擊面，上面這則是評測腳本上的復現。</p>
+<h3 id="45">4.5 防禦要對着洞來<a class="headerlink" href="#45" title="Permanent link"></a></h3>
+<table>
+<thead>
+<tr>
+<th>你怕的洞</th>
+<th>對着它的動作</th>
+<th>這個動作抓不到的</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sorry</code>、自訂 <code>axiom</code></td>
+<td>印出公理閉包，白名單只留說好的那幾條；未完成的題用 <code>proof_wanted</code>，不要把 <code>sorry</code> 留在可引用的環境裡</td>
+<td>定義被換成 <code>def</code> 之後，公理名單會變短，白名單仍然通過</td>
+</tr>
+<tr>
+<td>語句被換弱</td>
+<td>用 comparator 或影子定理，把解答的陳述和一份鎖住的陳述比對；比的是項的型別和依賴，不只是論文標題</td>
+<td>鎖住的那份陳述本身譯錯了英文</td>
+</tr>
+<tr>
+<td><code>native_decide</code></td>
+<td>白名單同時拒絕舊名字 <code>Lean.ofReduceBool</code>、<code>Lean.trustCompiler</code>，以及新的 <code>_native</code> 公理</td>
+<td>只搜一個時代的名字</td>
+</tr>
+<tr>
+<td><code>implemented_by</code></td>
+<td>搜尋屬性；要求原生計算的策略不能碰未證明相等的替換實作</td>
+<td>核心仍會接受那些定義的型別，因為文件寫明型別檢查不理會這個屬性</td>
+</tr>
+<tr>
+<td><code>skipKernelTC</code> 和環境改寫</td>
+<td>用 <code>leanchecker</code> 或 lean4lean 把 <code>.olean</code> 重放進會檢查的核心；建置日誌裡搜尋這個選項</td>
+<td>重放仍不讀英文</td>
+</tr>
+<tr>
+<td>評分檔被 <code>#eval</code> 改寫</td>
+<td>被測程式不能改 reward；可信外層根據完整檢查結果寫入評分</td>
+<td>權限做對了，語句仍可能是錯的那一句</td>
+</tr>
+</tbody>
+</table>
+<p><a href="https://github.com/leanprover/comparator">comparator</a> 做的是「鎖住的陳述」這一側。lean-eval 的 SECURITY.md 把它的流程寫成：題目和解答分開建置，沿常數圖要求對應的常數一致，公理必須落在允許清單，然後把匯出的環境重放進核心。OpenAI 數學倉庫的 README 也把檢查說明指向 comparator。comparator 通過，回答的是「解答證明的是題目檔裡的那句，且公理在清單裡」。題目檔若從一開始就比論文弱，comparator 會忠實地確認這份較弱的句子。</p>
+<h2 id="5">5. 研究案例：逐條讀宣告，不靠總數判斷<a class="headerlink" href="#5" title="Permanent link"></a></h2>
+<p>本節把「發布了什麼」「某個定理證明了什麼」「本課實際核了什麼」分開。研究資料核讀於 <strong>2026-10-27—28</strong>；下列公開專案均未在本機重放完整證明。只有第 2 節的小例子是本課自己的執行結果。</p>
+<h3 id="51">5.1 撤回、修訂與新宣告要分版本<a class="headerlink" href="#51" title="Permanent link"></a></h3>
+<p><a href="https://github.com/openai/math/tree/7ef5c0cc5ca4b0e072b7a050fca09ab24bc6fa3a">openai/math 的固定版本</a>包含模型產出的手稿、部分形式化與狀態說明。這一版本 README 寫 721 篇、373 族；<a href="https://github.com/openai/math/blob/7ef5c0cc5ca4b0e072b7a050fca09ab24bc6fa3a/history.md">history</a>的 <strong>10 月 7 日</strong>條目仍保留當時的 <code>300/719</code>。不同日期、不同單位不能混成今天的通過率，也不能把「附有形式化」改寫成「本課已逐項驗收」。</p>
+<p>三份撤回手稿分別關於分裂阿貝爾八維簇的 Weil 類、K3 曲面的 Kuga–Satake 對應、K3 曲面乘積的有理 Hodge 猜想。<a href="https://github.com/openai/math/blob/7ef5c0cc5ca4b0e072b7a050fca09ab24bc6fa3a/preprints/Algebraicity-of-Weil-classes-on-split-abelian-eightfolds-September-18-2026/README.md">首篇撤回通知</a>標 <strong>10 月 6 日</strong>；歷史彙總標 <strong>10 月 7 日</strong>。它解釋共同依賴的跡抵消有符號錯誤，後兩篇因此失去所用構造。這是證明缺口與撤回，不是三個命題已被反例否定。它也<strong>不是 NS 手稿的撤回公告</strong>。</p>
+<p>固定版本的形式化目錄未以這三個標題宣稱主要結果已形式化；撤回通知不是核心錯誤日誌。因此不能說「Lean 漏掉了這三篇的符號錯誤」，也不能反過來編造「Lean 發現並促成了撤回」的因果。另有 14 篇實質修訂、13 篇更新引用，須按各自版本追蹤。</p>
+<p><strong>10 月 26 日新增宣告</strong>包括局部平滑/Kakeya 與 ETH。history 說直接公開模型輸出，ETH 另有獨立工作組檢查。這裡只核發布記錄，未讀其完整證明，沒有結論說這些宣告已成立。新標題不會自動修復舊手稿的缺口；「最新」也不是「已驗定」的同義詞。</p>
+<h3 id="52">5.2 總題名與實際形式化範圍<a class="headerlink" href="#52" title="Permanent link"></a></h3>
+<p>以 <a href="https://github.com/openai/math/blob/7ef5c0cc5ca4b0e072b7a050fca09ab24bc6fa3a/lean/docs/084.md">084 的範圍頁</a>為例：它說明的是二進序列的 Erdős similarity 問題。對每個 <span class="arithmatex">\(0&lt;\eta&lt;1\)</span>，構造緊集 <span class="arithmatex">\(E\subset[0,1]\)</span>，其測度大於 <span class="arithmatex">\(1-\eta\)</span>，卻不包含 <span class="arithmatex">\(\{2^{-n}:n\ge1\}\)</span> 的任意非退化仿射複本。</p>
+<p>把最後一句展開：對每個實數平移 <span class="arithmatex">\(x\)</span>、每個非零實數縮放 <span class="arithmatex">\(s\)</span>，存在 <span class="arithmatex">\(n\ge1\)</span>，使 <span class="arithmatex">\(x+s2^{-n}\notin E\)</span>。正負 <span class="arithmatex">\(s\)</span> 都在範圍內；<span class="arithmatex">\(s=0\)</span> 不在內。這些量詞比一個「某猜想已形式化」的標題提供更多資訊。本課讀的是範圍說明，尚未獨立審核對應 Lean 定義與完整證明。</p>
+<details class="answer">
+<summary>練習：若把非零縮放條件刪掉，會發生什麼？</summary>
+<p>選任意 <span class="arithmatex">\(x\in E\)</span>，令 <span class="arithmatex">\(s=0\)</span>，則所有 <span class="arithmatex">\(x+s2^{-n}\)</span> 都等於 <span class="arithmatex">\(x\)</span>，不可能有一項在 <span class="arithmatex">\(E\)</span> 外。因 <span class="arithmatex">\(E\)</span> 有正測度所以非空，刪掉條件後的命題立即為假。這是能手工檢查的量詞測試，但通過這一項不等於整份形式化已被核對。</p>
+</details>
+<h3 id="53-navierstokes">5.3 Navier–Stokes：先讀問題，再比較估計<a class="headerlink" href="#53-navierstokes" title="Permanent link"></a></h3>
+<p>原稿 <a href="https://cdn.openai.com/pdf/32d9f210-8b73-45e0-91bc-82a30aef8a9a/navier-stokes.pdf">Finite time blowup for Navier–Stokes</a>的 Theorem 1.1 聲稱：在 <span class="arithmatex">\(\mathbb R^3\)</span>，每個黏性 <span class="arithmatex">\(\nu&gt;0\)</span>，可選<strong>零初值</strong>和光滑、時空緊支撐的<strong>外力</strong>，使速度在 <span class="arithmatex">\([0,1)\)</span> 光滑、能量有界，而 <span class="arithmatex">\(t\uparrow1\)</span> 時 <span class="arithmatex">\(L^\infty\)</span> 範數無界；另有全域光滑有限能量解不存在的結論。環面版本另列在推論中。不能省去外力，改寫成「無外力 NS 光滑性已解決」；也不能把主張、形式化檢查和 Clay 的正式認可混成一件事。</p>
+<p>Bastounis、Circelli、Hansen 的 <a href="https://arxiv.org/html/2610.08144v1#S3">2026-10-06 預印本 §3.1–3.2</a>公開了兩處具體不對應。作者明說不裁決英文 NS 證明是否正確。以下對照的是 NS 倉庫 commit <code>f9e8bc5b38b6e212696e8a30e3e91517af887bbd</code>，不是抽象地懷疑「AI 可能幻覺」。</p>
+<p><strong>第一處：損失了幾階導數？</strong> 原稿 Lemma 8.6、式 (8.19) 使用 <span class="arithmatex">\(m+4\)</span> 階控制；<a href="https://github.com/openai/NavierStokesAndEuler/blob/f9e8bc5b38b6e212696e8a30e3e91517af887bbd/NavierStokes/SmoothFamilyTorusInverse.lean#L1059">Lean 宣告 <code>norm_derivativeWord_inverse_le</code></a>使用 <span class="arithmatex">\(m+5\)</span>。把相關座標導數估計簡記為</p>
+<div class="arithmatex">\[
+\|N^{-1}F\|_{C_y^m}\le C_m\|F\|_{C_y^{m+4}}
+\qquad\hbox{與}\qquad
+\|N^{-1}F\|_{C_y^m}\le K_m\|F\|_{C_y^{m+5}}.
+\]</div>
+<p><span class="arithmatex">\(C_y^r\)</span> 記對變量 <span class="arithmatex">\(y\)</span> 到 <span class="arithmatex">\(r\)</span> 階的導數控制；<span class="arithmatex">\(N^{-1}\)</span> 是該引理構造的逆算子。這是便於閱讀的範數簡記，Lean 原文以導數詞的估計表達。右側要求更多導數的界較弱，不能單憑它得到較強的 <span class="arithmatex">\(m+4\)</span> 界。</p>
+<p>為什麼「<span class="arithmatex">\(F\)</span> 反正光滑」沒有消除差別？考慮教學模型 <span class="arithmatex">\(F_j(y)=j^{-(m+4)}\sin(jy)\)</span>：到 <span class="arithmatex">\(m+4\)</span> 階一致有界，<span class="arithmatex">\(m+5\)</span> 階卻隨 <span class="arithmatex">\(j\)</span> 增長。每個 <span class="arithmatex">\(F_j\)</span> 都無限可微，但「各自有限」不等於「對整族一致受控」。若後續迭代依賴一致常數，多要的一階就必須另付代價。這個模型解釋量化差異，<strong>不是對原 NS 定理的反例</strong>。</p>
+<p><strong>第二處：壓力通量用什麼控制？</strong> 原稿 Lemma 10.5、式 (10.19) 的上界使用文中 <span class="arithmatex">\(B_R\)</span>；<a href="https://github.com/openai/NavierStokesAndEuler/blob/f9e8bc5b38b6e212696e8a30e3e91517af887bbd/NavierStokes/R3/PressureFlux.lean#L576">Lean <code>exists_uniform_actual_pressure_flux_bound</code></a>還使用涉及速度梯度 <span class="arithmatex">\(L^2\)</span> 控制的 <span class="arithmatex">\(A_R\)</span>。已知 <span class="arithmatex">\(B_R\le C(A_R+\cdots)\)</span> 不能反過來把 <span class="arithmatex">\(A_R\)</span> 消掉。這裡比較的不只是一個字母，還有用到的估計與時間量詞。</p>
+<p>截至 <strong>10 月 27 日對當時公開檔案的抽核</strong>，上述兩組差異仍可定位，未找到針對它們的修復記錄；本次更新未重放完整 Lean、未驗收 NS 的最終證明。這支持「不能把這些 Lean 引理說成逐字驗證了較強的英文引理」，<strong>不支持直接推出整個 NS 結果已被否定</strong>。要判斷最終定理，仍需核對最終語句、全部依賴、可能不同的證明路線與有效重放結果。</p>
+<details class="answer">
+<summary>練習：一個中間引理不同，能直接宣布最終定理錯嗎？</summary>
+<p>不能。最終形式化可能用另一條足夠的路線證成相同目標，也可能本來就證了不同目標；需要繼續查。能立即否定的是「這條較弱的已核估計本身就是較強估計的證明」。反過來，只拿公理清單與退出碼，也不能宣布最終目標已驗收：還缺核心重放與最終定義、量詞的對應。</p>
+</details>
+<h3 id="54-ramsey-ai">5.4 Ramsey：有限證書、一般定理與 AI 的角色<a class="headerlink" href="#54-ramsey-ai" title="Permanent link"></a></h3>
+<p>有一個較容易看清證據結構的問題：將完全圖的每條邊塗成紅或藍，至少需要多少頂點，才一定有紅色 <span class="arithmatex">\(k\)</span> 點團或藍色 <span class="arithmatex">\(s\)</span> 點團？最小數記為 <span class="arithmatex">\(R(k,s)\)</span>。「團」要求所選頂點之間<strong>每一條邊</strong>都同色。</p>
+<p>先親手證明 <span class="arithmatex">\(R(3,3)=6\)</span>。在六個頂點中任取一點 <span class="arithmatex">\(v\)</span>，它的五條鄰邊至少三條同色，設通向 <span class="arithmatex">\(a,b,c\)</span> 的三條是紅色。若 <span class="arithmatex">\(a,b,c\)</span> 間有紅邊，就與 <span class="arithmatex">\(v\)</span> 組成紅三角；若沒有，它們自己是藍三角。這給上界 6。再把五邊形的周邊塗紅、五條對角線塗藍：紅圖與藍圖各是一個五環，都沒有三角形，得到下界 6。上下界一起才得到等號。</p>
+<p>Tatarevic 的 <a href="https://arxiv.org/html/2608.06531v1#S1">2026-08-06 預印本 Theorem 1.1</a>給出研究級增量</p>
+<div class="arithmatex">\[
+R(k+1,s+1)\ge R(k,s)+2k+2s,\qquad 5\le k\le s.
+\]</div>
+<p>關鍵是構造反例染色：從 <span class="arithmatex">\(R(k,s)-1\)</span> 點的臨界圖出發，藉兩次擴展、連接頂點與受控換邊，排除新出現的禁團。最後圖有 <span class="arithmatex">\(R(k,s)+2k+2s-1\)</span> 點，仍避開目標兩種團，所以強迫出現團的門檻至少再多一點。難處不在這行加法，而在證明換邊不會破壞任何一種禁團條件。</p>
+<p>取 <span class="arithmatex">\(k=s=11\)</span>，用已有下界 <span class="arithmatex">\(R(11,11)\ge1597\)</span>，得到 <span class="arithmatex">\(R(12,12)\ge1597+44=1641\)</span>。這個數是<strong>下界</strong>；沒有相應上界，就不能寫 <span class="arithmatex">\(R(12,12)=1641\)</span>。有限圖搜尋可以產生一份具體證書；對所有合適 <span class="arithmatex">\(k,s\)</span> 的構造仍需要一般證明。</p>
+<p>作者 <a href="https://github.com/milostatarevic/ramsey-increment-theorem">專案 README</a>區分可執行構造、禁團檢查、Lean 主定理、公理審計及獨立核心重放，並邀請逐行人類審讀。論文記載 AI 協助構造、形式化與審核，作者承擔結果責任；模型彼此同意不被當作證據。本課核讀了定理、構造輪廓、部分分支和驗證說明，沒有重跑這個專案。可學習的是如何組織可追查的證明材料，而不是以工具品牌替代數學。</p>
+<details class="answer">
+<summary>練習：把研究公式代入 k=s=2，為何得到錯誤結果？</summary>
+<p><span class="arithmatex">\(R(2,2)=2\)</span>，若不顧條件硬套，就會得 <span class="arithmatex">\(R(3,3)\ge2+4+4=10\)</span>，與剛才的精確值 6 矛盾。原定理明定 <span class="arithmatex">\(k,s\ge5\)</span>，所以矛盾是錯用條件造成的。此例也說明：只確認 Lean 中有同樣的代數式不夠，還必須核對假設。</p>
+</details>
+<h2 id="6">6. 為一份證明寫可檢查的結論<a class="headerlink" href="#6" title="Permanent link"></a></h2>
+<p>按這個順序留下材料：</p>
+<ol>
+<li><strong>固定目標與版本。</strong> 論文定理號、Lean 宣告全名、所有關鍵定義、commit 和工具鏈。條件、量詞、例外情形都屬於目標。</li>
+<li><strong>固定信任邊界。</strong> 列出接受的公理，查遞迴依賴。<code>sorryAx</code>、陌生公理或原生計算公理出現時，不能默默算進原白名單；先說明額外假設與採用理由。公理名單本身不證明核心真的重查過。</li>
+<li><strong>驗證證明與環境。</strong> 在受控環境重放；被測程式不能改題目、檢查器或結果。檔案搜尋能提醒可疑機制，不能證明整個環境安全。記錄日誌與依賴，不只記錄退出碼。</li>
+<li><strong>核對目標對應。</strong> comparator 比的是可信 Challenge 與 Solution 的形式化環境。它不把英文翻成可靠題目；其定義洞還需要額外審核。<a href="https://github.com/leanprover/comparator">目前 README</a>提示該工具已於 Lean 4.35.0 合入工具鏈，舊專案仍應依自己鎖定版本操作。本課未執行 comparator。</li>
+<li><strong>另記原論證。</strong> 如需聲稱原英文推導逐步正確，再對照每一步。若已有可靠形式證明且目標忠實，即使沒有英文稿，也可以有數學定理。</li>
+</ol>
+<p>例如可寫：「在指定 commit 與允許公理下，宣告 T 的依賴已由檢查器重放；T 的定義與量詞經人工核對符合目標；原英文推導尚未審讀。」若只讀了 README，就把第一句改成「作者報告完成重放，本次未執行」。如實報告工作範圍不會降低證明助手的價值，反而讓下一位讀者知道該從哪一步接手。</p>
+<p><strong>本課目前的結果</strong>是：小型合取交換例子完成本機檢查；研究專案完成指定材料的閱讀與對照；NS 全證明、Ramsey 全專案及 10 月 26 日新宣告均未由本課獨立驗收。這幾種狀態可以同時存在。</p>
+<h2 id="_1">來源、版本與實際核讀範圍<a class="headerlink" href="#_1" title="Permanent link"></a></h2>
+<p><strong>維護核查：2026-10-28。</strong> 下表不表示重讀了全部工具原始碼或重現了研究結果；書面來源與本機執行分開記錄。</p>
+<table>
+<thead>
+<tr>
+<th>材料</th>
+<th>用途與實際範圍</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://lean-lang.org/doc/reference/latest/Introduction/">Lean 參考手冊引言</a>、<a href="https://lean-lang.org/doc/reference/latest/Axioms/">公理章</a>、<a href="https://lean-lang.org/theorem_proving_in_lean4/Propositions-and-Proofs/">官方命題教程</a></td>
+<td>核讀核心、命題即型別、公理依賴相關段落；動態手冊與本機工具鏈不是同一版本</td>
+</tr>
+<tr>
+<td><a href="https://lean-lang.org/doc/api/Lean/Compiler/ImplementedByAttr.html">ImplementedByAttr</a>、<a href="https://github.com/leanprover/lean4/pull/12217">PR 12217</a></td>
+<td>屬性說明與原生計算公理的變更說明；本機另測 4.31.0 的依賴輸出</td>
+</tr>
+<tr>
+<td><a href="https://github.com/leanprover/lean4checker/blob/master/README.md">lean4checker README</a>、<a href="https://github.com/digama0/lean4lean">lean4lean README</a>、<a href="https://github.com/leanprover/comparator">comparator README</a></td>
+<td>核讀工具用途、前提、遷移提示、定義洞限制；未建置工具或對研究專案重放</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/html/2606.29493v1">審計論文 2606.29493v1</a></td>
+<td>§2–3、Appendix D 的檢查邊界與 <code>apply?</code> 事件；未重跑模型輸出</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/html/2608.29270v1">ShadowBench 2608.29270v1</a></td>
+<td>SA-Pass 定義、§5.2/Table 3 的 178 題與 61.8%/11.2% 結果；未復現基準</td>
+</tr>
+<tr>
+<td><a href="https://github.com/harbor-framework/terminal-bench/pull/1303">PR 1303</a>、<a href="https://github.com/harbor-framework/terminal-bench/pull/1305">PR 1305</a></td>
+<td>核讀兩個 PR 正文的重現與修復描述；原舊倉庫名重新導向 terminal-bench；本課未執行漏洞重現</td>
+</tr>
+<tr>
+<td><a href="https://github.com/leanprover/lean4/commit/d8e719f9ab7d049e423473dfc7a32867d32c856f">skipKernelTC 提交</a>、<a href="https://leanprover-community.github.io/archive/stream/270676-lean4/topic/debug.2EskipKernelTC.20true.html">Zulip 討論</a>、<a href="https://github.com/leanprover/lean-eval/blob/main/SECURITY.md">lean-eval 安全說明</a></td>
+<td>已公開的信任邊界例子與白名單政策；未在本機執行繞過檢查的程式</td>
+</tr>
+<tr>
+<td><a href="https://github.com/openai/math/tree/7ef5c0cc5ca4b0e072b7a050fca09ab24bc6fa3a">openai/math 固定版本</a></td>
+<td>README、history、三篇撤回通知、形式化目錄與所引 084 範圍頁；未審讀全部手稿；版本日期 10 月 26 日 UTC（上海已為 27 日）</td>
+</tr>
+<tr>
+<td><a href="https://cdn.openai.com/pdf/32d9f210-8b73-45e0-91bc-82a30aef8a9a/navier-stokes.pdf">NS 原稿</a>、<a href="https://arxiv.org/html/2610.08144v1">批評論文 2610.08144v1</a>、<a href="https://github.com/openai/NavierStokesAndEuler/tree/f9e8bc5b38b6e212696e8a30e3e91517af887bbd">固定程式版本</a></td>
+<td>原稿主定理與指定引理、批評 §3.1–3.2、相應兩個 Lean 宣告與頂層定義；未核讀全部 166 頁，未重放證明，不能稱為證明驗收</td>
+</tr>
+<tr>
+<td><a href="https://arxiv.org/html/2608.06531v1">Ramsey 預印本 2608.06531v1</a>、<a href="https://github.com/milostatarevic/ramsey-increment-theorem">作者專案</a></td>
+<td>主定理、§4.1/4.6–4.8 選段、§5–7、README 的驗證分工；未執行大型圖驗證或 Lean 建置</td>
+</tr>
+<tr>
+<td>本機例子</td>
+<td><code>and-swap.lean</code> 兩個定理與標準輸入對照；Lean 4.31.0，commit <code>68218e876d2a</code>；其日誌不能代替上述研究專案的日誌</td>
+</tr>
+</tbody>
+</table>
+</article>
+<footer class="pager">
+  <a class="pager-slot prev" href="19-inference-serving.html"><span class="pager-label">上一讲</span>19 · 推理服务：延迟、吞吐与排队</a>
+  <a class="pager-slot next" href="labs.html"><span class="pager-label">下一讲</span>实验总览（lab01–lab10）</a>
+</footer>
+</main>
+<script defer src="assets/katex/katex.min.js"></script>
+<script defer src="assets/katex/auto-render.min.js"></script>
+<script defer src="assets/site.js"></script>
+<script defer src="assets/learning/learning.js"></script>
+<script defer src="assets/learning/labs/lean-claim-ledger.js"></script>
+</body>
+</html>

@@ -41,6 +41,8 @@
     var SVG_NS = "http://www.w3.org/2000/svg";
     var STYLE_ID = "cl-root-interpolation-styles";
     var DERIVATIVE_TOLERANCE = 1e-5;
+    var RESIDUAL_TOLERANCE = 1e-14;
+    var INTERVAL_TOLERANCE = 1e-12;
     var MIN_NODE_COUNT = 4;
     var MAX_NODE_COUNT = 32;
 
@@ -248,8 +250,7 @@
 
     function inBracket(bracket, x) {
       if (!bracket || !bracket.valid || !finite(x)) return false;
-      var tolerance = 1e-12 * Math.max(1, Math.abs(bracket.left), Math.abs(bracket.right));
-      return x >= bracket.left - tolerance && x <= bracket.right + tolerance;
+      return x >= bracket.left && x <= bracket.right;
     }
 
     function shrinkBracket(bracket, x, fx) {
@@ -293,7 +294,7 @@
         intervalLeft: hasCertificate ? bracket.left : null,
         intervalRight: hasCertificate ? bracket.right : null,
         intervalCertificate: hasCertificate
-          ? Math.max(0, (bracket.right - bracket.left) / 2)
+          ? Math.max(x - bracket.left, bracket.right - x)
           : null,
         action: action || ""
       };
@@ -372,6 +373,16 @@
         var fx = finite(x) ? preset.f(x) : NaN;
         var derivative = finite(x) ? preset.df(x) : NaN;
         var row = rootRow(method, preset, step, x, bracket, original, "", "—");
+        if (finite(fx) && Math.abs(fx) <= RESIDUAL_TOLERANCE) {
+          row.action = "残差达到 1e-14，停止（不单独保证根误差）";
+          rows.push(row);
+          break;
+        }
+        if (bracket && bracket.right - bracket.left <= INTERVAL_TOLERANCE * Math.max(1, Math.abs(x))) {
+          row.action = "当前区间宽度达到容差，停止";
+          rows.push(row);
+          break;
+        }
         if (step === limit) {
           row.action = "记录当前点";
           rows.push(row);
@@ -384,8 +395,9 @@
         }
 
         var candidate = x - fx / derivative;
-        var candidateStatus = original.valid
-          ? inBracket(original, candidate) ? "候选在区间内" : "候选越界"
+        var candidateBracket = safeguarded && bracket ? bracket : original;
+        var candidateStatus = candidateBracket.valid
+          ? inBracket(candidateBracket, candidate) ? "候选在区间内" : "候选越界"
           : "无有效区间";
         row.candidateStatus = candidateStatus;
 
@@ -400,7 +412,7 @@
         var nextBracket = bracket;
 
         if (safeguarded) {
-          if (original.valid && !inBracket(original, candidate)) {
+          if (bracket && !inBracket(bracket, candidate)) {
             nextX = (bracket.left + bracket.right) / 2;
             nextFx = preset.f(nextX);
             row.action = "候选越界：区间回退到中点";
@@ -801,7 +813,7 @@
       appendMetric(doc, metrics, "二分证书半宽", formatNumber(lastBisection.intervalCertificate, 4), "ri-blue");
       appendMetric(doc, metrics, "Newton |f(x)|", formatNumber(lastNewton.residual, 4), "ri-red");
       appendMetric(doc, metrics, "Newton |x-r|", formatNumber(lastNewton.rootError, 4), "ri-red");
-      appendMetric(doc, metrics, "保守证书半宽", formatNumber(lastSafe.intervalCertificate, 4), "ri-green");
+      appendMetric(doc, metrics, "保守点误差上界", formatNumber(lastSafe.intervalCertificate, 4), "ri-green");
       target.appendChild(metrics);
 
       var charts = element(doc, "div", "ri-chart-grid");
@@ -846,7 +858,7 @@
       table.appendChild(body);
       ledger.appendChild(table);
       target.appendChild(ledger);
-      target.appendChild(element(doc, "p", "ri-note", "区间证书是存在性与定位信息，不是把任意 Newton 点自动变成有保证的近似；根误差一栏只有因为本固定预设的根已知，才作为教学对照显示。"));
+      target.appendChild(element(doc, "p", "ri-note", "对区间内当前点 x，证书为 max(x−a,b−x)；只有中点才能用半宽。残差停止只是数值判据；根误差一栏只有因为本固定预设的根已知，才作为教学对照显示。"));
     }
 
     function appendInterpolationResults(doc, target, data) {

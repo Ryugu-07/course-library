@@ -157,7 +157,7 @@ if len(sys.argv)==1:
  src=(ROOT/'grad-math/lectures/pde2-02-sobolev.md').read_text();site=(ROOT/'grad-math/site/pde2-02-sobolev.html').read_text()
  formulas=[(a or b).strip()for a,b in re.findall(r'\$\$(.*?)\$\$|(?<!\\)\$(?!\$)(.*?)(?<!\\)\$(?!\$)',src,re.S)]
  actual=[html.unescape(a or b).strip()for a,b in re.findall(r'<(?:span|div) class="arithmatex">(?:\\\((.*?)\\\)|\\\[(.*?)\\\])</(?:span|div)>',site,re.S)]
- ck(formulas==actual,'every formula preserved');ck(src.count('<details class="answer"')==4,'four complete answers')
+ ck(formulas==actual,'every formula preserved');ck(src.count('<details class="answer"')==6,'four core and two research answers')
  ck((ROOT/'.github/workflows/course-audit.yml').read_text().count('python tools/check_sobolev_full.py')==1,'one CI invocation')
  for link in re.findall(r'(?:href|src)="([^"]+)"',site):
   target=link.split('#')[0].split('?')[0]

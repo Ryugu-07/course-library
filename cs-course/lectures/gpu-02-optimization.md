@@ -21,7 +21,7 @@
 </div>
 <div class="learning-formal">
 <h3>形式机制与不变量</h3>
-<p>矩阵乘每个输出需 \(K\) 次乘加。无 tiling 时全局读取量近似为 \(2MNK\)；理想 \(T\times T\) tile 时，读入量近似为 \(2MNK/T\)，复用因子约为 \(T\)。在线 softmax 对已处理块维护 \(m=\max x_i\)、\(l=\sum_i e^{x_i-m}\)、\(o=\sum_i e^{x_i-m}v_i\)。加入新块最大值 \(m'\) 时：</p>
+<p>矩阵乘每个输出需 \(K\) 次乘加。无 tiling 时全局读取量近似为 \(2MNK\)；理想 \(T\times T\) tile 时，读入量近似为 \(2MNK/T\)，复用因子约为 \(T\)。在线 softmax 对已处理块维护 \(m=\max x_i\)、\(l=\sum_i e^{x_i-m}\)、\(o=\sum_i e^{x_i-m}v_i\)。令更新后的总最大值 \(m'=\max(m,\max_j x_j)\) 时：</p>
 <p class="arithmatex">\(l'=e^{m-m'}l+\sum_j e^{x_j-m'},\qquad o'=e^{m-m'}o+\sum_j e^{x_j-m'}v_j,\qquad y=o'/l'.\)</p>
 <p>不变量是 \(y\) 与一次性 stable softmax 的结果相同，而中间 \(N\times N\) 分数不必写入 global memory。</p>
 </div>
@@ -49,11 +49,11 @@ GPU 靠"线程多到掩盖延迟"工作（gpu-01）。**占用率（occupancy）
 
 
 <figure class="diagram" markdown="1">
-![共享内存 tiling：把块搬进共享内存复用，全局访问从 O(1) 提到 O(块边长)。](assets/img/gpu-02-tiling.svg)
-<figcaption><span class="fig-id">图 gpu-02.3</span>共享内存 tiling：把块搬进共享内存复用，全局访问从 O(1) 提到 O(块边长)。</figcaption>
+![共享内存 tiling：把块搬进共享内存复用，每次全局读取的数据复用由常数次提高到约 tile 边长次。](assets/img/gpu-02-tiling.svg)
+<figcaption><span class="fig-id">图 gpu-02.3</span>共享内存 tiling：把块搬进共享内存复用，每次全局读取的数据复用由常数次提高到约 tile 边长次。</figcaption>
 </figure>
 
-**GPU 绝大多数 kernel 是内存受限的**（Roofline 落在带宽屋顶下，perf-01），所以内存优化收益最大：
+先用 Roofline 判断 kernel 是受内存带宽、计算还是其他流水阶段限制；内存受限时，减少访存往往比增加算术吞吐更有效：
 
 - **合并访问**（gpu-01 铁律）：确保 warp 内相邻线程读写相邻全局地址。转置、跨步访问要特别小心——常需重排数据布局或用共享内存中转。
 - **共享内存 tiling【核心手法】**：以矩阵乘 $C=AB$ 为例——朴素版每个线程从全局内存反复读 A 的行、B 的列（大量重复慢访问）。**tiling 版**：block 内线程**协作**把 A、B 的一个小块搬进共享内存（每个元素只从全局读一次），然后 block 内所有线程从**快的共享内存**反复复用这个块算局部积，算完换下一块。**数据复用率从 O(1) 提到 O(块边长)**——这正是 csapp-02/perf-02 分块思想的 GPU 化身，也是 GPU 矩阵乘/卷积/attention 的通用骨架。
@@ -78,13 +78,29 @@ GPU 靠"线程多到掩盖延迟"工作（gpu-01）。**占用率（occupancy）
 
 
 <figure class="diagram" markdown="1">
-![FlashAttention：分块 + 在线 softmax，不落 N×N 中间矩阵，访存 O(N²)→O(N)。](assets/img/gpu-02-flash-attention.svg)
-<figcaption><span class="fig-id">图 gpu-02.1</span>FlashAttention：分块 + 在线 softmax，不落 N×N 中间矩阵，访存 O(N²)→O(N)。</figcaption>
+![FlashAttention 的三种成本：中间存储、算术量与跨 HBM/SRAM 的读写量必须分开。](assets/img/gpu-02-flash-attention.svg)
+<figcaption><span class="fig-id">图 gpu-02.1</span>FlashAttention 的三种成本：中间存储、算术量与跨 HBM/SRAM 的读写量必须分开。</figcaption>
 </figure>
 
 现代大模型推理的核心算子是 **attention**：$\text{softmax}(QK^T/\sqrt d)V$。朴素实现要**先算出完整的 $QK^T$ 矩阵（$N\times N$）存回全局内存、再 softmax、再乘 V**——这个 $N\times N$ 中间矩阵是**内存瓶颈**（长序列时爆显存 + 大量慢访问）。
 
-**FlashAttention 的核心洞察**（[实验 L09] 的目标）：**不把 $N\times N$ 中间矩阵写回全局内存**——用 tiling 把 Q、K、V 分块搬进共享内存，**在片上流式地**算局部 attention 并用"**在线 softmax**"（增量更新最大值和归一化因子，数值稳定）累积结果。**中间矩阵从不落全局内存 → 内存访问量从 $O(N^2)$ 降到 $O(N)$**，长序列大幅加速且省显存。
+**FlashAttention 的核心洞察**（[实验 L09] 的目标）：**不把 $N\times N$ 中间矩阵写回全局内存**——用 tiling 把 Q、K、V 分块搬进共享内存，**在片上流式地**算局部 attention 并用"**在线 softmax**"（增量更新最大值和归一化因子，数值稳定）累积结果。省去完整注意力矩阵的显存存储，但各 tile 仍可能多次读取 Q/K/V；省空间不等于总访存量对序列长度线性。
+
+令 \(N\) 为序列长度、\(d\) 为每头维数，\(M\) 为片上 SRAM 能容纳的**标量个数**（不是字节）。对稠密精确注意力，应分开三笔成本：
+
+| 成本 | 朴素实现 | FlashAttention 的含义 |
+|---|---|---|
+| HBM 中的输入、输出和中间状态 | \(\Theta(Nd+N^2)\) 存储 | 不保存完整分数矩阵，约 \(O(Nd)\) 存储，另有片上 tile |
+| 算术工作 | \(\Theta(N^2d)\) | 仍为 \(\Theta(N^2d)\)，未把稠密注意力变成线性算法 |
+| HBM 与 SRAM 之间的访问 | 原论文模型为 \(\Theta(Nd+N^2)\) | 在 \(d\le M\le Nd\) 的模型下为 \(\Theta(N^2d^2/M)\) |
+
+为什么第三行还有平方？一次能留在片上的 K/V 块宽约为 \(M/d\)，需走过约 \(Nd/M\) 个块；重复搬运的 \(Nd\) 规模数据乘上遍历次数，得到 \(N^2d^2/M\)。固定硬件的 \(M\) 和 \(d\)，把 \(N\) 翻倍，这个访问量仍可能约增四倍。只有改变参数关系，才可能得到不同缩放。这个渐近模型不是 GPU 性能预测器。来源：[原论文定理 2 与证明](https://arxiv.org/html/2205.14135v2#S3.SS2)。
+
+### 前沿选读：FA4 为什么还要改变流水线？
+
+2026-03-05 的 [FlashAttention-4 预印本](https://arxiv.org/html/2603.05451v1) 研究 Blackwell 上矩阵运算能力增长快于其他部件的问题。分块仍必要，但指数计算、共享内存搬运等阶段可能成为新的限速环节。TMEM、2-CTA 协作和 CuTe DSL 是具体硬件/实现选择，不能直接移植为 4060 Ti 的加速保证。
+
+**一个不依赖跑卡的判断题：**若某流水阶段原来矩阵运算需 10 单位、归一化需 4 单位，假定两阶段完全重叠，稳态周期至少为 \(\max(10,4)=10\)。只让矩阵运算快四倍，周期下界变成 \(\max(2.5,4)=4\)，整体至多快 2.5 倍。答案中的关键是瓶颈转移；实际同步、数据依赖还会增加时间。论文性能为作者测试，本课没有复现其内核。
 
 **这缝合了本站三条线**：GPU tiling（本页）+ 数值稳定的 softmax（🔗 数学站/ai 课的 log-sum-exp 技巧）+ Roofline"减少内存访问"（perf 线）。**[L09] 做一个玩具版**——不追求生产性能，但走通"分块 + 在线 softmax + 不落中间矩阵"的核心思路，你就摸到了 vLLM/FlashAttention 这类引擎（mlsys-02）最关键内核的骨架。
 

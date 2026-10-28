@@ -2,7 +2,7 @@
 
 > 你有一张人物图和一张衣服图，想换衣服、保留脸和姿势，再把人物做成透明素材。为什么不能把旧 Qwen 工作流里的模型文件换掉就运行？因为这次一起改变的是**生成模型、条件编码和 VAE 接口**。本讲先跑通配套模板，再用对照实验检验“保留了什么”。
 
-**核验日期：2026-09-21。** 官方于 9 月 20 日公开 Qwen-Image 2.1 权重，并提供 ComfyUI 原生入口。本讲已核对官方模型说明、节点源码和两份模板；尚未在你的 RTX 4060 Ti 16GB 上执行模型推理。第 06 讲的机器记录仍是历史快照。[官方发布与代码](https://github.com/QwenLM/Qwen-Image-2.1) · [ComfyUI 权重](https://huggingface.co/Comfy-Org/Qwen-Image-2.1)
+**基础版本核验：2026-09-21；Turbo、提示词增强与对应模板补核：2026-10-28。** 官方于 9 月 20 日公开基础权重，10 月 9 日公开 Turbo 权重。本讲保留原基础版的固定模板，再单列新版配套，未在 RTX 4060 Ti 16GB 上执行模型推理。第 06 讲的机器记录仍是历史快照。[官方发布与代码](https://github.com/QwenLM/Qwen-Image-2.1) · [ComfyUI 权重](https://huggingface.co/Comfy-Org/Qwen-Image-2.1)
 
 先修：[第 04 讲的三件套](04-architecture.html)、[第 08 讲的控制变量](08-parameters.html)、[第 10 讲的兼容矩阵](10-model-ecosystem.html)。学完应能解释组件为什么必须配对、编辑参考图怎样进入模型，以及怎样证明输出真的透明。
 
@@ -16,7 +16,7 @@
 
 官方模型说明的 **7B 是视觉生成组件**，不是整个推理系统。文本编码器也有权重，VAE、激活和缓存也占内存。2K 与多参考图是模型能力范围，不是本机显存与速度测量。官方使用说明目前按最多 10 张参考图组织任务；课堂先用 1–2 张，明确每张职责。
 
-权重采用 **Qwen Research License**：条款限定研究或评估用途，商业使用须另行取得许可。因此这里写“公开权重”，不把它等同于 Apache-2.0 或无限制商用。[具体许可证](https://huggingface.co/Qwen/Qwen-Image-2.1/blob/main/LICENSE)
+基础版与 Turbo 权重采用 **Qwen Research License**：文本把 Non-Commercial 定义为研究或评估用途，商业使用须另行取得许可。因此这里写“公开权重”，不把它等同于 Apache-2.0 或无限制商用。[基础版许可证](https://huggingface.co/Qwen/Qwen-Image-2.1/blob/main/LICENSE) · [Turbo 许可证](https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo/blob/main/LICENSE)（本轮核读定义及授权条款，文本日期均为 2026-09-20）。API 服务与下载权重是不同交付，Pro API 的发布也不能写成 Pro 权重已公开。
 
 ## 2. 三件套与双路参考条件
 
@@ -41,7 +41,7 @@ $$
 
 先备份旧 workflow 与用户配置，更新到包含 Qwen Image 2.1 节点的 ComfyUI，并同步其前端和模板依赖。稳定版/桌面端可能晚于源码支持；导入失败时检查实际安装版本，不要随机安装一个同名社区节点包。[官方更新说明](https://docs.comfy.org/installation/update_comfyui)
 
-本次官方模板默认选择下面的 INT8 组合；它是复现起点，**不是 16GB 跑通认证**。同仓库也有 BF16 选项，选定一种对应组件即可，不必把所有精度都下载。
+本讲 **9 月固定基础模板**选择下面的 INT8 组合；它是复现起点，**不是 16GB 跑通认证**。同仓库也有 BF16 选项，选定一种对应组件即可，不必把所有精度都下载。
 
 | 角色 | 默认文件 | ComfyUI 模型目录 |
 |---|---|---|
@@ -60,9 +60,44 @@ $$
 
 编辑模板中的两张示例图片需要另取，或用你有权使用的目标图和衣服参考图替换 `LoadImage`。第一张是编辑目标，后面的图负责提供参考；保留参考顺序并用 `<image1>`、`<image2>` 指明职责。进入子图可以看到 `UNETLoader`、`CLIPLoader`、`VAELoader` 与 `TextEncodeQwenImage21`；`CLIPLoader` 是节点名，这里装的是配套 Qwen3-VL，并不意味着能换成 SD 的 CLIP。
 
-## 4. 参数要跟着这份模板解释
+### 3.2 Turbo：权重与时间网格一起换
 
-| 参数 | 本次模板基线 | 怎样做对照 |
+[官方 Turbo 说明](https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo)给出 8 步推荐采样日程。Comfy-Org 提供完整 Turbo 权重，也提供从基础模型提取的 Turbo LoRA 路线；本讲先使用完整模型模板，避免把两条路线重复叠加。以下是 **2026-10-13 提交的固定 UI JSON**，与前面的基础模板分别保存：
+
+- [Turbo 文生图模板](https://raw.githubusercontent.com/Comfy-Org/workflow_templates/0cf483d1dcb548b8b8d3f38ddf0ff41c89896cdb/templates/image_qwen_image_2_1_turbo_t2i.json)
+- [Turbo 图像编辑模板](https://raw.githubusercontent.com/Comfy-Org/workflow_templates/0cf483d1dcb548b8b8d3f38ddf0ff41c89896cdb/templates/image_qwen_image_2_1_turbo_image_edit.json)
+
+两者选用 `qwen_image_2.1_turbo_int8_convrot.safetensors`，保留配套 Qwen3-VL 编码器和 RGBA VAE，采样器为 euler、CFG 为 1。它们的 `ManualSigmas` 节点保存了 **9 个端点构成的 8 个区间**，而不是把基础版的 simple scheduler 随意缩短到 8 步：
+
+```text
+1.0, 0.978453, 0.95418, 0.926626, 0.89508,
+0.845148, 0.704534, 0.414568, 0
+```
+
+为什么“都是八步”仍不同？一次简化的 Euler 更新可写为 $z_{k+1}=z_k+(\sigma_{k+1}-\sigma_k)v_\theta(z_k,\sigma_k,c)$：$z$ 是潜变量，$c$ 是条件，$v_\theta$ 是模型给出的更新方向。步数决定调用次数，时间点决定**在哪些噪声位置询问模型、每次跨多远**；权重决定返回什么方向。实际节点还处理模型预条件等细节，这个式子解释配套关系，不是替代实现的推理代码。只改旧版 steps，既没换权重，也未必选到这组时间点。
+
+核 JSON 时还要跟随连线：编辑子图的 `CFGGuider` 内部保留一个未生效的 widget 数值，实际 CFG 由外层连接输入，固定模板外层是 1。不能从某个孤立数字推断运行参数；运行前应检查最终输入端口与导出的 API 图。
+
+### 3.3 提示词增强：先改的是条件，不是画图模型
+
+新版模板还有可选的 Prompt Enhancer（PE）。[Comfy 模型卡](https://huggingface.co/Comfy-Org/Qwen-Image-2.1)用 `Generate Text`（JSON 类型 `TextGenerate`）节点运行独立模型：文生图用 `qwen3.5_9b_qwen_image_2.1_pe_t2i.int8_convrot.safetensors`，编辑用相应 `pe_i2i` 文件。它们**不替换**生成条件编码器 `qwen3vl_8b`；PE 先输出文字，随后才进入生成模型的条件编码。
+
+例如你写“给这件外套换成蓝色，其他不变”，增强器若补成“蓝色夹克、夜景、冷色灯光”，可能让画面更丰富，却破坏“只换颜色”。因此保存原提示词 $p$ 与实际进入生成器的增强文本 $p^*$，先审查新增、删除和改写的约束，再看图片。更好看不等于更忠实。
+
+如果想回答“改进来自 Turbo，还是来自增强提示词”，可先在纸上设计下面的对照；有兼容硬件后再执行，不需要为了填表立刻下载额外模型：
+
+| 生成配方 | 固定原文 $p$ | 固定增强文本 $p^*$ |
+|---|---|---|
+| 基础版 + 基础采样日程 | A | B |
+| Turbo + Turbo 采样日程 | C | D |
+
+先生成并保存一次 $p^*$，然后把它直接送入 B、D，避免增强器每次随机重写。A/B 或 C/D 比较条件变化；A/C 或 B/D 比较整套生成配方，不能单独归因于权重或步数。固定输入图、画布、生成种子及输出验收项，多个种子重复；另记 PE 种子和耗时。生成计时与“提示词增强 + 生成”的总计时分列，才能回答实际是否更省时间。
+
+ControlNet Union 是另一类条件扩展，模型卡把它放在 `models/model_patches/`；它不因同处仓库就成为上述两个模板的必装件。先完成配套基线，再核验扩展的节点、权重与模板，不能拿旧 SD 控制组件直接替换。
+
+## 4. 基础模板参数：不要混入 Turbo 的日程
+
+| 参数 | 9 月固定基础模板 | 怎样做对照 |
 |---|---|---|
 | steps | 25 | 官方模型示例使用 40；固定其他量再比较 25/40，记录耗时与细节 |
 | sampler / scheduler | `euler` / `simple` | 先复现基线，再研究其他组合 |
@@ -131,12 +166,14 @@ JPEG 不保留 alpha。不要只把 JPEG 扩展名改成 PNG；也不要把预�
 先完成文生图小批次，再增加参考图和输出尺寸。每个实验至少填写：
 
 ```text
-日期 / ComfyUI commit / frontend / 模板 commit:
-三个权重的文件名、版本、哈希、精度:
+日期 / ComfyUI commit / frontend / 模板 commit / 基础版或Turbo:
+所有已使用组件的文件名、版本、哈希、精度:
 输入图哈希 / 参考顺序 / 实际缩放后宽高:
-提示词 / seed / seed策略 / steps / CFG / sampler / scheduler:
+原提示词 / PE开关、模型、种子 / 实际进入生成器的提示词:
+生成seed / seed策略 / steps / CFG / sampler / scheduler或完整sigmas:
 batch / offload与cache设置 / 输出尺寸:
-加载峰值 / 采样峰值 / VAE峰值 / 系统内存峰值 / 耗时:
+加载峰值 / 采样峰值 / VAE峰值 / 系统内存峰值:
+冷启动 / PE耗时 / 生成耗时 / 总耗时:
 结果: PASS 或 OOM/报错；PNG通道、文字与保留项检查:
 ```
 
@@ -162,6 +199,11 @@ batch / offload与cache设置 / 输出尺寸:
 <p>不一定。CFG=1时公式只剩正向预测；非零resolution约束参考图面积并近似保留长宽比。应先核对参数语义，不能把SDXL经验或控件名字当作通用规则。</p>
 </details>
 
+<details markdown="1"><summary>4. 开启 PE、换成 Turbo，出图更快也更漂亮，是否能断言 Turbo 更遵循原指令？</summary>
+
+不能。生成配方与实际提示词同时变了；PE 甚至可能改掉原约束。先保存增强文本，按第 3.3 节分别比较同配方不同文本、同文本不同配方，并逐项检查“只换外套、脸和背景不变”。快还要说明是否计入 PE 和模型加载；整套配方的比较也不等于单独证明蒸馏或某个采样点有效。
+</details>
+
 ## 来源与版本
 
 本讲将教学推导与官方事实分开：CFG代入、面积缩放和alpha合成是解释；能力、节点和文件名按以下来源核验。后续官方更新可能改变模板默认值。
@@ -170,5 +212,8 @@ batch / offload与cache设置 / 输出尺寸:
 - [Comfy-Org 三件套说明](https://huggingface.co/Comfy-Org/Qwen-Image-2.1/blob/main/README.md)。
 - [固定文生图模板](https://github.com/Comfy-Org/workflow_templates/blob/371a7b7171bbd11e9cc92ef615ba5ad223d7e5b4/templates/image_qwen_image_2_1_t2i.json)与本讲前面的固定编辑模板。
 - [核心节点源码快照](https://github.com/Comfy-Org/ComfyUI/blob/b0f4b7b294ce482a2e071d9d762c133d38c7aa07/comfy_extras/nodes_qwen.py)：实现端口数不等于已验证的多图使用上限，课程仍按官方10参考图说明。
+- [Turbo 官方模型卡](https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo)及[官方发布记录](https://github.com/QwenLM/Qwen-Image-2.1)：核读发布日期与推荐日程说明；未执行 Diffusers 示例。
+- [Turbo 固定模板提交](https://github.com/Comfy-Org/workflow_templates/commit/0cf483d1dcb548b8b8d3f38ddf0ff41c89896cdb)：读取两份 JSON 的组件、sigmas、PE 节点和连接输入；这是结构核验，不是成功推理日志。
+- [Turbo LICENSE](https://huggingface.co/Qwen/Qwen-Image-2.1-Turbo/blob/main/LICENSE)：本轮读到定义与授权等正文；基础版、Turbo、PE、附加工具和托管服务不能仅凭相似名字假定许可相同，实际使用按各组件条款核对。
 
 下一步回到[工作流实验室](workflows.html)，用同一份五层依赖账本保存你自己的运行证据。

@@ -52,7 +52,7 @@ try {
 <div class="nav-part"><div class="nav-part-title">研究课程 · 微观到宏观</div><ul><li><a href="kinetic-01-liouville-marginals.html">动理学 I · Liouville 与边缘分布</a></li><li><a href="kinetic-02-boltzmann-collisions.html">动理学 II · 碰撞与 Boltzmann 方程</a></li><li><a href="kinetic-03-hydrodynamic-limits.html">动理学 III · 流体极限与闭合</a></li><li><a href="kinetic-04-wave-kinetics.html">动理学 IV · 波湍流与共振</a></li></ul></div>
   <div class="sidebar-foot">
     <button id="theme-toggle">☀ / ☾</button>
-    <div class="build-time">构建于 2026-09-14 00:51</div>
+    <div class="build-time">构建于 2026-10-28 02:18</div>
   </div>
 </nav>
 <main id="content">
@@ -70,7 +70,13 @@ try {
 </li>
 <li><a href="#6">6. 两道迁移题</a></li>
 <li><a href="#7">7. 正在向哪里推进</a></li>
-<li><a href="#_2">速查：路径桥的三个层次</a></li>
+<li><a href="#8">8. 研究阅读：拟合端点，为什么仍会预测错干预</a><ul>
+<li><a href="#_2">两份端点数据，藏得住任意斜率</a></li>
+<li><a href="#_3">局部导数怎样控制有限变化</a></li>
+<li><a href="#_4">为什么要分清单条轨迹与平均响应</a></li>
+</ul>
+</li>
+<li><a href="#_5">速查：路径桥的三个层次</a></li>
 </ul>
 </div>
 </details>
@@ -204,8 +210,48 @@ p=\frac{1}{2(1+e^{-1/\varepsilon})},\qquad q=\frac12-p.
 <li>Shi、De Bortoli、Campbell、Doucet，<a href="https://arxiv.org/abs/2303.16852">Diffusion Schrödinger Bridge Matching</a>：首发 <strong>2023-03-29</strong>；迭代 Markov 拟合与计算方法研究。</li>
 <li>Noble 等，<a href="https://arxiv.org/abs/2607.16987">Twisted Schrödinger Bridge Matching</a>：首发 <strong>2026-07-18</strong>，所查页面标为<strong>预印本</strong>；推广到带势能的桥，并报告数值实验，不能据此宣布所有训练情境均有保证。</li>
 </ul>
+<h2 id="8">8. 研究阅读：拟合端点，为什么仍会预测错干预<a class="headerlink" href="#8" title="Permanent link"></a></h2>
+<p>想用学到的随机运输模型回答“黏性改变一点，终点平均速度怎样变”。这和“当前黏性下终点分布拟合得好”是两道题。用 <span class="arithmatex">\(a\)</span> 表示外部控制参数，<span class="arithmatex">\(Y(a)\)</span> 表示终点随机量；这里不用前文的 <span class="arithmatex">\(u_t\)</span>，避免把外部参数与过程的控制漂移混淆。</p>
+<h3 id="_2">两份端点数据，藏得住任意斜率<a class="headerlink" href="#_2" title="Permanent link"></a></h3>
+<p>只在 <span class="arithmatex">\(a=0,1\)</span> 有观测。令新模型</p>
+<div class="arithmatex">\[
+\widetilde Y(a)=Y(a)+b\,a(a-1)w,
+\]</div>
+<p>其中 <span class="arithmatex">\(w\)</span> 是固定方向，<span class="arithmatex">\(b\)</span> 任意。在两个训练参数上，新增项严格为零，所以连完整终点分布都一样。但终点均值的导数在 <span class="arithmatex">\(a=0\)</span> 相差 <span class="arithmatex">\(-bw\)</span>，可以任意大。有限个参数 <span class="arithmatex">\(a_i\)</span> 时，把 <span class="arithmatex">\(a(a-1)\)</span> 换为 <span class="arithmatex">\(\prod_i(a-a_i)\)</span> 即有相同机制。<strong>端点拟合没有观察到参数之间怎样变化。</strong></p>
+<p>Khan、Bondi-Kelly 的 <strong>2026-10-02 预印本</strong> <a href="https://arxiv.org/html/2610.02906v1">Tangent Schrödinger Bridge Matching</a>据此引入机制敏感度监督：除了拟合终点，还学习模型对参数的响应。敏感度目标可能来自可微模拟器或成对扰动；它是额外信息，不是从有限端点凭空恢复全部因果结构。</p>
+<h3 id="_3">局部导数怎样控制有限变化<a class="headerlink" href="#_3" title="Permanent link"></a></h3>
+<p>固定其他条件，记预测均值 <span class="arithmatex">\(m_\theta(a)\)</span>、真实均值 <span class="arithmatex">\(m_*(a)\)</span>，Jacobian 为 <span class="arithmatex">\(J_\theta,J_*\)</span>。令参数位移 <span class="arithmatex">\(\delta=rv\)</span>，<span class="arithmatex">\(\|v\|=1\)</span>，并假设两均值在整条线段 <span class="arithmatex">\(a+s\delta\)</span> 上连续可微。有限变化 <span class="arithmatex">\(D_\theta=m_\theta(a+\delta)-m_\theta(a)\)</span> 满足</p>
+<div class="arithmatex">\[
+D_\theta-D_*
+=r\int_0^1[J_\theta(a+s\delta)-J_*(a+s\delta)]v\,ds.
+\]</div>
+<p>这是沿线段应用微积分基本定理；再对区间 <span class="arithmatex">\([0,1]\)</span> 用 Cauchy–Schwarz：</p>
+<div class="arithmatex">\[
+\|D_\theta-D_*\|^2
+\le r^2\int_0^1\|[J_\theta-J_*](a+s\delta)v\|^2\,ds.
+\]</div>
+<p>所以要控制有限干预，需控制<strong>整条线段</strong>上的方向导数误差。只在起点导数相同不够：<span class="arithmatex">\(m_\theta(a)=ba^2\)</span>、<span class="arithmatex">\(m_*(a)=0\)</span> 在零点导数都为零，但位移 <span class="arithmatex">\(r\)</span> 后差 <span class="arithmatex">\(br^2\)</span>。若只监督若干采样点，还要有覆盖与正则性条件，才能由经验损失推到积分界。</p>
+<h3 id="_4">为什么要分清单条轨迹与平均响应<a class="headerlink" href="#_4" title="Permanent link"></a></h3>
+<p>设目标是平均响应 <span class="arithmatex">\(t\)</span>，而一次随机 rollout 给响应向量 <span class="arithmatex">\(Z\)</span>。直接平方损失满足</p>
+<div class="arithmatex">\[
+E\|Z-t\|^2=\|EZ-t\|^2+E\|Z-EZ\|^2.
+\]</div>
+<p>它除了惩罚均值错误，还惩罚真实随机响应的方差。若监督意图仅为均值，这可能改变任务。对给定输入与固定目标下<strong>独立</strong>的两次 rollout <span class="arithmatex">\(Z_1,Z_2\)</span>，则</p>
+<div class="arithmatex">\[
+E\langle Z_1-t,Z_2-t\rangle=\|EZ-t\|^2.
+\]</div>
+<p>独立性使交叉协方差消失；若复用同一条随机轨迹，就又把方差放回去了。目标自身若有偏或有噪声，也要另计误差。不能把桥时间的导数、物理时间演化和外部参数响应当成同一种导数。</p>
+<details class="answer">
+<summary>练习1：两个模型在所有训练参数的完整分布都相同，为何仍不能保证响应相同？</summary>
+<p>上述多项式扰动在所有训练参数为零，却可以在这些点有非零导数。分布匹配约束的是函数值，不是邻域变化。要排除这种模型，需增加响应信息或明确限制可用模型族；多训练几轮不能创造缺失的约束。</p>
+</details>
+<details class="answer">
+<summary>练习2：整条线段上响应误差范数至多 ε，位移长度 r 能保证什么？</summary>
+<p>代入积分界得 <span class="arithmatex">\(\|D_\theta-D_*\|\le r\varepsilon\)</span>。这是两端之差的误差。若要比较终点绝对值，还须加起点误差 <span class="arithmatex">\(\|m_\theta(a)-m_*(a)\|\)</span>。如果监督目标本身距真实响应至多 <span class="arithmatex">\(\beta\)</span>，拟合误差至多 <span class="arithmatex">\(\varepsilon\)</span>，可先用三角不等式把真实响应误差界成 <span class="arithmatex">\(\varepsilon+\beta\)</span>。</p>
+</details>
+<p><strong>版本与核读范围（2026-10-28）：</strong> <a href="https://arxiv.org/abs/2610.02906v1">arXiv:2610.02906v1</a>，首发 2026-10-02，预印本。核读 §4 的命题与 Appendix A.2–A.7 的相关推导、§5.1 的实验定义；未复现实验，未将报告的性能提升当作任意系统保证。上面的二次多项式例子是本课教学特例；线段误差推导对应论文 Proposition 2。此方向承接本课的“参考路径律不能由端点照片省略”，同时需要参数微分与随机估计，并不替换第 1–4 节的稳定基础。</p>
 </section>
-<h2 id="_2">速查：路径桥的三个层次<a class="headerlink" href="#_2" title="Permanent link"></a></h2>
+<h2 id="_5">速查：路径桥的三个层次<a class="headerlink" href="#_5" title="Permanent link"></a></h2>
 <table>
 <thead>
 <tr>
